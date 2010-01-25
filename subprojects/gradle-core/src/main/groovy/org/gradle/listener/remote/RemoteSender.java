@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,39 +15,26 @@
  */
 package org.gradle.listener.remote;
 
-import org.gradle.listener.dispatch.*;
+import org.gradle.messaging.TcpMessagingClient;
 
-import java.io.BufferedOutputStream;
 import java.io.Closeable;
 import java.io.IOException;
-import java.io.OutputStream;
-import java.net.Socket;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.net.URI;
 
 public class RemoteSender<T> implements Closeable {
-    private final ProxyDispatchAdapter<T> source;
-    private final Socket socket;
-    private final CloseableDispatch<Message> asyncDispatch;
-    private ExecutorService executor;
+    private final T source;
+    private final TcpMessagingClient client;
 
-    public RemoteSender(Class<T> type, int port) throws IOException {
-        socket = new Socket((String) null, port);
-        OutputStream outstr = new BufferedOutputStream(socket.getOutputStream());
-        executor = Executors.newSingleThreadExecutor();
-        asyncDispatch = new AsyncDispatch<Message>(executor, new SerializingDispatch(outstr));
-        source = new ProxyDispatchAdapter<T>(type, asyncDispatch);
+    public RemoteSender(Class<T> type, URI serverAddress) {
+        client = new TcpMessagingClient(type.getClassLoader(), serverAddress);
+        source = client.getConnection().addOutgoing(type);
     }
 
     public T getSource() {
-        return source.getSource();
+        return source;
     }
 
     public void close() throws IOException {
-        asyncDispatch.dispatch(new EndOfStream());
-        asyncDispatch.close();
-        executor.shutdown();
-        socket.close();
+        client.stop();
     }
 }
-

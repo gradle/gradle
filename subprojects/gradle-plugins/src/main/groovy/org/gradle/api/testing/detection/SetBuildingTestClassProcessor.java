@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.testing.detection;
+
+import org.gradle.api.testing.fabric.TestClassRunInfo;
 
 import java.util.Collections;
 import java.util.HashSet;
@@ -34,11 +36,11 @@ public class SetBuildingTestClassProcessor implements TestClassProcessor {
         this.testClassNames = new HashSet<String>();
     }
 
-    public void processTestClass(final String testClassName) {
-        testClassNames.add(testClassName);
+    public void processTestClass(TestClassRunInfo testClass) {
+        testClassNames.add(testClass.getTestClassName().replace('.', '/') + ".class");
     }
 
-    public Set<String> getTestClassNames() {
+    public Set<String> getTestClassFileNames() {
         return Collections.unmodifiableSet(testClassNames);
     }
 }

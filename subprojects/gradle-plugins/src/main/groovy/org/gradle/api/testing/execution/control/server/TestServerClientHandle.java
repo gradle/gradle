@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,13 +15,11 @@
  */
 package org.gradle.api.testing.execution.control.server;
 
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.ForkStatus;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.slf4j.LoggerFactory;
-import org.slf4j.Logger;
 
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -30,9 +28,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class TestServerClientHandle {
-    private static final Logger LOGGER = LoggerFactory.getLogger(TestServerClientHandle.class);
-
-    private final Pipeline pipeline;
+    private final QueueingPipeline pipeline;
     private final int forkId;
     private final ForkControl forkControl;
 
@@ -40,7 +36,7 @@ public class TestServerClientHandle {
     private ForkStatus status = ForkStatus.STOPPED;
     private TestClassRunInfo currentTest;
 
-    public TestServerClientHandle(Pipeline pipeline, int forkId, ForkControl forkControl) {
+    public TestServerClientHandle(QueueingPipeline pipeline, int forkId, ForkControl forkControl) {
         this.pipeline = pipeline;
         this.forkId = forkId;
         this.forkControl = forkControl;

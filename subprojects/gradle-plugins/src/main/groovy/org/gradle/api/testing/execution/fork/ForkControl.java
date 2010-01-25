@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,10 +15,8 @@
  */
 package org.gradle.api.testing.execution.fork;
 
-import org.gradle.api.testing.execution.Pipeline;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,8 +28,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class ForkControl {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ForkControl.class);
-
     private final Lock forkControlLock;
     private final AtomicInteger forkIdSeq;
     private final int maximumNumberOfForks;
@@ -56,19 +52,17 @@ public class ForkControl {
         return forkIdSeq.incrementAndGet();
     }
 
-    private ForkInfo createForkInfo(int forkId, Pipeline pipeline) {
+    private ForkInfo createForkInfo(int forkId, QueueingPipeline pipeline) {
         final ForkPolicyInstance forkPolicyInstance = pipeline.getForkPolicyInstance();
 
         final ForkInfo forkInfo = new ForkInfo(forkId, pipeline);
 
-        forkInfo.setPolicyInfo(forkPolicyInstance.createForkPolicyForkInfo());
-
-        forkPolicyInstance.prepareFork(forkInfo);
-
+        forkInfo.setPolicyInfo(forkPolicyInstance.createForkPolicyForkInfo(forkInfo));
+        
         return forkInfo;
     }
 
-    public ForkInfo createForkInfo(Pipeline pipeline) {
+    public ForkInfo createForkInfo(QueueingPipeline pipeline) {
         forkControlLock.lock();
         try {
             final int pipelineId = pipeline.getId();
@@ -111,8 +105,6 @@ public class ForkControl {
         try {
             forkInfo.starting();
 
-            final ForkPolicyInstance forkPolicyInstance = forkInfo.getPipeline().getForkPolicyInstance();
-
             Map<Integer, ForkInfo> forks = forkHandles.get(forkInfo.getPipeline().getId());
             if (forks == null) {
                 forks = new HashMap<Integer, ForkInfo>();
@@ -120,7 +112,7 @@ public class ForkControl {
             forks.put(forkInfo.getId(), forkInfo);
             forkHandles.put(forkInfo.getPipeline().getId(), forks);
 
-            forkPolicyInstance.startFork(forkInfo);
+            forkInfo.getForkPolicyInfo().start();
 
             startedForks++;
         } finally {

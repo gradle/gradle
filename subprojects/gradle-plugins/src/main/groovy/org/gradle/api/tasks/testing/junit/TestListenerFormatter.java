@@ -30,30 +30,27 @@ import org.gradle.util.shutdown.ShutdownHookActionRegister;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 public class TestListenerFormatter implements JUnitResultFormatter {
-    private static final String PORT_VMARG = "test.listener.remote.port";
+    private static final String SERVER_ADDRESS = "test.listener.server.address";
     private static TestListener defaultSender;
     private TestListener remoteSender;
     private Throwable error;
 
-    public TestListenerFormatter() throws IOException {
+    public TestListenerFormatter() throws URISyntaxException {
         // An instance of this class is created for each test class, so use a singleton RemoteSender
         if (defaultSender == null) {
-            String portStr = System.getProperty(PORT_VMARG);
-            if (portStr == null) {
+            String serverAddress = System.getProperty(SERVER_ADDRESS);
+            if (serverAddress == null) {
                 // This can happen when the listener is instantiated in the build process, for example, when the
                 // test vm crashes
                 defaultSender = new ListenerBroadcast<TestListener>(TestListener.class).getSource();
             }
             else {
                 // Assume we're in the forked test process
-                int port = Integer.parseInt(portStr);
-                if (port <= 0) {
-                    throw new IllegalArgumentException(String.format(
-                            "Invalid port '%s' specified for remote test listener.", System.getProperty(PORT_VMARG)));
-                }
-                RemoteSender<TestListener> sender = new RemoteSender<TestListener>(TestListener.class, port);
+                RemoteSender<TestListener> sender = new RemoteSender<TestListener>(TestListener.class, new URI(serverAddress));
                 ShutdownHookActionRegister.closeOnExit(sender);
                 defaultSender = sender.getSource();
             }

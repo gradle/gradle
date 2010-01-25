@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,17 @@
  */
 package org.gradle.api.testing.execution.control.messages;
 
-import org.apache.mina.core.session.IoSession;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
+import org.gradle.messaging.dispatch.Dispatch;
+
+import java.util.Set;
 
 /**
  * @author Tom Eyckmans
  */
 public interface TestControlMessageHandler {
-    void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client);
+    Set<? extends Class<?>> getMessageClasses();
+
+    void handle(Object controlMessage, TestServerClientHandle client, Dispatch<TestServerControlMessage> clientConnection);
 }

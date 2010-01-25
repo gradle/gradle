@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,27 @@
 package org.gradle.listener;
 
 import org.gradle.api.Transformer;
-import org.gradle.listener.dispatch.AsyncDispatch;
-import org.gradle.listener.dispatch.CloseableDispatch;
-import org.gradle.listener.dispatch.Event;
+import org.gradle.messaging.dispatch.AsyncDispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.StoppableDispatch;
 
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 
 /**
  * An {@code AsyncListenerBroadcast} is a {@code ListenerBroadcast} which dispatches events to listeners asynchronously
- * to the generation of the events. Ordering between listeners is maintained.
+ * to the generation of the events. Events are delivered in the order generated, and ordering between listeners is
+ * maintained.
  */
 public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
     public AsyncListenerBroadcast(Class<T> type) {
         this(type, Executors.newSingleThreadExecutor());
     }
 
-    AsyncListenerBroadcast(Class<T> type, final Executor executor) {
-        super(type, new Transformer<CloseableDispatch>() {
-            public CloseableDispatch transform(CloseableDispatch original) {
-                return new AsyncDispatch<Event>(executor, original);
+    public AsyncListenerBroadcast(Class<T> type, final Executor executor) {
+        super(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
+            public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {
+                return new AsyncDispatch<MethodInvocation>(executor, original);
             }
         });
     }

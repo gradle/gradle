@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -50,8 +50,8 @@ class AntJUnitExecute {
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
         ]
 
-        final RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, TestListenerFormatter.class.classLoader);
-        logger.debug("Listening for test listener events on port {}.", remoteReceiver.boundPort)
+        final RemoteReceiver remoteReceiver = new RemoteReceiver(TestListener.class, testListenerBroadcaster);
+        logger.debug("Listening for test listener events on {}.", remoteReceiver.localAddress)
         try {
             ant.junit(otherArgs + junitOptions.optionMap()) {
                 junitOptions.forkOptions.jvmArgs.each {
@@ -64,7 +64,7 @@ class AntJUnitExecute {
                     env(key: key, value: value)
                 }
                 formatter(junitOptions.formatterOptions.optionMap())
-                sysproperty(key: TestListenerFormatter.PORT_VMARG, value: remoteReceiver.boundPort)
+                sysproperty(key: TestListenerFormatter.SERVER_ADDRESS, value: remoteReceiver.localAddress)
                 formatter(type: 'plain', classname: TestListenerFormatter.class.name)
                 batchtest(todir: testResultsDir.absolutePath) {
                     fileset(dir: compiledTestsClassesDir.absolutePath) {
@@ -81,7 +81,7 @@ class AntJUnitExecute {
                 }
             }
         } finally {
-            remoteReceiver.close();
+            remoteReceiver.stop();
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,17 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.testing.TestOrchestrator;
-import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
 import org.gradle.api.testing.execution.PipelineConfig;
-import org.gradle.api.testing.execution.fork.policies.local.single.LocalSimpleForkPolicyConfig;
 import org.gradle.api.testing.execution.control.refork.*;
-import org.gradle.api.testing.reporting.ReportConfig;
-import org.gradle.api.testing.reporting.policies.ReportPolicyNames;
-import org.gradle.api.testing.reporting.policies.ReportPolicyRegister;
-import org.gradle.api.testing.reporting.policies.console.ConsoleReportPolicyConfig;
+import org.gradle.api.testing.execution.fork.policies.local.single.LocalSimpleForkPolicyConfig;
+import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
+import org.gradle.api.testing.reporting.policies.ReportPolicy;
+import org.gradle.api.testing.reporting.policies.console.ConsoleReportPolicy;
 import org.gradle.util.GUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author Tom Eyckmans
@@ -42,8 +39,7 @@ public class NativeTest extends AbstractTestTask {
 
     private PipelineConfig defaultPipelineConfig;
     private Map<String, PipelineConfig> pipelineConfigs;
-    private ReportConfig consoleReport;
-    private Map<String, ReportConfig> reportConfigs;
+    private List<ReportPolicy> reportConfigs;
 
     private int maximumNumberOfForks = Integer.MAX_VALUE; // +/- no limit
     private int amountOfForksToStart = 1; // default
@@ -58,19 +54,13 @@ public class NativeTest extends AbstractTestTask {
 
         pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);
 
-        reportConfigs = new HashMap<String, ReportConfig>();
+        reportConfigs = new ArrayList<ReportPolicy>();
 
         // by default we report errors and failures to the console
-        consoleReport = new ReportConfig("console");
-        consoleReport.setPolicyConfig(ReportPolicyRegister.getReportPolicy(
-                ReportPolicyNames.CONSOLE).createReportPolicyConfigInstance());
-        final ConsoleReportPolicyConfig reportPolicyConfig = (ConsoleReportPolicyConfig) consoleReport
-                .getPolicyConfig();
-        reportPolicyConfig.addShowStates(TestMethodProcessResultStates.values()); // add all 
+        ConsoleReportPolicy config = new ConsoleReportPolicy();
+        config.addShowStates(TestMethodProcessResultStates.values()); // add all
 
-        reportConfigs.put(consoleReport.getName(), consoleReport);
-
-        defaultPipelineConfig.getReports().add(consoleReport);
+        addReportConfing(config);
     }
 
     public void executeTests() {
@@ -156,20 +146,16 @@ public class NativeTest extends AbstractTestTask {
         pipelineConfigs.put(pipelineConfig.getName(), pipelineConfig);
     }
 
-    public Map<String, ReportConfig> getReportConfigs() {
+    public Collection<ReportPolicy> getReportConfigs() {
         return reportConfigs;
     }
 
-    public ReportConfig getReportConfig(String name) {
-        return reportConfigs.get(name);
-    }
-
-    public void addReportConfing(ReportConfig reportConfig) {
-        if (reportConfig == null) {
+    public void addReportConfing(ReportPolicy report) {
+        if (report == null) {
             throw new IllegalArgumentException("reportConfig can't be null!");
         }
 
-        reportConfigs.put(reportConfig.getName(), reportConfig);
+        reportConfigs.add(report);
     }
 
     public int getMaximumNumberOfForks() {

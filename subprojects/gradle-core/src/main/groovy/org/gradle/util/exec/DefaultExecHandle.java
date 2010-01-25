@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,6 +99,8 @@ public class DefaultExecHandle implements ExecHandle {
 
     private final Condition stateChange;
 
+    private final ExecutorService threadPool;
+
     /**
      * State of this ExecHandle.
      */
@@ -108,14 +110,13 @@ public class DefaultExecHandle implements ExecHandle {
      * When not null, the runnable that is waiting
      */
     private ExecHandleRunner execHandleRunner;
-    private ExecutorService threadPool;
 
     private int exitCode;
     private Throwable failureCause;
 
-    private final ListenerBroadcast<ExecHandleListener> broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
+    private final ListenerBroadcast<ExecHandleListener> broadcast;
 
-    private ExecHandleShutdownHookAction shutdownHookAction;
+    private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
                       Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle,
@@ -136,6 +137,9 @@ public class DefaultExecHandle implements ExecHandle {
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
+        threadPool = Executors.newCachedThreadPool();
+        shutdownHookAction = new ExecHandleShutdownHookAction(this);
+        broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, threadPool);
         if (listeners != null) {
             broadcast.addAll(listeners);
         }
@@ -226,6 +230,8 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     private void setEndStateInfo(ExecHandleState state, int exitCode, Throwable failureCause) {
+        ShutdownHookActionRegister.removeAction(shutdownHookAction);
+
         lock.lock();
         try {
             setState(state);
@@ -234,6 +240,10 @@ public class DefaultExecHandle implements ExecHandle {
         } finally {
             lock.unlock();
         }
+
+        broadcast.getSource().executionFinished(this);
+        broadcast.stop();
+        threadPool.shutdown();
     }
 
     public void start() {
@@ -247,7 +257,6 @@ public class DefaultExecHandle implements ExecHandle {
             exitCode = -1;
             failureCause = null;
 
-            threadPool = Executors.newFixedThreadPool(3);
             execHandleRunner = new ExecHandleRunner(this, threadPool);
 
             threadPool.execute(execHandleRunner);
@@ -281,15 +290,6 @@ public class DefaultExecHandle implements ExecHandle {
         return getState();
     }
 
-    private void shutdownThreadPool() {
-        ThreadUtils.run(new Runnable() {
-
-            public void run() {
-                ThreadUtils.shutdown(threadPool);
-            }
-        });
-    }
-
     public ExecHandleState startAndWaitForFinish() {
         start();
         waitForFinish();
@@ -297,7 +297,6 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void started() {
-        shutdownHookAction = new ExecHandleShutdownHookAction(this);
         ShutdownHookActionRegister.addAction(shutdownHookAction);
 
         setState(ExecHandleState.STARTED);
@@ -305,34 +304,20 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void finished(int exitCode) {
-        ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
         if (exitCode != normalTerminationExitCode) {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
                     "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
-            shutdownThreadPool();
-            broadcast.getSource().executionFailed(this);
         } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
-            shutdownThreadPool();
-            broadcast.getSource().executionFinished(this);
         }
     }
 
     void aborted() {
-        ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
-        setState(ExecHandleState.ABORTED);
-        shutdownThreadPool();
-        broadcast.getSource().executionAborted(this);
+        setEndStateInfo(ExecHandleState.ABORTED, -1, null);
     }
 
     void failed(Throwable failureCause) {
-        ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
-        shutdownThreadPool();
-        broadcast.getSource().executionFailed(this);
     }
 
     public void addListeners(ExecHandleListener... listeners) {

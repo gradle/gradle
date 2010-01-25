@@ -57,7 +57,7 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         classPaths.put("GRADLE_CORE", toPatterns("gradle-core"));
         classPaths.put("ANT", toPatterns("ant", "ant-launcher"));
         classPaths.put("ANT_JUNIT", toPatterns("ant", "ant-launcher", "ant-junit"));
-        classPaths.put("TEST_LISTENER", toPatterns("gradle-core", "gradle-plugins"));
+        classPaths.put("TEST_LISTENER", toPatterns("gradle-core", "gradle-plugins", "commons-lang", "slf4j-api", "logback-classic", "logback-core"));
         classPaths.put("COMMONS_CLI", toPatterns("commons-cli"));
     }
 

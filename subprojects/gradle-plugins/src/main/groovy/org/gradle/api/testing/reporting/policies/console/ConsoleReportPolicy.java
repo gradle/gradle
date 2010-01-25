@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,48 @@
  */
 package org.gradle.api.testing.reporting.policies.console;
 
-import org.gradle.api.testing.reporting.policies.*;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
+import org.gradle.api.testing.fabric.TestMethodProcessResultState;
+import org.gradle.api.testing.reporting.policies.ReportPolicy;
+import org.gradle.api.testing.reporting.policies.Report;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * @author Tom Eyckmans
  */
 public class ConsoleReportPolicy implements ReportPolicy {
-    public ReportPolicyName getName() {
-        return ReportPolicyNames.CONSOLE;
+    private final List<TestMethodProcessResultState> toShowStates;
+
+    public ConsoleReportPolicy() {
+        toShowStates = new ArrayList<TestMethodProcessResultState>();
     }
 
-    public ReportPolicyConfig createReportPolicyConfigInstance() {
-        return new ConsoleReportPolicyConfig(getName());
+    public void addShowStates(TestMethodProcessResultState... states) {
+        if (states != null && states.length != 0) {
+            for (final TestMethodProcessResultState state : states) {
+                addShowState(state);
+            }
+        }
     }
 
-    public ReportPolicyInstance createReportPolicyInstance(TestFrameworkInstance testFrameworkInstance) {
-        return new ConsoleReportPolicyInstance(testFrameworkInstance);
+    public void addShowState(TestMethodProcessResultState state) {
+        if (state == null) {
+            throw new IllegalArgumentException("state == null!");
+        }
+        if (toShowStates.contains(state)) {
+            throw new IllegalArgumentException("state already added!");
+        }
+
+        toShowStates.add(state);
+    }
+
+    public List<TestMethodProcessResultState> getToShowStates() {
+        return toShowStates;
+    }
+
+    public Report createReportPolicyInstance(TestFrameworkInstance testFramework) {
+        return new ConsoleReport(testFramework, this);
     }
 }

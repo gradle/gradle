@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,9 +15,14 @@
  */
 package org.gradle.api.testing.execution.control.server.messagehandlers;
 
-import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.api.testing.execution.control.messages.client.ForkStoppedMessage;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
+import org.gradle.messaging.dispatch.Dispatch;
+
+import java.util.Collections;
+import java.util.Set;
 
 /**
  * @author Tom Eyckmans
@@ -28,7 +33,11 @@ public class ForkStoppedMessageHandler extends AbstractTestServerControlMessageH
         super(pipelineDispatcher);
     }
 
-    public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {
+    public Set<? extends Class<?>> getMessageClasses() {
+        return Collections.singleton(ForkStoppedMessage.class);
+    }
+
+    public void handle(Object controlMessage, TestServerClientHandle client, Dispatch<TestServerControlMessage> clientConnection) {
         client.stopping();
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -186,8 +186,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
         context.checking(new Expectations() {{
             one(testClassScannerFactoryMock).createTestClassScanner(test, testClassProcessorMock);will(returnValue(testClassScannerMock));
-            one(testClassScannerMock).executeScan();
-            one(testClassProcessorMock).getTestClassNames(); will(returnValue(OK_TEST_CLASS_NAMES));
+            one(testClassScannerMock).run();
+            one(testClassProcessorMock).getTestClassFileNames(); will(returnValue(OK_TEST_CLASS_NAMES));
             one(testFrameworkInstanceMock).execute(getProject(), test, OK_TEST_CLASS_NAMES, new ArrayList<String>());
         }});
     }

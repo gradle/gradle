@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    compile "org.codenarc:CodeNarc:0.7@jar",
+    compile "org.codenarc:CodeNarc:0.8@jar",
             libraries.log4j_to_slf4j,
             libraries.slf4j_api
 

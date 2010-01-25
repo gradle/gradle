@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,28 +26,20 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrator {
-    private final TestDetectionOrchestratorFactory factory;
-
     private final Lock detectionRunStateLock;
-
-    private TestDetectionRunner detectionRunner;
     private Thread detectionThread;
+    private final TestClassScanner scanner;
 
-    public DefaultTestDetectionOrchestrator(final TestDetectionOrchestratorFactory factory) {
-        if (factory == null) {
-            throw new IllegalArgumentException("factory == null!");
-        }
-
-        this.factory = factory;
+    public DefaultTestDetectionOrchestrator(TestClassScanner scanner) {
+        this.scanner = scanner;
         this.detectionRunStateLock = new ReentrantLock();
     }
 
     public void startDetection() {
         detectionRunStateLock.lock();
         try {
-            if (detectionRunner == null && detectionThread == null) {
-                detectionRunner = factory.createDetectionRunner();
-                detectionThread = factory.createDetectionThread(detectionRunner);
+            if (detectionThread == null) {
+                detectionThread = new Thread(scanner);
                 detectionThread.start();
             } else {
                 throw new IllegalStateException("detection already started");
@@ -57,27 +49,12 @@ public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrat
         }
     }
 
-    public void stopDetection() {
-        detectionRunStateLock.lock();
-        try {
-            if (detectionRunner != null && detectionThread != null) {
-                detectionRunner.stopDetecting();
-
-                waitForDetectionEnd();
-            }
-        } finally {
-            detectionRunStateLock.unlock();
-        }
-    }
-
     public void waitForDetectionEnd() {
         detectionRunStateLock.lock();
         try {
-            if (detectionRunner != null && detectionThread != null) {
+            if (detectionThread != null) {
                 ThreadUtils.join(detectionThread);
-
                 detectionThread = null;
-                detectionRunner = null;
             }
         } finally {
             detectionRunStateLock.unlock();

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,6 @@ dependencies {
             libraries.ivy,
             libraries.asm_all,
             "biz.aQute:bndlib:0.0.384@jar",
-            "org.apache.mina:mina-core:2.0.0-RC1",
             libraries.junit,
             "dom4j:dom4j:1.6.1@jar",
             "jaxen:jaxen:1.1@jar"

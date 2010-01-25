@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.api.testing.execution.control.refork;
 
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.Expectations;
@@ -75,7 +76,7 @@ public class AmountOfTestCasesDataProcessorTest {
     {
         final AmountOfTestCasesConfig config = context.mock(AmountOfTestCasesConfig.class);
 
-        final Pipeline pipeline = context.mock(Pipeline.class);
+        final Pipeline pipeline = context.mock(QueueingPipeline.class);
         final int forkId = 1;
 
         context.checking(new Expectations(){{
@@ -94,7 +95,7 @@ public class AmountOfTestCasesDataProcessorTest {
     {
         final AmountOfTestCasesConfig config = context.mock(AmountOfTestCasesConfig.class);
 
-        final Pipeline pipeline = context.mock(Pipeline.class);
+        final QueueingPipeline pipeline = context.mock(QueueingPipeline.class);
         final int forkId = 1;
 
         context.checking(new Expectations(){{

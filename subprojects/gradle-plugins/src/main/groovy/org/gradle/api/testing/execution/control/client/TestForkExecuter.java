@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,16 +15,15 @@
  */
 package org.gradle.api.testing.execution.control.client;
 
-import org.gradle.api.testing.execution.control.client.transport.ExternalIoConnectorFactory;
-import org.gradle.api.testing.execution.control.client.transport.IoConnectorFactory;
-import org.gradle.api.testing.execution.control.messages.TestControlMessage;
+import org.gradle.api.testing.execution.control.messages.client.ForkStartedMessage;
+import org.gradle.api.testing.execution.control.messages.client.ForkStoppedMessage;
+import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
 import org.gradle.api.testing.execution.fork.ForkExecuter;
-import org.gradle.util.ThreadUtils;
+import org.gradle.messaging.TcpMessagingClient;
+import org.gradle.messaging.dispatch.Dispatch;
 
+import java.net.URI;
 import java.util.List;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.TimeUnit;
 
 /**
  * @author Tom Eyckmans
@@ -35,39 +34,22 @@ public class TestForkExecuter implements ForkExecuter {
     private ClassLoader sandboxClassLoader;
     private List<String> arguments;
 
-    private final BlockingQueue<TestControlMessage> testControlMessageQueue;
-
-    public TestForkExecuter() {
-        testControlMessageQueue = new ArrayBlockingQueue<TestControlMessage>(10);
-    }
-
     public void execute() {
         try {
-            final int pipelineId = Integer.parseInt(arguments.get(0));
             final int forkId = Integer.parseInt(arguments.get(1));
-            final int testServerPort = Integer.parseInt(arguments.get(2));
+            final URI testServerUri = new URI(arguments.get(2));
 
-            final IoConnectorFactory ioConnectorFactory = new ExternalIoConnectorFactory(testServerPort);
-            final DefaultTestControlClient testControlClient = new DefaultTestControlClient(forkId, ioConnectorFactory,
-                    testControlMessageQueue);
-
+            TcpMessagingClient client = new TcpMessagingClient(getClass().getClassLoader(), testServerUri);
             try {
-                testControlClient.open();
-                testControlClient.reportStarted();
+                Dispatch<TestClientControlMessage> outgoing = client.getConnection().addOutgoing(Dispatch.class);
+                outgoing.dispatch(new ForkStartedMessage(forkId));
 
-                final TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(
-                        testControlClient, sandboxClassLoader);
-                final TestControlMessageQueueConsumer controlMessageConsumer = new TestControlMessageQueueConsumer(
-                        testControlMessageQueue, 100L, TimeUnit.MILLISECONDS, testControlMessageDispatcher);
+                TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(forkId, outgoing, sandboxClassLoader);
+                testControlMessageDispatcher.waitForExitReceived();
 
-                Thread controlMessageConsumerThread = new Thread(controlMessageConsumer);
-                controlMessageConsumerThread.start();
-
-                ThreadUtils.join(controlMessageConsumerThread);
-
-                testControlClient.reportStopped();
+                outgoing.dispatch(new ForkStoppedMessage(forkId));
             } finally {
-                testControlClient.close();
+                client.stop();
             }
         } catch (Throwable t) {
             t.printStackTrace();

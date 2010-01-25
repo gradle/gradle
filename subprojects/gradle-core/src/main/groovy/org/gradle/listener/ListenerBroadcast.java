@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,10 @@ package org.gradle.listener;
 
 import groovy.lang.Closure;
 import org.gradle.api.Transformer;
-import org.gradle.listener.dispatch.BroadcastDispatch;
-import org.gradle.listener.dispatch.CloseableDispatch;
-import org.gradle.listener.dispatch.Event;
-import org.gradle.listener.dispatch.ProxyDispatchAdapter;
+import org.gradle.messaging.dispatch.BroadcastDispatch;
+import org.gradle.messaging.dispatch.StoppableDispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
 
 /**
  * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
@@ -31,21 +31,21 @@ import org.gradle.listener.dispatch.ProxyDispatchAdapter;
  *
  * @param <T> The listener type.
  */
-public class ListenerBroadcast<T> implements CloseableDispatch<Event> {
+public class ListenerBroadcast<T> implements StoppableDispatch<MethodInvocation> {
     private final ProxyDispatchAdapter<T> source;
     private final BroadcastDispatch<T> broadcast;
     private final Class<T> type;
-    private final CloseableDispatch dispatch;
+    private final StoppableDispatch<MethodInvocation> dispatch;
 
     public ListenerBroadcast(Class<T> type) {
-        this(type, new Transformer<CloseableDispatch>() {
-            public CloseableDispatch transform(CloseableDispatch original) {
+        this(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
+            public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {
                 return original;
             }
         });
     }
 
-    protected ListenerBroadcast(Class<T> type, Transformer<CloseableDispatch> transformer) {
+    protected ListenerBroadcast(Class<T> type, Transformer<StoppableDispatch<MethodInvocation>> transformer) {
         this.type = type;
         broadcast = new BroadcastDispatch<T>(type);
         dispatch = transformer.transform(broadcast);
@@ -136,12 +136,12 @@ public class ListenerBroadcast<T> implements CloseableDispatch<Event> {
      *
      * @param event The event
      */
-    public void dispatch(Event event) {
+    public void dispatch(MethodInvocation event) {
         dispatch.dispatch(event);
     }
 
-    public void close() {
-        dispatch.close();
+    public void stop() {
+        dispatch.stop();
     }
 
     public T setLogger(T logger) {

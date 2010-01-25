@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,21 +15,20 @@
  */
 package org.gradle.api.testing.execution;
 
-import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.control.messages.TestControlMessageHandler;
 import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
-import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.util.ConditionWaitHandle;
 import org.gradle.util.ThreadUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.BlockingQueue;
@@ -46,14 +45,13 @@ import java.util.concurrent.locks.ReentrantLock;
 public class PipelineDispatcher {
     private static final Logger LOGGER = LoggerFactory.getLogger(PipelineDispatcher.class);
 
-    private final Pipeline pipeline;
+    private final QueueingPipeline pipeline;
     private final BlockingQueue<TestClassRunInfo> testsToDispatch;
 
-    private final Map<Class<?>, TestControlMessageHandler> messageClassHandlers;
+    private TestControlMessageHandler messageHandler;
 
     private final Map<Integer, TestServerClientHandle> clientHandles;
 
-    private final Lock doneLock;
     private final AtomicBoolean stopping;
 
     private final TestServerClientHandleFactory clientHandleFactory;
@@ -61,14 +59,12 @@ public class PipelineDispatcher {
     private final Lock runningClientsLock;
     private final Condition allClientsStopped;
 
-    public PipelineDispatcher(Pipeline pipeline, TestServerClientHandleFactory clientHandleFactory) {
+    public PipelineDispatcher(QueueingPipeline pipeline, TestServerClientHandleFactory clientHandleFactory) {
         this.pipeline = pipeline;
         this.clientHandleFactory = clientHandleFactory;
-        this.messageClassHandlers = new HashMap<Class<?>, TestControlMessageHandler>();
         this.testsToDispatch = pipeline.getRunInfoQueue();
         this.clientHandles = new ConcurrentHashMap<Integer, TestServerClientHandle>();
 
-        doneLock = new ReentrantLock();
         stopping = new AtomicBoolean(false);
 
         runningClients = new ArrayList<TestServerClientHandle>();
@@ -79,32 +75,23 @@ public class PipelineDispatcher {
     /**
      * Handle messages received from the fork.
      */
-    public void messageReceived(IoSession ioSession, Object message) {
+    public void messageReceived(Object message, Dispatch<TestServerControlMessage> clientConnection) {
         if (message != null) {
-            final Class<?> messageClass = message.getClass();
-            final TestControlMessageHandler handler = messageClassHandlers.get(messageClass);
-
-            if (handler != null) {
-                try {
-                    final int forkId = ((TestClientControlMessage) message).getForkId();
-                    final TestServerClientHandle client = clientHandles.get(forkId);
-                    if (client == null) {
-                        ioSession.write(new WaitActionMesssage(pipeline.getId(), 1000L));
-                    } else {
-                        handler.handle(ioSession, message, client);
-                    }
-                } catch (Throwable t) {
-                    LOGGER.error("failed to handle " + message, t);
+            try {
+                final int forkId = ((TestClientControlMessage) message).getForkId();
+                final TestServerClientHandle client = clientHandles.get(forkId);
+                if (client == null) {
+                    clientConnection.dispatch(new WaitActionMesssage(pipeline.getId(), 1000L));
+                } else {
+                    messageHandler.handle(message, client, clientConnection);
                 }
-            } else {
-                LOGGER.error("received unknown message of type {} on pipeline ", messageClass,
-                        pipeline.getName());
-                ioSession.write(new StopForkActionMessage(pipeline.getId()));
+            } catch (Throwable t) {
+                LOGGER.error("failed to handle " + message, t);
             }
         }
     }
 
-    public Pipeline getPipeline() {
+    public QueueingPipeline getPipeline() {
         return pipeline;
     }
 
@@ -116,10 +103,8 @@ public class PipelineDispatcher {
         return testsToDispatch.isEmpty();
     }
 
-    public void addMessageHandler(List<Class> supportedMessageClasses, TestControlMessageHandler messageHandler) {
-        for (final Class supportedMessageClass : supportedMessageClasses) {
-            messageClassHandlers.put(supportedMessageClass, messageHandler);
-        }
+    public void setMessageHandler(TestControlMessageHandler messageHandler) {
+        this.messageHandler = messageHandler;
     }
 
     public void forkAttach(int forkId) {

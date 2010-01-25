@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class TestOrchestrator {
      * @param testTask The test task that needs to be run.
      */
     public TestOrchestrator(final NativeTest testTask) {
-        this(testTask, new TestOrchestratorFactory(testTask, 1000));
+        this(testTask, new TestOrchestratorFactory(testTask));
     }
 
     /**

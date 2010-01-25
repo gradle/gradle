@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,8 +15,8 @@
  */
 package org.gradle.api.testing.execution.control.server.messagehandlers;
 
-import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineDispatcher;
+import org.gradle.api.testing.execution.QueueingPipeline;
 import org.gradle.api.testing.execution.control.messages.TestControlMessageHandler;
 
 /**
@@ -24,7 +24,7 @@ import org.gradle.api.testing.execution.control.messages.TestControlMessageHandl
  */
 public abstract class AbstractTestServerControlMessageHandler implements TestControlMessageHandler {
     protected final PipelineDispatcher pipelineDispatcher;
-    protected final Pipeline pipeline;
+    protected final QueueingPipeline pipeline;
 
     protected AbstractTestServerControlMessageHandler(PipelineDispatcher pipelineDispatcher) {
         if (pipelineDispatcher == null) {

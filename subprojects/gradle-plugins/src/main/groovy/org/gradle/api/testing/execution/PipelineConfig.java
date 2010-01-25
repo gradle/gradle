@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,25 @@ import org.gradle.api.testing.execution.control.refork.ReforkReasonConfigs;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyConfig;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyNames;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyRegister;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyConfig;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyNames;
-import org.gradle.api.testing.pipelinesplit.policies.SplitPolicyRegister;
-import org.gradle.api.testing.reporting.ReportConfig;
-
-import java.util.List;
-import java.util.ArrayList;
+import org.gradle.api.testing.pipelinesplit.policies.SinglePipelineSplitPolicy;
+import org.gradle.api.testing.pipelinesplit.policies.SplitPolicy;
 
 /**
  * @author Tom Eyckmans
  */
 public class PipelineConfig {
     private String name;
-    private SplitPolicyConfig splitPolicyConfig;
+    private SplitPolicy splitPolicy;
     private ForkPolicyConfig forkPolicyConfig;
     private ReforkReasonConfigs reforkReasonConfigs;
-    private List<ReportConfig> reports;
 
     public PipelineConfig(String name) {
-        this(name, SplitPolicyRegister.getSplitPolicy(SplitPolicyNames.SINGLE).getSplitPolicyConfigInstance(),
+        this(name, new SinglePipelineSplitPolicy(), 
                 ForkPolicyRegister.getForkPolicy(ForkPolicyNames.LOCAL_SIMPLE).getForkPolicyConfigInstance());
     }
 
-    public PipelineConfig(String name, SplitPolicyConfig splitPolicyConfig, ForkPolicyConfig forkPolicyConfig) {
-        if (splitPolicyConfig == null) {
+    public PipelineConfig(String name, SplitPolicy splitPolicy, ForkPolicyConfig forkPolicyConfig) {
+        if (splitPolicy == null) {
             throw new IllegalArgumentException("splitPolicyConfig == null!");
         }
         if (forkPolicyConfig == null) {
@@ -51,26 +45,25 @@ public class PipelineConfig {
         }
 
         this.name = name;
-        this.splitPolicyConfig = splitPolicyConfig;
+        this.splitPolicy = splitPolicy;
         this.forkPolicyConfig = forkPolicyConfig;
         this.reforkReasonConfigs = new ReforkReasonConfigs();
-        this.reports = new ArrayList<ReportConfig>();
     }
 
     public String getName() {
         return name;
     }
 
-    public SplitPolicyConfig getSplitPolicyConfig() {
-        return splitPolicyConfig;
+    public SplitPolicy getSplitPolicyConfig() {
+        return splitPolicy;
     }
 
-    public void setSplitPolicyConfig(SplitPolicyConfig splitPolicyConfig) {
-        if (splitPolicyConfig == null) {
+    public void setSplitPolicyConfig(SplitPolicy splitPolicy) {
+        if (splitPolicy == null) {
             throw new IllegalArgumentException("splitPolicy == null!");
         }
 
-        this.splitPolicyConfig = splitPolicyConfig;
+        this.splitPolicy = splitPolicy;
     }
 
     public ForkPolicyConfig getForkPolicyConfig() {
@@ -91,13 +84,5 @@ public class PipelineConfig {
 
     public void setReforkReasonConfigs(ReforkReasonConfigs reforkReasonConfigs) {
         this.reforkReasonConfigs = reforkReasonConfigs;
-    }
-
-    public List<ReportConfig> getReports() {
-        return reports;
-    }
-
-    public void setReports(List<ReportConfig> reports) {
-        this.reports = reports;
     }
 }

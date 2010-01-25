@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@ package org.gradle.api.testing.detection;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.apache.commons.lang.text.StrBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.ClassReader;
 
@@ -54,10 +54,6 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         this.superClasses = new HashMap<File, Boolean>();
         this.knownTestCaseClassNames = new ArrayList<String>();
         addKnownTestCaseClassNames(TEST_CASE, GROOVY_TEST_CASE);
-    }
-
-    public File getTestClassesDirectory() {
-        return testClassesDirectory;
     }
 
     protected abstract T createClassVisitor();
@@ -123,20 +119,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         return classVisitor;
     }
 
-    protected String classVisitorToClassFilename(final TestClassVisitor classVisitor) {
-        final StrBuilder classFilenameBuilder = new StrBuilder();
-
-        classFilenameBuilder.append(classVisitor.getClassName());
-        classFilenameBuilder.append(CLASS_FILE_EXT);
-
-        return classFilenameBuilder.toString();
-    }
-
     public boolean processTestClass(File testClassFile) {
         return processTestClass(testClassFile, false);
     }
 
-    protected abstract boolean processTestClass(File testClasFile, boolean superClass);
+    protected abstract boolean processTestClass(File testClassFile, boolean superClass);
 
     protected boolean processSuperClass(File testClassFile) {
         boolean isTest = false;
@@ -161,15 +148,11 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      */
     protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
         if (isTest && !classVisitor.isAbstract() && !superClass) {
-            testClassProcessor.processTestClass(classVisitorToClassFilename(classVisitor));
+            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(classVisitor.getClassName()));
         }
     }
 
-    public void manualTestClass(String testClassName) {
-        testClassProcessor.processTestClass(testClassName);
-    }
-
-    public void setTestClassProcessor(TestClassProcessor testClassProcessor) {
+    public void startDetection(TestClassProcessor testClassProcessor) {
         this.testClassProcessor = testClassProcessor;
     }
 
