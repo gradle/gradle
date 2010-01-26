@@ -22,6 +22,7 @@ import org.gradle.messaging.ObjectConnection;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.util.Jvm;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleBuilder;
 import org.gradle.util.exec.ExecHandleState;
@@ -32,7 +33,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
 import java.net.URI;
 
 import static org.hamcrest.Matchers.*;
@@ -155,10 +155,8 @@ public class RemoteListenerIntegrationTest {
 
         public void start() {
             ExecHandleBuilder builder = new ExecHandleBuilder();
-            builder.execDirectory(new File(System.getProperty("user.dir")));
-            builder.execCommand(new File(System.getProperty("java.home")+"/bin/java").getPath());
+            builder.execCommand(Jvm.current().getJavaExecutable());
             builder.arguments("-cp", System.getProperty("java.class.path"));
-
             builder.arguments(mainClass, String.valueOf(server.newIncomingConnection()));
 
             proc = builder.getExecHandle();
@@ -239,6 +237,7 @@ public class RemoteListenerIntegrationTest {
                 TestListenerInterface sender = remoteSender.getSource();
                 sender.send("message 1", 1);
                 sender.send("message 2", 2);
+                // crash
                 Runtime.getRuntime().halt(1);
             } catch (Throwable t) {
                 t.printStackTrace();

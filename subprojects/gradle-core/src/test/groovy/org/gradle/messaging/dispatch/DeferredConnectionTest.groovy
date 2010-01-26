@@ -138,6 +138,20 @@ public class DeferredConnectionTest extends MultithreadedTestCase {
     }
 
     @Test
+    public void performsEndOfStreamNegotiationInitiatedByConnectionClose() {
+        connection.connect(target)
+
+        context.checking {
+            one(target).receive()
+            will(returnValue(null))
+            one(target).stop()
+        }
+
+        assertThat(connection.receive(), equalTo(endOfStream))
+        assertThat(connection.receive(), nullValue())
+    }
+
+    @Test
     public void performsEndOfStreamNegotiationInitiatedByDispatchFailure() {
         connection.connect(target)
 

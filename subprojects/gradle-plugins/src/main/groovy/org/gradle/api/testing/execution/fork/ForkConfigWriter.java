@@ -15,10 +15,8 @@
  */
 package org.gradle.api.testing.execution.fork;
 
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.util.BootstrapUtil;
 
@@ -45,19 +43,10 @@ public class ForkConfigWriter {
         this.testServerAddress = testServerAddress;
     }
 
-    public File writeConfigFile() {
-        File forkConfigFile = null;
-        try {
-            forkConfigFile = File.createTempFile(".gradle", "fork.config");
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
+    public String writeConfigFile() {
         StringWriter strWriter = new StringWriter();
-        BufferedWriter configFileWriter = null;
+        BufferedWriter configFileWriter = new BufferedWriter(strWriter);
         try {
-            configFileWriter = new BufferedWriter(strWriter);
-
             configFileWriter.write("[shared]");
             configFileWriter.newLine();
             // TODO test framework spec from testRuntime
@@ -101,14 +90,12 @@ public class ForkConfigWriter {
             configFileWriter.newLine();
 
             configFileWriter.flush();
-
-            FileUtils.writeStringToFile(forkConfigFile, strWriter.toString());
         } catch (IOException e) {
             throw new GradleException("failed to create fork config file", e);
         } finally {
             IOUtils.closeQuietly(configFileWriter);
         }
 
-        return forkConfigFile;
+        return strWriter.toString();
     }
 }

@@ -25,6 +25,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeferredConnection.class);
+
     private enum State {
         AwaitConnect,
         Connected,
@@ -91,28 +92,47 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
         try {
             message = receive.receive();
         } catch (Throwable throwable) {
-            LOGGER.error(String.format("Could not receive next message using %s. Discarding connection.", receive), throwable);
+            LOGGER.error(String.format("Could not receive next message using %s. Discarding connection.", receive),
+                    throwable);
             message = new EndOfStream();
         }
 
-        if (!(message instanceof EndOfStream)) {
+        if (message != null && !(message instanceof EndOfStream)) {
             return message;
         }
 
-        lock.lock();
-        try {
-            switch (state) {
-                case Connected:
-                    setState(State.AwaitOutgoingEndOfStream);
-                    break;
-                case AwaitIncomingEndOfStream:
-                    setState(State.Stopped);
-                    break;
-                default:
-                    throw new IllegalStateException();
+        if (message instanceof EndOfStream) {
+            lock.lock();
+            try {
+                switch (state) {
+                    case Connected:
+                        setState(State.AwaitOutgoingEndOfStream);
+                        break;
+                    case AwaitIncomingEndOfStream:
+                        setState(State.Stopped);
+                        break;
+                    default:
+                        throw new IllegalStateException();
+                }
+            } finally {
+                lock.unlock();
             }
-        } finally {
-            lock.unlock();
+        }
+        else if (message == null) {
+            lock.lock();
+            try {
+                switch(state) {
+                    case Connected:
+                    case AwaitIncomingEndOfStream:
+                        setState(State.Stopped);
+                        break;
+                    default:
+                        throw new IllegalStateException();
+                }
+            } finally {
+                lock.unlock();
+            }
+            message = new EndOfStream();
         }
 
         cleanup();
@@ -158,7 +178,14 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
             dispatch.dispatch(message);
         } catch (Throwable throwable) {
             LOGGER.error(String.format("Could not send message using %s. Discarding connection.", dispatch), throwable);
-            setState(State.GenerateIncomingEndOfStream);
+            lock.lock();
+            try {
+                if (state != State.Stopped) {
+                    setState(State.GenerateIncomingEndOfStream);
+                }
+            } finally {
+                lock.unlock();
+            }
         }
 
         cleanup();
@@ -182,12 +209,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
     }
 
     private void setState(State state) {
-        lock.lock();
-        try {
-            this.state = state;
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
+        this.state = state;
+        condition.signalAll();
     }
 }

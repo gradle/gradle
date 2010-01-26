@@ -45,19 +45,22 @@ public class ExecHandleRunner implements Runnable {
     }
 
     public void run() {
-        final ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-        final long keepWaitingTimeout = execHandle.getKeepWaitingTimeout();
+        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+        long keepWaitingTimeout = execHandle.getKeepWaitingTimeout();
 
         try {
-            final Process process = processBuilder.start();
+            Process process = processBuilder.start();
 
-            final ExecOutputHandleRunner standardOutputHandleRunner = new ExecOutputHandleRunner(
-                    process.getInputStream(), execHandle.getStandardOutputHandle());
-            final ExecOutputHandleRunner errorOutputHandleRunner = new ExecOutputHandleRunner(process.getErrorStream(),
-                    execHandle.getErrorOutputHandle());
+            ExecOutputHandleRunner standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
+                    process.getInputStream(), execHandle.getStandardOutput());
+            ExecOutputHandleRunner errorOutputRunner = new ExecOutputHandleRunner("read process error output",
+                    process.getErrorStream(), execHandle.getErrorOutput());
+            ExecOutputHandleRunner standardInputRunner = new ExecOutputHandleRunner("write process standard input",
+                    execHandle.getStandardInput(), process.getOutputStream());
 
-            threadPool.execute(standardOutputHandleRunner);
-            threadPool.execute(errorOutputHandleRunner);
+            threadPool.execute(standardInputRunner);
+            threadPool.execute(standardOutputRunner);
+            threadPool.execute(errorOutputRunner);
 
             // signal started after all threads are started otherwise RejectedExecutionException may be thrown
             // by the ExecutorService because shutdown may already be called on it

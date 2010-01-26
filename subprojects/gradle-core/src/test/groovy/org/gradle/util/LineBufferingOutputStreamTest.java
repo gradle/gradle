@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.util;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
+import org.gradle.api.Action;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -29,105 +28,116 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 
 @RunWith(JMock.class)
-public class StandardOutputLoggingAdapterTest {
+public class LineBufferingOutputStreamTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private Logger logger;
-    private StandardOutputLoggingAdapter adapter;
+    private Action<String> action;
+    private LineBufferingOutputStream outputStream;
     private String eol;
 
     @Before
-    public void setup() {
+    public void setUp() {
         eol = System.getProperty("line.separator");
 
         context.setImposteriser(ClassImposteriser.INSTANCE);
-        logger = context.mock(Logger.class);
-        adapter = new StandardOutputLoggingAdapter(logger, LogLevel.ERROR, 8);
+        action = context.mock(Action.class);
+        outputStream = new TestOutputStream(8);
     }
 
     @After
-    public void teardown() {
+    public void tearDown() {
         System.setProperty("line.separator", eol);
     }
 
     @Test
     public void logsEachLineAsASeparateLogMessage() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "line 1");
-            one(logger).log(LogLevel.ERROR, "line 2");
+            one(action).execute("line 1");
+            one(action).execute("line 2");
         }});
 
-        adapter.write(String.format("line 1%nline 2%n").getBytes());
+        outputStream.write(String.format("line 1%nline 2%n").getBytes());
     }
 
     @Test
     public void logsEmptyLines() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "");
-            one(logger).log(LogLevel.ERROR, "");
+            one(action).execute("");
+            one(action).execute("");
         }});
 
-        adapter.write(String.format("%n%n").getBytes());
+        outputStream.write(String.format("%n%n").getBytes());
     }
 
     @Test
     public void handlesSingleCharacterLineSeparator() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "line 1");
-            one(logger).log(LogLevel.ERROR, "line 2");
+            one(action).execute("line 1");
+            one(action).execute("line 2");
         }});
 
         System.setProperty("line.separator", "-");
-        adapter = new StandardOutputLoggingAdapter(logger, LogLevel.ERROR);
+        outputStream = new TestOutputStream(8);
 
-        adapter.write(String.format("line 1-line 2-").getBytes());
+        outputStream.write(String.format("line 1-line 2-").getBytes());
     }
     
     @Test
     public void handlesMultiCharacterLineSeparator() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "line 1");
-            one(logger).log(LogLevel.ERROR, "line 2");
+            one(action).execute("line 1");
+            one(action).execute("line 2");
         }});
 
         System.setProperty("line.separator", "----");
-        adapter = new StandardOutputLoggingAdapter(logger, LogLevel.ERROR);
+        outputStream = new TestOutputStream(8);
 
-        adapter.write(String.format("line 1----line 2----").getBytes());
+        outputStream.write(String.format("line 1----line 2----").getBytes());
     }
 
     @Test
     public void logsLineWhichIsLongerThanInitialBufferLength() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "a line longer than 8 bytes long");
-            one(logger).log(LogLevel.ERROR, "line 2");
+            one(action).execute("a line longer than 8 bytes long");
+            one(action).execute("line 2");
         }});
-        adapter.write(String.format("a line longer than 8 bytes long%n").getBytes());
-        adapter.write("line 2".getBytes());
-        adapter.close();
+        outputStream.write(String.format("a line longer than 8 bytes long%n").getBytes());
+        outputStream.write("line 2".getBytes());
+        outputStream.close();
     }
 
     @Test
-    public void doesNotLogPartialLineOnFlush() throws IOException {
+    public void logsPartialLineOnFlush() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "line 1");
+            one(action).execute("line 1");
         }});
 
-        adapter.write("line 1".getBytes());
-        adapter.flush();
+        outputStream.write("line 1".getBytes());
+        outputStream.flush();
     }
 
     @Test
     public void logsPartialLineOnClose() throws IOException {
         context.checking(new Expectations() {{
-            one(logger).log(LogLevel.ERROR, "line 1");
+            one(action).execute("line 1");
         }});
-        adapter.write("line 1".getBytes());
-        adapter.close();
+        outputStream.write("line 1".getBytes());
+        outputStream.close();
     }
     
     @Test(expected = IOException.class)
     public void cannotWriteAfterClose() throws IOException {
-        adapter.close();
-        adapter.write("ignore me".getBytes());
+        outputStream.close();
+        outputStream.write("ignore me".getBytes());
+    }
+
+    private class TestOutputStream extends LineBufferingOutputStream {
+        public TestOutputStream(int bufferLength) throws IllegalArgumentException {
+            super(bufferLength);
+        }
+
+        @Override
+        protected void writeLine(String message) {
+            action.execute(message);
+        }
     }
 }

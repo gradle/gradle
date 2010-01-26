@@ -16,9 +16,6 @@
 package org.gradle.messaging.dispatch
 
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.runner.RunWith

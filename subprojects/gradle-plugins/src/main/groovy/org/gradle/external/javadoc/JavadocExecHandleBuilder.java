@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.gradle.external.javadoc;
 
-import org.apache.tools.ant.util.JavaEnvUtils;
 import org.gradle.api.GradleException;
+import org.gradle.util.Jvm;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleBuilder;
 
@@ -87,9 +87,8 @@ public class JavadocExecHandleBuilder {
             throw new GradleException("Faild to store javadoc options.", e);
         }
 
-        final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true).execDirectory(execDirectory)
-                .execCommand(JavaEnvUtils.getJdkExecutable(
-                        "javadoc")) // reusing Ant knowledge here would be stupid not to
+        ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder().execDirectory(execDirectory)
+                .execCommand(Jvm.current().getJavadocExecutable())
                 .arguments("@" + optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execHandleBuilder);
