@@ -22,6 +22,8 @@ import org.gradle.util.ThreadUtils;
 import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -83,14 +85,9 @@ public class DefaultExecHandle implements ExecHandle {
      */
     private final long keepWaitingTimeout;
 
-    /**
-     * The output handle to pass the standard output of the external process to.
-     */
-    private final ExecOutputHandle standardOutputHandle;
-    /**
-     * The output handle to pass the error output of the external process to.
-     */
-    private final ExecOutputHandle errorOutputHandle;
+    private final OutputStream standardOutput;
+    private final OutputStream errorOutput;
+    private final InputStream standardInput;
 
     /**
      * Lock to guard all mutable state
@@ -119,8 +116,8 @@ public class DefaultExecHandle implements ExecHandle {
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
-                      Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle,
-                      ExecOutputHandle errorOutputHandle, List<ExecHandleListener> listeners) {
+                      Map<String, String> environment, long keepWaitingTimeout, OutputStream standardOutput,
+                      OutputStream errorOutput, InputStream standardInput, List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = new ArrayList<String>();
@@ -132,8 +129,9 @@ public class DefaultExecHandle implements ExecHandle {
         this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
         this.keepWaitingTimeout = keepWaitingTimeout;
-        this.standardOutputHandle = standardOutputHandle;
-        this.errorOutputHandle = errorOutputHandle;
+        this.standardOutput = standardOutput;
+        this.errorOutput = errorOutput;
+        this.standardInput = standardInput;
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
@@ -165,12 +163,16 @@ public class DefaultExecHandle implements ExecHandle {
         return keepWaitingTimeout;
     }
 
-    public ExecOutputHandle getStandardOutputHandle() {
-        return standardOutputHandle;
+    public OutputStream getStandardOutput() {
+        return standardOutput;
     }
 
-    public ExecOutputHandle getErrorOutputHandle() {
-        return errorOutputHandle;
+    public OutputStream getErrorOutput() {
+        return errorOutput;
+    }
+
+    public InputStream getStandardInput() {
+        return standardInput;
     }
 
     public ExecHandleState getState() {

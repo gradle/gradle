@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,7 @@ package org.gradle.util.exec;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.InputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
+import java.io.*;
 
 /**
  * @author Tom Eyckmans
@@ -29,36 +27,30 @@ import java.io.InputStreamReader;
 public class ExecOutputHandleRunner implements Runnable {
     private final static Logger LOGGER = LoggerFactory.getLogger(ExecOutputHandleRunner.class);
 
-    private final BufferedReader inputReader;
-    private final ExecOutputHandle execOutputHandle;
+    private final String displayName;
+    private final InputStream inputStream;
+    private final OutputStream outputStream;
 
-    public ExecOutputHandleRunner(final InputStream inputStream, final ExecOutputHandle execOutputHandle) {
-        this.inputReader = new BufferedReader(new InputStreamReader(inputStream));
-        this.execOutputHandle = execOutputHandle;
+    public ExecOutputHandleRunner(String displayName, InputStream inputStream, OutputStream outputStream) {
+        this.displayName = displayName;
+        this.inputStream = inputStream;
+        this.outputStream = outputStream;
     }
 
     public void run() {
-        boolean keepHandling = true;
-
+        byte[] buffer = new byte[2048];
         try {
-            while (keepHandling) {
-                String outputLine = null;
-                try {
-                    outputLine = inputReader.readLine();
-                } catch (Throwable t) {
-                    keepHandling = execOutputHandle.execOutputHandleError(t);
-                    continue;
+            while (true) {
+                int nread = inputStream.read(buffer);
+                if (nread < 0) {
+                    break;
                 }
-
-                if (outputLine == null) {
-                    keepHandling = false;
-                } else {
-                    execOutputHandle.handleOutputLine(outputLine);
-                }
+                outputStream.write(buffer, 0, nread);
             }
-            execOutputHandle.endOutput();
+            inputStream.close();
+            outputStream.close();
         } catch (Throwable t) {
-            LOGGER.error("Could not process output from exec'd process.", t);
+            LOGGER.error(String.format("Could not %s.", displayName), t);
         }
     }
 }

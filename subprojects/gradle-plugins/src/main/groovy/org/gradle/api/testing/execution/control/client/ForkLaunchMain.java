@@ -1,4 +1,21 @@
-package org.gradle.api.testing.execution.fork;
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.testing.execution.control.client;
+
+import org.apache.commons.io.IOUtils;
 
 import java.io.*;
 import java.net.MalformedURLException;
@@ -9,42 +26,32 @@ import java.util.List;
 
 /**
  * The ForkLaunchMain class bootstraps the classloaders of a forked process, instantiates a class in the control
- * classloader and calss execute on it.
- * <p/>
- * The ForkLaunchMain takes in two parameters:
- * - the config file that contains the classloader configuration for this fork.
- * - the control class to instanciate and call execute on (has to implement ForkExecuter).
- * <p/>
- * The config file should follow the following specification:
- * [shared]
- * (absolute jar file path)* (one a line)
- * [control]
- * (absolute jar file path)* (one a line)
- * [sandbox]
- * (absolute jar file path)* (one a line)
- * [arguments]
- * (any value)* (one a line)
- * <p/>
- * The 'shared' classloader is setup and serves as a parent for the 'control' and 'sandbox' classloaders.
+ * classloader and calss execute on it. <p/> The ForkLaunchMain takes in two parameters: - the config file that contains
+ * the classloader configuration for this fork. - the control class to instanciate and call execute on (has to implement
+ * ForkExecuter). <p/> The config file should follow the following specification: [shared] (absolute jar file path)*
+ * (one a line) [control] (absolute jar file path)* (one a line) [sandbox] (absolute jar file path)* (one a line)
+ * [arguments] (any value)* (one a line) <p/> The 'shared' classloader is setup and serves as a parent for the 'control'
+ * and 'sandbox' classloaders.
  *
  * @author Tom Eyckmans
  */
 public class ForkLaunchMain {
 
-    public static void main(String[] args) {
-        if (args == null) throw new NullPointerException("args");
-        if (args.length != 2)
-            throw new IllegalArgumentException("args.length != 2, expecting 2 arguments (the config file, the control class to instanciate)!");
+    public static void main(String[] args) throws IOException {
+        if (args == null) {
+            throw new NullPointerException("args");
+        }
+        if (args.length != 1) {
+            throw new IllegalArgumentException(
+                    "args.length != 1, expecting 1 argument (the control class to instanciate)!");
+        }
 
-        final String configFileParameterValue = args[0];
-        final File configFile = new File(configFileParameterValue);
+        final String configFile = IOUtils.toString(System.in);
 
-        if (!configFile.exists()) throw new IllegalArgumentException("configFile doesn't exists!");
-        if (!configFile.isFile()) throw new IllegalArgumentException("configFile is not a file!");
-
-        final String executerClassName = args[1];
-
-        if ("".equals(executerClassName)) throw new IllegalArgumentException("executer class to instanciate is empty");
+        final String executerClassName = args[0];
+        if ("".equals(executerClassName)) {
+            throw new IllegalArgumentException("executer class to instanciate is empty");
+        }
 
         final ForkLaunchMain forkLaunchMain = new ForkLaunchMain();
 
@@ -78,38 +85,10 @@ public class ForkLaunchMain {
     private Class<?> classToLaunch;
     private Object forkExecuter;
 
-    ForkLaunchMain() {
-    }
-
-    void loadConfigFile(final File configFile) {
-        BufferedReader configFileReader = null;
-        StringWriter configFileContentsWriter = null;
-        BufferedWriter bufferedConfigFileContentsWriter = null;
-        try {
-            configFileReader = new BufferedReader(new FileReader(configFile));
-            configFileContentsWriter = new StringWriter();
-            bufferedConfigFileContentsWriter = new BufferedWriter(configFileContentsWriter);
-
-            String configFileLine = null;
-            while ((configFileLine = configFileReader.readLine()) != null) {
-                bufferedConfigFileContentsWriter.append(configFileLine);
-                bufferedConfigFileContentsWriter.newLine();
-            }
-
-            bufferedConfigFileContentsWriter.flush();
-        }
-        catch (IOException e) {
-            throw new RuntimeException("failed to read config file [" + configFile.getAbsolutePath() + "]", e);
-        }
-        finally {
-            closeQuietly(configFileReader);
-            closeQuietly(bufferedConfigFileContentsWriter);
-        }
-        configFileContents = configFileContentsWriter.toString();
-    }
-
     void loadConfigFile(String configFileContents) {
-        if (configFileContents == null) throw new NullPointerException("configFileContents");
+        if (configFileContents == null) {
+            throw new NullPointerException("configFileContents");
+        }
 
         this.configFileContents = configFileContents;
     }
@@ -127,15 +106,19 @@ public class ForkLaunchMain {
                     currentConfigSection = configFileLine.trim().toLowerCase();
                 } else {
                     // classpath element
-                    if (currentConfigSection == null)
+                    if (currentConfigSection == null) {
                         throw new IllegalArgumentException("invalid config file, doesn't start with a config section!");
+                    }
 
                     if (currentConfigSection.equals(ARGUMENTS_CONFIG_SECTION)) {
                         arguments.add(configFileLine);
                     } else {
                         final File pathElement = new File(configFileLine.trim()).getAbsoluteFile();
-                        if (!pathElement.exists())
-                            throw new IllegalArgumentException("path element [" + pathElement.getAbsolutePath() + "] doesn't exists in " + currentConfigSection + "!");
+                        if (!pathElement.exists()) {
+                            throw new IllegalArgumentException(
+                                    "path element [" + pathElement.getAbsolutePath() + "] doesn't exists in "
+                                            + currentConfigSection + "!");
+                        }
 
                         if (currentConfigSection.equals(SHARED_CONFIG_SECTION)) {
                             sharedPaths.add(pathElement);
@@ -144,19 +127,20 @@ public class ForkLaunchMain {
                         } else if (currentConfigSection.equals(SANDBOX_CONFIG_SECTION)) {
                             sandboxPaths.add(pathElement);
                         } else {
-                            throw new IllegalArgumentException("invalid config file, contains an unsupported config section " + currentConfigSection + "!");
+                            throw new IllegalArgumentException(
+                                    "invalid config file, contains an unsupported config section "
+                                            + currentConfigSection + "!");
                         }
                     }
                 }
             }
 
-            if (currentConfigSection == null)
+            if (currentConfigSection == null) {
                 throw new IllegalArgumentException("invalid config file, doesn't start with a config section!");
-        }
-        catch (IOException e) {
+            }
+        } catch (IOException e) {
             throw new RuntimeException("failed to read config file contents", e);
-        }
-        finally {
+        } finally {
             closeQuietly(configFileReader);
         }
     }
@@ -165,10 +149,11 @@ public class ForkLaunchMain {
         final ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader().getParent();
 
         final URL[] sharedUrls = toUrlArray(SHARED_CONFIG_SECTION, sharedPaths);
-        if (sharedUrls.length == 0)
+        if (sharedUrls.length == 0) {
             sharedClassLoader = systemClassLoader;
-        else
+        } else {
             sharedClassLoader = new URLClassLoader(sharedUrls, systemClassLoader);
+        }
 
         final URL[] controlUrls = toUrlArray(CONTROL_CONFIG_SECTION, controlPaths);
         controlClassLoader = new URLClassLoader(controlUrls, sharedClassLoader);
@@ -178,7 +163,9 @@ public class ForkLaunchMain {
     }
 
     void instanciateForkExecuter(final Object forkExecuter) {
-        if (forkExecuter == null) throw new NullPointerException("forkExecuter");
+        if (forkExecuter == null) {
+            throw new NullPointerException("forkExecuter");
+        }
 
         this.forkExecuter = forkExecuter;
     }
@@ -186,18 +173,15 @@ public class ForkLaunchMain {
     void instanciateForkExecuter(final String executerClassName) {
         try {
             classToLaunch = controlClassLoader.loadClass(executerClassName);
-        }
-        catch (ClassNotFoundException e) {
+        } catch (ClassNotFoundException e) {
             throw new RuntimeException("failed to load classToLaunch [" + executerClassName + "]", e);
         }
 
         try {
             forkExecuter = classToLaunch.newInstance();
-        }
-        catch (InstantiationException e) {
+        } catch (InstantiationException e) {
             throw new RuntimeException("failed to create an instance of the fork executer", e);
-        }
-        catch (IllegalAccessException e) {
+        } catch (IllegalAccessException e) {
             throw new RuntimeException("failed to create an instance of the fork executer", e);
         }
     }
@@ -207,18 +191,19 @@ public class ForkLaunchMain {
         try {
             Thread.currentThread().setContextClassLoader(controlClassLoader);
             try {
-                classToLaunch.getMethod("setSharedClassLoader", ClassLoader.class).invoke(forkExecuter, sharedClassLoader);
-                classToLaunch.getMethod("setControlClassLoader", ClassLoader.class).invoke(forkExecuter, controlClassLoader);
-                classToLaunch.getMethod("setSandboxClassLoader", ClassLoader.class).invoke(forkExecuter, sandboxClassLoader);
+                classToLaunch.getMethod("setSharedClassLoader", ClassLoader.class).invoke(forkExecuter,
+                        sharedClassLoader);
+                classToLaunch.getMethod("setControlClassLoader", ClassLoader.class).invoke(forkExecuter,
+                        controlClassLoader);
+                classToLaunch.getMethod("setSandboxClassLoader", ClassLoader.class).invoke(forkExecuter,
+                        sandboxClassLoader);
                 classToLaunch.getMethod("setArguments", List.class).invoke(forkExecuter, arguments);
 
                 classToLaunch.getMethod("execute").invoke(forkExecuter);
-            }
-            catch (Throwable t) {
+            } catch (Throwable t) {
                 throw new RuntimeException("failed to execute", t);
             }
-        }
-        finally {
+        } finally {
             Thread.currentThread().setContextClassLoader(previousContextClassLoader);
         }
     }
@@ -249,7 +234,8 @@ public class ForkLaunchMain {
             try {
                 urls.add(path.toURI().toURL());
             } catch (MalformedURLException e) {
-                throw new RuntimeException(configSection + " failed to convert [" + path.getAbsolutePath() + "] into a URL", e);
+                throw new RuntimeException(
+                        configSection + " failed to convert [" + path.getAbsolutePath() + "] into a URL", e);
             }
         }
         return urls.toArray(new URL[urls.size()]);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,9 @@
 package org.gradle.util.exec;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.util.LineBufferingOutputStream;
 
-import java.io.File;
-import java.io.OutputStream;
+import java.io.*;
 import java.util.*;
 
 /**
@@ -33,17 +33,14 @@ public class ExecHandleBuilder {
     private int normalTerminationExitCode = 0;
     private Map<String, String> environment = new HashMap<String, String>();
     private long keepWaitingTimeout = 100;
-    private ExecOutputHandle standardOutputHandle;
-    private ExecOutputHandle errorOutputHandle;
+    private OutputStream standardOutput;
+    private OutputStream errorOutput;
+    private InputStream input = new ByteArrayInputStream(new byte[0]);
     private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
 
     public ExecHandleBuilder() {
-        this(false);
-    }
-
-    public ExecHandleBuilder(boolean outputDirectFlush) {
-        standardOutputHandle = new StreamWriterExecOutputHandle(System.out, true, outputDirectFlush);
-        errorOutputHandle = new StreamWriterExecOutputHandle(System.err, true, outputDirectFlush);
+        standardOutput = new LineBuffer(System.out);
+        errorOutput = new LineBuffer(System.err);
         inheritEnvironment();
     }
 
@@ -94,6 +91,11 @@ public class ExecHandleBuilder {
         return this;
     }
 
+    public ExecHandleBuilder execCommand(File execCommand) {
+        setExecCommand(execCommand.getAbsolutePath());
+        return this;
+    }
+
     public String getExecCommand() {
         return execCommand;
     }
@@ -114,6 +116,11 @@ public class ExecHandleBuilder {
             throw new IllegalArgumentException("arguments == null!");
         }
         this.arguments.addAll(Arrays.asList(arguments));
+        return this;
+    }
+
+    public ExecHandleBuilder arguments(List<String> arguments) {
+        this.arguments.addAll(arguments);
         return this;
     }
 
@@ -175,11 +182,8 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder standardOutputHandle(ExecOutputHandle standardOutputHandle) {
-        if (standardOutputHandle == null) {
-            throw new IllegalArgumentException("standardOutputHandle == null!");
-        }
-        this.standardOutputHandle = standardOutputHandle;
+    public ExecHandleBuilder standardInput(InputStream inputStream) {
+        this.input = inputStream;
         return this;
     }
 
@@ -187,15 +191,7 @@ public class ExecHandleBuilder {
         if (outputStream == null) {
             throw new IllegalArgumentException("outputStream == null!");
         }
-        this.standardOutputHandle = new StreamWriterExecOutputHandle(outputStream, true);
-        return this;
-    }
-
-    public ExecHandleBuilder errorOutputHandle(ExecOutputHandle errorOutputHandle) {
-        if (errorOutputHandle == null) {
-            throw new IllegalArgumentException("errorOutputHandle == null!");
-        }
-        this.errorOutputHandle = errorOutputHandle;
+        this.standardOutput = outputStream;
         return this;
     }
 
@@ -203,7 +199,7 @@ public class ExecHandleBuilder {
         if (outputStream == null) {
             throw new IllegalArgumentException("outputStream == null!");
         }
-        this.errorOutputHandle = new StreamWriterExecOutputHandle(outputStream, true);
+        this.errorOutput = outputStream;
         return this;
     }
 
@@ -212,11 +208,11 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder listeners(ExecHandleListener... listeners) {
+    public ExecHandleBuilder listener(ExecHandleListener listener) {
         if (listeners == null) {
             throw new IllegalArgumentException("listeners == null!");
         }
-        this.listeners.addAll(Arrays.asList(listeners));
+        this.listeners.add(listener);
         return this;
     }
 
@@ -226,11 +222,21 @@ public class ExecHandleBuilder {
         }
 
         return new DefaultExecHandle(execDirectory, execCommand, arguments, normalTerminationExitCode, environment,
-                keepWaitingTimeout, standardOutputHandle, errorOutputHandle, listeners);
+                keepWaitingTimeout, standardOutput, errorOutput, input, listeners);
     }
 
-    public ExecHandleBuilder arguments(List<String> arguments) {
-        this.arguments.addAll(arguments);
-        return this;
+    private static class LineBuffer extends LineBufferingOutputStream {
+        private static final byte[] EOL = System.getProperty("line.separator").getBytes();
+        private final OutputStream target;
+
+        private LineBuffer(OutputStream target) {
+            this.target = target;
+        }
+
+        @Override
+        protected void writeLine(String message) throws IOException {
+            target.write(message.getBytes());
+            target.write(EOL);
+        }
     }
 }
