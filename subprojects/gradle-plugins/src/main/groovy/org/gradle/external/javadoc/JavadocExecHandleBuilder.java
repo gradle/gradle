@@ -93,6 +93,6 @@ public class JavadocExecHandleBuilder {
 
         options.contributeCommandLineOptions(execHandleBuilder);
 
-        return execHandleBuilder.getExecHandle();
+        return execHandleBuilder.build();
     }
 }

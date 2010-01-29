@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.remote;
+package org.gradle.process;
 
-import org.gradle.messaging.TcpMessagingClient;
-
-import java.io.Closeable;
-import java.net.URI;
-
-public class RemoteSender<T> implements Closeable {
-    private final T source;
-    private final TcpMessagingClient client;
-
-    public RemoteSender(Class<T> type, URI serverAddress) {
-        client = new TcpMessagingClient(type.getClassLoader(), serverAddress);
-        source = client.getConnection().addOutgoing(type);
-    }
-
-    public T getSource() {
-        return source;
-    }
-
-    public void close() {
-        client.stop();
-    }
+public interface WorkerProcessFactory {
+    WorkerProcessBuilder newProcess();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,20 +25,24 @@ import java.util.*;
  * visible.
  */
 public class FilteringClassLoader extends ClassLoader {
+    private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
+    private static final ClassLoader EXT_CLASS_LOADER;
+    private static final Set<Package> SYSTEM_PACKAGES = new HashSet<Package>();
     private final Set<String> packageNames = new HashSet<String>();
     private final Set<String> packagePrefixes = new HashSet<String>();
     private final Set<String> resourcePrefixes = new HashSet<String>();
-    private final Set<ClassLoader> systemClassLoaders = new HashSet<ClassLoader>();
-    private final Set<Package> systemPackages = new HashSet<Package>();
-    private final ClassLoader extClassLoader;
 
-    public FilteringClassLoader(ClassLoader classLoader) {
-        super(classLoader);
-        extClassLoader = ClassLoader.getSystemClassLoader().getParent();
-        for (ClassLoader cl = extClassLoader; cl != null; cl = cl.getParent()) {
-            systemClassLoaders.add(cl);
+    static {
+        EXT_CLASS_LOADER = ClassLoader.getSystemClassLoader().getParent();
+        for (ClassLoader cl = EXT_CLASS_LOADER; cl != null; cl = cl.getParent()) {
+            SYSTEM_CLASS_LOADERS.add(cl);
         }
-        systemPackages.addAll(Arrays.asList((Package[]) ReflectionUtil.invoke(extClassLoader, "getPackages", new Object[0])));
+        JavaMethod<ClassLoader, Package[]> method = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class, Package[].class, "getPackages");
+        SYSTEM_PACKAGES.addAll(Arrays.asList((Package[]) method.invoke(EXT_CLASS_LOADER)));
+    }
+
+    public FilteringClassLoader(ClassLoader parent) {
+        super(parent);
     }
 
     @Override
@@ -75,7 +79,7 @@ public class FilteringClassLoader extends ClassLoader {
         if (allowed(name)) {
             return super.getResource(name);
         }
-        return extClassLoader.getResource(name);
+        return EXT_CLASS_LOADER.getResource(name);
     }
 
     @Override
@@ -83,7 +87,7 @@ public class FilteringClassLoader extends ClassLoader {
         if (allowed(name)) {
             return super.getResources(name);
         }
-        return extClassLoader.getResources(name);
+        return EXT_CLASS_LOADER.getResources(name);
     }
 
     private boolean allowed(String resourceName) {
@@ -96,7 +100,7 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     private boolean allowed(Package p) {
-        if (systemPackages.contains(p)) {
+        if (SYSTEM_PACKAGES.contains(p)) {
             return true;
         }
         for (String packageName : packageNames) {
@@ -113,7 +117,7 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     private boolean allowed(Class<?> cl) {
-        if (cl.getClassLoader() == null || systemClassLoaders.contains(cl)) {
+        if (cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader())) {
             return true;
         }
         for (String packagePrefix : packagePrefixes) {

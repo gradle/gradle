@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package org.gradle.api.testing.fabric;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.util.Collection;
 
@@ -38,7 +38,5 @@ public interface TestFrameworkInstance<T extends TestFramework> {
 
     AbstractTestFrameworkOptions getOptions();
 
-    void applyForkArguments(ExecHandleBuilder forkHandleBuilder);
-
-    void applyForkJvmArguments(ExecHandleBuilder forkHandleBuilder);
+    void applyForkArguments(JavaExecHandleBuilder forkHandleBuilder);
 }

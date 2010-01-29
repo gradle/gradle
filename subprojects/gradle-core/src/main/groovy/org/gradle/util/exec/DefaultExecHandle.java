@@ -79,11 +79,6 @@ public class DefaultExecHandle implements ExecHandle {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    /**
-     * Time in ms to sleep the 'main' Thread that is waiting for the external process to be terminated. Note that this
-     * timeout is only used when the {@link Process#waitFor} method is interrupted so it's use very limited.
-     */
-    private final long keepWaitingTimeout;
 
     private final OutputStream standardOutput;
     private final OutputStream errorOutput;
@@ -116,8 +111,8 @@ public class DefaultExecHandle implements ExecHandle {
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
-                      Map<String, String> environment, long keepWaitingTimeout, OutputStream standardOutput,
-                      OutputStream errorOutput, InputStream standardInput, List<ExecHandleListener> listeners) {
+                      Map<String, String> environment, OutputStream standardOutput, OutputStream errorOutput,
+                      InputStream standardInput, List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = new ArrayList<String>();
@@ -128,7 +123,6 @@ public class DefaultExecHandle implements ExecHandle {
         }
         this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
-        this.keepWaitingTimeout = keepWaitingTimeout;
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
         this.standardInput = standardInput;
@@ -157,10 +151,6 @@ public class DefaultExecHandle implements ExecHandle {
 
     public Map<String, String> getEnvironment() {
         return Collections.unmodifiableMap(environment);
-    }
-
-    public long getKeepWaitingTimeout() {
-        return keepWaitingTimeout;
     }
 
     public OutputStream getStandardOutput() {
@@ -322,11 +312,11 @@ public class DefaultExecHandle implements ExecHandle {
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
     }
 
-    public void addListeners(ExecHandleListener... listeners) {
-        broadcast.addAll(Arrays.asList(listeners));
+    public void addListener(ExecHandleListener listener) {
+        broadcast.add(listener);
     }
 
-    public void removeListeners(ExecHandleListener... listeners) {
-        broadcast.removeAll(Arrays.asList(listeners));
+    public void removeListener(ExecHandleListener listener) {
+        broadcast.remove(listener);
     }
 }

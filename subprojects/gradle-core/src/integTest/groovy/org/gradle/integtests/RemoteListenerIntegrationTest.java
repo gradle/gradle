@@ -15,25 +15,29 @@
  */
 package org.gradle.integtests;
 
+import org.apache.tools.ant.Project;
+import org.gradle.api.Action;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.listener.remote.RemoteSender;
-import org.gradle.messaging.MessagingServer;
-import org.gradle.messaging.ObjectConnection;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.util.Jvm;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.DefaultWorkerProcessFactory;
+import org.gradle.process.WorkerProcess;
+import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.process.WorkerProcessContext;
 import org.gradle.util.exec.ExecHandleState;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.net.URI;
+import java.io.ObjectInputStream;
+import java.io.Serializable;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -42,7 +46,17 @@ import static org.junit.Assert.*;
 public class RemoteListenerIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
-    private final Server server = new Server();
+    private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
+    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry);
+    private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
+            TestListenerInterface.class);
+    private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
+
+    @Before
+    public void setUp() {
+        broadcast.add(listenerMock);
+    }
 
     @Test
     public void remoteProcessCanSendEventsToThisProcess() throws Throwable {
@@ -54,7 +68,7 @@ public class RemoteListenerIntegrationTest {
             inSequence(sequence);
         }});
 
-        execute(mainClass(RemoteProcess.class));
+        execute(worker(new RemoteProcess()));
     }
     
     @Test
@@ -72,7 +86,7 @@ public class RemoteListenerIntegrationTest {
             inSequence(process2);
         }});
 
-        execute(mainClass(RemoteProcess.class), mainClass(OtherRemoteProcess.class));
+        execute(worker(new RemoteProcess()), worker(new OtherRemoteProcess()));
     }
 
     @Test
@@ -82,12 +96,12 @@ public class RemoteListenerIntegrationTest {
             atMost(1).of(listenerMock).send("message 2", 2);
         }});
 
-        execute(mainClass(CrashingRemoteProcess.class).expectFailure());
+        execute(worker(new CrashingRemoteProcess()).expectFailure());
     }
 
     @Test
     public void handlesRemoteProcessWhichNeverConnects() throws Throwable {
-        execute(mainClass(NoConnectRemoteProcess.class));
+        execute(worker(new NoConnectRemoteProcess()));
     }
 
     @Test
@@ -95,16 +109,15 @@ public class RemoteListenerIntegrationTest {
         execute(mainClass("no-such-class").expectFailure());
     }
 
-    private ChildProcess mainClass(Class<?> mainClass) {
-        return mainClass(mainClass.getName());
+    private ChildProcess worker(Action<WorkerProcessContext> action) {
+        return new ChildProcess(action);
     }
 
     private ChildProcess mainClass(String mainClass) {
-        return new ChildProcess(mainClass);
+        return new ChildProcess(new NoOpAction()).mainClass(mainClass);
     }
 
     void execute(ChildProcess... processes) throws Throwable {
-        server.start();
         for (ChildProcess process : processes) {
             process.start();
         }
@@ -112,40 +125,17 @@ public class RemoteListenerIntegrationTest {
             process.waitForStop();
         }
         server.stop();
-    }
-
-    private class Server {
-        private MessagingServer server;
-        private RemoteExceptionListener exceptionListener;
-
-        public void start() {
-            ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
-                    TestListenerInterface.class);
-            broadcast.add(listenerMock);
-            exceptionListener = new RemoteExceptionListener(broadcast);
-
-            server = new TcpMessagingServer(TestListenerInterface.class.getClassLoader());
-        }
-
-        public URI newIncomingConnection() {
-            ObjectConnection connection = server.createUnicastConnection();
-            connection.addIncoming(TestListenerInterface.class, exceptionListener);
-            return connection.getLocalAddress();
-        }
-
-        public void stop() throws Throwable {
-            server.stop();
-            exceptionListener.rethrow();
-        }
+        exceptionListener.rethrow();
     }
 
     private class ChildProcess {
-        private final String mainClass;
         private boolean fails;
-        private ExecHandle proc;
+        private WorkerProcess proc;
+        private Action<WorkerProcessContext> action;
+        private String mainClass;
 
-        public ChildProcess(String mainClass) {
-            this.mainClass = mainClass;
+        public ChildProcess(Action<WorkerProcessContext> action) {
+            this.action = action;
         }
 
         ChildProcess expectFailure() {
@@ -154,23 +144,33 @@ public class RemoteListenerIntegrationTest {
         }
 
         public void start() {
-            ExecHandleBuilder builder = new ExecHandleBuilder();
-            builder.execCommand(Jvm.current().getJavaExecutable());
-            builder.arguments("-cp", System.getProperty("java.class.path"));
-            builder.arguments(mainClass, String.valueOf(server.newIncomingConnection()));
+            WorkerProcessBuilder builder = workerFactory.newProcess();
+            builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
+            builder.sharedPackages("org.apache.tools.ant");
+            builder.worker(action);
 
-            proc = builder.getExecHandle();
+            if (mainClass != null) {
+                builder.getJavaCommand().mainClass(mainClass);
+            }
+
+            proc = builder.build();
+            proc.getConnection().addIncoming(TestListenerInterface.class, exceptionListener);
             proc.start();
         }
 
         public void waitForStop() {
-            proc.waitForFinish();
+            proc.waitForStop();
             ExecHandleState result = proc.getState();
             if (!fails) {
                 assertThat(result, equalTo(ExecHandleState.SUCCEEDED));
             } else {
                 assertThat(result, not(equalTo(ExecHandleState.SUCCEEDED)));
             }
+        }
+
+        public ChildProcess mainClass(String mainClass) {
+            this.mainClass = mainClass;
+            return this;
         }
     }
 
@@ -197,57 +197,55 @@ public class RemoteListenerIntegrationTest {
         }
     }
 
-    public static class RemoteProcess {
-        public static void main(String[] args) {
-            try {
-                RemoteSender<TestListenerInterface> remoteSender = new RemoteSender<TestListenerInterface>(
-                        TestListenerInterface.class, new URI(args[0]));
-                TestListenerInterface sender = remoteSender.getSource();
-                sender.send("message 1", 1);
-                sender.send("message 2", 2);
-                remoteSender.close();
-            } catch (Throwable t) {
-                t.printStackTrace();
-                System.exit(1);
-            }
+    public static class RemoteProcess implements Action<WorkerProcessContext>, Serializable {
+        public void execute(WorkerProcessContext workerProcessContext) {
+            // Check ClassLoaders
+            ClassLoader antClassLoader = Project.class.getClassLoader();
+            ClassLoader thisClassLoader = getClass().getClassLoader();
+            ClassLoader systemClassLoader = ClassLoader.getSystemClassLoader();
+
+            assertThat(antClassLoader, not(sameInstance(systemClassLoader)));
+            assertThat(thisClassLoader, not(sameInstance(systemClassLoader)));
+            assertThat(antClassLoader.getParent(), equalTo(systemClassLoader.getParent()));
+            assertThat(thisClassLoader.getParent().getParent(), sameInstance(antClassLoader));
+
+            // Send some messages
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            sender.send("message 1", 1);
+            sender.send("message 2", 2);
         }
     }
 
-    public static class OtherRemoteProcess {
-        public static void main(String[] args) {
-            try {
-                RemoteSender<TestListenerInterface> remoteSender = new RemoteSender<TestListenerInterface>(
-                        TestListenerInterface.class, new URI(args[0]));
-                TestListenerInterface sender = remoteSender.getSource();
-                sender.send("other 1", 1);
-                sender.send("other 2", 2);
-                remoteSender.close();
-            } catch (Throwable t) {
-                t.printStackTrace();
-                System.exit(1);
-            }
+    public static class OtherRemoteProcess implements Action<WorkerProcessContext>, Serializable {
+        public void execute(WorkerProcessContext workerProcessContext) {
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            sender.send("other 1", 1);
+            sender.send("other 2", 2);
         }
     }
 
-    public static class CrashingRemoteProcess {
-        public static void main(String[] args) {
-            try {
-                RemoteSender<TestListenerInterface> remoteSender = new RemoteSender<TestListenerInterface>(
-                        TestListenerInterface.class, new URI(args[0]));
-                TestListenerInterface sender = remoteSender.getSource();
-                sender.send("message 1", 1);
-                sender.send("message 2", 2);
-                // crash
-                Runtime.getRuntime().halt(1);
-            } catch (Throwable t) {
-                t.printStackTrace();
-                System.exit(1);
-            }
+    public static class CrashingRemoteProcess implements Action<WorkerProcessContext>, Serializable {
+        public void execute(WorkerProcessContext workerProcessContext) {
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            sender.send("message 1", 1);
+            sender.send("message 2", 2);
+            // crash
+            Runtime.getRuntime().halt(1);
         }
     }
 
-    public static class NoConnectRemoteProcess {
-        public static void main(String[] args) {
+    public static class NoOpAction implements Action<WorkerProcessContext>, Serializable {
+        public void execute(WorkerProcessContext workerProcessContext) {
+        }
+    }
+
+    public static class NoConnectRemoteProcess implements Action<WorkerProcessContext>, Serializable {
+        private void readObject(ObjectInputStream instr) {
+            System.exit(0);
+        }
+        
+        public void execute(WorkerProcessContext workerProcessContext) {
+            throw new UnsupportedOperationException();
         }
     }
     

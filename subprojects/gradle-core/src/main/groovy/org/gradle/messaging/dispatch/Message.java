@@ -15,6 +15,7 @@
  */
 package org.gradle.messaging.dispatch;
 
+import org.gradle.util.ClassLoaderObjectInputStream;
 import org.gradle.util.ReflectionUtil;
 
 import java.io.*;
@@ -113,24 +114,6 @@ public abstract class Message implements Serializable {
         }
     }
 
-    private static class ClassLoaderObjectInputStream extends ObjectInputStream {
-        protected final ClassLoader loader;
-
-        private ClassLoaderObjectInputStream(InputStream in, ClassLoader loader) throws IOException {
-            super(in);
-            this.loader = loader;
-        }
-
-        @Override
-        protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
-            try {
-                return loader.loadClass(desc.getName());
-            } catch (ClassNotFoundException e) {
-                return super.resolveClass(desc);
-            }
-        }
-    }
-
     private static class ExceptionReplacingObjectInputStream extends ClassLoaderObjectInputStream {
         public ExceptionReplacingObjectInputStream(InputStream inputSteam, ClassLoader classLoader) throws IOException {
             super(inputSteam, classLoader);
@@ -140,7 +123,7 @@ public abstract class Message implements Serializable {
         @Override
         protected Object resolveObject(Object obj) throws IOException {
             if (obj instanceof TopLevelExceptionPlaceholder) {
-                return ((ExceptionPlaceholder) obj).read(loader);
+                return ((ExceptionPlaceholder) obj).read(getClassLoader());
             }
             return obj;
         }

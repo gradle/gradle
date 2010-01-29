@@ -19,20 +19,19 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.QueueingPipeline;
+import org.gradle.api.testing.execution.control.client.ForkConfigWriter;
 import org.gradle.api.testing.execution.control.client.ForkLaunchMain;
 import org.gradle.api.testing.execution.control.client.TestForkExecuter;
 import org.gradle.api.testing.execution.control.server.ControlServerFactory;
 import org.gradle.api.testing.execution.control.server.TestControlServer;
-import org.gradle.api.testing.execution.fork.ForkConfigWriter;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.ForkControlListener;
 import org.gradle.api.testing.execution.fork.ForkInfo;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyForkInfo;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
-import org.gradle.util.Jvm;
 import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleBuilder;
 import org.gradle.util.exec.ExecHandleListener;
+import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.io.ByteArrayInputStream;
 
@@ -63,24 +62,22 @@ public class LocalSimpleForkPolicyForkInfo implements ForkPolicyForkInfo {
         TestFrameworkInstance testFramework = testTask.getTestFramework();
         ForkConfigWriter forkConfigWriter = new ForkConfigWriter(testTask, pipelineId, forkInfo.getId(),
                 server.getLocalAddress());
-        String forkConfigFile = forkConfigWriter.writeConfigFile();
+        byte[] forkConfigFile = forkConfigWriter.writeConfigFile();
 
         // TODO we probably want loggers for each fork
-        ExecHandleBuilder forkHandleBuilder = new ExecHandleBuilder().execDirectory(project.getProjectDir())
-                .execCommand(Jvm.current().getJavaExecutable());
+        JavaExecHandleBuilder forkHandleBuilder = new JavaExecHandleBuilder().execDirectory(project.getProjectDir());
 
-        testFramework.applyForkJvmArguments(forkHandleBuilder);
-
-        forkHandleBuilder.arguments("-cp", System.getProperty("gradle.fork.launcher.cp"),
-                ForkLaunchMain.class.getName(), TestForkExecuter.class.getName());
-        forkHandleBuilder.standardInput(new ByteArrayInputStream(forkConfigFile.getBytes()));
+        forkHandleBuilder.mainClass(ForkLaunchMain.class.getName());
+        forkHandleBuilder.jvmArguments("-cp", System.getProperty("gradle.fork.launcher.cp"));
+        forkHandleBuilder.arguments(TestForkExecuter.class.getName());
+        forkHandleBuilder.getCommand().standardInput(new ByteArrayInputStream(forkConfigFile));
 
         testFramework.applyForkArguments(forkHandleBuilder);
 
-        ExecHandle forkHandle = forkHandleBuilder.getExecHandle();
+        ExecHandle forkHandle = forkHandleBuilder.build();
 
-        forkHandle.addListeners(new ForkControlListener(forkControl, forkInfo.getPipeline().getId(), forkInfo.getId()));
-        forkHandle.addListeners(new ExecHandleListener() {
+        forkHandle.addListener(new ForkControlListener(forkControl, forkInfo.getPipeline().getId(), forkInfo.getId()));
+        forkHandle.addListener(new ExecHandleListener() {
             public void executionStarted(ExecHandle execHandle) {
             }
 

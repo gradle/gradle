@@ -17,18 +17,20 @@
 package org.gradle.util.exec;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExecHandleRunner implements Runnable {
-
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
-    private final AtomicBoolean keepWaiting;
     private final Executor threadPool;
+    private final Lock lock;
+    private Process process;
+    private boolean aborted;
 
     public ExecHandleRunner(DefaultExecHandle execHandle, ExecutorService threadPool) {
         if (execHandle == null) {
@@ -36,20 +38,32 @@ public class ExecHandleRunner implements Runnable {
         }
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
-        this.keepWaiting = new AtomicBoolean(true);
+        this.lock = new ReentrantLock();
         this.threadPool = threadPool;
     }
 
     public void stopWaiting() {
-        keepWaiting.set(false);
+        lock.lock();
+        try {
+            aborted = true;
+            if (process != null) {
+                process.destroy();
+            }
+        } finally {
+            lock.lock();
+        }
     }
 
     public void run() {
         ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-        long keepWaitingTimeout = execHandle.getKeepWaitingTimeout();
-
         try {
             Process process = processBuilder.start();
+            lock.lock();
+            try {
+                this.process = process;
+            } finally {
+                lock.unlock();
+            }
 
             ExecOutputHandleRunner standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
                     process.getInputStream(), execHandle.getStandardOutput());
@@ -67,24 +81,9 @@ public class ExecHandleRunner implements Runnable {
             // especially when the startAndWaitForFinish method is used on the ExecHandle.
             execHandle.started();
 
-            int exitCode = -1;
-            boolean processFinishedNormally = false;
-            while (keepWaiting.get() && !processFinishedNormally) {
-                try {
-                    exitCode = process.exitValue();
-                    processFinishedNormally = true;
-                } catch (IllegalThreadStateException e) {
-                    // ignore
-                }
-                try {
-                    Thread.sleep(keepWaitingTimeout);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
+            int exitCode = process.waitFor();
 
-            if (!keepWaiting.get()) {
-                process.destroy();
+            if (aborted) {
                 execHandle.aborted();
             } else {
                 execHandle.finished(exitCode);

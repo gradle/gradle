@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -83,26 +83,19 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         return detector;
     }
 
-    public void applyForkArguments(ExecHandleBuilder forkHandleBuilder) {
-
+    public void applyForkArguments(JavaExecHandleBuilder forkHandleBuilder) {
         if (StringUtils.isNotEmpty(options.getJvm())) {
-            forkHandleBuilder.execCommand(options.getJvm());
-        } else {
-            useDefaultJvm(forkHandleBuilder);
+            forkHandleBuilder.getCommand().execCommand(options.getJvm());
         }
 
-        useDefaultDirectory(forkHandleBuilder);
-    }
-
-    public void applyForkJvmArguments(ExecHandleBuilder forkHandleBuilder) {
         final List<String> jvmArgs = options.getJvmArgs();
         if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            forkHandleBuilder.arguments(jvmArgs);
+            forkHandleBuilder.jvmArguments(jvmArgs);
         }
 
         final Map<String, String> environment = options.getEnvironment();
         if (environment != null && !environment.isEmpty()) {
-            forkHandleBuilder.environment(environment);
+            forkHandleBuilder.getCommand().setEnvironment(environment);
         }
     }
 }

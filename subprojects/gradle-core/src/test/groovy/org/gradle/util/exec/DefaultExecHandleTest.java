@@ -67,9 +67,7 @@ public class DefaultExecHandleTest {
                         "-d", new File("tmp/javadocTmpOut").getAbsolutePath(),
                         "-sourcepath", "src/main/groovy",
                         "org.gradle"), 0,
-                System.getenv(),
-                100,
-                System.out,
+                System.getenv(), System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
                 null
@@ -94,9 +92,7 @@ public class DefaultExecHandleTest {
                         "-d", new File("tmp/javadocTmpOut").getAbsolutePath(),
                         "-sourcepath", "src/main/groovy",
                         "org.gradle"), 0,
-                System.getenv(),
-                100,
-                System.out,
+                System.getenv(), System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
                 null

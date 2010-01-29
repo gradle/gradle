@@ -17,10 +17,10 @@ package org.gradle.api.internal;
 
 import java.io.File;
 import java.net.URL;
-import java.util.List;
+import java.util.Set;
 
 public interface ClassPathRegistry {
     URL[] getClassPathUrls(String name);
 
-    List<File> getClassPathFiles(String name);
+    Set<File> getClassPathFiles(String name);
 }

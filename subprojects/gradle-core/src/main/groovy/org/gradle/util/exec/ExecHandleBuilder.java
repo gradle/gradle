@@ -17,6 +17,7 @@
 package org.gradle.util.exec;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.LineBufferingOutputStream;
 
 import java.io.*;
@@ -32,7 +33,6 @@ public class ExecHandleBuilder {
     private final List<String> arguments = new ArrayList<String>();
     private int normalTerminationExitCode = 0;
     private Map<String, String> environment = new HashMap<String, String>();
-    private long keepWaitingTimeout = 100;
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input = new ByteArrayInputStream(new byte[0]);
@@ -100,11 +100,6 @@ public class ExecHandleBuilder {
         return execCommand;
     }
 
-    public ExecHandleBuilder clearArguments() {
-        this.arguments.clear();
-        return this;
-    }
-
     public ExecHandleBuilder commandLine(String... arguments) {
         execCommand(arguments[0]);
         arguments(Arrays.asList(arguments).subList(1, arguments.length));
@@ -124,6 +119,12 @@ public class ExecHandleBuilder {
         return this;
     }
 
+    public ExecHandleBuilder setArguments(List<String> arguments) {
+        this.arguments.clear();
+        this.arguments.addAll(arguments);
+        return this;
+    }
+
     public List<String> getArguments() {
         return arguments;
     }
@@ -133,23 +134,9 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder prependedStringArguments(String prefix, List<String> arguments) {
-        if (arguments == null) {
-            throw new IllegalArgumentException("arguments == null!");
-        }
-        for (String argument : arguments) {
-            this.arguments.add(prefix + argument);
-        }
-        return this;
-    }
-
-    public ExecHandleBuilder prependedFileArguments(String prefix, List<File> arguments) {
-        if (arguments == null) {
-            throw new IllegalArgumentException("arguments == null!");
-        }
-        for (File argument : arguments) {
-            this.arguments.add(prefix + argument.getAbsolutePath());
-        }
+    public ExecHandleBuilder setEnvironment(Map<String, String> values) {
+        environment.clear();
+        environment(values);
         return this;
     }
 
@@ -174,17 +161,13 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder keepWaitingTimeout(long keepWaitingTimeout) {
-        if (keepWaitingTimeout <= 0) {
-            throw new IllegalArgumentException("keepWaitingTimeout <= 0!");
-        }
-        this.keepWaitingTimeout = keepWaitingTimeout;
-        return this;
-    }
-
     public ExecHandleBuilder standardInput(InputStream inputStream) {
         this.input = inputStream;
         return this;
+    }
+
+    public InputStream getStandardInput() {
+        return input;
     }
 
     public ExecHandleBuilder standardOutput(OutputStream outputStream) {
@@ -203,11 +186,6 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandleBuilder clearListeners() {
-        this.listeners.clear();
-        return this;
-    }
-
     public ExecHandleBuilder listener(ExecHandleListener listener) {
         if (listeners == null) {
             throw new IllegalArgumentException("listeners == null!");
@@ -216,13 +194,17 @@ public class ExecHandleBuilder {
         return this;
     }
 
-    public ExecHandle getExecHandle() {
+    public List<String> getCommandLine() {
+        return GUtil.addLists(Collections.singleton(execCommand), arguments);
+    }
+
+    public ExecHandle build() {
         if (StringUtils.isEmpty(execCommand)) {
             throw new IllegalStateException("execCommand == null!");
         }
 
         return new DefaultExecHandle(execDirectory, execCommand, arguments, normalTerminationExitCode, environment,
-                keepWaitingTimeout, standardOutput, errorOutput, input, listeners);
+                standardOutput, errorOutput, input, listeners);
     }
 
     private static class LineBuffer extends LineBufferingOutputStream {

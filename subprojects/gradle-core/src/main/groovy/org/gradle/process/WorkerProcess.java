@@ -13,27 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.remote;
+package org.gradle.process;
 
-import org.gradle.messaging.TcpMessagingClient;
+import org.gradle.messaging.ObjectConnection;
+import org.gradle.util.exec.ExecHandleState;
 
-import java.io.Closeable;
-import java.net.URI;
+/**
+ * A Java process which performs some worker action. You can send and receive messages to/from the worker process
+ * using a supplied {@link org.gradle.messaging.ObjectConnection}.
+ */
+public interface WorkerProcess {
+    ObjectConnection getConnection();
 
-public class RemoteSender<T> implements Closeable {
-    private final T source;
-    private final TcpMessagingClient client;
+    void start();
 
-    public RemoteSender(Class<T> type, URI serverAddress) {
-        client = new TcpMessagingClient(type.getClassLoader(), serverAddress);
-        source = client.getConnection().addOutgoing(type);
-    }
+    void waitForStop();
 
-    public T getSource() {
-        return source;
-    }
-
-    public void close() {
-        client.stop();
-    }
+    ExecHandleState getState();
 }

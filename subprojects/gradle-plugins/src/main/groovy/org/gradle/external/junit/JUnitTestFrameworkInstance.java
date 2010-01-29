@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -97,41 +97,29 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         return detector;
     }
 
-    public void applyForkArguments(ExecHandleBuilder forkHandleBuilder) {
+    public void applyForkArguments(JavaExecHandleBuilder forkHandleBuilder) {
         final JunitForkOptions forkOptions = options.getForkOptions();
 
         if (StringUtils.isNotEmpty(forkOptions.getJvm())) {
-            forkHandleBuilder.execCommand(forkOptions.getJvm());
-        } else {
-            useDefaultJvm(forkHandleBuilder);
+            forkHandleBuilder.getCommand().execCommand(forkOptions.getJvm());
         }
 
         if (forkOptions.getDir() != null) {
             forkHandleBuilder.execDirectory(forkOptions.getDir());
-        } else {
-            useDefaultDirectory(forkHandleBuilder);
         }
-    }
-
-    public void applyForkJvmArguments(ExecHandleBuilder forkHandleBuilder) {
-        final JunitForkOptions forkOptions = options.getForkOptions();
 
         if (StringUtils.isNotEmpty(forkOptions.getMaxMemory())) {
-            forkHandleBuilder.arguments("-Xmx=" + forkOptions.getMaxMemory());
+            forkHandleBuilder.jvmArguments("-Xmx=" + forkOptions.getMaxMemory());
         }
 
         final List<String> jvmArgs = forkOptions.getJvmArgs();
         if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            forkHandleBuilder.arguments(jvmArgs);
+            forkHandleBuilder.jvmArguments(jvmArgs);
         }
 
         if (forkOptions.isNewEnvironment()) {
             final Map<String, String> environment = forkOptions.getEnvironment();
-            if (environment != null && !environment.isEmpty()) {
-                forkHandleBuilder.environment(environment);
-            }
-        } else {
-            forkHandleBuilder.environment(System.getenv());
+            forkHandleBuilder.getCommand().setEnvironment(environment);
         }
 
         // TODO clone
