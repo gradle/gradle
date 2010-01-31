@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,15 +38,7 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
         this.mappings.putAll(mappings);
     }
 
-    public Conf2ScopeMapping getMapping(Configuration... configurations) {
-        Conf2ScopeMapping mappingWithHighestPriority = getMappingWithHighestPriority(configurations);
-        if (mappingWithHighestPriority == null) {
-            return null;
-        }
-        return mappingWithHighestPriority;
-    }
-
-    private Conf2ScopeMapping getMappingWithHighestPriority(Configuration[] configurations) {
+    public Conf2ScopeMapping getMapping(Collection<Configuration> configurations) {
         Set<Conf2ScopeMapping> result = getMappingsWithHighestPriority(configurations);
         if (result.size() > 1) {
             throw new InvalidUserDataException(
@@ -56,25 +48,22 @@ public class DefaultConf2ScopeMappingContainer implements Conf2ScopeMappingConta
         return result.size() == 0 ? null : result.iterator().next();
     }
 
-    private Set<Conf2ScopeMapping> getMappingsWithHighestPriority(Configuration[] configurations) {
-        return findHighestPriorityMappingsForMappedConfigurations(configurations);
-    }
-
-    private Set<Conf2ScopeMapping> findHighestPriorityMappingsForMappedConfigurations(Configuration[] configurations) {
+    private Set<Conf2ScopeMapping> getMappingsWithHighestPriority(Collection<Configuration> configurations) {
         Integer lastPriority = null;
         Set<Conf2ScopeMapping> result = new HashSet<Conf2ScopeMapping>();
         for (Conf2ScopeMapping conf2ScopeMapping : getMappingsForConfigurations(configurations)) {
-            if (lastPriority != null && lastPriority.equals(conf2ScopeMapping.getPriority())) {
+            Integer thisPriority = conf2ScopeMapping.getPriority();
+            if (lastPriority != null && lastPriority.equals(thisPriority)) {
                 result.add(conf2ScopeMapping);
-            } else if (lastPriority == null || lastPriority < conf2ScopeMapping.getPriority()) {
-                lastPriority = conf2ScopeMapping.getPriority();
+            } else if (lastPriority == null || (thisPriority != null && lastPriority < thisPriority)) {
+                lastPriority = thisPriority;
                 result = WrapUtil.toSet(conf2ScopeMapping);
             }
         }
         return result;
     }
 
-    private List<Conf2ScopeMapping> getMappingsForConfigurations(Configuration[] configurations) {
+    private List<Conf2ScopeMapping> getMappingsForConfigurations(Collection<Configuration> configurations) {
         List<Conf2ScopeMapping> existingMappings = new ArrayList<Conf2ScopeMapping>();
         for (Configuration configuration : configurations) {
             if (mappings.get(configuration) != null) {

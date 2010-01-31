@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,8 +49,7 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
         Map<ModuleDependency, String> dependencyToScope = new HashMap<ModuleDependency, String>();
         for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
-            Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(dependencyToConfigurations.get(
-                    dependency).toArray(new Configuration[dependencyToConfigurations.get(dependency).size()]));
+            Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(dependencyToConfigurations.get(dependency));
             if (!useScope(pom, conf2ScopeMapping)) {
                 continue;
             }

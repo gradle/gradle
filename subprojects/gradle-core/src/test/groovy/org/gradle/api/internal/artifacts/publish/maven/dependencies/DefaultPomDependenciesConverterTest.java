@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,9 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +33,11 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+
+import static java.util.Arrays.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -76,10 +78,10 @@ public class DefaultPomDependenciesConverterTest {
         compileConfStub = createNamedConfigurationStubWithDependencies("compile", dependency1, dependency31);
         testCompileConfStub = createNamedConfigurationStubWithDependencies("testCompile", dependency2, dependency32);
         context.checking(new Expectations() {{
-            allowing(conf2ScopeMappingContainerMock).getMapping(testCompileConfStub, compileConfStub); will(returnValue(createMapping(testCompileConfStub, "test")));
-            allowing(conf2ScopeMappingContainerMock).getMapping(compileConfStub, testCompileConfStub); will(returnValue(createMapping(testCompileConfStub, "test")));
-            allowing(conf2ScopeMappingContainerMock).getMapping(toArray(testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
-            allowing(conf2ScopeMappingContainerMock).getMapping(toArray(compileConfStub)); will(returnValue(createMapping(compileConfStub, "compile")));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(testCompileConfStub, compileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(compileConfStub, testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(testCompileConfStub)); will(returnValue(createMapping(testCompileConfStub, "test")));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(compileConfStub)); will(returnValue(createMapping(compileConfStub, "compile")));
         }});
     }
 
@@ -129,7 +131,7 @@ public class DefaultPomDependenciesConverterTest {
         }});
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(true));
-            allowing(conf2ScopeMappingContainerMock).getMapping(unmappedConfigurationStub); will(returnValue(null));
+            allowing(conf2ScopeMappingContainerMock).getMapping(asList(unmappedConfigurationStub)); will(returnValue(null));
         }});
         List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));
@@ -143,7 +145,7 @@ public class DefaultPomDependenciesConverterTest {
         final Configuration unmappedConfigurationStub = createNamedConfigurationStubWithDependencies("unmappedConf", dependency4);
         context.checking(new Expectations() {{
             allowing(conf2ScopeMappingContainerMock).isSkipUnmappedConfs(); will(returnValue(false));
-            allowing(conf2ScopeMappingContainerMock).getMapping(unmappedConfigurationStub); will(returnValue(new Conf2ScopeMapping(null, unmappedConfigurationStub, null)));
+            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(unmappedConfigurationStub)); will(returnValue(new Conf2ScopeMapping(null, unmappedConfigurationStub, null)));
         }});
         List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, toSet(
                 compileConfStub, testCompileConfStub, unmappedConfigurationStub));
@@ -169,7 +171,7 @@ public class DefaultPomDependenciesConverterTest {
         final DefaultMavenExclude mavenExclude = new DefaultMavenExclude("a", "b");
         dependency1.exclude(toMap("key", "value"));
         context.checking(new Expectations() {{
-           allowing(conf2ScopeMappingContainerMock).getMapping(someConfigurationStub); will(returnValue(createMapping(compileConfStub, "compile")));
+           allowing(conf2ScopeMappingContainerMock).getMapping(toSet(someConfigurationStub)); will(returnValue(createMapping(compileConfStub, "compile")));
            allowing(excludeRuleConverterMock).convert(dependency1.getExcludeRules().iterator().next()); will(returnValue(mavenExclude));
         }});
         List<MavenDependency> actualMavenDependencies = dependenciesConverter.convert(pomMock, toSet(someConfigurationStub));
