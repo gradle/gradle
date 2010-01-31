@@ -40,6 +40,6 @@ install.doLast {
     new File(buildDir, "localRepoPath.txt").write(settings.localRepository)
 }
 
-clean.doFirst {
-    ant.delete(dir: 'pomRepo')
+clean {
+    from 'pomRepo'
 }
