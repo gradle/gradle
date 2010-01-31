@@ -18,17 +18,11 @@ package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
-import org.gradle.api.testing.detection.SetBuildingTestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
+import org.gradle.api.testing.execution.ant.AntTaskBackedTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Set;
 
 /**
  * A task for executing JUnit (3.8.x or 4) or TestNG tests.
@@ -36,52 +30,20 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class AntTest extends AbstractTestTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntTest.class);
-
     private TestClassScannerFactory testClassScannerFactory;
-    private SetBuildingTestClassProcessor testClassProcessor;
 
     public AntTest() {
         super();
         testClassScannerFactory = new DefaultTestClassScannerFactory();
-        testClassProcessor = new SetBuildingTestClassProcessor();
     }
 
     public void executeTests() {
-        final TestFrameworkInstance testFrameworkInstance = getTestFramework();
+        TestFrameworkInstance testFrameworkInstance = getTestFramework();
 
-        final Set<String> includes = getIncludes();
-        final Set<String> excludes = getExcludes();
-
-        final TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this,
-                testClassProcessor);
+        AntTaskBackedTestClassProcessor processor = new AntTaskBackedTestClassProcessor(testFrameworkInstance);
+        TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
 
         testClassScanner.run();
-
-        final Set<String> testClassNames = testClassProcessor.getTestClassFileNames();
-
-        Collection<String> toUseIncludes = null;
-        Collection<String> toUseExcludes = null;
-        if (testClassNames.isEmpty()) {
-            toUseIncludes = includes;
-            toUseExcludes = excludes;
-        } else {
-            toUseIncludes = testClassNames;
-            toUseExcludes = new ArrayList<String>();
-        }
-
-        if (!(toUseIncludes.isEmpty() && toUseExcludes.isEmpty())) {
-            testFrameworkInstance.execute(getProject(), this, toUseIncludes, toUseExcludes);
-        } else // when there are no includes/excludes -> don't execute test framework
-        {
-            LOGGER.debug("skipping test execution, because no tests were found");
-        }
-        // TestNG execution fails when there are no tests
-        // JUnit execution doesn't fail when there are no tests
-
-        if (testReport) {
-            testFrameworkInstance.report(getProject(), this);
-        }
 
         if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
                 FAILURES_OR_ERRORS_PROPERTY))) {
@@ -96,10 +58,4 @@ public class AntTest extends AbstractTestTask {
         this.testClassScannerFactory = testClassScannerFactory;
     }
 
-    /**
-     * only for test purposes
-     */
-    void setTestClassProcessor(SetBuildingTestClassProcessor testClassProcessor) {
-        this.testClassProcessor = testClassProcessor;
-    }
 }

@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.detection;
+package org.gradle.api.testing;
 
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
 /**
- * When a test class is detected the processTestClass method is called
- *
  * @author Tom Eyckmans
  */
 public interface TestClassProcessor {
-    void processTestClass(final TestClassRunInfo testClass);
+    void startProcessing();
+
+    void processTestClass(TestClassRunInfo testClass);
+
+    void endProcessing();
 }

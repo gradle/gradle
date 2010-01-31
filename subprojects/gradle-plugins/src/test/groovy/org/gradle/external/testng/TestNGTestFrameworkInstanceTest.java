@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,16 @@ package org.gradle.external.testng;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
-import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.AntTest;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.listener.ListenerBroadcast;
 import org.jmock.Expectations;
-import static org.junit.Assert.assertNotNull;
 import org.junit.Before;
 
 import java.io.File;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Tom Eyckmans
@@ -41,8 +40,6 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
     private AntTestNGExecute antTestNGExecuteMock;
     private TestNGOptions testngOptionsMock;
     private ListenerBroadcast<TestListener> listenerBroadcastMock;
-    private AbstractTestTask testTask;
-
 
     @Before
     public void setUp() throws Exception {
@@ -52,9 +49,8 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         antTestNGExecuteMock = context.mock(AntTestNGExecute.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
         listenerBroadcastMock = context.mock(ListenerBroadcast.class);
-        testTask = context.mock(AntTest.class, "TestNGTestFrameworkInstanceTest");
 
-        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testTask, testNgTestFrameworkMock);
+        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock, testNgTestFrameworkMock);
     }
 
     @org.junit.Test
@@ -72,7 +68,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
             one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
 
-        testNGTestFrameworkInstance.initialize(projectMock, testMock);
+        testNGTestFrameworkInstance.initialize();
 
         assertNotNull(testNGTestFrameworkInstance.getOptions());
         assertNotNull(testNGTestFrameworkInstance.getAntTestNGExecute());
@@ -95,7 +91,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
                                               testngOptionsMock, antBuilderMock, listenerBroadcastMock);
         }});
 
-        testNGTestFrameworkInstance.execute(projectMock, testMock, null, null);
+        testNGTestFrameworkInstance.execute(null, null);
     }
 
     private void setMocks() {

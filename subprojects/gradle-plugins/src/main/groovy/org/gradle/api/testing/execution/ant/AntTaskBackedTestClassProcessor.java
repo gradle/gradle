@@ -13,34 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.testing.detection;
+package org.gradle.api.testing.execution.ant;
 
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.api.testing.fabric.TestFramework;
+import org.gradle.api.testing.fabric.TestFrameworkInstance;
 
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * The Set building test class processor is used when running tests with Ant.
- *
- * All detected test classes are added to a set.
- *
- * @author Tom Eyckmans
- */
-public class SetBuildingTestClassProcessor implements TestClassProcessor {
+public class AntTaskBackedTestClassProcessor implements TestClassProcessor {
+    private final Set<String> testClassNames = new HashSet<String>();
+    private final TestFrameworkInstance<? extends TestFramework> testFrameworkInstance;
 
-    private final Set<String> testClassNames;
+    public AntTaskBackedTestClassProcessor(TestFrameworkInstance<? extends TestFramework> testFrameworkInstance) {
+        this.testFrameworkInstance = testFrameworkInstance;
+    }
 
-    public SetBuildingTestClassProcessor() {
-        this.testClassNames = new HashSet<String>();
+    public void startProcessing() {
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
         testClassNames.add(testClass.getTestClassName().replace('.', '/') + ".class");
     }
 
-    public Set<String> getTestClassFileNames() {
-        return Collections.unmodifiableSet(testClassNames);
+    public void endProcessing() {
+        if (testClassNames.isEmpty()) {
+            return;
+        }
+        testFrameworkInstance.execute(testClassNames, Collections.<String>emptySet());
+        testFrameworkInstance.report();
     }
 }

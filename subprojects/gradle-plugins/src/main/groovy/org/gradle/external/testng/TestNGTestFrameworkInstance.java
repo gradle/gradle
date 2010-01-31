@@ -17,7 +17,6 @@ package org.gradle.external.testng;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
@@ -41,24 +40,24 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         super(testTask, testFramework);
     }
 
-    public void initialize(Project project, AbstractTestTask testTask) {
+    public void initialize() {
         antTestNGExecute = new AntTestNGExecute();
-        options = new TestNGOptions(testFramework, project.getProjectDir());
+        options = new TestNGOptions(testFramework, testTask.getProject().getProjectDir());
 
-        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(project.property("sourceCompatibility")));
+        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
 
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
-                        Collection<String> excludes) {
+    public void execute(Collection<String> includes, Collection<String> excludes) {
         options.setTestResources(testTask.getTestSrcDirs());
 
         antTestNGExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(),
-                testTask.getTestReportDir(), includes, excludes, options, project.getAnt(), testTask.getTestListenerBroadcaster());
+                testTask.getTestReportDir(), includes, excludes, options, testTask.getProject().getAnt(),
+                testTask.getTestListenerBroadcaster());
     }
 
-    public void report(Project project, AbstractTestTask testTask) {
+    public void report() {
         // TODO currently reports are always generated because the antTestNGExecute task uses the
         // default listeners and these generate reports by default.
     }

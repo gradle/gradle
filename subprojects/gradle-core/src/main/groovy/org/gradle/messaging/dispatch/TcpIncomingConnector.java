@@ -94,7 +94,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
             } catch (AsynchronousCloseException e) {
                 // Ignore
             } catch (Exception e) {
-                LOGGER.warn("Could not accept remote connection.", e);
+                LOGGER.error("Could not accept remote connection.", e);
             }
         }
     }

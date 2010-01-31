@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -173,10 +173,17 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         public void close() {
             try {
                 if (service != null) {
-                    invoke(service.getClass().getMethod("close"), service);
+                    try {
+                        invoke(service.getClass().getMethod("stop"), service);
+                    } catch (NoSuchMethodException e) {
+                        // ignore
+                    }
+                    try {
+                        invoke(service.getClass().getMethod("close"), service);
+                    } catch (NoSuchMethodException e) {
+                        // ignore
+                    }
                 }
-            } catch (NoSuchMethodException e) {
-                // ignore
             } finally {
                 service = null;
             }

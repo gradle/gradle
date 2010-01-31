@@ -16,7 +16,7 @@
 package org.gradle.api.testing.pipelinesplit;
 
 import org.gradle.api.specs.Spec;
-import org.gradle.api.testing.detection.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.execution.Pipeline;
 import org.gradle.api.testing.execution.PipelineConfig;
 import org.gradle.api.testing.execution.PipelinesManager;
@@ -41,7 +41,7 @@ public class TestPipelineSplitOrchestrator {
         return asyncProxy.getSource();
     }
 
-    public void startPipelineSplitting(final PipelinesManager pipelinesManager) {
+    public void start(final PipelinesManager pipelinesManager) {
         Map<Spec<TestClassRunInfo>, Pipeline> pipelineMatchers = new LinkedHashMap<Spec<TestClassRunInfo>, Pipeline>();
 
         for (Pipeline pipeline : pipelinesManager.getPipelines()) {

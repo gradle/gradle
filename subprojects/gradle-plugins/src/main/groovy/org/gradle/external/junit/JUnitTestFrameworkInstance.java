@@ -16,7 +16,6 @@
 package org.gradle.external.junit;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.testing.JunitForkOptions;
@@ -45,7 +44,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         super(testTask, testFramework);
     }
 
-    public void initialize(Project project, AbstractTestTask testTask) {
+    public void initialize() {
         antJUnitExecute = new AntJUnitExecute(testTask.getClassPathRegistry());
         antJUnitReport = new AntJUnitReport();
         options = new JUnitOptions(testFramework);
@@ -54,19 +53,23 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
 
         options.setFork(true);
         forkOptions.setForkMode(ForkMode.ONCE);
-        forkOptions.setDir(project.getProjectDir());
+        forkOptions.setDir(testTask.getProject().getProjectDir());
 
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
+    public void execute(Collection<String> includes,
                         Collection<String> excludes) {
         antJUnitExecute.execute(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()),
-                testTask.getTestResultsDir(), includes, excludes, options, project.getAnt(), testTask.getTestListenerBroadcaster());
+                testTask.getTestResultsDir(), includes, excludes, options, testTask.getProject().getAnt(),
+                testTask.getTestListenerBroadcaster());
     }
 
-    public void report(Project project, AbstractTestTask testTask) {
-        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), project.getAnt());
+    public void report() {
+        if (!testTask.isTestReport()) {
+            return;
+        }
+        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), testTask.getProject().getAnt());
     }
 
     public JUnitOptions getOptions() {

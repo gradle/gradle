@@ -19,6 +19,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.ClassReader;

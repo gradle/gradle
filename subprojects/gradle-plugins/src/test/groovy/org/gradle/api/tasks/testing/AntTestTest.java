@@ -20,7 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.testing.detection.SetBuildingTestClassProcessor;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.fabric.TestFramework;
@@ -37,7 +37,10 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -66,7 +69,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
     TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
-    SetBuildingTestClassProcessor testClassProcessorMock = context.mock(SetBuildingTestClassProcessor.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
 
@@ -79,12 +81,11 @@ public class AntTestTest extends AbstractConventionTaskTest {
         context.checking(new Expectations(){{
             one(testFrameworkMock).getInstance(test);
             will(returnValue(testFrameworkInstanceMock));
-            one(testFrameworkInstanceMock).initialize(getProject(), test);
+            one(testFrameworkInstanceMock).initialize();
         }});
         test.useTestFramework(testFrameworkMock);
         test.setScanForTestClasses(false);
         test.setTestClassScannerFactory(testClassScannerFactoryMock);
-        test.setTestClassProcessor(testClassProcessorMock);
 
         File rootDir = getProject().getProjectDir();
         classesDir = new File(rootDir, "testClassesDir");
@@ -112,17 +113,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void testExecute() {
         setUpMocks(test);
-        context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).report(getProject(), test);
-        }});
-
-        test.execute();
-    }
-
-    @org.junit.Test
-    public void testExecuteWithoutReporting() {
-        setUpMocks(test);
-        test.setTestReport(false);
 
         test.execute();
     }
@@ -130,9 +120,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     @org.junit.Test
     public void testExecuteWithTestFailuresAndStopAtFailures() {
         setUpMocks(test);
-        context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).report(getProject(), test);
-        }});
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
         try {
             test.executeTests();
@@ -145,9 +132,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     @org.junit.Test public void testExecuteWithTestFailuresAndContinueWithFailures() {
         setUpMocks(test);
         test.setIgnoreFailures(true);
-        context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).report(getProject(), test);
-        }});
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
         test.execute();
     }
@@ -181,14 +165,12 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.setTestResultsDir(resultsDir);
         test.setTestReportDir(reportDir);
         test.setClasspath(classpathMock);
-        test.setTestClassProcessor(testClassProcessorMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
 
         context.checking(new Expectations() {{
-            one(testClassScannerFactoryMock).createTestClassScanner(test, testClassProcessorMock);will(returnValue(testClassScannerMock));
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)));
+            will(returnValue(testClassScannerMock));
             one(testClassScannerMock).run();
-            one(testClassProcessorMock).getTestClassFileNames(); will(returnValue(OK_TEST_CLASS_NAMES));
-            one(testFrameworkInstanceMock).execute(getProject(), test, OK_TEST_CLASS_NAMES, new ArrayList<String>());
         }});
     }
 

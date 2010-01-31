@@ -43,7 +43,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class RemoteListenerIntegrationTest {
+public class WorkerProcessIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
     private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
@@ -59,7 +59,7 @@ public class RemoteListenerIntegrationTest {
     }
 
     @Test
-    public void remoteProcessCanSendEventsToThisProcess() throws Throwable {
+    public void workerProcessCanSendEventsToThisProcess() throws Throwable {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
             one(listenerMock).send("message 1", 1);
@@ -72,7 +72,7 @@ public class RemoteListenerIntegrationTest {
     }
     
     @Test
-    public void multipleProcessesCanSendEventsToThisProcess() throws Throwable {
+    public void multipleWorkerProcessesCanSendEventsToThisProcess() throws Throwable {
         context.checking(new Expectations() {{
             Sequence process1 = context.sequence("sequence1");
             one(listenerMock).send("message 1", 1);
@@ -90,7 +90,7 @@ public class RemoteListenerIntegrationTest {
     }
 
     @Test
-    public void handlesRemoteProcessWhichCrashes() throws Throwable {
+    public void handlesWorkerProcessWhichCrashes() throws Throwable {
         context.checking(new Expectations() {{
             atMost(1).of(listenerMock).send("message 1", 1);
             atMost(1).of(listenerMock).send("message 2", 2);
@@ -100,12 +100,12 @@ public class RemoteListenerIntegrationTest {
     }
 
     @Test
-    public void handlesRemoteProcessWhichNeverConnects() throws Throwable {
+    public void handlesWorkerProcessWhichNeverConnects() throws Throwable {
         execute(worker(new NoConnectRemoteProcess()));
     }
 
     @Test
-    public void handlesRemoteProcessWhenJvmFailsToStart() throws Throwable {
+    public void handlesWorkerProcessWhenJvmFailsToStart() throws Throwable {
         execute(mainClass("no-such-class").expectFailure());
     }
 

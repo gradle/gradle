@@ -15,7 +15,6 @@
  */
 package org.gradle.api.testing.execution;
 
-import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicy;
@@ -65,9 +64,7 @@ public class PipelinesManager {
         pipelineIdSequence = 0;
     }
 
-    public void initialize(NativeTest testTask) {
-
-        final Map<String, PipelineConfig> pipelineConfigs = testTask.getPipelineConfigs();
+    public void initialize(Map<String, PipelineConfig> pipelineConfigs) {
         if (pipelineConfigs.isEmpty()) {
             final PipelineConfig defaultPipelineConfig = new PipelineConfig("default");
             pipelineConfigs.put(defaultPipelineConfig.getName(), defaultPipelineConfig);

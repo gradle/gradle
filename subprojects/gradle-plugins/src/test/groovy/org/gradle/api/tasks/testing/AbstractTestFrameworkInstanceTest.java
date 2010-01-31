@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -54,6 +54,11 @@ public abstract class AbstractTestFrameworkInstanceTest {
         antBuilderMock = context.mock(AntBuilder.class);
         classpathMock = context.mock(FileCollection.class);
         classpathAsFileTreeMock = context.mock(FileTree.class);
+
+        context.checking(new Expectations(){{
+            allowing(testMock).getProject();
+            will(returnValue(projectMock));
+        }});
     }
 
     protected void expectHandleEmptyIncludesExcludes() {

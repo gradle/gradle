@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.execution;
 
-import org.gradle.api.testing.detection.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessor;
 
 public interface Pipeline extends TestClassProcessor {
     int getId();

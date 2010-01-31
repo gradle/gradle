@@ -19,6 +19,7 @@ package org.gradle.api.testing.detection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileSet;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
@@ -52,11 +53,15 @@ public class DefaultTestClassScanner implements TestClassScanner {
     public void run() {
         final FileSet testClassFileSet = new FileSet(testClassDirectory, null);
 
+        testClassProcessor.startProcessing();
+
         if (testFrameworkDetector == null) {
             filenameScan(testClassFileSet);
         } else {
             detectionScan(testClassFileSet);
         }
+
+        testClassProcessor.endProcessing();
     }
 
     private void detectionScan(final FileSet testClassFileSet) {

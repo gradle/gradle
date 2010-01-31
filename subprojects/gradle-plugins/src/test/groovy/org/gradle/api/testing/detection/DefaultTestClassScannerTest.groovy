@@ -22,6 +22,8 @@ import org.junit.Test
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 import org.gradle.api.testing.fabric.TestFrameworkDetector
+import org.gradle.api.testing.TestClassProcessor
+import org.jmock.Sequence
 
 @RunWith(JMock.class)
 public class DefaultTestClassScannerTest {
@@ -47,9 +49,15 @@ public class DefaultTestClassScannerTest {
         }
 
         context.checking {
+            Sequence sequence = context.sequence('seq')
+            one(processor).startProcessing()
+            inSequence(sequence)
             one(detector).startDetection(processor)
+            inSequence(sequence)
             one(detector).processTestClass(tmpDir.file('dir1/Class1.class'))
             one(detector).processTestClass(tmpDir.file('dir2/Class2.class'))
+            one(processor).endProcessing()
+            inSequence(sequence)
         }
         
         scanner.run()

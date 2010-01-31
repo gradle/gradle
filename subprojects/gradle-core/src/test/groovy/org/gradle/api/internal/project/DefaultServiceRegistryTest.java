@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -116,8 +116,8 @@ public class DefaultServiceRegistryTest {
 
     @Test
     public void closeInvokesCloseMethodOnEachService() {
-        final TestService service = context.mock(TestService.class);
-        registry.add(TestService.class, service);
+        final TestCloseService service = context.mock(TestCloseService.class);
+        registry.add(TestCloseService.class, service);
 
         context.checking(new Expectations() {{
             one(service).close();
@@ -127,7 +127,19 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
-    public void ignoresServiceWithNoCloseMethod() {
+    public void closeInvokesStopMethodOnEachService() {
+        final TestStopService service = context.mock(TestStopService.class);
+        registry.add(TestStopService.class, service);
+
+        context.checking(new Expectations() {{
+            one(service).stop();
+        }});
+
+        registry.close();
+    }
+
+    @Test
+    public void ignoresServiceWithNoCloseOrStopMethod() {
         registry.add(String.class, "service");
 
         registry.close();
@@ -166,7 +178,11 @@ public class DefaultServiceRegistryTest {
         }
     }
 
-    private interface TestService {
+    private interface TestCloseService {
         void close();
+    }
+
+    private interface TestStopService {
+        void stop();
     }
 }

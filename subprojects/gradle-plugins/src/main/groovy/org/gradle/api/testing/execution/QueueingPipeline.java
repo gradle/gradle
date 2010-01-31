@@ -68,6 +68,12 @@ public class QueueingPipeline implements Pipeline {
         return config;
     }
 
+    public void endProcessing() {
+    }
+
+    public void startProcessing() {
+    }
+
     public void processTestClass(TestClassRunInfo testClass) {
         // TODO save to disk when full
         runInfoQueueProducer.produce(testClass);

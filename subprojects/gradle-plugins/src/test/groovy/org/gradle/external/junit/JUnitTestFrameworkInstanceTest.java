@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -45,7 +45,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     private JUnitOptions jUnitOptionsMock;
     private JunitForkOptions jUnitForkOptionsMock;
     private ListenerBroadcast<TestListener> listenerBroadcastMock;
-    private AbstractTestTask testTask;
 
     @Before
     public void setUp() throws Exception {
@@ -57,9 +56,8 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
         listenerBroadcastMock = context.mock(ListenerBroadcast.class);
-        testTask = context.mock(AntTest.class, "JUnitTestFrameworkInstanceTest");
 
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testTask, jUnitTestFrameworkMock);
+        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock, jUnitTestFrameworkMock);
     }
 
     @org.junit.Test
@@ -79,7 +77,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
 
-        jUnitTestFrameworkInstance.initialize(projectMock, testMock);
+        jUnitTestFrameworkInstance.initialize();
 
         assertNotNull(jUnitTestFrameworkInstance.getOptions());
         assertNotNull(jUnitTestFrameworkInstance.getAntJUnitExecute());
@@ -109,7 +107,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
                                              jUnitOptionsMock, antBuilderMock, listenerBroadcastMock);
         }});
 
-        jUnitTestFrameworkInstance.execute(projectMock, testMock, null, null);
+        jUnitTestFrameworkInstance.execute(null, null);
     }
 
     @org.junit.Test
@@ -120,13 +118,25 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
             one(testMock).getTestReportDir(); will(returnValue(testReportDir));
             one(projectMock).getAnt(); will(returnValue(antBuilderMock));
+            one(testMock).isTestReport(); will(returnValue(true));
             one(antJUnitReportMock).execute(
                     testResultsDir, testReportDir,
                     antBuilderMock
             );
         }});
 
-        jUnitTestFrameworkInstance.report(projectMock, testMock);
+        jUnitTestFrameworkInstance.report();
+    }
+
+    @org.junit.Test
+    public void testReportWithDisabledReport() {
+        setMocks();
+
+        context.checking(new Expectations() {{
+            one(testMock).isTestReport(); will(returnValue(false));
+        }});
+
+        jUnitTestFrameworkInstance.report();
     }
 
     private void setMocks() {

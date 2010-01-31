@@ -15,9 +15,7 @@
  */
 package org.gradle.api.testing.fabric;
 
-import org.gradle.api.Project;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
-import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.util.Collection;
@@ -30,11 +28,11 @@ public interface TestFrameworkInstance<T extends TestFramework> {
 
     TestFrameworkDetector getDetector();
 
-    void initialize(Project project, AbstractTestTask testTask);
+    void initialize();
 
-    void execute(Project project, AbstractTestTask testTask, Collection<String> includes, Collection<String> excludes);
+    void execute(Collection<String> includes, Collection<String> excludes);
 
-    void report(Project project, AbstractTestTask testTask);
+    void report();
 
     AbstractTestFrameworkOptions getOptions();
 
