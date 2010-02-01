@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,16 +23,15 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.Matchers.*;
 
 import java.io.File;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -49,16 +48,47 @@ public class DefaultArtifactPomTest {
         expectedArtifact = createTestArtifact("someName");
         testPom = new DefaultMavenPom(new DefaultConf2ScopeMappingContainer());
         artifactPom = new DefaultArtifactPom(testPom);
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
     }
 
     @Test
-    public void addClassifier() {
+    public void pomWithMainArtifact() {
+        artifactPom.addArtifact(expectedArtifact, expectedFile);
+
+        assertEquals(expectedArtifact, artifactPom.getArtifact());
+        assertEquals(expectedFile, artifactPom.getArtifactFile());
+        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
+                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision(), null);
+    }
+
+    @Test
+    public void pomWithMainArtifactAndClassifierArtifacts() {
         File classifierFile = new File("someClassifierFile");
-        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc");
+        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc", "zip");
+
         artifactPom.addArtifact(classifierArtifact, classifierFile);
+        artifactPom.addArtifact(expectedArtifact, expectedFile);
+
         assertThat(artifactPom.getClassifiers(),
                 hasItem(new ClassifierArtifact("javadoc", "sometype", new File("someFile"))));
+
+        assertEquals(expectedArtifact, artifactPom.getArtifact());
+        assertEquals(expectedFile, artifactPom.getArtifactFile());
+        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
+                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision(), null);
+    }
+    
+    @Test
+    public void pomWithClassifierArtifacts() {
+        File classifierFile = new File("someClassifierFile");
+        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc", "zip");
+
+        artifactPom.addArtifact(classifierArtifact, classifierFile);
+
+        assertThat(artifactPom.getClassifiers(),
+                hasItem(new ClassifierArtifact("javadoc", "sometype", new File("someFile"))));
+        checkPom(classifierArtifact.getModuleRevisionId().getOrganisation(),
+                classifierArtifact.getName(), null,
+                classifierArtifact.getModuleRevisionId().getRevision(), null);
     }
 
     @Test(expected = InvalidUserDataException.class)
@@ -72,15 +102,7 @@ public class DefaultArtifactPomTest {
     @Test(expected = InvalidUserDataException.class)
     public void addMainArtifactTwiceShouldThrowInvalidUserDataEx() {
         artifactPom.addArtifact(expectedArtifact, expectedFile);
-    }
-
-    @Test
-    public void init() {
-        assertSame(testPom, artifactPom.getPom());
-        assertEquals(expectedArtifact, artifactPom.getArtifact());
-        assertEquals(expectedFile, artifactPom.getArtifactFile());
-        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
-                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision(), null);
+        artifactPom.addArtifact(expectedArtifact, expectedFile);
     }
 
     @Test
@@ -120,10 +142,14 @@ public class DefaultArtifactPomTest {
     }
 
     private Artifact createTestArtifact(String name, String classifier) {
+        return createTestArtifact(name, classifier, "jar");
+    }
+
+    private Artifact createTestArtifact(String name, String classifier, String type) {
         Map<String, String> extraAttributes = new HashMap<String, String>();
         if (classifier != null) {
             extraAttributes.put(Dependency.CLASSIFIER, classifier);
         }
-        return new DefaultArtifact(ModuleRevisionId.newInstance("org", name, "1.0"), null, name, "jar", "jar", extraAttributes);
+        return new DefaultArtifact(ModuleRevisionId.newInstance("org", name, "1.0"), null, name, type, type, extraAttributes);
     }
 }

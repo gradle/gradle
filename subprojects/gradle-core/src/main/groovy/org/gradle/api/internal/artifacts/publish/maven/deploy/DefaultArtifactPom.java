@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,13 +27,13 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class DefaultArtifactPom implements ArtifactPom {
-    private MavenPom pom;
+    private final MavenPom pom;
 
     private Artifact artifact;
 
     private File artifactFile;
 
-    private Set<ClassifierArtifact> classifiers = new HashSet<ClassifierArtifact>();
+    private final Set<ClassifierArtifact> classifiers = new HashSet<ClassifierArtifact>();
 
     public DefaultArtifactPom(MavenPom pom) {
         this.pom = pom;
@@ -43,24 +43,12 @@ public class DefaultArtifactPom implements ArtifactPom {
         return pom;
     }
 
-    public void setPom(MavenPom pom) {
-        this.pom = pom;
-    }
-
     public File getArtifactFile() {
         return artifactFile;
     }
 
-    public void setArtifactFile(File artifactFile) {
-        this.artifactFile = artifactFile;
-    }
-
     public Artifact getArtifact() {
         return artifact;
-    }
-
-    public void setArtifact(Artifact artifact) {
-        this.artifact = artifact;
     }
 
     public Set<ClassifierArtifact> getClassifiers() {
@@ -68,9 +56,10 @@ public class DefaultArtifactPom implements ArtifactPom {
     }
 
     public void addArtifact(Artifact artifact, File src) {
-        throwEceptionIfArtifactOrSrcIsNull(artifact, src);
+        throwExceptionIfArtifactOrSrcIsNull(artifact, src);
         if (hasClassifier(artifact)) {
             addClassifierArtifact(artifact, src);
+            assignArtifactValuesToPom(artifact, pom, false);
             return;
         }
         if (this.artifact != null) {
@@ -79,7 +68,7 @@ public class DefaultArtifactPom implements ArtifactPom {
         }
         this.artifact = artifact;
         this.artifactFile = src;
-        assignArtifactValuesToPom(artifact, pom);
+        assignArtifactValuesToPom(artifact, pom, true);
     }
 
     private void addClassifierArtifact(Artifact artifact, File artifactFile) {
@@ -101,7 +90,7 @@ public class DefaultArtifactPom implements ArtifactPom {
         return artifact.getExtraAttribute(Dependency.CLASSIFIER);
     }
 
-    private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom) {
+    private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom, boolean setType) {
         if (pom.getGroupId() == null) {
             pom.setGroupId(artifact.getModuleRevisionId().getOrganisation());
         }
@@ -111,12 +100,12 @@ public class DefaultArtifactPom implements ArtifactPom {
         if (pom.getVersion() == null) {
             pom.setVersion(artifact.getModuleRevisionId().getRevision());
         }
-        if (pom.getPackaging() == null) {
+        if (setType && pom.getPackaging() == null) {
             pom.setPackaging(artifact.getType());
         }
     }
 
-    private void throwEceptionIfArtifactOrSrcIsNull(Artifact artifact, File src) {
+    private void throwExceptionIfArtifactOrSrcIsNull(Artifact artifact, File src) {
         if (artifact == null) {
             throw new InvalidUserDataException("Artifact must not be null.");
         }
@@ -124,5 +113,4 @@ public class DefaultArtifactPom implements ArtifactPom {
             throw new InvalidUserDataException("Src file must not be null.");
         }
     }
-
 }
