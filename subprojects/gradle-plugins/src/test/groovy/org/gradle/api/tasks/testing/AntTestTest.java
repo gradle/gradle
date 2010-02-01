@@ -37,10 +37,7 @@ import org.junit.Before;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.Arrays;
 import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -59,8 +56,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     private File resultsDir;
     private File reportDir;
 
-    static final Set<String> OK_TEST_CLASS_NAMES = new HashSet<String>(Arrays.asList("test.HumanTest", "test.CarTest"));
-
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
@@ -73,7 +68,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
     private FileCollection classpathMock = context.mock(FileCollection.class);
 
     private AntTest test;
-    private File classfile;
 
     @Before public void setUp() {
         super.setUp();
@@ -89,7 +83,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
         File rootDir = getProject().getProjectDir();
         classesDir = new File(rootDir, "testClassesDir");
-        classfile = new File(classesDir, "FileTest.class");
+        File classfile = new File(classesDir, "FileTest.class");
         GFileUtils.touch(classfile);
         resultsDir = new File(rootDir, "resultDir");
         reportDir = new File(rootDir, "report/tests");
