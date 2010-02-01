@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.NamedDomainObjectCollection;
+import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
@@ -27,16 +27,11 @@ import groovy.lang.Closure;
  * 
  * @author Hans Dockter
  */
-public interface PluginCollection<T extends Plugin> extends NamedDomainObjectCollection<T> {
+public interface PluginCollection<T extends Plugin> extends DomainObjectCollection<T> {
     /**
      * {@inheritDoc}
      */
     PluginCollection<T> matching(Spec<? super T> spec);
-
-    /**
-     * {@inheritDoc}
-     */
-    T getByName(String name) throws UnknownPluginException;
 
     /**
      * {@inheritDoc}
@@ -74,9 +69,4 @@ public interface PluginCollection<T extends Plugin> extends NamedDomainObjectCol
      * @param closure The closure to be called
      */
     void allPlugins(Closure closure);
-
-    /**
-     * {@inheritDoc}
-     */
-    T getAt(String name) throws UnknownPluginException;
 }

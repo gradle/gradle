@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,8 +26,8 @@ public class CustomPlugin implements Plugin<Project> {
     public void use(Project p) { p.setProperty("prop", "value"); }
 }
 '''
-        testFile('buildSrc/src/main/resources/META-INF/gradle-plugins.properties') << '''
-custom=CustomPlugin
+        testFile('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << '''
+implementation-class=CustomPlugin
 '''
 
         testFile('build.gradle') << '''
@@ -47,8 +47,8 @@ public class CustomPlugin implements Plugin<Project> {
     public void use(Project p) { p.setProperty("prop", "value"); }
 }
 '''
-        builder.resourceFile('META-INF/gradle-plugins.properties') << '''
-custom=CustomPlugin
+        builder.resourceFile('META-INF/gradle-plugins/custom.properties') << '''
+implementation-class=CustomPlugin
 '''
         builder.buildJar(testFile('external.jar'))
 
