@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 package org.gradle.api.artifacts;
+
+import groovy.lang.Closure;
 
 import java.util.Map;
 import java.util.Set;
@@ -49,13 +51,27 @@ public interface ModuleDependency extends Dependency {
     Set<DependencyArtifact> getArtifacts();
 
     /**
-     * Adds an artifact to this dependency. If no artifact is added to a dependency, an implicit default artifact is
-     * used. This default artifact has the same name as the module and its type and extension is <em>jar</em>. If at
-     * least one artifact is explicitly added, the implicit default artifact won't be used any longer.
+     * <p>Adds an artifact to this dependency.</p>
+     *
+     * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
+     * same name as the module and its type and extension is <em>jar</em>. If at least one artifact is explicitly added,
+     * the implicit default artifact won't be used any longer.</p>
      *
      * @return this
      */
     ModuleDependency addArtifact(DependencyArtifact artifact);
+
+    /**
+     * <p>Adds an artifact to this dependency. The given closure is passed a {@link
+     * org.gradle.api.artifacts.DependencyArtifact} instance, which it can configure.</p>
+     *
+     * <p>If no artifact is added to a dependency, an implicit default artifact is used. This default artifact has the
+     * same name as the module and its type and extension is <em>jar</em>. If at least one artifact is explicitly added,
+     * the implicit default artifact won't be used any longer.</p>
+     *
+     * @return this
+     */
+    DependencyArtifact artifact(Closure configureClosure);
 
     /**
      * Returns whether this dependency should be resolved including or excluding its transitive dependencies.
