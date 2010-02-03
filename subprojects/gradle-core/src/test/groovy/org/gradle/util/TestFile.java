@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import org.apache.tools.ant.taskdefs.Zip;
 import org.gradle.api.UncheckedIOException;
 import org.hamcrest.Matcher;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -102,6 +104,26 @@ public class TestFile extends File {
             return FileUtils.readFileToString(this);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not read from test file '%s'", this), e);
+        }
+    }
+
+    public List<String> linesThat(Matcher<? super String> matcher) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(this));
+            try {
+                List<String> lines = new ArrayList<String>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (matcher.matches(line)) {
+                        lines.add(line);
+                    }
+                }
+                return lines;
+            } finally {
+                reader.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

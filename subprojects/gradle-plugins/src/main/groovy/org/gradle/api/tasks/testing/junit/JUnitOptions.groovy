@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,9 @@ import org.gradle.external.junit.JUnitTestFramework
  * @author Hans Dockter
  */
 class JUnitOptions extends AbstractTestFrameworkOptions {
-    boolean fork = true
     boolean filterTrace = true
     boolean showOutput = false
     boolean outputToFormatters = true
-    boolean reloading = true
 
     String tempDir = null
     String printSummary = 'true'
@@ -64,7 +62,6 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     }
 
     JUnitOptions fork(Map forkArgs) {
-        fork = true
         forkOptions.define(forkArgs)
         this
     }

@@ -21,7 +21,6 @@ import org.gradle.api.testing.fabric.TestClassRunInfo;
  * @author Tom Eyckmans
  */
 public interface TestClassProcessor {
-    void startProcessing();
 
     void processTestClass(TestClassRunInfo testClass);
 

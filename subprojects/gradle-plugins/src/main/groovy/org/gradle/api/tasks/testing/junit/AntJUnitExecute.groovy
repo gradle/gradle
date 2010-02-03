@@ -45,6 +45,8 @@ class AntJUnitExecute {
         ant.mkdir(dir: testResultsDir.absolutePath)
         createAntClassPath(ant, classPath + classPathRegistry.getClassPathFiles("ANT_JUNIT") + classPathRegistry.getClassPathFiles("TEST_LISTENER"))
         Map otherArgs = [
+                fork: true,
+                forkmode: 'once',
                 includeantruntime: 'false',
                 errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY

@@ -66,8 +66,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
         context.checking(new Expectations() {{
             one(jUnitOptionsMock).getForkOptions(); will(returnValue(jUnitForkOptionsMock));
-            one(jUnitOptionsMock).setFork(true);
-            one(jUnitForkOptionsMock).setForkMode(ForkMode.PER_TEST);
             one(projectMock).getProjectDir(); will(returnValue(projectDir));
             one(jUnitForkOptionsMock).setDir(projectDir);
             one(testMock).getTestClassesDir();will(returnValue(testClassesDir));

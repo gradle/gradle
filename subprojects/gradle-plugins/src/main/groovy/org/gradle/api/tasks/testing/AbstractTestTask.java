@@ -50,25 +50,27 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
 
-    protected List<File> testSrcDirs = new ArrayList<File>();
+    private List<File> testSrcDirs = new ArrayList<File>();
 
-    protected File testClassesDir;
+    private File testClassesDir;
 
-    protected File testResultsDir;
+    private File testResultsDir;
 
-    protected File testReportDir;
+    private File testReportDir;
 
-    protected PatternFilterable patternSet = new PatternSet();
+    private PatternFilterable patternSet = new PatternSet();
 
-    protected boolean ignoreFailures;
+    private boolean ignoreFailures;
 
-    protected FileCollection classpath;
+    private FileCollection classpath;
 
     private TestFrameworkInstance testFrameworkInstance;
 
-    protected boolean testReport = true;
+    private boolean testReport = true;
 
-    protected boolean scanForTestClasses = true;
+    private boolean scanForTestClasses = true;
+
+    private Long forkEvery;
 
     /**
      * The broadcaster for all {@link TestListener} implementations that have been registered with ListenerManager.
@@ -94,7 +96,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     public ClassPathRegistry getClassPathRegistry() {
         return getServices().get(ClassPathRegistry.class);
     }
-    
+
     /**
      * Registers a test listener with this task.  This listener will NOT be notified of tests executed by other tasks.
      * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
@@ -328,17 +330,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
      *
      * @return The testframework options.
      */
-    public Object getOptions() {
+    public AbstractTestFrameworkOptions getOptions() {
         return options(null);
     }
 
-    public Object options(Closure testFrameworkConfigure) {
-        final Object options = getTestFramework().getOptions();
-
-        if (testFrameworkConfigure != null) {
-            ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
-        }
-
+    public AbstractTestFrameworkOptions options(Closure testFrameworkConfigure) {
+        AbstractTestFrameworkOptions options = getTestFramework().getOptions();
+        ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
         return options;
     }
 
@@ -445,5 +443,24 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
+    }
+
+    /**
+     * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be
+     * restarted when this limit is reached.
+     *
+     * @return The maximum number of test classes. Returns null when there is no maximum.
+     */
+    public Long getForkEvery() {
+        return forkEvery;
+    }
+
+    /**
+     * Sets the maximum number of test classes to execute in a forked test process. Use null to use no maximum.
+     *
+     * @param forkEvery The maximum number of test classes. Use null to specify no maximum.
+     */
+    public void setForkEvery(Long forkEvery) {
+        this.forkEvery = forkEvery;
     }
 }

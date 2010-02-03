@@ -53,8 +53,6 @@ public class DefaultTestClassScanner implements TestClassScanner {
     public void run() {
         final FileSet testClassFileSet = new FileSet(testClassDirectory, null);
 
-        testClassProcessor.startProcessing();
-
         if (testFrameworkDetector == null) {
             filenameScan(testClassFileSet);
         } else {

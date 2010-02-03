@@ -17,7 +17,6 @@ package org.gradle.api.testing.execution.ant;
 
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 
 import java.util.Collections;
@@ -26,13 +25,10 @@ import java.util.Set;
 
 public class AntTaskBackedTestClassProcessor implements TestClassProcessor {
     private final Set<String> testClassNames = new HashSet<String>();
-    private final TestFrameworkInstance<? extends TestFramework> testFrameworkInstance;
+    private final TestFrameworkInstance testFrameworkInstance;
 
-    public AntTaskBackedTestClassProcessor(TestFrameworkInstance<? extends TestFramework> testFrameworkInstance) {
+    public AntTaskBackedTestClassProcessor(TestFrameworkInstance testFrameworkInstance) {
         this.testFrameworkInstance = testFrameworkInstance;
-    }
-
-    public void startProcessing() {
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
@@ -44,6 +40,5 @@ public class AntTaskBackedTestClassProcessor implements TestClassProcessor {
             return;
         }
         testFrameworkInstance.execute(testClassNames, Collections.<String>emptySet());
-        testFrameworkInstance.report();
     }
 }

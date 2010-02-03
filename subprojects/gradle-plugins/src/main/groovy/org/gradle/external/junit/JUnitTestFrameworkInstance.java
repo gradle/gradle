@@ -17,7 +17,6 @@ package org.gradle.external.junit;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.ForkMode;
 import org.gradle.api.tasks.testing.JunitForkOptions;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
@@ -34,7 +33,7 @@ import java.util.Map;
 /**
  * @author Tom Eyckmans
  */
-public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JUnitTestFramework> {
+public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
     private AntJUnitExecute antJUnitExecute = null;
     private AntJUnitReport antJUnitReport = null;
     private JUnitOptions options = null;
@@ -47,12 +46,10 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
     public void initialize() {
         antJUnitExecute = new AntJUnitExecute(testTask.getClassPathRegistry());
         antJUnitReport = new AntJUnitReport();
-        options = new JUnitOptions(testFramework);
+        options = new JUnitOptions((JUnitTestFramework) testFramework);
 
         final JunitForkOptions forkOptions = options.getForkOptions();
 
-        options.setFork(true);
-        forkOptions.setForkMode(ForkMode.ONCE);
         forkOptions.setDir(testTask.getProject().getProjectDir());
 
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());

@@ -24,8 +24,6 @@ import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
 import org.gradle.api.testing.reporting.policies.ReportPolicy;
 import org.gradle.api.testing.reporting.policies.console.ConsoleReportPolicy;
 import org.gradle.util.GUtil;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.*;
 
@@ -33,10 +31,6 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public class NativeTest extends AbstractTestTask {
-    private static final Logger LOGGER = LoggerFactory.getLogger(NativeTest.class);
-
-    private long reforkEvery = -1; // Don't refork
-
     private PipelineConfig defaultPipelineConfig;
     private Map<String, PipelineConfig> pipelineConfigs;
     private List<ReportPolicy> reportConfigs;
@@ -69,7 +63,8 @@ public class NativeTest extends AbstractTestTask {
 
         ReforkReasonConfigs reforkReasonConfigs = null;
 
-        if (reforkEvery >= 1) {
+        Long forkEvery = getForkEvery();
+        if (forkEvery != null) {
             if (reforkReasonConfigs == null) {
                 reforkReasonConfigs = new ReforkReasonConfigs();
             }
@@ -77,7 +72,7 @@ public class NativeTest extends AbstractTestTask {
             final AmountOfTestCasesConfig reforkEveryConfig = (AmountOfTestCasesConfig) ReforkReasonRegister
                     .getReforkReason(ReforkReasons.AMOUNT_OF_TESTCASES).getConfig();
 
-            reforkEveryConfig.setReforkEvery(reforkEvery);
+            reforkEveryConfig.setReforkEvery(forkEvery);
 
             reforkReasonConfigs.addOrUpdateReforkReasonConfig(reforkEveryConfig);
         }
@@ -114,24 +109,12 @@ public class NativeTest extends AbstractTestTask {
         // TODO don't use ant project property?
         if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
                 FAILURES_OR_ERRORS_PROPERTY))) {
-            if (testReport) {
+            if (isTestReport()) {
                 throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
             } else {
                 throw new GradleException("There were failing tests.");
             }
         }
-    }
-
-    public long getReforkEvery() {
-        return reforkEvery;
-    }
-
-    public void setReforkEvery(long reforkEvery) {
-        if (reforkEvery <= 0) {
-            throw new IllegalArgumentException("reforkEvery is equal to or lower than zero!");
-        }
-
-        this.reforkEvery = reforkEvery;
     }
 
     public Map<String, PipelineConfig> getPipelineConfigs() {

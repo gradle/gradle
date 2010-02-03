@@ -31,12 +31,6 @@ public class SplittingTestClassProcessor implements TestClassProcessor {
         this.pipelineMatchers = pipelineMatchers;
     }
 
-    public void startProcessing() {
-        for (TestClassProcessor processor : pipelineMatchers.values()) {
-            processor.startProcessing();
-        }
-    }
-
     public void endProcessing() {
         for (TestClassProcessor processor : pipelineMatchers.values()) {
             processor.endProcessing();

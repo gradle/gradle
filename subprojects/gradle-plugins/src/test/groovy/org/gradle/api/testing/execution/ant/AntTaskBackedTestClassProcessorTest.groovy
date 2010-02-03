@@ -30,14 +30,11 @@ class AntTaskBackedTestClassProcessorTest {
 
     @Test
     public void executesAntTaskAtTheEndOfProcessing() {
-        processor.startProcessing()
-
         processor.processTestClass(testClass('Test1'))
         processor.processTestClass(testClass('a.Test2'))
 
         context.checking {
             one(testFramework).execute(['Test1.class', 'a/Test2.class'] as Set, [] as Set)
-            one(testFramework).report()
         }
 
         processor.endProcessing()
@@ -45,7 +42,6 @@ class AntTaskBackedTestClassProcessorTest {
 
     @Test
     public void doesNothingWhenNoTestsDetected() {
-        processor.startProcessing()
         processor.endProcessing()
     }
 

@@ -23,12 +23,16 @@ import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
+import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
+import org.gradle.api.testing.execution.ant.AntTaskBackedTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
-import org.gradle.util.WrapUtil;
+import org.hamcrest.BaseMatcher;
+import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,6 +43,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Collections;
 
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -71,15 +76,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
     @Before public void setUp() {
         super.setUp();
-        test = createTask(AntTest.class);
-        context.checking(new Expectations(){{
-            one(testFrameworkMock).getInstance(test);
-            will(returnValue(testFrameworkInstanceMock));
-            one(testFrameworkInstanceMock).initialize();
-        }});
-        test.useTestFramework(testFrameworkMock);
-        test.setScanForTestClasses(false);
-        test.setTestClassScannerFactory(testClassScannerFactoryMock);
 
         File rootDir = getProject().getProjectDir();
         classesDir = new File(rootDir, "testClassesDir");
@@ -87,6 +83,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
         GFileUtils.touch(classfile);
         resultsDir = new File(rootDir, "resultDir");
         reportDir = new File(rootDir, "report/tests");
+
+        test = createTask(AntTest.class);
     }
 
     public ConventionTask getTask() {
@@ -99,21 +97,30 @@ public class AntTestTest extends AbstractConventionTaskTest {
         assertNull(test.getClasspath());
         assertNull(test.getTestResultsDir());
         assertNull(test.getTestReportDir());
-        assertEquals(WrapUtil.toLinkedSet(), test.getIncludes());
-        assertEquals(WrapUtil.toLinkedSet(), test.getExcludes());
+        assertEquals(toLinkedSet(), test.getIncludes());
+        assertEquals(toLinkedSet(), test.getExcludes());
         assertFalse(test.isIgnoreFailures());
     }
 
     @org.junit.Test
     public void testExecute() {
-        setUpMocks(test);
+        setUpMocks();
 
-        test.execute();
+        test.executeTests();
+    }
+
+    @org.junit.Test
+    public void testExecuteWithMaxClassesPerForkLimit() {
+        test.setForkEvery(12L);
+
+        setUpMocks(instanceOf(RestartEveryNTestClassProcessor.class));
+
+        test.executeTests();
     }
 
     @org.junit.Test
     public void testExecuteWithTestFailuresAndStopAtFailures() {
-        setUpMocks(test);
+        setUpMocks();
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
         try {
             test.executeTests();
@@ -124,10 +131,10 @@ public class AntTestTest extends AbstractConventionTaskTest {
     }
 
     @org.junit.Test public void testExecuteWithTestFailuresAndContinueWithFailures() {
-        setUpMocks(test);
+        setUpMocks();
         test.setIgnoreFailures(true);
         getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
-        test.execute();
+        test.executeTests();
     }
 
     @org.junit.Test public void testListenerMethodsDelegateToListenerBroadcast() {
@@ -154,7 +161,35 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.getTestListenerBroadcaster().getSource().afterTest(testInfo, result);
     }
 
-    private void setUpMocks(final AntTest test) {
+    @org.junit.Test public void testIncludes() {
+        assertSame(test, test.include(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getIncludes());
+        test.include(TEST_PATTERN_3);
+        assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getIncludes());
+    }
+
+    @org.junit.Test public void testExcludes() {
+        assertSame(test, test.exclude(TEST_PATTERN_1, TEST_PATTERN_2));
+        assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getExcludes());
+        test.exclude(TEST_PATTERN_3);
+        assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
+    }
+
+    private void setUpMocks() {
+        setUpMocks(instanceOf(AntTaskBackedTestClassProcessor.class));
+    }
+
+    private void setUpMocks(final Matcher<TestClassProcessor> testClassProcessorMatcher) {
+        context.checking(new Expectations(){{
+            one(testFrameworkMock).getInstance(test);
+            will(returnValue(testFrameworkInstanceMock));
+            one(testFrameworkInstanceMock).initialize();
+        }});
+
+        test.useTestFramework(testFrameworkMock);
+
+        test.setScanForTestClasses(false);
+        test.setTestClassScannerFactory(testClassScannerFactoryMock);
         test.setTestClassesDir(classesDir);
         test.setTestResultsDir(resultsDir);
         test.setTestReportDir(reportDir);
@@ -162,23 +197,22 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.setTestSrcDirs(Collections.<File>emptyList());
 
         context.checking(new Expectations() {{
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)));
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher));
             will(returnValue(testClassScannerMock));
             one(testClassScannerMock).run();
+            one(testFrameworkInstanceMock).report();
         }});
     }
 
-    @org.junit.Test public void testIncludes() {
-        assertSame(test, test.include(TEST_PATTERN_1, TEST_PATTERN_2));
-        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getIncludes());
-        test.include(TEST_PATTERN_3);
-        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getIncludes());
-    }
+    private Matcher<TestClassProcessor> instanceOf(final Class<? extends TestClassProcessor> type) {
+        return new BaseMatcher<TestClassProcessor>() {
+            public boolean matches(Object object) {
+                return type.isInstance(object);
+            }
 
-    @org.junit.Test public void testExcludes() {
-        assertSame(test, test.exclude(TEST_PATTERN_1, TEST_PATTERN_2));
-        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2), test.getExcludes());
-        test.exclude(TEST_PATTERN_3);
-        assertEquals(WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
+            public void describeTo(Description description) {
+                description.appendText("instance of ").appendValue(type.getName());
+            }
+        };
     }
 }

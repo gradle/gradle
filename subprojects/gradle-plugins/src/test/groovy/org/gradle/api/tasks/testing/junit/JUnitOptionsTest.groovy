@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,9 +43,7 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
 
     @Test public void testCompileOptions() {
         junitOptions = new JUnitOptions(testFrameworkMock)
-        assertTrue(junitOptions.fork)
         assertTrue(junitOptions.filterTrace)
-        assertTrue(junitOptions.reloading)
         assertTrue(junitOptions.outputToFormatters)
 
         assertFalse(junitOptions.showOutput)
@@ -86,9 +84,7 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
 
     @Test public void testOptionMapWithTrueFalseValues() {
         Map booleans = [
-                fork: 'fork',
                 filterTrace: 'filtertrace',
-                reloading: 'reloading',
                 outputToFormatters: 'outputtoformatters',
                 showOutput: 'showoutput'
         ]
@@ -105,25 +101,21 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
     }
 
     @Test public void testFork() {
-        junitOptions.fork = false
         boolean forkUseCalled = false
         junitOptions.forkOptions = [define: {Map args ->
             forkUseCalled = true
             assertEquals(TEST_FORK_OPTION_MAP, args)
         }] as JunitForkOptions
         assert junitOptions.fork(TEST_FORK_OPTION_MAP).is(junitOptions)
-        assertTrue(junitOptions.fork)
         assertTrue(forkUseCalled)
     }
 
     @Test public void testDefine() {
-        junitOptions.fork = false
         junitOptions.tempDir = null
         junitOptions.printSummary = 'xxxx'
-        junitOptions.define(fork: true, tempDir: 'tmp', printSummary: null, showOutput: true)
+        junitOptions.define(tempDir: 'tmp', printSummary: null, showOutput: true)
         assertTrue(junitOptions.showOutput)
         assertEquals('tmp', junitOptions.tempDir)
         assertNull(junitOptions.printSummary)
-        assertTrue(junitOptions.fork)
     }
 }

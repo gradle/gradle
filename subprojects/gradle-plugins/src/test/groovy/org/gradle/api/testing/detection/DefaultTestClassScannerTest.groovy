@@ -50,8 +50,6 @@ public class DefaultTestClassScannerTest {
 
         context.checking {
             Sequence sequence = context.sequence('seq')
-            one(processor).startProcessing()
-            inSequence(sequence)
             one(detector).startDetection(processor)
             inSequence(sequence)
             one(detector).processTestClass(tmpDir.file('dir1/Class1.class'))

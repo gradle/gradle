@@ -30,13 +30,13 @@ public class JUnitIntegrationTest {
     private GradleExecuter executer;
 
     @Test
-    public void testFailureBreaksBuild() {
+    public void failureInTestBreaksBuild() {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file("build.gradle");
         buildFile.writelns(
                 "apply id: 'java'",
                 "repositories { mavenCentral() }",
-                "dependencies { testCompile 'junit:junit:4.4' }"
+                "dependencies { testCompile 'junit:junit:4.7' }"
         );
         testDir.file("src/test/java/org/gradle/BrokenTest.java").writelns(
                 "package org.gradle;",
@@ -58,7 +58,7 @@ public class JUnitIntegrationTest {
         testDir.file("b/build.gradle").writelns(
                 "apply id: 'java'",
                 "repositories { mavenCentral() }",
-                "dependencies { compile 'junit:junit:4.4' }"
+                "dependencies { compile 'junit:junit:4.7' }"
         );
         testDir.file("b/src/main/java/org/gradle/AbstractTest.java").writelns(
                 "package org.gradle;",
@@ -87,7 +87,7 @@ public class JUnitIntegrationTest {
         testDir.file("build.gradle").writelns(
                 "apply id: 'java'",
                 "repositories { mavenCentral() }",
-                "dependencies { compile 'junit:junit:4.4' }"
+                "dependencies { compile 'junit:junit:4.7' }"
         );
         testDir.file("src/test/java/org/gradle/SomeTest.java").writelns(
                 "package org.gradle;",
@@ -99,6 +99,102 @@ public class JUnitIntegrationTest {
 
         executer.withTasks("test").run();
         testDir.file("build/test-results/TEST-org.gradle.SomeTest$SomeInner.xml").assertIsFile();
+    }
+
+    @Test
+    public void canHaveRunWithAnnotationOnSuperClass() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle").writelns(
+                "apply id: 'java'",
+                "repositories { mavenCentral() }",
+                "dependencies { compile 'junit:junit:4.7' }"
+        );
+        testDir.file("src/test/java/org/gradle/CustomRunner.java").writelns(
+                "package org.gradle;",
+                "public class CustomRunner extends org.junit.runners.BlockJUnit4ClassRunner {",
+                "    public CustomRunner(Class c) throws Exception { super(c); }",
+                "}");
+        testDir.file("src/test/java/org/gradle/AbstractTest.java").writelns(
+                "package org.gradle;",
+                "@org.junit.runner.RunWith(CustomRunner.class)",
+                "public abstract class AbstractTest {",
+                "    @org.junit.Test public void ok() { }",
+                "}");
+        testDir.file("src/test/java/org/gradle/SomeTest.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest extends AbstractTest {",
+                "}");
+
+        executer.withTasks("test").run();
+        testDir.file("build/test-results/TEST-org.gradle.SomeTest.xml").assertIsFile();
+    }
+
+    @Test
+    public void runsAllTestsInTheSameForkedJvm() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle").writelns(
+                "apply id: 'java'",
+                "repositories { mavenCentral() }",
+                "dependencies { compile 'junit:junit:4.7' }"
+        );
+        testDir.file("src/test/java/org/gradle/AbstractTest.java").writelns(
+                "package org.gradle;",
+                "public abstract class AbstractTest {",
+                "    @org.junit.Test public void ok() {",
+                "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
+                "        System.out.println(String.format(\"VM START TIME = %s\", time));",
+                "    }",
+                "}");
+        testDir.file("src/test/java/org/gradle/SomeTest.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest extends AbstractTest {",
+                "}");
+        testDir.file("src/test/java/org/gradle/SomeTest2.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest2 extends AbstractTest {",
+                "}");
+
+        executer.withTasks("test").run();
+        TestFile results1 = testDir.file("build/test-results/TEST-org.gradle.SomeTest.xml");
+        TestFile results2 = testDir.file("build/test-results/TEST-org.gradle.SomeTest2.xml");
+        results1.assertIsFile();
+        results2.assertIsFile();
+        assertThat(results1.linesThat(containsString("VM START TIME =")).get(0), equalTo(results2.linesThat(containsString("VM START TIME =")).get(0)));
+    }
+
+    @Test
+    public void canSpecifyMaximumNumberOfTestClassesToExecuteInAForkedJvm() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file("build.gradle").writelns(
+                "apply id: 'java'",
+                "repositories { mavenCentral() }",
+                "dependencies { compile 'junit:junit:4.7' }",
+                "test.forkEvery = 1"
+        );
+        testDir.file("src/test/java/org/gradle/AbstractTest.java").writelns(
+                "package org.gradle;",
+                "public abstract class AbstractTest {",
+                "    @org.junit.Test public void ok() {",
+                "        long time = java.lang.management.ManagementFactory.getRuntimeMXBean().getStartTime();",
+                "        System.out.println(String.format(\"VM START TIME = %s\", time));",
+                "    }",
+                "}");
+        testDir.file("src/test/java/org/gradle/SomeTest.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest extends AbstractTest {",
+                "}");
+        testDir.file("src/test/java/org/gradle/SomeTest2.java").writelns(
+                "package org.gradle;",
+                "public class SomeTest2 extends AbstractTest {",
+                "}");
+
+        executer.withTasks("test").run();
+        TestFile results1 = testDir.file("build/test-results/TEST-org.gradle.SomeTest.xml");
+        TestFile results2 = testDir.file("build/test-results/TEST-org.gradle.SomeTest2.xml");
+        results1.assertIsFile();
+        results2.assertIsFile();
+        assertThat(results1.linesThat(containsString("VM START TIME =")).get(0), not(equalTo(results2.linesThat(
+                containsString("VM START TIME =")).get(0))));
     }
 
     @Test
@@ -120,7 +216,7 @@ public class JUnitIntegrationTest {
         testDir.file("build.gradle").writelns(
                 "apply id: 'java'",
                 "repositories { mavenCentral() } ",
-                "dependencies { testCompile 'junit:junit:4.4' }",
+                "dependencies { testCompile 'junit:junit:4.7' }",
                 "def listener = new TestListenerImpl()",
                 "test.addTestListener(listener)",
                 "test.ignoreFailures = true",

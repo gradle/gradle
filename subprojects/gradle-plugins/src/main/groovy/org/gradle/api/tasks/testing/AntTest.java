@@ -17,15 +17,18 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
+import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.ant.AntTaskBackedTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GUtil;
 
 /**
- * A task for executing JUnit (3.8.x or 4) or TestNG tests.
+ * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
  *
  * @author Hans Dockter
  */
@@ -33,29 +36,35 @@ public class AntTest extends AbstractTestTask {
     private TestClassScannerFactory testClassScannerFactory;
 
     public AntTest() {
-        super();
-        testClassScannerFactory = new DefaultTestClassScannerFactory();
+        this.testClassScannerFactory = new DefaultTestClassScannerFactory();
+    }
+
+    void setTestClassScannerFactory(TestClassScannerFactory testClassScannerFactory) {
+        this.testClassScannerFactory = testClassScannerFactory;
     }
 
     public void executeTests() {
-        TestFrameworkInstance testFrameworkInstance = getTestFramework();
+        final TestFrameworkInstance testFrameworkInstance = getTestFramework();
+        TestClassProcessorFactory factory = new TestClassProcessorFactory() {
+            public TestClassProcessor create() {
+                return new AntTaskBackedTestClassProcessor(testFrameworkInstance);
+            }
+        };
 
-        AntTaskBackedTestClassProcessor processor = new AntTaskBackedTestClassProcessor(testFrameworkInstance);
+        TestClassProcessor processor;
+        if (getForkEvery() != null) {
+            processor = new RestartEveryNTestClassProcessor(factory, getForkEvery());
+        } else {
+            processor = factory.create();
+        }
         TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
 
         testClassScanner.run();
+        testFrameworkInstance.report();
 
         if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
                 FAILURES_OR_ERRORS_PROPERTY))) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
     }
-
-    /**
-     * only for test purposes
-     */
-    void setTestClassScannerFactory(TestClassScannerFactory testClassScannerFactory) {
-        this.testClassScannerFactory = testClassScannerFactory;
-    }
-
 }

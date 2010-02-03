@@ -23,8 +23,8 @@ import java.util.Collection;
 /**
  * @author Tom Eyckmans
  */
-public interface TestFrameworkInstance<T extends TestFramework> {
-    T getTestFramework();
+public interface TestFrameworkInstance {
+    TestFramework getTestFramework();
 
     TestFrameworkDetector getDetector();
 

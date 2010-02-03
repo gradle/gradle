@@ -30,7 +30,7 @@ import java.util.Map;
 /**
  * @author Tom Eyckmans
  */
-public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<TestNGTestFramework> {
+public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     private AntTestNGExecute antTestNGExecute;
     private TestNGOptions options;
@@ -42,7 +42,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
 
     public void initialize() {
         antTestNGExecute = new AntTestNGExecute();
-        options = new TestNGOptions(testFramework, testTask.getProject().getProjectDir());
+        options = new TestNGOptions((TestNGTestFramework) testFramework, testTask.getProject().getProjectDir());
 
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
 
