@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -78,26 +78,17 @@ dependencies {
     integTestFixtures sourceSets.integTest.classes
 }
 
-processResources.doLast {
-    writeVersionProperties(new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME))
+task versionProperties(type: WriteVersionProperties) {
+    propertiesFile = new File(sourceSets.main.classesDir, GradleVersion.FILE_NAME)
 }
 
-ide.doLast {
-    writeVersionProperties(new File(ideDir, "resources/test/$GradleVersion.FILE_NAME"))    
+classes.dependsOn(versionProperties)
+
+task ideVersionProperties(type: WriteVersionProperties) {
+    propertiesFile = new File(ideDir, "resources/test/$GradleVersion.FILE_NAME")
 }
 
-def writeVersionProperties(File destination) {
-    logger.info('Write version properties to: {}', destination.absoluteFile)
-    Properties versionProperties = new Properties()
-    versionProperties.putAll([
-            (GradleVersion.VERSION): version.toString(),
-            (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(version.buildTime)
-    ])
-    destination.parentFile.mkdirs()
-    destination.withOutputStream {
-        versionProperties.store(it, '')
-    }
-}
+ide.dependsOn ideVersionProperties
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
@@ -112,4 +103,29 @@ test {
     try { maxPermSize = customMaxPermSize; logger.debug('Using custom MaxPermSize: ' + maxPermSize + ' for :core:test') } catch (MissingPropertyException e) { }
 
     options.fork(jvmArgs: ["-ea", "-Xms${xmsSize}", "-Xmx${xmxSize}", "-XX:MaxPermSize=${maxPermSize}", '-XX:+HeapDumpOnOutOfMemoryError'])
+}
+
+class WriteVersionProperties extends DefaultTask {
+    @Input
+    String getVersion() { return project.version.toString() }
+
+    @Input
+    Date getBuildTime() { return project.version.buildTime }
+
+    @OutputFile
+    File propertiesFile
+
+    @TaskAction
+    def void generate() {
+        logger.info('Write version properties to: {}', propertiesFile)
+        Properties versionProperties = new Properties()
+        versionProperties.putAll([
+                (GradleVersion.VERSION): version,
+                (GradleVersion.BUILD_TIME): DateFormat.getDateTimeInstance(DateFormat.FULL, DateFormat.FULL).format(buildTime)
+        ])
+        propertiesFile.withOutputStream {
+            versionProperties.store(it, '')
+        }
+
+    }
 }
