@@ -162,7 +162,7 @@ public class DefaultConnector implements Connector, Stoppable {
                 }
             });
             try {
-                stopJob.get(2, TimeUnit.MINUTES);
+                stopJob.get(120, TimeUnit.SECONDS);
             } catch (Exception e) {
                 throw new GradleException("Could not stop connection.", e);
             }
