@@ -24,9 +24,6 @@ import org.gradle.api.Plugin;
  * <p>Plugins can be specified using either an id or type. The id of a plugin is specified using a
  * META-INF/gradle-plugins/${id}.properties resource.</p>
  *
- * <p>The name of a plugin is its id. In the case a plugin does not has an id, its name is the fully qualified class
- * name.</p>
- *
  * @author Hans Dockter
  */
 public interface PluginContainer extends PluginCollection<Plugin> {
