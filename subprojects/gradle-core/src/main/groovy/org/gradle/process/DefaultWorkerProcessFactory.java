@@ -17,6 +17,7 @@ package org.gradle.process;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.util.exec.ExecHandle;
@@ -33,10 +34,12 @@ import java.util.List;
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final MessagingServer server;
     private final ClassPathRegistry classPathRegistry;
+    private final FileResolver resolver;
 
-    public DefaultWorkerProcessFactory(MessagingServer server, ClassPathRegistry classPathRegistry) {
+    public DefaultWorkerProcessFactory(MessagingServer server, ClassPathRegistry classPathRegistry, FileResolver resolver) {
         this.server = server;
         this.classPathRegistry = classPathRegistry;
+        this.resolver = resolver;
     }
 
     public WorkerProcessBuilder newProcess() {
@@ -45,6 +48,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
     private class DefaultWorkerProcessBuilder extends WorkerProcessBuilder {
         public DefaultWorkerProcessBuilder() {
+            super(resolver);
             getJavaCommand().mainClass(GradleWorkerMain.class.getName());
             getJavaCommand().classpath(classPathRegistry.getClassPathFiles("WORKER_PROCESS"));
         }
@@ -73,7 +77,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
                 throw new UncheckedIOException(e);
             }
 
-            getJavaCommand().getCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
+            getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
             ExecHandle execHandle = getJavaCommand().build();
 
             return new DefaultWorkerProcess(connection, execHandle);

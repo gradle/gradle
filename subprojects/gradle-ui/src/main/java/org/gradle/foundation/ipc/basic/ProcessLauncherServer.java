@@ -90,7 +90,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 protocol.getExecutionInfo(getPort(), executionInfo);
 
                 ExecHandleBuilder builder = new ExecHandleBuilder();
-                builder.execDirectory(executionInfo.workingDirectory);
+                builder.workingDir(executionInfo.workingDirectory);
                 builder.commandLine(executionInfo.commandLineArguments);
                 builder.environment(executionInfo.environmentVariables);
                 ByteArrayOutputStream output = new ByteArrayOutputStream();

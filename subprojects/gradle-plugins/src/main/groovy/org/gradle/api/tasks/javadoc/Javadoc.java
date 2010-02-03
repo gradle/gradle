@@ -94,8 +94,7 @@ public class Javadoc extends SourceTask {
     }
 
     private void executeExternalJavadoc() {
-        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile())
-                .destinationDirectory(getDestinationDir());
+        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
 
         final ExecHandle execHandle = javadocExecHandleBuilder.getExecHandle();
 

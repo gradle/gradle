@@ -15,22 +15,81 @@
  */
 package org.gradle.util.exec;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
+import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.util.GUtil;
-import org.gradle.util.Jvm;
 
 import java.io.File;
 import java.util.*;
 
-public class JavaExecHandleBuilder {
+public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaForkOptions {
     private String mainClass;
-    private final List<String> arguments = new ArrayList<String>();
-    private final List<String> extraJvmArguments = new ArrayList<String>();
-    private final List<String> jvmArguments = new ArrayList<String>();
+    private final List<String> applicationArgs = new ArrayList<String>();
     private final Set<File> classpath = new LinkedHashSet<File>();
-    private final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder();
+    private final JavaForkOptions javaOptions;
 
     public JavaExecHandleBuilder() {
-        execHandleBuilder.execCommand(Jvm.current().getJavaExecutable());
+        this(null);
+    }
+
+    public JavaExecHandleBuilder(FileResolver resolver) {
+        javaOptions = new DefaultJavaForkOptions(resolver);
+        executable(javaOptions.getExecutable());
+    }
+
+    public List<String> getAllJvmArgs() {
+        List<String> allArgs = new ArrayList<String>();
+        allArgs.addAll(javaOptions.getAllJvmArgs());
+        if (!classpath.isEmpty()) {
+            allArgs.add("-cp");
+            allArgs.add(GUtil.join(classpath, File.pathSeparator));
+        }
+        return allArgs;
+    }
+
+    public void setAllJvmArgs(Iterable<?> arguments) {
+        throw new UnsupportedOperationException();
+    }
+
+    public List<String> getJvmArgs() {
+        return javaOptions.getJvmArgs();
+    }
+
+    public void setJvmArgs(Iterable<?> arguments) {
+        javaOptions.setJvmArgs(arguments);
+    }
+
+    public void jvmArgs(Iterable<?> arguments) {
+        javaOptions.jvmArgs(arguments);
+    }
+
+    public void jvmArgs(Object... arguments) {
+        javaOptions.jvmArgs(arguments);
+    }
+
+    public Map<String, String> getSystemProperties() {
+        return javaOptions.getSystemProperties();
+    }
+
+    public void setSystemProperties(Map<String, ?> properties) {
+        javaOptions.setSystemProperties(properties);
+    }
+
+    public void systemProperties(Map<String, ?> properties) {
+        javaOptions.systemProperties(properties);
+    }
+
+    public void systemProperty(String name, Object value) {
+        javaOptions.systemProperty(name, value);
+    }
+
+    public String getMaxHeapSize() {
+        return javaOptions.getMaxHeapSize();
+    }
+
+    public void setMaxHeapSize(String heapSize) {
+        javaOptions.setMaxHeapSize(heapSize);
     }
 
     public String getMainClass() {
@@ -39,53 +98,15 @@ public class JavaExecHandleBuilder {
 
     public JavaExecHandleBuilder mainClass(String mainClassName) {
         this.mainClass = mainClassName;
-        setArgs();
         return this;
     }
 
-    public List<String> getArguments() {
-        return arguments;
+    public List<String> getApplicationArgs() {
+        return applicationArgs;
     }
 
-    public JavaExecHandleBuilder arguments(String... args) {
-        arguments(Arrays.asList(args));
-        return this;
-    }
-
-    private JavaExecHandleBuilder arguments(Collection<String> argsList) {
-        arguments.addAll(argsList);
-        setArgs();
-        return this;
-    }
-
-    public List<String> getJvmArguments() {
-        return jvmArguments;
-    }
-
-    public JavaExecHandleBuilder jvmArguments(String... args) {
-        jvmArguments(Arrays.asList(args));
-        return this;
-    }
-
-    public JavaExecHandleBuilder jvmArguments(Collection<String> args) {
-        extraJvmArguments.addAll(args);
-        setArgs();
-        return this;
-    }
-
-    private void setArgs() {
-        jvmArguments.clear();
-        if (!classpath.isEmpty()) {
-            jvmArguments.add("-cp");
-            jvmArguments.add(GUtil.join(classpath, File.pathSeparator));
-        }
-        jvmArguments.addAll(extraJvmArguments);
-
-        execHandleBuilder.setArguments(GUtil.addLists(jvmArguments, Collections.singleton(mainClass), arguments));
-    }
-
-    public JavaExecHandleBuilder execDirectory(File execDir) {
-        execHandleBuilder.execDirectory(execDir);
+    public JavaExecHandleBuilder applicationArgs(String... args) {
+        applicationArgs.addAll(Arrays.asList(args));
         return this;
     }
 
@@ -96,7 +117,6 @@ public class JavaExecHandleBuilder {
     
     public JavaExecHandleBuilder classpath(Collection<File> classpath) {
         this.classpath.addAll(classpath);
-        setArgs();
         return this;
     }
 
@@ -104,14 +124,34 @@ public class JavaExecHandleBuilder {
         return classpath;
     }
 
-    public ExecHandleBuilder getCommand() {
-        return execHandleBuilder;
+    @Override
+    public List<String> getArguments() {
+        List<String> arguments = new ArrayList<String>();
+        arguments.addAll(getAllJvmArgs());
+        arguments.add(mainClass);
+        arguments.addAll(applicationArgs);
+        return arguments;
+    }
+
+    @Override
+    public ExecHandleBuilder setArguments(List<String> arguments) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ExecHandleBuilder arguments(List<String> arguments) {
+        throw new UnsupportedOperationException();
+    }
+
+    @Override
+    public ExecHandleBuilder arguments(String... arguments) {
+        throw new UnsupportedOperationException();
     }
 
     public ExecHandle build() {
         if (mainClass == null) {
             throw new IllegalStateException("No main class specified");
         }
-        return getCommand().build();
+        return super.build();
     }
 }

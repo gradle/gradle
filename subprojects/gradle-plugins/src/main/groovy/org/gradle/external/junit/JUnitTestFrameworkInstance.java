@@ -21,8 +21,8 @@ import org.gradle.api.tasks.testing.JunitForkOptions;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
-import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -97,29 +97,29 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
         return detector;
     }
 
-    public void applyForkArguments(JavaExecHandleBuilder forkHandleBuilder) {
+    public void applyForkArguments(JavaForkOptions javaForkOptions) {
         final JunitForkOptions forkOptions = options.getForkOptions();
 
         if (StringUtils.isNotEmpty(forkOptions.getJvm())) {
-            forkHandleBuilder.getCommand().execCommand(forkOptions.getJvm());
+            javaForkOptions.executable(forkOptions.getJvm());
         }
 
         if (forkOptions.getDir() != null) {
-            forkHandleBuilder.execDirectory(forkOptions.getDir());
+            javaForkOptions.workingDir(forkOptions.getDir());
         }
 
         if (StringUtils.isNotEmpty(forkOptions.getMaxMemory())) {
-            forkHandleBuilder.jvmArguments("-Xmx=" + forkOptions.getMaxMemory());
+            javaForkOptions.setMaxHeapSize(forkOptions.getMaxMemory());
         }
 
         final List<String> jvmArgs = forkOptions.getJvmArgs();
         if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            forkHandleBuilder.jvmArguments(jvmArgs);
+            javaForkOptions.jvmArgs(jvmArgs);
         }
 
         if (forkOptions.isNewEnvironment()) {
             final Map<String, String> environment = forkOptions.getEnvironment();
-            forkHandleBuilder.getCommand().setEnvironment(environment);
+            javaForkOptions.setEnvironment(environment);
         }
 
         // TODO clone

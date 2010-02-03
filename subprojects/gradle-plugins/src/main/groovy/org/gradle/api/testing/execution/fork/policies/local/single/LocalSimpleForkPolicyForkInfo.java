@@ -65,12 +65,12 @@ public class LocalSimpleForkPolicyForkInfo implements ForkPolicyForkInfo {
         byte[] forkConfigFile = forkConfigWriter.writeConfigFile();
 
         // TODO we probably want loggers for each fork
-        JavaExecHandleBuilder forkHandleBuilder = new JavaExecHandleBuilder().execDirectory(project.getProjectDir());
-
+        JavaExecHandleBuilder forkHandleBuilder = new JavaExecHandleBuilder();
+        forkHandleBuilder.workingDir(project.getProjectDir());
         forkHandleBuilder.mainClass(ForkLaunchMain.class.getName());
-        forkHandleBuilder.jvmArguments("-cp", System.getProperty("gradle.fork.launcher.cp"));
-        forkHandleBuilder.arguments(TestForkExecuter.class.getName());
-        forkHandleBuilder.getCommand().standardInput(new ByteArrayInputStream(forkConfigFile));
+        forkHandleBuilder.jvmArgs("-cp", System.getProperty("gradle.fork.launcher.cp"));
+        forkHandleBuilder.applicationArgs(TestForkExecuter.class.getName());
+        forkHandleBuilder.standardInput(new ByteArrayInputStream(forkConfigFile));
 
         testFramework.applyForkArguments(forkHandleBuilder);
 

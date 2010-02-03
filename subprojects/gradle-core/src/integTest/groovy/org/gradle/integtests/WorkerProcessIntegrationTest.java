@@ -19,7 +19,9 @@ import org.apache.tools.ant.Project;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.messaging.ObjectConnection;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
@@ -38,6 +40,7 @@ import org.junit.runner.RunWith;
 
 import java.io.ObjectInputStream;
 import java.io.Serializable;
+import java.util.concurrent.CountDownLatch;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -48,7 +51,7 @@ public class WorkerProcessIntegrationTest {
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
     private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry);
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry, new IdentityFileResolver());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
@@ -59,7 +62,7 @@ public class WorkerProcessIntegrationTest {
     }
 
     @Test
-    public void workerProcessCanSendEventsToThisProcess() throws Throwable {
+    public void workerProcessCanSendMessagesToThisProcess() throws Throwable {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
             one(listenerMock).send("message 1", 1);
@@ -70,9 +73,22 @@ public class WorkerProcessIntegrationTest {
 
         execute(worker(new RemoteProcess()));
     }
-    
+
     @Test
-    public void multipleWorkerProcessesCanSendEventsToThisProcess() throws Throwable {
+    public void thisProcessCanSendEventsToWorkerProcess() throws Throwable {
+        execute(worker(new PingRemoteProcess()).onServer(new Action<ObjectConnection>() {
+            public void execute(ObjectConnection objectConnection) {
+                TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class);
+                listener.send("1", 0);
+                listener.send("1", 1);
+                listener.send("1", 2);
+                listener.send("stop", 3);
+            }
+        }));
+    }
+
+    @Test
+    public void multipleWorkerProcessesCanSendMessagesToThisProcess() throws Throwable {
         context.checking(new Expectations() {{
             Sequence process1 = context.sequence("sequence1");
             one(listenerMock).send("message 1", 1);
@@ -97,6 +113,11 @@ public class WorkerProcessIntegrationTest {
         }});
 
         execute(worker(new CrashingRemoteProcess()).expectFailure());
+    }
+
+    @Test
+    public void handlesWorkerProcessWhichThrowsException() throws Throwable {
+        execute(worker(new BrokenRemoteProcess()).expectFailure());
     }
 
     @Test
@@ -133,6 +154,7 @@ public class WorkerProcessIntegrationTest {
         private WorkerProcess proc;
         private Action<WorkerProcessContext> action;
         private String mainClass;
+        private Action<ObjectConnection> serverAction;
 
         public ChildProcess(Action<WorkerProcessContext> action) {
             this.action = action;
@@ -156,6 +178,9 @@ public class WorkerProcessIntegrationTest {
             proc = builder.build();
             proc.getConnection().addIncoming(TestListenerInterface.class, exceptionListener);
             proc.start();
+            if (serverAction != null) {
+                serverAction.execute(proc.getConnection());
+            }
         }
 
         public void waitForStop() {
@@ -170,6 +195,11 @@ public class WorkerProcessIntegrationTest {
 
         public ChildProcess mainClass(String mainClass) {
             this.mainClass = mainClass;
+            return this;
+        }
+
+        public ChildProcess onServer(Action<ObjectConnection> action) {
+            this.serverAction = action;
             return this;
         }
     }
@@ -224,6 +254,30 @@ public class WorkerProcessIntegrationTest {
         }
     }
 
+    public static class PingRemoteProcess implements Action<WorkerProcessContext>, Serializable, TestListenerInterface {
+        CountDownLatch stopReceived;
+        int count;
+
+        public void send(String message, int count) {
+            assertEquals(this.count, count);
+            this.count++;
+            if (message.equals("stop")) {
+                assertEquals(4, this.count);
+                stopReceived.countDown();
+            }
+        }
+
+        public void execute(WorkerProcessContext workerProcessContext) {
+            stopReceived = new CountDownLatch(1);
+            workerProcessContext.getServerConnection().addIncoming(TestListenerInterface.class, this);
+            try {
+                stopReceived.await();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+    }
+
     public static class CrashingRemoteProcess implements Action<WorkerProcessContext>, Serializable {
         public void execute(WorkerProcessContext workerProcessContext) {
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
@@ -231,6 +285,12 @@ public class WorkerProcessIntegrationTest {
             sender.send("message 2", 2);
             // crash
             Runtime.getRuntime().halt(1);
+        }
+    }
+
+    public static class BrokenRemoteProcess implements Action<WorkerProcessContext>, Serializable {
+        public void execute(WorkerProcessContext workerProcessContext) {
+            throw new RuntimeException("broken");
         }
     }
 

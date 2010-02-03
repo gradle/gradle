@@ -35,16 +35,9 @@ class JunitForkOptions extends AbstractOptions {
 
     Map fieldName2AntMap() {
         [
-                forkMode: 'forkmode',
                 maxMemory: 'maxmemory',
                 newEnvironment: 'newenvironment',
                 cloneVm: 'clonevm'
-        ]
-    }
-
-    public Map fieldValue2AntMap() {
-        [
-                forkMode: { forkMode.toString() }
         ]
     }
 

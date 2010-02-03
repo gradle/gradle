@@ -16,7 +16,7 @@
 package org.gradle.api.testing.fabric;
 
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
-import org.gradle.util.exec.JavaExecHandleBuilder;
+import org.gradle.api.tasks.util.JavaForkOptions;
 
 import java.util.Collection;
 
@@ -36,5 +36,5 @@ public interface TestFrameworkInstance {
 
     AbstractTestFrameworkOptions getOptions();
 
-    void applyForkArguments(JavaExecHandleBuilder forkHandleBuilder);
+    void applyForkArguments(JavaForkOptions forkOptions);
 }

@@ -17,6 +17,7 @@
 package org.gradle.util.exec;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.util.DefaultProcessForkOptions;
 import org.gradle.util.GUtil;
 import org.gradle.util.LineBufferingOutputStream;
 
@@ -26,82 +27,38 @@ import java.util.*;
 /**
  * @author Tom Eyckmans
  */
-public class ExecHandleBuilder {
-
-    private File execDirectory;
-    private String execCommand;
+public class ExecHandleBuilder extends DefaultProcessForkOptions {
     private final List<String> arguments = new ArrayList<String>();
     private int normalTerminationExitCode = 0;
-    private Map<String, String> environment = new HashMap<String, String>();
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input = new ByteArrayInputStream(new byte[0]);
     private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
 
     public ExecHandleBuilder() {
+        super(null);
         standardOutput = new LineBuffer(System.out);
         errorOutput = new LineBuffer(System.err);
-        inheritEnvironment();
     }
 
     public ExecHandleBuilder(File execDirectory) {
-        setExecDirectory(execDirectory);
+        this();
+        setWorkingDir(execDirectory);
     }
 
     public ExecHandleBuilder(String execCommand) {
-        setExecCommand(execCommand);
+        this();
+        setExecutable(execCommand);
     }
 
     public ExecHandleBuilder(File execDirectory, String execCommand) {
-        setExecDirectory(execDirectory);
-        setExecCommand(execCommand);
-    }
-
-    private void setExecDirectory(File execDirectory) {
-        if (execDirectory == null) {
-            throw new IllegalArgumentException("execDirectory == null!");
-        }
-        if (execDirectory.exists() && execDirectory.isFile()) {
-            throw new IllegalArgumentException("execDirectory is a file!");
-        }
-        this.execDirectory = execDirectory;
-    }
-
-    public ExecHandleBuilder execDirectory(File execDirectory) {
-        setExecDirectory(execDirectory);
-        return this;
-    }
-
-    public File getExecDirectory() {
-        if (execDirectory == null) {
-            return new File(".");
-        } // current directory
-        return execDirectory;
-    }
-
-    private void setExecCommand(String execCommand) {
-        if (StringUtils.isEmpty(execCommand)) {
-            throw new IllegalArgumentException("execCommand == null!");
-        }
-        this.execCommand = execCommand;
-    }
-
-    public ExecHandleBuilder execCommand(String execCommand) {
-        setExecCommand(execCommand);
-        return this;
-    }
-
-    public ExecHandleBuilder execCommand(File execCommand) {
-        setExecCommand(execCommand.getAbsolutePath());
-        return this;
-    }
-
-    public String getExecCommand() {
-        return execCommand;
+        this();
+        setWorkingDir(execDirectory);
+        setExecutable(execCommand);
     }
 
     public ExecHandleBuilder commandLine(String... arguments) {
-        execCommand(arguments[0]);
+        executable(arguments[0]);
         arguments(Arrays.asList(arguments).subList(1, arguments.length));
         return this;
     }
@@ -131,33 +88,6 @@ public class ExecHandleBuilder {
 
     public ExecHandleBuilder normalTerminationExitCode(int normalTerminationExitCode) {
         this.normalTerminationExitCode = normalTerminationExitCode;
-        return this;
-    }
-
-    public ExecHandleBuilder setEnvironment(Map<String, String> values) {
-        environment.clear();
-        environment(values);
-        return this;
-    }
-
-    public ExecHandleBuilder environment(String key, String value) {
-        environment.put(key, value);
-        return this;
-    }
-
-    public ExecHandleBuilder environment(Map<String, String> values) {
-        environment.putAll(values);
-        return this;
-    }
-
-    public ExecHandleBuilder clearEnvironment() {
-        this.environment.clear();
-        return this;
-    }
-
-    public ExecHandleBuilder inheritEnvironment() {
-        clearEnvironment();
-        environment.putAll(System.getenv());
         return this;
     }
 
@@ -195,15 +125,15 @@ public class ExecHandleBuilder {
     }
 
     public List<String> getCommandLine() {
-        return GUtil.addLists(Collections.singleton(execCommand), arguments);
+        return GUtil.addLists(Collections.singleton(getExecutable()), getArguments());
     }
 
     public ExecHandle build() {
-        if (StringUtils.isEmpty(execCommand)) {
+        if (StringUtils.isEmpty(getExecutable())) {
             throw new IllegalStateException("execCommand == null!");
         }
 
-        return new DefaultExecHandle(execDirectory, execCommand, arguments, normalTerminationExitCode, environment,
+        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getArguments(), normalTerminationExitCode, getEnvironment(),
                 standardOutput, errorOutput, input, listeners);
     }
 

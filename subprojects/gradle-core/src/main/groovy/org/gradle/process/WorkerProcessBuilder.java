@@ -16,6 +16,7 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.exec.JavaExecHandleBuilder;
 
@@ -34,10 +35,14 @@ import java.util.*;
  * of shared packages are visible to the worker action ClassLoader.</p>
  */
 public abstract class WorkerProcessBuilder {
-    private final JavaExecHandleBuilder javaCommand = new JavaExecHandleBuilder();
+    private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<String>();
     private final Set<URL> applicationClasspath = new LinkedHashSet<URL>();
     private Action<WorkerProcessContext> action;
+
+    public WorkerProcessBuilder(FileResolver fileResolver) {
+        javaCommand = new JavaExecHandleBuilder(fileResolver);
+    }
 
     public WorkerProcessBuilder applicationClasspath(Collection<File> files) {
         applicationClasspath.addAll(GFileUtils.toURLs(files));

@@ -31,10 +31,6 @@ public class JavadocExecHandleBuilder {
     private File execDirectory;
     private MinimalJavadocOptions options;
     private File optionsFile;
-    private File destinationDirectory;
-
-    public JavadocExecHandleBuilder() {
-    }
 
     public JavadocExecHandleBuilder execDirectory(File directory) {
         if (directory == null) {
@@ -65,21 +61,6 @@ public class JavadocExecHandleBuilder {
         return this;
     }
 
-    public JavadocExecHandleBuilder destinationDirectory(File destinationDirectory) {
-        if (destinationDirectory == null) {
-            throw new IllegalArgumentException("destinationDirectory == null!");
-        }
-        if (!destinationDirectory.exists()) {
-            throw new IllegalArgumentException("destinationDirectory doesn't exists!");
-        }
-        if (destinationDirectory.isFile()) {
-            throw new IllegalArgumentException("destinationDirectory is a file");
-        }
-
-        this.destinationDirectory = destinationDirectory;
-        return this;
-    }
-
     public ExecHandle getExecHandle() {
         try {
             options.write(optionsFile);
@@ -87,9 +68,10 @@ public class JavadocExecHandleBuilder {
             throw new GradleException("Faild to store javadoc options.", e);
         }
 
-        ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder().execDirectory(execDirectory)
-                .execCommand(Jvm.current().getJavadocExecutable())
-                .arguments("@" + optionsFile.getAbsolutePath());
+        ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder();
+        execHandleBuilder.workingDir(execDirectory);
+        execHandleBuilder.executable(Jvm.current().getJavadocExecutable());
+        execHandleBuilder.arguments("@" + optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execHandleBuilder);
 

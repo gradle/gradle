@@ -16,46 +16,57 @@
 package org.gradle.util.exec;
 
 import org.gradle.util.Jvm;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
 import org.junit.Test;
 
 import java.io.File;
 import java.util.List;
 
+import static java.util.Arrays.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 public class JavaExecHandleBuilderTest {
     private final JavaExecHandleBuilder builder = new JavaExecHandleBuilder();
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void cannotSetProcessArguments() {
+        builder.arguments("extra arg");
+    }
+
+    @Test(expected = UnsupportedOperationException.class)
+    public void cannotSetAllJvmArgs() {
+        builder.setAllJvmArgs(asList("arg"));
+    }
 
     @Test
     public void buildsCommandLineForJavaProcess() {
         File jar1 = new File("file1.jar");
         File jar2 = new File("file2.jar");
 
-        ExecHandleBuilder command = builder.getCommand();
-
         builder.mainClass("mainClass");
-        builder.arguments("arg1", "arg2");
-        builder.jvmArguments("jvm1", "jvm2");
+        builder.applicationArgs("arg1", "arg2");
+        builder.jvmArgs("jvm1", "jvm2");
         builder.classpath(jar1, jar2);
+        builder.systemProperty("prop", "value");
 
-        List<String> jvmArgs = builder.getJvmArguments();
-        assertThat(jvmArgs.size(), equalTo(4));
-        assertThat(jvmArgs.get(0), equalTo("-cp"));
-        assertThat(jvmArgs.get(1), equalTo(jar1 + File.pathSeparator + jar2));
-        assertThat(jvmArgs.get(2), equalTo("jvm1"));
-        assertThat(jvmArgs.get(3), equalTo("jvm2"));
+        List<String> jvmArgs = builder.getAllJvmArgs();
+        assertThat(jvmArgs.size(), equalTo(5));
+        assertThat(jvmArgs.get(0), equalTo("jvm1"));
+        assertThat(jvmArgs.get(1), equalTo("jvm2"));
+        assertThat(jvmArgs.get(2), equalTo("-Dprop=value"));
+        assertThat(jvmArgs.get(3), equalTo("-cp"));
+        assertThat(jvmArgs.get(4), equalTo(jar1 + File.pathSeparator + jar2));
 
-        List<String> commandLine = command.getCommandLine();
-        assertThat(commandLine.size(), equalTo(8));
+        List<String> commandLine = builder.getCommandLine();
+        assertThat(commandLine.size(), equalTo(9));
         assertThat(commandLine.get(0), equalTo(Jvm.current().getJavaExecutable().getAbsolutePath()));
-        assertThat(commandLine.get(1), equalTo("-cp"));
-        assertThat(commandLine.get(2), equalTo(jar1 + File.pathSeparator + jar2));
-        assertThat(commandLine.get(3), equalTo("jvm1"));
-        assertThat(commandLine.get(4), equalTo("jvm2"));
-        assertThat(commandLine.get(5), equalTo("mainClass"));
-        assertThat(commandLine.get(6), equalTo("arg1"));
-        assertThat(commandLine.get(7), equalTo("arg2"));
+        assertThat(commandLine.get(1), equalTo("jvm1"));
+        assertThat(commandLine.get(2), equalTo("jvm2"));
+        assertThat(commandLine.get(3), equalTo("-Dprop=value"));
+        assertThat(commandLine.get(4), equalTo("-cp"));
+        assertThat(commandLine.get(5), equalTo(jar1 + File.pathSeparator + jar2));
+        assertThat(commandLine.get(6), equalTo("mainClass"));
+        assertThat(commandLine.get(7), equalTo("arg1"));
+        assertThat(commandLine.get(8), equalTo("arg2"));
     }
 }

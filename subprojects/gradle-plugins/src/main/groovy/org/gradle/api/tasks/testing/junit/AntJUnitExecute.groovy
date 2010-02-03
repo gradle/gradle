@@ -47,6 +47,7 @@ class AntJUnitExecute {
         Map otherArgs = [
                 fork: true,
                 forkmode: 'once',
+                reloading: false,
                 includeantruntime: 'false',
                 errorproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY,
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY

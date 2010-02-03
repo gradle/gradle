@@ -108,20 +108,20 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("JAVA_HOME", System.getProperty("java.home"));
         builder.environment("GRADLE_OPTS", "-ea");
         builder.environment(environmentVars);
-        builder.execDirectory(getWorkingDir());
+        builder.workingDir(getWorkingDir());
 
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            builder.execCommand("cmd");
+            builder.executable("cmd");
             builder.arguments("/c", windowsCommandSnippet);
             builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
         } else {
-            builder.execCommand(unixCommandSnippet);
+            builder.executable(unixCommandSnippet);
         }
 
         builder.arguments(getAllArgs());
 
-        LOG.info(String.format("Execute in %s with: %s %s", builder.getExecDirectory(), builder.getExecCommand(),
+        LOG.info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(),
                 builder.getArguments()));
 
         ExecHandle proc = builder.build();
@@ -137,7 +137,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         if (failed != expectFailure) {
             System.out.format("Gradle execution %s in %s with: %s %s", expectFailure ? "did not fail" : "failed",
-                    builder.getExecDirectory(), builder.getExecCommand(), builder.getArguments());
+                    builder.getWorkingDir(), builder.getExecutable(), builder.getArguments());
             System.out.format(String.format("Process Output:%n%s", output));
             System.out.format(String.format("Process Error:%n%s", error));
             throw new RuntimeException(String.format("Integrationtests failed with: %s %s", output, error));

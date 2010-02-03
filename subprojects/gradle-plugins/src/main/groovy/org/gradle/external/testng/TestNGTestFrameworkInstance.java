@@ -20,8 +20,8 @@ import org.gradle.api.JavaVersion;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
-import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.util.Collection;
 import java.util.List;
@@ -82,19 +82,19 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
         return detector;
     }
 
-    public void applyForkArguments(JavaExecHandleBuilder forkHandleBuilder) {
+    public void applyForkArguments(JavaForkOptions javaForkOptions) {
         if (StringUtils.isNotEmpty(options.getJvm())) {
-            forkHandleBuilder.getCommand().execCommand(options.getJvm());
+            javaForkOptions.executable(options.getJvm());
         }
 
         final List<String> jvmArgs = options.getJvmArgs();
         if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            forkHandleBuilder.jvmArguments(jvmArgs);
+            javaForkOptions.jvmArgs(jvmArgs);
         }
 
         final Map<String, String> environment = options.getEnvironment();
         if (environment != null && !environment.isEmpty()) {
-            forkHandleBuilder.getCommand().setEnvironment(environment);
+            javaForkOptions.setEnvironment(environment);
         }
     }
 }

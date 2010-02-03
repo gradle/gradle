@@ -161,7 +161,7 @@ public class Matchers {
         return new BaseMatcher<Map<?, ?>>() {
             public boolean matches(Object o) {
                 Map<?, ?> map = (Map<?, ?>) o;
-                return map.isEmpty();
+                return map != null && map.isEmpty();
             }
 
             public void describeTo(Description description) {
@@ -175,7 +175,7 @@ public class Matchers {
         return new BaseMatcher<Object[]>() {
             public boolean matches(Object o) {
                 Object[] array = (Object[]) o;
-                return array.length == 0;
+                return array != null && array.length == 0;
             }
 
             public void describeTo(Description description) {
