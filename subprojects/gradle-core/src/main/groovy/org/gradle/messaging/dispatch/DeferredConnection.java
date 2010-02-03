@@ -80,7 +80,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                 case AwaitIncomingEndOfStream:
                     break;
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
             }
 
             receive = connection;
@@ -109,10 +109,11 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                         setState(State.AwaitOutgoingEndOfStream);
                         break;
                     case AwaitIncomingEndOfStream:
+                    case GenerateIncomingEndOfStream:
                         setState(State.Stopped);
                         break;
                     default:
-                        throw new IllegalStateException();
+                        throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
                 }
             } finally {
                 lock.unlock();
@@ -124,10 +125,11 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                 switch(state) {
                     case Connected:
                     case AwaitIncomingEndOfStream:
+                    case GenerateIncomingEndOfStream:
                         setState(State.Stopped);
                         break;
                     default:
-                        throw new IllegalStateException();
+                        throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
                 }
             } finally {
                 lock.unlock();
@@ -167,7 +169,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                     }
                     break;
                 default:
-                    throw new IllegalStateException();
+                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
             }
             dispatch = connection;
         } finally {

@@ -24,8 +24,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -149,15 +148,24 @@ public class DefaultConnector implements Connector, Stoppable {
         }
 
         public void stop() {
-            // End-of-stream handshake
-            requestStop();
-            incomingDispatch.stop();
+            Future<?> stopJob = executorService.submit(new Runnable() {
+                public void run() {
+                    // End-of-stream handshake
+                    requestStop();
+                    incomingDispatch.stop();
 
-            // Flush queues (should be empty)
-            incomingQueue.requestStop();
-            outgoingQueue.requestStop();
-            incomingQueue.stop();
-            outgoingQueue.stop();
+                    // Flush queues (should be empty)
+                    incomingQueue.requestStop();
+                    outgoingQueue.requestStop();
+                    incomingQueue.stop();
+                    outgoingQueue.stop();
+                }
+            });
+            try {
+                stopJob.get(2, TimeUnit.MINUTES);
+            } catch (Exception e) {
+                throw new GradleException("Could not stop connection.", e);
+            }
         }
     }
 
