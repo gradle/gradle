@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -21,6 +21,28 @@
         <property name="file" value="${checkstyleConfigDir}/suppressions.xml"/>
     </module>
     <module name="TreeWalker">
+        <!-- Blocks -->
+        <module name="EmptyBlock">
+            <property name="option" value="stmt"/>
+            <property name="tokens" value="LITERAL_DO,LITERAL_ELSE,LITERAL_FINALLY,LITERAL_IF,LITERAL_FOR,LITERAL_TRY,LITERAL_WHILE,INSTANCE_INIT,STATIC_INIT"/>
+        </module>
+        <module name="EmptyBlock">
+            <property name="option" value="text"/>
+            <property name="tokens" value="LITERAL_CATCH"/>
+        </module>
+
+        <!-- Braces -->
+        <module name="NeedBraces"/>
+
+        <!-- Coding -->
+        <module name="EmptyStatement"/>
+        <module name="EqualsHashCode"/>
+        <module name="ExplicitInitialization"/>
+        <module name="UnnecessaryParentheses"/>
+
+        <!-- Design -->
+        <module name="InterfaceIsType"/>
+
         <!-- Imports -->
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
@@ -29,9 +51,6 @@
         <!--<property name="scope" value="public"/>-->
         <!--<property name="allowMissingReturnTag" value="true"/>-->
         <!--</module>-->
-
-        <!-- Braces -->
-        <module name="NeedBraces"/>
 
         <!-- Naming -->
         <module name="ClassTypeParameterName"/>

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ import java.util.Set;
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
     private Project dependencyProject;
     private final ProjectDependenciesBuildInstruction instruction;
-    private Set<File> transitiveCache = null;
-    private Set<File> nonTransitiveCache = null;
+    private Set<File> transitiveCache;
+    private Set<File> nonTransitiveCache;
 
     public DefaultProjectDependency(Project dependencyProject, ProjectDependenciesBuildInstruction instruction) {
         this(dependencyProject, null, instruction);
@@ -157,6 +157,11 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             return false;
         }
         return true;
+    }
+
+    @Override
+    public int hashCode() {
+        return getDependencyProject().hashCode() ^ getConfiguration().hashCode() ^ instruction.hashCode();
     }
 
     @Override

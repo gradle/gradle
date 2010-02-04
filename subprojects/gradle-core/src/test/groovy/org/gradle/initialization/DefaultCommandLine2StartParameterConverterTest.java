@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -46,7 +46,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private final static String TEST_GRADLE_HOME = "roadToNowhere";
 
     private String previousGradleHome;
-    private File expectedBuildFile = null;
+    private File expectedBuildFile;
     private File expectedGradleUserHome = new File(StartParameter.DEFAULT_GRADLE_USER_HOME);
     private File expectedGradleImportsFile;
     private File expectedProjectDir;
@@ -59,9 +59,9 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private List<File> expectedInitScripts = new ArrayList<File>();
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
-    private boolean expectedDryRun = false;
-    private boolean expectedShowHelp = false;
-    private boolean expectedShowVersion = false;
+    private boolean expectedDryRun;
+    private boolean expectedShowHelp;
+    private boolean expectedShowVersion;
     private StartParameter.ShowStacktrace expectedShowStackTrace = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;

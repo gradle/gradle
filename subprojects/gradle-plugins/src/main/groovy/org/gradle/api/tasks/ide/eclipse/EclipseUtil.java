@@ -53,7 +53,7 @@ class EclipseUtil {
     static void addFacet(Document document, String facetType, Attribute... attributes) {
         Element root;
 
-        if (document.getRootElement() == null || (root = ((Element) document.selectSingleNode("//faceted-project"))) == null) {
+        if (document.getRootElement() == null || (root = (Element) document.selectSingleNode("//faceted-project")) == null) {
             root = document.addElement("faceted-project");
         }
 

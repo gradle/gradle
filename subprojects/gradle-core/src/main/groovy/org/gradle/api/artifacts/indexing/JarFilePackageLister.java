@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,11 +18,11 @@ package org.gradle.api.artifacts.indexing;
 
 import org.gradle.api.GradleException;
 
-import java.util.zip.ZipFile;
-import java.util.zip.ZipEntry;
-import java.util.Enumeration;
 import java.io.File;
 import java.io.IOException;
+import java.util.Enumeration;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * @author Tom Eyckmans
@@ -45,33 +45,27 @@ public class JarFilePackageLister {
             throw new IllegalArgumentException("jarFile is not a jarFile! (" + jarFileAbsolutePath + ")");
         }
 
-        ZipFile zipFile = null;
         try {
-            zipFile = new ZipFile(jarFile);
+            ZipFile zipFile = new ZipFile(jarFile);
+            try {
+                final Enumeration<? extends ZipEntry> zipFileEntries = zipFile.entries();
 
-            final Enumeration<? extends ZipEntry> zipFileEntries = zipFile.entries();
+                while (zipFileEntries.hasMoreElements()) {
+                    final ZipEntry zipFileEntry = zipFileEntries.nextElement();
 
-            while (zipFileEntries.hasMoreElements()) {
-                final ZipEntry zipFileEntry = zipFileEntries.nextElement();
+                    if (zipFileEntry.isDirectory()) {
+                        final String zipFileEntryName = zipFileEntry.getName();
 
-                if (zipFileEntry.isDirectory()) {
-                    final String zipFileEntryName = zipFileEntry.getName();
-
-                    if (!zipFileEntryName.startsWith("META-INF")) {
-                        listener.receivePackage(zipFileEntryName);
+                        if (!zipFileEntryName.startsWith("META-INF")) {
+                            listener.receivePackage(zipFileEntryName);
+                        }
                     }
                 }
+            } finally {
+                zipFile.close();
             }
         } catch (IOException e) {
             throw new GradleException("failed to scan jar file for packages (" + jarFileAbsolutePath + ")", e);
-        } finally {
-            if (zipFile != null) {
-                try {
-                    zipFile.close();
-                } catch (IOException e) {
-                    // ignore
-                }
-            }
         }
     }
 }

@@ -15,6 +15,7 @@
  */
 package org.gradle.foundation.output.definitions;
 
+import org.gradle.api.GradleException;
 import org.gradle.foundation.output.FileLink;
 
 import java.io.File;
@@ -193,8 +194,8 @@ public class PrefixedFileLinkDefinition implements FileLinkDefinition
                lineNumberText = getConsecutiveNumbers( lineNumberText );
                return Integer.parseInt( lineNumberText );
             }
-            catch( Exception e )
-            {
+            catch( Exception e ) {
+                throw new GradleException(e);
             }
          }
       }

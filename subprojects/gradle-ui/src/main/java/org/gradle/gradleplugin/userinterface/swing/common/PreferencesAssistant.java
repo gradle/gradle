@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.common;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 
 import javax.swing.JFileChooser;
@@ -145,7 +146,7 @@ public class PreferencesAssistant {
                                     Class fileChooserClass, boolean saveCurrentDirectoryVsSelectedFilesParent) {
         SettingsNode childNode = settingsNode.addChildIfNotPresent(getPrefix(fileChooserClass, id));
 
-        String save = null;
+        String save;
         try {
             if (saveCurrentDirectoryVsSelectedFilesParent) {
                 save = fileChooser.getCurrentDirectory().getCanonicalPath();
@@ -153,6 +154,7 @@ public class PreferencesAssistant {
                 save = fileChooser.getSelectedFile().getCanonicalPath();
             }
         } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
         if (save != null) {
             childNode.setValueOfChild(DIRECTORY_NAME, save);

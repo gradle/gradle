@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ public class TaskTreeComponent {
     private DefaultTreeModel model;
     private TaskTreeBaseNode rootNode;
 
-    private boolean isPopulated = false;
+    private boolean isPopulated;
 
     private TaskTreeComponent.Renderer renderer;
 
@@ -282,7 +282,7 @@ public class TaskTreeComponent {
 
         private boolean isAddToSelectionKey(
                 MouseEvent e) {  //this is actually OS-specific, but for now, I'll just use CTRL.
-            return ((e.getModifiers() & MouseEvent.CTRL_MASK) != 0);
+            return (e.getModifiers() & MouseEvent.CTRL_MASK) != 0;
         }
 
         public void mouseClicked(MouseEvent e) {

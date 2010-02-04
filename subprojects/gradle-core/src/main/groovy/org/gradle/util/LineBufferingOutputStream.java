@@ -23,9 +23,9 @@ import java.io.OutputStream;
  */
 public abstract class LineBufferingOutputStream extends OutputStream {
     /**
-     * Used to maintain the contract of [EMAIL PROTECTED] #close()}.
+     * Used to maintain the contract of {@link #close()}.
      */
-    private boolean hasBeenClosed = false;
+    private boolean hasBeenClosed ;
 
     private final byte[] lineSeparator;
     private final int bufferIncrement;

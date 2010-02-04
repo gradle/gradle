@@ -33,7 +33,7 @@ public class LiveOutputParser
    private OutputParser parser;
    private List<FileLink> fileLinks = new ArrayList<FileLink>();
    private StringBuilder totalTextToParse = new StringBuilder();
-   private int lastNewline = 0;
+   private int lastNewline;
 
    public LiveOutputParser( FileLinkDefinitionLord fileLinkDefinitionLord, boolean verifyFileExists )
    {

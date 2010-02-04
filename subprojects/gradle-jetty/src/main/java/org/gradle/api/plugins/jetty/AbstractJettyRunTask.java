@@ -286,7 +286,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         if (webAppConfig == null) {
             webAppConfig = new JettyPluginWebAppContext();
         }
-        webAppConfig.setContextPath((getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath()));
+        webAppConfig.setContextPath(getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath());
         if (getTmpDirectory() != null) {
             webAppConfig.setTempDirectory(getTmpDirectory());
         }
@@ -337,7 +337,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         scanner.setScanInterval(getScanIntervalSeconds());
         scanner.setRecursive(true);
         List listeners = getScannerListeners();
-        Iterator itor = (listeners == null ? null : listeners.iterator());
+        Iterator itor = listeners == null ? null : listeners.iterator();
         while (itor != null && itor.hasNext()) {
             scanner.addListener((Scanner.Listener) itor.next());
         }

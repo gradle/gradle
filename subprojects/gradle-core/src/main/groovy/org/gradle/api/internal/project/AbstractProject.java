@@ -104,7 +104,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private AntBuilderFactory antBuilderFactory;
 
-    private AntBuilder ant = null;
+    private AntBuilder ant;
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 

@@ -29,7 +29,7 @@ import java.util.*;
  */
 public class ExecHandleBuilder extends DefaultProcessForkOptions {
     private final List<String> arguments = new ArrayList<String>();
-    private int normalTerminationExitCode = 0;
+    private int normalTerminationExitCode;
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input = new ByteArrayInputStream(new byte[0]);

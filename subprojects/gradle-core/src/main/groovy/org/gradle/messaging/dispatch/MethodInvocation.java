@@ -53,7 +53,7 @@ public class MethodInvocation {
             return false;
         }
 
-        return (Arrays.equals(arguments, other.arguments));
+        return Arrays.equals(arguments, other.arguments);
     }
 
     @Override

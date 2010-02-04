@@ -110,7 +110,7 @@ public class RelativePath {
 
     @Override
     public int hashCode() {
-        int result = (endsWithFile ? 1 : 0);
+        int result = endsWithFile ? 1 : 0;
         result = 31 * result + Arrays.hashCode(segments);
         return result;
     }

@@ -24,7 +24,7 @@ import java.io.Reader;
 public class LineFilter extends Reader {
     private final Closure closure;
     private String transformedLine;
-    private int transformedIndex = 0;
+    private int transformedIndex;
     private final BufferedReader bufferedIn;
     private final String lineTerminator;
     private final Reader in;

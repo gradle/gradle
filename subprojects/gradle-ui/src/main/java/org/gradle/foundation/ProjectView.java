@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,7 +32,7 @@ import java.util.List;
  */
 public class ProjectView implements Comparable<ProjectView>, Serializable {
     private String name;
-    private ProjectView parentProject = null;
+    private ProjectView parentProject;
             //will be null for any project until it is added as a sub project to another project. It is null for the root project always.
     private List<ProjectView> subProjects = new ArrayList<ProjectView>();
     private List<TaskView> tasks = new ArrayList<TaskView>();

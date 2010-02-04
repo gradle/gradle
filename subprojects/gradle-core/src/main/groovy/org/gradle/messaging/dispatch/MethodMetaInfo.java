@@ -105,5 +105,10 @@ public class MethodMetaInfo extends Message {
         public boolean equals(Object obj) {
             return ((Type) obj).typeName.equals(typeName);
         }
+
+        @Override
+        public int hashCode() {
+            return typeName.hashCode();
+        }
     }
 }

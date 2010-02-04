@@ -16,7 +16,6 @@
 
 package org.gradle.external.javadoc;
 
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
@@ -72,9 +71,6 @@ public class JavadocExecHandleBuilderTest {
     @Test
     public void testSetNotNullOptions() {
         MinimalJavadocOptions options = context.mock(MinimalJavadocOptions.class);
-
-        context.checking(new Expectations() {{}});
-
         javadocExecHandleBuilder.options(options);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -247,16 +247,28 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
                 'systemProperties', 'jvmArgs', 'environment',
                 'suiteXmlFiles', 'suiteXmlWriter', 'suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
 
-        if (jvm == null) excludedFieldsFromOptionMap << 'jvm'
-        if (skippedProperty == null) excludedFieldsFromOptionMap << 'skippedProperty'
-        if (suiteRunnerClass == null) excludedFieldsFromOptionMap << 'suiteRunnerClass'
+        if (jvm == null) {
+            excludedFieldsFromOptionMap << 'jvm'
+        }
+        if (skippedProperty == null) {
+            excludedFieldsFromOptionMap << 'skippedProperty'
+        }
+        if (suiteRunnerClass == null) {
+            excludedFieldsFromOptionMap << 'suiteRunnerClass'
+        }
         if (parallel == null) {
             excludedFieldsFromOptionMap << 'parallel'
             excludedFieldsFromOptionMap << 'threadCount'
         }
-        if (timeOut == Long.MAX_VALUE) excludedFieldsFromOptionMap << 'timeOut'
-        if (suiteName == null) excludedFieldsFromOptionMap << 'suiteName'
-        if (testName == null) excludedFieldsFromOptionMap << 'testName'
+        if (timeOut == Long.MAX_VALUE) {
+            excludedFieldsFromOptionMap << 'timeOut'
+        }
+        if (suiteName == null) {
+            excludedFieldsFromOptionMap << 'suiteName'
+        }
+        if (testName == null) {
+            excludedFieldsFromOptionMap << 'testName'
+        }
 
         return excludedFieldsFromOptionMap
     }
@@ -272,14 +284,17 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     Map optionMap() {
         Map optionMap = super.optionMap()
 
-        if (!listeners.empty)
+        if (!listeners.empty) {
             optionMap.put('listeners', listeners.join(', '));
+        }
 
-        if (!includeGroups.empty)
+        if (!includeGroups.empty) {
             optionMap.put('groups', includeGroups.join(', '));
+        }
 
-        if (!excludeGroups.empty)
+        if (!excludeGroups.empty) {
             optionMap.put('excludedGroups', excludeGroups.join(', '));
+        }
 
         return optionMap;
     }
@@ -326,8 +341,9 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
             final File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
 
             if (buildSuiteXml.exists()) {
-                if (!buildSuiteXml.delete())
-                throw new RuntimeException("failed to remove already existing build-suite.xml file");
+                if (!buildSuiteXml.delete()) {
+                    throw new RuntimeException("failed to remove already existing build-suite.xml file");
+                }
             }
 
             buildSuiteXml.append('<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">');

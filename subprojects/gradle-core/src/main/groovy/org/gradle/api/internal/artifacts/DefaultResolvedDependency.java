@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private Set<String> configurationHierarchy;
     private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
     private Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
-    private Set<ResolvedArtifact> allModuleArtifactsCache = null;
+    private Set<ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion,
                                      String configuration, Set<String> configurationHierarchy,

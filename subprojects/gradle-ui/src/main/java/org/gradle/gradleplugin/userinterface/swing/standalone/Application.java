@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,17 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
+import org.gradle.api.GradleException;
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 import org.gradle.gradleplugin.foundation.ExtensionFileFilter;
 import org.gradle.gradleplugin.foundation.settings.DOM4JSettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.PreferencesAssistant;
 import org.gradle.gradleplugin.userinterface.swing.generic.SinglePaneUIInstance;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
-import javax.swing.BorderFactory;
-import javax.swing.JFrame;
-import javax.swing.JOptionPane;
-import javax.swing.JPanel;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
-import java.awt.BorderLayout;
+import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
@@ -45,8 +40,6 @@ import java.net.URI;
  * @author mhunsicker
  */
 public class Application implements AlternateUIInteraction {
-    private final Logger logger = Logging.getLogger(Application.class);
-
     private static final int DEFAULT_WIDTH = 800;
     private static final int DEFAULT_HEIGHT = 800;
 
@@ -58,7 +51,7 @@ public class Application implements AlternateUIInteraction {
 
     private boolean doesSupportEditingFiles;
 
-    private LifecycleListener lifecycleListener = null;
+    private LifecycleListener lifecycleListener;
     private DOM4JSettingsNode rootSettingsNode;
 
    /**
@@ -96,6 +89,7 @@ public class Application implements AlternateUIInteraction {
         try {   //try and make it look like a native app
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
+            throw new GradleException(e);
         }
 
         this.doesSupportEditingFiles = determineIfSupportsEditingFiles();

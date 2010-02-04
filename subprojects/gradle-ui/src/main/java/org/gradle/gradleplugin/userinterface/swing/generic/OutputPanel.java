@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -69,11 +69,11 @@ public class OutputPanel extends JPanel implements ExecuteGradleCommandServerPro
 
     private JLabel forceShowOutputButtonLabel;   //a label that acts like a button
 
-    private boolean isBusy = false;     //is this actively showing output?
-    private boolean isPending = false;  //is this waitin got show output?
-    private boolean isPinned = false;   //keeps this panel open and disallows it from being re-used.
+    private boolean isBusy;     //is this actively showing output?
+    private boolean isPending;  //is this waitin got show output?
+    private boolean isPinned;   //keeps this panel open and disallows it from being re-used.
     private boolean showProgress = true;
-    private boolean onlyShowOutputOnErrors = false;
+    private boolean onlyShowOutputOnErrors;
 
     private Request request;
 

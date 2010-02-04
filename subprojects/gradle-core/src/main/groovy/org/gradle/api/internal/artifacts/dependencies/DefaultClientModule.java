@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,7 +35,7 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
 
     private String version;
 
-    private boolean force = false;
+    private boolean force;
 
     private Set<ModuleDependency> dependencies = new HashSet<ModuleDependency>();
 
@@ -143,5 +143,10 @@ public class DefaultClientModule extends AbstractExternalDependency implements C
         ClientModule that = (ClientModule) o;
 
         return isKeyEquals(that);
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 }

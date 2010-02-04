@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,17 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
-import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
+import org.gradle.gradleplugin.foundation.request.Request;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utility class for initializing various test objects related.
@@ -258,7 +254,7 @@ public class TestUtility {
     public static class TestExportInteraction implements DOM4JSerializer.ExportInteraction {
         private File file;
         private boolean confirmOverwrite;
-        private int promptCount = 0;
+        private int promptCount;
 
         public TestExportInteraction(File file, boolean confirmOverwrite) {
             this.file = file;
@@ -295,7 +291,7 @@ public class TestUtility {
     */
     public static class TestImportInteraction implements DOM4JSerializer.ImportInteraction {
         private File file;
-        private int promptCount = 0;
+        private int promptCount;
 
         public TestImportInteraction(File file) {
             this.file = file;
@@ -330,7 +326,6 @@ public class TestUtility {
      * This refreshes the projects but blocks until it is complete (its being executed in a separate process).
      *
      * @param gradlePluginLord the plugin lord (will be used to execute the command and store the results).
-     * @param executionInteraction provides feedback about the execution.
      * @param maximumWaitSeconds how many seconds to wait before considering this a failure.
     */
     public static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, int maximumWaitSeconds) {
@@ -364,7 +359,7 @@ public class TestUtility {
     public static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
-        final BooleanHolder isComplete = new BooleanHolder();
+        final AtomicBoolean isComplete = new AtomicBoolean();
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
            public void executionRequestAdded( ExecutionRequest request ) {}
@@ -375,7 +370,7 @@ public class TestUtility {
            public void aboutToExecuteRequest( Request request ) { }
 
            public void requestExecutionComplete( Request request, int result, String output ) {
-              isComplete.value = true;
+               isComplete.set(true);
            }
         };
 
@@ -387,7 +382,7 @@ public class TestUtility {
 
         //now sleep until we're complete, but bail if we wait too long
         int totalWaitTime = 0;
-        while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {
+        while (!isComplete.get() && totalWaitTime <= maximumWaitSeconds) {
             try {
                 Thread.sleep(1000);
             }
@@ -400,7 +395,7 @@ public class TestUtility {
 
         gradlePluginLord.removeRequestObserver( observer );
 
-        if (!isComplete.value) //its still running. Something is wrong.
+        if (!isComplete.get()) //its still running. Something is wrong.
         {
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
@@ -419,7 +414,7 @@ public class TestUtility {
     public static void executeBlocking(GradlePluginLord gradlePluginLord, String fullCommandLine, String displayName, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
-        final BooleanHolder isComplete = new BooleanHolder();
+        final AtomicBoolean isComplete = new AtomicBoolean();
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
            public void executionRequestAdded( ExecutionRequest request )
@@ -430,7 +425,7 @@ public class TestUtility {
            public void aboutToExecuteRequest( Request request ) { }
 
            public void requestExecutionComplete( Request request, int result, String output ) {
-              isComplete.value = true;
+               isComplete.set(true);
            }
         };
 
@@ -442,7 +437,7 @@ public class TestUtility {
 
         //now sleep until we're complete, but bail if we wait too long
         int totalWaitTime = 0;
-        while (!isComplete.value && totalWaitTime <= maximumWaitSeconds) {
+        while (!isComplete.get() && totalWaitTime <= maximumWaitSeconds) {
             try {
                 Thread.sleep(1000);
             }
@@ -455,15 +450,11 @@ public class TestUtility {
 
         gradlePluginLord.removeRequestObserver( observer );
 
-        if (!isComplete.value) //its still running. Something is wrong.
+        if (!isComplete.get()) //its still running. Something is wrong.
         {
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
         }
-    }
-
-    private static class BooleanHolder {
-        private boolean value = false;
     }
 }
 
