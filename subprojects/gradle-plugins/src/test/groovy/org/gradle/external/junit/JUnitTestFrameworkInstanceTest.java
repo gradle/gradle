@@ -15,22 +15,26 @@
  */
 package org.gradle.external.junit;
 
-import static junit.framework.Assert.assertNotNull;
 import org.gradle.api.file.FileVisitor;
 import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.tasks.testing.*;
+import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
+import org.gradle.api.tasks.testing.JunitForkOptions;
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.listener.ListenerBroadcast;
 import org.jmock.Expectations;
 import org.junit.Before;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
+
+import static junit.framework.Assert.assertNotNull;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tom Eyckmans
@@ -40,7 +44,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     private JUnitTestFramework jUnitTestFrameworkMock;
     private JUnitTestFrameworkInstance jUnitTestFrameworkInstance;
 
-    private AntJUnitExecute antJUnitExecuteMock;
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
     private JunitForkOptions jUnitForkOptionsMock;
@@ -51,7 +54,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         super.setUp();
 
         jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
-        antJUnitExecuteMock = context.mock(AntJUnitExecute.class);
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
@@ -70,7 +72,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(jUnitForkOptionsMock).setDir(projectDir);
             one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
             one(testMock).getClasspath();will(returnValue(classpathMock));
-            one(testMock).getClassPathRegistry();will(returnValue(context.mock(ClassPathRegistry.class)));
             one(classpathMock).getAsFileTree();will(returnValue(classpathAsFileTreeMock));
             one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
@@ -78,21 +79,20 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         jUnitTestFrameworkInstance.initialize();
 
         assertNotNull(jUnitTestFrameworkInstance.getOptions());
-        assertNotNull(jUnitTestFrameworkInstance.getAntJUnitExecute());
         assertNotNull(jUnitTestFrameworkInstance.getAntJUnitReport());
     }
 
 
     @org.junit.Test
-    public void testExecute() {
+    public void testCreatesTestProcessor() {
         setMocks();
 
         expectHandleEmptyIncludesExcludes();
 
         final Set<File> classpathSet = new TreeSet<File>();
-        final List<File> classpathList = new ArrayList<File>();
 
         context.checking(new Expectations() {{
+            one(testMock).getClassPathRegistry();will(returnValue(context.mock(ClassPathRegistry.class)));
             one(testMock).getTestListenerBroadcaster(); will(returnValue(listenerBroadcastMock));
             one(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
             one(testMock).getClasspath(); will(returnValue(classpathMock));
@@ -101,11 +101,10 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(testMock).getIncludes(); will(returnValue(null));
             one(testMock).getExcludes(); will(returnValue(null));
             one(projectMock).getAnt(); will(returnValue(antBuilderMock));
-            one(antJUnitExecuteMock).execute(testClassesDir, classpathList, testResultsDir, null, null,
-                                             jUnitOptionsMock, antBuilderMock, listenerBroadcastMock);
         }});
 
-        jUnitTestFrameworkInstance.execute(null, null);
+        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create();
+        assertThat(testClassProcessor, instanceOf(AntJUnitExecute.class));
     }
 
     @org.junit.Test
@@ -138,7 +137,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     }
 
     private void setMocks() {
-        jUnitTestFrameworkInstance.setAntJUnitExecute(antJUnitExecuteMock);
         jUnitTestFrameworkInstance.setAntJUnitReport(antJUnitReportMock);
         jUnitTestFrameworkInstance.setOptions(jUnitOptionsMock);
     }

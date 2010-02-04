@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,6 +27,9 @@ import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.hamcrest.Matcher;
 
+import java.util.Arrays;
+import java.util.List;
+
 public class JUnit4GroovyMockery extends JUnit4Mockery {
     class ClosureExpectations extends Expectations {
         void closureInit(Closure cl, Object delegate) {
@@ -45,7 +48,13 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
                 }
 
                 public Object invoke(Invocation invocation) throws Throwable {
-                    return cl.call(invocation.getParametersAsArray());
+                    List<Object> params = Arrays.asList(invocation.getParametersAsArray());
+                    Object result = cl.call(params.subList(0, Math.min(invocation.getParametersAsArray().length,
+                            cl.getMaximumNumberOfParameters())));
+                    if (invocation.getInvokedMethod().getReturnType().isInstance(result)) {
+                        return result;
+                    }
+                    return null;                
                 }
             });
         }

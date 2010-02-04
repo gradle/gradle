@@ -55,7 +55,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("has same items as ").appendValue(items);
+                description.appendText("an Iterable that has same items as ").appendValue(items);
             }
         };
     }
@@ -68,7 +68,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("matches regexp ").appendValue(pattern);
+                description.appendText("a CharSequence that matches regexp ").appendValue(pattern);
             }
         };
     }
@@ -99,7 +99,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("strictly equals ").appendValue(other);
+                description.appendText("an Object that strictly equals ").appendValue(other);
             }
         };
     }
@@ -112,7 +112,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("contains line ").appendValue(line);
+                description.appendText("a String that contains line ").appendValue(line);
             }
         };
     }
@@ -137,7 +137,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("contains line that matches ").appendDescriptionOf(matcher);
+                description.appendText("a String that contains line that is ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -151,7 +151,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("is empty");
+                description.appendText("an empty Iterable");
             }
         };
     }
@@ -165,7 +165,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("is empty");
+                description.appendText("an empty map");
             }
         };
     }
@@ -179,7 +179,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("is empty");
+                description.appendText("an empty array");
             }
         };
     }
@@ -193,7 +193,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("exception messages ").appendDescriptionOf(matcher);
+                description.appendText("an exception with message that is ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -223,7 +223,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("depends on ").appendDescriptionOf(matcher);
+                description.appendText("a Task that depends on ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -253,7 +253,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("built by ").appendDescriptionOf(matcher);
+                description.appendText("a Buildable that is built by ").appendDescriptionOf(matcher);
             }
         };
     }

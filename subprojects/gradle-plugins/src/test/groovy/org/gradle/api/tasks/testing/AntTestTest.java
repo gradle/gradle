@@ -21,10 +21,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
-import org.gradle.api.testing.execution.ant.AntTaskBackedTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
@@ -69,9 +69,9 @@ public class AntTestTest extends AbstractConventionTaskTest {
     TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
     TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
+    TestClassProcessorFactory testProcessorFactoryMock = context.mock(TestClassProcessorFactory.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
-
     private AntTest test;
 
     @Before public void setUp() {
@@ -176,7 +176,14 @@ public class AntTestTest extends AbstractConventionTaskTest {
     }
 
     private void setUpMocks() {
-        setUpMocks(instanceOf(AntTaskBackedTestClassProcessor.class));
+        final TestClassProcessor processor = context.mock(TestClassProcessor.class);
+
+        context.checking(new Expectations() {{
+            one(testProcessorFactoryMock).create();
+            will(returnValue(processor));
+        }});
+
+        setUpMocks(sameInstance(processor));
     }
 
     private void setUpMocks(final Matcher<TestClassProcessor> testClassProcessorMatcher) {
@@ -197,7 +204,11 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.setTestSrcDirs(Collections.<File>emptyList());
 
         context.checking(new Expectations() {{
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher));
+            one(testFrameworkInstanceMock).getProcessorFactory();
+            will(returnValue(testProcessorFactoryMock));
+
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(
+                    testClassProcessorMatcher));
             will(returnValue(testClassScannerMock));
             one(testClassScannerMock).run();
             one(testFrameworkInstanceMock).report();

@@ -20,26 +20,41 @@ import org.slf4j.LoggerFactory
 import org.gradle.api.tasks.testing.AntTest
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.api.tasks.testing.TestListener
+import org.gradle.api.testing.execution.ant.AbstractBatchTestClassProcessor
 
 /**
  * @author Tom Eyckmans
  */
 
-public class AntTestNGExecute {
-
-    private static Logger logger = LoggerFactory.getLogger(AntTestNGExecute);
-
+public class AntTestNGExecute extends AbstractBatchTestClassProcessor {
     public static final String TESTNG_JARS_PATH = 'org.gradle.api.tasks.testing.testng.jars.path'
+    private static Logger logger = LoggerFactory.getLogger(AntTestNGExecute);
+    private final File testClassesDir
+    private final Iterable<File> classPath
+    private final File testResultsDir
+    private final File testReportDir
+    private final TestNGOptions options
+    private final AntBuilder ant
+    private final ListenerBroadcast<TestListener> testListenerBroadcast
+
+    def AntTestNGExecute(File compiledTestsClassesDir, Iterable classPath, File testResultsDir, File testReportDir,
+                         TestNGOptions options, AntBuilder ant, ListenerBroadcast<TestListener> testListenerBroadcaster) {
+        this.testClassesDir = compiledTestsClassesDir
+        this.classPath = classPath
+        this.testResultsDir = testResultsDir
+        this.testReportDir = testReportDir
+        this.options = options
+        this.ant = ant
+        this.testListenerBroadcast = testListenerBroadcaster
+    }
 
     /**
      * This method contains several comments of the form
      *         TODO TestNG Listeners: [<stuff>]
      * Once we can implement TestNG listeners, replace the lines with <stuff> to make it work again.
-     * For a discussion of why this is disabled, see {@link TestNGListenerAdapter}.
+     * For a discussion of why this is disabled, see   {@link TestNGListenerAdapter}  .
      */
-    void execute(File compiledTestsClassesDir, Iterable classPath, File testResultsDir, File testReportDir,
-                 Collection<String> includes, Collection<String> excludes, TestNGOptions options, AntBuilder ant,
-                 ListenerBroadcast<TestListener> testListenerBroadcaster) {
+    protected void executeTests() {
         ant.mkdir(dir: testResultsDir.absolutePath)
 
         List useClassPath = classPath as List
@@ -85,12 +100,9 @@ public class AntTestNGExecute {
                 }
             }
             if (suites.empty) {
-                classfileset(dir: compiledTestsClassesDir.absolutePath) {
-                    includes.each {
+                classfileset(dir: testClassesDir.absolutePath) {
+                    testClassFileNames.each {
                         include(name: it)
-                    }
-                    excludes.each {
-                        exclude(name: it)
                     }
                 }
             } else {

@@ -17,8 +17,7 @@ package org.gradle.api.testing.fabric;
 
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
-
-import java.util.Collection;
+import org.gradle.api.testing.TestClassProcessorFactory;
 
 /**
  * @author Tom Eyckmans
@@ -30,11 +29,11 @@ public interface TestFrameworkInstance {
 
     void initialize();
 
-    void execute(Collection<String> includes, Collection<String> excludes);
-
     void report();
 
     AbstractTestFrameworkOptions getOptions();
 
     void applyForkArguments(JavaForkOptions forkOptions);
+
+    TestClassProcessorFactory getProcessorFactory();
 }

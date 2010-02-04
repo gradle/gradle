@@ -23,7 +23,6 @@ import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
-import org.gradle.api.testing.execution.ant.AntTaskBackedTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GUtil;
 
@@ -45,17 +44,13 @@ public class AntTest extends AbstractTestTask {
 
     public void executeTests() {
         final TestFrameworkInstance testFrameworkInstance = getTestFramework();
-        TestClassProcessorFactory factory = new TestClassProcessorFactory() {
-            public TestClassProcessor create() {
-                return new AntTaskBackedTestClassProcessor(testFrameworkInstance);
-            }
-        };
+        TestClassProcessorFactory processorFactory = testFrameworkInstance.getProcessorFactory();
 
         TestClassProcessor processor;
         if (getForkEvery() != null) {
-            processor = new RestartEveryNTestClassProcessor(factory, getForkEvery());
+            processor = new RestartEveryNTestClassProcessor(processorFactory, getForkEvery());
         } else {
-            processor = factory.create();
+            processor = processorFactory.create();
         }
         TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
 

@@ -17,28 +17,27 @@ package org.gradle.api.testing.execution.ant;
 
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.api.testing.fabric.TestFrameworkInstance;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.Set;
 
-public class AntTaskBackedTestClassProcessor implements TestClassProcessor {
-    private final Set<String> testClassNames = new HashSet<String>();
-    private final TestFrameworkInstance testFrameworkInstance;
-
-    public AntTaskBackedTestClassProcessor(TestFrameworkInstance testFrameworkInstance) {
-        this.testFrameworkInstance = testFrameworkInstance;
-    }
+public abstract class AbstractBatchTestClassProcessor implements TestClassProcessor {
+    private final Set<String> testClassFileNames = new HashSet<String>();
 
     public void processTestClass(TestClassRunInfo testClass) {
-        testClassNames.add(testClass.getTestClassName().replace('.', '/') + ".class");
+        testClassFileNames.add(testClass.getTestClassName().replace('.', '/') + ".class");
+    }
+
+    public Set<String> getTestClassFileNames() {
+        return testClassFileNames;
     }
 
     public void endProcessing() {
-        if (testClassNames.isEmpty()) {
+        if (testClassFileNames.isEmpty()) {
             return;
         }
-        testFrameworkInstance.execute(testClassNames, Collections.<String>emptySet());
+        executeTests();
     }
+
+    protected abstract void executeTests();
 }

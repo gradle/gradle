@@ -16,17 +16,22 @@
 package org.gradle.api.testing.execution.ant
 
 import org.gradle.api.testing.fabric.TestClassRunInfo
-import org.gradle.api.testing.fabric.TestFrameworkInstance
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 @RunWith(JMock.class)
-class AntTaskBackedTestClassProcessorTest {
+class AbstractBatchTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final TestFrameworkInstance testFramework = context.mock(TestFrameworkInstance.class)
-    private final AntTaskBackedTestClassProcessor processor = new AntTaskBackedTestClassProcessor(testFramework)
+    private final Runnable executeAction = context.mock(Runnable.class)
+    private final AbstractBatchTestClassProcessor processor = new AbstractBatchTestClassProcessor() {
+        protected void executeTests() {
+            executeAction.run();
+        }
+    }
 
     @Test
     public void executesAntTaskAtTheEndOfProcessing() {
@@ -34,7 +39,10 @@ class AntTaskBackedTestClassProcessorTest {
         processor.processTestClass(testClass('a.Test2'))
 
         context.checking {
-            one(testFramework).execute(['Test1.class', 'a/Test2.class'] as Set, [] as Set)
+            one(executeAction).run()
+            will {
+                assertThat(processor.getTestClassFileNames(), equalTo(['Test1.class', 'a/Test2.class'] as Set))
+            }
         }
 
         processor.endProcessing()

@@ -22,11 +22,12 @@ import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
 import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
+import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -34,17 +35,15 @@ import java.util.Map;
  * @author Tom Eyckmans
  */
 public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
-    private AntJUnitExecute antJUnitExecute = null;
-    private AntJUnitReport antJUnitReport = null;
-    private JUnitOptions options = null;
-    private JUnitDetector detector = null;
+    private AntJUnitReport antJUnitReport;
+    private JUnitOptions options;
+    private JUnitDetector detector;
 
     protected JUnitTestFrameworkInstance(AbstractTestTask testTask, JUnitTestFramework testFramework) {
         super(testTask, testFramework);
     }
 
     public void initialize() {
-        antJUnitExecute = new AntJUnitExecute(testTask.getClassPathRegistry());
         antJUnitReport = new AntJUnitReport();
         options = new JUnitOptions((JUnitTestFramework) testFramework);
 
@@ -55,18 +54,22 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Collection<String> includes,
-                        Collection<String> excludes) {
-        antJUnitExecute.execute(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()),
-                testTask.getTestResultsDir(), includes, excludes, options, testTask.getProject().getAnt(),
-                testTask.getTestListenerBroadcaster());
+    public TestClassProcessorFactory getProcessorFactory() {
+        return new TestClassProcessorFactory() {
+            public TestClassProcessor create() {
+                return new AntJUnitExecute(testTask.getClassPathRegistry(), testTask.getTestClassesDir(),
+                        new ArrayList<File>(testTask.getClasspath().getFiles()), testTask.getTestResultsDir(), options,
+                        testTask.getProject().getAnt(), testTask.getTestListenerBroadcaster());
+            }
+        };
     }
 
     public void report() {
         if (!testTask.isTestReport()) {
             return;
         }
-        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), testTask.getProject().getAnt());
+        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(),
+                testTask.getProject().getAnt());
     }
 
     public JUnitOptions getOptions() {
@@ -75,14 +78,6 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     void setOptions(JUnitOptions options) {
         this.options = options;
-    }
-
-    AntJUnitExecute getAntJUnitExecute() {
-        return antJUnitExecute;
-    }
-
-    void setAntJUnitExecute(AntJUnitExecute antJUnitExecute) {
-        this.antJUnitExecute = antJUnitExecute;
     }
 
     AntJUnitReport getAntJUnitReport() {

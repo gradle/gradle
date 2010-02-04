@@ -21,9 +21,10 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
+import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
@@ -32,7 +33,6 @@ import java.util.Map;
  */
 public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
-    private AntTestNGExecute antTestNGExecute;
     private TestNGOptions options;
     private TestNGDetector detector;
 
@@ -41,20 +41,21 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public void initialize() {
-        antTestNGExecute = new AntTestNGExecute();
         options = new TestNGOptions((TestNGTestFramework) testFramework, testTask.getProject().getProjectDir());
-
-        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
-
+        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property(
+                "sourceCompatibility")));
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Collection<String> includes, Collection<String> excludes) {
-        options.setTestResources(testTask.getTestSrcDirs());
-
-        antTestNGExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(),
-                testTask.getTestReportDir(), includes, excludes, options, testTask.getProject().getAnt(),
-                testTask.getTestListenerBroadcaster());
+    public TestClassProcessorFactory getProcessorFactory() {
+        return new TestClassProcessorFactory() {
+            public TestClassProcessor create() {
+                options.setTestResources(testTask.getTestSrcDirs());
+                return new AntTestNGExecute(testTask.getTestClassesDir(), testTask.getClasspath(),
+                        testTask.getTestResultsDir(), testTask.getTestReportDir(), options,
+                        testTask.getProject().getAnt(), testTask.getTestListenerBroadcaster());
+            }
+        };
     }
 
     public void report() {
@@ -68,14 +69,6 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     void setOptions(TestNGOptions options) {
         this.options = options;
-    }
-
-    AntTestNGExecute getAntTestNGExecute() {
-        return antTestNGExecute;
-    }
-
-    void setAntTestNGExecute(AntTestNGExecute antTestNGExecute) {
-        this.antTestNGExecute = antTestNGExecute;
     }
 
     public TestNGDetector getDetector() {

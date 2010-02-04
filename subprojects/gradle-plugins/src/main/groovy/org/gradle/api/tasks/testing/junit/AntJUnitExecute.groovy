@@ -23,6 +23,7 @@ import org.gradle.api.tasks.testing.TestListener
 import org.gradle.listener.remote.RemoteReceiver
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.testing.execution.ant.AbstractBatchTestClassProcessor
 
 /**
  * @author Hans Dockter
@@ -30,18 +31,30 @@ import org.gradle.api.internal.ClassPathRegistry
 //todo: assertions for fork and permissions for non fork
 //todo: offer all the power of ant selectors
 //todo: Find a more stable way to find the ant junit jars
-class AntJUnitExecute {
+class AntJUnitExecute extends AbstractBatchTestClassProcessor {
     private static Logger logger = LoggerFactory.getLogger(AntJUnitExecute)
     private static final String CLASSPATH_ID = 'runtests.classpath'
     private final ClassPathRegistry classPathRegistry
+    private final File testClassesDir
+    private final List classPath
+    private final File testResultsDir
+    private final JUnitOptions junitOptions
+    private final AntBuilder ant
+    private final ListenerBroadcast<TestListener> testListenerBroadcast
 
-    def AntJUnitExecute(ClassPathRegistry classPathRegistry) {
+    def AntJUnitExecute(ClassPathRegistry classPathRegistry, File compiledTestsClassesDir, List classPath,
+                        File testResultsDir, JUnitOptions junitOptions, AntBuilder ant,
+                        ListenerBroadcast<TestListener> testListenerBroadcaster) {
         this.classPathRegistry = classPathRegistry
+        this.testClassesDir = compiledTestsClassesDir
+        this.classPath = classPath
+        this.testResultsDir = testResultsDir
+        this.junitOptions = junitOptions
+        this.ant = ant
+        this.testListenerBroadcast = testListenerBroadcaster
     }
 
-    void execute(File compiledTestsClassesDir, List classPath, File testResultsDir, Collection<String> includes,
-                 Collection<String> excludes, JUnitOptions junitOptions, AntBuilder ant,
-                 ListenerBroadcast<TestListener> testListenerBroadcaster) {
+    protected void executeTests() {
         ant.mkdir(dir: testResultsDir.absolutePath)
         createAntClassPath(ant, classPath + classPathRegistry.getClassPathFiles("ANT_JUNIT") + classPathRegistry.getClassPathFiles("TEST_LISTENER"))
         Map otherArgs = [
@@ -53,7 +66,7 @@ class AntJUnitExecute {
                 failureproperty: AntTest.FAILURES_OR_ERRORS_PROPERTY
         ]
 
-        final RemoteReceiver remoteReceiver = new RemoteReceiver(TestListener.class, testListenerBroadcaster);
+        final RemoteReceiver remoteReceiver = new RemoteReceiver(TestListener.class, testListenerBroadcast);
         logger.debug("Listening for test listener events on {}.", remoteReceiver.localAddress)
         try {
             ant.junit(otherArgs + junitOptions.optionMap()) {
@@ -70,12 +83,9 @@ class AntJUnitExecute {
                 sysproperty(key: TestListenerFormatter.SERVER_ADDRESS, value: remoteReceiver.localAddress)
                 formatter(type: 'plain', classname: TestListenerFormatter.class.name)
                 batchtest(todir: testResultsDir.absolutePath) {
-                    fileset(dir: compiledTestsClassesDir.absolutePath) {
-                        includes.each {
+                    fileset(dir: testClassesDir.absolutePath) {
+                        testClassFileNames.each {
                             include(name: it)
-                        }
-                        excludes.each {
-                            exclude(name: it)
                         }
                     }
                 }
