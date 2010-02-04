@@ -19,20 +19,33 @@ import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+
+import static java.util.Arrays.*;
 
 public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeferredConnection.class);
 
     private enum State {
-        AwaitConnect,
-        Connected,
-        AwaitIncomingEndOfStream,
-        AwaitOutgoingEndOfStream,
-        GenerateIncomingEndOfStream,
-        Stopped
+        Stopped,
+        AwaitIncomingEndOfStream(Stopped),
+        AwaitOutgoingEndOfStream(Stopped),
+        GenerateIncomingEndOfStream(Stopped),
+        Connected(AwaitIncomingEndOfStream, AwaitOutgoingEndOfStream),
+        AwaitConnect(Connected, GenerateIncomingEndOfStream);
+
+        private Set<State> successors;
+
+        private State(State... successors) {
+            this.successors = new HashSet<State>(Arrays.asList(successors));
+        }
+
+        public boolean canTransitionTo(State successor) {
+            return successors.contains(successor);
+        }
     }
 
     private final Lock lock = new ReentrantLock();
@@ -96,45 +109,29 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                     throwable);
             message = new EndOfStream();
         }
+        if (message == null) {
+            LOGGER.warn("Received unexpected end-of-stream. Discarding connection");
+            message = new EndOfStream();
+        }
 
-        if (message != null && !(message instanceof EndOfStream)) {
+        if (!(message instanceof EndOfStream)) {
             return message;
         }
 
-        if (message instanceof EndOfStream) {
-            lock.lock();
-            try {
-                switch (state) {
-                    case Connected:
-                        setState(State.AwaitOutgoingEndOfStream);
-                        break;
-                    case AwaitIncomingEndOfStream:
-                    case GenerateIncomingEndOfStream:
-                        setState(State.Stopped);
-                        break;
-                    default:
-                        throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
-                }
-            } finally {
-                lock.unlock();
+        lock.lock();
+        try {
+            switch (state) {
+                case Connected:
+                    setState(State.AwaitOutgoingEndOfStream);
+                    break;
+                case AwaitIncomingEndOfStream:
+                    setState(State.Stopped);
+                    break;
+                default:
+                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
             }
-        }
-        else if (message == null) {
-            lock.lock();
-            try {
-                switch(state) {
-                    case Connected:
-                    case AwaitIncomingEndOfStream:
-                    case GenerateIncomingEndOfStream:
-                        setState(State.Stopped);
-                        break;
-                    default:
-                        throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
-                }
-            } finally {
-                lock.unlock();
-            }
-            message = new EndOfStream();
+        } finally {
+            lock.unlock();
         }
 
         cleanup();
@@ -182,8 +179,15 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
             LOGGER.error(String.format("Could not send message using %s. Discarding connection.", dispatch), throwable);
             lock.lock();
             try {
-                if (state != State.Stopped) {
-                    setState(State.GenerateIncomingEndOfStream);
+                switch (state) {
+                    case Connected:
+                        setState(State.AwaitIncomingEndOfStream);
+                        break;
+                    case AwaitOutgoingEndOfStream:
+                        setState(State.Stopped);
+                        break;
+                    default:
+                        throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
                 }
             } finally {
                 lock.unlock();
@@ -211,6 +215,9 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
     }
 
     private void setState(State state) {
+        if (!this.state.canTransitionTo(state)) {
+            throw new IllegalStateException(String.format("Cannot change state from %s to %s.", this.state, state));
+        }
         this.state = state;
         condition.signalAll();
     }

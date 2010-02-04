@@ -144,10 +144,12 @@ public class DeferredConnectionTest extends MultithreadedTestCase {
         context.checking {
             one(target).receive()
             will(returnValue(null))
+            one(target).dispatch(endOfStream)
             one(target).stop()
         }
 
         assertThat(connection.receive(), equalTo(endOfStream))
+        connection.dispatch(endOfStream)
         assertThat(connection.receive(), nullValue())
     }
 
