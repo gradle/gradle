@@ -27,11 +27,7 @@ import static org.hamcrest.Matchers.*
 class AbstractBatchTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Runnable executeAction = context.mock(Runnable.class)
-    private final AbstractBatchTestClassProcessor processor = new AbstractBatchTestClassProcessor() {
-        protected void executeTests() {
-            executeAction.run();
-        }
-    }
+    private final AbstractBatchTestClassProcessor processor = new TestBatchTestClassProcessor(executeAction: executeAction)
 
     @Test
     public void executesAntTaskAtTheEndOfProcessing() {
@@ -55,5 +51,13 @@ class AbstractBatchTestClassProcessorTest {
 
     TestClassRunInfo testClass(String className) {
         {-> className} as TestClassRunInfo
+    }
+}
+
+class TestBatchTestClassProcessor extends AbstractBatchTestClassProcessor {
+    private Runnable executeAction
+
+    protected void executeTests() {
+        executeAction.run();
     }
 }
