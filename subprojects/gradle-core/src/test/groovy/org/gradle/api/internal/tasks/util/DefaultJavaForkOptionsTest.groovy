@@ -71,7 +71,7 @@ public class DefaultJavaForkOptionsTest {
         options.systemProperties(key: 12, key2: null)
         options.jvmArgs('arg1')
 
-        assertThat(options.allJvmArgs, equalTo(['arg1', '-Dkey2', '-Dkey=12']))
+        assertThat(options.allJvmArgs, equalTo(['arg1', '-Dkey=12', '-Dkey2']))
     }
 
     @Test
