@@ -40,16 +40,18 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Adds some system properties to use for the process.
      *
      * @param properties The system properties. Must not be null.
+     * @return this
      */
-    void systemProperties(Map<String, ?> properties);
+    JavaForkOptions systemProperties(Map<String, ?> properties);
 
     /**
      * Adds a system property to use for the process.
      *
      * @param name The name of the property
      * @param value The value for the property. May be null.
+     * @return this
      */
-    void systemProperty(String name, Object value);
+    JavaForkOptions systemProperty(String name, Object value);
 
     /**
      * Returns the maximum heap size for the process, if any.
@@ -85,15 +87,17 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Adds some arguments to use to launch the JVM for the process.
      *
      * @param arguments The arguments. Must not be null.
+     * @return this
      */
-    void jvmArgs(Iterable<?> arguments);
+    JavaForkOptions jvmArgs(Iterable<?> arguments);
 
     /**
      * Adds some arguments to use to launch the JVM for the process.
      *
      * @param arguments The arguments.
+     * @return this
      */
-    void jvmArgs(Object... arguments);
+    JavaForkOptions jvmArgs(Object... arguments);
 
     /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
@@ -110,4 +114,12 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param arguments The arguments. Must not be null.
      */
     void setAllJvmArgs(Iterable<?> arguments);
+
+    /**
+     * Copies these options to the given options.
+     *
+     * @param options The target options.
+     * @return this
+     */
+    JavaForkOptions copyTo(JavaForkOptions options);
 }

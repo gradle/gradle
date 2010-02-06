@@ -21,17 +21,23 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OutgoingMethodInvocationHandler {
-    private final Dispatch<MethodInvocation> methodInvocationDispatch;
     private final Map<Class<?>, ProxyDispatchAdapter<?>> outgoing
             = new ConcurrentHashMap<Class<?>, ProxyDispatchAdapter<?>>();
+    private final MultiChannelConnection<Message> connection;
 
-    public OutgoingMethodInvocationHandler(Dispatch<Message> outgoingDispatch) {
-        this.methodInvocationDispatch = new ThreadSafeDispatch<MethodInvocation>(
-                new MethodInvocationMarshallingDispatch(outgoingDispatch));
+    public OutgoingMethodInvocationHandler(MultiChannelConnection<Message> connection) {
+        this.connection = connection;
     }
 
     public <T> T addOutgoing(Class<T> type) {
-        ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(type, methodInvocationDispatch);
+        ProxyDispatchAdapter<?> existing = outgoing.get(type);
+        if (existing != null) {
+            return type.cast(outgoing.get(type).getSource());
+        }
+
+        Dispatch<MethodInvocation> dispatch = new ThreadSafeDispatch<MethodInvocation>(
+                new MethodInvocationMarshallingDispatch(connection.addOutgoingChannel(type.getName())));
+        ProxyDispatchAdapter<T> adapter = new ProxyDispatchAdapter<T>(type, dispatch);
         outgoing.put(type, adapter);
         return adapter.getSource();
     }

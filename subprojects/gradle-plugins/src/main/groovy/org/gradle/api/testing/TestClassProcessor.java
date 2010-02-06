@@ -15,12 +15,16 @@
  */
 package org.gradle.api.testing;
 
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
 /**
+ * A processor for test classes. Implementations are not required to be thread-safe.
+ *
  * @author Tom Eyckmans
  */
 public interface TestClassProcessor {
+    void startProcessing(TestListener listener);
 
     void processTestClass(TestClassRunInfo testClass);
 

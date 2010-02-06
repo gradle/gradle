@@ -17,6 +17,7 @@ package org.gradle.api.tasks.testing
 
 import org.gradle.api.tasks.compile.AbstractOptions
 import org.gradle.api.GradleException
+import org.gradle.api.tasks.util.JavaForkOptions
 
 /**
  * @author Tom Eyckmans
@@ -50,4 +51,6 @@ public abstract class AbstractTestFrameworkOptions extends AbstractOptions {
             ${AbstractTestFramework.USE_OF_CORRECT_TEST_FRAMEWORK}
             """);
     }
+
+    public abstract JavaForkOptions createForkOptions()
 }

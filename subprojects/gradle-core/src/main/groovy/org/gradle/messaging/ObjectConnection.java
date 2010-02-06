@@ -48,13 +48,14 @@ public interface ObjectConnection extends Addressable, AsyncStoppable {
     void addIncoming(Class<?> type, Dispatch<? super MethodInvocation> dispatch);
 
     /**
-     * Commences a graceful stop of this connection. Stops dispatching incoming messages.
+     * Commences a graceful stop of this connection. Stops accepting outgoing messages. Requests that the peer stop
+     * sending incoming messages.
      */
     void requestStop();
 
     /**
-     * Performs a graceful stop of this connection. Stops dispatching incoming messages. Blocks until all dispatched
-     * incoming messages have been handled, and all outgoing messages have been delivered.
+     * Performs a graceful stop of this connection. Stops accepting outgoing message. Blocks until all incoming messages
+     * have been handled, and all outgoing messages have been handled by the peer.
      */
     void stop();
 }

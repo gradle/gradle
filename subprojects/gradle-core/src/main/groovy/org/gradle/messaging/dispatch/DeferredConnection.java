@@ -24,18 +24,14 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-import static java.util.Arrays.*;
-
 public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DeferredConnection.class);
 
     private enum State {
         Stopped,
-        AwaitIncomingEndOfStream(Stopped),
-        AwaitOutgoingEndOfStream(Stopped),
-        GenerateIncomingEndOfStream(Stopped),
-        Connected(AwaitIncomingEndOfStream, AwaitOutgoingEndOfStream),
-        AwaitConnect(Connected, GenerateIncomingEndOfStream);
+        Stopping(Stopped),
+        Connected(Stopping, Stopped),
+        AwaitConnect(Connected, Stopping, Stopped);
 
         private Set<State> successors;
 
@@ -44,21 +40,26 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
         }
 
         public boolean canTransitionTo(State successor) {
-            return successors.contains(successor);
+            return successor == this || successors.contains(successor);
+        }
+
+        public State onDispatchEndOfStream() {
+            return this == AwaitConnect ? Stopping : this;
         }
     }
 
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Connection<Message> connection;
-    private State state = State.AwaitConnect;
+    private State receiveState = State.AwaitConnect;
+    private State dispatchState = State.AwaitConnect;
 
     public void connect(Connection<Message> connection) {
         lock.lock();
         try {
-            if (state == State.AwaitConnect) {
+            if (receiveState == State.AwaitConnect) {
                 this.connection = connection;
-                setState(State.Connected);
+                setState(State.Connected, State.Connected);
                 return;
             }
         } finally {
@@ -75,25 +76,23 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
 
         lock.lock();
         try {
-            while (state == State.AwaitConnect) {
+            while (receiveState == State.AwaitConnect) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
                     throw new GradleException(e);
                 }
             }
-            switch (state) {
-                case GenerateIncomingEndOfStream:
-                    setState(State.Stopped);
+            switch (receiveState) {
+                case Stopping:
+                    setState(State.Stopped, dispatchState);
                     return new EndOfStream();
                 case Stopped:
-                case AwaitOutgoingEndOfStream:
                     return null;
                 case Connected:
-                case AwaitIncomingEndOfStream:
                     break;
                 default:
-                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
+                    throw new IllegalStateException(String.format("Connection is in unexpected receive state %s.", receiveState));
             }
 
             receive = connection;
@@ -120,15 +119,12 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
 
         lock.lock();
         try {
-            switch (state) {
+            switch (receiveState) {
                 case Connected:
-                    setState(State.AwaitOutgoingEndOfStream);
-                    break;
-                case AwaitIncomingEndOfStream:
-                    setState(State.Stopped);
+                    setState(State.Stopped, dispatchState);
                     break;
                 default:
-                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
+                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", receiveState));
             }
         } finally {
             lock.unlock();
@@ -144,29 +140,31 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
         lock.lock();
         try {
             boolean endOfStream = message instanceof EndOfStream;
-            while (!endOfStream && state == State.AwaitConnect) {
+            while (!endOfStream && dispatchState == State.AwaitConnect) {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
                     throw new GradleException(e);
                 }
             }
-            switch (state) {
+            switch (dispatchState) {
                 case AwaitConnect:
-                    setState(State.GenerateIncomingEndOfStream);
+                    setState(receiveState.onDispatchEndOfStream(), State.Stopped);
                     return;
                 case Connected:
                     if (endOfStream) {
-                        setState(State.AwaitIncomingEndOfStream);
+                        setState(receiveState.onDispatchEndOfStream(), State.Stopped);
                     }
                     break;
-                case AwaitOutgoingEndOfStream:
+                case Stopping:
                     if (endOfStream) {
-                        setState(State.Stopped);
+                        setState(receiveState, State.Stopped);
+                        return;
                     }
-                    break;
+                    LOGGER.error("Could not send message, as connection is stopping.");
+                    return;
                 default:
-                    throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
+                    throw new IllegalStateException(String.format("Connection is in unexpected dispatch state %s.", dispatchState));
             }
             dispatch = connection;
         } finally {
@@ -179,15 +177,12 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
             LOGGER.error(String.format("Could not send message using %s. Discarding connection.", dispatch), throwable);
             lock.lock();
             try {
-                switch (state) {
+                switch (receiveState) {
                     case Connected:
-                        setState(State.AwaitIncomingEndOfStream);
-                        break;
-                    case AwaitOutgoingEndOfStream:
-                        setState(State.Stopped);
+                        setState(receiveState.onDispatchEndOfStream(), State.Stopped);
                         break;
                     default:
-                        throw new IllegalStateException(String.format("Connection is in unexpected state %s.", state));
+                        throw new IllegalStateException(String.format("Connection is in unexpected dispatch state %s.", dispatchState));
                 }
             } finally {
                 lock.unlock();
@@ -202,7 +197,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
 
         lock.lock();
         try {
-            if (state != State.Stopped || connection == null) {
+            if (receiveState != State.Stopped || dispatchState != State.Stopped || connection == null) {
                 return;
             }
             stoppable = connection;
@@ -214,11 +209,26 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
         stoppable.stop();
     }
 
-    private void setState(State state) {
-        if (!this.state.canTransitionTo(state)) {
-            throw new IllegalStateException(String.format("Cannot change state from %s to %s.", this.state, state));
+    public void requestStop() {
+        lock.lock();
+        try {
+            if (receiveState == State.AwaitConnect) {
+                setState(State.Stopping, State.Stopping);
+            }
+        } finally {
+            lock.unlock();
         }
-        this.state = state;
+    }
+
+    private void setState(State receiveState, State dispatchState) {
+        if (!this.receiveState.canTransitionTo(receiveState)) {
+            throw new IllegalStateException(String.format("Cannot change receive state from %s to %s.", this.receiveState, receiveState));
+        }
+        if (!this.dispatchState.canTransitionTo(dispatchState)) {
+            throw new IllegalStateException(String.format("Cannot change dispatch state from %s to %s.", this.dispatchState, dispatchState));
+        }
+        this.receiveState = receiveState;
+        this.dispatchState = dispatchState;
         condition.signalAll();
     }
 }

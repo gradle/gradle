@@ -76,7 +76,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         jvmArgs(arguments);
     }
 
-    public void jvmArgs(Iterable<?> arguments) {
+    public JavaForkOptions jvmArgs(Iterable<?> arguments) {
         for (Object argument : arguments) {
             String argStr = argument.toString();
             Matcher matcher = sysPropPattern.matcher(argStr);
@@ -97,10 +97,12 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
             extraJvmArgs.add(argument);
         }
+        return this;
     }
 
-    public void jvmArgs(Object... arguments) {
+    public JavaForkOptions jvmArgs(Object... arguments) {
         jvmArgs(Arrays.asList(arguments));
+        return this;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -117,12 +119,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         systemProperties.putAll(properties);
     }
 
-    public void systemProperties(Map<String, ?> properties) {
+    public JavaForkOptions systemProperties(Map<String, ?> properties) {
         systemProperties.putAll(properties);
+        return this;
     }
 
-    public void systemProperty(String name, Object value) {
+    public JavaForkOptions systemProperty(String name, Object value) {
         systemProperties.put(name, value);
+        return this;
     }
 
     public String getMaxHeapSize() {
@@ -133,10 +137,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         this.maxHeapSize = heapSize;
     }
 
-    public void copyTo(JavaForkOptions target) {
+    public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(systemProperties);
         target.setMaxHeapSize(maxHeapSize);
+        return this;
     }
 }

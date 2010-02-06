@@ -15,21 +15,32 @@
  */
 package org.gradle.api.testing.execution.ant;
 
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
+import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
 
 public abstract class AbstractBatchTestClassProcessor implements TestClassProcessor {
     private final Set<String> testClassFileNames = new HashSet<String>();
+    private TestListener testListener;
 
     public void processTestClass(TestClassRunInfo testClass) {
-        testClassFileNames.add(testClass.getTestClassName().replace('.', '/') + ".class");
+        testClassFileNames.add(testClass.getTestClassName().replace('.', File.separatorChar) + ".class");
     }
 
     public Set<String> getTestClassFileNames() {
         return testClassFileNames;
+    }
+
+    public TestListener getTestListener() {
+        return testListener;
+    }
+
+    public void startProcessing(TestListener listener) {
+        this.testListener = listener;
     }
 
     public void endProcessing() {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.integtests.GradleExecuter
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
+import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
 import org.junit.Ignore
 
@@ -39,7 +40,7 @@ public class TestNGIntegrationTest {
         checkExists(projectDir, 'build/classes/test/org/gradle/BadTest.class')
         checkExists(projectDir, 'build/reports/tests/index.html')
     })
-    static final GROOVY_JDK15_PASSING = passingIntegrationProject(GROOVY, JDK15, { name, projectDir, result ->
+    static final GROOVY_JDK15_PASSING = passingIntegrationProject(GROOVY, JDK15, { name, TestFile projectDir, result ->
         checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
         checkExists(projectDir, 'build/classes/test/org/gradle/OkTest.class')
         checkExists(projectDir, 'build/reports/tests/index.html')
@@ -63,6 +64,8 @@ public class TestNGIntegrationTest {
         checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
         checkExists(projectDir, 'build/classes/test/org/gradle/OkTest.class')
         checkExists(projectDir, 'build/reports/tests/index.html')
+        projectDir.file('build/reports/tests/testng-results.xml').assertContents(containsString('<class name="org.gradle.OkTest"'))
+        projectDir.file('build/reports/tests/testng-results.xml').assertContents(containsString('name="passingTest"'))
     })
     static final JAVA_JDK15_PASSING_NO_REPORT = passingIntegrationProject(JAVA, JDK15, "-no-report", { name, projectDir, result ->
         checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
@@ -74,7 +77,7 @@ public class TestNGIntegrationTest {
         checkExists(projectDir, 'build/classes/main/org/gradle/testng/UserImpl.class')
         checkExists(projectDir, 'build/classes/test/org/gradle/testng/UserImplTest.class')
         checkExists(projectDir, 'build/reports/tests/index.html')
-        checkExists(projectDir, 'build/reports/tests/emailable-report.html')
+        checkExists(projectDir, 'build/reports/tests/testng-results.xml')
     })
 
     // Injected by test runner
@@ -88,8 +91,8 @@ public class TestNGIntegrationTest {
 
     @Test
     public void groovyJdk15() {
-        checkProject(GROOVY_JDK15_PASSING)
         checkProject(GROOVY_JDK15_FAILING)
+        checkProject(GROOVY_JDK15_PASSING)
     }
 
     @Test
@@ -114,8 +117,8 @@ public class TestNGIntegrationTest {
         checkProject(JAVA_JDK15_PASSING_NO_REPORT)
     }
 
-    private def checkProject(project) {
-        final File projectDir = new File(new File(dist.samplesDir, "testng"), project.name)
+    private def checkProject(TestNGIntegrationProject project) {
+        final File projectDir = dist.samplesDir.file("testng", project.name)
 
         def result
         executer.inDirectory(projectDir).withTasks('clean', 'test')

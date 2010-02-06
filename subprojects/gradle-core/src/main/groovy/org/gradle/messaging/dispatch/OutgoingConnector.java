@@ -18,5 +18,8 @@ package org.gradle.messaging.dispatch;
 import java.net.URI;
 
 public interface OutgoingConnector {
-    Connection<Message> create(URI destinationUri);
+    /**
+     * Creates a connection to the given address.
+     */
+    Connection<Message> connect(URI destinationUri);
 }

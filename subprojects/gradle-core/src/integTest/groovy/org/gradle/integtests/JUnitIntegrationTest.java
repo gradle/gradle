@@ -30,7 +30,33 @@ public class JUnitIntegrationTest {
     private GradleExecuter executer;
 
     @Test
-    public void failureInTestBreaksBuild() {
+    public void executesTestsInCorrectEnvironment() {
+        TestFile testDir = dist.getTestDir();
+        TestFile buildFile = testDir.file("build.gradle");
+        buildFile.writelns(
+                "apply id: 'java'",
+                "repositories { mavenCentral() }",
+                "dependencies { testCompile 'junit:junit:4.7' }"
+        );
+        testDir.file("src/test/java/org/gradle/OkTest.java").writelns(
+                "package org.gradle;",
+                "public class OkTest {",
+                "    @org.junit.Test public void ok() { ",
+                "        System.out.println(\"This is test stdout\");",
+                "        System.err.println(\"This is test stderr\");",
+                "    }",
+                "}");
+
+        executer.withTasks("build").run();
+
+        TestFile resultFile = testDir.file("build/test-results/TEST-org.gradle.OkTest.xml");
+        resultFile.assertIsFile();
+        resultFile.assertContents(containsString("This is test stdout"));
+        resultFile.assertContents(containsString("This is test stderr"));
+    }
+
+    @Test
+    public void reportsAndBreaksBuildWhenTestFails() {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file("build.gradle");
         buildFile.writelns(
@@ -49,6 +75,8 @@ public class JUnitIntegrationTest {
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith("There were failing tests."));
+
+        assertThat(failure.getError(), containsLine("Test broken(org.gradle.BrokenTest) FAILED"));
     }
 
     @Test

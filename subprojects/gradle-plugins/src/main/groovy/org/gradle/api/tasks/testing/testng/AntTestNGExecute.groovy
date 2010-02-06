@@ -52,7 +52,7 @@ public class AntTestNGExecute extends AbstractBatchTestClassProcessor {
      * This method contains several comments of the form
      *         TODO TestNG Listeners: [<stuff>]
      * Once we can implement TestNG listeners, replace the lines with <stuff> to make it work again.
-     * For a discussion of why this is disabled, see   {@link TestNGListenerAdapter}  .
+     * For a discussion of why this is disabled, see   {@link org.gradle.api.internal.tasks.testing.testng.TestNGListenerAdapter}  .
      */
     protected void executeTests() {
         ant.mkdir(dir: testResultsDir.absolutePath)

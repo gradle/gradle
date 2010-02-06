@@ -29,7 +29,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         this.classLoader = classLoader;
     }
 
-    public Connection<Message> create(URI destinationUri) {
+    public Connection<Message> connect(URI destinationUri) {
         if (!destinationUri.getScheme().equals("tcp") || !destinationUri.getHost().equals("localhost")) {
             throw new IllegalArgumentException(String.format("Cannot create connection to destination URI '%s'.",
                     destinationUri));

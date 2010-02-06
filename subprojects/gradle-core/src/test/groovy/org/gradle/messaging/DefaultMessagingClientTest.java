@@ -15,10 +15,7 @@
  */
 package org.gradle.messaging;
 
-import org.gradle.messaging.dispatch.Connector;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.Message;
-import org.gradle.messaging.dispatch.OutgoingConnection;
+import org.gradle.messaging.dispatch.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -32,19 +29,19 @@ import static org.hamcrest.Matchers.*;
 @RunWith(JMock.class)
 public class DefaultMessagingClientTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Connector factory = context.mock(Connector.class);
+    private final MultiChannelConnector connector = context.mock(MultiChannelConnector.class);
 
     @Test
     public void createsConnectionOnConstructionAndStopsOnStop() throws Exception {
         final URI serverAddress = new URI("test:somestuff");
-        final OutgoingConnection<Message> connection = context.mock(OutgoingConnection.class);
+        final MultiChannelConnection<Message> connection = context.mock(MultiChannelConnection.class);
 
         context.checking(new Expectations() {{
-            one(factory).connect(with(equalTo(serverAddress)), with(notNullValue(Dispatch.class)));
+            one(connector).connect(with(equalTo(serverAddress)));
             will(returnValue(connection));
         }});
 
-        DefaultMessagingClient client = new DefaultMessagingClient(factory, getClass().getClassLoader(), serverAddress);
+        DefaultMessagingClient client = new DefaultMessagingClient(connector, getClass().getClassLoader(), serverAddress);
 
         context.checking(new Expectations() {{
             one(connection).stop();

@@ -16,6 +16,7 @@
 package org.gradle.api.testing.pipelinesplit;
 
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
@@ -29,6 +30,12 @@ public class SplittingTestClassProcessor implements TestClassProcessor {
 
     public SplittingTestClassProcessor(Map<? extends Spec<TestClassRunInfo>, ? extends TestClassProcessor> pipelineMatchers) {
         this.pipelineMatchers = pipelineMatchers;
+    }
+
+    public void startProcessing(TestListener listener) {
+        for (TestClassProcessor processor : pipelineMatchers.values()) {
+            processor.startProcessing(listener);
+        }
     }
 
     public void endProcessing() {

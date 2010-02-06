@@ -21,6 +21,8 @@ import org.gradle.util.GFileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.external.testng.TestNGTestFramework
+import org.gradle.api.tasks.util.JavaForkOptions
+import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions
 
 /**
  * @author Tom Eyckmans
@@ -393,6 +395,10 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         this.useDefaultListeners = useDefaultListeners;
 
         return this;
+    }
+
+    JavaForkOptions createForkOptions() {
+        return new DefaultJavaForkOptions(null).systemProperties(systemProperties);
     }
 
     public def propertyMissing(String name) {

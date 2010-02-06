@@ -21,7 +21,6 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
@@ -31,9 +30,9 @@ import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.listener.ListenerManager;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ListenerManager;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -89,12 +88,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
      * @return The {@link TestListener} broadcaster.  This broadcaster will send messages to all listeners that have
      *         been registered with the ListenerManager.
      */
-    public ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
+    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
         return testListenerBroadcaster;
-    }
-
-    public ClassPathRegistry getClassPathRegistry() {
-        return getServices().get(ClassPathRegistry.class);
     }
 
     /**

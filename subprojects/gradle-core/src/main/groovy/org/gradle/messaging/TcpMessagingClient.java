@@ -24,12 +24,12 @@ import java.net.URI;
  * A {@link org.gradle.messaging.MessagingClient} which uses a single TCP connection with a server.
  */
 public class TcpMessagingClient implements MessagingClient {
-    private final DefaultConnector channelFactory;
+    private final DefaultMultiChannelConnector connector;
     private final DefaultMessagingClient client;
 
     public TcpMessagingClient(ClassLoader messagingClassLoader, URI serverAddress) {
-        channelFactory = new DefaultConnector(new TcpOutgoingConnector(messagingClassLoader), new NoOpIncomingConnector());
-        client = new DefaultMessagingClient(channelFactory, messagingClassLoader, serverAddress);
+        connector = new DefaultMultiChannelConnector(new TcpOutgoingConnector(messagingClassLoader), new NoOpIncomingConnector());
+        client = new DefaultMessagingClient(connector, messagingClassLoader, serverAddress);
     }
 
     public ObjectConnection getConnection() {
@@ -38,7 +38,7 @@ public class TcpMessagingClient implements MessagingClient {
 
     public void stop() {
         client.stop();
-        channelFactory.stop();
+        connector.stop();
     }
 
     private static class NoOpIncomingConnector implements IncomingConnector {

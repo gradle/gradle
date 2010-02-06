@@ -21,7 +21,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Arrays;
@@ -30,6 +32,7 @@ import java.util.List;
 /**
  * @author Tom Eyckmans
  */
+@RunWith(JMock.class)
 public abstract class AbstractTestFrameworkInstanceTest {
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
@@ -58,17 +61,6 @@ public abstract class AbstractTestFrameworkInstanceTest {
         context.checking(new Expectations(){{
             allowing(testMock).getProject();
             will(returnValue(projectMock));
-        }});
-    }
-
-    protected void expectHandleEmptyIncludesExcludes() {
-        context.checking(new Expectations() {{
-            one(testMock).getIncludes();
-            will(returnValue(null));
-            one(testMock).include("**/*Tests.class", "**/*Test.class");
-            one(testMock).getExcludes();
-            will(returnValue(null));
-            one(testMock).exclude("**/Abstract*.class");
         }});
     }
 }

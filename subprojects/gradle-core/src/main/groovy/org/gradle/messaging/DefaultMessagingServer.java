@@ -22,18 +22,18 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
 
 public class DefaultMessagingServer implements MessagingServer {
-    private final Connector connector;
+    private final MultiChannelConnector connector;
     private final ClassLoader classLoader;
     private final Set<ObjectConnection> connections = new CopyOnWriteArraySet<ObjectConnection>();
 
-    public DefaultMessagingServer(Connector connector, ClassLoader classLoader) {
+    public DefaultMessagingServer(MultiChannelConnector connector, ClassLoader classLoader) {
         this.connector = connector;
         this.classLoader = classLoader;
     }
 
     public ObjectConnection createUnicastConnection() {
-        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader);
-        final OutgoingConnection<Message> messageConnection = connector.accept(incoming.getIncomingDispatch());
+        final MultiChannelConnection<Message> messageConnection = connector.listen();
+        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, messageConnection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageConnection);
         final AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
         AsyncStoppable stopControl = new AsyncStoppable() {

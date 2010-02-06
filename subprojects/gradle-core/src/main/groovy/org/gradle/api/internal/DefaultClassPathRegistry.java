@@ -48,8 +48,10 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
             runtimeLibDir = new ClassPathScanner(codeSource);
             pluginLibDir = new ClassPathScanner(codeSource);
         }
-        
+
+        List<Pattern> loggingPatterns = toPatterns("slf4j-api", "logback-classic", "logback-core");
         List<Pattern> groovyPatterns = toPatterns("groovy-all");
+
         classPaths.put("LOCAL_GROOVY", groovyPatterns);
         List<Pattern> gradleApiPatterns = toPatterns("gradle-\\w+", "ivy", "slf4j");
         gradleApiPatterns.addAll(groovyPatterns);
@@ -57,10 +59,6 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         classPaths.put("GRADLE_CORE", toPatterns("gradle-core"));
         classPaths.put("ANT", toPatterns("ant", "ant-launcher"));
         classPaths.put("ANT_JUNIT", toPatterns("ant", "ant-launcher", "ant-junit"));
-        List<Pattern> loggingPatterns = toPatterns("slf4j-api", "logback-classic", "logback-core");
-        List<Pattern> testListenerPatterns = toPatterns("gradle-core", "gradle-plugins", "commons-lang");
-        testListenerPatterns.addAll(loggingPatterns);
-        classPaths.put("TEST_LISTENER", testListenerPatterns);
         classPaths.put("COMMONS_CLI", toPatterns("commons-cli"));
         List<Pattern> workerProcessPatterns = toPatterns("gradle-core");
         workerProcessPatterns.addAll(loggingPatterns);

@@ -22,5 +22,8 @@ import java.net.URI;
 public interface IncomingConnector {
     URI getLocalAddress();
 
+    /**
+     * Registers an action to be executed when an incoming connection is received.
+     */
     void accept(Action<Connection<Message>> action);
 }

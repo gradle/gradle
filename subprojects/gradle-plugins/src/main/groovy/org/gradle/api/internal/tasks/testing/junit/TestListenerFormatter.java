@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing.junit;
+package org.gradle.api.internal.tasks.testing.junit;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
@@ -23,52 +23,26 @@ import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.TestSuite;
-import org.gradle.listener.ListenerBroadcast;
-import org.gradle.listener.remote.RemoteSender;
-import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.Serializable;
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class TestListenerFormatter implements JUnitResultFormatter {
-    private static final String SERVER_ADDRESS = "test.listener.server.address";
-    private static TestListener defaultSender;
-    private TestListener remoteSender;
+    private TestListener listener;
     private Throwable error;
-
-    public TestListenerFormatter() throws URISyntaxException {
-        // An instance of this class is created for each test class, so use a singleton RemoteSender
-        if (defaultSender == null) {
-            String serverAddress = System.getProperty(SERVER_ADDRESS);
-            if (serverAddress == null) {
-                // This can happen when the listener is instantiated in the build process, for example, when the
-                // test vm crashes
-                defaultSender = new ListenerBroadcast<TestListener>(TestListener.class).getSource();
-            }
-            else {
-                // Assume we're in the forked test process
-                RemoteSender<TestListener> sender = new RemoteSender<TestListener>(TestListener.class, new URI(serverAddress));
-                ShutdownHookActionRegister.closeOnExit(sender);
-                defaultSender = sender.getSource();
-            }
-        }
-        remoteSender = defaultSender;
-    }
 
     public TestListenerFormatter(TestListener listener) throws IOException {
         // for testing
-        remoteSender = listener;
+        this.listener = listener;
     }
     
     public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
-        remoteSender.beforeSuite(new MySuite(jUnitTest));
+        listener.beforeSuite(new MySuite(jUnitTest));
     }
 
     public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
-        remoteSender.afterSuite(new MySuite(jUnitTest));
+        listener.afterSuite(new MySuite(jUnitTest));
     }
 
     public void setOutput(OutputStream outputStream) {
@@ -91,11 +65,11 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     public void endTest(Test test) {
         MyResult result = new MyResult(error);
         error = null;
-        remoteSender.afterTest(new MyTest(test), result);
+        listener.afterTest(new MyTest(test), result);
     }
 
     public void startTest(Test test) {
-        remoteSender.beforeTest(new MyTest(test));
+        listener.beforeTest(new MyTest(test));
     }
 
     private static class MySuite implements TestSuite, Serializable

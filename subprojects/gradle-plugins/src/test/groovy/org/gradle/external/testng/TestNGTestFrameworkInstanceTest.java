@@ -16,13 +16,10 @@
 package org.gradle.external.testng;
 
 import org.gradle.api.JavaVersion;
-import org.gradle.api.file.FileVisitor;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.listener.ListenerBroadcast;
 import org.jmock.Expectations;
 import org.junit.Before;
 
@@ -39,7 +36,6 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
     private TestNGTestFramework testNgTestFrameworkMock;
     private TestNGTestFrameworkInstance testNGTestFrameworkInstance;
     private TestNGOptions testngOptionsMock;
-    private ListenerBroadcast<TestListener> listenerBroadcastMock;
 
     @Before
     public void setUp() throws Exception {
@@ -47,7 +43,6 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
 
         testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
-        listenerBroadcastMock = context.mock(ListenerBroadcast.class);
 
         testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock, testNgTestFrameworkMock);
     }
@@ -60,11 +55,8 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         context.checking(new Expectations() {{
             one(projectMock).getProjectDir(); will(returnValue(new File("projectDir")));
             one(projectMock).property("sourceCompatibility"); will(returnValue(sourceCompatibility));
-            one(testngOptionsMock).setAnnotationsOnSourceCompatibility(sourceCompatibility);
             one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
             one(testMock).getClasspath();will(returnValue(classpathMock));
-            one(classpathMock).getAsFileTree();will(returnValue(classpathAsFileTreeMock));
-            one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
 
         testNGTestFrameworkInstance.initialize();
@@ -77,18 +69,13 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         setMocks();
 
         context.checking(new Expectations() {{
-            one(testMock).getTestListenerBroadcaster(); will(returnValue(listenerBroadcastMock));
             one(testMock).getTestSrcDirs();  will(returnValue(testSrcDirs));
             one(testngOptionsMock).setTestResources(testSrcDirs);
-            one(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
-            one(testMock).getClasspath(); will(returnValue(classpathMock));
-            one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
             one(testMock).getTestReportDir(); will(returnValue(testReportDir));
-            one(projectMock).getAnt(); will(returnValue(antBuilderMock));
         }});
 
         TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create();
-        assertThat(processor, instanceOf(AntTestNGExecute.class));
+        assertThat(processor, instanceOf(TestNGTestClassProcessor.class));
     }
 
     private void setMocks() {

@@ -16,10 +16,10 @@
 package org.gradle.external.junit;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.JunitForkOptions;
-import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
-import org.gradle.api.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
@@ -27,7 +27,7 @@ import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 
 import java.io.File;
-import java.util.ArrayList;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -55,13 +55,9 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public TestClassProcessorFactory getProcessorFactory() {
-        return new TestClassProcessorFactory() {
-            public TestClassProcessor create() {
-                return new AntJUnitExecute(testTask.getClassPathRegistry(), testTask.getTestClassesDir(),
-                        new ArrayList<File>(testTask.getClasspath().getFiles()), testTask.getTestResultsDir(), options,
-                        testTask.getProject().getAnt(), testTask.getTestListenerBroadcaster());
-            }
-        };
+        final File testClassesDir = testTask.getTestClassesDir();
+        final File testResultsDir = testTask.getTestResultsDir();
+        return new TestClassProcessorFactoryImpl(testClassesDir, testResultsDir);
     }
 
     public void report() {
@@ -122,5 +118,19 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
         // TODO one of: -Xbootclasspath or -Xbootclasspath/a or -Xbootclasspath/p
         // TODO -Xbootclasspath/a seems the correct one - to discuss or improve and make it
         // TODO possible to specify which one to use. -> will break ant task compatibility in options.
+    }
+
+    private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {
+        private final File testClassesDir;
+        private final File testResultsDir;
+
+        public TestClassProcessorFactoryImpl(File testClassesDir, File testResultsDir) {
+            this.testClassesDir = testClassesDir;
+            this.testResultsDir = testResultsDir;
+        }
+
+        public TestClassProcessor create() {
+            return new AntJUnitTestClassProcessor(testResultsDir);
+        }
     }
 }

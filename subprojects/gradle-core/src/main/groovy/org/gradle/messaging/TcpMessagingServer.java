@@ -24,12 +24,12 @@ import java.net.URI;
  */
 public class TcpMessagingServer implements MessagingServer {
     private final TcpIncomingConnector incomingConnector;
-    private final DefaultConnector connector;
+    private final DefaultMultiChannelConnector connector;
     private final DefaultMessagingServer server;
 
     public TcpMessagingServer(ClassLoader messageClassLoader) {
         incomingConnector = new TcpIncomingConnector(messageClassLoader);
-        connector = new DefaultConnector(new NoOpOutgoingConnector(), incomingConnector);
+        connector = new DefaultMultiChannelConnector(new NoOpOutgoingConnector(), incomingConnector);
         server = new DefaultMessagingServer(connector, messageClassLoader);
     }
 
@@ -45,7 +45,7 @@ public class TcpMessagingServer implements MessagingServer {
     }
 
     private static class NoOpOutgoingConnector implements OutgoingConnector {
-        public Connection<Message> create(URI destinationUri) {
+        public Connection<Message> connect(URI destinationUri) {
             throw new UnsupportedOperationException();
         }
     }

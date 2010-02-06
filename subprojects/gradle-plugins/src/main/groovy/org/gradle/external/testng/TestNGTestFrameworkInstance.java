@@ -17,14 +17,16 @@ package org.gradle.external.testng;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 
+import java.io.File;
+import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
@@ -48,14 +50,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public TestClassProcessorFactory getProcessorFactory() {
-        return new TestClassProcessorFactory() {
-            public TestClassProcessor create() {
-                options.setTestResources(testTask.getTestSrcDirs());
-                return new AntTestNGExecute(testTask.getTestClassesDir(), testTask.getClasspath(),
-                        testTask.getTestResultsDir(), testTask.getTestReportDir(), options,
-                        testTask.getProject().getAnt(), testTask.getTestListenerBroadcaster());
-            }
-        };
+        options.setTestResources(testTask.getTestSrcDirs());
+        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir());
     }
 
     public void report() {
@@ -88,6 +84,18 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
         final Map<String, String> environment = options.getEnvironment();
         if (environment != null && !environment.isEmpty()) {
             javaForkOptions.setEnvironment(environment);
+        }
+    }
+
+    private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {
+        private final File testReportDir;
+
+        public TestClassProcessorFactoryImpl(File testReportDir) {
+            this.testReportDir = testReportDir;
+        }
+
+        public TestClassProcessor create() {
+            return new TestNGTestClassProcessor(testReportDir);
         }
     }
 }

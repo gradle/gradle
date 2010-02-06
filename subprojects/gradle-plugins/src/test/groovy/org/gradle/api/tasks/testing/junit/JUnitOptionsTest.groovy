@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing.junit
 
 import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 import org.junit.Before
 import org.junit.Test
 import org.gradle.api.tasks.testing.FormatterOptions
@@ -58,7 +59,13 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
         assertEquals([:], junitOptions.environment)
     }
 
-    @Test public void testOptionMapForFromatterAndForkOptions() {
+    @Test public void testJavaForkOptions() {
+        junitOptions.systemProperties.prop = 'value'
+        def forkOptions = junitOptions.createForkOptions()
+        assertThat(forkOptions.systemProperties, equalTo(junitOptions.systemProperties))
+    }
+
+    @Test public void testOptionMapForFormatterAndForkOptions() {
         Map optionMap = junitOptions.optionMap()
         TEST_FORMATTER_OPTION_MAP.keySet().each { assertFalse(optionMap.containsKey(it)) }
         assertEquals(TEST_FORK_OPTION_MAP, optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()))

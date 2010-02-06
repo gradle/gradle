@@ -15,16 +15,17 @@
  */
 package org.gradle.messaging;
 
-import org.gradle.messaging.dispatch.Addressable;
-import org.gradle.messaging.dispatch.AsyncStoppable;
-import org.gradle.messaging.dispatch.Dispatch;
-import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.net.URI;
+import java.util.HashMap;
+import java.util.Map;
 
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -37,16 +38,15 @@ public class DefaultObjectConnectionTest {
     private DefaultObjectConnection receiver;
     private final Addressable messageConnection = context.mock(Addressable.class);
     private final AsyncStoppable stopControl = context.mock(AsyncStoppable.class);
+    private final TestConnection connection = new TestConnection();
 
     @Before
     public void setUp() {
-        IncomingMethodInvocationHandler senderIncoming = new IncomingMethodInvocationHandler(getClass().getClassLoader());
+        IncomingMethodInvocationHandler senderIncoming = new IncomingMethodInvocationHandler(getClass().getClassLoader(), connection.getSender());
         IncomingMethodInvocationHandler receiverIncoming = new IncomingMethodInvocationHandler(
-                getClass().getClassLoader());
-        OutgoingMethodInvocationHandler senderOutgoing = new OutgoingMethodInvocationHandler(
-                receiverIncoming.getIncomingDispatch());
-        OutgoingMethodInvocationHandler receiverOutgoing = new OutgoingMethodInvocationHandler(
-                senderIncoming.getIncomingDispatch());
+                getClass().getClassLoader(), connection.getReceiver());
+        OutgoingMethodInvocationHandler senderOutgoing = new OutgoingMethodInvocationHandler(connection.getSender());
+        OutgoingMethodInvocationHandler receiverOutgoing = new OutgoingMethodInvocationHandler(connection.getReceiver());
         sender = new DefaultObjectConnection(messageConnection, stopControl, senderOutgoing, senderIncoming);
         receiver = new DefaultObjectConnection(messageConnection, stopControl, receiverOutgoing, receiverIncoming);
     }
@@ -117,17 +117,6 @@ public class DefaultObjectConnectionTest {
     }
 
     @Test
-    public void handlesMethodInvocationOnUnknownType() {
-        TestRemote remote = sender.addOutgoing(TestRemote3.class);
-        try {
-            remote.doStuff("handler");
-            fail();
-        } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo("Received method invocation for unknown type '" + TestRemote.class.getName() + "'."));
-        }
-    }
-
-    @Test
     public void cannotRegisterMultipleHandlerObjectsWithSameType() {
         TestRemote handler = context.mock(TestRemote.class);
         receiver.addIncoming(TestRemote.class, handler);
@@ -166,7 +155,67 @@ public class DefaultObjectConnectionTest {
 
         receiver.stop();
     }
-    
+
+    private class TestConnection {
+        Map<Object, Dispatch<Message>> channels = new HashMap<Object, Dispatch<Message>>();
+
+        MultiChannelConnection<Message> getSender() {
+            return new MultiChannelConnection<Message>() {
+                public Dispatch<Message> addOutgoingChannel(Object channel) {
+                    return channels.get(channel);
+                }
+
+                public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
+                    throw new UnsupportedOperationException();
+                }
+
+                public void requestStop() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public void stop() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public URI getLocalAddress() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public URI getRemoteAddress() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+
+        MultiChannelConnection<Message> getReceiver() {
+            return new MultiChannelConnection<Message>() {
+                public Dispatch<Message> addOutgoingChannel(Object channel) {
+                    throw new UnsupportedOperationException();
+                }
+
+                public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
+                    channels.put(channel, dispatch);
+                }
+
+                public void requestStop() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public void stop() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public URI getLocalAddress() {
+                    throw new UnsupportedOperationException();
+                }
+
+                public URI getRemoteAddress() {
+                    throw new UnsupportedOperationException();
+                }
+            };
+        }
+    }
+
     public interface TestRemote {
         void doStuff(String param);
     }

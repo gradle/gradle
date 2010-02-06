@@ -37,7 +37,7 @@ class AbstractBatchTestClassProcessorTest {
         context.checking {
             one(executeAction).run()
             will {
-                assertThat(processor.getTestClassFileNames(), equalTo(['Test1.class', 'a/Test2.class'] as Set))
+                assertThat(processor.getTestClassFileNames(), equalTo(['Test1.class', 'a' + File.separator + 'Test2.class'] as Set))
             }
         }
 

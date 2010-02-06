@@ -15,18 +15,22 @@
  */
 package org.gradle.messaging.dispatch;
 
-/**
- * Represents the outgoing half of a connection.
- */
-public interface OutgoingConnection<T> extends Dispatch<T>, Addressable, AsyncStoppable {
-    /**
-     * Commences graceful stop of this connection. Stops accepting any more incoming messages.
-     */
-    void requestStop();
+import org.slf4j.Logger;
 
-    /**
-     * Performs a graceful stop of this connection. Stops dispatching incoming messages, and blocks until all dispatched
-     * incoming messages have been handled, and all outgoing messages have been delivered.
-     */
-    void stop();
+public class DiscardOnFailureDispatch<T> implements Dispatch<T> {
+    private final Dispatch<? super T> dispatch;
+    private final Logger logger;
+
+    public DiscardOnFailureDispatch(Dispatch<? super T> dispatch, Logger logger) {
+        this.dispatch = dispatch;
+        this.logger = logger;
+    }
+
+    public void dispatch(T message) {
+        try {
+            dispatch.dispatch(message);
+        } catch (Throwable e) {
+            logger.error(String.format("Could not dispatch message %s to %s. Discarding message.", message, dispatch), e);
+        }
+    }
 }

@@ -122,7 +122,14 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void handlesWorkerProcessWhichNeverConnects() throws Throwable {
-        execute(worker(new NoConnectRemoteProcess()));
+        execute(worker(new NoConnectRemoteProcess()).onServer(new Action<ObjectConnection>() {
+            public void execute(ObjectConnection objectConnection) {
+                TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class);
+                listener.send("one", 1);
+                listener.send("two", 1);
+                listener.send("three", 1);
+            }
+        }));
     }
 
     @Test
@@ -169,6 +176,8 @@ public class WorkerProcessIntegrationTest {
             WorkerProcessBuilder builder = workerFactory.newProcess();
             builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
             builder.sharedPackages("org.apache.tools.ant");
+            builder.getJavaCommand().systemProperty("test.system.property", "value");
+            builder.getJavaCommand().environment("TEST_ENV_VAR", "value");
             builder.worker(action);
 
             if (mainClass != null) {
@@ -229,6 +238,10 @@ public class WorkerProcessIntegrationTest {
 
     public static class RemoteProcess implements Action<WorkerProcessContext>, Serializable {
         public void execute(WorkerProcessContext workerProcessContext) {
+            // Check environment
+            assertThat(System.getProperty("test.system.property"), equalTo("value"));
+            assertThat(System.getenv().get("TEST_ENV_VAR"), equalTo("value"));
+
             // Check ClassLoaders
             ClassLoader antClassLoader = Project.class.getClassLoader();
             ClassLoader thisClassLoader = getClass().getClassLoader();
@@ -240,7 +253,8 @@ public class WorkerProcessIntegrationTest {
             assertThat(thisClassLoader.getParent().getParent(), sameInstance(antClassLoader));
 
             // Send some messages
-            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(
+                    TestListenerInterface.class);
             sender.send("message 1", 1);
             sender.send("message 2", 2);
         }

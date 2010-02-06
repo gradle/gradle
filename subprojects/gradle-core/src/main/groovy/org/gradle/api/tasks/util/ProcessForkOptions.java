@@ -86,14 +86,24 @@ public interface ProcessForkOptions {
      * Adds some environment variables to the environment for this process.
      *
      * @param environmentVariables The environment variables. Must not be null.
+     * @return this
      */
-    void environment(Map<String, ?> environmentVariables);
+    ProcessForkOptions environment(Map<String, ?> environmentVariables);
 
     /**
      * Adds an environment variable to the environment for this process.
      *
      * @param name The name of the variable.
      * @param value The value for the variable. Must not be null.
+     * @return this
      */
-    void environment(String name, Object value);
+    ProcessForkOptions environment(String name, Object value);
+
+    /**
+     * Copies these options to the given target options.
+     *
+     * @param options The target options
+     * @return this
+     */
+    ProcessForkOptions copyTo(ProcessForkOptions options);
 }

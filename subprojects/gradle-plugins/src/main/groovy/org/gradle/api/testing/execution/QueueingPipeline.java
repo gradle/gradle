@@ -16,6 +16,7 @@
 package org.gradle.api.testing.execution;
 
 import org.gradle.api.tasks.testing.NativeTest;
+import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.execution.control.refork.DefaultReforkControl;
 import org.gradle.api.testing.execution.control.refork.ReforkControl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
@@ -66,6 +67,9 @@ public class QueueingPipeline implements Pipeline {
 
     public PipelineConfig getConfig() {
         return config;
+    }
+
+    public void startProcessing(TestListener listener) {
     }
 
     public void endProcessing() {

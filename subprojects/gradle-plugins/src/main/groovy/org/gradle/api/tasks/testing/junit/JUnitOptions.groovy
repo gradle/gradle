@@ -21,6 +21,8 @@ import org.gradle.api.tasks.testing.JunitForkOptions
 import org.gradle.api.tasks.testing.AbstractTestFramework
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.external.junit.JUnitTestFramework
+import org.gradle.api.tasks.util.JavaForkOptions
+import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions
 
 /**
  * @author Hans Dockter
@@ -65,4 +67,9 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
         forkOptions.define(forkArgs)
         this
     }
+
+    JavaForkOptions createForkOptions() {
+        return new DefaultJavaForkOptions(null).systemProperties(systemProperties)
+    }
 }
+

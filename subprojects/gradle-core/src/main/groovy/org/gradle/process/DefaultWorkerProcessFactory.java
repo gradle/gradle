@@ -28,6 +28,7 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -61,8 +62,13 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             
             ObjectConnection connection = server.createUnicastConnection();
 
-            List<URL> implementationClassPath = Arrays.asList(
-                    ((URLClassLoader) getWorker().getClass().getClassLoader()).getURLs());
+            List<URL> implementationClassPath = new ArrayList<URL>();
+            for ( ClassLoader cl = getWorker().getClass().getClassLoader();
+                    cl != ClassLoader.getSystemClassLoader().getParent(); cl = cl.getParent()) {
+                if (cl instanceof URLClassLoader) {
+                    implementationClassPath.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
+                }
+            }
 
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             try {
@@ -77,6 +83,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
                 throw new UncheckedIOException(e);
             }
 
+            getJavaCommand().jvmArgs("-ea");
             getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
             ExecHandle execHandle = getJavaCommand().build();
 

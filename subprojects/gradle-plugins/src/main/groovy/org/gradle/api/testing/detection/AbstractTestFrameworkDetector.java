@@ -23,6 +23,7 @@ import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -149,7 +150,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      */
     protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
         if (isTest && !classVisitor.isAbstract() && !superClass) {
-            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(classVisitor.getClassName()));
+            String className = Type.getObjectType(classVisitor.getClassName()).getClassName();
+            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
         }
     }
 

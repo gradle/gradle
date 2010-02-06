@@ -20,11 +20,13 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
+import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
+import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.util.GFileUtils;
@@ -34,6 +36,8 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -104,24 +108,26 @@ public class AntTestTest extends AbstractConventionTaskTest {
 
     @org.junit.Test
     public void testExecute() {
-        setUpMocks();
+        configureTask();
+        expectTestsExecuted();
 
         test.executeTests();
     }
 
     @org.junit.Test
     public void testExecuteWithMaxClassesPerForkLimit() {
-        test.setForkEvery(12L);
+        configureTask();
 
-        setUpMocks(instanceOf(RestartEveryNTestClassProcessor.class));
+        test.setForkEvery(12L);
+        expectTestsExecuted(instanceOf(RestartEveryNTestClassProcessor.class));
 
         test.executeTests();
     }
 
     @org.junit.Test
     public void testExecuteWithTestFailuresAndStopAtFailures() {
-        setUpMocks();
-        getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
+        configureTask();
+        expectTestsFail();
         try {
             test.executeTests();
             fail();
@@ -131,9 +137,9 @@ public class AntTestTest extends AbstractConventionTaskTest {
     }
 
     @org.junit.Test public void testExecuteWithTestFailuresAndContinueWithFailures() {
-        setUpMocks();
+        configureTask();
         test.setIgnoreFailures(true);
-        getProject().getAnt().setProperty(AntTest.FAILURES_OR_ERRORS_PROPERTY, "true");
+        expectTestsFail();
         test.executeTests();
     }
 
@@ -175,18 +181,76 @@ public class AntTestTest extends AbstractConventionTaskTest {
         assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
     }
 
-    private void setUpMocks() {
-        final TestClassProcessor processor = context.mock(TestClassProcessor.class);
-
-        context.checking(new Expectations() {{
-            one(testProcessorFactoryMock).create();
-            will(returnValue(processor));
-        }});
-
-        setUpMocks(sameInstance(processor));
+    private void expectTestsExecuted() {
+        expectOptionsBuilt();
+        expectTestsExecuted(forkingProcessor());
     }
 
-    private void setUpMocks(final Matcher<TestClassProcessor> testClassProcessorMatcher) {
+    private void expectOptionsBuilt() {
+        context.checking(new Expectations() {{
+            AbstractTestFrameworkOptions testOptions = context.mock(AbstractTestFrameworkOptions.class);
+            allowing(testFrameworkInstanceMock).getOptions();
+            will(returnValue(testOptions));
+            one(testOptions).createForkOptions();
+            will(returnValue(context.mock(JavaForkOptions.class)));
+        }});
+    }
+
+    private void expectTestsExecuted(final Matcher<TestClassProcessor> testClassProcessorMatcher) {
+        context.checking(new Expectations() {{
+            allowing(classpathMock).iterator();
+            will(returnIterator(new File("classpath.jar")));
+
+            one(testFrameworkInstanceMock).getProcessorFactory();
+            will(returnValue(testProcessorFactoryMock));
+
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher));
+            will(returnValue(testClassScannerMock));
+
+            one(testClassScannerMock).run();
+            
+            one(testFrameworkInstanceMock).report();
+        }});
+    }
+
+    private void expectTestsFail() {
+        expectOptionsBuilt();
+        
+        context.checking(new Expectations() {{
+            allowing(classpathMock).iterator();
+            will(returnIterator(new File("classpath.jar")));
+
+            one(testFrameworkInstanceMock).getProcessorFactory();
+            will(returnValue(testProcessorFactoryMock));
+
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)));
+            will(returnValue(testClassScannerMock));
+
+            final TestResult result = context.mock(TestResult.class);
+            allowing(result).getResultType();
+            will(returnValue(TestResult.ResultType.FAILURE));
+
+            final Test test = context.mock(Test.class);
+            allowing(test).getName();
+            will(returnValue("test"));
+
+            one(testClassScannerMock).run();
+            will(new Action() {
+                public void describeTo(Description description) {
+                    description.appendText("fail tests");
+                }
+
+                public Object invoke(Invocation invocation) throws Throwable {
+                    AntTestTest.this.test.getTestListenerBroadcaster().getSource().afterTest(test, result);
+                    return null;
+                }
+            });
+
+            one(testFrameworkInstanceMock).report();
+        }});
+    }
+
+    private void configureTask() {
         context.checking(new Expectations(){{
             one(testFrameworkMock).getInstance(test);
             will(returnValue(testFrameworkInstanceMock));
@@ -202,17 +266,22 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.setTestReportDir(reportDir);
         test.setClasspath(classpathMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
+    }
 
-        context.checking(new Expectations() {{
-            one(testFrameworkInstanceMock).getProcessorFactory();
-            will(returnValue(testProcessorFactoryMock));
+    private Matcher<TestClassProcessor> forkingProcessor() {
+        return new BaseMatcher<TestClassProcessor>() {
+            public boolean matches(Object o) {
+                if (!(o instanceof ForkingTestClassProcessor)) {
+                    return false;
+                }
+                ForkingTestClassProcessor processor = (ForkingTestClassProcessor) o;
+                return processor.getProcessorFactory() == testProcessorFactoryMock;
+            }
 
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(
-                    testClassProcessorMatcher));
-            will(returnValue(testClassScannerMock));
-            one(testClassScannerMock).run();
-            one(testFrameworkInstanceMock).report();
-        }});
+            public void describeTo(Description description) {
+                description.appendText("a forking test processor that uses ").appendValue(testProcessorFactoryMock);
+            }
+        };
     }
 
     private Matcher<TestClassProcessor> instanceOf(final Class<? extends TestClassProcessor> type) {

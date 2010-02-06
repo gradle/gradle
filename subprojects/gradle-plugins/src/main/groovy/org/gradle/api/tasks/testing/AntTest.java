@@ -17,14 +17,25 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.testing.TestSummaryListener;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
+import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
+import org.gradle.messaging.TcpMessagingServer;
+import org.gradle.process.DefaultWorkerProcessFactory;
+import org.gradle.process.WorkerProcessFactory;
 import org.gradle.util.GUtil;
+import org.slf4j.LoggerFactory;
+
+import java.io.File;
+import java.util.List;
 
 /**
  * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
@@ -43,8 +54,20 @@ public class AntTest extends AbstractTestTask {
     }
 
     public void executeTests() {
-        final TestFrameworkInstance testFrameworkInstance = getTestFramework();
-        TestClassProcessorFactory processorFactory = testFrameworkInstance.getProcessorFactory();
+        ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
+        final List<File> classPath = GUtil.addLists(getClasspath(), classPathRegistry.getClassPathFiles("ANT_JUNIT"));
+
+        TcpMessagingServer server = new TcpMessagingServer(TestClassProcessor.class.getClassLoader());
+        final WorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry,
+                getServices().get(FileResolver.class));
+
+        TestFrameworkInstance testFrameworkInstance = getTestFramework();
+        final TestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
+        TestClassProcessorFactory processorFactory = new TestClassProcessorFactory() {
+            public TestClassProcessor create() {
+                return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, getOptions().createForkOptions(), classPath);
+            }
+        };
 
         TestClassProcessor processor;
         if (getForkEvery() != null) {
@@ -52,13 +75,19 @@ public class AntTest extends AbstractTestTask {
         } else {
             processor = processorFactory.create();
         }
-        TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
 
+        TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(AntTest.class));
+        addTestListener(listener);
+
+        processor.startProcessing(getTestListenerBroadcaster().getSource());
+        TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
         testClassScanner.run();
+
+        server.stop();
+
         testFrameworkInstance.report();
 
-        if (!isIgnoreFailures() && GUtil.isTrue(getProject().getAnt().getProject().getProperty(
-                FAILURES_OR_ERRORS_PROPERTY))) {
+        if (!isIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
     }

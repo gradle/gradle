@@ -17,11 +17,8 @@ package org.gradle.messaging.dispatch;
 
 import java.net.URI;
 
-/**
- * A factory for bi-directional connections.
- */
-public interface Connector {
-    OutgoingConnection<Message> accept(Dispatch<Message> incomingDispatch);
+public interface MultiChannelConnector {
+    MultiChannelConnection<Message> listen();
 
-    OutgoingConnection<Message> connect(URI destinationAddress, Dispatch<Message> incomingDispatch);
+    MultiChannelConnection<Message> connect(URI destinationAddress);
 }

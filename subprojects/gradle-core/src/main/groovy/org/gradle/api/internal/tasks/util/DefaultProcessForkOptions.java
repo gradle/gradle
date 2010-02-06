@@ -72,17 +72,20 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         environment.putAll(environmentVariables);
     }
 
-    public void environment(String name, Object value) {
+    public ProcessForkOptions environment(String name, Object value) {
         environment.put(name, value);
+        return this;
     }
 
-    public void environment(Map<String, ?> environmentVariables) {
+    public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
         environment.putAll(environmentVariables);
+        return this;
     }
 
-    public void copyTo(ProcessForkOptions target) {
+    public ProcessForkOptions copyTo(ProcessForkOptions target) {
         target.setExecutable(executable);
         target.setWorkingDir(workingDir);
         target.setEnvironment(environment);
+        return this;
     }
 }

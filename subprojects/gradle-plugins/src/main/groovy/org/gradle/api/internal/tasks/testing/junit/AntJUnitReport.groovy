@@ -13,27 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.listener.remote;
+package org.gradle.api.internal.tasks.testing.junit
+/**
+ * @author Tom Eyckmans
+ */
 
-import org.gradle.messaging.TcpMessagingClient;
+class AntJUnitReport {
 
-import java.io.Closeable;
-import java.net.URI;
-
-public class RemoteSender<T> implements Closeable {
-    private final T source;
-    private final TcpMessagingClient client;
-
-    public RemoteSender(Class<T> type, URI serverAddress) {
-        client = new TcpMessagingClient(type.getClassLoader(), serverAddress);
-        source = client.getConnection().addOutgoing(type);
-    }
-
-    public T getSource() {
-        return source;
-    }
-
-    public void close() {
-        client.stop();
+    void execute(File testResultsDir, File testReportDir, AntBuilder ant) {
+        ant.junitreport(todir: testResultsDir.absolutePath) {
+            fileset(dir: testResultsDir.absolutePath, includes: 'TEST-*.xml')
+            report(todir: testReportDir.absolutePath)
+        }
     }
 }

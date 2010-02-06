@@ -60,12 +60,14 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
         javaOptions.setJvmArgs(arguments);
     }
 
-    public void jvmArgs(Iterable<?> arguments) {
+    public JavaExecHandleBuilder jvmArgs(Iterable<?> arguments) {
         javaOptions.jvmArgs(arguments);
+        return this;
     }
 
-    public void jvmArgs(Object... arguments) {
+    public JavaExecHandleBuilder jvmArgs(Object... arguments) {
         javaOptions.jvmArgs(arguments);
+        return this;
     }
 
     public Map<String, String> getSystemProperties() {
@@ -76,12 +78,14 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
         javaOptions.setSystemProperties(properties);
     }
 
-    public void systemProperties(Map<String, ?> properties) {
+    public JavaExecHandleBuilder systemProperties(Map<String, ?> properties) {
         javaOptions.systemProperties(properties);
+        return this;
     }
 
-    public void systemProperty(String name, Object value) {
+    public JavaExecHandleBuilder systemProperty(String name, Object value) {
         javaOptions.systemProperty(name, value);
+        return this;
     }
 
     public String getMaxHeapSize() {
@@ -145,6 +149,10 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
 
     @Override
     public ExecHandleBuilder arguments(String... arguments) {
+        throw new UnsupportedOperationException();
+    }
+
+    public JavaForkOptions copyTo(JavaForkOptions options) {
         throw new UnsupportedOperationException();
     }
 

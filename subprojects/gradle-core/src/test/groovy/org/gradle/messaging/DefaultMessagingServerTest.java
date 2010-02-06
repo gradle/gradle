@@ -15,23 +15,22 @@
  */
 package org.gradle.messaging;
 
-import static org.junit.Assert.*;
-import static org.hamcrest.Matchers.*;
-
-import org.gradle.messaging.dispatch.Connector;
-import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.Message;
-import org.gradle.messaging.dispatch.OutgoingConnection;
+import org.gradle.messaging.dispatch.MultiChannelConnection;
+import org.gradle.messaging.dispatch.MultiChannelConnector;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 @RunWith(JMock.class)
 public class DefaultMessagingServerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Connector connector = context.mock(Connector.class);
+    private final MultiChannelConnector connector = context.mock(MultiChannelConnector.class);
     private int counter;
     private final DefaultMessagingServer server = new DefaultMessagingServer(connector, getClass().getClassLoader());
 
@@ -45,8 +44,8 @@ public class DefaultMessagingServerTest {
 
     @Test
     public void stopsAllConnectionsOnStop() {
-        final OutgoingConnection<Message> connection1 = expectMessageConnectionCreated();
-        final OutgoingConnection<Message> connection2 = expectMessageConnectionCreated();
+        final MultiChannelConnection<Message> connection1 = expectMessageConnectionCreated();
+        final MultiChannelConnection<Message> connection2 = expectMessageConnectionCreated();
 
         server.createUnicastConnection();
         server.createUnicastConnection();
@@ -63,7 +62,7 @@ public class DefaultMessagingServerTest {
 
     @Test
     public void discardsConnectionWhenItIsStopped() {
-        final OutgoingConnection<Message> connection1 = expectMessageConnectionCreated();
+        final MultiChannelConnection<Message> connection1 = expectMessageConnectionCreated();
 
         ObjectConnection objectConnection = server.createUnicastConnection();
 
@@ -75,11 +74,11 @@ public class DefaultMessagingServerTest {
         server.stop();
     }
 
-    private OutgoingConnection<Message> expectMessageConnectionCreated() {
-        final OutgoingConnection<Message> messageConnection = context.mock(OutgoingConnection.class, String.valueOf(
+    private MultiChannelConnection<Message> expectMessageConnectionCreated() {
+        final MultiChannelConnection<Message> messageConnection = context.mock(MultiChannelConnection.class, String.valueOf(
                 counter++));
         context.checking(new Expectations() {{
-            one(connector).accept(with(notNullValue(Dispatch.class)));
+            one(connector).listen();
             will(returnValue(messageConnection));
         }});
         return messageConnection;

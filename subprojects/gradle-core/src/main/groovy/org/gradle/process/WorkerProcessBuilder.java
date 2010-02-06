@@ -44,7 +44,7 @@ public abstract class WorkerProcessBuilder {
         javaCommand = new JavaExecHandleBuilder(fileResolver);
     }
 
-    public WorkerProcessBuilder applicationClasspath(Collection<File> files) {
+    public WorkerProcessBuilder applicationClasspath(Iterable<File> files) {
         applicationClasspath.addAll(GFileUtils.toURLs(files));
         return this;
     }

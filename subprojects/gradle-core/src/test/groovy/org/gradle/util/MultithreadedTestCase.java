@@ -24,7 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.*;
-import java.util.concurrent.Executor;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -61,7 +61,7 @@ public class MultithreadedTestCase {
     /**
      * Creates an Executor which the test can control.
      */
-    protected Executor getExecutor() {
+    protected ExecutorService getExecutor() {
         if (executor == null) {
             executor = new ExecutorImpl();
         }
@@ -382,9 +382,61 @@ public class MultithreadedTestCase {
         expectedFailure.set(matcher);
     }
 
-    private class ExecutorImpl implements Executor {
+    private class ExecutorImpl implements ExecutorService {
         public void execute(Runnable command) {
             start(command);
+        }
+
+        public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
+            throw new UnsupportedOperationException();
+        }
+
+        public void shutdown() {
+            throw new UnsupportedOperationException();
+        }
+
+        public List<Runnable> shutdownNow() {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean isShutdown() {
+            throw new UnsupportedOperationException();
+        }
+
+        public boolean isTerminated() {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> Future<T> submit(Callable<T> task) {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> Future<T> submit(Runnable task, T result) {
+            throw new UnsupportedOperationException();
+        }
+
+        public Future<?> submit(Runnable task) {
+            FutureTask<Object> future = new FutureTask<Object>(task, null);
+            execute(future);
+            return future;
+        }
+
+        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks) throws InterruptedException {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> List<Future<T>> invokeAll(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+                throws InterruptedException {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T invokeAny(Collection<? extends Callable<T>> tasks) throws InterruptedException, ExecutionException {
+            throw new UnsupportedOperationException();
+        }
+
+        public <T> T invokeAny(Collection<? extends Callable<T>> tasks, long timeout, TimeUnit unit)
+                throws InterruptedException, ExecutionException, TimeoutException {
+            throw new UnsupportedOperationException();
         }
     }
 

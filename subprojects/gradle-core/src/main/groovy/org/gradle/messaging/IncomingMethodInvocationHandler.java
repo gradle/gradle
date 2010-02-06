@@ -18,33 +18,17 @@ package org.gradle.messaging;
 import org.gradle.messaging.dispatch.*;
 
 import java.util.HashSet;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 public class IncomingMethodInvocationHandler {
-    private final Map<Class<?>, Dispatch<? super MethodInvocation>> incoming
-            = new ConcurrentHashMap<Class<?>, Dispatch<? super MethodInvocation>>();
     private final ClassLoader classLoader;
+    private final MultiChannelConnection<Message> connection;
+    private final Set<Class<?>> classes = new CopyOnWriteArraySet<Class<?>>();
 
-    public IncomingMethodInvocationHandler(ClassLoader classLoader) {
+    public IncomingMethodInvocationHandler(ClassLoader classLoader, MultiChannelConnection<Message> connection) {
         this.classLoader = classLoader;
-    }
-
-    public Dispatch<Message> getIncomingDispatch() {
-        Dispatch<MethodInvocation> invocationDispatch = new Dispatch<MethodInvocation>() {
-            public void dispatch(MethodInvocation methodInvocation) {
-                Dispatch<? super MethodInvocation> dispatchForType = incoming.get(
-                        methodInvocation.getTargetClass());
-                if (dispatchForType == null) {
-                    throw new IllegalStateException(String.format("Received method invocation for unknown type '%s'.",
-                            methodInvocation.getTargetClass().getName()));
-                }
-                dispatchForType.dispatch(methodInvocation);
-            }
-        };
-
-        return new MethodInvocationUnmarshallingDispatch(invocationDispatch, classLoader);
+        this.connection = connection;
     }
 
     public <T> void addIncoming(Class<T> type, T instance) {
@@ -55,10 +39,10 @@ public class IncomingMethodInvocationHandler {
         Set<Class<?>> incomingTypes = new HashSet<Class<?>>();
         addInterfaces(type, incomingTypes);
         for (Class<?> incomingType : incomingTypes) {
-            if (incoming.containsKey(incomingType)) {
+            if (!classes.add(incomingType)) {
                 throw new IllegalArgumentException(String.format("A handler has already been added for type '%s'.", incomingType.getName()));
             }
-            incoming.put(incomingType, dispatch);
+            connection.addIncomingChannel(incomingType.getName(), new MethodInvocationUnmarshallingDispatch(dispatch, classLoader));
         }
     }
 

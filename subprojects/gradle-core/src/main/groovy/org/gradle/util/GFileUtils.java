@@ -118,7 +118,7 @@ public class GFileUtils {
         return paths;
     }
 
-    public static List<URL> toURLs(Collection<File> files) {
+    public static List<URL> toURLs(Iterable<File> files) {
         List<URL> urls = new ArrayList<URL>();
         for (File file : files) {
             try {

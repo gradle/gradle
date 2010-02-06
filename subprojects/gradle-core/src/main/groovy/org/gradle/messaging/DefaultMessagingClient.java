@@ -15,18 +15,18 @@
  */
 package org.gradle.messaging;
 
-import org.gradle.messaging.dispatch.Connector;
 import org.gradle.messaging.dispatch.Message;
-import org.gradle.messaging.dispatch.OutgoingConnection;
+import org.gradle.messaging.dispatch.MultiChannelConnection;
+import org.gradle.messaging.dispatch.MultiChannelConnector;
 
 import java.net.URI;
 
 public class DefaultMessagingClient implements MessagingClient {
     private final ObjectConnection connection;
 
-    public DefaultMessagingClient(Connector connector, ClassLoader classLoader, URI serverAddress) {
-        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader);
-        OutgoingConnection<Message> connection = connector.connect(serverAddress, incoming.getIncomingDispatch());
+    public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader, URI serverAddress) {
+        MultiChannelConnection<Message> connection = connector.connect(serverAddress);
+        IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, connection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
         this.connection = new DefaultObjectConnection(connection, connection, outgoing, incoming);
     }
