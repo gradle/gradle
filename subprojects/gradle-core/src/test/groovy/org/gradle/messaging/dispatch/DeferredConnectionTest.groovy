@@ -169,14 +169,49 @@ public class DeferredConnectionTest extends MultithreadedTestCase {
     }
 
     @Test
-    public void performsEndOfStreamNegotiationInitiatedByConnectionFailure() {
+    public void performsEndOfStreamNegotiationInitiatedByDispatchFailure() {
         connection.connect(target)
         clockTick(1).hasParticipants(2)
+        clockTick(2).hasParticipants(2)
 
         context.checking {
             one(target).dispatch(message)
             will {
                 syncAt(1)
+                throw new RuntimeException()
+            }
+            one(target).receive()
+            will {
+                syncAt(1)
+                syncAt(2)
+                throw new RuntimeException()
+            }
+            one(target).stop()
+        }
+
+        start {
+            assertThat(connection.receive(), equalTo(endOfStream))
+            assertThat(connection.receive(), nullValue())
+        }
+        run {
+            connection.dispatch(message)
+            syncAt(2)
+        }
+
+        waitForAll()
+    }
+
+    @Test
+    public void performsEndOfStreamNegotiationInitiatedByReceiveFailure() {
+        connection.connect(target)
+        clockTick(1).hasParticipants(2)
+        clockTick(2).hasParticipants(2)
+
+        context.checking {
+            one(target).dispatch(message)
+            will {
+                syncAt(1)
+                syncAt(2)
                 throw new RuntimeException()
             }
             one(target).receive()
@@ -189,6 +224,7 @@ public class DeferredConnectionTest extends MultithreadedTestCase {
 
         start {
             assertThat(connection.receive(), equalTo(endOfStream))
+            syncAt(2)
             assertThat(connection.receive(), nullValue())
         }
         run {

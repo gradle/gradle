@@ -177,7 +177,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
             LOGGER.error(String.format("Could not send message using %s. Discarding connection.", dispatch), throwable);
             lock.lock();
             try {
-                switch (receiveState) {
+                switch (dispatchState) {
                     case Connected:
                         setState(receiveState.onDispatchEndOfStream(), State.Stopped);
                         break;
