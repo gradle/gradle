@@ -59,7 +59,7 @@ public class EndOfStreamFilterTest extends MultithreadedTestCase {
         start {
             filter.stop()
         }
-        start {
+        run {
             filter.stop()
         }
     }
