@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.tasks.testing.junit;
 
+import junit.framework.TestCase;
 import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner;
@@ -61,7 +62,7 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
             JUnitTest test = new JUnitTest(testClass.getTestClassName());
 
             JUnitTestRunner testRunner = new JUnitTestRunner(test, false, true, false, false, false,
-                    project.getCoreLoader());
+                    TestCase.class.getClassLoader());
             // Pretend we have been forked - this enables stdout redirection
             forkedField.set(testRunner, true);
 

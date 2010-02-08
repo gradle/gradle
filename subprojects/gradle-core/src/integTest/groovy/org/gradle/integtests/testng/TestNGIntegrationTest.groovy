@@ -24,6 +24,7 @@ import static org.gradle.integtests.testng.TestNGIntegrationProject.*
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
 import org.junit.Ignore
+import org.gradle.api.Project
 
 /**
  * @author Tom Eyckmans
@@ -83,6 +84,33 @@ public class TestNGIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
+
+    @Test
+    public void executesTestsInCorrectEnvironment() {
+        TestFile testDir = dist.testDir;
+        TestFile buildFile = testDir.file('build.gradle');
+        buildFile << '''
+            apply id: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'org.testng:testng:5.8:jdk15' }
+            test { useTestNG() }
+        '''
+        testDir.file("src/test/java/org/gradle/OkTest.java") << """
+            package org.gradle;
+            import static org.testng.Assert.*;
+            public class OkTest {
+                @org.testng.annotations.Test public void ok() throws Exception {
+                    // check working dir
+                    assertEquals("${testDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')}", System.getProperty("user.dir"));
+                    // check Gradle classes not visible
+                    try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                }
+            }
+        """
+        executer.withTasks('build').run();
+
+        testDir.file('build/reports/tests/testng-results.xml').assertIsFile();
+    }
 
     @Test
     public void suiteXmlBuilder() {

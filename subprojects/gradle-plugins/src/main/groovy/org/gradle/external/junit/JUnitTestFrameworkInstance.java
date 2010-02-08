@@ -16,6 +16,7 @@
 package org.gradle.external.junit;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.JunitForkOptions;
@@ -25,6 +26,7 @@ import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
+import org.gradle.process.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
@@ -55,9 +57,17 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public TestClassProcessorFactory getProcessorFactory() {
-        final File testClassesDir = testTask.getTestClassesDir();
         final File testResultsDir = testTask.getTestResultsDir();
-        return new TestClassProcessorFactoryImpl(testClassesDir, testResultsDir);
+        return new TestClassProcessorFactoryImpl(testResultsDir);
+    }
+
+    public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
+        return new Action<WorkerProcessBuilder>() {
+            public void execute(WorkerProcessBuilder workerProcessBuilder) {
+                workerProcessBuilder.sharedPackages("junit.framework");
+                workerProcessBuilder.sharedPackages("org.junit");
+            }
+        };
     }
 
     public void report() {
@@ -121,11 +131,9 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {
-        private final File testClassesDir;
         private final File testResultsDir;
 
-        public TestClassProcessorFactoryImpl(File testClassesDir, File testResultsDir) {
-            this.testClassesDir = testClassesDir;
+        public TestClassProcessorFactoryImpl(File testResultsDir) {
             this.testResultsDir = testResultsDir;
         }
 

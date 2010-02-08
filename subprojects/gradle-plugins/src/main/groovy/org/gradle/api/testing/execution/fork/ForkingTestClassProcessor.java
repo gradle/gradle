@@ -15,6 +15,7 @@
  */
 package org.gradle.api.testing.execution.fork;
 
+import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
@@ -31,15 +32,17 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
+    private final Action<WorkerProcessBuilder> buildConfigAction;
     private TestClassProcessor worker;
     private WorkerProcess workerProcess;
     private TestListener listener;
 
-    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, TestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath) {
+    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, TestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
         this.classPath = classPath;
+        this.buildConfigAction = buildConfigAction;
     }
 
     public TestClassProcessorFactory getProcessorFactory() {
@@ -53,17 +56,15 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     public void processTestClass(TestClassRunInfo testClass) {
         if (worker == null) {
             WorkerProcessBuilder builder = workerFactory.newProcess();
-            // TODO - the test framework should contribute these, really
-            builder.sharedPackages("org.apache.tools.ant");
-            builder.sharedPackages("junit.framework");
-            builder.sharedPackages("org.junit");
-            builder.sharedPackages("org.testng");
             builder.applicationClasspath(classPath);
             builder.worker(new TestWorker(processorFactory));
             options.copyTo(builder.getJavaCommand());
+            buildConfigAction.execute(builder);
+            
             workerProcess = builder.build();
             workerProcess.getConnection().addIncoming(TestListener.class, listener);
             worker = workerProcess.getConnection().addOutgoing(TestClassProcessor.class);
+
             workerProcess.start();
         }
         worker.processTestClass(testClass);

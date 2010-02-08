@@ -42,9 +42,6 @@ public class WorkerMainTest {
         WorkerMain main = new WorkerMain(action, client);
 
         context.checking(new Expectations() {{
-            allowing(client).getConnection();
-            will(returnValue(connection));
-
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
             will(collectTo(collector));
 
@@ -53,6 +50,35 @@ public class WorkerMainTest {
 
         main.run();
 
+        context.checking(new Expectations() {{
+            allowing(client).getConnection();
+            will(returnValue(connection));
+        }});
+
         assertThat(collector.get().getServerConnection(), sameInstance(connection));
+    }
+
+    @Test
+    public void cleansUpWhenActionThrowsException() throws Exception {
+        final Action<WorkerProcessContext> action = context.mock(Action.class);
+        final MessagingClient client = context.mock(MessagingClient.class);
+        final Collector<WorkerProcessContext> collector = collector();
+        final RuntimeException failure = new RuntimeException();
+
+        WorkerMain main = new WorkerMain(action, client);
+
+        context.checking(new Expectations() {{
+            one(action).execute(with(notNullValue(WorkerProcessContext.class)));
+            will(throwException(failure));
+
+            one(client).stop();
+        }});
+
+        try {
+            main.run();
+            fail();
+        } catch (RuntimeException e) {
+            assertThat(e, sameInstance(failure));
+        }
     }
 }

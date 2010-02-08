@@ -24,6 +24,10 @@ import org.slf4j.LoggerFactory;
 
 import java.net.URI;
 
+/**
+ * This is the other half of {@link org.gradle.process.GradleWorkerMain}. It is instantiated using the implementation
+ * ClassLoader.
+ */
 public class WorkerMain implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerMain.class);
     private final Action<WorkerProcessContext> action;

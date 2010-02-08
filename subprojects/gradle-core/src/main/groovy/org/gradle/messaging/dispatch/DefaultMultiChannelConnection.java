@@ -90,7 +90,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
     }
 
     public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
-        incomingDemux.addIncomingChannel(channel, dispatch);
+        incomingDemux.addIncomingChannel(channel, wrapFailures(dispatch));
     }
 
     public Dispatch<Message> addOutgoingChannel(Object channel) {

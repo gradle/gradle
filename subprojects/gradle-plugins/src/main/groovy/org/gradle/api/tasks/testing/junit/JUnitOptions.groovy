@@ -69,7 +69,10 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     }
 
     JavaForkOptions createForkOptions() {
-        return new DefaultJavaForkOptions(null).systemProperties(systemProperties)
+        DefaultJavaForkOptions options = new DefaultJavaForkOptions(null)
+        options.systemProperties(systemProperties)
+        options.workingDir(forkOptions.dir)
+        return options
     }
 }
 

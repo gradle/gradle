@@ -31,11 +31,7 @@ import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.process.DefaultWorkerProcessFactory;
 import org.gradle.process.WorkerProcessFactory;
-import org.gradle.util.GUtil;
 import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.List;
 
 /**
  * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
@@ -55,17 +51,16 @@ public class AntTest extends AbstractTestTask {
 
     public void executeTests() {
         ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
-        final List<File> classPath = GUtil.addLists(getClasspath(), classPathRegistry.getClassPathFiles("ANT_JUNIT"));
 
         TcpMessagingServer server = new TcpMessagingServer(TestClassProcessor.class.getClassLoader());
         final WorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry,
                 getServices().get(FileResolver.class));
 
-        TestFrameworkInstance testFrameworkInstance = getTestFramework();
+        final TestFrameworkInstance testFrameworkInstance = getTestFramework();
         final TestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
         TestClassProcessorFactory processorFactory = new TestClassProcessorFactory() {
             public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, getOptions().createForkOptions(), classPath);
+                return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, getOptions().createForkOptions(), getClasspath(), testFrameworkInstance.getWorkerConfigurationAction());
             }
         };
 

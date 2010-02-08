@@ -18,6 +18,7 @@ package org.gradle.process;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.io.File;
@@ -54,7 +55,12 @@ public abstract class WorkerProcessBuilder {
     }
 
     public WorkerProcessBuilder sharedPackages(String... packages) {
-        this.packages.addAll(Arrays.asList(packages));
+        sharedPackages(Arrays.asList(packages));
+        return this;
+    }
+
+    public WorkerProcessBuilder sharedPackages(Iterable<String> packages) {
+        GUtil.addToCollection(this.packages, packages);
         return this;
     }
 

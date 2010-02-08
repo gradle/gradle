@@ -15,6 +15,7 @@
  */
 package org.gradle.api.testing.execution.fork;
 
+import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
@@ -52,7 +53,8 @@ public class ForkingTestClassProcessorTest {
     private final TestListener testListener = context.mock(TestListener.class);
     private final List<File> appClassPath = asList(new File("classpath.jar"));
     private final JavaForkOptions options = context.mock(JavaForkOptions.class);
-    private final ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerFactory, factory, options, appClassPath);
+    private final Action<WorkerProcessBuilder> action = context.mock(Action.class);
+    private final ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerFactory, factory, options, appClassPath, action);
 
     @Test
     public void onFirstTestCaseStartsWorkerProcess() {
@@ -110,8 +112,9 @@ public class ForkingTestClassProcessorTest {
             one(builder).worker(with(notNullValue(TestWorker.class)));
 
             one(builder).applicationClasspath(appClassPath);
-            atLeast(1).of(builder).sharedPackages(with(notNullValue(String[].class)));
 
+            one(action).execute(builder);
+            
             allowing(builder).getJavaCommand();
             will(returnValue(javaCommandBuilder));
 

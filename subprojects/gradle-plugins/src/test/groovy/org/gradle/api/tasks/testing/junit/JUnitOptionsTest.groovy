@@ -61,8 +61,10 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
 
     @Test public void testJavaForkOptions() {
         junitOptions.systemProperties.prop = 'value'
+        junitOptions.forkOptions.dir = new File('dir').absoluteFile
         def forkOptions = junitOptions.createForkOptions()
         assertThat(forkOptions.systemProperties, equalTo(junitOptions.systemProperties))
+        assertThat(forkOptions.workingDir, equalTo(junitOptions.forkOptions.dir))
     }
 
     @Test public void testOptionMapForFormatterAndForkOptions() {

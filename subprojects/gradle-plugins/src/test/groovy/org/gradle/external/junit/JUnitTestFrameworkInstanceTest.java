@@ -32,7 +32,6 @@ import static org.junit.Assert.*;
  */
 public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanceTest {
 
-    private JUnitTestFramework jUnitTestFrameworkMock;
     private JUnitTestFrameworkInstance jUnitTestFrameworkInstance;
 
     private AntJUnitReport antJUnitReportMock;
@@ -42,7 +41,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     public void setUp() throws Exception {
         super.setUp();
 
-        jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
+        JUnitTestFramework jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
 
@@ -70,7 +69,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         setMocks();
 
         context.checking(new Expectations() {{
-            one(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
         }});
 

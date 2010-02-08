@@ -130,6 +130,34 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
     }
 
     @Test
+    public void discardsMessageWhenHandlerIsBroken() {
+        clockTick(1).hasParticipants(2)
+        Dispatch<Message> handler = context.mock(Dispatch.class)
+        context.checking {
+            one(target).receive()
+            will(returnValue(new ChannelMessage('channel1', message)))
+            one(handler).dispatch(message)
+            will(throwException(new RuntimeException()))
+            one(target).receive()
+            will {
+                syncAt(1)
+                return null
+            }
+            one(target).dispatch(new EndOfStream())
+            one(target).stop()
+        }
+
+        run {
+            connection.addIncomingChannel('channel1', handler)
+            connection.setConnection(target)
+
+            syncAt(1)
+        }
+
+        connection.stop()
+    }
+
+    @Test
     public void queuesOutgoingMessagesUntilConnected() {
         TestMessage message2 = new TestMessage()
 

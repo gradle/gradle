@@ -16,6 +16,7 @@
 package org.gradle.external.testng;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
@@ -24,6 +25,7 @@ import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
+import org.gradle.process.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
@@ -52,6 +54,14 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
     public TestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
         return new TestClassProcessorFactoryImpl(testTask.getTestReportDir());
+    }
+
+    public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
+        return new Action<WorkerProcessBuilder>() {
+            public void execute(WorkerProcessBuilder workerProcessBuilder) {
+                workerProcessBuilder.sharedPackages("org.testng");
+            }
+        };
     }
 
     public void report() {

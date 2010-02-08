@@ -398,7 +398,10 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     }
 
     JavaForkOptions createForkOptions() {
-        return new DefaultJavaForkOptions(null).systemProperties(systemProperties);
+        DefaultJavaForkOptions options = new DefaultJavaForkOptions(null)
+        options.systemProperties(systemProperties)
+        options.workingDir(projectDir)
+        options
     }
 
     public def propertyMissing(String name) {

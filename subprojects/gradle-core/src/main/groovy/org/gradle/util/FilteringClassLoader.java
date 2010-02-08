@@ -47,10 +47,24 @@ public class FilteringClassLoader extends ClassLoader {
 
     @Override
     protected Class<?> loadClass(String name, boolean resolve) throws ClassNotFoundException {
-        Class<?> cl = super.loadClass(name, resolve);
+        Class<?> cl;
+        try {
+            cl = super.loadClass(name, false);
+        } catch (NoClassDefFoundError e) {
+            if (classAllowed(name)) {
+                throw e;
+            }
+            // The class isn't visible
+            throw new ClassNotFoundException(String.format("%s not found.", name));
+        }
+        
         if (!allowed(cl)) {
             throw new ClassNotFoundException(String.format("%s not found.", cl.getName()));
         }
+        if (resolve) {
+            resolveClass(cl);
+        }
+
         return cl;
     }
 
@@ -120,8 +134,12 @@ public class FilteringClassLoader extends ClassLoader {
         if (cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader())) {
             return true;
         }
+        return classAllowed(cl.getName());
+    }
+
+    private boolean classAllowed(String className) {
         for (String packagePrefix : packagePrefixes) {
-            if (cl.getName().startsWith(packagePrefix)) {
+            if (className.startsWith(packagePrefix)) {
                 return true;
             }
         }

@@ -29,6 +29,7 @@ import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
+import org.gradle.process.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -74,6 +75,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
     TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
     TestClassProcessorFactory testProcessorFactoryMock = context.mock(TestClassProcessorFactory.class);
+    org.gradle.api.Action<WorkerProcessBuilder> workerConfigurationActionMock = context.mock(org.gradle.api.Action.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
     private AntTest test;
@@ -193,6 +195,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
             will(returnValue(testOptions));
             one(testOptions).createForkOptions();
             will(returnValue(context.mock(JavaForkOptions.class)));
+            one(testFrameworkInstanceMock).getWorkerConfigurationAction();
+            will(returnValue(workerConfigurationActionMock));
         }});
     }
 
