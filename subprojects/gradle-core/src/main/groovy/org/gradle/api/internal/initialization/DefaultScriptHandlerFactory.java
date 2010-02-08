@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
@@ -50,12 +51,22 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     }
 
     public ScriptHandlerInternal create(ClassLoader parentClassLoader) {
+        return create(parentClassLoader, new BasicDomainObjectContext());
+    }
+
+    public ScriptHandlerInternal create(ClassLoader parentClassLoader, DomainObjectContext context) {
         RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(new DefaultConvention());
         ConfigurationContainer configurationContainer = configurationContainerFactory.createConfigurationContainer(
-                repositoryHandler, dependencyMetaDataProvider);
+                repositoryHandler, dependencyMetaDataProvider, context);
         DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory,
                 projectFinder);
         return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
                 parentClassLoader);
+    }
+
+    private static class BasicDomainObjectContext implements DomainObjectContext {
+        public String absolutePath(String name) {
+            return name;
+        }
     }
 }

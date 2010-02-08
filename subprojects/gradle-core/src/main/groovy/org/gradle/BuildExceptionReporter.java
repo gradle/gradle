@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -141,7 +141,9 @@ public class BuildExceptionReporter extends BuildAdapter {
 
         if (failure instanceof LocationAwareException) {
             LocationAwareException scriptException = (LocationAwareException) failure;
-            details.location.format("%s", scriptException.getLocation());
+            if (scriptException.getLocation() != null) {
+                details.location.format("%s", scriptException.getLocation());
+            }
             details.details.format("%s", scriptException.getOriginalMessage());
             for (Throwable cause : scriptException.getReportableCauses()) {
                 details.details.format("%nCause: %s", getMessage(cause));

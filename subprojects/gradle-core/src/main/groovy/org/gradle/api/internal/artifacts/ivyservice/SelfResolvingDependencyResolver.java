@@ -48,7 +48,13 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
                 Set<SelfResolvingDependency> selfResolvingDependenciesSubSet =
                         Specs.filterIterable(selfResolvingDependencies, dependencySpec);
                 for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependenciesSubSet) {
-                    files.addAll(selfResolvingDependency.resolve(configuration.isTransitive()));
+                    for (File file : selfResolvingDependency.resolve(configuration.isTransitive())) {
+                        if (file == null) {
+                            throw new GradleException(String.format("Resolved file for %s contains a null value.",
+                                    selfResolvingDependencies));
+                        }
+                        files.add(file);
+                    }
                 }
                 files.addAll(resolvedConfiguration.getFiles(dependencySpec));
                 return files;

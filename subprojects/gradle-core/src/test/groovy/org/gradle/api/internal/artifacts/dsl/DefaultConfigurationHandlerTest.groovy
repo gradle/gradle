@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import static org.junit.Assert.*
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.api.internal.DomainObjectContext
 
 /**
  * @author Hans Dockter
@@ -35,9 +36,9 @@ class DefaultConfigurationHandlerTest {
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     private IvyService ivyService = context.mock(IvyService)
-    private ClassGenerator classGenerator = context.mock(ClassGenerator)
+    private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
 
-    private DefaultConfigurationContainer configurationHandler = new DefaultConfigurationContainer(ivyService, new AsmBackedClassGenerator())
+    private DefaultConfigurationContainer configurationHandler = new DefaultConfigurationContainer(ivyService, new AsmBackedClassGenerator(), { name -> name } as DomainObjectContext)
 
     @Test void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {
@@ -51,7 +52,7 @@ class DefaultConfigurationHandlerTest {
         configurationHandler.getByName('unknown')
     }
 
-    @Test void makesExisitingConfigurationAvailableAsProperty() {
+    @Test void makesExistingConfigurationAvailableAsProperty() {
         Configuration configuration = configurationHandler.add('newConf')
         assertThat(configuration, is(not(null)))
         assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))

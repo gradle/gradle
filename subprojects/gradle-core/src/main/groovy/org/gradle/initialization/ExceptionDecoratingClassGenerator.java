@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ import java.util.Map;
 
 /**
  * A {@link ClassGenerator} which mixes {@link org.gradle.api.LocationAwareException} into the supplied exception
- * types.
+ * types. Uses {@link ExceptionHelper} to do the work.
  */
 public class ExceptionDecoratingClassGenerator implements ClassGenerator {
     private static final Map<Class<?>, Class<?>> GENERATED_CLASSES = new HashMap<Class<?>, Class<?>>();

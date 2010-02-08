@@ -49,8 +49,6 @@ import java.util.*;
 
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
-    private static final String CONF_NAME = "confName";
-
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
@@ -63,18 +61,18 @@ public class DefaultConfigurationTest {
     @Before
     public void setUp() {
         configurationContainer = context.mock(ConfigurationsProvider.class);
-        configuration = createNamedConfiguration(CONF_NAME);
+        configuration = createNamedConfiguration("path", "name");
     }
 
     @Test
     public void defaultValues() {
-        DefaultConfiguration configuration = new DefaultConfiguration(CONF_NAME, configurationContainer, ivyServiceStub);
-        assertThat(configuration.getName(), equalTo(CONF_NAME));
+        assertThat(configuration.getName(), equalTo("name"));
         assertThat(configuration.isVisible(), equalTo(true));
         assertThat(configuration.getExtendsFrom().size(), equalTo(0));
         assertThat(configuration.isTransitive(), equalTo(true));
         assertThat(configuration.getDescription(), nullValue());
         assertThat(configuration.getState(), equalTo(Configuration.State.UNRESOLVED));
+        assertThat(configuration.getDisplayName(), equalTo("configuration 'path'"));
     }
 
     @Test
@@ -343,20 +341,24 @@ public class DefaultConfigurationTest {
 
     @Test
     public void uploadTaskName() {
-        assertThat(configuration.getUploadTaskName(), equalTo("uploadConfName"));
+        assertThat(configuration.getUploadTaskName(), equalTo("uploadName"));
     }
 
     @Test
     public void equality() {
-        Configuration differentConf = createNamedConfiguration(CONF_NAME + "delta");
-        assertThat(configuration.equals(differentConf), equalTo(false));
+        Configuration sameConf = createNamedConfiguration("path", "name");
+        Configuration differentPath = createNamedConfiguration("other", "name");
 
-        assertThat(configuration.equals(createNamedConfiguration(CONF_NAME)), equalTo(true));
-        assertThat(configuration.hashCode(), equalTo(createNamedConfiguration(CONF_NAME).hashCode()));
+        assertThat(configuration, strictlyEqual(sameConf));
+        assertThat(configuration, not(equalTo(differentPath)));
     }
 
     private DefaultConfiguration createNamedConfiguration(String confName) {
-        return new DefaultConfiguration(confName, configurationContainer, ivyServiceStub);
+        return new DefaultConfiguration(confName, confName, configurationContainer, ivyServiceStub);
+    }
+    
+    private DefaultConfiguration createNamedConfiguration(String path, String confName) {
+        return new DefaultConfiguration(path, confName, configurationContainer, ivyServiceStub);
     }
 
     @SuppressWarnings("unchecked")
@@ -748,7 +750,7 @@ public class DefaultConfigurationTest {
     }
 
     private void assertThatCopiedConfigurationHasElementsAndName(Configuration copiedConfiguration, Set<Dependency> expectedDependencies) {
-        assertThat(copiedConfiguration.getName(), equalTo("copyOf" + configuration.getName()));
+        assertThat(copiedConfiguration.getName(), equalTo(configuration.getName() + "Copy"));
         assertThat(copiedConfiguration.isVisible(), equalTo(configuration.isVisible()));
         assertThat(copiedConfiguration.isTransitive(), equalTo(configuration.isTransitive()));
         assertThat(copiedConfiguration.getDescription(), equalTo(configuration.getDescription()));

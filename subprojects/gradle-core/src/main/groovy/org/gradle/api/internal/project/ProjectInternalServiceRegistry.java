@@ -104,7 +104,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected ConfigurationContainer createConfigurationContainer() {
         return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
-                get(DependencyMetaDataProvider.class));
+                get(DependencyMetaDataProvider.class), project);
     }
 
     protected ArtifactHandler createArtifactHandler() {
@@ -136,7 +136,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         } else {
             parentClassLoader = project.getGradle().getScriptClassLoader();
         }
-        return factory.create(parentClassLoader);
+        return factory.create(parentClassLoader, project);
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {

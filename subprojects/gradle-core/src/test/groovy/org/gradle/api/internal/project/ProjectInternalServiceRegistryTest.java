@@ -204,7 +204,7 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(repositoryHandler));
 
             one(configurationContainerFactory).createConfigurationContainer(with(sameInstance(repositoryHandler)), with(
-                    notNullValue(DependencyMetaDataProvider.class)));
+                    notNullValue(DependencyMetaDataProvider.class)), with(sameInstance(project)));
             will(returnValue(configurationContainer));
         }});
     }

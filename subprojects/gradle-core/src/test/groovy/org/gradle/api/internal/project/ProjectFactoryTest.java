@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
@@ -84,7 +85,7 @@ public class ProjectFactoryTest {
             allowing(gradle).getStartParameter();
             will(returnValue(startParameterStub));
             allowing(configurationContainerFactory).createConfigurationContainer(with(any(ResolverProvider.class)),
-                    with(any(DependencyMetaDataProvider.class)));
+                    with(any(DependencyMetaDataProvider.class)), with(any(DomainObjectContext.class)));
             allowing(gradle).getProjectRegistry();
             will(returnValue(gradleServices.get(IProjectRegistry.class)));
             allowing(gradle).getScriptClassLoader();

@@ -192,7 +192,7 @@ class HelperUtil {
     }
 
     static org.gradle.api.artifacts.Configuration createConfiguration(String name) {
-        return new DefaultConfiguration(name, null, null)
+        return new DefaultConfiguration(name, name, null, null)
     }
 }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,19 @@
 package org.gradle.execution;
 
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ServiceRegistryFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
+import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
-
-import static org.hamcrest.Matchers.*;
-
-import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -39,13 +36,19 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.Set;
 
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 @RunWith(JMock.class)
 public class BuiltInTasksBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, null);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ProjectInternal project = HelperUtil.createRootProject();
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
+    private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
+    private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, null);
+    private final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
 
     @Before
     public void setUp() {
@@ -59,14 +62,14 @@ public class BuiltInTasksBuildExecuterTest {
 
     @Test
     public void executesTaskReportTask() {
+        expectTaskCreated(TaskReportTask.class);
+
         executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(TaskReportTask.class));
-
-        context.checking(new Expectations() {{
-            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
-        }});
-
         assertThat(executer.getDisplayName(), equalTo("task list"));
+
+        expectTaskExecuted();
+
         executer.execute();
     }
 
@@ -74,14 +77,14 @@ public class BuiltInTasksBuildExecuterTest {
     public void executesPropertyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.PROPERTIES);
 
+        expectTaskCreated(PropertyReportTask.class);
+
         executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(PropertyReportTask.class));
-
-        context.checking(new Expectations() {{
-            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
-        }});
-
         assertThat(executer.getDisplayName(), equalTo("property list"));
+
+        expectTaskExecuted();
+
         executer.execute();
     }
 
@@ -89,23 +92,25 @@ public class BuiltInTasksBuildExecuterTest {
     public void executesDependencyReportTask() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
 
+        expectTaskCreated(DependencyReportTask.class);
+
         executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(DependencyReportTask.class));
-
-        context.checking(new Expectations() {{
-            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
-        }});
-
         assertThat(executer.getDisplayName(), equalTo("dependency list"));
+
+        expectTaskExecuted();
+
         executer.execute();
     }
 
     @Test
     public void executesAgainstDefaultProjectIfPathEmpty() {
         executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+        expectTaskCreated(DependencyReportTask.class);
+
         executer.select(gradle);
-        assertThat(((DependencyReportTask) executer.getTask()).getProjects(),
-                equalTo(WrapUtil.<Project>toSet(gradle.getDefaultProject())));
+
+        assertThat(executer.getTask().getProjects(), equalTo(toSet((Project) gradle.getDefaultProject())));
     }
 
     @Test
@@ -113,33 +118,60 @@ public class BuiltInTasksBuildExecuterTest {
         String somePath = ":SomePath";
         final ProjectInternal rootProject = context.mock(ProjectInternal.class, "rootProject");
         final ProjectInternal someProject = context.mock(ProjectInternal.class, "someProject");
+
         context.checking(new Expectations() {{
             allowing(gradle).getRootProject();
             will(returnValue(rootProject));
             allowing(rootProject).project(":SomePath");
             will(returnValue(someProject));
         }});
+
         BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, somePath);
         executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+
+        expectTaskCreated(DependencyReportTask.class);
         executer.select(gradle);
-        assertThat(((DependencyReportTask) executer.getTask()).getProjects(),
-                equalTo(WrapUtil.<Project>toSet(someProject)));
+
+        assertThat(executer.getTask().getProjects(), equalTo(toSet((Project) someProject)));
     }
 
     @Test
     public void executesAgainstAllProjectWhenWildcardIsUsed() {
         final ProjectInternal rootProject = context.mock(ProjectInternal.class, "rootProject");
-        final Set<Project> allProjects = WrapUtil.toSet(context.mock(Project.class, "someProject"));
+        final Set<Project> allProjects = toSet(context.mock(Project.class, "someProject"));
         context.checking(new Expectations() {{
             allowing(gradle).getRootProject();
             will(returnValue(rootProject));
             allowing(rootProject).getAllprojects();
             will(returnValue(allProjects));
         }});
+
         BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS,
                 BuiltInTasksBuildExecuter.ALL_PROJECTS_WILDCARD);
         executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+
+        expectTaskCreated(DependencyReportTask.class);
+
         executer.select(gradle);
-        assertThat(((DependencyReportTask) executer.getTask()).getProjects(), equalTo(allProjects));
+        assertThat(executer.getTask().getProjects(), equalTo(allProjects));
+    }
+
+    private void expectTaskCreated(final Class<? extends Task> taskType) {
+        context.checking(new Expectations(){{
+            allowing(gradle).getServiceRegistryFactory();
+            will(returnValue(serviceRegistryFactory));
+
+            allowing(serviceRegistryFactory).get(ITaskFactory.class);
+            will(returnValue(taskFactory));
+
+            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "report", Task.TASK_TYPE, taskType));
+            will(returnValue(HelperUtil.createTask(taskType)));
+        }});
+    }
+
+    private void expectTaskExecuted() {
+        context.checking(new Expectations() {{
+            one(taskExecuter).execute(Collections.singleton(executer.getTask()));
+        }});
     }
 }
