@@ -19,10 +19,12 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
+import org.apache.ivy.util.Message;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -43,6 +45,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
     public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator) {
         this.ivyReportTranslator = ivyReportTranslator;
+        Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
     public ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {

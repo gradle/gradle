@@ -18,8 +18,10 @@ package org.gradle.process;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.util.ClasspathUtil;
 import org.gradle.util.exec.ExecHandle;
 
 import java.io.ByteArrayInputStream;
@@ -27,17 +29,16 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
+    private final LogLevel workerLogLevel;
     private final MessagingServer server;
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
 
-    public DefaultWorkerProcessFactory(MessagingServer server, ClassPathRegistry classPathRegistry, FileResolver resolver) {
+    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, FileResolver resolver) {
+        this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
@@ -50,6 +51,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private class DefaultWorkerProcessBuilder extends WorkerProcessBuilder {
         public DefaultWorkerProcessBuilder() {
             super(resolver);
+            setLogLevel(workerLogLevel);
             getJavaCommand().mainClass(GradleWorkerMain.class.getName());
             getJavaCommand().classpath(classPathRegistry.getClassPathFiles("WORKER_PROCESS"));
         }
@@ -62,17 +64,13 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             
             ObjectConnection connection = server.createUnicastConnection();
 
-            List<URL> implementationClassPath = new ArrayList<URL>();
-            for ( ClassLoader cl = getWorker().getClass().getClassLoader();
-                    cl != ClassLoader.getSystemClassLoader().getParent(); cl = cl.getParent()) {
-                if (cl instanceof URLClassLoader) {
-                    implementationClassPath.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
-                }
-            }
+            List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
 
+            // Build configuration for GradleWorkerMain
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             try {
                 ObjectOutputStream objectStream = new ObjectOutputStream(outputStream);
+                objectStream.writeObject(getLogLevel());
                 objectStream.writeObject(getApplicationClasspath());
                 objectStream.writeObject(getSharedPackages());
                 objectStream.writeObject(implementationClassPath);
@@ -83,8 +81,8 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
                 throw new UncheckedIOException(e);
             }
 
-            getJavaCommand().jvmArgs("-ea");
             getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
+            getJavaCommand().jvmArgs("-ea");
             ExecHandle execHandle = getJavaCommand().build();
 
             return new DefaultWorkerProcess(connection, execHandle);

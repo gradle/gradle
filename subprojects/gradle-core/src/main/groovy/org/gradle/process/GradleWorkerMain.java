@@ -16,8 +16,12 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.DefaultLoggingConfigurer;
+import org.gradle.initialization.LoggingConfigurer;
 import org.gradle.util.ClassLoaderObjectInputStream;
 import org.gradle.util.FilteringClassLoader;
+import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.ObservableUrlClassLoader;
 
 import java.io.ObjectInputStream;
@@ -32,23 +36,38 @@ public class GradleWorkerMain {
         //
         // Class loader hierarchy
         //
-        //             system
-        //               |
-        //       +-------+------+
-        //       |              |
-        //  application      shared
-        //  (this class)       |
-        //                  filter
-        //                     |
-        //              implementation
-        //    (WorkerMain + action implementation)
+        //                    bootstrap
+        //                        |
+        //            +-----------+----------+
+        //            |                      |
+        //          system              application
+        //  (this class, logging)            |
+        //            |                   filter
+        //         filter                    |
+        //            |                      |
+        //            +----------------------+
+        //                          |
+        //                   implementation
+        //         (WorkerMain + action implementation)
         //
+
+        LoggingConfigurer configurer = createLoggingConfigurer();
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        FilteringClassLoader filteredSystem = new FilteringClassLoader(getClass().getClassLoader());
+        filteredSystem.allowPackage("org.slf4j");
 
         ObservableUrlClassLoader sharedClassLoader = createSharedClassLoader();
         FilteringClassLoader filteredShared = new FilteringClassLoader(sharedClassLoader);
-        ObservableUrlClassLoader implementationClassLoader = createImplementationClassLoader(filteredShared);
+        ObservableUrlClassLoader implementationClassLoader = createImplementationClassLoader(filteredSystem, filteredShared);
 
         ObjectInputStream instr = new ClassLoaderObjectInputStream(System.in, implementationClassLoader);
+
+        // Configure logging
+        LogLevel logLevel = (LogLevel) instr.readObject();
+        configurer.configure(logLevel);
+
+        // Configure classpaths
         sharedClassLoader.addURLs((Collection<URL>) instr.readObject());
         Collection<String> sharedPackages = (Collection<String>) instr.readObject();
         for (String sharedPackage : sharedPackages) {
@@ -56,23 +75,28 @@ public class GradleWorkerMain {
         }
         implementationClassLoader.addURLs((Iterable<URL>) instr.readObject());
 
+        // Read worker action
         Object action = instr.readObject();
         URI serverAddress = (URI) instr.readObject();
 
-        Class<? extends Runnable> workerClass = implementationClassLoader.loadClass(WorkerMain.class.getName()).asSubclass(
-                Runnable.class);
+        Class<? extends Runnable> workerClass = implementationClassLoader.loadClass(WorkerMain.class.getName())
+                .asSubclass(Runnable.class);
         Constructor<? extends Runnable> constructor = workerClass.getConstructor(implementationClassLoader.loadClass(
                 Action.class.getName()), URI.class);
         Runnable worker = constructor.newInstance(action, serverAddress);
         worker.run();
     }
 
+    protected LoggingConfigurer createLoggingConfigurer() {
+        return new DefaultLoggingConfigurer();
+    }
+
     protected ObservableUrlClassLoader createSharedClassLoader() {
         return new ObservableUrlClassLoader(ClassLoader.getSystemClassLoader().getParent());
     }
 
-    protected ObservableUrlClassLoader createImplementationClassLoader(ClassLoader parent) {
-        return new ObservableUrlClassLoader(parent);
+    protected ObservableUrlClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {
+        return new ObservableUrlClassLoader(new MultiParentClassLoader(application, system));
     }
 
     public static void main(String[] args) {

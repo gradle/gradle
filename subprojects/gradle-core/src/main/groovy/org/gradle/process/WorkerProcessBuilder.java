@@ -17,6 +17,7 @@ package org.gradle.process;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.exec.JavaExecHandleBuilder;
@@ -40,6 +41,7 @@ public abstract class WorkerProcessBuilder {
     private final Set<String> packages = new HashSet<String>();
     private final Set<URL> applicationClasspath = new LinkedHashSet<URL>();
     private Action<WorkerProcessContext> action;
+    private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public WorkerProcessBuilder(FileResolver fileResolver) {
         javaCommand = new JavaExecHandleBuilder(fileResolver);
@@ -79,6 +81,14 @@ public abstract class WorkerProcessBuilder {
 
     public JavaExecHandleBuilder getJavaCommand() {
         return javaCommand;
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public void setLogLevel(LogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 
     public abstract WorkerProcess build();

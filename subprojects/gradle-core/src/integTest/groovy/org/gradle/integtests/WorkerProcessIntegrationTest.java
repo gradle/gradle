@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.messaging.TcpMessagingServer;
@@ -51,7 +52,7 @@ public class WorkerProcessIntegrationTest {
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
     private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry, new IdentityFileResolver());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new IdentityFileResolver());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);
@@ -250,7 +251,7 @@ public class WorkerProcessIntegrationTest {
             assertThat(antClassLoader, not(sameInstance(systemClassLoader)));
             assertThat(thisClassLoader, not(sameInstance(systemClassLoader)));
             assertThat(antClassLoader.getParent(), equalTo(systemClassLoader.getParent()));
-            assertThat(thisClassLoader.getParent().getParent(), sameInstance(antClassLoader));
+            assertThat(thisClassLoader.getParent().getParent().getParent(), sameInstance(antClassLoader));
 
             // Send some messages
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(

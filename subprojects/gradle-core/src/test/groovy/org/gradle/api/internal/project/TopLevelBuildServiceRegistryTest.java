@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,6 +35,8 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.process.DefaultWorkerProcessFactory;
+import org.gradle.process.WorkerProcessFactory;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
@@ -61,6 +63,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
+    private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
 
     @Before
     public void setUp() {
@@ -70,7 +73,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(cacheFactory));
             allowing(parent).get(ClassPathRegistry.class);
             will(returnValue(classPathRegistry));
-
+            allowing(parent).get(ClassLoaderFactory.class);
+            will(returnValue(classLoaderFactory));
         }});
     }
     
@@ -181,13 +185,20 @@ public class TopLevelBuildServiceRegistryTest {
         assertThat(factory.get(IsolatedAntBuilder.class), sameInstance(factory.get(IsolatedAntBuilder.class)));
     }
 
+    @Test
+    public void providesAWorkerProcessFactory() {
+        context.checking(new Expectations() {{
+            one(classLoaderFactory).getRootClassLoader();
+            will(returnValue(new ClassLoader() {
+            }));
+        }});
+        
+        assertThat(factory.get(WorkerProcessFactory.class), instanceOf(DefaultWorkerProcessFactory.class));
+        assertThat(factory.get(WorkerProcessFactory.class), sameInstance(factory.get(WorkerProcessFactory.class)));
+    }
+
     private void expectScriptClassLoaderCreated() {
         context.checking(new Expectations() {{
-            ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
-
-            allowing(parent).get(ClassLoaderFactory.class);
-            will(returnValue(classLoaderFactory));
-
             one(classLoaderFactory).createScriptClassLoader();
             will(returnValue(new MultiParentClassLoader()));
         }});

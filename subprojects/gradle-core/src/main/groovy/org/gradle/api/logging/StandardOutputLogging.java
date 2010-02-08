@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ public class StandardOutputLogging {
         @Override
         protected LoggingPrintStream initialValue() {
             return new LoggingPrintStream(
-                    new StandardOutputLoggingAdapter(Logging.getLogger("Console out"), LogLevel.ERROR));
+                    new StandardOutputLoggingAdapter(Logging.getLogger("Console err"), LogLevel.ERROR));
         }
     };
 

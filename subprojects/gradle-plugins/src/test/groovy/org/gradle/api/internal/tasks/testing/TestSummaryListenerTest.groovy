@@ -29,8 +29,19 @@ public class TestSummaryListenerTest {
     private final TestSummaryListener listener = new TestSummaryListener(logger)
 
     @org.junit.Test
-    public void doesNotLogSuccessfulTests() {
+    public void logsSuccessfulTests() {
+        context.checking {
+            one(logger).info('Test {} PASSED', '<test>')
+        }
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SUCCESS))
+    }
+
+    @org.junit.Test
+    public void logsSkippedTests() {
+        context.checking {
+            one(logger).info('Test {} SKIPPED', '<test>')
+        }
+        listener.afterTest(test('<test>'), result(TestResult.ResultType.SKIPPED))
     }
 
     @org.junit.Test

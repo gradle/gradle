@@ -45,12 +45,15 @@ public class TestSummaryListener implements TestListener {
     public void afterTest(Test test, TestResult result) {
         switch (result.getResultType()) {
             case SUCCESS:
+                logger.info("Test {} PASSED", test.getName());
+                break;
             case SKIPPED:
-                return;
+                logger.info("Test {} SKIPPED", test.getName());
+                break;
             case FAILURE:
                 logger.error("Test {} FAILED", test.getName());
                 hadFailures = true;
-                return;
+                break;
             default:
                 throw new IllegalArgumentException();
         }

@@ -56,6 +56,7 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         } catch (InterruptedException e) {
             throw new GradleException(e);
         }
+        LOGGER.info("Finished executing tests.");
     }
 
     public void startProcessing(TestListener listener) {

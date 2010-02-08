@@ -18,6 +18,7 @@ package org.gradle.process;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
 import org.jmock.Expectations;
@@ -44,7 +45,7 @@ public class DefaultWorkerProcessFactoryTest {
     private final MessagingServer messagingServer = context.mock(MessagingServer.class);
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final FileResolver fileResolver = context.mock(FileResolver.class);
-    private final DefaultWorkerProcessFactory factory = new DefaultWorkerProcessFactory(messagingServer, classPathRegistry, fileResolver);
+    private final DefaultWorkerProcessFactory factory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, messagingServer, classPathRegistry, fileResolver);
 
     @Test
     public void createsAWorkerProcess() throws Exception {
@@ -59,6 +60,7 @@ public class DefaultWorkerProcessFactoryTest {
 
         assertThat(builder.getJavaCommand().getClasspath(), equalTo(processClassPath));
         assertThat(builder.getJavaCommand().getMainClass(), equalTo(GradleWorkerMain.class.getName()));
+        assertThat(builder.getLogLevel(), equalTo(LogLevel.LIFECYCLE));
 
         builder.worker(new TestAction());
         builder.applicationClasspath(Arrays.asList(new File("app.jar")));
@@ -79,6 +81,7 @@ public class DefaultWorkerProcessFactoryTest {
         assertThat(process, instanceOf(DefaultWorkerProcess.class));
 
         ObjectInputStream instr = new ObjectInputStream(builder.getJavaCommand().getStandardInput());
+        assertThat(instr.readObject(), equalTo((Object) LogLevel.LIFECYCLE));
         assertThat(instr.readObject(), equalTo((Object) builder.getApplicationClasspath()));
         assertThat(instr.readObject(), equalTo((Object) builder.getSharedPackages()));
         assertThat(instr.readObject(), instanceOf(Collection.class));

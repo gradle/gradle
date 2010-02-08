@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,13 +23,11 @@ import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.ConsoleAppender;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
-import org.apache.ivy.util.Message;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.logging.MarkerFilter;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
@@ -73,7 +71,6 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             rootLogger = lc.getLogger("ROOT");
             rootLogger.addAppender(stdoutConsoleAppender);
             rootLogger.addAppender(stderrConsoleAppender);
-            Message.setDefaultLogger(new IvyLoggingAdaper());
         } else {
             rootLogger = lc.getLogger("ROOT");
         }

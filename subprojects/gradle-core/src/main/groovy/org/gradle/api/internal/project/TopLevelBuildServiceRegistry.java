@@ -52,6 +52,10 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.messaging.MessagingServer;
+import org.gradle.messaging.TcpMessagingServer;
+import org.gradle.process.DefaultWorkerProcessFactory;
+import org.gradle.process.WorkerProcessFactory;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.WrapUtil;
 
@@ -278,6 +282,15 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected IsolatedAntBuilder createIsolatedAntBuilder() {
         return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
+    }
+
+    protected WorkerProcessFactory createWorkerProcessFactory() {
+        ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
+        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry, null);
+    }
+    
+    protected MessagingServer createMessagingServer() {
+        return new TcpMessagingServer(get(ClassLoaderFactory.class).getRootClassLoader());
     }
     
     public ServiceRegistryFactory createFor(Object domainObject) {

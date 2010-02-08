@@ -16,10 +16,16 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.initialization.LoggingConfigurer;
 import org.gradle.util.ObservableUrlClassLoader;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.*;
 import java.net.URI;
@@ -28,10 +34,14 @@ import java.util.ArrayList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+@RunWith(JMock.class)
 public class GradleWorkerMainTest {
-    private final ObservableUrlClassLoader sharedClassLoader = new ObservableUrlClassLoader(getClass().getClassLoader());
-    private final ObservableUrlClassLoader implementationClassLoader = new ImplementationClassLoader(sharedClassLoader);
+    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final ObservableUrlClassLoader sharedClassLoader = new ObservableUrlClassLoader(
+            getClass().getClassLoader());
+    private final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
     private InputStream original;
+    private final ObservableUrlClassLoader implementationClassLoader = new ImplementationClassLoader(sharedClassLoader);
 
     @Before
     public void setUp() {
@@ -47,7 +57,13 @@ public class GradleWorkerMainTest {
     @Test
     public void readsConfigFromStdInAndExecutesSuppliedAction() throws Exception {
         TestAction action = new TestAction();
-        System.setIn(serialize(new ArrayList<File>(), new ArrayList<String>(), new ArrayList<File>(), action, new URI("test:server")));
+        System.setIn(serialize(LogLevel.DEBUG, new ArrayList<File>(), new ArrayList<String>(),
+                new ArrayList<File>(), action, new URI("test:server")));
+
+        context.checking(new Expectations() {{
+            one(loggingConfigurer).configure(LogLevel.LIFECYCLE);
+            one(loggingConfigurer).configure(LogLevel.DEBUG);
+        }});
 
         new TestGradleWorkerMain().run();
         assertThat(System.getProperty("action.result"), equalTo("result"));
@@ -64,13 +80,20 @@ public class GradleWorkerMainTest {
     }
 
     private class TestGradleWorkerMain extends GradleWorkerMain {
+
+        @Override
+        protected LoggingConfigurer createLoggingConfigurer() {
+            return loggingConfigurer;
+        }
+
         @Override
         protected ObservableUrlClassLoader createSharedClassLoader() {
             return sharedClassLoader;
         }
 
         @Override
-        protected ObservableUrlClassLoader createImplementationClassLoader(ClassLoader parent) {
+        protected ObservableUrlClassLoader createImplementationClassLoader(ClassLoader system,
+                                                                           ClassLoader application) {
             return implementationClassLoader;
         }
     }
@@ -104,7 +127,7 @@ public class GradleWorkerMainTest {
             System.setProperty("action.result", "result");
         }
     }
-    
+
     private static class TestAction implements Action<WorkerProcessContext>, Serializable {
         public void execute(WorkerProcessContext workerProcessContext) {
         }

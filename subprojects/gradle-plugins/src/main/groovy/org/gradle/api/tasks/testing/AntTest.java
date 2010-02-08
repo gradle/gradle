@@ -17,8 +17,6 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.testing.TestSummaryListener;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
@@ -28,8 +26,6 @@ import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
-import org.gradle.messaging.TcpMessagingServer;
-import org.gradle.process.DefaultWorkerProcessFactory;
 import org.gradle.process.WorkerProcessFactory;
 import org.slf4j.LoggerFactory;
 
@@ -50,11 +46,7 @@ public class AntTest extends AbstractTestTask {
     }
 
     public void executeTests() {
-        ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
-
-        TcpMessagingServer server = new TcpMessagingServer(TestClassProcessor.class.getClassLoader());
-        final WorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(server, classPathRegistry,
-                getServices().get(FileResolver.class));
+        final WorkerProcessFactory workerFactory = getServices().get(WorkerProcessFactory.class);
 
         final TestFrameworkInstance testFrameworkInstance = getTestFramework();
         final TestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
@@ -77,8 +69,6 @@ public class AntTest extends AbstractTestTask {
         processor.startProcessing(getTestListenerBroadcaster().getSource());
         TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
         testClassScanner.run();
-
-        server.stop();
 
         testFrameworkInstance.report();
 

@@ -50,11 +50,11 @@ public class WorkerMain implements Runnable {
                     return client.getConnection();
                 }
             };
-            LOGGER.info("Starting worker action.");
+            LOGGER.debug("Starting worker action.");
             action.execute(context);
-            LOGGER.info("Completed worker action.");
+            LOGGER.debug("Completed worker action.");
         } finally {
-            LOGGER.info("Stopping client connection.");
+            LOGGER.debug("Stopping client connection.");
             client.stop();
         }
     }
