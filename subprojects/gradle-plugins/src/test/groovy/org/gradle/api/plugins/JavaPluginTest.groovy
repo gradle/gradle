@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,6 +188,7 @@ class JavaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
+        assertThat(task.workingDir, equalTo(project.projectDir))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
         assertThat(task, instanceOf(Jar))
@@ -241,6 +242,7 @@ class JavaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
+        assertThat(task.workingDir, equalTo(project.projectDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))

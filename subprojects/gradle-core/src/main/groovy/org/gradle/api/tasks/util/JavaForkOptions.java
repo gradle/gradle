@@ -27,7 +27,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @return The system properties. Returns an empty map when there are no system properties.
      */
-    Map<String, String> getSystemProperties();
+    Map<String, Object> getSystemProperties();
 
     /**
      * Sets the system properties to use for the process.

@@ -15,12 +15,10 @@
  */
 package org.gradle.external.junit;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.JunitForkOptions;
-import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
@@ -30,8 +28,6 @@ import org.gradle.process.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Tom Eyckmans
@@ -48,11 +44,6 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
     public void initialize() {
         antJUnitReport = new AntJUnitReport();
         options = new JUnitOptions((JUnitTestFramework) testFramework);
-
-        final JunitForkOptions forkOptions = options.getForkOptions();
-
-        forkOptions.setDir(testTask.getProject().getProjectDir());
-
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
@@ -99,30 +90,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public void applyForkArguments(JavaForkOptions javaForkOptions) {
-        final JunitForkOptions forkOptions = options.getForkOptions();
-
-        if (StringUtils.isNotEmpty(forkOptions.getJvm())) {
-            javaForkOptions.executable(forkOptions.getJvm());
-        }
-
-        if (forkOptions.getDir() != null) {
-            javaForkOptions.workingDir(forkOptions.getDir());
-        }
-
-        if (StringUtils.isNotEmpty(forkOptions.getMaxMemory())) {
-            javaForkOptions.setMaxHeapSize(forkOptions.getMaxMemory());
-        }
-
-        final List<String> jvmArgs = forkOptions.getJvmArgs();
-        if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            javaForkOptions.jvmArgs(jvmArgs);
-        }
-
-        if (forkOptions.isNewEnvironment()) {
-            final Map<String, String> environment = forkOptions.getEnvironment();
-            javaForkOptions.setEnvironment(environment);
-        }
-
+        // TODO - implement
         // TODO clone
         // TODO bootstrapClasspath - not sure which bootstrap classpath option to use:
         // TODO one of: -Xbootclasspath or -Xbootclasspath/a or -Xbootclasspath/p

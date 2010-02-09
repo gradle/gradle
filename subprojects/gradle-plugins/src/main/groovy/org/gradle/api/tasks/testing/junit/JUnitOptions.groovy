@@ -16,13 +16,10 @@
 
 package org.gradle.api.tasks.testing.junit
 
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.api.tasks.testing.FormatterOptions
 import org.gradle.api.tasks.testing.JunitForkOptions
-import org.gradle.api.tasks.testing.AbstractTestFramework
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.external.junit.JUnitTestFramework
-import org.gradle.api.tasks.util.JavaForkOptions
-import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions
 
 /**
  * @author Hans Dockter
@@ -32,14 +29,10 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     boolean showOutput = false
     boolean outputToFormatters = true
 
-    String tempDir = null
     String printSummary = 'true'
 
     FormatterOptions formatterOptions = new FormatterOptions()
     JunitForkOptions forkOptions = new JunitForkOptions()
-
-    Map systemProperties = [:]
-    Map environment = [:]
 
     List excludedFieldsFromOptionMap() {
         ['systemProperties', 'environment', 'formatterOptions', 'forkOptions']
@@ -66,13 +59,6 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     JUnitOptions fork(Map forkArgs) {
         forkOptions.define(forkArgs)
         this
-    }
-
-    JavaForkOptions createForkOptions() {
-        DefaultJavaForkOptions options = new DefaultJavaForkOptions(null)
-        options.systemProperties(systemProperties)
-        options.workingDir(forkOptions.dir)
-        return options
     }
 }
 

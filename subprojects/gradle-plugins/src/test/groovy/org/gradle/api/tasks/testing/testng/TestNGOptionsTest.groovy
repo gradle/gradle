@@ -56,8 +56,6 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
         assertNotNull(testngOptions.excludeGroups)
         assertTrue(testngOptions.excludeGroups.empty)
 
-        assertNull(testngOptions.jvm)
-
         assertNotNull(testngOptions.listeners)
         assertTrue(testngOptions.listeners.empty)
 
@@ -125,11 +123,5 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
         assertFalse(testngOptions.excludeGroups.empty)
         assertThat(testngOptions.excludeGroups, hasItems(groups))
         assertTrue(testngOptions.includeGroups.empty);
-    }
-
-    @Test public void createsForkOptions() {
-        testngOptions.systemProperties.prop = 'value'
-        def forkOptions = testngOptions.createForkOptions()
-        assertThat(forkOptions.systemProperties, equalTo(testngOptions.systemProperties))
     }
 }

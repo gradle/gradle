@@ -73,7 +73,7 @@ public interface ProcessForkOptions {
      *
      * @return The environment. Returns an empty map when there are no environment variables.
      */
-    Map<String, String> getEnvironment();
+    Map<String, Object> getEnvironment();
 
     /**
      * Sets the environment variable to use for the process.

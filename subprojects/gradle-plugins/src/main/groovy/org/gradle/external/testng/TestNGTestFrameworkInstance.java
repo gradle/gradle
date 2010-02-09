@@ -15,7 +15,6 @@
  */
 package org.gradle.external.testng;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
@@ -29,8 +28,6 @@ import org.gradle.process.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
-import java.util.List;
-import java.util.Map;
 
 /**
  * @author Tom Eyckmans
@@ -82,19 +79,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public void applyForkArguments(JavaForkOptions javaForkOptions) {
-        if (StringUtils.isNotEmpty(options.getJvm())) {
-            javaForkOptions.executable(options.getJvm());
-        }
-
-        final List<String> jvmArgs = options.getJvmArgs();
-        if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            javaForkOptions.jvmArgs(jvmArgs);
-        }
-
-        final Map<String, String> environment = options.getEnvironment();
-        if (environment != null && !environment.isEmpty()) {
-            javaForkOptions.setEnvironment(environment);
-        }
+        // TODO - implement
     }
 
     private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {

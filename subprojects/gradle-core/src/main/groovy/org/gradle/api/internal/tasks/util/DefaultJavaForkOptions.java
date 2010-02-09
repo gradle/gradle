@@ -28,7 +28,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     private final Pattern noArgSysPropPattern = Pattern.compile("-D([^=]+)");
     private final Pattern maxHeapPattern = Pattern.compile("-Xmx(.+)");
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
-    private final Map<String, Object> systemProperties = new HashMap<String, Object>();
+    private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
     private String maxHeapSize;
 
     public DefaultJavaForkOptions(FileResolver resolver) {
@@ -43,9 +43,9 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     public List<String> getAllJvmArgs() {
         List<String> args = new ArrayList<String>();
         args.addAll(getJvmArgs());
-        for (Map.Entry<String, String> entry : getSystemProperties().entrySet()) {
+        for (Map.Entry<String, Object> entry : getSystemProperties().entrySet()) {
             if (entry.getValue() != null) {
-                args.add(String.format("-D%s=%s", entry.getKey(), entry.getValue()));
+                args.add(String.format("-D%s=%s", entry.getKey(), entry.getValue().toString()));
             } else {
                 args.add(String.format("-D%s", entry.getKey()));
             }
@@ -105,13 +105,8 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return this;
     }
 
-    public Map<String, String> getSystemProperties() {
-        Map<String, String> properties = new TreeMap<String, String>();
-        for (Map.Entry<String, Object> entry : systemProperties.entrySet()) {
-            Object value = entry.getValue();
-            properties.put(entry.getKey(), value == null ? null : value.toString());
-        }
-        return properties;
+    public Map<String, Object> getSystemProperties() {
+        return systemProperties;
     }
 
     public void setSystemProperties(Map<String, ?> properties) {

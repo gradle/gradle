@@ -133,7 +133,7 @@ public class ExecHandleBuilder extends DefaultProcessForkOptions {
             throw new IllegalStateException("execCommand == null!");
         }
 
-        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getArguments(), normalTerminationExitCode, getEnvironment(),
+        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getArguments(), normalTerminationExitCode, getActualEnvironment(),
                 standardOutput, errorOutput, input, listeners);
     }
 

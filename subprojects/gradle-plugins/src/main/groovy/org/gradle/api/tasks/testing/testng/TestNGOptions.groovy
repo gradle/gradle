@@ -16,13 +16,11 @@
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
-import org.gradle.util.GFileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.external.testng.TestNGTestFramework
-import org.gradle.api.tasks.util.JavaForkOptions
-import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions
+import org.gradle.util.GFileUtils
 
 /**
  * @author Tom Eyckmans
@@ -116,13 +114,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     List excludeGroups = []
 
     /**
-     * The JVM to use, which will be run by Runtime.exec()
-     *
-     * Default to 'java'
-     */
-    String jvm = null
-
-    /**
      * A comma or space-separated list of fully qualified classes that are TestNG listeners (for example 
      * org.testng.ITestListener or org.testng.IReporter)
      *
@@ -141,16 +132,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      * Not required.
      */
     String skippedProperty = null
-
-    /**
-     * A PATH-like structure for JDK 1.4 tests (using JavaDoc-like annotations)
-     */
-    // List sourcedir => covered by testResources
-
-    /**
-     * A reference to a PATH-like structure for JDK 1.4 tests (using JavaDoc-like annotations).
-     */
-    // String sourcedirref = null => covered by testResources
 
     /**
      * A fully qualified name of a TestNG starter.
@@ -216,10 +197,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      */
     String testName = null
 
-    List jvmArgs = []
-    Map systemProperties = [:]
-    Map environment = [:]
-
     /**
      * The suiteXmlFiles to use for running TestNG.
      *
@@ -249,9 +226,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
                 'systemProperties', 'jvmArgs', 'environment',
                 'suiteXmlFiles', 'suiteXmlWriter', 'suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
 
-        if (jvm == null) {
-            excludedFieldsFromOptionMap << 'jvm'
-        }
         if (skippedProperty == null) {
             excludedFieldsFromOptionMap << 'skippedProperty'
         }
@@ -395,13 +369,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         this.useDefaultListeners = useDefaultListeners;
 
         return this;
-    }
-
-    JavaForkOptions createForkOptions() {
-        DefaultJavaForkOptions options = new DefaultJavaForkOptions(null)
-        options.systemProperties(systemProperties)
-        options.workingDir(projectDir)
-        options
     }
 
     public def propertyMissing(String name) {

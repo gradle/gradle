@@ -57,10 +57,10 @@ public class DefaultProcessForkOptionsTest {
     }
 
     @Test
-    public void convertsEnvironmentToStringOnGet() {
+    public void convertsEnvironmentToString() {
         options.environment = [key1: 12, key2: "${1+2}"]
 
-        assertThat(options.environment, equalTo(key1: '12', key2: '3'))
+        assertThat(options.actualEnvironment, equalTo(key1: '12', key2: '3'))
     }
 
     @Test
@@ -71,11 +71,12 @@ public class DefaultProcessForkOptionsTest {
 
         options.environment('key', 12)
 
-        assertThat(options.environment, equalTo([key: '12']))
+        assertThat(options.environment, equalTo([key: 12]))
+        assertThat(options.actualEnvironment, equalTo([key: '12']))
 
-        options.environment(key2: "${1+2}")
+        options.environment(key2: "value")
 
-        assertThat(options.environment, equalTo([key: '12', key2: '3']))
+        assertThat(options.environment, equalTo([key: 12, key2: "value"]))
     }
     
     @Test

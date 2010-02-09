@@ -70,7 +70,7 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
         return this;
     }
 
-    public Map<String, String> getSystemProperties() {
+    public Map<String, Object> getSystemProperties() {
         return javaOptions.getSystemProperties();
     }
 

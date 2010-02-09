@@ -53,7 +53,6 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         setMocks();
 
         context.checking(new Expectations() {{
-            one(projectMock).getProjectDir(); will(returnValue(projectDir));
             one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
             one(testMock).getClasspath();will(returnValue(classpathMock));
         }});

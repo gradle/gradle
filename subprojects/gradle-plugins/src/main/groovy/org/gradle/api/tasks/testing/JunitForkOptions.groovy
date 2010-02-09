@@ -23,25 +23,18 @@ import org.gradle.api.tasks.compile.AbstractOptions
  */
 class JunitForkOptions extends AbstractOptions {
     String timeout
-    String maxMemory
-    String jvm
-    File dir
     boolean newEnvironment = false
     boolean cloneVm = false
-
-    List jvmArgs
     List bootstrapClasspath
-    Map environment
 
     Map fieldName2AntMap() {
         [
-                maxMemory: 'maxmemory',
                 newEnvironment: 'newenvironment',
                 cloneVm: 'clonevm'
         ]
     }
 
     List excludedFieldsFromOptionMap() {
-        ['bootstrapClasspath', 'environment', 'jvmArgs']
+        ['bootstrapClasspath']
     }
 }

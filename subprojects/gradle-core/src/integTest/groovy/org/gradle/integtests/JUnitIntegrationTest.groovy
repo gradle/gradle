@@ -38,6 +38,10 @@ public class JUnitIntegrationTest {
             apply id: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.4', 'ant:ant:1.6.1', 'ant:ant-launcher:1.6.1' }
+            test {
+                systemProperties.testSysProperty = 'value'
+                environment.TEST_ENV_VAR = 'value'
+            }
         '''
         testDir.file("src/test/java/org/gradle/OkTest.java") << """
             package org.gradle;
@@ -52,6 +56,10 @@ public class JUnitIntegrationTest {
                     assertEquals("${testDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')}", System.getProperty("user.dir"));
                     // check Gradle classes not visible
                     try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                    // check sys properties
+                    assertEquals("value", System.getProperty("testSysProperty"));
+                    // check env vars
+                    assertEquals("value", System.getenv("TEST_ENV_VAR"));
                     // check stdoud and stderr
                     System.out.println("This is test stdout");
                     System.err.println("This is test stderr");

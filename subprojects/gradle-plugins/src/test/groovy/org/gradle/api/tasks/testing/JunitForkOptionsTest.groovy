@@ -35,24 +35,12 @@ class JunitForkOptionsTest {
         assertFalse(junitForkOptions.cloneVm)
 
         assertNull(junitForkOptions.timeout)
-        assertNull(junitForkOptions.maxMemory)
-        assertNull(junitForkOptions.jvm)
-        assertNull(junitForkOptions.dir)
-    }
-
-    @Test public void testOptionMapWithDir() {
-        Map optionMap = junitForkOptions.optionMap()
-        assertFalse(optionMap.keySet().contains('dir'))
-        junitForkOptions.dir = 'dirFile' as File
-        assertEquals(junitForkOptions.dir, junitForkOptions.optionMap()['dir'])
     }
 
     @Test public void testOptionMapWithNullables() {
         Map optionMap = junitForkOptions.optionMap()
         Map nullables = [
-                timeout: 'timeout',
-                maxMemory: 'maxmemory',
-                jvm: 'jvm'
+                timeout: 'timeout'
         ]
         nullables.each {String field, String antProperty ->
             assertFalse(optionMap.keySet().contains(antProperty))
@@ -83,12 +71,10 @@ class JunitForkOptionsTest {
     }
 
     @Test public void testDefine() {
-        junitForkOptions.maxMemory = null
         junitForkOptions.newEnvironment = true
         junitForkOptions.timeout = 'xxxx'
-        junitForkOptions.define(newEnvironment: false, maxMemory: 'xxx', timeout: null)
+        junitForkOptions.define(newEnvironment: false, timeout: null)
         assertFalse(junitForkOptions.newEnvironment)
-        assertEquals('xxx', junitForkOptions.maxMemory)
         assertNull(junitForkOptions.timeout)
     }
 }

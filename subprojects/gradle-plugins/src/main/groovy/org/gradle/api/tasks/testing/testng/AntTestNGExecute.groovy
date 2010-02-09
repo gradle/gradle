@@ -77,16 +77,16 @@ public class AntTestNGExecute extends AbstractBatchTestClassProcessor {
 
         //TODO TestNG Listeners: [RemoteReceiver remoteReceiver = new RemoteReceiver(testListenerBroadcaster, null)]
         ant.testng(otherArgs + options.optionMap()) {
-            options.jvmArgs.each {
-                jvmarg(value: it)
-            }
+//            options.jvmArgs.each {
+//                jvmarg(value: it)
+//            }
             //TODO TestNG Listeners: [sysproperty(key: TestNGListenerAdapter.PORT_VMARG, value: remoteReceiver.getBoundPort())]
-            options.systemProperties.each {String key, String value ->
-                sysproperty(key: key, value: value)
-            }
-            options.environment.each {String key, String value ->
-                env(key: key, value: value)
-            }
+//            options.systemProperties.each {String key, String value ->
+//                sysproperty(key: key, value: value)
+//            }
+//            options.environment.each {String key, String value ->
+//                env(key: key, value: value)
+//            }
             classpath {
                 useClassPath.each {
                     pathelement(location: it)

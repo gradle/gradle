@@ -54,16 +54,16 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
-    public void convertsSystemPropertiesToStringOnGet() {
-        options.systemProperties = [key: 12, key2: "${1 + 2}", key3: null]
-        assertThat(options.systemProperties, equalTo(key: '12', key2: '3', key3: null))
+    public void canSetSystemProperties() {
+        options.systemProperties = [key: 12, key2: "value", key3: null]
+        assertThat(options.systemProperties, equalTo(key: 12, key2: "value", key3: null))
     }
 
     @Test
     public void canAddSystemProperties() {
         options.systemProperties(key: 12)
         options.systemProperty('key2', 'value2')
-        assertThat(options.systemProperties, equalTo(key: '12', key2: 'value2'))
+        assertThat(options.systemProperties, equalTo(key: 12, key2: 'value2'))
     }
 
     @Test

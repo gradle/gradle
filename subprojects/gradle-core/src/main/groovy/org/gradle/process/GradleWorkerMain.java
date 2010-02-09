@@ -42,8 +42,8 @@ public class GradleWorkerMain {
         //            |                      |
         //          system              application
         //  (this class, logging)            |
-        //            |                   filter
-        //         filter                    |
+        //            |                      |
+        //         filter                 filter
         //            |                      |
         //            +----------------------+
         //                          |

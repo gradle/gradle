@@ -16,14 +16,13 @@
  
 package org.gradle.api.tasks.testing.junit
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.junit.Before
-import org.junit.Test
+import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
 import org.gradle.api.tasks.testing.FormatterOptions
 import org.gradle.api.tasks.testing.JunitForkOptions
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
-import org.gradle.external.junit.JUnitTestFramework;
+import org.gradle.external.junit.JUnitTestFramework
+import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -49,22 +48,10 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
 
         assertFalse(junitOptions.showOutput)
 
-        assertNull(junitOptions.tempDir)
         assertEquals('true', junitOptions.printSummary)
 
         assertNotNull(junitOptions.forkOptions)
         assertNotNull(junitOptions.formatterOptions)
-
-        assertEquals([:], junitOptions.systemProperties)
-        assertEquals([:], junitOptions.environment)
-    }
-
-    @Test public void testJavaForkOptions() {
-        junitOptions.systemProperties.prop = 'value'
-        junitOptions.forkOptions.dir = new File('dir').absoluteFile
-        def forkOptions = junitOptions.createForkOptions()
-        assertThat(forkOptions.systemProperties, equalTo(junitOptions.systemProperties))
-        assertThat(forkOptions.workingDir, equalTo(junitOptions.forkOptions.dir))
     }
 
     @Test public void testOptionMapForFormatterAndForkOptions() {
@@ -77,7 +64,6 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
         junitOptions.printSummary = null
         Map optionMap = junitOptions.optionMap()
         Map nullables = [
-                tempDir: 'tempdir',
                 printSummary: 'printsummary',
         ]
         nullables.each {String field, String antProperty ->
@@ -120,11 +106,9 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
     }
 
     @Test public void testDefine() {
-        junitOptions.tempDir = null
         junitOptions.printSummary = 'xxxx'
-        junitOptions.define(tempDir: 'tmp', printSummary: null, showOutput: true)
+        junitOptions.define(printSummary: null, showOutput: true)
         assertTrue(junitOptions.showOutput)
-        assertEquals('tmp', junitOptions.tempDir)
         assertNull(junitOptions.printSummary)
     }
 }

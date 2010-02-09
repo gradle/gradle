@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,7 +15,6 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskCollection;
@@ -34,10 +33,5 @@ public class StagingPlugin implements Plugin<Project> {
         for (AntTest antTestTask : antTestTasks) {
             project.getTasks().replace(antTestTask.getName(), NativeTest.class);
         }
-        project.getTasks().withType(NativeTest.class).allTasks(new Action<NativeTest>() {
-            public void execute(NativeTest test) {
-                test.getConventionMapping().map(DefaultConventionsToPropertiesMapping.TEST);
-            }
-        });
     }
 }

@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
@@ -193,8 +192,6 @@ public class AntTestTest extends AbstractConventionTaskTest {
             AbstractTestFrameworkOptions testOptions = context.mock(AbstractTestFrameworkOptions.class);
             allowing(testFrameworkInstanceMock).getOptions();
             will(returnValue(testOptions));
-            one(testOptions).createForkOptions();
-            will(returnValue(context.mock(JavaForkOptions.class)));
             one(testFrameworkInstanceMock).getWorkerConfigurationAction();
             will(returnValue(workerConfigurationActionMock));
         }});
