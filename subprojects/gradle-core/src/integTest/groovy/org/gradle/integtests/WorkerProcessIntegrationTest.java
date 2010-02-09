@@ -42,6 +42,8 @@ import org.junit.runner.RunWith;
 import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -117,8 +119,18 @@ public class WorkerProcessIntegrationTest {
     }
 
     @Test
-    public void handlesWorkerProcessWhichThrowsException() throws Throwable {
+    public void handlesWorkerActionWhichThrowsException() throws Throwable {
         execute(worker(new BrokenRemoteProcess()).expectFailure());
+    }
+
+    @Test
+    public void handlesWorkerActionThatLeavesThreadsRunning() throws Throwable {
+        context.checking(new Expectations() {{
+            one(listenerMock).send("message 1", 1);
+            one(listenerMock).send("message 2", 2);
+        }});
+
+        execute(worker(new NoCleanUpRemoteProcess()));
     }
 
     @Test
@@ -266,6 +278,23 @@ public class WorkerProcessIntegrationTest {
             TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(TestListenerInterface.class);
             sender.send("other 1", 1);
             sender.send("other 2", 2);
+        }
+    }
+
+    public static class NoCleanUpRemoteProcess implements Action<WorkerProcessContext>, Serializable {
+        public void execute(WorkerProcessContext workerProcessContext) {
+            final Lock lock = new ReentrantLock();
+            lock.lock();
+            new Thread(new Runnable() {
+                public void run() {
+                    lock.lock();
+                }
+            }).start();
+
+            TestListenerInterface sender = workerProcessContext.getServerConnection().addOutgoing(
+                    TestListenerInterface.class);
+            sender.send("message 1", 1);
+            sender.send("message 2", 2);
         }
     }
 

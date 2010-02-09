@@ -102,6 +102,7 @@ public class GradleWorkerMain {
     public static void main(String[] args) {
         try {
             new GradleWorkerMain().run();
+            System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace(System.err);
             System.exit(1);
