@@ -7,14 +7,7 @@ repositories {
 }
 
 dependencies {
-	testCompile module('org.testng:testng:5.8') {
-	    artifact {
-	        name = 'testng'
-	        type = 'jar'
-	        extension = 'jar'
-	        classifier = 'jdk14'
-        }
-	}
+    testCompile 'org.testng:testng:5.8:jdk14'
 }
 
 test {

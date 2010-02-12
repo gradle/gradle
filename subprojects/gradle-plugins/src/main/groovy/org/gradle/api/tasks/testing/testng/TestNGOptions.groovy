@@ -41,106 +41,25 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     String annotations
 
     /**
-     * A reference to a FileSet structure of the test classes to be run. 
-     */
-    // String classfilesetref
-
-    /**
-     * A PATH-like structure for the tests to be run.
-     */
-    // String classpath
-
-    /**
-     * A reference to a PATH-like structure for the tests to be run. 
-     */
-    // String classpathref
-
-    /**
      * List of all directories containing Test sources. Should be set if annotations is 'Javadoc'.
      */
     List testResources
 
     /**
-     * Print the TestNG launcher command.
-     *
-     * Not required. 
-     *
-     * Defaults to false
-     */
-    boolean dumpCommand = false
-
-    /**
-     * Enables JDK 1.4 assertion.
-     *
-     * Not required.
-     *
-     * Defaults to true 
-     */
-    boolean enableAssert = true
-
-    /**
-     * The name of a property to set in the event of a failure. It is used only if the haltonfailure is not set.
-     *
-     * Not required.
-     */
-    //String failureProperty = Test.FAILURES_OR_ERRORS_PROPERTY
-
-    /**
-     * Stop the build process if a failure has occurred during the test run.
-     *
-     * Not required.
-     *
-     * Defaults to false 
-     */
-    // boolean haltonfailure = false
-
-    /**
-     * Stop the build process if there is at least on skipped test.
-     *
-     * Not required. 
-     *
-     * Default to false
-     */
-    // boolean haltonskipped = false
-
-    /**
-     * The list of groups to run, separated by spaces or commas.
+     * The list of groups to run.
      */
     List includeGroups = []
 
     /**
-     * The list of groups to exclude, separated by spaces or commas.
+     * The list of groups to exclude.
      */
     List excludeGroups = []
 
     /**
-     * A comma or space-separated list of fully qualified classes that are TestNG listeners (for example 
-     * org.testng.ITestListener or org.testng.IReporter)
-     *
-     * Not required.
+     * The list of fully qualified classes that are TestNG listeners (for example org.testng.ITestListener or
+     * org.testng.IReporter)
      */
     List listeners = []
-
-    /**
-     * Directory for reports output.
-     */
-    //String outputDir
-
-    /**
-     * The name of a property to set in the event of a skipped test. It is used only if the haltonskipped is not set.
-     *
-     * Not required.
-     */
-    String skippedProperty = null
-
-    /**
-     * A fully qualified name of a TestNG starter.
-     *
-     * Not required.
-     *
-     * Defaults to  org.testng.TestNG
-     */
-    String suiteRunnerClass = null
 
     /**
      * The parallel mode to use for running the tests - either methods or tests.
@@ -157,31 +76,11 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     int threadCount = 1
 
     /**
-     * Path to a jar containing tests and a suite definition. 
-     */
-    // String testJar
-
-    /**
      * Whether the default listeners and reporters should be used.
      *
      * Defaults to true.
      */
     boolean useDefaultListeners = true
-
-    /**
-     * The maximum time out in milliseconds that all the tests should run under.
-     */
-    long timeOut = Long.MAX_VALUE
-
-    /**
-     * The directory where the ant task should change to before running TestNG.
-     */
-    //String workingDir
-
-    /**
-     * A reference to a FileSet structure for the suite definitions to be run.
-     */
-    //String xmlfilesetref = null
 
     /**
      * Sets the default name of the test suite, if one is not specified in a suite xml file or in the source code.
@@ -226,18 +125,9 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
                 'systemProperties', 'jvmArgs', 'environment',
                 'suiteXmlFiles', 'suiteXmlWriter', 'suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
 
-        if (skippedProperty == null) {
-            excludedFieldsFromOptionMap << 'skippedProperty'
-        }
-        if (suiteRunnerClass == null) {
-            excludedFieldsFromOptionMap << 'suiteRunnerClass'
-        }
         if (parallel == null) {
             excludedFieldsFromOptionMap << 'parallel'
             excludedFieldsFromOptionMap << 'threadCount'
-        }
-        if (timeOut == Long.MAX_VALUE) {
-            excludedFieldsFromOptionMap << 'timeOut'
         }
         if (suiteName == null) {
             excludedFieldsFromOptionMap << 'suiteName'
@@ -329,12 +219,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         }
 
         return suites
-    }
-
-    TestNGOptions dumpCommand() {
-        this.dumpCommand = true
-
-        return this
     }
 
     TestNGOptions jdkAnnotations() {

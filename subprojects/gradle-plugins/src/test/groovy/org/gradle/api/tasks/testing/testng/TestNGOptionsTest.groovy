@@ -46,10 +46,6 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
 
         assertNull(testngOptions.testResources)
 
-        assertFalse(testngOptions.dumpCommand)
-
-        assertTrue(testngOptions.enableAssert)
-
         assertNotNull(testngOptions.includeGroups)
         assertTrue(testngOptions.includeGroups.empty)
 
@@ -59,15 +55,9 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
         assertNotNull(testngOptions.listeners)
         assertTrue(testngOptions.listeners.empty)
 
-        assertNull(testngOptions.skippedProperty)
-
-        assertNull(testngOptions.suiteRunnerClass)
-
         assertNull(testngOptions.parallel)
 
         assertEquals(testngOptions.threadCount, 1)
-
-        assertEquals(testngOptions.timeOut, Long.MAX_VALUE)
 
         assertNull(testngOptions.suiteName)
 
