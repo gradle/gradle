@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.jmock.api.Action
 import org.gradle.api.plugins.Convention
-import org.gradle.api.internal.plugins.EmbedableJavaProject
+import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.groovy.scripts.StringScriptSource
 
 /**
@@ -77,12 +77,12 @@ class BuildSourceBuilderTest {
         expectedArtifactPath = "$testBuildSrcDir.absolutePath/build/COMPLETED"
         build = context.mock(Gradle)
         Convention convention = context.mock(Convention)
-        EmbedableJavaProject projectMetaInfo = context.mock(EmbedableJavaProject)
+        EmbeddableJavaProject projectMetaInfo = context.mock(EmbeddableJavaProject)
         context.checking {
             allowing(build).getRootProject(); will(returnValue(rootProjectMock))
             allowing(build).getStartParameter(); will(returnValue(expectedStartParameter))
             allowing(rootProjectMock).getConvention(); will(returnValue(convention))
-            allowing(convention).getPlugin(EmbedableJavaProject);
+            allowing(convention).getPlugin(EmbeddableJavaProject);
             will(returnValue(projectMetaInfo))
             allowing(projectMetaInfo).getRebuildTasks(); will(returnValue(['clean', 'dostuff']))
             allowing(projectMetaInfo).getRuntimeClasspath(); will(returnValue(configurationMock))

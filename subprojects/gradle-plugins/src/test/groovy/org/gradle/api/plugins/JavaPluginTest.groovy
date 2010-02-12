@@ -33,7 +33,7 @@ import static org.gradle.util.Matchers.*
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.plugins.EmbedableJavaProject
+import org.gradle.api.internal.plugins.EmbeddableJavaProject
 
 /**
  * @author Hans Dockter
@@ -50,7 +50,7 @@ class JavaPluginTest {
 
         assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
 
-        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbedableJavaProject))
+        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
         assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, sameInstance(project.sourceSets.main.runtimeClasspath))
     }
