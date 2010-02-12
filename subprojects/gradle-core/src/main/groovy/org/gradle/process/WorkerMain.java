@@ -51,7 +51,13 @@ public class WorkerMain implements Runnable {
                 }
             };
             LOGGER.debug("Starting worker action.");
-            action.execute(context);
+            ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
+            try {
+                action.execute(context);
+            } finally {
+                Thread.currentThread().setContextClassLoader(contextClassLoader);
+            }
             LOGGER.debug("Completed worker action.");
         } finally {
             LOGGER.debug("Stopping client connection.");

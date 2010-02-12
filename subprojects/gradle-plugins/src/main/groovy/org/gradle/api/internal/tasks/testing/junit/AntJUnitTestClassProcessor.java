@@ -61,8 +61,8 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
 
             JUnitTest test = new JUnitTest(testClass.getTestClassName());
 
-            JUnitTestRunner testRunner = new JUnitTestRunner(test, false, true, false, false, false,
-                    TestCase.class.getClassLoader());
+            ClassLoader applicationClassLoader = TestCase.class.getClassLoader();
+            JUnitTestRunner testRunner = new JUnitTestRunner(test, false, false, false, false, false, applicationClassLoader);
             // Pretend we have been forked - this enables stdout redirection
             forkedField.set(testRunner, true);
 
@@ -73,7 +73,13 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
 
             testRunner.addFormatter(new TestListenerFormatter(listener));
 
-            testRunner.run();
+            ClassLoader loader = Thread.currentThread().getContextClassLoader();
+            Thread.currentThread().setContextClassLoader(applicationClassLoader);
+            try {
+                testRunner.run();
+            } finally {
+                Thread.currentThread().setContextClassLoader(loader);
+            }
         } catch (Throwable e) {
             throw new GradleException(String.format("Could not execute test class %s.", testClass.getTestClassName()), e);
         }
