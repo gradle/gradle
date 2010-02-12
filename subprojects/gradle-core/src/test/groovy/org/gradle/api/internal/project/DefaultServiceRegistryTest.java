@@ -178,11 +178,11 @@ public class DefaultServiceRegistryTest {
         }
     }
 
-    private interface TestCloseService {
+    public interface TestCloseService {
         void close();
     }
 
-    private interface TestStopService {
+    public interface TestStopService {
         void stop();
     }
 }

@@ -67,11 +67,11 @@ class HelperUtil {
         return createTask(type, createRootProject())
     }
     
-    static <T extends Task> T createTask(Class<T> type, Project project) {
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
         return createTask(type, project, 'name')
     }
 
-    static <T extends Task> T createTask(Class<T> type, Project project, String name) {
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
         return TASK_FACTORY.createTask(project, [name: name, type: type])
     }
 

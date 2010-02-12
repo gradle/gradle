@@ -62,11 +62,11 @@ public class TestFile extends File {
     }
 
     private static File join(File file, Object[] path) {
-        File current = GFileUtils.canonicalise(file);
+        File current = file.getAbsoluteFile();
         for (Object p : path) {
-            current = GFileUtils.canonicalise(new File(current, p.toString()));
+            current = new File(current, p.toString());
         }
-        return current;
+        return GFileUtils.canonicalise(current);
     }
 
     public TestFile file(Object... path) {

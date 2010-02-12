@@ -78,4 +78,11 @@ public interface TaskInputs {
      * @param value The value for the property. Can be null.
      */
     TaskInputs property(String name, Object value);
+
+    /**
+     * Registers a set of input properties for this task. See {@link #property(String, Object)} for details.
+     *
+     * @param properties The properties.
+     */
+    TaskInputs properties(Map<String, ?> properties);
 }

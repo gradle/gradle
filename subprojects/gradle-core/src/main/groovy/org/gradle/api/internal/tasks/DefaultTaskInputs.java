@@ -79,4 +79,9 @@ public class DefaultTaskInputs implements TaskInputs {
         properties.put(name, value);
         return this;
     }
+
+    public TaskInputs properties(Map<String, ?> properties) {
+        this.properties.putAll(properties);
+        return this;
+    }
 }

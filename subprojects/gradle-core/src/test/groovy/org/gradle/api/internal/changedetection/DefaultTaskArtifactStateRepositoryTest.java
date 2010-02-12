@@ -15,26 +15,19 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.api.Project;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.TaskOutputsInternal;
-import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.api.internal.file.PathResolvingFileCollection;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.tasks.TaskInputs;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
-import org.hamcrest.Description;
 import org.jmock.Expectations;
-import org.jmock.api.Action;
-import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.junit.Before;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,8 +46,8 @@ public class DefaultTaskArtifactStateRepositoryTest {
     public TemporaryFolder tmpDir = new TemporaryFolder();
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final CacheRepository cacheRepository = context.mock(CacheRepository.class);
-    private final Gradle gradle = context.mock(Gradle.class);
-    private final Project project = context.mock(Project.class);
+    private final ProjectInternal project = HelperUtil.createRootProject();
+    private final Gradle gradle = project.getGradle();
     private final TestFile outputFile = tmpDir.file("output-file");
     private final TestFile outputDir = tmpDir.file("output-dir");
     private final TestFile outputDirFile = outputDir.file("some-file");
@@ -68,18 +61,9 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final Set<TestFile> outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile);
     private final Set<TestFile> createFiles = toSet(outputFile, outputDirFile, outputDirFile2);
     private final FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
-    private int counter;
     private PersistentCache persistentCache;
     private final DefaultTaskArtifactStateRepository repository = new DefaultTaskArtifactStateRepository(cacheRepository,
             fileSnapshotter);
-
-    @Before
-    public void setup() {
-        context.checking(new Expectations() {{
-            allowing(project).getGradle();
-            will(returnValue(gradle));
-        }});
-    }
 
     @Test
     public void artifactsAreNotUpToDateWhenCacheIsEmpty() {
@@ -276,6 +260,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
     @Test
     public void artifactsAreNotUpToDateWhenStateHasBeenInvalidated() {
+        System.out.println("----------------------------------------");
         execute();
 
         TaskArtifactState state = repository.getStateFor(task());
@@ -285,6 +270,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
+        System.out.println("----------------------------------------");
     }
 
     @Test
@@ -468,53 +454,25 @@ public class DefaultTaskArtifactStateRepositoryTest {
         }
 
         TaskInternal task() {
-            final TaskInternal task = context.mock(type, String.format("task%d", counter++));
-            context.checking(new Expectations(){{
-                TaskInputs taskInputs = context.mock(TaskInputs.class, String.format("inputs%d", counter++));
-                TaskOutputsInternal taskOutputs = context.mock(TaskOutputsInternal.class, String.format("outputs%d", counter++));
-                FileCollection outputFileCollection = new PathResolvingFileCollection(new IdentityFileResolver(), null, outputs);
-                FileCollection candidateOutputFileCollection = outputFileCollection.getAsFileTree();
-                FileCollection inputFileCollection = context.mock(FileCollection.class, String.format("taskInputFiles%d", counter++));
-
-                allowing(task).getProject();
-                will(returnValue(project));
-                allowing(task).getPath();
-                will(returnValue(path));
-                allowing(task).getInputs();
-                will(returnValue(taskInputs));
-                allowing(taskInputs).getHasInputFiles();
-                will(returnValue(inputs != null));
-                allowing(taskInputs).getFiles();
-                will(returnValue(inputFileCollection));
-                allowing(inputFileCollection).iterator();
-                will(returnIterator(inputs == null ? emptySet() : inputs));
-                allowing(taskInputs).getProperties();
-                will(returnValue(inputProperties));
-                allowing(task).getOutputs();
-                will(returnValue(taskOutputs));
-                allowing(taskOutputs).getFiles();
-                will(returnValue(outputFileCollection));
-                allowing(taskOutputs).getCandidateFiles();
-                will(returnValue(candidateOutputFileCollection));
-                atMost(1).of(task).execute();
-                will(new Action() {
-                    public void describeTo(Description description) {
-                        description.appendText("creates ").appendValue(create);
+            final TaskInternal task = HelperUtil.createTask(type, project, path);
+            if (inputs != null) {
+                task.getInputs().files(inputs);
+            }
+            task.getInputs().properties(inputProperties);
+            task.getOutputs().files(outputs);
+            task.doLast(new org.gradle.api.Action<Object>() {
+                public void execute(Object o) {
+                    for (TestFile file : create) {
+                        file.touch();
                     }
+                }
+            });
 
-                    public Object invoke(Invocation invocation) throws Throwable {
-                        for (TestFile file : create) {
-                            file.touch();
-                        }
-                        return null;
-                    }
-                });
-            }});
             return task;
         }
     }
 
-    public interface TaskSubType extends TaskInternal {
+    public static class TaskSubType extends DefaultTask {
     }
 
     public static class TestIndexedCache implements PersistentIndexedCache<File, Object> {
