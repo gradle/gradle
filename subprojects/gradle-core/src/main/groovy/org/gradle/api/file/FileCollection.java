@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -122,9 +122,17 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      *
      * @param collection The collection to add.
      * @return This
-     * @throws UnsupportedOperationException When this collection does not alow modification.
+     * @throws UnsupportedOperationException When this collection does not allow modification.
      */
     FileCollection add(FileCollection collection) throws UnsupportedOperationException;
+
+    /**
+     * Returns true if this collection is empty. Generally, calling this method is more efficient than calling {@code
+     * getFiles().isEmpty()}.
+     *
+     * @return true if this collection is empty, false otherwise.
+     */
+    boolean isEmpty();
 
     /**
      * Throws a {@link StopExecutionException} if this collection is empty.

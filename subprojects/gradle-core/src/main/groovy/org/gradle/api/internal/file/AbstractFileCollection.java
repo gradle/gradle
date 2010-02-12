@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -143,8 +143,12 @@ public abstract class AbstractFileCollection implements FileCollection {
         return this;
     }
 
+    public boolean isEmpty() {
+        return getFiles().isEmpty();
+    }
+
     public FileCollection stopExecutionIfEmpty() {
-        if (getFiles().isEmpty()) {
+        if (isEmpty()) {
             throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
         }
         return this;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -138,7 +138,7 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void cannotAddCollection() {
+    public void cannotAddCollectionToThisCollection() {
         try {
             new TestFileCollection().add(new TestFileCollection());
             fail();
@@ -174,7 +174,13 @@ public class AbstractFileCollectionTest {
     }
 
     @Test
-    public void throwsStopExceptionWhenEmpy() {
+    public void isEmptyWhenFilesIsEmpty() {
+        assertTrue(new TestFileCollection().isEmpty());
+        assertFalse(new TestFileCollection(new File("f1")).isEmpty());
+    }
+    
+    @Test
+    public void throwsStopExceptionWhenEmpty() {
         TestFileCollection collection = new TestFileCollection();
         try {
             collection.stopExecutionIfEmpty();

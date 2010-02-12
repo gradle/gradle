@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,20 +19,20 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskDependency;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.*;
+
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class CompositeFileCollectionTest {
@@ -105,42 +105,31 @@ public class CompositeFileCollectionTest {
     }
     
     @Test
-    public void stopActionThrowsExceptionWhenSetIsEmpty() {
+    public void isEmptyWhenHasNoSets() {
         CompositeFileCollection set = new TestCompositeFileCollection();
-        try {
-            set.stopExecutionIfEmpty();
-            fail();
-        } catch (StopExecutionException e) {
-            assertThat(e.getMessage(), equalTo("No files found in <display name>."));
-        }
+        assertTrue(set.isEmpty());
     }
 
     @Test
-    public void stopActionThrowsExceptionWhenAllSetsAreEmpty() {
+    public void isEmptyWhenAllSetsAreEmpty() {
         context.checking(new Expectations() {{
-            one(source1).stopExecutionIfEmpty();
-            will(throwException(new StopExecutionException()));
-            one(source2).stopExecutionIfEmpty();
-            will(throwException(new StopExecutionException()));
+            one(source1).isEmpty();
+            will(returnValue(true));
+            one(source2).isEmpty();
+            will(returnValue(true));
         }});
 
-        try {
-            collection.stopExecutionIfEmpty();
-            fail();
-        } catch (StopExecutionException e) {
-            assertThat(e.getMessage(), equalTo("No files found in <display name>."));
-        }
+        assertTrue(collection.isEmpty());
     }
 
     @Test
-    public void stopActionDoesNotThrowsExceptionWhenSomeSetsAreNoEmpty() {
+    public void isNotEmptyWhenAnySetIsNotEmpty() {
         context.checking(new Expectations() {{
-            one(source1).stopExecutionIfEmpty();
-            will(throwException(new StopExecutionException()));
-            one(source2).stopExecutionIfEmpty();
+            one(source1).isEmpty();
+            will(returnValue(false));
         }});
 
-        collection.stopExecutionIfEmpty();
+        assertFalse(collection.isEmpty());
     }
 
     @Test

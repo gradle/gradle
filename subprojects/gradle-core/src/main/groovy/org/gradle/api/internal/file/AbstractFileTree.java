@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.*;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
@@ -42,7 +41,8 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
         return files;
     }
 
-    public FileCollection stopExecutionIfEmpty() {
+    @Override
+    public boolean isEmpty() {
         final AtomicBoolean found = new AtomicBoolean();
         visit(new EmptyFileVisitor() {
             public void visitFile(FileVisitDetails fileDetails) {
@@ -50,10 +50,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
                 fileDetails.stopVisiting();
             }
         });
-        if (!found.get()) {
-            throw new StopExecutionException(String.format("%s does not contain any files.", getCapDisplayName()));
-        }
-        return this;
+        return !found.get();
     }
 
     public FileTree matching(Closure filterConfigClosure) {
