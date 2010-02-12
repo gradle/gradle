@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.util;
 
+import org.gradle.api.file.FileCollection;
+
 import java.util.List;
 import java.util.Map;
 
@@ -100,16 +102,49 @@ public interface JavaForkOptions extends ProcessForkOptions {
     JavaForkOptions jvmArgs(Object... arguments);
 
     /**
+     * Returns the bootstrap classpath to use for the process. The default bootstrap classpath for the JVM is used when
+     * this classpath is empty.
+     *
+     * @return The bootstrap classpath. Never returns null.
+     */
+    FileCollection getBootstrapClasspath();
+
+    /**
+     * Sets the bootstrap classpath to use for the process. The given classpath is evaluated as for {@link
+     * org.gradle.api.Project#files(Object...)}. Set to an empty classpath to use the default bootstrap classpath for
+     * the specified JVM.
+     *
+     * @param classpath The classpath. Must not be null. Can be empty.
+     */
+    void setBootstrapClasspath(Iterable<?> classpath);
+
+    /**
+     * Adds the given values to the end of the bootstrap classpath for the process.
+     *
+     * @param classpath The classpath. Must not be null. Can be empty.
+     * @return this
+     */
+    JavaForkOptions bootstrapClasspath(Iterable<?> classpath);
+
+    /**
+     * Adds the given values to the end of the bootstrap classpath for the process.
+     *
+     * @param classpath The classpath.
+     * @return this
+     */
+    JavaForkOptions bootstrapClasspath(Object... classpath);
+
+    /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
-     * system properties and the maximum heap size.
+     * system properties, the maximum heap size, and the bootstrap classpath.
      *
      * @return The arguments. Returns an empty list if there are no arguments.
      */
     List<String> getAllJvmArgs();
 
     /**
-     * Sets the full set of arguments to use to launch the JVM for the process. Overwrites the system properties and
-     * maximum heap size.
+     * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system
+     * properties, maximum heap size, and bootstrap classpath.
      *
      * @param arguments The arguments. Must not be null.
      */

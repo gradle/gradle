@@ -15,6 +15,7 @@
  */
 package org.gradle.util.exec;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
@@ -85,6 +86,24 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
 
     public JavaExecHandleBuilder systemProperty(String name, Object value) {
         javaOptions.systemProperty(name, value);
+        return this;
+    }
+
+    public FileCollection getBootstrapClasspath() {
+        return javaOptions.getBootstrapClasspath();
+    }
+
+    public void setBootstrapClasspath(Iterable<?> classpath) {
+        javaOptions.setBootstrapClasspath(classpath);
+    }
+
+    public JavaForkOptions bootstrapClasspath(Iterable<?> classpath) {
+        javaOptions.bootstrapClasspath(classpath);
+        return this;
+    }
+
+    public JavaForkOptions bootstrapClasspath(Object... classpath) {
+        javaOptions.bootstrapClasspath(classpath);
         return this;
     }
 

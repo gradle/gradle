@@ -33,6 +33,10 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
         this.resolver = resolver == null ? new IdentityFileResolver() : resolver;
     }
 
+    protected FileResolver getResolver() {
+        return resolver;
+    }
+
     public String getExecutable() {
         return executable == null ? null : executable.toString();
     }

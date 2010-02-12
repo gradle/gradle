@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing.junit
 
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptionsTest
 import org.gradle.api.tasks.testing.FormatterOptions
-import org.gradle.api.tasks.testing.JunitForkOptions
 import org.gradle.external.junit.JUnitTestFramework
 import org.junit.Before
 import org.junit.Test
@@ -29,7 +28,6 @@ import static org.junit.Assert.*
  */
 class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramework> {
     static final Map TEST_FORMATTER_OPTION_MAP = [someDebugOption: 'someDebugOptionValue']
-    static final Map TEST_FORK_OPTION_MAP = [someForkOption: 'someForkOptionValue']
 
     JUnitOptions junitOptions
 
@@ -38,7 +36,6 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
 
         junitOptions = new JUnitOptions(testFrameworkMock)
         junitOptions.formatterOptions  = [optionMap: {TEST_FORMATTER_OPTION_MAP}] as FormatterOptions
-        junitOptions.forkOptions = [optionMap: {TEST_FORK_OPTION_MAP}] as JunitForkOptions
     }
 
     @Test public void testCompileOptions() {
@@ -50,14 +47,12 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
 
         assertEquals('true', junitOptions.printSummary)
 
-        assertNotNull(junitOptions.forkOptions)
         assertNotNull(junitOptions.formatterOptions)
     }
 
     @Test public void testOptionMapForFormatterAndForkOptions() {
         Map optionMap = junitOptions.optionMap()
         TEST_FORMATTER_OPTION_MAP.keySet().each { assertFalse(optionMap.containsKey(it)) }
-        assertEquals(TEST_FORK_OPTION_MAP, optionMap.subMap(TEST_FORK_OPTION_MAP.keySet()))
     }
 
     @Test public void testOptionMapWithNullables() {
@@ -93,16 +88,6 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
         booleans.values().each {
             assertEquals(false, optionMap[it])
         }
-    }
-
-    @Test public void testFork() {
-        boolean forkUseCalled = false
-        junitOptions.forkOptions = [define: {Map args ->
-            forkUseCalled = true
-            assertEquals(TEST_FORK_OPTION_MAP, args)
-        }] as JunitForkOptions
-        assert junitOptions.fork(TEST_FORK_OPTION_MAP).is(junitOptions)
-        assertTrue(forkUseCalled)
     }
 
     @Test public void testDefine() {

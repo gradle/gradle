@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal.tasks.util;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.util.Jvm;
 
+import java.io.File;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -27,8 +29,10 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     private final Pattern sysPropPattern = Pattern.compile("-D(.+?)=(.*)");
     private final Pattern noArgSysPropPattern = Pattern.compile("-D([^=]+)");
     private final Pattern maxHeapPattern = Pattern.compile("-Xmx(.+)");
+    private final Pattern bootstrapPattern = Pattern.compile("-Xbootclasspath:(.+)");
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
+    private final List<Object> bootstrapClasspath = new ArrayList<Object>();
     private String maxHeapSize;
 
     public DefaultJavaForkOptions(FileResolver resolver) {
@@ -52,6 +56,10 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         }
         if (maxHeapSize != null) {
             args.add(String.format("-Xmx%s", maxHeapSize));
+        }
+        FileCollection bootstrapClasspath = getBootstrapClasspath();
+        if (!bootstrapClasspath.isEmpty()) {
+            args.add(String.format("-Xbootclasspath:%s", bootstrapClasspath.getAsPath()));
         }
         return args;
     }
@@ -94,6 +102,11 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
                 maxHeapSize = matcher.group(1);
                 continue;
             }
+            matcher = bootstrapPattern.matcher(argStr);
+            if (matcher.matches()) {
+                setBootstrapClasspath(Arrays.asList(matcher.group(1).split(Pattern.quote(File.pathSeparator))));
+                continue;
+            }
 
             extraJvmArgs.add(argument);
         }
@@ -124,6 +137,27 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         return this;
     }
 
+    public FileCollection getBootstrapClasspath() {
+        return getResolver().resolveFiles(bootstrapClasspath);
+    }
+
+    public void setBootstrapClasspath(Iterable<?> classpath) {
+        bootstrapClasspath.clear();
+        bootstrapClasspath(classpath);
+    }
+
+    public JavaForkOptions bootstrapClasspath(Iterable<?> classpath) {
+        for (Object item : classpath) {
+            bootstrapClasspath.add(item);
+        }
+        return this;
+    }
+
+    public JavaForkOptions bootstrapClasspath(Object... classpath) {
+        bootstrapClasspath(Arrays.asList(classpath));
+        return this;
+    }
+
     public String getMaxHeapSize() {
         return maxHeapSize;
     }
@@ -137,6 +171,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(systemProperties);
         target.setMaxHeapSize(maxHeapSize);
+        target.setBootstrapClasspath(bootstrapClasspath);
         return this;
     }
 }

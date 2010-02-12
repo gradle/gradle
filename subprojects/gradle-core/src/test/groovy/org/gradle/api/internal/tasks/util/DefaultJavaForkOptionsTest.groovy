@@ -26,18 +26,31 @@ import org.gradle.api.internal.file.FileResolver
 import org.junit.Test
 import org.gradle.util.Jvm
 import org.gradle.api.tasks.util.JavaForkOptions
+import org.gradle.api.file.FileCollection
+import org.junit.Before
 
 @RunWith(JMock.class)
 public class DefaultJavaForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final DefaultJavaForkOptions options = new DefaultJavaForkOptions(context.mock(FileResolver.class), Jvm.current())
+    private final FileResolver resolver = context.mock(FileResolver.class)
+    private final FileCollection bootstrapClasspath = [isEmpty: {true}, toString: {'empty-classpath'}] as FileCollection
+    private final DefaultJavaForkOptions options = new DefaultJavaForkOptions(resolver, Jvm.current())
 
+    @Before
+    public void setUp() {
+        context.checking {
+            allowing(resolver).resolveFiles([])
+            will(returnValue(bootstrapClasspath))
+        }
+    }
+    
     @Test
     public void defaultValues() {
         assertThat(options.executable, notNullValue())
         assertThat(options.jvmArgs, isEmpty())
         assertThat(options.systemProperties, isEmptyMap())
         assertThat(options.maxHeapSize, nullValue())
+        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
         assertThat(options.allJvmArgs, isEmpty())
     }
 
@@ -67,11 +80,11 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
-    public void allJvmArgsIncludeSystemProperties() {
-        options.systemProperties(key: 12, key2: null)
+    public void allJvmArgsIncludeSystemPropertiesAsString() {
+        options.systemProperties(key: 12, key2: null, "key3": 'value')
         options.jvmArgs('arg1')
 
-        assertThat(options.allJvmArgs, equalTo(['arg1', '-Dkey=12', '-Dkey2']))
+        assertThat(options.allJvmArgs, equalTo(['arg1', '-Dkey=12', '-Dkey2', '-Dkey3=value']))
     }
 
     @Test
@@ -115,10 +128,62 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
+    public void canSetBootstrapClasspath() {
+        options.bootstrapClasspath = ['file.jar']
+
+        context.checking {
+            allowing(resolver).resolveFiles(['file.jar'])
+            will(returnValue(bootstrapClasspath))
+        }
+
+        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+    }
+
+    @Test
+    public void canAddToBootstrapClasspath() {
+        options.bootstrapClasspath = ['file.jar']
+        options.bootstrapClasspath('file2.jar')
+
+        context.checking {
+            allowing(resolver).resolveFiles(['file.jar', 'file2.jar'])
+            will(returnValue(bootstrapClasspath))
+        }
+
+        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+    }
+
+    @Test
+    public void allJvmArgsIncludeBootstrapClasspath() {
+        options.bootstrapClasspath('file.jar')
+
+        context.checking {
+            allowing(resolver).resolveFiles(['file.jar'])
+            will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'} ] as FileCollection))
+        }
+
+        assertThat(options.allJvmArgs, equalTo(['-Xbootclasspath:<classpath>']))
+    }
+
+    @Test
+    public void canSetBootstrapClasspathViaAllJvmArgs() {
+        options.bootstrapClasspath('file.jar')
+
+        options.allJvmArgs = ['-Xbootclasspath:file2.jar']
+
+        context.checking {
+            allowing(resolver).resolveFiles(['file2.jar'])
+            will(returnValue(bootstrapClasspath))
+        }
+
+        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+    }
+
+    @Test
     public void canCopyToTargetOptions() {
         options.executable('executable')
         options.jvmArgs('arg')
         options.systemProperties(key: 12)
+        options.bootstrapClasspath('file.jar')
         options.maxHeapSize = '1g'
 
         JavaForkOptions target = context.mock(JavaForkOptions.class)
@@ -127,6 +192,7 @@ public class DefaultJavaForkOptionsTest {
             one(target).setJvmArgs(['arg'])
             one(target).setSystemProperties(key: 12)
             one(target).setMaxHeapSize('1g')
+            one(target).setBootstrapClasspath(['file.jar'])
             ignoring(target)
         }
 

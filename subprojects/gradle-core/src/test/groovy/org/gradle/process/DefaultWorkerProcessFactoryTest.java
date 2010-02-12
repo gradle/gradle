@@ -54,6 +54,7 @@ public class DefaultWorkerProcessFactoryTest {
         context.checking(new Expectations() {{
             one(classPathRegistry).getClassPathFiles("WORKER_PROCESS");
             will(returnValue(processClassPath));
+            ignoring(fileResolver);
         }});
 
         WorkerProcessBuilder builder = factory.newProcess();

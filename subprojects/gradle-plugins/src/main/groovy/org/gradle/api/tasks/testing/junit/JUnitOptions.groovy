@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing.junit
 
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.api.tasks.testing.FormatterOptions
-import org.gradle.api.tasks.testing.JunitForkOptions
 import org.gradle.external.junit.JUnitTestFramework
 
 /**
@@ -32,10 +31,9 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     String printSummary = 'true'
 
     FormatterOptions formatterOptions = new FormatterOptions()
-    JunitForkOptions forkOptions = new JunitForkOptions()
 
     List excludedFieldsFromOptionMap() {
-        ['systemProperties', 'environment', 'formatterOptions', 'forkOptions']
+        ['formatterOptions']
     }
 
     Map fieldName2AntMap() {
@@ -51,14 +49,4 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     public JUnitOptions(JUnitTestFramework junitTestFramework) {
         super(junitTestFramework)
     }
-
-    Map optionMap() {
-        super.optionMap() + forkOptions.optionMap()
-    }
-
-    JUnitOptions fork(Map forkArgs) {
-        forkOptions.define(forkArgs)
-        this
-    }
 }
-

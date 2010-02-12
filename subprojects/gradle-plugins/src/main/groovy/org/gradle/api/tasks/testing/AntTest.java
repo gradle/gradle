@@ -17,6 +17,7 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.testing.TestSummaryListener;
 import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
@@ -72,8 +73,9 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
-    public ProcessForkOptions workingDir(Object dir) {
-        return options.workingDir(dir);
+    public AntTest workingDir(Object dir) {
+        options.workingDir(dir);
+        return this;
     }
 
     /**
@@ -86,8 +88,9 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
-    public ProcessForkOptions executable(Object executable) {
-        return options.executable(executable);
+    public AntTest executable(Object executable) {
+        options.executable(executable);
+        return this;
     }
 
     /**
@@ -114,15 +117,47 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
-    public JavaForkOptions systemProperties(Map<String, ?> properties) {
-        return options.systemProperties(properties);
+    public AntTest systemProperties(Map<String, ?> properties) {
+        options.systemProperties(properties);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public JavaForkOptions systemProperty(String name, Object value) {
-        return options.systemProperty(name, value);
+    public AntTest systemProperty(String name, Object value) {
+        options.systemProperty(name, value);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public FileCollection getBootstrapClasspath() {
+        return options.getBootstrapClasspath();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setBootstrapClasspath(Iterable<?> classpath) {
+        options.setBootstrapClasspath(classpath);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AntTest bootstrapClasspath(Iterable<?> classpath) {
+        options.bootstrapClasspath(classpath);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AntTest bootstrapClasspath(Object... classpath) {
+        options.bootstrapClasspath(classpath);
+        return this;
     }
 
     /**
@@ -156,15 +191,17 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
-    public JavaForkOptions jvmArgs(Iterable<?> arguments) {
-        return options.jvmArgs(arguments);
+    public AntTest jvmArgs(Iterable<?> arguments) {
+        options.jvmArgs(arguments);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public JavaForkOptions jvmArgs(Object... arguments) {
-        return options.jvmArgs(arguments);
+    public AntTest jvmArgs(Object... arguments) {
+        options.jvmArgs(arguments);
+        return this;
     }
 
     /**
@@ -191,15 +228,17 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
-    public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        return options.environment(environmentVariables);
+    public AntTest environment(Map<String, ?> environmentVariables) {
+        options.environment(environmentVariables);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public ProcessForkOptions environment(String name, Object value) {
-        return options.environment(name, value);
+    public AntTest environment(String name, Object value) {
+        options.environment(name, value);
+        return this;
     }
 
     /**
@@ -212,15 +251,17 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
-    public ProcessForkOptions copyTo(ProcessForkOptions target) {
-        return options.copyTo(target);
+    public AntTest copyTo(ProcessForkOptions target) {
+        options.copyTo(target);
+        return this;
     }
 
     /**
      * {@inheritDoc}
      */
-    public JavaForkOptions copyTo(JavaForkOptions target) {
-        return options.copyTo(target);
+    public AntTest copyTo(JavaForkOptions target) {
+        options.copyTo(target);
+        return this;
     }
 
     public void executeTests() {
