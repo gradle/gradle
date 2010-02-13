@@ -19,26 +19,28 @@ import groovy.xml.MarkupBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
-import org.gradle.external.testng.TestNGTestFramework
 import org.gradle.util.GFileUtils
 
 /**
  * @author Tom Eyckmans
  */
-
-public class TestNGOptions extends AbstractTestFrameworkOptions {
+public class TestNGOptions extends AbstractTestFrameworkOptions implements Serializable {
 
     public static final String JDK_ANNOTATIONS = 'JDK'
     public static final String JAVADOC_ANNOTATIONS = 'Javadoc'
 
     /**
-     * Either the string "JDK" or "Javadoc". Defines which kind of annotations are used in these tests. If you use "Javadoc", you will also need to specify "sourcedir".
+     * When true, Javadoc annotations are used for these tests. When false, JDK annotations are used. If you use
+     * Javadoc annotations, you will also need to specify "sourcedir".
      *
-     * Not required.
-     *
-     * Defaults to "JDK" if you're using the JDK 5 jar and to "Javadoc" if you're using the JDK 1.4 jar.
+     * Defaults to JDK annotations if you're using the JDK 5 jar and to Javadoc annotations if you're using the JDK 1.4
+     * jar.
      */
-    String annotations
+    boolean javadocAnnotations
+
+    def String getAnnotations() {
+        return javadocAnnotations ? JAVADOC_ANNOTATIONS : JDK_ANNOTATIONS;
+    }
 
     /**
      * List of all directories containing Test sources. Should be set if annotations is 'Javadoc'.
@@ -85,16 +87,12 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     /**
      * Sets the default name of the test suite, if one is not specified in a suite xml file or in the source code.
      */
-    String suiteName = null
+    String suiteName = 'Gradle suite'
 
     /**
      * Sets the default name of the test, if one is not specified in a suite xml file or in the source code.
-     *
-     * Not required. 
-     *
-     * Defaults to "Ant test"
      */
-    String testName = null
+    String testName = 'Gradle test'
 
     /**
      * The suiteXmlFiles to use for running TestNG.
@@ -103,12 +101,11 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      */
     List<File> suiteXmlFiles = []
 
-    StringWriter suiteXmlWriter = null
-    MarkupBuilder suiteXmlBuilder = null
+    transient StringWriter suiteXmlWriter = null
+    transient MarkupBuilder suiteXmlBuilder = null
     private File projectDir
 
-    public TestNGOptions(TestNGTestFramework testngTestFramework, File projectDir) {
-        super(testngTestFramework)
+    public TestNGOptions(File projectDir) {
         this.projectDir = projectDir
     }
 
@@ -118,51 +115,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         } else {
             javadocAnnotations()
         }
-    }
-
-    List excludedFieldsFromOptionMap() {
-        List excludedFieldsFromOptionMap = ['testResources', 'projectDir',
-                'systemProperties', 'jvmArgs', 'environment',
-                'suiteXmlFiles', 'suiteXmlWriter', 'suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
-
-        if (parallel == null) {
-            excludedFieldsFromOptionMap << 'parallel'
-            excludedFieldsFromOptionMap << 'threadCount'
-        }
-        if (suiteName == null) {
-            excludedFieldsFromOptionMap << 'suiteName'
-        }
-        if (testName == null) {
-            excludedFieldsFromOptionMap << 'testName'
-        }
-
-        return excludedFieldsFromOptionMap
-    }
-
-    Map fieldName2AntMap() {
-        [
-                outputDir: 'outputdir',
-                suiteName: 'suitename',
-                testName: 'testname'
-        ]
-    }
-
-    Map optionMap() {
-        Map optionMap = super.optionMap()
-
-        if (!listeners.empty) {
-            optionMap.put('listeners', listeners.join(', '));
-        }
-
-        if (!includeGroups.empty) {
-            optionMap.put('groups', includeGroups.join(', '));
-        }
-
-        if (!excludeGroups.empty) {
-            optionMap.put('excludedGroups', excludeGroups.join(', '));
-        }
-
-        return optionMap;
     }
 
     MarkupBuilder suiteXmlBuilder() {
@@ -222,14 +174,12 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     }
 
     TestNGOptions jdkAnnotations() {
-        this.annotations = JDK_ANNOTATIONS
-
+        javadocAnnotations = false
         return this
     }
 
     TestNGOptions javadocAnnotations() {
-        this.annotations = JAVADOC_ANNOTATIONS
-
+        javadocAnnotations = true
         return this
     }
 

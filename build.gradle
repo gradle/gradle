@@ -60,7 +60,8 @@ libraries = [
         log4j_to_slf4j  : 'org.slf4j:log4j-over-slf4j:1.5.10@jar',
         logback_classic : 'ch.qos.logback:logback-classic:0.9.18@jar',
         logback_core    : 'ch.qos.logback:logback-core:0.9.18@jar',
-        junit           : 'junit:junit:4.7'
+        junit           : 'junit:junit:4.7',
+        xmlunit         : 'xmlunit:xmlunit:1.3'
     ]
 
 libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.commons_cli,

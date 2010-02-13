@@ -69,9 +69,10 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         setMocks();
 
         context.checking(new Expectations() {{
-            one(testMock).getTestSrcDirs();  will(returnValue(testSrcDirs));
+            allowing(testMock).getTestSrcDirs();  will(returnValue(testSrcDirs));
+            allowing(testMock).getTestReportDir(); will(returnValue(testReportDir));
             one(testngOptionsMock).setTestResources(testSrcDirs);
-            one(testMock).getTestReportDir(); will(returnValue(testReportDir));
+            one(testngOptionsMock).getSuites(testReportDir);
         }});
 
         TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create();

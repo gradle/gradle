@@ -15,16 +15,16 @@
  */
 package org.gradle.integtests.testng
 
+import org.gradle.api.Project
 import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.GradleDistribution
 import org.gradle.integtests.GradleExecuter
+import org.gradle.integtests.TestResult
+import org.gradle.util.TestFile
+import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
-import static org.hamcrest.Matchers.*
-import org.gradle.util.TestFile
-import org.junit.Ignore
-import org.gradle.api.Project
 
 /**
  * @author Tom Eyckmans
@@ -36,49 +36,39 @@ public class TestNGIntegrationTest {
     static final String JDK14 = "jdk14"
     static final String JDK15 = "jdk15"
 
-    static final GROOVY_JDK15_FAILING = failingIntegrationProject(GROOVY, JDK15, { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/BadTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
+    static final GROOVY_JDK15_FAILING = failingIntegrationProject(GROOVY, JDK15, { name, projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.BadTest')
+        result.assertTestFailed('org.gradle.BadTest', 'failingTest')
     })
-    static final GROOVY_JDK15_PASSING = passingIntegrationProject(GROOVY, JDK15, { name, TestFile projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/OkTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
+    static final GROOVY_JDK15_PASSING = passingIntegrationProject(GROOVY, JDK15, { name, TestFile projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
     })
-    static final JAVA_JDK14_FAILING = failingIntegrationProject(JAVA, JDK14, { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/BadTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
+    static final JAVA_JDK14_FAILING = failingIntegrationProject(JAVA, JDK14, { name, projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.BadTest')
+        result.assertTestFailed('org.gradle.BadTest', 'failingTest')
     })
-    static final JAVA_JDK14_PASSING = passingIntegrationProject(JAVA, JDK14, { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/OkTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
+    static final JAVA_JDK14_PASSING = passingIntegrationProject(JAVA, JDK14, { name, projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
     })
-    static final JAVA_JDK15_FAILING = failingIntegrationProject(JAVA, JDK15, { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/BadTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
+    static final JAVA_JDK15_FAILING = failingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.BadTest')
+        result.assertTestFailed('org.gradle.BadTest', 'failingTest')
     })
-    static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/OkTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
-        projectDir.file('build/reports/tests/testng-results.xml').assertContents(containsString('<class name="org.gradle.OkTest"'))
-        projectDir.file('build/reports/tests/testng-results.xml').assertContents(containsString('name="passingTest"'))
+    static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
     })
-    static final JAVA_JDK15_PASSING_NO_REPORT = passingIntegrationProject(JAVA, JDK15, "-no-report", { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/Ok.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/OkTest.class')
-        checkDoesNotExists(projectDir, 'build/reports/tests/index.html')
+    static final JAVA_JDK15_PASSING_NO_REPORT = passingIntegrationProject(JAVA, JDK15, "-no-report", { name, TestFile projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        projectDir.file('build/reports/tests/index.html').assertDoesNotExist()
     })
-    static final SUITE_XML_BUILDER = new TestNGIntegrationProject("suitexmlbuilder", false, null, { name, projectDir, result ->
-        checkExists(projectDir, 'build/classes/main/org/gradle/testng/User.class')
-        checkExists(projectDir, 'build/classes/main/org/gradle/testng/UserImpl.class')
-        checkExists(projectDir, 'build/classes/test/org/gradle/testng/UserImplTest.class')
-        checkExists(projectDir, 'build/reports/tests/index.html')
-        checkExists(projectDir, 'build/reports/tests/testng-results.xml')
+    static final SUITE_XML_BUILDER = new TestNGIntegrationProject("suitexmlbuilder", false, null, { name, projectDir, TestResult result ->
+        result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
+        result.assertTestsExecuted('org.gradle.testng.UserImplTest', 'testOkFirstName')
+        result.assertTestPassed('org.gradle.testng.UserImplTest', 'testOkFirstName')
     })
 
     // Injected by test runner
@@ -109,7 +99,7 @@ public class TestNGIntegrationTest {
         """
         executer.withTasks('build').run();
 
-        testDir.file('build/reports/tests/testng-results.xml').assertIsFile();
+        new TestNgResult(testDir).assertTestPassed('org.gradle.OkTest', 'ok')
     }
 
     @Test
@@ -125,17 +115,14 @@ public class TestNGIntegrationTest {
 
     @Test
     public void javaJdk14() {
-        checkProject(GROOVY_JDK15_PASSING)
-        checkProject(GROOVY_JDK15_FAILING)
+        checkProject(JAVA_JDK14_PASSING)
+        checkProject(JAVA_JDK14_FAILING)
     }
 
     @Test
     public void javaJdk15() {
         checkProject(JAVA_JDK15_PASSING)
         checkProject(JAVA_JDK15_FAILING)
-        // TODO currently reports are always generated because the antTestNGExecute task uses the
-        // default listeners and these generate reports by default.
-        // checkProject(JAVA_JDK15_PASSING_NO_REPORT)
     }
 
     @Ignore
@@ -158,13 +145,5 @@ public class TestNGIntegrationTest {
 
         // output: output, error: error, command: actualCommand, unixCommand: unixCommand, windowsCommand: windowsCommand
         project.doAssert(projectDir, result)
-    }
-
-    static void checkExists(File baseDir, String[] path) {
-        new TestFile(baseDir, path).assertExists()
-    }
-
-    static void checkDoesNotExists(File baseDir, String[] path) {
-        new TestFile(baseDir, path).assertDoesNotExist()
     }
 }

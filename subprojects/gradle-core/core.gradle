@@ -67,7 +67,7 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
-    testCompile "xmlunit:xmlunit:1.2"
+    testCompile libraries.xmlunit
 
     runtime libraries.ant_launcher,
             "org.apache.ant:ant-trax:1.7.0@jar"

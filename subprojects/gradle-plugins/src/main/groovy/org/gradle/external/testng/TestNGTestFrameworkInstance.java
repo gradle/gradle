@@ -28,6 +28,7 @@ import org.gradle.process.WorkerProcessBuilder;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * @author Tom Eyckmans
@@ -42,7 +43,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
     }
 
     public void initialize() {
-        options = new TestNGOptions((TestNGTestFramework) testFramework, testTask.getProject().getProjectDir());
+        options = new TestNGOptions(testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property(
                 "sourceCompatibility")));
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
@@ -50,7 +51,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     public TestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
-        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir());
+        List<File> suiteFiles = options.getSuites(testTask.getTestReportDir());
+        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), options, suiteFiles);
     }
 
     public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
@@ -84,13 +86,17 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {
         private final File testReportDir;
+        private final TestNGOptions options;
+        private final List<File> suiteFiles;
 
-        public TestClassProcessorFactoryImpl(File testReportDir) {
+        public TestClassProcessorFactoryImpl(File testReportDir, TestNGOptions options, List<File> suiteFiles) {
             this.testReportDir = testReportDir;
+            this.options = options;
+            this.suiteFiles = suiteFiles;
         }
 
         public TestClassProcessor create() {
-            return new TestNGTestClassProcessor(testReportDir);
+            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles);
         }
     }
 }

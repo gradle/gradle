@@ -12,6 +12,5 @@ dependencies {
 
 test {
     useTestNG() 
-
 	disableTestReport()
 }

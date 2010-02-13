@@ -37,12 +37,13 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
     {
         super.setUp(TestNGTestFramework)
 
-        testngOptions = new TestNGOptions(testFrameworkMock, new File("projectDir"))
+        testngOptions = new TestNGOptions(new File("projectDir"))
     }
 
     @Test public void verifyDefaults()
     {
-        assertNull(testngOptions.annotations)
+        assertFalse(testngOptions.javadocAnnotations)
+        assertEquals(TestNGOptions.JDK_ANNOTATIONS, testngOptions.annotations)
 
         assertNull(testngOptions.testResources)
 
@@ -59,35 +60,26 @@ public class TestNGOptionsTest extends AbstractTestFrameworkOptionsTest<TestNGTe
 
         assertEquals(testngOptions.threadCount, 1)
 
-        assertNull(testngOptions.suiteName)
+        assertEquals('Gradle suite', testngOptions.suiteName)
 
-        assertNull(testngOptions.testName)
+        assertEquals('Gradle test', testngOptions.testName)
     }
 
     @Test public void jdk14SourceCompatibilityAnnotationsDefaulting()
     {
-        assertNull(testngOptions.annotations)
-
         testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_4)
-
         assertEquals(testngOptions.annotations, TestNGOptions.JAVADOC_ANNOTATIONS)
     }
 
     @Test public void jdk15SourceCompatibilityAnnotationsDefaulting()
     {
-        assertNull(testngOptions.annotations)
-
         testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_5)
-
         assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
     }
 
     @Test public void jdk16SourceCompatibilityAnnotationsDefaulting()
     {
-        assertNull(testngOptions.annotations)
-
         testngOptions.setAnnotationsOnSourceCompatibility(JavaVersion.VERSION_1_6)
-
         assertEquals(testngOptions.annotations, TestNGOptions.JDK_ANNOTATIONS)
     }
 

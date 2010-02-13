@@ -43,7 +43,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     public void initialize() {
         antJUnitReport = new AntJUnitReport();
-        options = new JUnitOptions((JUnitTestFramework) testFramework);
+        options = new JUnitOptions();
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 

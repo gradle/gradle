@@ -18,7 +18,6 @@ package org.gradle.api.tasks.testing.junit
 
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.api.tasks.testing.FormatterOptions
-import org.gradle.external.junit.JUnitTestFramework
 
 /**
  * @author Hans Dockter
@@ -31,22 +30,4 @@ class JUnitOptions extends AbstractTestFrameworkOptions {
     String printSummary = 'true'
 
     FormatterOptions formatterOptions = new FormatterOptions()
-
-    List excludedFieldsFromOptionMap() {
-        ['formatterOptions']
-    }
-
-    Map fieldName2AntMap() {
-        [
-                filterTrace: 'filtertrace',
-                outputToFormatters: 'outputtoformatters',
-                showOutput: 'showoutput',
-                tempDir: 'tempdir',
-                printSummary: 'printsummary'
-        ]
-    }
-
-    public JUnitOptions(JUnitTestFramework junitTestFramework) {
-        super(junitTestFramework)
-    }
 }

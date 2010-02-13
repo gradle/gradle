@@ -11,5 +11,6 @@ dependencies {
 }
 
 test {
-   useTestNG().options.javadocAnnotations() 
+    useTestNG()
+    scanForTestClasses = false
 }

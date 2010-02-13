@@ -34,12 +34,12 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
     @Before public void setUp()  {
         super.setUp(JUnitTestFramework);
 
-        junitOptions = new JUnitOptions(testFrameworkMock)
+        junitOptions = new JUnitOptions()
         junitOptions.formatterOptions  = [optionMap: {TEST_FORMATTER_OPTION_MAP}] as FormatterOptions
     }
 
-    @Test public void testCompileOptions() {
-        junitOptions = new JUnitOptions(testFrameworkMock)
+    @Test public void testDefaultValues() {
+        junitOptions = new JUnitOptions()
         assertTrue(junitOptions.filterTrace)
         assertTrue(junitOptions.outputToFormatters)
 
@@ -48,52 +48,5 @@ class JUnitOptionsTest extends AbstractTestFrameworkOptionsTest<JUnitTestFramewo
         assertEquals('true', junitOptions.printSummary)
 
         assertNotNull(junitOptions.formatterOptions)
-    }
-
-    @Test public void testOptionMapForFormatterAndForkOptions() {
-        Map optionMap = junitOptions.optionMap()
-        TEST_FORMATTER_OPTION_MAP.keySet().each { assertFalse(optionMap.containsKey(it)) }
-    }
-
-    @Test public void testOptionMapWithNullables() {
-        junitOptions.printSummary = null
-        Map optionMap = junitOptions.optionMap()
-        Map nullables = [
-                printSummary: 'printsummary',
-        ]
-        nullables.each {String field, String antProperty ->
-            assertFalse(optionMap.keySet().contains(antProperty))
-        }
-
-        nullables.keySet().each {junitOptions."$it" = "${it}Value"}
-        optionMap = junitOptions.optionMap()
-        nullables.each {String field, String antProperty ->
-            assertEquals(field + "Value", optionMap[antProperty])
-        }
-    }
-
-    @Test public void testOptionMapWithTrueFalseValues() {
-        Map booleans = [
-                filterTrace: 'filtertrace',
-                outputToFormatters: 'outputtoformatters',
-                showOutput: 'showoutput'
-        ]
-        booleans.keySet().each {junitOptions."$it" = true}
-        Map optionMap = junitOptions.optionMap()
-        booleans.values().each {
-            assertEquals(true, optionMap[it])
-        }
-        booleans.keySet().each {junitOptions."$it" = false}
-        optionMap = junitOptions.optionMap()
-        booleans.values().each {
-            assertEquals(false, optionMap[it])
-        }
-    }
-
-    @Test public void testDefine() {
-        junitOptions.printSummary = 'xxxx'
-        junitOptions.define(printSummary: null, showOutput: true)
-        assertTrue(junitOptions.showOutput)
-        assertNull(junitOptions.printSummary)
     }
 }

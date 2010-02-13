@@ -55,6 +55,6 @@ public class TestNGIntegrationProject {
     }
 
     void doAssert(projectDir, result) {
-        assertClosure(name, projectDir, result)
+        assertClosure(name, projectDir, new TestNgResult(projectDir))
     }
 }
