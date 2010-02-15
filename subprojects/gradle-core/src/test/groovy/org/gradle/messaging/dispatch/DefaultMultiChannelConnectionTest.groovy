@@ -13,16 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.messaging.dispatch
 
-
-import static org.junit.Assert.*
-
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
 import org.gradle.util.MultithreadedTestCase
+import org.jmock.integration.junit4.JMock
 import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(JMock.class)
 public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
@@ -40,7 +39,8 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
                 syncAt(1)
                 return null
             }
-            one(target).dispatch(new ChannelMessage('channel1', message))
+            one(target).dispatch(new ChannelMetaInfo('channel1', 0))
+            one(target).dispatch(new ChannelMessage(0, message))
             one(target).dispatch(new EndOfStream())
             one(target).stop()
         }
@@ -60,7 +60,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
         Dispatch<Message> handler = context.mock(Dispatch.class)
         context.checking {
             one(target).receive()
-            will(returnValue(new ChannelMessage('channel1', message)))
+            will(returnValue(new ChannelMetaInfo('channel1', 0)))
+            one(target).receive()
+            will(returnValue(new ChannelMessage(0, message)))
             one(handler).dispatch(message)
             one(target).receive()
             will {
@@ -91,7 +93,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
 
         context.checking {
             one(target).receive()
-            will(returnValue(new ChannelMessage('channel1', message)))
+            will(returnValue(new ChannelMetaInfo('channel1', 0)))
+            one(target).receive()
+            will(returnValue(new ChannelMessage(0, message)))
             one(handler1).dispatch(message)
             will {
                 syncAt(1)
@@ -99,9 +103,11 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             }
 
             one(target).receive()
+            will(returnValue(new ChannelMetaInfo('channel2', 1)))
+            one(target).receive()
             will {
                 syncAt(1)
-                return new ChannelMessage('channel2', message2)
+                return new ChannelMessage(1, message2)
             }
             one(handler2).dispatch(message2)
             will {
@@ -135,7 +141,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
         Dispatch<Message> handler = context.mock(Dispatch.class)
         context.checking {
             one(target).receive()
-            will(returnValue(new ChannelMessage('channel1', message)))
+            will(returnValue(new ChannelMetaInfo('channel1', 1)))
+            one(target).receive()
+            will(returnValue(new ChannelMessage(1, message)))
             one(handler).dispatch(message)
             will(throwException(new RuntimeException()))
             one(target).receive()
@@ -168,8 +176,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
                 syncAt(1)
                 return null
             }
-            one(target).dispatch(new ChannelMessage('channel1', message))
-            one(target).dispatch(new ChannelMessage('channel1', message2))
+            one(target).dispatch(new ChannelMetaInfo('channel1', 0))
+            one(target).dispatch(new ChannelMessage(0, message))
+            one(target).dispatch(new ChannelMessage(0, message2))
             will {
                 syncAt(1)
             }
@@ -197,11 +206,13 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
         
         context.checking {
             one(target).receive()
-            will(returnValue(new ChannelMessage('channel1', message)))
+            will(returnValue(new ChannelMetaInfo('channel1', 1)))
+            one(target).receive()
+            will(returnValue(new ChannelMessage(1, message)))
             one(target).receive()
             will {
                 syncAt(1)
-                return new ChannelMessage('channel1', message2)
+                return new ChannelMessage(1, message2)
             }
             one(handler).dispatch(message)
             one(handler).dispatch(message2)
@@ -229,7 +240,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
 
         context.checking {
             one(target).receive()
-            will(returnValue(new ChannelMessage('channel1', message)))
+            will(returnValue(new ChannelMetaInfo('channel1', 1)))
+            one(target).receive()
+            will(returnValue(new ChannelMessage(1, message)))
             one(handler).dispatch(message)
             will {
                 syncAt(1)
@@ -261,7 +274,8 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
                 return null
             }
 
-            one(target).dispatch(new ChannelMessage('channel1', message))
+            one(target).dispatch(new ChannelMetaInfo('channel1', 0))
+            one(target).dispatch(new ChannelMessage(0, message))
             will {
                 syncAt(1)
             }

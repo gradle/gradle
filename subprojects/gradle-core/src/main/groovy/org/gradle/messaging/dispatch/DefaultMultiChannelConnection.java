@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import org.gradle.api.GradleException;
@@ -47,7 +48,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         // Outgoing pipeline: <source> -> <channel-mux> -> <end-of-stream-dispatch> -> <async-queue> -> <ignore-failures> -> <connection>
         outgoingQueue = new AsyncDispatch<Message>(executor);
         outgoingQueue.dispatchTo(wrapFailures(connection));
-        outgoingDispatch = new EndOfStreamDispatch(outgoingQueue);
+        outgoingDispatch = new EndOfStreamDispatch(new ChannelMessageMarshallingDispatch(outgoingQueue));
 
         // Incoming pipeline: <connection> -> <async-queue> -> <ignore-failures> -> <end-of-stream-filter> -> <channel-demux> -> <channel-async-queue> -> <ignore-failures> -> <handler>
         incomingDemux = new IncomingDemultiplex();
@@ -57,7 +58,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
             }
         });
         incomingQueue = new AsyncDispatch<Message>(executor);
-        incomingQueue.dispatchTo(wrapFailures(incomingDispatch));
+        incomingQueue.dispatchTo(wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
         incomingQueue.receiveFrom(connection);
     }
 
