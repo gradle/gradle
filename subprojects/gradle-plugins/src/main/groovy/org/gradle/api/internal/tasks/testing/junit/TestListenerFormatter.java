@@ -13,36 +13,41 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing.junit;
 
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
+import junit.framework.TestCase;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
+import org.gradle.api.internal.tasks.testing.DefaultTest;
+import org.gradle.api.internal.tasks.testing.DefaultTestClass;
+import org.gradle.api.internal.tasks.testing.DefaultTestResult;
 import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.api.tasks.testing.TestSuite;
+import org.gradle.util.TimeProvider;
 
-import java.io.IOException;
 import java.io.OutputStream;
-import java.io.Serializable;
 
 public class TestListenerFormatter implements JUnitResultFormatter {
-    private TestListener listener;
+    private final TestListener listener;
+    private final TimeProvider timeProvider;
     private Throwable error;
+    private long startTime;
 
-    public TestListenerFormatter(TestListener listener) throws IOException {
-        // for testing
+    public TestListenerFormatter(TestListener listener, TimeProvider timeProvider) {
         this.listener = listener;
+        this.timeProvider = timeProvider;
     }
-    
+
     public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
-        listener.beforeSuite(new MySuite(jUnitTest));
+        listener.beforeSuite(convert(jUnitTest));
     }
 
     public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
-        listener.afterSuite(new MySuite(jUnitTest));
+        listener.afterSuite(convert(jUnitTest));
     }
 
     public void setOutput(OutputStream outputStream) {
@@ -54,6 +59,11 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     public void setSystemError(String s) {
     }
 
+    public void startTest(Test test) {
+        startTime = timeProvider.getCurrentTime();
+        listener.beforeTest(convert(test));
+    }
+
     public void addError(Test test, Throwable throwable) {
         error = throwable;
     }
@@ -63,75 +73,23 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void endTest(Test test) {
-        MyResult result = new MyResult(error);
+        long endTime = timeProvider.getCurrentTime();
+        DefaultTestResult result = new DefaultTestResult(error, startTime, endTime);
         error = null;
-        listener.afterTest(new MyTest(test), result);
+        listener.afterTest(convert(test), result);
     }
 
-    public void startTest(Test test) {
-        listener.beforeTest(new MyTest(test));
+    private TestSuite convert(JUnitTest jUnitTest) {
+        String className = jUnitTest.getName();
+        return new DefaultTestClass(className);
     }
 
-    private static class MySuite implements TestSuite, Serializable
-    {
-        private String name;
-
-        public MySuite(JUnitTest jUnitTest) {
-            name = jUnitTest.getName();
+    protected DefaultTest convert(Test test) {
+        if (test instanceof TestCase) {
+            TestCase testCase = (TestCase) test;
+            return new DefaultTest(testCase.getClass().getName(), testCase.getName());
         }
-
-        @Override
-        public String toString() {
-            return String.format("suite %s", name);
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
-    private static class MyTest implements org.gradle.api.tasks.testing.Test, Serializable
-    {
-        private String name;
-
-        public MyTest(Test test) {
-            name = test.toString();
-        }
-
-        @Override
-        public String toString() {
-            return String.format("test %s", name);
-        }
-
-        public String getName() {
-            return name;
-        }
-    }
-
-    private static class MyResult implements TestResult, Serializable
-    {
-        private Throwable error;
-
-        private MyResult(Throwable error) {
-            this.error = error;
-        }
-
-        public ResultType getResultType() {
-            if (error != null) {
-                return ResultType.FAILURE;
-            }
-            else {
-                return ResultType.SUCCESS;
-            }
-        }
-
-        public Throwable getException() {
-            if (error != null) {
-                return error;
-            }
-
-            throw new IllegalStateException("No exception to return");
-        }
+        return new DefaultTest(test.getClass().getName(), test.toString());
     }
 }
 

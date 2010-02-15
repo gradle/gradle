@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.testing;
 
 /**
@@ -23,4 +24,11 @@ public interface Test {
      * @return The name of the test.  Not guaranteed to be unique.
      */
     public String getName();
+
+    /**
+     * Returns the test class name for this test, if any.
+     *
+     * @return The class name. May return null.
+     */
+    public String getClassName();
 }

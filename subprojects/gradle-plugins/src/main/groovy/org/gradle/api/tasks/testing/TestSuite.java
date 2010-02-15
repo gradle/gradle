@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,7 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * Describes a suite of tests.  Many testing frameworks aggregate
- * tests into suites that get executed together.
+ * Describes a suite of tests.  Many testing frameworks aggregate tests into suites that get executed together.
  */
-public interface TestSuite {
-    /**
-     * @return The name of the suite.  Not guaranteed to be unique.
-     */
-    public String getName();
+public interface TestSuite extends Test {
 }

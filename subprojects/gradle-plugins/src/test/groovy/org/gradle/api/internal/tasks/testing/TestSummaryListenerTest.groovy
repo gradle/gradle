@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.tasks.testing.Test
@@ -31,7 +33,7 @@ public class TestSummaryListenerTest {
     @org.junit.Test
     public void logsSuccessfulTests() {
         context.checking {
-            one(logger).info('Test {} PASSED', '<test>')
+            one(logger).info('{} PASSED', '<test>')
         }
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SUCCESS))
     }
@@ -39,7 +41,7 @@ public class TestSummaryListenerTest {
     @org.junit.Test
     public void logsSkippedTests() {
         context.checking {
-            one(logger).info('Test {} SKIPPED', '<test>')
+            one(logger).info('{} SKIPPED', '<test>')
         }
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SKIPPED))
     }
@@ -47,7 +49,7 @@ public class TestSummaryListenerTest {
     @org.junit.Test
     public void logsFailedTestExecution() {
         context.checking {
-            one(logger).error('Test {} FAILED', '<test>')
+            one(logger).error('{} FAILED', '<test>')
         }
         listener.afterTest(test('<test>'), result(TestResult.ResultType.FAILURE))
     }
@@ -57,7 +59,7 @@ public class TestSummaryListenerTest {
     }
 
     private Test test(String name) {
-        return {-> name} as Test
+        return [toString: {-> name}] as Test
     }
 }
 

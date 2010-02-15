@@ -20,6 +20,7 @@ package org.gradle.util;
  * @author Hans Dockter
  */
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
@@ -49,8 +50,13 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
 
                 public Object invoke(Invocation invocation) throws Throwable {
                     List<Object> params = Arrays.asList(invocation.getParametersAsArray());
-                    Object result = cl.call(params.subList(0, Math.min(invocation.getParametersAsArray().length,
-                            cl.getMaximumNumberOfParameters())));
+                    Object result;
+                    try {
+                        result = cl.call(params.subList(0, Math.min(invocation.getParametersAsArray().length,
+                                cl.getMaximumNumberOfParameters())));
+                    } catch (InvokerInvocationException e) {
+                        throw e.getCause();
+                    }
                     if (invocation.getInvokedMethod().getReturnType().isInstance(result)) {
                         return result;
                     }

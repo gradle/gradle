@@ -13,8 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -43,15 +45,16 @@ public class TestSummaryListener implements TestListener {
     }
 
     public void afterTest(Test test, TestResult result) {
+        String testDescription = StringUtils.capitalize(test.toString());
         switch (result.getResultType()) {
             case SUCCESS:
-                logger.info("Test {} PASSED", test.getName());
+                logger.info("{} PASSED", testDescription);
                 break;
             case SKIPPED:
-                logger.info("Test {} SKIPPED", test.getName());
+                logger.info("{} SKIPPED", testDescription);
                 break;
             case FAILURE:
-                logger.error("Test {} FAILED", test.getName());
+                logger.error("{} FAILED", testDescription);
                 hadFailures = true;
                 break;
             default:

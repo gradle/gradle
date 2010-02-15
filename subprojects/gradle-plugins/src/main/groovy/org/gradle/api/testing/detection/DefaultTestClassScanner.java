@@ -58,8 +58,6 @@ public class DefaultTestClassScanner implements TestClassScanner {
         } else {
             detectionScan(testClassFileSet);
         }
-
-        testClassProcessor.endProcessing();
     }
 
     private void detectionScan(final FileSet testClassFileSet) {

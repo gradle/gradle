@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.testing;
 
 /**
@@ -20,6 +21,7 @@ package org.gradle.api.tasks.testing;
  */
 public interface TestResult {
     public enum ResultType { SUCCESS, FAILURE, SKIPPED }
+
     /**
      * @return The type of result.  Generally one wants it to be SUCCESS!
      */
@@ -33,4 +35,18 @@ public interface TestResult {
      * @throws IllegalStateException If the result type is anything other than FAILURE.
      */
     public Throwable getException(); // throws exception if type !=  FAILURE
+
+    /**
+     * Returns the time when this test started execution.
+     *
+     * @return The start time, in milliseconds since the epoch.
+     */
+    public long getStartTime();
+
+    /**
+     * Returns the time when this test completed execution.
+     *
+     * @return The end t ime, in milliseconds since the epoch.
+     */
+    public long getEndTime();
 }

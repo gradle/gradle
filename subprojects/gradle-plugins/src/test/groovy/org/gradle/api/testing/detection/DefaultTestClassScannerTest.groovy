@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.testing.detection
 
 import org.gradle.util.JUnit4GroovyMockery
@@ -54,7 +56,6 @@ public class DefaultTestClassScannerTest {
             inSequence(sequence)
             one(detector).processTestClass(tmpDir.file('dir1/Class1.class'))
             one(detector).processTestClass(tmpDir.file('dir2/Class2.class'))
-            one(processor).endProcessing()
             inSequence(sequence)
         }
         

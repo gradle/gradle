@@ -19,6 +19,7 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.tasks.testing.DefaultTestSuite;
 import org.gradle.api.internal.tasks.testing.TestSummaryListener;
 import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
@@ -285,14 +286,29 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(AntTest.class));
         addTestListener(listener);
 
-        processor.startProcessing(getTestListenerBroadcaster().getSource());
+        TestListener broadcaster = getTestListenerBroadcaster().getSource();
+        broadcaster.beforeSuite(new RootTestSuite());
+        processor.startProcessing(broadcaster);
         TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
         testClassScanner.run();
+        processor.endProcessing();
+        broadcaster.afterSuite(new RootTestSuite());
 
         testFrameworkInstance.report();
 
         if (!isIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
+        }
+    }
+
+    private static class RootTestSuite extends DefaultTestSuite {
+        public RootTestSuite() {
+            super("");
+        }
+
+        @Override
+        public String toString() {
+            return "all tests";
         }
     }
 }

@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project
@@ -25,6 +27,9 @@ import org.junit.Ignore
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
+import static org.junit.Assert.*
+import static org.gradle.util.Matchers.*
+import org.gradle.integtests.ExecutionResult
 
 /**
  * @author Tom Eyckmans
@@ -100,6 +105,55 @@ public class TestNGIntegrationTest {
         executer.withTasks('build').run();
 
         new TestNgResult(testDir).assertTestPassed('org.gradle.OkTest', 'ok')
+    }
+
+    @Test
+    public void canListenerForTestResults() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file('src/main/java/AppException.java').writelns(
+                "public class AppException extends Exception { }"
+        );
+
+        testDir.file('src/test/java/SomeTest.java').writelns(
+                "public class SomeTest {",
+                "@org.testng.annotations.Test public void pass() { }",
+                "@org.testng.annotations.Test public void fail() { assert false; }",
+                "@org.testng.annotations.Test public void knownError() { throw new RuntimeException(\"message\"); }",
+                "@org.testng.annotations.Test public void unknownError() throws AppException { throw new AppException(); }",
+                "}"
+        );
+
+        testDir.file('build.gradle') << '''
+            apply id: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'org.testng:testng:5.8:jdk15' }
+            def listener = new TestListenerImpl()
+            test {
+                useTestNG()
+                addTestListener(listener)
+                ignoreFailures = true
+            }
+            class TestListenerImpl implements TestListener {
+                void beforeSuite(TestSuite suite) { println "START [$suite] [$suite.name]" }
+                void afterSuite(TestSuite suite) { println "FINISH [$suite] [$suite.name]" }
+                void beforeTest(Test test) { println "START [$test] [$test.name]" }
+                void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
+            }
+        '''
+
+        ExecutionResult result = executer.withTasks("test").run();
+        assertThat(result.getOutput(), containsLine("START [all tests] []"));
+        assertThat(result.getOutput(), containsLine("FINISH [all tests] []"));
+        assertThat(result.getOutput(), containsLine("START [test 'Gradle test'] [Gradle test]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle test'] [Gradle test]"));
+        assertThat(result.getOutput(), containsLine("START [test method pass(SomeTest)] [pass]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test method pass(SomeTest)] [pass] [null]"));
+        assertThat(result.getOutput(), containsLine("START [test method fail(SomeTest)] [fail]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test method fail(SomeTest)] [fail] [java.lang.AssertionError]"));
+        assertThat(result.getOutput(), containsLine("START [test method knownError(SomeTest)] [knownError]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]"));
+        assertThat(result.getOutput(), containsLine("START [test method unknownError(SomeTest)] [unknownError]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test method unknownError(SomeTest)] [unknownError] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
     }
 
     @Test

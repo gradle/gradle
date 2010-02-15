@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.tasks.testing.TestSuite;
+import org.gradle.util.TimeProvider;
 import org.junit.Test;
 import org.junit.Before;
 import org.junit.internal.matchers.TypeSafeMatcher;
@@ -42,6 +44,7 @@ public class TestListenerFormatterTest {
     private AssertionFailedError failure = new AssertionFailedError();
 
     private TestListenerFormatter testListenerFormatter;
+    private TimeProvider timeProviderMock;
 
     @Before
     public void setUp() throws Exception {
@@ -57,7 +60,11 @@ public class TestListenerFormatterTest {
             }
         };
 
-        testListenerFormatter = new TestListenerFormatter(testListenerMock);
+        timeProviderMock = context.mock(TimeProvider.class);
+        context.checking(new Expectations(){{
+            allowing(timeProviderMock);
+        }});
+        testListenerFormatter = new TestListenerFormatter(testListenerMock, timeProviderMock);
     }
 
     @Test
@@ -90,6 +97,8 @@ public class TestListenerFormatterTest {
     @Test
     public void testEndTestSuccess() {
         context.checking(new Expectations() {{
+            one(timeProviderMock).getCurrentTime();
+            will(returnValue(20L));
             one(testListenerMock).afterTest(with(aTestWithName(TEST_NAME)), with(aResultOf(org.gradle.api.tasks.testing.TestResult.ResultType.SUCCESS, null)));
         }});
 

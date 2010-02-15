@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing.junit;
 
 import junit.framework.TestCase;
-import org.apache.tools.ant.Project;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner;
 import org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter;
@@ -24,7 +24,8 @@ import org.gradle.api.GradleException;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
-import org.gradle.util.AntUtil;
+import org.gradle.util.TimeProvider;
+import org.gradle.util.TrueTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,8 +37,8 @@ import java.lang.reflect.Field;
 public class AntJUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJUnitTestClassProcessor.class);
     private final File testResultsDir;
+    private final TimeProvider timeProvider = new TrueTimeProvider();
     private TestListener listener;
-    private Project project;
     private Field forkedField;
 
     public AntJUnitTestClassProcessor(File testResultsDir) {
@@ -46,7 +47,6 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
 
     public void startProcessing(TestListener listener) {
         this.listener = listener;
-        project = AntUtil.createProject();
         try {
             forkedField = JUnitTestRunner.class.getDeclaredField("forked");
             forkedField.setAccessible(true);
@@ -71,7 +71,7 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
             xmlFormatter.setOutput(new BufferedOutputStream(new FileOutputStream(testResultFile)));
             testRunner.addFormatter(xmlFormatter);
 
-            testRunner.addFormatter(new TestListenerFormatter(listener));
+            testRunner.addFormatter(new JUnit4TestListenerFormatter(listener, timeProvider));
 
             ClassLoader loader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(applicationClassLoader);
