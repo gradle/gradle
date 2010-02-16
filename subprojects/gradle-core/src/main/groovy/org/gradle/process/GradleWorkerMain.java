@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.Action;
@@ -82,8 +83,8 @@ public class GradleWorkerMain {
         Class<? extends Runnable> workerClass = implementationClassLoader.loadClass(WorkerMain.class.getName())
                 .asSubclass(Runnable.class);
         Constructor<? extends Runnable> constructor = workerClass.getConstructor(implementationClassLoader.loadClass(
-                Action.class.getName()), URI.class);
-        Runnable worker = constructor.newInstance(action, serverAddress);
+                Action.class.getName()), URI.class, ClassLoader.class);
+        Runnable worker = constructor.newInstance(action, serverAddress, sharedClassLoader);
         worker.run();
     }
 

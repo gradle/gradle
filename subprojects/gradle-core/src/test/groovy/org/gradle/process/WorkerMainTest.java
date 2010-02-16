@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.Action;
@@ -31,15 +32,17 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class WorkerMainTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
+    private final Action<WorkerProcessContext> action = context.mock(Action.class);
+    private final MessagingClient client = context.mock(MessagingClient.class);
+    private final ClassLoader appClassLoader = new ClassLoader() {
+    };
 
     @Test
     public void createsConnectionAndExecutesAction() throws Exception {
-        final Action<WorkerProcessContext> action = context.mock(Action.class);
-        final MessagingClient client = context.mock(MessagingClient.class);
         final ObjectConnection connection = context.mock(ObjectConnection.class);
         final Collector<WorkerProcessContext> collector = collector();
 
-        WorkerMain main = new WorkerMain(action, client);
+        WorkerMain main = new WorkerMain(action, client, appClassLoader);
 
         context.checking(new Expectations() {{
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
@@ -56,16 +59,14 @@ public class WorkerMainTest {
         }});
 
         assertThat(collector.get().getServerConnection(), sameInstance(connection));
+        assertThat(collector.get().getApplicationClassLoader(), sameInstance(appClassLoader));
     }
 
     @Test
     public void cleansUpWhenActionThrowsException() throws Exception {
-        final Action<WorkerProcessContext> action = context.mock(Action.class);
-        final MessagingClient client = context.mock(MessagingClient.class);
-        final Collector<WorkerProcessContext> collector = collector();
         final RuntimeException failure = new RuntimeException();
 
-        WorkerMain main = new WorkerMain(action, client);
+        WorkerMain main = new WorkerMain(action, client, appClassLoader);
 
         context.checking(new Expectations() {{
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));

@@ -17,8 +17,8 @@
 package org.gradle.api.internal.tasks.testing;
 
 public class DefaultTestMethod extends DefaultTest {
-    public DefaultTestMethod(String className, String methodName) {
-        super(className, methodName);
+    public DefaultTestMethod(Object id, String className, String methodName) {
+        super(id, className, methodName);
     }
 
     @Override

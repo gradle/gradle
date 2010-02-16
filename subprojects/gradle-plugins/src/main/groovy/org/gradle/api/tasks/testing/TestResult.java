@@ -25,7 +25,7 @@ public interface TestResult {
     /**
      * @return The type of result.  Generally one wants it to be SUCCESS!
      */
-    public ResultType getResultType();
+    ResultType getResultType();
 
     /**
      * If the test failed with an exception, this will be the exception.  Some
@@ -34,19 +34,19 @@ public interface TestResult {
      * @return The exception, if any, logged for this test.  If none, a null is returned.
      * @throws IllegalStateException If the result type is anything other than FAILURE.
      */
-    public Throwable getException(); // throws exception if type !=  FAILURE
+    Throwable getException(); // throws exception if type !=  FAILURE
 
     /**
      * Returns the time when this test started execution.
      *
      * @return The start time, in milliseconds since the epoch.
      */
-    public long getStartTime();
+    long getStartTime();
 
     /**
      * Returns the time when this test completed execution.
      *
      * @return The end t ime, in milliseconds since the epoch.
      */
-    public long getEndTime();
+    long getEndTime();
 }

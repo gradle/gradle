@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution;
 
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.execution.control.refork.DefaultReforkControl;
 import org.gradle.api.testing.execution.control.refork.ReforkControl;
 import org.gradle.api.testing.execution.fork.policies.ForkPolicyInstance;
@@ -69,7 +70,7 @@ public class QueueingPipeline implements Pipeline {
         return config;
     }
 
-    public void startProcessing(TestListener listener) {
+    public void startProcessing(TestResultProcessor resultProcessor) {
     }
 
     public void endProcessing() {

@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution;
 
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -33,7 +34,7 @@ public class RestartEveryNTestClassProcessorTest {
     private final TestClassRunInfo test1 = context.mock(TestClassRunInfo.class, "test1");
     private final TestClassRunInfo test2 = context.mock(TestClassRunInfo.class, "test2");
     private final TestClassRunInfo test3 = context.mock(TestClassRunInfo.class, "test3");
-    private final TestListener testListener = context.mock(TestListener.class);
+    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
 
     @Test
@@ -42,11 +43,11 @@ public class RestartEveryNTestClassProcessorTest {
             one(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(testListener);
+            one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
     }
 
@@ -56,13 +57,13 @@ public class RestartEveryNTestClassProcessorTest {
             one(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(testListener);
+            one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
             one(delegate).endProcessing();
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.processTestClass(test2);
     }
@@ -73,7 +74,7 @@ public class RestartEveryNTestClassProcessorTest {
             one(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(testListener);
+            one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
             one(delegate).endProcessing();
@@ -83,11 +84,11 @@ public class RestartEveryNTestClassProcessorTest {
             one(factory).create();
             will(returnValue(delegate2));
 
-            one(delegate2).startProcessing(testListener);
+            one(delegate2).startProcessing(resultProcessor);
             one(delegate2).processTestClass(test3);
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.processTestClass(test2);
         processor.processTestClass(test3);
@@ -99,12 +100,12 @@ public class RestartEveryNTestClassProcessorTest {
             one(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(testListener);
+            one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).endProcessing();
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.endProcessing();
     }
@@ -120,13 +121,13 @@ public class RestartEveryNTestClassProcessorTest {
             one(factory).create();
             will(returnValue(delegate));
 
-            one(delegate).startProcessing(testListener);
+            one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
             one(delegate).endProcessing();
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.processTestClass(test2);
         processor.endProcessing();

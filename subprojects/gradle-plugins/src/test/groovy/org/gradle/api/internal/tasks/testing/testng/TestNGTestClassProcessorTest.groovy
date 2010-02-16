@@ -15,10 +15,12 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing.testng
 
-import org.gradle.api.tasks.testing.TestListener
-import org.gradle.api.tasks.testing.TestSuite
+import org.gradle.api.internal.tasks.testing.TestInternal
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
@@ -27,46 +29,50 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.testng.annotations.AfterClass
+import org.testng.annotations.BeforeClass
+import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.testng.annotations.BeforeClass
-import org.testng.annotations.BeforeMethod
-import org.testng.annotations.AfterClass
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final TestListener listener = context.mock(TestListener.class);
+    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, new TestNGOptions(tmpDir.dir), []);
 
     @Test
     public void executesATestClass() {
         context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
-            one(listener).afterSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
         }
 
-        processor.startProcessing(listener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClass.class));
         processor.endProcessing();
     }
@@ -74,29 +80,29 @@ class TestNGTestClassProcessorTest {
     @Test
     public void executesAFactoryTestClass() {
         context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
-            one(listener).afterSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
         }
 
-        processor.startProcessing(listener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGFactoryClass.class));
         processor.endProcessing();
     }

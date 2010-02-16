@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution;
 
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -25,21 +26,21 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
     private final long restartEvery;
     private long testCount;
     private TestClassProcessor processor;
-    private TestListener listener;
+    private TestResultProcessor resultProcessor;
 
     public RestartEveryNTestClassProcessor(TestClassProcessorFactory factory, long restartEvery) {
         this.factory = factory;
         this.restartEvery = restartEvery;
     }
 
-    public void startProcessing(TestListener listener) {
-        this.listener = listener;
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        this.resultProcessor = resultProcessor;
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
         if (processor == null) {
             processor = factory.create();
-            processor.startProcessing(listener);
+            processor.startProcessing(resultProcessor);
         }
         processor.processTestClass(testClass);
         testCount++;

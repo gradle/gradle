@@ -17,8 +17,13 @@
 package org.gradle.api.internal.tasks.testing;
 
 public class DefaultTestClass extends DefaultTestSuite {
-    public DefaultTestClass(String className) {
-        super(className, className);
+    public DefaultTestClass(Object id, String className) {
+        super(id, className);
+    }
+
+    @Override
+    public String getClassName() {
+        return getName();
     }
 
     @Override

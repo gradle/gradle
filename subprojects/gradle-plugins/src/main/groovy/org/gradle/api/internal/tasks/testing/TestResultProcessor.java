@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.api.testing;
+package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.api.tasks.testing.TestResult;
 
-/**
- * A processor for test classes. Implementations are not required to be thread-safe.
- *
- * @author Tom Eyckmans
- */
-public interface TestClassProcessor {
-    void startProcessing(TestResultProcessor resultProcessor);
+public interface TestResultProcessor {
+    void started(TestInternal test);
 
-    void processTestClass(TestClassRunInfo testClass);
-
-    void endProcessing();
+    void completed(TestInternal test, TestResult result);
 }

@@ -20,6 +20,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuite;
+import org.gradle.api.internal.tasks.testing.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.TestSummaryListener;
 import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
@@ -286,13 +287,13 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(AntTest.class));
         addTestListener(listener);
 
-        TestListener broadcaster = getTestListenerBroadcaster().getSource();
-        broadcaster.beforeSuite(new RootTestSuite());
-        processor.startProcessing(broadcaster);
+        TestListenerAdapter resultProcessor = new TestListenerAdapter(getTestListenerBroadcaster().getSource());
+        resultProcessor.started(new RootTestSuite());
+        processor.startProcessing(resultProcessor);
         TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
         testClassScanner.run();
         processor.endProcessing();
-        broadcaster.afterSuite(new RootTestSuite());
+        resultProcessor.completed(new RootTestSuite(), null);
 
         testFrameworkInstance.report();
 
@@ -303,7 +304,7 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
 
     private static class RootTestSuite extends DefaultTestSuite {
         public RootTestSuite() {
-            super("");
+            super("root", "");
         }
 
         @Override

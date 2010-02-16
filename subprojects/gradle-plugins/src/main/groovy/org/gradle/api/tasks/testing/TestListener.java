@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.testing;
 
 // todo: consider multithreading/multiprocess issues
@@ -29,13 +30,13 @@ public interface TestListener {
      * Called before a test suite is started.
      * @param suite The suite whose tests are about to be executed.
      */
-    void beforeSuite(TestSuite suite);
+    void beforeSuite(Test suite);
 
     /**
      * Called after a test suite is finished.
      * @param suite The suite whose tests have finished being executed.
      */
-    void afterSuite(TestSuite suite);
+    void afterSuite(Test suite);
 
     /**
      * Called before a test is started.

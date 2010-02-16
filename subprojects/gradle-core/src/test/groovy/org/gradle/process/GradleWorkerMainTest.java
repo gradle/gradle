@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.Action;
@@ -115,15 +116,18 @@ public class GradleWorkerMainTest {
     public static class TestWorkerMain implements Runnable {
         private final Action<WorkerProcessContext> action;
         private final URI serverAddress;
+        private final ClassLoader classLoader;
 
-        public TestWorkerMain(Action<WorkerProcessContext> action, URI serverAddress) {
+        public TestWorkerMain(Action<WorkerProcessContext> action, URI serverAddress, ClassLoader classLoader) {
             this.action = action;
             this.serverAddress = serverAddress;
+            this.classLoader = classLoader;
         }
 
         public void run() {
             assertThat(action, instanceOf(TestAction.class));
             assertThat(serverAddress, notNullValue());
+            assertThat(classLoader, notNullValue());
             System.setProperty("action.result", "result");
         }
     }

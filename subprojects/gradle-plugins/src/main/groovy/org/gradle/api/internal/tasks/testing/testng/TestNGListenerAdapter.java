@@ -16,35 +16,56 @@
 
 package org.gradle.api.internal.tasks.testing.testng;
 
-import org.gradle.api.internal.tasks.testing.DefaultTest;
-import org.gradle.api.internal.tasks.testing.DefaultTestMethod;
-import org.gradle.api.internal.tasks.testing.DefaultTestResult;
-import org.gradle.api.internal.tasks.testing.DefaultTestSuite;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
 import org.testng.ITestResult;
 
-import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class TestNGListenerAdapter implements ITestListener {
-    private TestListener remoteSender;
+    private final TestResultProcessor resultProcessor;
+    private final Object lock = new Object();
+    private long nextId;
+    private Map<String, TestInternal> suites = new HashMap<String, TestInternal>();
+    private Map<String, TestInternal> tests = new HashMap<String, TestInternal>();
 
-    public TestNGListenerAdapter(TestListener listener) throws IOException {
-        remoteSender = listener;
+    public TestNGListenerAdapter(TestResultProcessor resultProcessor) {
+        this.resultProcessor = resultProcessor;
     }
 
     public void onStart(ITestContext iTestContext) {
-        remoteSender.beforeSuite(new DefaultTestSuite(iTestContext.getName()));
+        TestInternal testInternal;
+        synchronized (lock) {
+            Long id = nextId++;
+            testInternal = new DefaultTestSuite(id, iTestContext.getName());
+            suites.put(testInternal.getName(), testInternal);
+        }
+        resultProcessor.started(testInternal);
     }
 
     public void onFinish(ITestContext iTestContext) {
-        remoteSender.afterSuite(new DefaultTestSuite(iTestContext.getName()));
+        TestInternal testInternal;
+        synchronized (lock) {
+            testInternal = suites.remove(iTestContext.getName());
+        }
+        resultProcessor.completed(testInternal, null);
     }
 
     public void onTestStart(ITestResult iTestResult) {
-        remoteSender.beforeTest(convert(iTestResult));
+        TestInternal testInternal;
+        synchronized (lock) {
+            Long id = nextId++;
+            testInternal = new DefaultTestMethod(id, iTestResult.getTestClass().getName(), iTestResult.getName());
+            TestInternal oldTest = tests.put(testInternal.getName(), testInternal);
+            if (oldTest != null) {
+                throw new IllegalStateException(String.format(
+                        "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
+            }
+        }
+        resultProcessor.started(testInternal);
     }
 
     public void onTestSuccess(ITestResult iTestResult) {
@@ -64,12 +85,12 @@ public class TestNGListenerAdapter implements ITestListener {
     }
 
     private void onTestFinished(ITestResult iTestResult, TestResult.ResultType resultType) {
-        TestResult result = new DefaultTestResult(resultType, iTestResult.getThrowable(),
-                iTestResult.getStartMillis(), iTestResult.getEndMillis());
-        remoteSender.afterTest(convert(iTestResult), result);
-    }
-
-    private DefaultTest convert(ITestResult iTestResult) {
-        return new DefaultTestMethod(iTestResult.getTestClass().getName(), iTestResult.getName());
+        TestResult result = new DefaultTestResult(resultType, iTestResult.getThrowable(), iTestResult.getStartMillis(),
+                iTestResult.getEndMillis());
+        TestInternal testInternal;
+        synchronized (lock) {
+            testInternal = tests.remove(iTestResult.getName());
+        }
+        resultProcessor.completed(testInternal, result);
     }
 }

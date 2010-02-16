@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -33,7 +34,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final File testReportDir;
     private final TestNGOptions options;
     private final List<File> suiteFiles;
-    private TestListener listener;
+    private TestResultProcessor resultProcessor;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles) {
         this.testReportDir = testReportDir;
@@ -41,8 +42,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         this.suiteFiles = suiteFiles;
     }
 
-    public void startProcessing(TestListener listener) {
-        this.listener = listener;
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        this.resultProcessor = resultProcessor;
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
@@ -60,16 +61,17 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
                 testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
             }
             testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-            testNg.addListener(new TestNGListenerAdapter(listener));
+            testNg.addListener(new TestNGListenerAdapter(resultProcessor));
             testNg.setVerbose(0);
 
             if (!suiteFiles.isEmpty()) {
                 testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
             } else {
+                ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
                 Class[] classes = new Class[testClassNames.size()];
                 for (int i = 0; i < testClassNames.size(); i++) {
                     String className = testClassNames.get(i);
-                    classes[i] = TestNG.class.getClassLoader().loadClass(className);
+                    classes[i] = applicationClassLoader.loadClass(className);
                 }
                 testNg.setTestClasses(classes);
             }

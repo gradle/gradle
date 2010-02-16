@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -58,11 +60,13 @@ public class JUnitIntegrationTest {
                     assertEquals("${testDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')}", System.getProperty("user.dir"));
                     // check Gradle classes not visible
                     try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                    // check context classloader
+                    assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
                     // check sys properties
                     assertEquals("value", System.getProperty("testSysProperty"));
                     // check env vars
                     assertEquals("value", System.getenv("TEST_ENV_VAR"));
-                    // check stdoud and stderr
+                    // check stdout and stderr
                     System.out.println("This is test stdout");
                     System.err.println("This is test stderr");
                 }
@@ -271,8 +275,8 @@ public class JUnitIntegrationTest {
             test.addTestListener(listener)
             test.ignoreFailures = true
             class TestListenerImpl implements TestListener {
-                void beforeSuite(TestSuite suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(TestSuite suite) { println "FINISH [$suite] [$suite.name]" }
+                void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
+                void afterSuite(Test suite) { println "FINISH [$suite] [$suite.name]" }
                 void beforeTest(Test test) { println "START [$test] [$test.name]" }
                 void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
             }
@@ -312,8 +316,8 @@ public class JUnitIntegrationTest {
             test.addTestListener(listener)
             test.ignoreFailures = true
             class TestListenerImpl implements TestListener {
-                void beforeSuite(TestSuite suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(TestSuite suite) { println "FINISH [$suite] [$suite.name]" }
+                void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
+                void afterSuite(Test suite) { println "FINISH [$suite] [$suite.name]" }
                 void beforeTest(Test test) { println "START [$test] [$test.name]" }
                 void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
             }

@@ -13,21 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.testing.execution.fork
 
-import static org.hamcrest.Matchers.*
-
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.junit.Test
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.testing.TestClassProcessor
+import org.gradle.api.testing.TestClassProcessorFactory
+import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.messaging.ObjectConnection
 import org.gradle.process.WorkerProcessContext
-import org.gradle.api.testing.TestClassProcessorFactory
-import org.gradle.api.testing.TestClassProcessor
+import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
-import org.gradle.api.testing.fabric.TestClassRunInfo
-import org.gradle.api.tasks.testing.TestListener
+import org.jmock.integration.junit4.JMock
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
 
 @RunWith(JMock.class)
 public class TestWorkerTest extends MultithreadedTestCase {
@@ -37,7 +38,7 @@ public class TestWorkerTest extends MultithreadedTestCase {
     private final TestClassProcessorFactory factory = context.mock(TestClassProcessorFactory.class)
     private final TestClassProcessor processor = context.mock(TestClassProcessor.class)
     private final TestClassRunInfo test = context.mock(TestClassRunInfo.class)
-    private final TestListener testListener = context.mock(TestListener.class)
+    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class)
     private final TestWorker worker = new TestWorker(factory)
 
     @Test
@@ -45,10 +46,15 @@ public class TestWorkerTest extends MultithreadedTestCase {
         context.checking {
             one(factory).create()
             will(returnValue(processor))
+
             allowing(workerContext).getServerConnection()
             will(returnValue(connection))
-            one(connection).addOutgoing(TestListener.class)
-            will(returnValue(testListener))
+
+            ignoring(workerContext).getApplicationClassLoader()
+
+            one(connection).addOutgoing(TestResultProcessor.class)
+            will(returnValue(resultProcessor))
+
             one(connection).addIncoming(TestClassProcessor.class, worker)
             will {
                 start {
@@ -57,7 +63,7 @@ public class TestWorkerTest extends MultithreadedTestCase {
                     worker.endProcessing()
                 }
             }
-            one(processor).startProcessing(testListener)
+            one(processor).startProcessing(resultProcessor)
             one(processor).processTestClass(test)
             one(processor).endProcessing()
         }
@@ -76,10 +82,15 @@ public class TestWorkerTest extends MultithreadedTestCase {
         context.checking {
             one(factory).create()
             will(returnValue(processor))
+
             allowing(workerContext).getServerConnection()
             will(returnValue(connection))
-            one(connection).addOutgoing(TestListener.class)
-            will(returnValue(testListener))
+
+            ignoring(workerContext).getApplicationClassLoader()
+
+            one(connection).addOutgoing(TestResultProcessor.class)
+            will(returnValue(resultProcessor))
+            
             one(connection).addIncoming(TestClassProcessor.class, worker)
             will {
                 start {
@@ -89,7 +100,7 @@ public class TestWorkerTest extends MultithreadedTestCase {
                     worker.endProcessing()
                 }
             }
-            one(processor).startProcessing(testListener)
+            one(processor).startProcessing(resultProcessor)
             one(processor).processTestClass(test)
             one(processor).endProcessing()
             will(throwException(failure))

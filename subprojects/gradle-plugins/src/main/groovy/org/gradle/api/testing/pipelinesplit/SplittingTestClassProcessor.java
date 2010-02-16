@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.pipelinesplit;
 
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.specs.Spec;
-import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
@@ -32,9 +33,9 @@ public class SplittingTestClassProcessor implements TestClassProcessor {
         this.pipelineMatchers = pipelineMatchers;
     }
 
-    public void startProcessing(TestListener listener) {
+    public void startProcessing(TestResultProcessor resultProcessor) {
         for (TestClassProcessor processor : pipelineMatchers.values()) {
-            processor.startProcessing(listener);
+            processor.startProcessing(resultProcessor);
         }
     }
 

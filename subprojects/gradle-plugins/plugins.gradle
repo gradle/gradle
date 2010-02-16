@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 repositories {
     mavenRepo urls: 'http://www.aQute.biz/repo'
 }
@@ -42,5 +44,6 @@ dependencies {
 }
 
 test {
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClassWithRunner.*'
     options.fork(jvmArgs: ["-ea", "-Xms128m", "-Xmx256m", '-XX:+HeapDumpOnOutOfMemoryError'])
 }

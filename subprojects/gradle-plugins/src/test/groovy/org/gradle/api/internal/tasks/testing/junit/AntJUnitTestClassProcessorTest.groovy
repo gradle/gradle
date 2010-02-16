@@ -15,11 +15,13 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
-import org.gradle.api.tasks.testing.TestListener
-import org.gradle.api.tasks.testing.TestSuite
+import org.gradle.api.internal.tasks.testing.TestInternal
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
@@ -33,40 +35,47 @@ import org.junit.runner.Runner
 import org.junit.runner.notification.RunNotifier
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.junit.runner.notification.Failure
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.TestResult.ResultType
 
 @RunWith(JMock.class)
 class AntJUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
-    private final TestListener listener = context.mock(TestListener.class);
+    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final AntJUnitTestClassProcessor processor = new AntJUnitTestClassProcessor(tmpDir.dir);
 
     @Test
     public void executesATestClass() {
         context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
-            one(listener).afterSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
         }
 
-        processor.startProcessing(listener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClass.class));
         processor.endProcessing();
     }
@@ -74,29 +83,88 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesAJUnit3TestClass() {
         context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(listener).afterSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
             }
         }
 
-        processor.startProcessing(listener);
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(AJunit3TestClass.class));
+        processor.endProcessing();
+    }
+
+    @Test
+    public void executesMultipleTestClasses() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.name, equalTo(ATestClass.class.name))
+                assertThat(suite.className, equalTo(ATestClass.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
+                assertThat(test.name, equalTo('ok'))
+                assertThat(test.className, equalTo(ATestClass.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
+                assertThat(test.name, equalTo('ok'))
+                assertThat(test.className, equalTo(ATestClass.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.name, equalTo(ATestClass.class.name))
+                assertThat(suite.className, equalTo(ATestClass.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(2L))
+                assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
+                assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(3L))
+                assertThat(test.name, equalTo('testOk'))
+                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(3L))
+                assertThat(test.name, equalTo('testOk'))
+                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(2L))
+                assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
+                assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClass.class));
         processor.processTestClass(testClass(AJunit3TestClass.class));
         processor.endProcessing();
     }
@@ -104,29 +172,48 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithRunWithAnnotation() {
         context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
                 assertThat(suite.name, equalTo(ATestClassWithRunner.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithRunner.class.name))
             }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
+                assertThat(test.name, equalTo('broken'))
+                assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
             }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
+                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
             }
-            one(listener).afterSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.id, equalTo(1L))
+                assertThat(test.name, equalTo('broken'))
+                assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
+                assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.exception, notNullValue())
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo(0L))
                 assertThat(suite.name, equalTo(ATestClassWithRunner.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithRunner.class.name))
             }
         }
 
-        processor.startProcessing(listener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithRunner.class));
         processor.endProcessing();
     }
@@ -134,35 +221,49 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithASuiteMethod() {
         context.checking {
-            one(listener).beforeSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
                 assertThat(suite.name, equalTo(ATestClassWithSuiteMethod.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithSuiteMethod.class.name))
             }
-            one(listener).beforeTest(withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
-            will { org.gradle.api.tasks.testing.Test test ->
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(1L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(listener).afterSuite(withParam(notNullValue()))
-            will { TestSuite suite ->
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('testOk'))
+                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('testOk'))
+                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
                 assertThat(suite.name, equalTo(ATestClassWithSuiteMethod.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithSuiteMethod.class.name))
             }
         }
 
-        processor.startProcessing(listener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithSuiteMethod.class));
         processor.endProcessing();
     }
 
     private TestClassRunInfo testClass(Class<?> testClass) {
-        TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class)
+        TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class, testClass.name)
         context.checking {
             allowing(runInfo).getTestClassName()
             will(returnValue(testClass.name))
@@ -188,7 +289,7 @@ public static class AJunit3TestClass extends TestCase {
 
 public static class ATestClassWithSuiteMethod {
     public static junit.framework.Test suite() {
-        return new junit.framework.TestSuite(AJunit3TestClass.class);
+        return new junit.framework.TestSuite(AJunit3TestClass.class, AJunit3TestClass.class);
     }
 }
 
@@ -205,14 +306,20 @@ public static class CustomRunner extends Runner {
     @Override
     public Description getDescription() {
         Description description = Description.createSuiteDescription(type)
-        description.addChild(Description.createTestDescription(type, 'ok'))
+        description.addChild(Description.createTestDescription(type, 'ok1'))
+        description.addChild(Description.createTestDescription(type, 'ok2'))
         return description
     }
 
     @Override
     public void run(RunNotifier runNotifier) {
-        Description description = Description.createTestDescription(type, 'ok')
-        runNotifier.fireTestStarted(description)
-        runNotifier.fireTestFinished(description)
+        // Run tests in 'parallel'
+        Description test1 = Description.createTestDescription(type, 'broken')
+        Description test2 = Description.createTestDescription(type, 'ok')
+        runNotifier.fireTestStarted(test1)
+        runNotifier.fireTestStarted(test2)
+        runNotifier.fireTestFailure(new Failure(test1, new RuntimeException('broken')))
+        runNotifier.fireTestFinished(test2)
+        runNotifier.fireTestFinished(test1)
     }
 }

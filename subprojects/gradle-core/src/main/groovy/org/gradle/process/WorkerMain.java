@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.Action;
@@ -25,22 +26,23 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 
 /**
- * This is the other half of {@link org.gradle.process.GradleWorkerMain}. It is instantiated using the implementation
+ * This is the other half of {@link org.gradle.process.GradleWorkerMain}. It is instantiated inside the implementation
  * ClassLoader.
  */
 public class WorkerMain implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerMain.class);
     private final Action<WorkerProcessContext> action;
     private final MessagingClient client;
+    private final ClassLoader applicationClassLoader;
 
-    public WorkerMain(Action<WorkerProcessContext> action, URI serverAddress) {
-        this.action = action;
-        client = new TcpMessagingClient(getClass().getClassLoader(), serverAddress);
+    public WorkerMain(Action<WorkerProcessContext> action, URI serverAddress, ClassLoader applicationClassLoader) {
+        this(action, new TcpMessagingClient(WorkerMain.class.getClassLoader(), serverAddress), applicationClassLoader);
     }
 
-    WorkerMain(Action<WorkerProcessContext> action, MessagingClient client) {
+    WorkerMain(Action<WorkerProcessContext> action, MessagingClient client, ClassLoader applicationClassLoader) {
         this.action = action;
         this.client = client;
+        this.applicationClassLoader = applicationClassLoader;
     }
 
     public void run() {
@@ -49,7 +51,12 @@ public class WorkerMain implements Runnable {
                 public ObjectConnection getServerConnection() {
                     return client.getConnection();
                 }
+
+                public ClassLoader getApplicationClassLoader() {
+                    return applicationClassLoader;
+                }
             };
+
             LOGGER.debug("Starting worker action.");
             ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
@@ -59,6 +66,7 @@ public class WorkerMain implements Runnable {
                 Thread.currentThread().setContextClassLoader(contextClassLoader);
             }
             LOGGER.debug("Completed worker action.");
+            
         } finally {
             LOGGER.debug("Stopping client connection.");
             client.stop();

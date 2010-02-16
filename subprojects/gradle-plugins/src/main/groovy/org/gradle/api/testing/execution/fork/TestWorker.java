@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -34,6 +35,7 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
     private final TestClassProcessorFactory factory;
     private CountDownLatch completed;
     private TestClassProcessor processor;
+    private ClassLoader appClassLoader;
 
     public TestWorker(TestClassProcessorFactory factory) {
         this.factory = factory;
@@ -45,9 +47,10 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
         processor = factory.create();
+        appClassLoader = workerProcessContext.getApplicationClassLoader();
 
-        TestListener listener = serverConnection.addOutgoing(TestListener.class);
-        processor.startProcessing(listener);
+        TestResultProcessor resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
+        startProcessing(resultProcessor);
         
         serverConnection.addIncoming(TestClassProcessor.class, this);
 
@@ -59,14 +62,18 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         LOGGER.info("Finished executing tests.");
     }
 
-    public void startProcessing(TestListener listener) {
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        Thread.currentThread().setContextClassLoader(appClassLoader);
+        processor.startProcessing(resultProcessor);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
+        Thread.currentThread().setContextClassLoader(appClassLoader);
         processor.processTestClass(testClass);
     }
 
     public void endProcessing() {
+        Thread.currentThread().setContextClassLoader(appClassLoader);
         try {
             processor.endProcessing();
         } finally {

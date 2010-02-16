@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
@@ -50,7 +51,7 @@ public class ForkingTestClassProcessorTest {
     private final TestClassProcessor worker = context.mock(TestClassProcessor.class);
     private final TestClassRunInfo test1 = context.mock(TestClassRunInfo.class, "test1");
     private final TestClassRunInfo test2 = context.mock(TestClassRunInfo.class, "test2");
-    private final TestListener testListener = context.mock(TestListener.class);
+    private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final List<File> appClassPath = asList(new File("classpath.jar"));
     private final JavaForkOptions options = context.mock(JavaForkOptions.class);
     private final Action<WorkerProcessBuilder> action = context.mock(Action.class);
@@ -63,7 +64,7 @@ public class ForkingTestClassProcessorTest {
             one(worker).processTestClass(test1);
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
     }
 
@@ -75,7 +76,7 @@ public class ForkingTestClassProcessorTest {
             one(worker).processTestClass(test2);
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.processTestClass(test2);
     }
@@ -89,14 +90,14 @@ public class ForkingTestClassProcessorTest {
             one(workerProcess).waitForStop();
         }});
 
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.endProcessing();
     }
 
     @Test
     public void onEndProcessingDoesNothingIfNoTestsProcessed() {
-        processor.startProcessing(testListener);
+        processor.startProcessing(resultProcessor);
         processor.endProcessing();
     }
 
@@ -126,7 +127,7 @@ public class ForkingTestClassProcessorTest {
             allowing(workerProcess).getConnection();
             will(returnValue(connection));
 
-            one(connection).addIncoming(TestListener.class, testListener);
+            one(connection).addIncoming(TestResultProcessor.class, resultProcessor);
             
             one(connection).addOutgoing(TestClassProcessor.class);
             will(returnValue(worker));

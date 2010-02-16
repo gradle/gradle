@@ -17,18 +17,26 @@
 package org.gradle.api.tasks.testing;
 
 /**
- * Describes a single test.
+ * Describes a test. A test may be a single atomic test, such as the execution of a test method, or it may be a
+ * composite test, made up of zero or more tests.
  */
 public interface Test {
     /**
      * @return The name of the test.  Not guaranteed to be unique.
      */
-    public String getName();
+    String getName();
 
     /**
      * Returns the test class name for this test, if any.
      *
      * @return The class name. May return null.
      */
-    public String getClassName();
+    String getClassName();
+
+    /**
+     * Is this test a composite test?
+     *
+     * @return true if this test is a composite test.
+     */
+    boolean isComposite();
 }

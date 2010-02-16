@@ -22,32 +22,41 @@ import junit.framework.TestCase;
 import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
-import org.gradle.api.internal.tasks.testing.DefaultTest;
-import org.gradle.api.internal.tasks.testing.DefaultTestClass;
-import org.gradle.api.internal.tasks.testing.DefaultTestResult;
-import org.gradle.api.tasks.testing.TestListener;
-import org.gradle.api.tasks.testing.TestSuite;
+import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.TimeProvider;
 
 import java.io.OutputStream;
+import java.util.IdentityHashMap;
+import java.util.Map;
 
 public class TestListenerFormatter implements JUnitResultFormatter {
-    private final TestListener listener;
+    private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
-    private Throwable error;
-    private long startTime;
+    private final Object lock = new Object();
+    private long nextId;
+    private final Map<Object, TestState> executing = new IdentityHashMap<Object, TestState>();
 
-    public TestListenerFormatter(TestListener listener, TimeProvider timeProvider) {
-        this.listener = listener;
+    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider) {
+        this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
     }
 
     public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
-        listener.beforeSuite(convert(jUnitTest));
+        TestInternal testInternal;
+        synchronized (lock) {
+            Long id = nextId++;
+            testInternal = convert(id, jUnitTest);
+            executing.put(jUnitTest, new TestState(testInternal, 0));
+        }
+        resultProcessor.started(testInternal);
     }
 
     public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
-        listener.afterSuite(convert(jUnitTest));
+        TestInternal testInternal;
+        synchronized (lock) {
+            testInternal = executing.remove(jUnitTest).test;
+        }
+        resultProcessor.completed(testInternal, null);
     }
 
     public void setOutput(OutputStream outputStream) {
@@ -60,36 +69,64 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void startTest(Test test) {
-        startTime = timeProvider.getCurrentTime();
-        listener.beforeTest(convert(test));
+        long startTime = timeProvider.getCurrentTime();
+        TestInternal testInternal;
+        synchronized (lock) {
+            Long id = nextId++;
+            testInternal = convert(id, test);
+            TestState oldState = executing.put(test, new TestState(testInternal, startTime));
+            if (oldState != null) {
+                throw new IllegalStateException(String.format(
+                        "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
+            }
+        }
+        resultProcessor.started(testInternal);
     }
 
     public void addError(Test test, Throwable throwable) {
-        error = throwable;
+        synchronized (lock) {
+            executing.get(test).failure = throwable;
+        }
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {
-        error = assertionFailedError;
+        addError(test, assertionFailedError);
     }
 
     public void endTest(Test test) {
         long endTime = timeProvider.getCurrentTime();
-        DefaultTestResult result = new DefaultTestResult(error, startTime, endTime);
-        error = null;
-        listener.afterTest(convert(test), result);
+        TestInternal testInternal;
+        DefaultTestResult result;
+        synchronized (lock) {
+            TestState state = executing.remove(test);
+            testInternal = state.test;
+            result = new DefaultTestResult(state.failure, state.startTime, endTime);
+        }
+        resultProcessor.completed(testInternal, result);
     }
 
-    private TestSuite convert(JUnitTest jUnitTest) {
+    private TestInternal convert(Long id, JUnitTest jUnitTest) {
         String className = jUnitTest.getName();
-        return new DefaultTestClass(className);
+        return new DefaultTestClass(id, className);
     }
 
-    protected DefaultTest convert(Test test) {
+    protected TestInternal convert(Long id, Test test) {
         if (test instanceof TestCase) {
             TestCase testCase = (TestCase) test;
-            return new DefaultTest(testCase.getClass().getName(), testCase.getName());
+            return new DefaultTest(id, testCase.getClass().getName(), testCase.getName());
         }
-        return new DefaultTest(test.getClass().getName(), test.toString());
+        return new DefaultTest(id, test.getClass().getName(), test.toString());
+    }
+
+    private static class TestState {
+        private final TestInternal test;
+        private final long startTime;
+        private Throwable failure;
+
+        private TestState(TestInternal test, long startTime) {
+            this.test = test;
+            this.startTime = startTime;
+        }
     }
 }
 

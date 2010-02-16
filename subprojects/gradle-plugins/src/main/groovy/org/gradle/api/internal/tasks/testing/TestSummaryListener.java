@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
-import org.gradle.api.tasks.testing.TestSuite;
 import org.slf4j.Logger;
 
 public class TestSummaryListener implements TestListener {
@@ -35,10 +34,10 @@ public class TestSummaryListener implements TestListener {
         return hadFailures;
     }
 
-    public void beforeSuite(TestSuite suite) {
+    public void beforeSuite(Test suite) {
     }
 
-    public void afterSuite(TestSuite suite) {
+    public void afterSuite(Test suite) {
     }
 
     public void beforeTest(Test test) {

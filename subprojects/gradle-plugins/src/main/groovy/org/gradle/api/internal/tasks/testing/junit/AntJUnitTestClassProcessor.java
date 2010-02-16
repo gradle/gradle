@@ -16,12 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import junit.framework.TestCase;
+import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTestRunner;
 import org.apache.tools.ant.taskdefs.optional.junit.XMLJUnitResultFormatter;
 import org.gradle.api.GradleException;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.util.TimeProvider;
@@ -38,15 +38,11 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJUnitTestClassProcessor.class);
     private final File testResultsDir;
     private final TimeProvider timeProvider = new TrueTimeProvider();
-    private TestListener listener;
-    private Field forkedField;
+    private final Field forkedField;
+    private JUnitResultFormatter formatter;
 
     public AntJUnitTestClassProcessor(File testResultsDir) {
         this.testResultsDir = testResultsDir;
-    }
-
-    public void startProcessing(TestListener listener) {
-        this.listener = listener;
         try {
             forkedField = JUnitTestRunner.class.getDeclaredField("forked");
             forkedField.setAccessible(true);
@@ -55,14 +51,19 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
         }
     }
 
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        formatter = new JUnit4TestListenerFormatter(resultProcessor, timeProvider);
+    }
+
     public void processTestClass(TestClassRunInfo testClass) {
         try {
             LOGGER.debug("Executing test {}", testClass.getTestClassName());
 
             JUnitTest test = new JUnitTest(testClass.getTestClassName());
 
-            ClassLoader applicationClassLoader = TestCase.class.getClassLoader();
-            JUnitTestRunner testRunner = new JUnitTestRunner(test, false, false, false, false, false, applicationClassLoader);
+            ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
+            JUnitTestRunner testRunner = new JUnitTestRunner(test, false, false, false, false, false,
+                    applicationClassLoader);
             // Pretend we have been forked - this enables stdout redirection
             forkedField.set(testRunner, true);
 
@@ -70,18 +71,12 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
             XMLJUnitResultFormatter xmlFormatter = new XMLJUnitResultFormatter();
             xmlFormatter.setOutput(new BufferedOutputStream(new FileOutputStream(testResultFile)));
             testRunner.addFormatter(xmlFormatter);
+            testRunner.addFormatter(formatter);
 
-            testRunner.addFormatter(new JUnit4TestListenerFormatter(listener, timeProvider));
-
-            ClassLoader loader = Thread.currentThread().getContextClassLoader();
-            Thread.currentThread().setContextClassLoader(applicationClassLoader);
-            try {
-                testRunner.run();
-            } finally {
-                Thread.currentThread().setContextClassLoader(loader);
-            }
+            testRunner.run();
         } catch (Throwable e) {
-            throw new GradleException(String.format("Could not execute test class %s.", testClass.getTestClassName()), e);
+            throw new GradleException(String.format("Could not execute test class %s.", testClass.getTestClassName()),
+                    e);
         }
     }
 

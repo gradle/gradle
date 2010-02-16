@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
@@ -35,7 +36,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final Action<WorkerProcessBuilder> buildConfigAction;
     private TestClassProcessor worker;
     private WorkerProcess workerProcess;
-    private TestListener listener;
+    private TestResultProcessor resultProcessor;
 
     public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, TestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerFactory = workerFactory;
@@ -49,8 +50,8 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         return processorFactory;
     }
 
-    public void startProcessing(TestListener listener) {
-        this.listener = listener;
+    public void startProcessing(TestResultProcessor resultProcessor) {
+        this.resultProcessor = resultProcessor;
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
@@ -62,7 +63,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             buildConfigAction.execute(builder);
             
             workerProcess = builder.build();
-            workerProcess.getConnection().addIncoming(TestListener.class, listener);
+            workerProcess.getConnection().addIncoming(TestResultProcessor.class, resultProcessor);
             worker = workerProcess.getConnection().addOutgoing(TestClassProcessor.class);
 
             workerProcess.start();

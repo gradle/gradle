@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project
@@ -88,7 +90,11 @@ public class TestNGIntegrationTest {
             apply id: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'org.testng:testng:5.8:jdk15' }
-            test { useTestNG() }
+            test {
+                useTestNG()
+                systemProperties.testSysProperty = 'value'
+                environment.TEST_ENV_VAR = 'value'
+            }
         '''
         testDir.file("src/test/java/org/gradle/OkTest.java") << """
             package org.gradle;
@@ -99,6 +105,12 @@ public class TestNGIntegrationTest {
                     assertEquals("${testDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')}", System.getProperty("user.dir"));
                     // check Gradle classes not visible
                     try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                    // check context classloader
+                    assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
+                    // check sys properties
+                    assertEquals("value", System.getProperty("testSysProperty"));
+                    // check env vars
+                    assertEquals("value", System.getenv("TEST_ENV_VAR"));
                 }
             }
         """
@@ -134,8 +146,8 @@ public class TestNGIntegrationTest {
                 ignoreFailures = true
             }
             class TestListenerImpl implements TestListener {
-                void beforeSuite(TestSuite suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(TestSuite suite) { println "FINISH [$suite] [$suite.name]" }
+                void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
+                void afterSuite(Test suite) { println "FINISH [$suite] [$suite.name]" }
                 void beforeTest(Test test) { println "START [$test] [$test.name]" }
                 void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
             }
