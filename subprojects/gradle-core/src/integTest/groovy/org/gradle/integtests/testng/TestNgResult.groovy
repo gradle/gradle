@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests.testng
 
 import org.gradle.util.TestFile
@@ -30,14 +32,14 @@ class TestNgResult implements TestResult {
         resultsXml = new XmlSlurper().parse(projectDir.file('build/reports/tests/testng-results.xml').assertIsFile())
     }
 
-    TestResult assertTestClassesExecuted(String ... testClasses) {
+    TestResult assertTestClassesExecuted(String... testClasses) {
         projectDir.file('build/reports/tests/index.html').assertIsFile()
         def actualTestClasses = findTestClasses().keySet()
         assertThat(actualTestClasses, equalTo(testClasses as Set))
         this
     }
 
-    TestResult assertTestsExecuted(String testClass, String ... testNames) {
+    TestResult assertTestsExecuted(String testClass, String... testNames) {
         def actualTestMethods = findTestMethods(testClass).keySet()
         assertThat(actualTestMethods, equalTo(testNames as Set))
         this
@@ -55,6 +57,18 @@ class TestNgResult implements TestResult {
         this
     }
 
+    TestResult assertConfigMethodPassed(String testClass, String name) {
+        def testMethodNode = findConfigMethod(testClass, name)
+        assertEquals('PASS', testMethodNode.@status as String)
+        this
+    }
+
+    TestResult assertConfigMethodFailed(String testClass, String name) {
+        def testMethodNode = findConfigMethod(testClass, name)
+        assertEquals('FAIL', testMethodNode.@status as String)
+        this
+    }
+
     private def findTestMethod(String testClass, String testName) {
         def testMethods = findTestMethods(testClass)
         if (!testMethods.containsKey(testName)) {
@@ -66,7 +80,24 @@ class TestNgResult implements TestResult {
     private def findTestMethods(String testClass) {
         def testClassNode = findTestClass(testClass)
         Map testMethods = [:]
-        testClassNode.'test-method'.findAll{ it.'@is-config' != 'true' }.each {
+        testClassNode.'test-method'.findAll { it.'@is-config' != 'true' }.each {
+            testMethods.put(it.@name as String, it)
+        }
+        testMethods
+    }
+
+    private def findConfigMethod(String testClass, String testName) {
+        def testMethods = findConfigMethods(testClass)
+        if (!testMethods.containsKey(testName)) {
+            fail("Could not find configuration method ${testClass}.${testName}. Found ${testMethods.keySet()}")
+        }
+        testMethods[testName]
+    }
+
+    private def findConfigMethods(String testClass) {
+        def testClassNode = findTestClass(testClass)
+        Map testMethods = [:]
+        testClassNode.'test-method'.findAll { it.'@is-config' == 'true' }.each {
             testMethods.put(it.@name as String, it)
         }
         testMethods

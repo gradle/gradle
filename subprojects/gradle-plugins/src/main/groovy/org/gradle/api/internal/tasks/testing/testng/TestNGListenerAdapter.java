@@ -18,14 +18,13 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
-import org.testng.ITestContext;
-import org.testng.ITestListener;
-import org.testng.ITestResult;
+import org.testng.*;
+import org.testng.internal.IConfigurationListener;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestNGListenerAdapter implements ITestListener {
+public class TestNGListenerAdapter implements ITestListener, IConfigurationListener {
     private final TestResultProcessor resultProcessor;
     private final Object lock = new Object();
     private long nextId;
@@ -92,5 +91,19 @@ public class TestNGListenerAdapter implements ITestListener {
             testInternal = tests.remove(iTestResult.getName());
         }
         resultProcessor.completed(testInternal, result);
+    }
+
+    public void onConfigurationSuccess(ITestResult testResult) {
+    }
+
+    public void onConfigurationSkip(ITestResult testResult) {
+    }
+
+    public void onConfigurationFailure(ITestResult testResult) {
+        if (!testResult.isSuccess()) {
+            TestInternal test = new DefaultTestMethod(0, testResult.getMethod().getTestClass().getName(),
+                    testResult.getMethod().getMethodName());
+            resultProcessor.completed(test, new DefaultTestResult(testResult.getThrowable(), testResult.getStartMillis(), testResult.getEndMillis()));
+        }
     }
 }

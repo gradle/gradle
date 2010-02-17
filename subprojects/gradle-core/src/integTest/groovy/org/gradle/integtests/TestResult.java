@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests;
 
 public interface TestResult {
@@ -35,4 +36,14 @@ public interface TestResult {
      * Asserts that the given test failed.
      */
     TestResult assertTestFailed(String testClass, String name);
+
+    /**
+     * Asserts that the given config method passed.
+     */
+    TestResult assertConfigMethodPassed(String testClass, String name);
+
+    /**
+     * Asserts that the given config method failed.
+     */
+    TestResult assertConfigMethodFailed(String testClass, String name);
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.detection;
 
 import org.apache.commons.io.IOUtils;
@@ -35,8 +36,6 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
-    protected static final String CLASS_FILE_EXT = ".class";
-
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
 
@@ -173,13 +172,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         boolean isKnownTestCase = false;
 
         if (StringUtils.isNotEmpty(testCaseClassName)) {
-            final Iterator<String> knownTestCaseClassNamesIterator = knownTestCaseClassNames.iterator();
-            while (!isKnownTestCase && knownTestCaseClassNamesIterator.hasNext()) {
-                final String currentKnownTestCaseClassName = knownTestCaseClassNamesIterator.next();
-                if (currentKnownTestCaseClassName.equals(testCaseClassName)) {
-                    isKnownTestCase = true;
-                }
-            }
+            isKnownTestCase = knownTestCaseClassNames.contains(testCaseClassName);
         }
 
         return isKnownTestCase;

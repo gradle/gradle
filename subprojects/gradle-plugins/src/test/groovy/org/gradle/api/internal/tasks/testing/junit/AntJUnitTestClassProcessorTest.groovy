@@ -17,27 +17,30 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
 import org.gradle.api.internal.tasks.testing.TestInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.Description
 import org.junit.runner.RunWith
 import org.junit.runner.Runner
+import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.junit.runner.notification.Failure
-import org.gradle.api.tasks.testing.TestResult
-import org.gradle.api.tasks.testing.TestResult.ResultType
 
 @RunWith(JMock.class)
 class AntJUnitTestClassProcessorTest {
@@ -262,6 +265,93 @@ class AntJUnitTestClassProcessorTest {
         processor.endProcessing();
     }
 
+    @Test
+    public void executesATestClassWithBrokenConstructor() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenConstructor.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenConstructor.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenConstructor.class.name))
+                assertThat(result.exception, sameInstance(ATestClassWithBrokenConstructor.failure))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenConstructor.class.name))
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenConstructor.class));
+        processor.endProcessing();
+    }
+
+    @Test
+    public void executesATestClassWithBrokenSetup() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenSetup.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenSetup.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenSetup.class.name))
+                assertThat(result.exception, sameInstance(ATestClassWithBrokenSetup.failure))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenSetup.class.name))
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenSetup.class));
+        processor.endProcessing();
+    }
+
+    @Test
+    public void executesATestClassWithBrokenRunner() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenRunner.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.name, equalTo('initializationError'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenRunner.class.name))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.name, equalTo('initializationError'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenRunner.class.name))
+                assertThat(result.exception, sameInstance(CustomRunnerWithBrokenConstructor.failure))
+            }
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenRunner.class.name))
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenRunner.class));
+        processor.endProcessing();
+    }
+
     private TestClassRunInfo testClass(Class<?> testClass) {
         TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class, testClass.name)
         context.checking {
@@ -279,6 +369,31 @@ public static class ATestClass {
 
     @Test @Ignore
     public void ignored() {
+    }
+}
+
+public static class ATestClassWithBrokenConstructor {
+    static RuntimeException failure = new RuntimeException()
+
+    def ATestClassWithBrokenConstructor() {
+        throw failure
+    }
+
+    @Test
+    public void test() {
+    }
+}
+
+public static class ATestClassWithBrokenSetup {
+    static RuntimeException failure = new RuntimeException()
+
+    @Before
+    public void setup() {
+        throw failure
+    }
+
+    @Test
+    public void test() {
     }
 }
 
@@ -321,5 +436,24 @@ public static class CustomRunner extends Runner {
         runNotifier.fireTestFailure(new Failure(test1, new RuntimeException('broken')))
         runNotifier.fireTestFinished(test2)
         runNotifier.fireTestFinished(test1)
+    }
+}
+
+@RunWith(CustomRunnerWithBrokenConstructor.class)
+public static class ATestClassWithBrokenRunner {}
+
+public static class CustomRunnerWithBrokenConstructor extends Runner {
+    static RuntimeException failure = new RuntimeException()
+
+    def CustomRunnerWithBrokenConstructor(Class<?> type) {
+        throw failure
+    }
+
+    Description getDescription() {
+        throw new UnsupportedOperationException();
+    }
+
+    void run(RunNotifier notifier) {
+        throw new UnsupportedOperationException();
     }
 }

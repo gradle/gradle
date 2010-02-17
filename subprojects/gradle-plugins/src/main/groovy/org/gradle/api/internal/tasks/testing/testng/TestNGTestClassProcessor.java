@@ -34,7 +34,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final File testReportDir;
     private final TestNGOptions options;
     private final List<File> suiteFiles;
-    private TestResultProcessor resultProcessor;
+    private TestNGListenerAdapter listener;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles) {
         this.testReportDir = testReportDir;
@@ -43,7 +43,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        this.resultProcessor = resultProcessor;
+        listener = new TestNGListenerAdapter(resultProcessor);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
@@ -61,7 +61,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
                 testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
             }
             testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-            testNg.addListener(new TestNGListenerAdapter(resultProcessor));
+            testNg.addListener(listener);
             testNg.setVerbose(0);
 
             if (!suiteFiles.isEmpty()) {

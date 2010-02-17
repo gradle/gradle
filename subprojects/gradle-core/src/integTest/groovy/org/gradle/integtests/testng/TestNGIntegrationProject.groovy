@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests.testng
 /**
  * @author Tom Eyckmans
@@ -21,7 +23,7 @@ package org.gradle.integtests.testng
 public class TestNGIntegrationProject {
     String name
     boolean expectFailure
-    def assertClosure
+    Closure assertClosure
 
     static TestNGIntegrationProject failingIntegrationProject(String language, String jdk, assertClosure)
     {
@@ -55,6 +57,10 @@ public class TestNGIntegrationProject {
     }
 
     void doAssert(projectDir, result) {
-        assertClosure(name, projectDir, new TestNgResult(projectDir))
+        if (assertClosure.maximumNumberOfParameters == 3) {
+            assertClosure(name, projectDir, new TestNgResult(projectDir))
+        } else {
+            assertClosure(name, projectDir, new TestNgResult(projectDir), result)
+        }
     }
 }

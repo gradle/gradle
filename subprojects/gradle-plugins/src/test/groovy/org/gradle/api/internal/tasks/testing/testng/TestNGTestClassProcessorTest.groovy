@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.internal.tasks.testing.TestInternal
@@ -35,6 +37,10 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.TestResult.ResultType
+import org.jmock.Sequence
+import org.junit.Ignore
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
@@ -106,6 +112,63 @@ class TestNGTestClassProcessorTest {
         processor.processTestClass(testClass(ATestNGFactoryClass.class));
         processor.endProcessing();
     }
+    
+    @Test @Ignore
+    public void executesATestClassWithBrokenConstructor() {
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithBrokenConstructor.class));
+        processor.endProcessing();
+        fail()
+    }
+
+    @Test
+    public void executesATestClassWithBrokenSetup() {
+        context.checking {
+            Sequence sequence = context.sequence('seq')
+
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo('Gradle test'))
+                assertThat(suite.className, nullValue())
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.name, equalTo('beforeMethod'))
+                assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
+                assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.exception, sameInstance(ATestNGClassWithBrokenSetupMethod.failure))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).started(withParam(notNullValue()))
+            will { TestInternal test ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestResult result ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
+                assertThat(result.resultType, equalTo(ResultType.SKIPPED))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.name, equalTo('Gradle test'))
+                assertThat(suite.className, nullValue())
+            }
+            inSequence(sequence)
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithBrokenSetupMethod.class));
+        processor.endProcessing();
+    }
 
     private TestClassRunInfo testClass(Class<?> testClass) {
         TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class)
@@ -139,5 +202,32 @@ public static class ATestNGFactoryClass {
     @Factory
     public Object[] suite() {
         return [new ATestNGClass()] as Object[]
+    }
+}
+
+public static class ATestNGClassWithBrokenConstructor {
+    static RuntimeException failure = new RuntimeException()
+
+
+    def ATestNGClassWithBrokenConstructor() {
+        throw failure
+    }
+
+    @org.testng.annotations.Test
+    public void test() {
+    }
+}
+
+public static class ATestNGClassWithBrokenSetupMethod {
+    static RuntimeException failure = new RuntimeException()
+
+    @BeforeMethod
+    public void beforeMethod() {
+        throw failure
+    }
+
+    @org.testng.annotations.Test
+    public void test() {
+        System.out.println("EXECUTE");
     }
 }

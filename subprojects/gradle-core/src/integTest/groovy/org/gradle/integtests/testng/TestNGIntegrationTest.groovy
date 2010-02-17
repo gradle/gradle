@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project
@@ -31,6 +33,7 @@ import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
 import static org.junit.Assert.*
 import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
 import org.gradle.integtests.ExecutionResult
 
 /**
@@ -59,13 +62,22 @@ public class TestNGIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.assertTestPassed('org.gradle.OkTest', 'passingTest')
     })
-    static final JAVA_JDK15_FAILING = failingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
-        result.assertTestClassesExecuted('org.gradle.BadTest')
+    static final JAVA_JDK15_FAILING = failingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result, ExecutionResult execution ->
+        result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite')
         result.assertTestFailed('org.gradle.BadTest', 'failingTest')
+        result.assertConfigMethodFailed('org.gradle.TestWithBrokenSetup', 'setup')
+        result.assertConfigMethodFailed('org.gradle.BrokenAfterSuite', 'cleanup')
+        assertThat(execution.error, containsString('Test method failingTest(org.gradle.BadTest) FAILED'))
+        assertThat(execution.error, containsString('Test method setup(org.gradle.TestWithBrokenSetup) FAILED'))
+        assertThat(execution.error, containsString('Test method cleanup(org.gradle.BrokenAfterSuite) FAILED'))
     })
     static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
-        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
         result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        result.assertConfigMethodPassed('org.gradle.SuiteSetup', 'setupSuite')
+        result.assertConfigMethodPassed('org.gradle.SuiteCleanup', 'cleanupSuite')
+        result.assertConfigMethodPassed('org.gradle.TestSetup', 'setupTest')
+        result.assertConfigMethodPassed('org.gradle.TestCleanup', 'cleanupTest')
     })
     static final JAVA_JDK15_PASSING_NO_REPORT = passingIntegrationProject(JAVA, JDK15, "-no-report", { name, TestFile projectDir, TestResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest')

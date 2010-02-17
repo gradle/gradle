@@ -35,12 +35,15 @@ public class TestSummaryListener implements TestListener {
     }
 
     public void beforeSuite(Test suite) {
+        logger.debug("Started {}", suite);
     }
 
     public void afterSuite(Test suite) {
+        logger.debug("Finished {}", suite);
     }
 
     public void beforeTest(Test test) {
+        logger.debug("Started {}", test);
     }
 
     public void afterTest(Test test, TestResult result) {

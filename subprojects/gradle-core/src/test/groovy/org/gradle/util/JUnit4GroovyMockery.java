@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.util;
 
 /**
  * @author Hans Dockter
  */
+
 import groovy.lang.Closure;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.hamcrest.Matcher;
 
 import java.util.Arrays;
 import java.util.List;
@@ -60,7 +61,7 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
                     if (invocation.getInvokedMethod().getReturnType().isInstance(result)) {
                         return result;
                     }
-                    return null;                
+                    return null;
                 }
             });
         }
