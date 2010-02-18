@@ -27,11 +27,12 @@ import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.util.HashUtil
 import org.junit.Test
 import static org.junit.Assert.*
+import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 
 /**
  * @author Hans Dockter
  */
-class DefaultRepositoryHandlerTest extends org.gradle.api.internal.artifacts.DefaultResolverContainerTest {
+class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     static final String TEST_REPO_URL = 'http://www.gradle.org'
 
     private DefaultRepositoryHandler repositoryHandler
