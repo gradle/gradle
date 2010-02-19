@@ -52,7 +52,7 @@ dependencies {
 
     compile libraries.jopt_simple,
             libraries.ant,
-            "org.apache.ant:ant-nodeps:1.7.0@jar",
+            libraries.ant_nodeps,
             libraries.logback_classic,
             libraries.logback_core,
             libraries.slf4j_api,

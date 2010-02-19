@@ -33,7 +33,7 @@ dependencies {
             libraries.asm_all,
             'biz.aQute:bndlib:0.0.384@jar',
             libraries.junit,
-            'org.testng:testng:5.10:jdk15',
+            'org.testng:testng:5.11:jdk15',
             'dom4j:dom4j:1.6.1@jar',
             'jaxen:jaxen:1.1@jar'
 

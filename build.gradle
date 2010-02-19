@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,6 +44,7 @@ libraries = [
         ant             : 'org.apache.ant:ant:1.7.0@jar',
         ant_junit       : 'org.apache.ant:ant-junit:1.7.0@jar',
         ant_launcher    : 'org.apache.ant:ant-launcher:1.7.0@jar',
+        ant_nodeps      : 'org.apache.ant:ant-nodeps:1.7.0@jar',
         antlr           : 'antlr:antlr:2.7.7@jar',
         asm_all         : 'asm:asm-all:3.2@jar',
         commons_cli     : 'commons-cli:commons-cli:1.2@jar',
