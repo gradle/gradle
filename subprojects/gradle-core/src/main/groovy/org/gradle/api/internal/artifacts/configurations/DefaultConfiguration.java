@@ -87,7 +87,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Configuration> getExtendsFrom() {
-        return extendsFrom;
+        return Collections.unmodifiableSet(extendsFrom);
     }
 
     public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
@@ -290,7 +290,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Dependency> getDependencies() {
-        return dependencies;
+        return Collections.unmodifiableSet(dependencies);
     }
 
     public Set<Dependency> getAllDependencies() {
@@ -333,7 +333,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<PublishArtifact> getArtifacts() {
-        return artifacts;
+        return Collections.unmodifiableSet(artifacts);
     }
 
     public Set<PublishArtifact> getAllArtifacts() {
@@ -345,7 +345,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<ExcludeRule> getExcludeRules() {
-        return excludeRules;
+        return Collections.unmodifiableSet(excludeRules);
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
@@ -438,7 +438,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
         // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule. 
         for (ExcludeRule excludeRule : getExcludeRules()) {
-            copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+            copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
         }
 
         for (Dependency dependency : dependencies) {
