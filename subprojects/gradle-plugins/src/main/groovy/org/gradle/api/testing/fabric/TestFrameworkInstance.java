@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.fabric;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
-import org.gradle.api.testing.TestClassProcessorFactory;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.process.WorkerProcessBuilder;
 
 /**
@@ -37,7 +38,7 @@ public interface TestFrameworkInstance {
 
     void applyForkArguments(JavaForkOptions forkOptions);
 
-    TestClassProcessorFactory getProcessorFactory();
+    WorkerTestClassProcessorFactory getProcessorFactory();
 
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 }

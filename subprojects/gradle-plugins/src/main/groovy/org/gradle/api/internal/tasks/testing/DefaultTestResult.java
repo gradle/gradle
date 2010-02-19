@@ -56,4 +56,9 @@ public class DefaultTestResult implements TestResult, Serializable {
     public long getEndTime() {
         return endTime;
     }
+
+    @Override
+    public String toString() {
+        return result.toString();
+    }
 }

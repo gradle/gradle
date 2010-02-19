@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.process.WorkerProcess;
 import org.gradle.process.WorkerProcessBuilder;
@@ -30,7 +29,7 @@ import java.io.File;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
     private final WorkerProcessFactory workerFactory;
-    private final TestClassProcessorFactory processorFactory;
+    private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
@@ -38,7 +37,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
 
-    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, TestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
+    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -46,7 +45,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.buildConfigAction = buildConfigAction;
     }
 
-    public TestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         return processorFactory;
     }
 

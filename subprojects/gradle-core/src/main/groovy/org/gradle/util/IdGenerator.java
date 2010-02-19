@@ -14,25 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.util;
 
-import org.gradle.messaging.ObjectConnection;
-
-public interface WorkerProcessContext {
+/**
+ * Generates a sequence of unique ids of type T. Implementations must be thread-safe.
+ */
+public interface IdGenerator<T> {
     /**
-     * Returns the unique identifier for this worker process.
+     * Generates a new id. Values must be serializable.
+     *
+     * @return The id. Must not return null. Must not return a given value more than once.
      */
-    Object getWorkerId();
-
-    /**
-     * Returns a display name for this worker process.
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the connection which can be used to send/receive messages to/from the server process.
-     */
-    ObjectConnection getServerConnection();
-
-    ClassLoader getApplicationClassLoader();
+    T generateId();
 }

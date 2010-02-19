@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.fabric;
 
 import org.gradle.api.tasks.testing.AbstractTestTask;
@@ -26,7 +27,7 @@ public abstract class AbstractTestFrameworkInstance implements TestFrameworkInst
 
     protected AbstractTestFrameworkInstance(AbstractTestTask testTask, TestFramework testFramework) {
         if (testTask == null) {
-            throw new IllegalArgumentException("testTaks == null!");
+            throw new IllegalArgumentException("testTask == null!");
         }
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework == null!");

@@ -58,7 +58,7 @@ public class GradleWorkerMainTest {
     @Test
     public void readsConfigFromStdInAndExecutesSuppliedAction() throws Exception {
         TestAction action = new TestAction();
-        System.setIn(serialize(LogLevel.DEBUG, new ArrayList<File>(), new ArrayList<String>(),
+        System.setIn(serialize("id", "display name", LogLevel.DEBUG, new ArrayList<File>(), new ArrayList<String>(),
                 new ArrayList<File>(), action, new URI("test:server")));
 
         context.checking(new Expectations() {{
@@ -88,7 +88,7 @@ public class GradleWorkerMainTest {
         }
 
         @Override
-        protected ObservableUrlClassLoader createSharedClassLoader() {
+        protected ObservableUrlClassLoader createApplicationClassLoader() {
             return sharedClassLoader;
         }
 
@@ -115,16 +115,22 @@ public class GradleWorkerMainTest {
 
     public static class TestWorkerMain implements Runnable {
         private final Action<WorkerProcessContext> action;
+        private final Object id;
+        private final String displayName;
         private final URI serverAddress;
         private final ClassLoader classLoader;
 
-        public TestWorkerMain(Action<WorkerProcessContext> action, URI serverAddress, ClassLoader classLoader) {
+        public TestWorkerMain(Action<WorkerProcessContext> action, Object id, String displayName, URI serverAddress, ClassLoader classLoader) {
             this.action = action;
+            this.id = id;
+            this.displayName = displayName;
             this.serverAddress = serverAddress;
             this.classLoader = classLoader;
         }
 
         public void run() {
+            assertThat(id, notNullValue());
+            assertThat(displayName, notNullValue());
             assertThat(action, instanceOf(TestAction.class));
             assertThat(serverAddress, notNullValue());
             assertThat(classLoader, notNullValue());

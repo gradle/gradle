@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.UncheckedIOException;
@@ -30,12 +31,14 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
+    private final AtomicInteger counter = new AtomicInteger(1);
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, FileResolver resolver) {
         this.workerLogLevel = workerLogLevel;
@@ -65,11 +68,15 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             ObjectConnection connection = server.createUnicastConnection();
 
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
+            Object id = counter.getAndIncrement();
+            String displayName = String.format("Gradle Worker %s", id);
 
             // Build configuration for GradleWorkerMain
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             try {
                 ObjectOutputStream objectStream = new ObjectOutputStream(outputStream);
+                objectStream.writeObject(id);
+                objectStream.writeObject(displayName);
                 objectStream.writeObject(getLogLevel());
                 objectStream.writeObject(getApplicationClasspath());
                 objectStream.writeObject(getSharedPackages());
@@ -82,7 +89,6 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             }
 
             getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
-            getJavaCommand().jvmArgs("-ea");
             ExecHandle execHandle = getJavaCommand().build();
 
             return new DefaultWorkerProcess(connection, execHandle);

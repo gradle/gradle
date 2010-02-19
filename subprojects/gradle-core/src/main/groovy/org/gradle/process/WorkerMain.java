@@ -32,21 +32,27 @@ import java.net.URI;
 public class WorkerMain implements Runnable {
     private static final Logger LOGGER = LoggerFactory.getLogger(WorkerMain.class);
     private final Action<WorkerProcessContext> action;
+    private final Object workerId;
+    private final String displayName;
     private final MessagingClient client;
     private final ClassLoader applicationClassLoader;
 
-    public WorkerMain(Action<WorkerProcessContext> action, URI serverAddress, ClassLoader applicationClassLoader) {
-        this(action, new TcpMessagingClient(WorkerMain.class.getClassLoader(), serverAddress), applicationClassLoader);
+    public WorkerMain(Action<WorkerProcessContext> action, Object workerId, String displayName, URI serverAddress,
+                      ClassLoader applicationClassLoader) {
+        this(action, workerId, displayName, new TcpMessagingClient(WorkerMain.class.getClassLoader(), serverAddress), applicationClassLoader);
     }
 
-    WorkerMain(Action<WorkerProcessContext> action, MessagingClient client, ClassLoader applicationClassLoader) {
+    WorkerMain(Action<WorkerProcessContext> action, Object workerId, String displayName, MessagingClient client, ClassLoader applicationClassLoader) {
         this.action = action;
+        this.workerId = workerId;
+        this.displayName = displayName;
         this.client = client;
         this.applicationClassLoader = applicationClassLoader;
     }
 
     public void run() {
         try {
+            LOGGER.debug("Starting {}.", displayName);
             WorkerProcessContext context = new WorkerProcessContext() {
                 public ObjectConnection getServerConnection() {
                     return client.getConnection();
@@ -55,9 +61,16 @@ public class WorkerMain implements Runnable {
                 public ClassLoader getApplicationClassLoader() {
                     return applicationClassLoader;
                 }
+
+                public Object getWorkerId() {
+                    return workerId;
+                }
+                
+                public String getDisplayName() {
+                    return displayName;
+                }
             };
 
-            LOGGER.debug("Starting worker action.");
             ClassLoader contextClassLoader = Thread.currentThread().getContextClassLoader();
             Thread.currentThread().setContextClassLoader(action.getClass().getClassLoader());
             try {
@@ -65,7 +78,7 @@ public class WorkerMain implements Runnable {
             } finally {
                 Thread.currentThread().setContextClassLoader(contextClassLoader);
             }
-            LOGGER.debug("Completed worker action.");
+            LOGGER.debug("Completed {}.", displayName);
             
         } finally {
             LOGGER.debug("Stopping client connection.");

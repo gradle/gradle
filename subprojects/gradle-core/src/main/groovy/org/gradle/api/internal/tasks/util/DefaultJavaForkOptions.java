@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks.util;
 
 import org.gradle.api.file.FileCollection;
@@ -34,6 +35,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
     private final List<Object> bootstrapClasspath = new ArrayList<Object>();
     private String maxHeapSize;
+    private boolean assertionsEnabled;
 
     public DefaultJavaForkOptions(FileResolver resolver) {
         this(resolver, Jvm.current());
@@ -61,6 +63,9 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         if (!bootstrapClasspath.isEmpty()) {
             args.add(String.format("-Xbootclasspath:%s", bootstrapClasspath.getAsPath()));
         }
+        if (assertionsEnabled) {
+            args.add("-ea");
+        }
         return args;
     }
 
@@ -68,6 +73,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         systemProperties.clear();
         maxHeapSize = null;
         extraJvmArgs.clear();
+        assertionsEnabled = false;
         jvmArgs(arguments);
     }
 
@@ -105,6 +111,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             matcher = bootstrapPattern.matcher(argStr);
             if (matcher.matches()) {
                 setBootstrapClasspath(Arrays.asList(matcher.group(1).split(Pattern.quote(File.pathSeparator))));
+                continue;
+            }
+            if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
+                assertionsEnabled = true;
+                continue;
+            }
+            if (argStr.equals("-da") || argStr.equals("-disableassertions")) {
+                assertionsEnabled = false;
                 continue;
             }
 
@@ -166,12 +180,21 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         this.maxHeapSize = heapSize;
     }
 
+    public boolean getEnableAssertions() {
+        return assertionsEnabled;
+    }
+
+    public void setEnableAssertions(boolean enabled) {
+        assertionsEnabled = enabled;
+    }
+
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         target.setJvmArgs(extraJvmArgs);
         target.setSystemProperties(systemProperties);
         target.setMaxHeapSize(maxHeapSize);
         target.setBootstrapClasspath(bootstrapClasspath);
+        target.setEnableAssertions(assertionsEnabled);
         return this;
     }
 }

@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.util.IdGenerator;
 import org.testng.*;
 import org.testng.internal.IConfigurationListener;
 
@@ -26,20 +27,20 @@ import java.util.Map;
 
 public class TestNGListenerAdapter implements ITestListener, IConfigurationListener {
     private final TestResultProcessor resultProcessor;
+    private final IdGenerator idGenerator;
     private final Object lock = new Object();
-    private long nextId;
     private Map<String, TestInternal> suites = new HashMap<String, TestInternal>();
     private Map<String, TestInternal> tests = new HashMap<String, TestInternal>();
 
-    public TestNGListenerAdapter(TestResultProcessor resultProcessor) {
+    public TestNGListenerAdapter(TestResultProcessor resultProcessor, IdGenerator idGenerator) {
         this.resultProcessor = resultProcessor;
+        this.idGenerator = idGenerator;
     }
 
     public void onStart(ITestContext iTestContext) {
         TestInternal testInternal;
         synchronized (lock) {
-            Long id = nextId++;
-            testInternal = new DefaultTestSuite(id, iTestContext.getName());
+            testInternal = new DefaultTestSuite(idGenerator.generateId(), iTestContext.getName());
             suites.put(testInternal.getName(), testInternal);
         }
         resultProcessor.started(testInternal);
@@ -56,8 +57,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     public void onTestStart(ITestResult iTestResult) {
         TestInternal testInternal;
         synchronized (lock) {
-            Long id = nextId++;
-            testInternal = new DefaultTestMethod(id, iTestResult.getTestClass().getName(), iTestResult.getName());
+            testInternal = new DefaultTestMethod(idGenerator.generateId(), iTestResult.getTestClass().getName(), iTestResult.getName());
             TestInternal oldTest = tests.put(testInternal.getName(), testInternal);
             if (oldTest != null) {
                 throw new IllegalStateException(String.format(
@@ -101,7 +101,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
 
     public void onConfigurationFailure(ITestResult testResult) {
         if (!testResult.isSuccess()) {
-            TestInternal test = new DefaultTestMethod(0, testResult.getMethod().getTestClass().getName(),
+            TestInternal test = new DefaultTestMethod(idGenerator.generateId(), testResult.getMethod().getTestClass().getName(),
                     testResult.getMethod().getMethodName());
             resultProcessor.completed(test, new DefaultTestResult(testResult.getThrowable(), testResult.getStartMillis(), testResult.getEndMillis()));
         }

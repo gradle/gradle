@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.testng;
 
 import org.gradle.api.JavaVersion;
@@ -20,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
 
@@ -36,6 +38,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
     private TestNGTestFramework testNgTestFrameworkMock;
     private TestNGTestFrameworkInstance testNGTestFrameworkInstance;
     private TestNGOptions testngOptionsMock;
+    private IdGenerator idGeneratorMock;
 
     @Before
     public void setUp() throws Exception {
@@ -43,6 +46,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
 
         testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
+        idGeneratorMock = context.mock(IdGenerator.class);
 
         testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock, testNgTestFrameworkMock);
     }
@@ -75,7 +79,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
             one(testngOptionsMock).getSuites(testReportDir);
         }});
 
-        TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create();
+        TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create(idGeneratorMock);
         assertThat(processor, instanceOf(TestNGTestClassProcessor.class));
     }
 

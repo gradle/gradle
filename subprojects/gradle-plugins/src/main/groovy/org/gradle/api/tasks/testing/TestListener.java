@@ -35,8 +35,9 @@ public interface TestListener {
     /**
      * Called after a test suite is finished.
      * @param suite The suite whose tests have finished being executed.
+     * @param result The aggregate result for the suite.
      */
-    void afterSuite(Test suite);
+    void afterSuite(Test suite, TestResult result);
 
     /**
      * Called before a test is started.

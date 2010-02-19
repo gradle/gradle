@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.process.WorkerProcess;
@@ -45,7 +44,7 @@ public class ForkingTestClassProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private final TestClassProcessorFactory factory = context.mock(TestClassProcessorFactory.class);
+    private final WorkerTestClassProcessorFactory processorFactory = context.mock(WorkerTestClassProcessorFactory.class);
     private final WorkerProcessFactory workerFactory = context.mock(WorkerProcessFactory.class);
     private final WorkerProcess workerProcess = context.mock(WorkerProcess.class);
     private final TestClassProcessor worker = context.mock(TestClassProcessor.class);
@@ -55,7 +54,7 @@ public class ForkingTestClassProcessorTest {
     private final List<File> appClassPath = asList(new File("classpath.jar"));
     private final JavaForkOptions options = context.mock(JavaForkOptions.class);
     private final Action<WorkerProcessBuilder> action = context.mock(Action.class);
-    private final ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerFactory, factory, options, appClassPath, action);
+    private final ForkingTestClassProcessor processor = new ForkingTestClassProcessor(workerFactory, processorFactory, options, appClassPath, action);
 
     @Test
     public void onFirstTestCaseStartsWorkerProcess() {

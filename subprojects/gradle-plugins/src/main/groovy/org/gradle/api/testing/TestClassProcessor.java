@@ -25,9 +25,24 @@ import org.gradle.api.testing.fabric.TestClassRunInfo;
  * @author Tom Eyckmans
  */
 public interface TestClassProcessor {
+    /**
+     * Performs any initialisation which this processor performs.
+     *
+     * @param resultProcessor The processor to send results to.
+     */
     void startProcessing(TestResultProcessor resultProcessor);
 
+    /**
+     * Accepts the given test class for processing. May execute synchronously, asynchronously, or defer execution for
+     * later.
+     *
+     * @param testClass The test class.
+     */
     void processTestClass(TestClassRunInfo testClass);
 
+    /**
+     * Completes any pending or asynchronous processing. Blocks until all processing is complete. The processor should
+     * not use the result processor once this method has returned.
+     */
     void endProcessing();
 }

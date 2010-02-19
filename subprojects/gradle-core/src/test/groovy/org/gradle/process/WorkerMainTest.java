@@ -36,13 +36,12 @@ public class WorkerMainTest {
     private final MessagingClient client = context.mock(MessagingClient.class);
     private final ClassLoader appClassLoader = new ClassLoader() {
     };
+    private final WorkerMain main = new WorkerMain(action, 12, "<display name>", client, appClassLoader);
 
     @Test
     public void createsConnectionAndExecutesAction() throws Exception {
         final ObjectConnection connection = context.mock(ObjectConnection.class);
         final Collector<WorkerProcessContext> collector = collector();
-
-        WorkerMain main = new WorkerMain(action, client, appClassLoader);
 
         context.checking(new Expectations() {{
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));
@@ -60,13 +59,14 @@ public class WorkerMainTest {
 
         assertThat(collector.get().getServerConnection(), sameInstance(connection));
         assertThat(collector.get().getApplicationClassLoader(), sameInstance(appClassLoader));
+        assertThat(collector.get().getWorkerId(), equalTo((Object) 12));
+        assertThat(collector.get().getDisplayName(), equalTo("<display name>"));
     }
 
     @Test
     public void cleansUpWhenActionThrowsException() throws Exception {
         final RuntimeException failure = new RuntimeException();
 
-        WorkerMain main = new WorkerMain(action, client, appClassLoader);
 
         context.checking(new Expectations() {{
             one(action).execute(with(notNullValue(WorkerProcessContext.class)));

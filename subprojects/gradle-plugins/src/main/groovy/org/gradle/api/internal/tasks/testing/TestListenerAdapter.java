@@ -36,7 +36,8 @@ public class TestListenerAdapter implements TestResultProcessor {
 
     public void completed(TestInternal test, TestResult result) {
         if (test.isComposite()) {
-            listener.afterSuite(test);
+            assert result == null;
+            listener.afterSuite(test, new DefaultTestResult(null, 0, 0));
         } else {
             listener.afterTest(test, result);
         }

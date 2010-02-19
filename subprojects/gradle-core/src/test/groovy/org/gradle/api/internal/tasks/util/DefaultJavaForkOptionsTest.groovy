@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.tasks.util
 
 
@@ -51,6 +53,7 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.systemProperties, isEmptyMap())
         assertThat(options.maxHeapSize, nullValue())
         assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+        assertFalse(options.enableAssertions)
         assertThat(options.allJvmArgs, isEmpty())
     }
 
@@ -128,6 +131,30 @@ public class DefaultJavaForkOptionsTest {
     }
 
     @Test
+    public void allJvmArgsIncludeAssertionsEnabled() {
+        assertThat(options.allJvmArgs, equalTo([]))
+
+        options.enableAssertions = true
+
+        assertThat(options.allJvmArgs, equalTo(['-ea']))
+    }
+
+    @Test
+    public void assertionsEnabledIsUpdatedWhenSetUsingJvmArgs() {
+        options.jvmArgs('-ea')
+        assertTrue(options.enableAssertions)
+
+        options.allJvmArgs = []
+        assertFalse(options.enableAssertions)
+
+        options.jvmArgs('-enableassertions')
+        assertTrue(options.enableAssertions)
+
+        options.allJvmArgs = ['-da']
+        assertFalse(options.enableAssertions)
+    }
+
+    @Test
     public void canSetBootstrapClasspath() {
         options.bootstrapClasspath = ['file.jar']
 
@@ -193,6 +220,7 @@ public class DefaultJavaForkOptionsTest {
             one(target).setSystemProperties(key: 12)
             one(target).setMaxHeapSize('1g')
             one(target).setBootstrapClasspath(['file.jar'])
+            one(target).setEnableAssertions(false)
             ignoring(target)
         }
 

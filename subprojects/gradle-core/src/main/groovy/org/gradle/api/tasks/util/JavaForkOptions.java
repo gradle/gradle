@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.util;
 
 import org.gradle.api.file.FileCollection;
@@ -135,6 +136,20 @@ public interface JavaForkOptions extends ProcessForkOptions {
     JavaForkOptions bootstrapClasspath(Object... classpath);
 
     /**
+     * Returns true if assertions are enabled for the process.
+     *
+     * @return true if assertions are enabled, false if disabled
+     */
+    boolean getEnableAssertions();
+
+    /**
+     * Enable or disable assertions for the process.
+     *
+     * @param enabled true to enable assertions, false to disable.
+     */
+    void setEnableAssertions(boolean enabled);
+
+    /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
      * system properties, the maximum heap size, and the bootstrap classpath.
      *
@@ -144,7 +159,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
 
     /**
      * Sets the full set of arguments to use to launch the JVM for the process. Overwrites any previously set system
-     * properties, maximum heap size, and bootstrap classpath.
+     * properties, maximum heap size, assertions, and bootstrap classpath.
      *
      * @param arguments The arguments. Must not be null.
      */

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.junit;
 
 import org.gradle.api.Action;
@@ -22,9 +23,10 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.TestClassProcessorFactory;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.util.IdGenerator;
 
 import java.io.File;
 import java.io.Serializable;
@@ -47,7 +49,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public TestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         final File testResultsDir = testTask.getTestResultsDir();
         return new TestClassProcessorFactoryImpl(testResultsDir);
     }
@@ -98,15 +100,15 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
         // TODO possible to specify which one to use. -> will break ant task compatibility in options.
     }
 
-    private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {
+    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final File testResultsDir;
 
         public TestClassProcessorFactoryImpl(File testResultsDir) {
             this.testResultsDir = testResultsDir;
         }
 
-        public TestClassProcessor create() {
-            return new AntJUnitTestClassProcessor(testResultsDir);
+        public TestClassProcessor create(IdGenerator idGenerator) {
+            return new AntJUnitTestClassProcessor(testResultsDir, idGenerator);
         }
     }
 }

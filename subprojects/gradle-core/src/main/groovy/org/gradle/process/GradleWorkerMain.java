@@ -31,6 +31,11 @@ import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
 
+/**
+ * The main entry point for a worker process. Reads serialized configuration from stdin, and configures logging and the
+ * ClassLoader hierarchy. Then, creates a {@link org.gradle.process.WorkerMain} instance in the implementation
+ * ClassLoader, and delegates execution to it.
+ */
 public class GradleWorkerMain {
     public void run() throws Exception {
 
@@ -58,21 +63,25 @@ public class GradleWorkerMain {
         FilteringClassLoader filteredSystem = new FilteringClassLoader(getClass().getClassLoader());
         filteredSystem.allowPackage("org.slf4j");
 
-        ObservableUrlClassLoader sharedClassLoader = createSharedClassLoader();
-        FilteringClassLoader filteredShared = new FilteringClassLoader(sharedClassLoader);
-        ObservableUrlClassLoader implementationClassLoader = createImplementationClassLoader(filteredSystem, filteredShared);
+        ObservableUrlClassLoader applicationClassLoader = createApplicationClassLoader();
+        FilteringClassLoader filteredApplication = new FilteringClassLoader(applicationClassLoader);
+        ObservableUrlClassLoader implementationClassLoader = createImplementationClassLoader(filteredSystem,
+                filteredApplication);
 
         ObjectInputStream instr = new ClassLoaderObjectInputStream(System.in, implementationClassLoader);
+
+        Object workerId = instr.readObject();
+        String displayName = (String) instr.readObject();
 
         // Configure logging
         LogLevel logLevel = (LogLevel) instr.readObject();
         configurer.configure(logLevel);
 
         // Configure classpaths
-        sharedClassLoader.addURLs((Collection<URL>) instr.readObject());
+        applicationClassLoader.addURLs((Collection<URL>) instr.readObject());
         Collection<String> sharedPackages = (Collection<String>) instr.readObject();
         for (String sharedPackage : sharedPackages) {
-            filteredShared.allowPackage(sharedPackage);
+            filteredApplication.allowPackage(sharedPackage);
         }
         implementationClassLoader.addURLs((Iterable<URL>) instr.readObject());
 
@@ -83,8 +92,8 @@ public class GradleWorkerMain {
         Class<? extends Runnable> workerClass = implementationClassLoader.loadClass(WorkerMain.class.getName())
                 .asSubclass(Runnable.class);
         Constructor<? extends Runnable> constructor = workerClass.getConstructor(implementationClassLoader.loadClass(
-                Action.class.getName()), URI.class, ClassLoader.class);
-        Runnable worker = constructor.newInstance(action, serverAddress, sharedClassLoader);
+                Action.class.getName()), Object.class, String.class, URI.class, ClassLoader.class);
+        Runnable worker = constructor.newInstance(action, workerId, displayName, serverAddress, applicationClassLoader);
         worker.run();
     }
 
@@ -92,7 +101,7 @@ public class GradleWorkerMain {
         return new DefaultLoggingConfigurer();
     }
 
-    protected ObservableUrlClassLoader createSharedClassLoader() {
+    protected ObservableUrlClassLoader createApplicationClassLoader() {
         return new ObservableUrlClassLoader(ClassLoader.getSystemClassLoader().getParent());
     }
 

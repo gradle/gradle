@@ -32,6 +32,7 @@ import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.process.WorkerProcessFactory;
 import org.slf4j.LoggerFactory;
@@ -52,6 +53,7 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     public AntTest() {
         this.testClassScannerFactory = new DefaultTestClassScannerFactory();
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
+        options.setEnableAssertions(true);
     }
 
     void setTestClassScannerFactory(TestClassScannerFactory testClassScannerFactory) {
@@ -209,6 +211,20 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
     /**
      * {@inheritDoc}
      */
+    public boolean getEnableAssertions() {
+        return options.getEnableAssertions();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setEnableAssertions(boolean enabled) {
+        options.setEnableAssertions(enabled);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public List<String> getAllJvmArgs() {
         return options.getAllJvmArgs();
     }
@@ -270,7 +286,7 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
         final WorkerProcessFactory workerFactory = getServices().get(WorkerProcessFactory.class);
 
         final TestFrameworkInstance testFrameworkInstance = getTestFramework();
-        final TestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
+        final WorkerTestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
         TestClassProcessorFactory processorFactory = new TestClassProcessorFactory() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, options, getClasspath(), testFrameworkInstance.getWorkerConfigurationAction());

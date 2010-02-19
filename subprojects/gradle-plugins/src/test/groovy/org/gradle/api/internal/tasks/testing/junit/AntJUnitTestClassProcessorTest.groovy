@@ -19,6 +19,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
@@ -41,38 +43,39 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.util.LongIdGenerator
 
 @RunWith(JMock.class)
 class AntJUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final AntJUnitTestClassProcessor processor = new AntJUnitTestClassProcessor(tmpDir.dir);
+    private final AntJUnitTestClassProcessor processor = new AntJUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator());
 
     @Test
     public void executesATestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
@@ -118,49 +121,49 @@ class AntJUnitTestClassProcessorTest {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(2L))
+                assertThat(suite.id, equalTo(3L))
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(3L))
+                assertThat(test.id, equalTo(4L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(3L))
+                assertThat(test.id, equalTo(4L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(2L))
+                assertThat(suite.id, equalTo(3L))
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
             }
@@ -177,32 +180,32 @@ class AntJUnitTestClassProcessorTest {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClassWithRunner.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithRunner.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('broken'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
+                assertThat(test.id, equalTo(3L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test, TestResult result ->
-                assertThat(test.id, equalTo(2L))
+                assertThat(test.id, equalTo(3L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test, TestResult result ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('broken'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
@@ -210,7 +213,7 @@ class AntJUnitTestClassProcessorTest {
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClassWithRunner.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithRunner.class.name))
             }
@@ -231,25 +234,25 @@ class AntJUnitTestClassProcessorTest {
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
+                assertThat(test.id, equalTo(3L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
+                assertThat(test.id, equalTo(3L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }

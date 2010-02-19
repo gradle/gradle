@@ -24,6 +24,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
 import org.slf4j.Logger;
@@ -37,12 +38,14 @@ import java.lang.reflect.Field;
 public class AntJUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJUnitTestClassProcessor.class);
     private final File testResultsDir;
+    private final IdGenerator idGenerator;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private final Field forkedField;
     private JUnitResultFormatter formatter;
 
-    public AntJUnitTestClassProcessor(File testResultsDir) {
+    public AntJUnitTestClassProcessor(File testResultsDir, IdGenerator idGenerator) {
         this.testResultsDir = testResultsDir;
+        this.idGenerator = idGenerator;
         try {
             forkedField = JUnitTestRunner.class.getDeclaredField("forked");
             forkedField.setAccessible(true);
@@ -52,7 +55,7 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        formatter = new JUnit4TestListenerFormatter(resultProcessor, timeProvider);
+        formatter = new JUnit4TestListenerFormatter(resultProcessor, timeProvider, idGenerator);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
@@ -75,8 +78,7 @@ public class AntJUnitTestClassProcessor implements TestClassProcessor {
 
             testRunner.run();
         } catch (Throwable e) {
-            throw new GradleException(String.format("Could not execute test class %s.", testClass.getTestClassName()),
-                    e);
+            throw new GradleException(String.format("Could not execute test class '%s'.", testClass.getTestClassName()), e);
         }
     }
 

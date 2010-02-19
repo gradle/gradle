@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.junit;
 
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
@@ -20,6 +21,7 @@ import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
 
@@ -36,6 +38,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
+    private IdGenerator idGenerator;
 
     @Before
     public void setUp() throws Exception {
@@ -44,6 +47,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         JUnitTestFramework jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
+        idGenerator = context.mock(IdGenerator.class);
 
         jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock, jUnitTestFrameworkMock);
     }
@@ -71,7 +75,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
         }});
 
-        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create();
+        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create(idGenerator);
         assertThat(testClassProcessor, instanceOf(AntJUnitTestClassProcessor.class));
     }
 

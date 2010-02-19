@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 import static org.junit.Assert.*
 
 apply id: 'java'
@@ -31,7 +33,7 @@ class MyListener implements org.gradle.api.tasks.testing.TestListener
         recordAndOutput('suiteStarting: '+suite.getName())
     }
 
-    public void afterSuite(Test suite) {
+    public void afterSuite(Test suite, TestResult result) {
         recordAndOutput 'suiteFinished: '+suite.getName()
     }
 

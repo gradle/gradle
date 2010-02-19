@@ -21,11 +21,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.process.WorkerProcessBuilder;
@@ -73,7 +73,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
     TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
     TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
-    TestClassProcessorFactory testProcessorFactoryMock = context.mock(TestClassProcessorFactory.class);
+    WorkerTestClassProcessorFactory testProcessorFactoryMock = context.mock(WorkerTestClassProcessorFactory.class);
     org.gradle.api.Action<WorkerProcessBuilder> workerConfigurationActionMock = context.mock(org.gradle.api.Action.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);

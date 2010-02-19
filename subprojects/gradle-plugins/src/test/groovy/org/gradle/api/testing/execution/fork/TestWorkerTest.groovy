@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.testing.execution.fork
 
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
@@ -29,28 +31,37 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
+import org.junit.Before
 
 @RunWith(JMock.class)
 public class TestWorkerTest extends MultithreadedTestCase {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final WorkerProcessContext workerContext = context.mock(WorkerProcessContext.class)
     private final ObjectConnection connection = context.mock(ObjectConnection.class)
-    private final TestClassProcessorFactory factory = context.mock(TestClassProcessorFactory.class)
+    private final WorkerTestClassProcessorFactory factory = context.mock(WorkerTestClassProcessorFactory.class)
     private final TestClassProcessor processor = context.mock(TestClassProcessor.class)
     private final TestClassRunInfo test = context.mock(TestClassRunInfo.class)
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class)
     private final TestWorker worker = new TestWorker(factory)
 
-    @Test
-    public void createsTestProcessorAndBlocksUntilEndOfProcessingReceived() {
+    @Before
+    public void setup() {
         context.checking {
-            one(factory).create()
-            will(returnValue(processor))
+            ignoring(workerContext).getWorkerId()
+            ignoring(workerContext).getDisplayName()
 
             allowing(workerContext).getServerConnection()
             will(returnValue(connection))
 
             ignoring(workerContext).getApplicationClassLoader()
+        }
+    }
+
+    @Test
+    public void createsTestProcessorAndBlocksUntilEndOfProcessingReceived() {
+        context.checking {
+            one(factory).create(withParam(notNullValue()))
+            will(returnValue(processor))
 
             one(connection).addOutgoing(TestResultProcessor.class)
             will(returnValue(resultProcessor))
@@ -63,6 +74,9 @@ public class TestWorkerTest extends MultithreadedTestCase {
                     worker.endProcessing()
                 }
             }
+
+            ignoring(resultProcessor)
+
             one(processor).startProcessing(resultProcessor)
             one(processor).processTestClass(test)
             one(processor).endProcessing()
@@ -74,23 +88,18 @@ public class TestWorkerTest extends MultithreadedTestCase {
             }
         }
     }
-    
+
     @Test
     public void handlesFailedEndProcessing() {
         RuntimeException failure = new RuntimeException()
 
         context.checking {
-            one(factory).create()
+            one(factory).create(withParam(notNullValue()))
             will(returnValue(processor))
-
-            allowing(workerContext).getServerConnection()
-            will(returnValue(connection))
-
-            ignoring(workerContext).getApplicationClassLoader()
 
             one(connection).addOutgoing(TestResultProcessor.class)
             will(returnValue(resultProcessor))
-            
+
             one(connection).addIncoming(TestClassProcessor.class, worker)
             will {
                 start {
@@ -100,6 +109,9 @@ public class TestWorkerTest extends MultithreadedTestCase {
                     worker.endProcessing()
                 }
             }
+
+            ignoring(resultProcessor)
+            
             one(processor).startProcessing(resultProcessor)
             one(processor).processTestClass(test)
             one(processor).endProcessing()

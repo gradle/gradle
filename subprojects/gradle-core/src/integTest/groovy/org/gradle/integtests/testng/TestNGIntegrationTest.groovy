@@ -19,6 +19,8 @@
 
 
 
+
+
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project
@@ -72,8 +74,11 @@ public class TestNGIntegrationTest {
         assertThat(execution.error, containsString('Test method cleanup(org.gradle.BrokenAfterSuite) FAILED'))
     })
     static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
-        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
+        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
         result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        result.assertTestsExecuted('org.gradle.ConcreteTest', 'ok', 'alsoOk')
+        result.assertTestPassed('org.gradle.ConcreteTest', 'ok')
+        result.assertTestPassed('org.gradle.ConcreteTest', 'alsoOk')
         result.assertConfigMethodPassed('org.gradle.SuiteSetup', 'setupSuite')
         result.assertConfigMethodPassed('org.gradle.SuiteCleanup', 'cleanupSuite')
         result.assertConfigMethodPassed('org.gradle.TestSetup', 'setupTest')
@@ -159,7 +164,7 @@ public class TestNGIntegrationTest {
             }
             class TestListenerImpl implements TestListener {
                 void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(Test suite) { println "FINISH [$suite] [$suite.name]" }
+                void afterSuite(Test suite, TestResult result) { println "FINISH [$suite] [$suite.name]" }
                 void beforeTest(Test test) { println "START [$test] [$test.name]" }
                 void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
             }

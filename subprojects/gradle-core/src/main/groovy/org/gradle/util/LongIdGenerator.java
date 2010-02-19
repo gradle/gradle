@@ -14,25 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.util;
 
-import org.gradle.messaging.ObjectConnection;
+import java.util.concurrent.atomic.AtomicLong;
 
-public interface WorkerProcessContext {
-    /**
-     * Returns the unique identifier for this worker process.
-     */
-    Object getWorkerId();
+public class LongIdGenerator implements IdGenerator<Long> {
+    private final AtomicLong nextId = new AtomicLong(1);
 
-    /**
-     * Returns a display name for this worker process.
-     */
-    String getDisplayName();
-
-    /**
-     * Returns the connection which can be used to send/receive messages to/from the server process.
-     */
-    ObjectConnection getServerConnection();
-
-    ClassLoader getApplicationClassLoader();
+    public Long generateId() {
+        return nextId.getAndIncrement();
+    }
 }

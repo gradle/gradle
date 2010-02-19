@@ -23,6 +23,7 @@ import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.IdGenerator;
 import org.testng.TestNG;
 
 import java.io.File;
@@ -30,55 +31,54 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class TestNGTestClassProcessor implements TestClassProcessor {
-    private final List<String> testClassNames = new ArrayList<String>();
+    private final List<Class<?>> testClasses = new ArrayList<Class<?>>();
     private final File testReportDir;
     private final TestNGOptions options;
     private final List<File> suiteFiles;
+    private final IdGenerator idGenerator;
     private TestNGListenerAdapter listener;
+    private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator idGenerator) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;
+        this.idGenerator = idGenerator;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        listener = new TestNGListenerAdapter(resultProcessor);
+        listener = new TestNGListenerAdapter(resultProcessor, idGenerator);
+        applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        testClassNames.add(testClass.getTestClassName());
+        try {
+            testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
+        } catch (ClassNotFoundException e) {
+            throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()));
+        }
     }
 
     public void endProcessing() {
-        try {
-            TestNG testNg = new TestNG();
-            testNg.setOutputDirectory(testReportDir.getAbsolutePath());
-            testNg.setDefaultSuiteName(options.getSuiteName());
-            testNg.setDefaultTestName(options.getTestName());
-            testNg.setAnnotations(options.getAnnotations());
-            if (options.getJavadocAnnotations()) {
-                testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
-            }
-            testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-            testNg.addListener(listener);
-            testNg.setVerbose(0);
-
-            if (!suiteFiles.isEmpty()) {
-                testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
-            } else {
-                ClassLoader applicationClassLoader = Thread.currentThread().getContextClassLoader();
-                Class[] classes = new Class[testClassNames.size()];
-                for (int i = 0; i < testClassNames.size(); i++) {
-                    String className = testClassNames.get(i);
-                    classes[i] = applicationClassLoader.loadClass(className);
-                }
-                testNg.setTestClasses(classes);
-            }
-
-            testNg.run();
-        } catch (Throwable throwable) {
-            throw new GradleException("Could not execute tests.", throwable);
+        TestNG testNg = new TestNG();
+        testNg.setOutputDirectory(testReportDir.getAbsolutePath());
+        testNg.setDefaultSuiteName(options.getSuiteName());
+        testNg.setDefaultTestName(options.getTestName());
+        testNg.setAnnotations(options.getAnnotations());
+        if (options.getJavadocAnnotations()) {
+            testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
         }
+        testNg.setUseDefaultListeners(options.getUseDefaultListeners());
+        testNg.addListener(listener);
+        testNg.setVerbose(0);
+
+        if (!suiteFiles.isEmpty()) {
+            testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));
+        } else {
+            Class[] classes = testClasses.toArray(new Class[testClasses.size()]);
+            testNg.setTestClasses(classes);
+        }
+
+        testNg.run();
     }
 }

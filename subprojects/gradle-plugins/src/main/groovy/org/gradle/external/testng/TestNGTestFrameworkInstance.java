@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.testng;
 
 import org.gradle.api.Action;
@@ -22,9 +23,10 @@ import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.TestClassProcessorFactory;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
 import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.util.IdGenerator;
 
 import java.io.File;
 import java.io.Serializable;
@@ -49,7 +51,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public TestClassProcessorFactory getProcessorFactory() {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
         List<File> suiteFiles = options.getSuites(testTask.getTestReportDir());
         return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), options, suiteFiles);
@@ -84,7 +86,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
         // TODO - implement
     }
 
-    private static class TestClassProcessorFactoryImpl implements TestClassProcessorFactory, Serializable {
+    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
         private final File testReportDir;
         private final TestNGOptions options;
         private final List<File> suiteFiles;
@@ -95,8 +97,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
             this.suiteFiles = suiteFiles;
         }
 
-        public TestClassProcessor create() {
-            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles);
+        public TestClassProcessor create(IdGenerator idGenerator) {
+            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, idGenerator);
         }
     }
 }

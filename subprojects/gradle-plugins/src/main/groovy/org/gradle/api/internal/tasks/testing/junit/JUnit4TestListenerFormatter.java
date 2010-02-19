@@ -20,17 +20,18 @@ import junit.framework.Test;
 import org.gradle.api.internal.tasks.testing.DefaultTest;
 import org.gradle.api.internal.tasks.testing.TestInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 import org.junit.runner.Describable;
 import org.junit.runner.Description;
 
 public class JUnit4TestListenerFormatter extends TestListenerFormatter {
-    public JUnit4TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider) {
-        super(resultProcessor, timeProvider);
+    public JUnit4TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator idGenerator) {
+        super(resultProcessor, timeProvider, idGenerator);
     }
 
     @Override
-    protected TestInternal convert(Long id, Test test) {
+    protected TestInternal convert(Object id, Test test) {
         if (test instanceof Describable) {
             Describable describable = (Describable) test;
             Description description = describable.getDescription();

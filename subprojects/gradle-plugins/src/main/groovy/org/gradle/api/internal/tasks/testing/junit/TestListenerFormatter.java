@@ -23,6 +23,7 @@ import org.apache.tools.ant.BuildException;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
 import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 
 import java.io.OutputStream;
@@ -32,20 +33,20 @@ import java.util.Map;
 public class TestListenerFormatter implements JUnitResultFormatter {
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
+    private final IdGenerator idGenerator;
     private final Object lock = new Object();
-    private long nextId;
     private final Map<Object, TestState> executing = new IdentityHashMap<Object, TestState>();
 
-    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider) {
+    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator idGenerator) {
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
+        this.idGenerator = idGenerator;
     }
 
     public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
         TestInternal testInternal;
         synchronized (lock) {
-            Long id = nextId++;
-            testInternal = convert(id, jUnitTest);
+            testInternal = convert(idGenerator.generateId(), jUnitTest);
             executing.put(jUnitTest, new TestState(testInternal, 0));
         }
         resultProcessor.started(testInternal);
@@ -72,8 +73,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         long startTime = timeProvider.getCurrentTime();
         TestInternal testInternal;
         synchronized (lock) {
-            Long id = nextId++;
-            testInternal = convert(id, test);
+            testInternal = convert(idGenerator.generateId(), test);
             TestState oldState = executing.put(test, new TestState(testInternal, startTime));
             if (oldState != null) {
                 throw new IllegalStateException(String.format(
@@ -105,12 +105,12 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         resultProcessor.completed(testInternal, result);
     }
 
-    private TestInternal convert(Long id, JUnitTest jUnitTest) {
+    private TestInternal convert(Object id, JUnitTest jUnitTest) {
         String className = jUnitTest.getName();
         return new DefaultTestClass(id, className);
     }
 
-    protected TestInternal convert(Long id, Test test) {
+    protected TestInternal convert(Object id, Test test) {
         if (test instanceof TestCase) {
             TestCase testCase = (TestCase) test;
             return new DefaultTest(id, testCase.getClass().getName(), testCase.getName());

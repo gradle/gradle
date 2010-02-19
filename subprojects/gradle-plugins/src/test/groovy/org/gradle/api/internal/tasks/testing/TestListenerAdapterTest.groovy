@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.tasks.testing.TestListener
@@ -23,6 +25,9 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+import org.gradle.api.tasks.testing.TestResult.ResultType
 
 @RunWith(JMock.class)
 class TestListenerAdapterTest {
@@ -47,18 +52,20 @@ class TestListenerAdapterTest {
     }
 
     @Test
-    public void forwardsTestSuiteToListener() {
+    public void createsAnAggregatesResultForEmptyTestSuite() {
         TestInternal test = context.mock(TestInternal.class)
-        TestResult result = context.mock(TestResult.class)
 
         context.checking {
             allowing(test).isComposite()
             will(returnValue(true))
             one(listener).beforeSuite(test)
-            one(listener).afterSuite(test)
+            one(listener).afterSuite(withParam(sameInstance(test)), withParam(notNullValue()))
+            will { arg, TestResult result ->
+                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+            }
         }
 
         adapter.started(test)
-        adapter.completed(test, result)
+        adapter.completed(test, null)
     }
 }

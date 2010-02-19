@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.Action;
@@ -82,6 +83,8 @@ public class DefaultWorkerProcessFactoryTest {
         assertThat(process, instanceOf(DefaultWorkerProcess.class));
 
         ObjectInputStream instr = new ObjectInputStream(builder.getJavaCommand().getStandardInput());
+        assertThat(instr.readObject(), equalTo((Object)1));
+        assertThat(instr.readObject(), equalTo((Object)"Gradle Worker 1"));
         assertThat(instr.readObject(), equalTo((Object) LogLevel.LIFECYCLE));
         assertThat(instr.readObject(), equalTo((Object) builder.getApplicationClasspath()));
         assertThat(instr.readObject(), equalTo((Object) builder.getSharedPackages()));

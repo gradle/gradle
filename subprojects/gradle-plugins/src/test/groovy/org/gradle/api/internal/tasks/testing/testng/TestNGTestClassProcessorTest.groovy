@@ -15,18 +15,18 @@
  */
 
 
-
-
-
-
 package org.gradle.api.internal.tasks.testing.testng
 
+import org.gradle.api.GradleException
 import org.gradle.api.internal.tasks.testing.TestInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
+import org.jmock.Sequence
 import org.jmock.integration.junit4.JMock
 import org.junit.Rule
 import org.junit.Test
@@ -37,9 +37,7 @@ import org.testng.annotations.BeforeMethod
 import org.testng.annotations.Factory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.tasks.testing.TestResult
-import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.jmock.Sequence
+import org.gradle.util.LongIdGenerator
 import org.junit.Ignore
 
 @RunWith(JMock.class)
@@ -47,32 +45,32 @@ class TestNGTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, new TestNGOptions(tmpDir.dir), []);
+    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, new TestNGOptions(tmpDir.dir), [], new LongIdGenerator());
 
     @Test
     public void executesATestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
-                assertThat(test.id, equalTo(1L))
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
             will { TestInternal suite ->
-                assertThat(suite.id, equalTo(0L))
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
@@ -112,7 +110,7 @@ class TestNGTestClassProcessorTest {
         processor.processTestClass(testClass(ATestNGFactoryClass.class));
         processor.endProcessing();
     }
-    
+
     @Test @Ignore
     public void executesATestClassWithBrokenConstructor() {
         processor.startProcessing(resultProcessor);
@@ -170,11 +168,26 @@ class TestNGTestClassProcessorTest {
         processor.endProcessing();
     }
 
-    private TestClassRunInfo testClass(Class<?> testClass) {
+    @Test
+    public void failsEarlyForUnknownTestClass() {
+        processor.startProcessing(resultProcessor)
+        try {
+            processor.processTestClass(testClass('unknown'))
+            fail()
+        } catch (GradleException e) {
+            assertThat(e.message, equalTo('Could not load test class \'unknown\'.'))
+        }
+    }
+
+    private TestClassRunInfo testClass(Class<?> type) {
+        return testClass(type.name)
+    }
+    
+    private TestClassRunInfo testClass(String testClassName) {
         TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class)
         context.checking {
             allowing(runInfo).getTestClassName()
-            will(returnValue(testClass.name))
+            will(returnValue(testClassName))
         }
         return runInfo;
     }
@@ -207,7 +220,6 @@ public static class ATestNGFactoryClass {
 
 public static class ATestNGClassWithBrokenConstructor {
     static RuntimeException failure = new RuntimeException()
-
 
     def ATestNGClassWithBrokenConstructor() {
         throw failure

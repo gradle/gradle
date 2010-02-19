@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util.exec;
 
 import org.gradle.api.file.FileCollection;
@@ -113,6 +114,14 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
 
     public void setMaxHeapSize(String heapSize) {
         javaOptions.setMaxHeapSize(heapSize);
+    }
+
+    public boolean getEnableAssertions() {
+        return javaOptions.getEnableAssertions();
+    }
+
+    public void setEnableAssertions(boolean enabled) {
+        javaOptions.setEnableAssertions(enabled);
     }
 
     public String getMainClass() {

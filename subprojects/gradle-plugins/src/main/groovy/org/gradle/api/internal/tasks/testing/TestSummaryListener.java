@@ -38,7 +38,7 @@ public class TestSummaryListener implements TestListener {
         logger.debug("Started {}", suite);
     }
 
-    public void afterSuite(Test suite) {
+    public void afterSuite(Test suite, TestResult result) {
         logger.debug("Finished {}", suite);
     }
 

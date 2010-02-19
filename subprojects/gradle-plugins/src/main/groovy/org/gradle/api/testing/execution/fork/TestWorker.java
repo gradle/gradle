@@ -19,11 +19,14 @@ package org.gradle.api.testing.execution.fork;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessor;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.process.WorkerProcessContext;
+import org.gradle.util.CompositeIdGenerator;
+import org.gradle.util.IdGenerator;
+import org.gradle.util.LongIdGenerator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,26 +35,28 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestWorker implements Action<WorkerProcessContext>, TestClassProcessor, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
-    private final TestClassProcessorFactory factory;
+    private final WorkerTestClassProcessorFactory factory;
     private CountDownLatch completed;
     private TestClassProcessor processor;
-    private ClassLoader appClassLoader;
 
-    public TestWorker(TestClassProcessorFactory factory) {
+    public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
     }
 
     public void execute(WorkerProcessContext workerProcessContext) {
-        LOGGER.info("Executing tests.");
+        LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
         completed = new CountDownLatch(1);
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
-        processor = factory.create();
-        appClassLoader = workerProcessContext.getApplicationClassLoader();
+
+        IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(),
+                new LongIdGenerator());
+        processor = new WorkerTestClassProcessor(factory.create(idGenerator), idGenerator.generateId(),
+                workerProcessContext.getDisplayName(), workerProcessContext.getApplicationClassLoader());
 
         TestResultProcessor resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
-        startProcessing(resultProcessor);
-        
+        processor.startProcessing(resultProcessor);
+
         serverConnection.addIncoming(TestClassProcessor.class, this);
 
         try {
@@ -59,21 +64,19 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         } catch (InterruptedException e) {
             throw new GradleException(e);
         }
-        LOGGER.info("Finished executing tests.");
+        LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        Thread.currentThread().setContextClassLoader(appClassLoader);
-        processor.startProcessing(resultProcessor);
+        // Unexpected
+        throw new UnsupportedOperationException();
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        Thread.currentThread().setContextClassLoader(appClassLoader);
         processor.processTestClass(testClass);
     }
 
     public void endProcessing() {
-        Thread.currentThread().setContextClassLoader(appClassLoader);
         try {
             processor.endProcessing();
         } finally {
