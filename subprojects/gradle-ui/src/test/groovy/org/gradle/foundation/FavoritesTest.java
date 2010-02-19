@@ -432,12 +432,49 @@ public class FavoritesTest extends TestCase {
         FavoriteTask favoriteTask2 = editor.getFavoriteTasks().get(1);
         Assert.assertEquals("mysubproject1:mysubsubproject:lib", favoriteTask2.getFullCommandLine());
 
-        //now perform the actual edit. Make the full task name the same as the other favorite
-        editExpectingError(editor, favoriteTask1, "new name", favoriteTask2.getFullCommandLine());
+        //now perform the actual edit.
+        editExpectingNoError(editor, favoriteTask1, "new name", favoriteTask2.getFullCommandLine());
     }
 
     /**
-     * This edits the favorite an expects an error. It makes sure the error was recieved and that the original task was
+     * This edits the favorite and expects NO error. It makes sure the error was received and that the original task was
+     * not altered.
+     */
+    private void editExpectingNoError(FavoritesEditor editor, FavoriteTask favoriteTaskToEdit, String newName,
+                                    String newFullName) {
+        String originalFullName = favoriteTaskToEdit.getFullCommandLine();
+
+        //create an observer so we can make sure we're notified of the edit.
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
+        context.checking(new Expectations() {{
+            one(observer).favoritesChanged();
+        }});
+
+        editor.addFavoriteTasksObserver(observer, false);
+
+        //now perform the edit.
+        ValidationErrorTestEditFavoriteInteraction interaction = new ValidationErrorTestEditFavoriteInteraction(newName,
+                newFullName);
+        editor.editFavorite(favoriteTaskToEdit, interaction);
+
+        //make sure we did get an error message.
+        Assert.assertFalse(interaction.receivedErrorMessage);
+
+        //make sure the settings were changed. We'll go by what the editor has, not just our local favoriteTaskToEdit.
+        favoriteTaskToEdit = editor.getFavorite(originalFullName);
+        Assert.assertNull(favoriteTaskToEdit);   //the original name should no longer be present
+
+        favoriteTaskToEdit = editor.getFavorite(newFullName);
+        Assert.assertNotNull(favoriteTaskToEdit);   //the new name should be present
+
+        Assert.assertEquals(newName, favoriteTaskToEdit.getDisplayName());
+        Assert.assertEquals(newFullName, favoriteTaskToEdit.getFullCommandLine());
+    }
+
+
+    /**
+     * This edits the favorite and expects an error. It makes sure the error was recieved and that the original task was
      * not altered.
      */
     private void editExpectingError(FavoritesEditor editor, FavoriteTask favoriteTaskToEdit, String newName,
@@ -520,8 +557,40 @@ public class FavoritesTest extends TestCase {
         FavoriteTask favoriteTask2 = editor.getFavoriteTasks().get(1);
         Assert.assertEquals("mysubproject1:mysubsubproject:lib", favoriteTask2.getFullCommandLine());
 
-        //now perform the actual edit. Leave the full name alone, but use the other favorite's name
-        editExpectingError(editor, favoriteTask1, favoriteTask2.getDisplayName(), favoriteTask1.getFullCommandLine());
+
+        //create an observer so we can make sure we're notified of the edit.
+        final FavoritesEditor.FavoriteTasksObserver observer = context.mock(
+                FavoritesEditor.FavoriteTasksObserver.class);
+        context.checking(new Expectations() {{
+            one(observer).favoritesChanged();
+        }});
+        editor.addFavoriteTasksObserver(observer, false);
+
+
+
+        //we're about to perform the actual edit. Leave the full name alone, but use the other favorite's name
+        FavoriteTask favoriteTaskToEdit = favoriteTask1;
+        String newName = favoriteTask2.getDisplayName();
+        String newFullName = favoriteTask1.getFullCommandLine();
+        String originalFullName = favoriteTaskToEdit.getFullCommandLine();
+
+        ValidationErrorTestEditFavoriteInteraction interaction = new ValidationErrorTestEditFavoriteInteraction(newName,
+                newFullName);
+        //now perform the edit.
+        editor.editFavorite(favoriteTaskToEdit, interaction);
+
+        //make sure we did get an error message.
+        Assert.assertFalse(interaction.receivedErrorMessage);
+
+        //make sure the settings were changed. We'll go by what the editor has, not just our local favoriteTaskToEdit.
+        favoriteTaskToEdit = editor.getFavorite(originalFullName);
+        Assert.assertNotNull(favoriteTaskToEdit);   //the original name should no longer be present
+
+        favoriteTaskToEdit = editor.getFavorite(newFullName);
+        Assert.assertNotNull(favoriteTaskToEdit);   //the new name should be present
+
+        Assert.assertEquals(newName, favoriteTaskToEdit.getDisplayName());
+        Assert.assertEquals(newFullName, favoriteTaskToEdit.getFullCommandLine());
     }
 
     /**

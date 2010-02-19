@@ -72,6 +72,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     private JMenuItem executeMenuItem;
     private JMenuItem editMenuItem;
     private JMenuItem removeFavoritesMenuItem;
+    private JMenuItem copyFavoritesMenuItem;
 
     private JButton executeButton;
     private JButton addButton;
@@ -335,6 +336,14 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         popupMenu.add(editMenuItem);
 
+        copyFavoritesMenuItem = Utility.createMenuItem( this.getClass(),"Duplicate ", "blank.png", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                duplicateTasks();
+            }
+        });
+
+        popupMenu.add(copyFavoritesMenuItem);
+
         removeFavoritesMenuItem = Utility.createMenuItem( this.getClass(), "Remove", "remove.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 removeSelectedFavorites();
@@ -389,6 +398,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         removeButton.setEnabled(hasSelection);
         moveUpButton.setEnabled(hasSelection);
         moveDownButton.setEnabled(hasSelection);
+        copyFavoritesMenuItem.setEnabled(hasSelection);
 
         editButton.setEnabled(hasSingleSelection);  //only can edit if a single task is selected
     }
@@ -419,5 +429,12 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
        //if the user has kept these two in synch, we'll continue to keep them in synch.
         boolean synchronizeDisplayNameWithCommand = selectedFavoriteTask.getDisplayName().equals( selectedFavoriteTask.getFullCommandLine() );
         favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", synchronizeDisplayNameWithCommand ));
+    }
+
+    /**
+     * This duplicates all the selected tasks
+     */
+    private void duplicateTasks() {
+        favoritesEditor.duplicateFavorites( getSelectedFavoriteTasks() );
     }
 }

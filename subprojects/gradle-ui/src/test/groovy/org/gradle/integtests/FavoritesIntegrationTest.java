@@ -31,6 +31,8 @@ import org.junit.Test;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Performs integration tests on favorite tasks.
@@ -166,7 +168,7 @@ public class FavoritesIntegrationTest {
     }
 
     /**
-     * This verifies that the serialization mechnanism corrects the extension so that it is correct. We'll save a file
+     * This verifies that the serialization mechananism corrects the extension so that it is correct. We'll save a file
      * with the wrong extension. The save mechanism should save it with the correct extension appended to the end
      * (leaving the wrong extension in tact, just not at the end).
      */
@@ -289,5 +291,107 @@ public class FavoritesIntegrationTest {
             wasConfirmed = true;
             return false;
         }
+    }
+
+    /**
+     * This tests duplicating a single favorite. First, we'll create some, then duplicate one.
+     */
+    @Test
+    public void testDuplicateSingleFavorite() {
+        FavoritesEditor editor = new FavoritesEditor();
+
+        //add two tasks
+        FavoriteTask favoriteTask1 = editor.addFavorite(mySubProject1Comple, true);
+        FavoriteTask favoriteTask2 = editor.addFavorite(mySubSubProjectLib, false);
+        FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
+
+        //now change the display names and the alwaysShowOutput field, just so we can verify that all fields are copied.
+        editFavorite(editor, favoriteTask1, "name1", false );
+        editFavorite(editor, favoriteTask2, "name2", true );
+        editFavorite(editor, favoriteTask3, "name3", false );
+
+        //duplicate a single task
+        FavoriteTask favoriteTask4 = editor.duplicateFavorite( favoriteTask1 );
+        Assert.assertNotNull( favoriteTask4 );
+        Assert.assertEquals( favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine() );
+        Assert.assertEquals( favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName() );
+        Assert.assertEquals( favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput() );
+
+        //there should be 4 tasks now
+        Assert.assertEquals( 4, editor.getFavoriteTasks().size() );
+
+        //now duplicate another one
+        FavoriteTask favoriteTask5 = editor.duplicateFavorite( favoriteTask2 );
+        Assert.assertNotNull(favoriteTask5);
+        Assert.assertEquals( favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine() );
+        Assert.assertEquals( favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName() );
+        Assert.assertEquals( favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput() );
+
+        //there should be 5 tasks now
+        Assert.assertEquals( 5, editor.getFavoriteTasks().size() );
+    }
+
+    /**
+     * This tests duplicating multiple favorites at once. First, we'll create some, then duplicate them.
+     */
+    @Test
+    public void testDuplicatingMultipleFavorites() {
+        FavoritesEditor editor = new FavoritesEditor();
+
+        //add two tasks
+        FavoriteTask favoriteTask1 = editor.addFavorite(mySubProject1Comple, true);
+        FavoriteTask favoriteTask2 = editor.addFavorite(mySubSubProjectLib, false);
+        FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
+
+        //now change the display names and the alwaysShowOutput field, just so we can verify that all fields are copied.
+        editFavorite(editor, favoriteTask1, "name1", false );
+        editFavorite(editor, favoriteTask2, "name2", true );
+        editFavorite(editor, favoriteTask3, "name3", false );
+
+        //get the ones to dupicate in a list
+        List<FavoriteTask> tasksToCopy = new ArrayList<FavoriteTask>();
+        tasksToCopy.add( favoriteTask1 );
+        tasksToCopy.add( favoriteTask2 );
+
+        //now peform the duplication
+        editor.duplicateFavorites( tasksToCopy );
+
+        //there should be 5 tasks now
+        Assert.assertEquals( 5, editor.getFavoriteTasks().size() );
+
+        //the 4th one (3 from index 0) should be the same as the first one
+        FavoriteTask favoriteTask4 = editor.getFavoriteTasks().get( 3 );
+
+        Assert.assertNotNull( favoriteTask4 );
+        Assert.assertEquals( favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine() );
+        Assert.assertEquals( favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName() );
+        Assert.assertEquals( favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput() );
+
+        //the 5th one (4 from index 0) should be the same as the second one
+        FavoriteTask favoriteTask5 = editor.getFavoriteTasks().get( 4 );
+        Assert.assertNotNull(favoriteTask5);
+        Assert.assertEquals( favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine() );
+        Assert.assertEquals( favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName() );
+        Assert.assertEquals( favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput() );       
+    }
+
+    /**
+    This sets the display name of the favorite task to the specified new name.
+     */
+    private void editFavorite( FavoritesEditor editor, FavoriteTask favoriteTask, final String newDisplayName, final boolean newAlwaysShowOutput )
+    {
+       editor.editFavorite( favoriteTask, new FavoritesEditor.EditFavoriteInteraction() {
+            public boolean editFavorite(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
+                favoriteTask.displayName = newDisplayName;
+                favoriteTask.alwaysShowOutput = newAlwaysShowOutput;
+                return true;
+            }
+
+            public void reportError(String error) {
+                throw new AssertionFailedError("Unexpected error");
+            }
+        });
+
+        Assert.assertEquals( newDisplayName, favoriteTask.getDisplayName() );
     }
 }
