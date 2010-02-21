@@ -32,9 +32,7 @@ import org.gradle.util.GFileUtils;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * Generates an eclipse <i>.classpath</i> file.
@@ -170,7 +168,25 @@ public class EclipseClasspath extends ConventionTask {
      * @param srcDirs An list with objects which toString value is interpreted as a path
      */
     public void setSrcDirs(List<Object> srcDirs) {
-        this.srcDirs = srcDirs;
+
+        this.srcDirs = filterDuplicateSrcDirs(srcDirs);
+    }
+
+    /**
+     * Since e.g. resources and source directory could be the same, this
+     * method filters duplicate entries from the source directory lists.
+     * @return filtered source directory list with no duplicate entries.
+     * */
+    private List<Object> filterDuplicateSrcDirs(List<Object> srcDirs) {
+        Set<Object> srcDirsSet = new HashSet<Object>();
+        List<Object> filteredSrcDirs = new ArrayList<Object>();
+        for(Object entry : srcDirs){
+            if(!srcDirsSet.contains(entry)){
+                filteredSrcDirs.add(entry);
+                srcDirsSet.add(entry);            
+            }
+        }
+        return filteredSrcDirs;
     }
 
     /**
@@ -192,7 +208,7 @@ public class EclipseClasspath extends ConventionTask {
      * @param testSrcDirs An list with objects which toString value is interpreted as a path
      */
     public void setTestSrcDirs(List testSrcDirs) {
-        this.testSrcDirs = testSrcDirs;
+        this.testSrcDirs = filterDuplicateSrcDirs(testSrcDirs);
     }
 
     /**
