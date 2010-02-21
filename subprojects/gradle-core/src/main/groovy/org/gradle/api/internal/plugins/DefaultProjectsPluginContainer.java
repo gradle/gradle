@@ -82,6 +82,10 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
         return getPlugin(id);
     }
 
+    public <T extends Plugin> T getAt(Class<T> type) throws UnknownPluginException {
+        return getPlugin(type);
+    }
+
     public <T extends Plugin> T getPlugin(Class<T> type) throws UnknownPluginException {
         Plugin plugin = findPlugin(type);
         if (plugin == null) {
