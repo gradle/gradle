@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -46,7 +47,9 @@ public class DefaultWorkerProcessFactoryTest {
     private final MessagingServer messagingServer = context.mock(MessagingServer.class);
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final FileResolver fileResolver = context.mock(FileResolver.class);
-    private final DefaultWorkerProcessFactory factory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, messagingServer, classPathRegistry, fileResolver);
+    private final IdGenerator<Object> idGenerator = context.mock(IdGenerator.class);
+    private final DefaultWorkerProcessFactory factory = new DefaultWorkerProcessFactory(LogLevel.LIFECYCLE, messagingServer, classPathRegistry, fileResolver,
+            idGenerator);
 
     @Test
     public void createsAWorkerProcess() throws Exception {
@@ -76,6 +79,8 @@ public class DefaultWorkerProcessFactoryTest {
             will(returnValue(connection));
             one(connection).getLocalAddress();
             will(returnValue(serverAddress));
+            one(idGenerator).generateId();
+            will(returnValue("<id>"));
         }});
 
         WorkerProcess process = builder.build();
@@ -83,8 +88,8 @@ public class DefaultWorkerProcessFactoryTest {
         assertThat(process, instanceOf(DefaultWorkerProcess.class));
 
         ObjectInputStream instr = new ObjectInputStream(builder.getJavaCommand().getStandardInput());
-        assertThat(instr.readObject(), equalTo((Object)1));
-        assertThat(instr.readObject(), equalTo((Object)"Gradle Worker 1"));
+        assertThat(instr.readObject(), equalTo((Object)"<id>"));
+        assertThat(instr.readObject(), equalTo((Object)"Gradle Worker <id>"));
         assertThat(instr.readObject(), equalTo((Object) LogLevel.LIFECYCLE));
         assertThat(instr.readObject(), equalTo((Object) builder.getApplicationClasspath()));
         assertThat(instr.readObject(), equalTo((Object) builder.getSharedPackages()));

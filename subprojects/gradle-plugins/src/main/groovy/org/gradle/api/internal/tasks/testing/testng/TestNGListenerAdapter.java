@@ -27,12 +27,12 @@ import java.util.Map;
 
 public class TestNGListenerAdapter implements ITestListener, IConfigurationListener {
     private final TestResultProcessor resultProcessor;
-    private final IdGenerator idGenerator;
+    private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private Map<String, TestInternal> suites = new HashMap<String, TestInternal>();
     private Map<String, TestInternal> tests = new HashMap<String, TestInternal>();
 
-    public TestNGListenerAdapter(TestResultProcessor resultProcessor, IdGenerator idGenerator) {
+    public TestNGListenerAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
     }

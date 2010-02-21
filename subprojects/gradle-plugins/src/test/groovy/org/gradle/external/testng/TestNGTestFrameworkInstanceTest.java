@@ -38,7 +38,7 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
     private TestNGTestFramework testNgTestFrameworkMock;
     private TestNGTestFrameworkInstance testNGTestFrameworkInstance;
     private TestNGOptions testngOptionsMock;
-    private IdGenerator idGeneratorMock;
+    private IdGenerator<?> idGeneratorMock;
 
     @Before
     public void setUp() throws Exception {

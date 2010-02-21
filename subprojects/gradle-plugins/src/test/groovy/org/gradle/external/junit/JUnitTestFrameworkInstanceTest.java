@@ -38,7 +38,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
-    private IdGenerator idGenerator;
+    private IdGenerator<?> idGenerator;
 
     @Before
     public void setUp() throws Exception {

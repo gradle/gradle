@@ -97,7 +97,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
             this.suiteFiles = suiteFiles;
         }
 
-        public TestClassProcessor create(IdGenerator idGenerator) {
+        public TestClassProcessor create(IdGenerator<?> idGenerator) {
             return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, idGenerator);
         }
     }

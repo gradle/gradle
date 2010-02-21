@@ -30,6 +30,7 @@ import org.gradle.process.DefaultWorkerProcessFactory;
 import org.gradle.process.WorkerProcess;
 import org.gradle.process.WorkerProcessBuilder;
 import org.gradle.process.WorkerProcessContext;
+import org.gradle.util.LongIdGenerator;
 import org.gradle.util.exec.ExecHandleState;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -54,7 +55,7 @@ public class WorkerProcessIntegrationTest {
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
     private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new IdentityFileResolver());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new IdentityFileResolver(), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);

@@ -23,7 +23,10 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.util.ClasspathUtil;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.exec.ExecHandle;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
@@ -31,20 +34,22 @@ import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.concurrent.atomic.AtomicInteger;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
     private final ClassPathRegistry classPathRegistry;
     private final FileResolver resolver;
-    private final AtomicInteger counter = new AtomicInteger(1);
+    private final IdGenerator<?> idGenerator;
 
-    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server, ClassPathRegistry classPathRegistry, FileResolver resolver) {
+    public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
+                                       ClassPathRegistry classPathRegistry, FileResolver resolver, IdGenerator<?> idGenerator) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
         this.resolver = resolver;
+        this.idGenerator = idGenerator;
     }
 
     public WorkerProcessBuilder newProcess() {
@@ -64,11 +69,11 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             if (getWorker() == null) {
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
-            
+
             ObjectConnection connection = server.createUnicastConnection();
 
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
-            Object id = counter.getAndIncrement();
+            Object id = idGenerator.generateId();
             String displayName = String.format("Gradle Worker %s", id);
 
             // Build configuration for GradleWorkerMain
@@ -87,6 +92,10 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             } catch (IOException e) {
                 throw new UncheckedIOException(e);
             }
+
+            LOGGER.debug("Creating {}", displayName);
+            LOGGER.debug("Using application classpath {}", getApplicationClasspath());
+            LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
             ExecHandle execHandle = getJavaCommand().build();

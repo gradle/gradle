@@ -107,7 +107,7 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
             this.testResultsDir = testResultsDir;
         }
 
-        public TestClassProcessor create(IdGenerator idGenerator) {
+        public TestClassProcessor create(IdGenerator<?> idGenerator) {
             return new AntJUnitTestClassProcessor(testResultsDir, idGenerator);
         }
     }

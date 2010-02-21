@@ -38,12 +38,12 @@ import java.lang.reflect.Field;
 public class AntJUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(AntJUnitTestClassProcessor.class);
     private final File testResultsDir;
-    private final IdGenerator idGenerator;
+    private final IdGenerator<?> idGenerator;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private final Field forkedField;
     private JUnitResultFormatter formatter;
 
-    public AntJUnitTestClassProcessor(File testResultsDir, IdGenerator idGenerator) {
+    public AntJUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator) {
         this.testResultsDir = testResultsDir;
         this.idGenerator = idGenerator;
         try {

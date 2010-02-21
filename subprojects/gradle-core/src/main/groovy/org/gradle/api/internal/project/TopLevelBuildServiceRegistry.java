@@ -56,6 +56,7 @@ import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.process.DefaultWorkerProcessFactory;
 import org.gradle.process.WorkerProcessFactory;
+import org.gradle.util.LongIdGenerator;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.WrapUtil;
 
@@ -286,7 +287,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected WorkerProcessFactory createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
-        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry, null);
+        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry, null, new LongIdGenerator());
     }
     
     protected MessagingServer createMessagingServer() {

@@ -20,5 +20,5 @@ import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.util.IdGenerator;
 
 public interface WorkerTestClassProcessorFactory {
-    TestClassProcessor create(IdGenerator idGenerator);
+    TestClassProcessor create(IdGenerator<?> idGenerator);
 }

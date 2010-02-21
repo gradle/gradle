@@ -26,7 +26,7 @@ import org.junit.runner.Describable;
 import org.junit.runner.Description;
 
 public class JUnit4TestListenerFormatter extends TestListenerFormatter {
-    public JUnit4TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator idGenerator) {
+    public JUnit4TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
         super(resultProcessor, timeProvider, idGenerator);
     }
 

@@ -35,11 +35,11 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final File testReportDir;
     private final TestNGOptions options;
     private final List<File> suiteFiles;
-    private final IdGenerator idGenerator;
+    private final IdGenerator<?> idGenerator;
     private TestNGListenerAdapter listener;
     private ClassLoader applicationClassLoader;
 
-    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator idGenerator) {
+    public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator<?> idGenerator) {
         this.testReportDir = testReportDir;
         this.options = options;
         this.suiteFiles = suiteFiles;

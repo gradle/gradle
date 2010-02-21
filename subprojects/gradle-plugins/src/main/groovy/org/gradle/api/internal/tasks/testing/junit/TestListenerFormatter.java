@@ -33,11 +33,11 @@ import java.util.Map;
 public class TestListenerFormatter implements JUnitResultFormatter {
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
-    private final IdGenerator idGenerator;
+    private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Object, TestState> executing = new IdentityHashMap<Object, TestState>();
 
-    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator idGenerator) {
+    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;
