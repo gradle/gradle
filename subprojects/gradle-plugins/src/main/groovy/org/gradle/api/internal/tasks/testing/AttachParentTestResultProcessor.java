@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import java.util.Deque;
 import java.util.LinkedList;
 
 public class AttachParentTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor processor;
-    private final Deque<Object> suiteStack = new LinkedList<Object>();
+    private final LinkedList<Object> suiteStack = new LinkedList<Object>();
 
     public AttachParentTestResultProcessor(TestResultProcessor processor) {
         this.processor = processor;
