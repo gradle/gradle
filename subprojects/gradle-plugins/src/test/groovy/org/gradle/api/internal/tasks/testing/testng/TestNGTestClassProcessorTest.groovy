@@ -20,9 +20,9 @@
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.TestInternal
+import org.gradle.api.internal.tasks.testing.TestInternalDescriptor
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.tasks.testing.TestResult
+
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
 import org.gradle.api.testing.fabric.TestClassRunInfo
@@ -54,13 +54,13 @@ class TestNGTestClassProcessorTest {
     public void executesATestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal suite ->
+            will { TestInternalDescriptor suite ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
+            will { TestInternalDescriptor test ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
@@ -86,12 +86,12 @@ class TestNGTestClassProcessorTest {
     public void executesAFactoryTestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal suite ->
+            will { TestInternalDescriptor suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
+            will { TestInternalDescriptor test ->
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
@@ -126,14 +126,14 @@ class TestNGTestClassProcessorTest {
             Sequence sequence = context.sequence('seq')
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal suite ->
+            will { TestInternalDescriptor suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             inSequence(sequence)
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
+            will { TestInternalDescriptor test ->
                 assertThat(test.name, equalTo('beforeMethod'))
                 assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
             }
@@ -147,7 +147,7 @@ class TestNGTestClassProcessorTest {
             inSequence(sequence)
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
+            will { TestInternalDescriptor test ->
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
             }

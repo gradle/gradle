@@ -41,7 +41,7 @@ class TestMainActionTest {
             one(timeProvider).getCurrentTime()
             will(returnValue(100L))
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal suite, TestStartEvent event ->
+            will { TestInternalDescriptor suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo('root'))
                 assertThat(event.startTime, equalTo(100L))
             }

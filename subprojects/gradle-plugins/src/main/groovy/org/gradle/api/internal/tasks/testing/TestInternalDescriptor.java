@@ -16,18 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-public class DefaultTestClass extends DefaultTestSuite {
-    public DefaultTestClass(Object id, String className) {
-        super(id, className);
-    }
+import org.gradle.api.tasks.testing.TestDescriptor;
 
-    @Override
-    public String getClassName() {
-        return getName();
-    }
+public interface TestInternalDescriptor extends TestDescriptor {
+    Object getId();
 
-    @Override
-    public String toString() {
-        return String.format("test class %s", getClassName());
-    }
+    void setParent(TestInternalDescriptor parent);
 }

@@ -23,14 +23,14 @@ import org.gradle.util.TimeProvider;
 public class WorkerTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor processor;
     private final TimeProvider timeProvider;
-    private final TestInternal thisTest;
+    private final TestInternalDescriptor thisTest;
     private TestResultProcessor resultProcessor;
 
     public WorkerTestClassProcessor(TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
                                     TimeProvider timeProvider) {
         this.processor = processor;
         this.timeProvider = timeProvider;
-        thisTest = new DefaultTestSuite(workerSuiteId, workerDisplayName);
+        thisTest = new DefaultTestSuiteDescriptor(workerSuiteId, workerDisplayName);
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {

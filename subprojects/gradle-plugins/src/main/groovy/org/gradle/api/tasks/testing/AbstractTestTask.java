@@ -115,7 +115,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * Adds a closure to be notified before a test is executed. A {@link org.gradle.api.tasks.testing.Test} instance is
+     * Adds a closure to be notified before a test is executed. A {@link TestDescriptor} instance is
      * passed to the closure as a parameter.
      *
      * @param closure The closure to call.
@@ -125,7 +125,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * Adds a closure to be notified after a test has executed. A {@link org.gradle.api.tasks.testing.Test} and {@link
+     * Adds a closure to be notified after a test has executed. A {@link TestDescriptor} and {@link
      * org.gradle.api.tasks.testing.TestResult} instance are passed to the closure as a parameter.
      *
      * @param closure The closure to call.

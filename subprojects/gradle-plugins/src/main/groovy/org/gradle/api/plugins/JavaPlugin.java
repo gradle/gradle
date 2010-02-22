@@ -33,7 +33,7 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.AntTest;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -329,12 +329,12 @@ public class JavaPlugin implements Plugin<Project> {
                 }));
             }
         });
-        project.getTasks().withType(AntTest.class).allTasks(new Action<AntTest>() {
-            public void execute(AntTest test) {
+        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
+            public void execute(Test test) {
                 test.workingDir(project.getProjectDir());
             }
         });
-        project.getTasks().add(TEST_TASK_NAME, AntTest.class).setDescription("Runs the unit tests.");
+        project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the unit tests.");
     }
 
     void configureConfigurations(final Project project) {

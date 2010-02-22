@@ -16,13 +16,18 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-public class DefaultTestMethod extends DefaultTest {
-    public DefaultTestMethod(Object id, String className, String methodName) {
-        super(id, className, methodName);
+public class DefaultTestClassDescriptor extends DefaultTestSuiteDescriptor {
+    public DefaultTestClassDescriptor(Object id, String className) {
+        super(id, className);
+    }
+
+    @Override
+    public String getClassName() {
+        return getName();
     }
 
     @Override
     public String toString() {
-        return String.format("test method %s(%s)", getName(), getClassName());
+        return String.format("test class %s", getClassName());
     }
 }

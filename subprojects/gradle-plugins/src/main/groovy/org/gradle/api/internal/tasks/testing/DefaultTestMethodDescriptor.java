@@ -16,26 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import java.io.Serializable;
-
-public class DefaultTest extends AbstractTest implements TestInternal, Serializable {
-    private final String className;
-
-    public DefaultTest(Object id, String className, String name) {
-        super(id, name);
-        this.className = className;
+public class DefaultTestMethodDescriptor extends DefaultTestDescriptor {
+    public DefaultTestMethodDescriptor(Object id, String className, String methodName) {
+        super(id, className, methodName);
     }
 
     @Override
     public String toString() {
-        return String.format("test %s(%s)", getName(), className);
-    }
-
-    public boolean isComposite() {
-        return false;
-    }
-
-    public String getClassName() {
-        return className;
+        return String.format("test method %s(%s)", getName(), getClassName());
     }
 }

@@ -18,12 +18,12 @@ package org.gradle.api.internal.tasks.testing;
 
 import java.io.Serializable;
 
-public abstract class AbstractTest implements TestInternal, Serializable {
+public abstract class AbstractTestDescriptor implements TestInternalDescriptor, Serializable {
     private final Object id;
     private final String name;
-    private TestInternal parent;
+    private TestInternalDescriptor parent;
 
-    public AbstractTest(Object id, String name) {
+    public AbstractTestDescriptor(Object id, String name) {
         this.id = id;
         this.name = name;
     }
@@ -40,11 +40,11 @@ public abstract class AbstractTest implements TestInternal, Serializable {
         return null;
     }
 
-    public TestInternal getParent() {
+    public TestInternalDescriptor getParent() {
         return parent;
     }
 
-    public void setParent(TestInternal parent) {
+    public void setParent(TestInternalDescriptor parent) {
         this.parent = parent;
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskCollection;
-import org.gradle.api.tasks.testing.AntTest;
+import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.NativeTest;
 
 /**
@@ -29,9 +29,9 @@ public class StagingPlugin implements Plugin<Project> {
     public void use(final Project project) {
         project.getPlugins().usePlugin(JavaPlugin.class);
 
-        TaskCollection<AntTest> antTestTasks = project.getTasks().withType(AntTest.class);
-        for (AntTest antTestTask : antTestTasks) {
-            project.getTasks().replace(antTestTask.getName(), NativeTest.class);
+        TaskCollection<Test> antTestTasks = project.getTasks().withType(Test.class);
+        for (Test testTask : antTestTasks) {
+            project.getTasks().replace(testTask.getName(), NativeTest.class);
         }
     }
 }

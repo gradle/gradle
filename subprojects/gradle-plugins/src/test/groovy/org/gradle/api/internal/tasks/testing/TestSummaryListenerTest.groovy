@@ -17,7 +17,7 @@
 
 package org.gradle.api.internal.tasks.testing
 
-import org.gradle.api.tasks.testing.Test
+import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
@@ -58,8 +58,8 @@ public class TestSummaryListenerTest {
         return {-> type} as TestResult
     }
 
-    private Test test(String name) {
-        return [toString: {-> name}] as Test
+    private TestDescriptor test(String name) {
+        return [toString: {-> name}] as TestDescriptor
     }
 }
 

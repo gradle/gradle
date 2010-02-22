@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.tasks.testing.Test;
+import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.slf4j.Logger;
@@ -34,20 +34,20 @@ public class TestSummaryListener implements TestListener {
         return hadFailures;
     }
 
-    public void beforeSuite(Test suite) {
+    public void beforeSuite(TestDescriptor suite) {
         logger.debug("Started {}", suite);
     }
 
-    public void afterSuite(Test suite, TestResult result) {
+    public void afterSuite(TestDescriptor suite, TestResult result) {
         logger.debug("Finished {}", suite);
     }
 
-    public void beforeTest(Test test) {
-        logger.debug("Started {}", test);
+    public void beforeTest(TestDescriptor testDescriptor) {
+        logger.debug("Started {}", testDescriptor);
     }
 
-    public void afterTest(Test test, TestResult result) {
-        String testDescription = StringUtils.capitalize(test.toString());
+    public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+        String testDescription = StringUtils.capitalize(testDescriptor.toString());
         switch (result.getResultType()) {
             case SUCCESS:
                 logger.info("{} PASSED", testDescription);

@@ -26,7 +26,7 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
         this.processor = processor;
     }
 
-    public void started(TestInternal test, TestStartEvent event) {
+    public void started(TestInternalDescriptor test, TestStartEvent event) {
         if (event.getParentId() == null && !suiteStack.isEmpty()) {
             event.setParentId(suiteStack.getFirst());
         }

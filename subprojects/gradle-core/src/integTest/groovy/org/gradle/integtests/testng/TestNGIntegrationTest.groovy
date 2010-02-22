@@ -157,10 +157,10 @@ public class TestNGIntegrationTest {
                 ignoreFailures = true
             }
             class TestListenerImpl implements TestListener {
-                void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(Test suite, TestResult result) { println "FINISH [$suite] [$suite.name]" }
-                void beforeTest(Test test) { println "START [$test] [$test.name]" }
-                void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
+                void beforeSuite(TestDescriptor suite) { println "START [$suite] [$suite.name]" }
+                void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [$suite] [$suite.name]" }
+                void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
+                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
             }
         '''
 

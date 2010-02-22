@@ -38,7 +38,7 @@ public abstract class AbstractTestFrameworkInstanceTest {
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     protected Project projectMock;
-    protected AntTest testMock;
+    protected Test testMock;
 
     protected final File projectDir = new File("projectDir");
     protected final File testClassesDir = new File("testClassesDir");
@@ -53,7 +53,7 @@ public abstract class AbstractTestFrameworkInstanceTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
 
         projectMock = context.mock(Project.class);
-        testMock = context.mock(AntTest.class);
+        testMock = context.mock(Test.class);
         antBuilderMock = context.mock(AntBuilder.class);
         classpathMock = context.mock(FileCollection.class);
         classpathAsFileTreeMock = context.mock(FileTree.class);

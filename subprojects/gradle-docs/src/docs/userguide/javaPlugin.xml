@@ -153,7 +153,7 @@
                     <literal>compileTest</literal>,
                     plus all tasks which produce the test runtime classpath.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.testing.AntTest"/></td>
+                <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
                 <td>Runs the unit tests using JUnit or TestNG.</td>
             </tr>
             <tr>
@@ -1030,7 +1030,7 @@
 
     <section id='sec:java_test'>
         <title>Test</title>
-        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.AntTest"/>. It
+        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>. It
             executes all unit tests found in the <literal>test</literal> source set.
         </para>
         <table>
@@ -1068,7 +1068,7 @@
                 <td><literal>sourceSets.test.java.srcDirs</literal></td>
             </tr>
         </table>
-        <para>Have a look at <apilink class="org.gradle.api.tasks.testing.AntTest"/>
+        <para>Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/>
             for its complete API. Right now the test results are always in XML-format. The task has a
             <literal>ignoreFailures</literal>
             property to control the behavior when tests are failing. Test

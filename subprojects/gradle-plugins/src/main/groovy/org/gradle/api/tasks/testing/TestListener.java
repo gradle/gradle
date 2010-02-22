@@ -30,25 +30,25 @@ public interface TestListener {
      * Called before a test suite is started.
      * @param suite The suite whose tests are about to be executed.
      */
-    void beforeSuite(Test suite);
+    void beforeSuite(TestDescriptor suite);
 
     /**
      * Called after a test suite is finished.
      * @param suite The suite whose tests have finished being executed.
      * @param result The aggregate result for the suite.
      */
-    void afterSuite(Test suite, TestResult result);
+    void afterSuite(TestDescriptor suite, TestResult result);
 
     /**
      * Called before a test is started.
-     * @param test The test which is about to be executed.
+     * @param testDescriptor The test which is about to be executed.
      */
-    void beforeTest(Test test);
+    void beforeTest(TestDescriptor testDescriptor);
 
     /**
      * Called after a test is finished.
-     * @param test The test which has finished executing.
+     * @param testDescriptor The test which has finished executing.
      * @param result The test result.
      */
-    void afterTest(Test test, TestResult result);
+    void afterTest(TestDescriptor testDescriptor, TestResult result);
 }

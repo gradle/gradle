@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing;
 
 public interface TestResultProcessor {
-    void started(TestInternal test, TestStartEvent event);
+    void started(TestInternalDescriptor test, TestStartEvent event);
 
     void completed(Object testId, TestCompleteEvent event);
 

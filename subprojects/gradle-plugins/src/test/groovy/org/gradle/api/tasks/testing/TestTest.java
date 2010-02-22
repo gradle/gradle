@@ -56,7 +56,7 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class AntTestTest extends AbstractConventionTaskTest {
+public class TestTest extends AbstractConventionTaskTest {
     static final String TEST_PATTERN_1 = "pattern1";
     static final String TEST_PATTERN_2 = "pattern2";
     static final String TEST_PATTERN_3 = "pattern3";
@@ -77,7 +77,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
     org.gradle.api.Action<WorkerProcessBuilder> workerConfigurationActionMock = context.mock(org.gradle.api.Action.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
-    private AntTest test;
+    private Test test;
 
     @Before public void setUp() {
         super.setUp();
@@ -89,7 +89,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
         resultsDir = new File(rootDir, "resultDir");
         reportDir = new File(rootDir, "report/tests");
 
-        test = createTask(AntTest.class);
+        test = createTask(Test.class);
     }
 
     public ConventionTask getTask() {
@@ -151,21 +151,21 @@ public class AntTestTest extends AbstractConventionTaskTest {
         test.beforeTest(HelperUtil.toClosure(closure));
         test.afterTest(HelperUtil.toClosure(closure));
 
-        final Test testInfo = context.mock(Test.class);
+        final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
         final TestResult result = context.mock(TestResult.class);
         context.checking(new Expectations() {{
-            one(listener).beforeTest(testInfo);
-            one(closure).call(testInfo);
+            one(listener).beforeTest(testDescriptor);
+            one(closure).call(testDescriptor);
         }});
 
-        test.getTestListenerBroadcaster().getSource().beforeTest(testInfo);
+        test.getTestListenerBroadcaster().getSource().beforeTest(testDescriptor);
 
         context.checking(new Expectations() {{
-            one(listener).afterTest(testInfo, result);
-            one(closure).call(testInfo);
+            one(listener).afterTest(testDescriptor, result);
+            one(closure).call(testDescriptor);
         }});
 
-        test.getTestListenerBroadcaster().getSource().afterTest(testInfo, result);
+        test.getTestListenerBroadcaster().getSource().afterTest(testDescriptor, result);
     }
 
     @org.junit.Test public void testIncludes() {
@@ -231,8 +231,8 @@ public class AntTestTest extends AbstractConventionTaskTest {
             allowing(result).getResultType();
             will(returnValue(TestResult.ResultType.FAILURE));
 
-            final Test test = context.mock(Test.class);
-            allowing(test).getName();
+            final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
+            allowing(testDescriptor).getName();
             will(returnValue("test"));
 
             one(testClassScannerMock).run();
@@ -242,7 +242,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
                 }
 
                 public Object invoke(Invocation invocation) throws Throwable {
-                    AntTestTest.this.test.getTestListenerBroadcaster().getSource().afterTest(test, result);
+                    TestTest.this.test.getTestListenerBroadcaster().getSource().afterTest(testDescriptor, result);
                     return null;
                 }
             });

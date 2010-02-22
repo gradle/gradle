@@ -47,7 +47,7 @@ class WorkerTestClassProcessorTest {
             will(returnValue(100L))
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal suite, TestStartEvent event ->
+            will { TestInternalDescriptor suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo('worker-id'))
                 assertThat(suite.name, equalTo('worker display name'))
                 assertThat(event.startTime, equalTo(100L))
@@ -68,7 +68,7 @@ class WorkerTestClassProcessorTest {
             will(returnValue(200L))
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal suite ->
+            will { TestInternalDescriptor suite ->
                 assertThat(suite.id, equalTo('worker-id'))
             }
             inSequence(sequence)

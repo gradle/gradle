@@ -40,9 +40,9 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     }
 
     public void onStart(ITestContext iTestContext) {
-        TestInternal testInternal;
+        TestInternalDescriptor testInternal;
         synchronized (lock) {
-            testInternal = new DefaultTestSuite(idGenerator.generateId(), iTestContext.getName());
+            testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), iTestContext.getName());
             suites.put(testInternal.getName(), testInternal.getId());
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime()));
@@ -57,9 +57,9 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     }
 
     public void onTestStart(ITestResult iTestResult) {
-        TestInternal testInternal;
+        TestInternalDescriptor testInternal;
         synchronized (lock) {
-            testInternal = new DefaultTestMethod(idGenerator.generateId(), iTestResult.getTestClass().getName(),
+            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(),
                     iTestResult.getName());
             Object oldTestId = tests.put(testInternal.getName(), testInternal.getId());
             if (oldTestId != null) {
@@ -103,7 +103,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
 
     public void onConfigurationFailure(ITestResult testResult) {
         // Synthesise a test for the broken configuration method
-        TestInternal test = new DefaultTestMethod(idGenerator.generateId(),
+        TestInternalDescriptor test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
                 testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(),

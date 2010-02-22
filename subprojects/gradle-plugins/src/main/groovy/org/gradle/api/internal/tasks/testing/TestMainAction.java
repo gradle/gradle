@@ -33,7 +33,7 @@ public class TestMainAction implements Runnable {
     }
 
     public void run() {
-        RootTestSuite suite = new RootTestSuite();
+        RootTestSuiteDescriptor suite = new RootTestSuiteDescriptor();
         resultProcessor.started(suite, new TestStartEvent(timeProvider.getCurrentTime()));
         try {
             processor.startProcessing(resultProcessor);
@@ -47,8 +47,8 @@ public class TestMainAction implements Runnable {
         }
     }
 
-    private static class RootTestSuite extends DefaultTestSuite {
-        public RootTestSuite() {
+    private static class RootTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+        public RootTestSuiteDescriptor() {
             super("root", "");
         }
 

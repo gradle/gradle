@@ -34,8 +34,8 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void attachesTestToCurrentlyExecutingSuite() {
-        TestInternal suite = suite('suite')
-        TestInternal test = test('test')
+        TestInternalDescriptor suite = suite('suite')
+        TestInternalDescriptor test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -50,8 +50,8 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void attachesSuiteToMostCurrentlyExecutingSuite() {
-        TestInternal parent = suite('suite')
-        TestInternal child = suite('test')
+        TestInternalDescriptor parent = suite('suite')
+        TestInternalDescriptor child = suite('test')
         TestStartEvent childStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -66,9 +66,9 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void popsSuiteOffStackWhenComplete() {
-        TestInternal root = suite('root')
-        TestInternal other = suite('suite1')
-        TestInternal test = test('test')
+        TestInternalDescriptor root = suite('root')
+        TestInternalDescriptor other = suite('suite1')
+        TestInternalDescriptor test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -85,8 +85,8 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void doesNothingToTestWhichHasAParentId() {
-        TestInternal suite = suite('suite')
-        TestInternal test = test('test')
+        TestInternalDescriptor suite = suite('suite')
+        TestInternalDescriptor test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L, 'parent')
 
         context.checking {
@@ -101,7 +101,7 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void doesNothingToSuiteWhenNoSuiteExecuting() {
-        TestInternal suite = suite('suite')
+        TestInternalDescriptor suite = suite('suite')
         TestStartEvent suiteStartEvent = new TestStartEvent(100L)
 
         context.checking {
@@ -115,7 +115,7 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void doesNothingToTestWhenNoSuiteExecuting() {
-        TestInternal test = test('test')
+        TestInternalDescriptor test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -127,11 +127,11 @@ class AttachParentTestResultProcessorTest {
         assertThat(testStartEvent.parentId, nullValue())
     }
 
-    TestInternal test(String id) {
-        [isComposite: {false}, getId: {id}] as TestInternal
+    TestInternalDescriptor test(String id) {
+        [isComposite: {false}, getId: {id}] as TestInternalDescriptor
     }
 
-    TestInternal suite(String id) {
-        [isComposite: {true}, getId: {id}] as TestInternal
+    TestInternalDescriptor suite(String id) {
+        [isComposite: {true}, getId: {id}] as TestInternalDescriptor
     }
 }

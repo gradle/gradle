@@ -35,7 +35,7 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAResultForATest() {
-        TestInternal test = test('id')
+        TestInternalDescriptor test = test('id')
 
         context.checking {
             one(listener).beforeTest(test)
@@ -58,7 +58,7 @@ class TestListenerAdapterTest {
     public void createsAResultForATestWithFailure() {
         RuntimeException failure = new RuntimeException()
 
-        TestInternal test = test('id')
+        TestInternalDescriptor test = test('id')
 
         context.checking {
             one(listener).beforeTest(test)
@@ -83,7 +83,7 @@ class TestListenerAdapterTest {
     public void createsAResultForATestWithFailureInEndEvent() {
         RuntimeException failure = new RuntimeException()
 
-        TestInternal test = test('id')
+        TestInternalDescriptor test = test('id')
 
         context.checking {
             one(listener).beforeTest(test)
@@ -105,7 +105,7 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAResultForASkippedTest() {
-        TestInternal test = test('id')
+        TestInternalDescriptor test = test('id')
 
         context.checking {
             one(listener).beforeTest(test)
@@ -126,7 +126,7 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForEmptyTestSuite() {
-        TestInternal suite = suite('id')
+        TestInternalDescriptor suite = suite('id')
 
         context.checking {
             one(listener).beforeSuite(suite)
@@ -147,8 +147,8 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForTestSuiteWithPassedTest() {
-        TestInternal suite = suite('id')
-        TestInternal test = test('testid')
+        TestInternalDescriptor suite = suite('id')
+        TestInternalDescriptor test = test('testid')
 
         context.checking {
             one(listener).beforeSuite(suite)
@@ -172,9 +172,9 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForTestSuiteWithFailedTest() {
-        TestInternal suite = suite('id')
-        TestInternal ok = test('ok')
-        TestInternal broken = test('broken')
+        TestInternalDescriptor suite = suite('id')
+        TestInternalDescriptor ok = test('ok')
+        TestInternalDescriptor broken = test('broken')
 
         context.checking {
             one(listener).beforeSuite(suite)
@@ -203,8 +203,8 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForTestSuiteWithSkippedTest() {
-        TestInternal suite = suite('id')
-        TestInternal test = test('testid')
+        TestInternalDescriptor suite = suite('id')
+        TestInternalDescriptor test = test('testid')
 
         context.checking {
             one(listener).beforeSuite(suite)
@@ -228,11 +228,11 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForTestSuiteWithNestedSuites() {
-        TestInternal root = suite('root')
-        TestInternal suite1 = suite('suite1')
-        TestInternal suite2 = suite('suite2')
-        TestInternal ok = test('ok')
-        TestInternal broken = test('broken')
+        TestInternalDescriptor root = suite('root')
+        TestInternalDescriptor suite1 = suite('suite1')
+        TestInternalDescriptor suite2 = suite('suite2')
+        TestInternalDescriptor ok = test('ok')
+        TestInternalDescriptor broken = test('broken')
 
         context.checking {
             one(listener).beforeSuite(root)
@@ -283,8 +283,8 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForTestSuiteWithFailure() {
-        TestInternal suite = suite('id')
-        TestInternal test = test('testid')
+        TestInternalDescriptor suite = suite('id')
+        TestInternalDescriptor test = test('testid')
         RuntimeException failure = new RuntimeException()
 
         context.checking {
@@ -308,8 +308,8 @@ class TestListenerAdapterTest {
 
     @Test
     public void createsAnAggregateResultForTestSuiteWithFailureInEndEvent() {
-        TestInternal suite = suite('id')
-        TestInternal test = test('testid')
+        TestInternalDescriptor suite = suite('id')
+        TestInternalDescriptor test = test('testid')
         RuntimeException failure = new RuntimeException()
 
         context.checking {
@@ -330,8 +330,8 @@ class TestListenerAdapterTest {
         adapter.completed('id', new TestCompleteEvent(200L, ResultType.FAILURE, failure))
     }
 
-    private TestInternal test(String id) {
-        TestInternal test = context.mock(TestInternal.class, id)
+    private TestInternalDescriptor test(String id) {
+        TestInternalDescriptor test = context.mock(TestInternalDescriptor.class, id)
         context.checking {
             allowing(test).getId()
             will(returnValue(id))
@@ -341,8 +341,8 @@ class TestListenerAdapterTest {
         return test
     }
 
-    private TestInternal suite(String id) {
-        TestInternal test = context.mock(TestInternal.class, id)
+    private TestInternalDescriptor suite(String id) {
+        TestInternalDescriptor test = context.mock(TestInternalDescriptor.class, id)
         context.checking {
             allowing(test).getId()
             will(returnValue(id))
