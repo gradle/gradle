@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.IdGenerator;
-import org.testng.*;
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.ITestResult;
 import org.testng.internal.IConfigurationListener;
 
 import java.util.HashMap;
@@ -29,8 +31,8 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
-    private Map<String, TestInternal> suites = new HashMap<String, TestInternal>();
-    private Map<String, TestInternal> tests = new HashMap<String, TestInternal>();
+    private Map<String, Object> suites = new HashMap<String, Object>();
+    private Map<String, Object> tests = new HashMap<String, Object>();
 
     public TestNGListenerAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
@@ -41,30 +43,31 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
         TestInternal testInternal;
         synchronized (lock) {
             testInternal = new DefaultTestSuite(idGenerator.generateId(), iTestContext.getName());
-            suites.put(testInternal.getName(), testInternal);
+            suites.put(testInternal.getName(), testInternal.getId());
         }
-        resultProcessor.started(testInternal);
+        resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime()));
     }
 
     public void onFinish(ITestContext iTestContext) {
-        TestInternal testInternal;
+        Object id;
         synchronized (lock) {
-            testInternal = suites.remove(iTestContext.getName());
+            id = suites.remove(iTestContext.getName());
         }
-        resultProcessor.completed(testInternal, null);
+        resultProcessor.completed(id, new TestCompleteEvent(iTestContext.getEndDate().getTime()));
     }
 
     public void onTestStart(ITestResult iTestResult) {
         TestInternal testInternal;
         synchronized (lock) {
-            testInternal = new DefaultTestMethod(idGenerator.generateId(), iTestResult.getTestClass().getName(), iTestResult.getName());
-            TestInternal oldTest = tests.put(testInternal.getName(), testInternal);
-            if (oldTest != null) {
+            testInternal = new DefaultTestMethod(idGenerator.generateId(), iTestResult.getTestClass().getName(),
+                    iTestResult.getName());
+            Object oldTestId = tests.put(testInternal.getName(), testInternal.getId());
+            if (oldTestId != null) {
                 throw new IllegalStateException(String.format(
                         "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
             }
         }
-        resultProcessor.started(testInternal);
+        resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis()));
     }
 
     public void onTestSuccess(ITestResult iTestResult) {
@@ -84,13 +87,12 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     }
 
     private void onTestFinished(ITestResult iTestResult, TestResult.ResultType resultType) {
-        TestResult result = new DefaultTestResult(resultType, iTestResult.getThrowable(), iTestResult.getStartMillis(),
-                iTestResult.getEndMillis());
-        TestInternal testInternal;
+        Object testId;
         synchronized (lock) {
-            testInternal = tests.remove(iTestResult.getName());
+            testId = tests.remove(iTestResult.getName());
         }
-        resultProcessor.completed(testInternal, result);
+        resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType,
+                iTestResult.getThrowable()));
     }
 
     public void onConfigurationSuccess(ITestResult testResult) {
@@ -100,10 +102,11 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     }
 
     public void onConfigurationFailure(ITestResult testResult) {
-        if (!testResult.isSuccess()) {
-            TestInternal test = new DefaultTestMethod(idGenerator.generateId(), testResult.getMethod().getTestClass().getName(),
-                    testResult.getMethod().getMethodName());
-            resultProcessor.completed(test, new DefaultTestResult(testResult.getThrowable(), testResult.getStartMillis(), testResult.getEndMillis()));
-        }
+        // Synthesise a test for the broken configuration method
+        TestInternal test = new DefaultTestMethod(idGenerator.generateId(),
+                testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
+        resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
+        resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(),
+                TestResult.ResultType.FAILURE, testResult.getThrowable()));
     }
 }

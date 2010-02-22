@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -40,7 +42,8 @@ public class SamplesJavaOnlyIfIntegrationTest {
      * check that it re-ran tests 
      */
     @Test public void testOptimizedBuild() {
-        File javaprojectDir = new File(dist.samplesDir, 'java/onlyif')
+        TestFile javaprojectDir = dist.samplesDir.file('java/onlyif')
+
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
 

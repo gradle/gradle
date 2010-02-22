@@ -16,10 +16,30 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-public interface TestResultProcessor {
-    void started(TestInternal test, TestStartEvent event);
+import java.io.Serializable;
 
-    void completed(Object testId, TestCompleteEvent event);
+public class TestStartEvent implements Serializable {
+    private final long startTime;
+    private Object parentId;
 
-    void addFailure(Object testId, Throwable result);
+    public TestStartEvent(long startTime) {
+        this.startTime = startTime;
+    }
+
+    public TestStartEvent(long startTime, Object parentId) {
+        this.startTime = startTime;
+        this.parentId = parentId;
+    }
+
+    public long getStartTime() {
+        return startTime;
+    }
+
+    public Object getParentId() {
+        return parentId;
+    }
+
+    public void setParentId(Object parentId) {
+        this.parentId = parentId;
+    }
 }

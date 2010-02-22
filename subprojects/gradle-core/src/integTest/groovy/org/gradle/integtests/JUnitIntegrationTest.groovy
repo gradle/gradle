@@ -15,10 +15,6 @@
  */
 
 
-
-
-
-
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -76,10 +72,11 @@ public class JUnitIntegrationTest {
         """
         executer.withTasks('build').run();
 
-        TestFile resultFile = testDir.file('build/test-results/TEST-org.gradle.OkTest.xml');
-        resultFile.assertIsFile();
-        resultFile.assertContents(containsString('This is test stdout'));
-        resultFile.assertContents(containsString('This is test stderr'));
+        JUnitTestResult result = new JUnitTestResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestPassed('org.gradle.OkTest', 'ok')
+        result.assertStdout('org.gradle.OkTest', containsString('This is test stdout'))
+        result.assertStderr('org.gradle.OkTest', containsString('This is test stderr'))
     }
 
     @Test
@@ -102,6 +99,10 @@ public class JUnitIntegrationTest {
         failure.assertHasFileName("Build file '${buildFile}'");
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith('There were failing tests.'));
+
+        JUnitTestResult result = new JUnitTestResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.BrokenTest')
+        result.assertTestFailed('org.gradle.BrokenTest', 'broken')
 
         assertThat(failure.getError(), containsLine('Test broken(org.gradle.BrokenTest) FAILED'));
     }
@@ -134,7 +135,10 @@ public class JUnitIntegrationTest {
         '''
 
         executer.withTasks('a:test').run();
-        testDir.file('a/build/test-results/TEST-org.gradle.SomeTest.xml').assertIsFile();
+
+        JUnitTestResult result = new JUnitTestResult(testDir.file('a'))
+        result.assertTestClassesExecuted('org.gradle.SomeTest')
+        result.assertTestPassed('org.gradle.SomeTest', 'ok')
     }
 
     @Test
@@ -154,7 +158,10 @@ public class JUnitIntegrationTest {
                 "}");
 
         executer.withTasks('test').run();
-        testDir.file('build/test-results/TEST-org.gradle.SomeTest$SomeInner.xml').assertIsFile();
+
+        JUnitTestResult result = new JUnitTestResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.SomeTest$SomeInner')
+        result.assertTestPassed('org.gradle.SomeTest$SomeInner', 'ok')
     }
 
     @Test
@@ -182,7 +189,10 @@ public class JUnitIntegrationTest {
                 "}");
 
         executer.withTasks('test').run();
-        testDir.file('build/test-results/TEST-org.gradle.SomeTest.xml').assertIsFile();
+
+        JUnitTestResult result = new JUnitTestResult(testDir)
+        result.assertTestClassesExecuted('org.gradle.SomeTest')
+        result.assertTestPassed('org.gradle.SomeTest', 'ok')
     }
 
     @Test
@@ -211,6 +221,7 @@ public class JUnitIntegrationTest {
                 "}");
 
         executer.withTasks('test').run();
+
         TestFile results1 = testDir.file('build/test-results/TEST-org.gradle.SomeTest.xml');
         TestFile results2 = testDir.file('build/test-results/TEST-org.gradle.SomeTest2.xml');
         results1.assertIsFile();
@@ -245,6 +256,7 @@ public class JUnitIntegrationTest {
                 "}");
 
         executer.withTasks('test').run();
+
         TestFile results1 = testDir.file('build/test-results/TEST-org.gradle.SomeTest.xml');
         TestFile results2 = testDir.file('build/test-results/TEST-org.gradle.SomeTest2.xml');
         results1.assertIsFile();
@@ -262,10 +274,14 @@ public class JUnitIntegrationTest {
 
         testDir.file('src/test/java/SomeTest.java').writelns(
                 "public class SomeTest {",
-                "@org.junit.Test public void pass() { }",
                 "@org.junit.Test public void fail() { org.junit.Assert.fail(\"message\"); }",
                 "@org.junit.Test public void knownError() { throw new RuntimeException(\"message\"); }",
                 "@org.junit.Test public void unknownError() throws AppException { throw new AppException(); }",
+                "}"
+        );
+        testDir.file('src/test/java/SomeOtherTest.java').writelns(
+                "public class SomeOtherTest {",
+                "@org.junit.Test public void pass() { }",
                 "}"
         );
 
@@ -278,25 +294,32 @@ public class JUnitIntegrationTest {
             test.ignoreFailures = true
             class TestListenerImpl implements TestListener {
                 void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(Test suite, TestResult result) { println "FINISH [$suite] [$suite.name]" }
+                void afterSuite(Test suite, TestResult result) { println "FINISH [$suite] [$suite.name] [$result.resultType]" }
                 void beforeTest(Test test) { println "START [$test] [$test.name]" }
-                void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
+                void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.error]" }
             }
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
         assertThat(result.getOutput(), containsLine("START [all tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [all tests] []"));
+        assertThat(result.getOutput(), containsLine("FINISH [all tests] [] [FAILURE]"));
+
+        assertThat(result.getOutput(), containsLine("START [test 'Gradle Worker 1'] [Gradle Worker 1]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE]"));
+
+        assertThat(result.getOutput(), containsLine("START [test class SomeOtherTest] [SomeOtherTest]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS]"));
+        assertThat(result.getOutput(), containsLine("START [test pass(SomeOtherTest)] [pass]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [null]"));
+
         assertThat(result.getOutput(), containsLine("START [test class SomeTest] [SomeTest]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest]"));
-        assertThat(result.getOutput(), containsLine("START [test pass(SomeTest)] [pass]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test pass(SomeTest)] [pass] [null]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest] [FAILURE]"));
         assertThat(result.getOutput(), containsLine("START [test fail(SomeTest)] [fail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [junit.framework.AssertionFailedError: message]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [FAILURE] [junit.framework.AssertionFailedError: message]"));
         assertThat(result.getOutput(), containsLine("START [test knownError(SomeTest)] [knownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [java.lang.RuntimeException: message]"));
         assertThat(result.getOutput(), containsLine("START [test unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
     }
 
     @Test

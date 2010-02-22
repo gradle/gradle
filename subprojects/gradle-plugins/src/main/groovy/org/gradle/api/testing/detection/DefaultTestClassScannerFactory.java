@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.detection;
 
+import org.gradle.api.internal.tasks.testing.TestMainAction;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
+import org.gradle.util.TrueTimeProvider;
 
 import java.util.Set;
 import java.io.File;
@@ -28,19 +32,21 @@ import java.io.File;
  * @author Tom Eyckmans
  */
 public class DefaultTestClassScannerFactory implements TestClassScannerFactory {
-    public TestClassScanner createTestClassScanner(AbstractTestTask testTask, TestClassProcessor testClassProcessor) {
+    public Runnable createTestClassScanner(AbstractTestTask testTask, TestClassProcessor testClassProcessor, TestResultProcessor testResultProcessor) {
         final File testClassDirectory = testTask.getTestClassesDir();
         final Set<String> includePatterns = testTask.getIncludes();
         final Set<String> excludePatterns = testTask.getExcludes();
 
+        Runnable detector;
         if (testTask.isScanForTestClasses()) {
             final TestFrameworkDetector testFrameworkDetector = testTask.getTestFramework().getDetector();
 
-            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns,
+            detector = new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns,
                     testFrameworkDetector, testClassProcessor);
         } else {
-            return new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, null,
+            detector = new DefaultTestClassScanner(testClassDirectory, includePatterns, excludePatterns, null,
                     testClassProcessor);
         }
+        return new TestMainAction(detector, testClassProcessor, testResultProcessor, new TrueTimeProvider());
     }
 }

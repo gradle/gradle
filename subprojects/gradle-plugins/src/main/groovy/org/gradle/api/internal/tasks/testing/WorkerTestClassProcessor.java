@@ -18,52 +18,47 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.util.TimeProvider;
 
 public class WorkerTestClassProcessor implements TestClassProcessor {
     private final TestClassProcessor processor;
-    private final ClassLoader appClassLoader;
+    private final TimeProvider timeProvider;
     private final TestInternal thisTest;
     private TestResultProcessor resultProcessor;
 
     public WorkerTestClassProcessor(TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
-                                    ClassLoader appClassLoader) {
+                                    TimeProvider timeProvider) {
         this.processor = processor;
-        this.appClassLoader = appClassLoader;
+        this.timeProvider = timeProvider;
         thisTest = new DefaultTestSuite(workerSuiteId, workerDisplayName);
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
         this.resultProcessor = resultProcessor;
-        resultProcessor.started(thisTest);
+        resultProcessor.started(thisTest, new TestStartEvent(timeProvider.getCurrentTime()));
 
-        ClassLoader original = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(appClassLoader);
         try {
             processor.startProcessing(resultProcessor);
-        } finally {
-            Thread.currentThread().setContextClassLoader(original);
+        } catch(Throwable t) {
+            resultProcessor.addFailure(thisTest.getId(), t);
         }
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        ClassLoader original = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(appClassLoader);
         try {
             processor.processTestClass(testClass);
-        } finally {
-            Thread.currentThread().setContextClassLoader(original);
+        } catch(Throwable t) {
+            resultProcessor.addFailure(thisTest.getId(), t);
         }
     }
 
     public void endProcessing() {
-        ClassLoader original = Thread.currentThread().getContextClassLoader();
-        Thread.currentThread().setContextClassLoader(appClassLoader);
         try {
             processor.endProcessing();
+        } catch(Throwable t) {
+            resultProcessor.addFailure(thisTest.getId(), t);
         } finally {
-            Thread.currentThread().setContextClassLoader(original);
-
-            resultProcessor.completed(thisTest, null);
+            resultProcessor.completed(thisTest.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
         }
     }
 }

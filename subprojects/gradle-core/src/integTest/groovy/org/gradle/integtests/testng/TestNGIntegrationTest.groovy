@@ -15,12 +15,6 @@
  */
 
 
-
-
-
-
-
-
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project

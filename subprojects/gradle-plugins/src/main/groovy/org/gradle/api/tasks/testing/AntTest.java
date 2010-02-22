@@ -19,8 +19,8 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.testing.DefaultTestSuite;
 import org.gradle.api.internal.tasks.testing.TestListenerAdapter;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestSummaryListener;
 import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
@@ -28,7 +28,6 @@ import org.gradle.api.tasks.util.ProcessForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
-import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
@@ -303,29 +302,14 @@ public class AntTest extends AbstractTestTask implements JavaForkOptions {
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(AntTest.class));
         addTestListener(listener);
 
-        TestListenerAdapter resultProcessor = new TestListenerAdapter(getTestListenerBroadcaster().getSource());
-        resultProcessor.started(new RootTestSuite());
-        processor.startProcessing(resultProcessor);
-        TestClassScanner testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor);
+        TestResultProcessor resultProcessor = new TestListenerAdapter(getTestListenerBroadcaster().getSource());
+        Runnable testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor, resultProcessor);
         testClassScanner.run();
-        processor.endProcessing();
-        resultProcessor.completed(new RootTestSuite(), null);
 
         testFrameworkInstance.report();
 
         if (!isIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
-        }
-    }
-
-    private static class RootTestSuite extends DefaultTestSuite {
-        public RootTestSuite() {
-            super("root", "");
-        }
-
-        @Override
-        public String toString() {
-            return "all tests";
         }
     }
 }

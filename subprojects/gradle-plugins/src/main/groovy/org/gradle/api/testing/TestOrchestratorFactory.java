@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing;
 
 import org.gradle.api.tasks.testing.NativeTest;
@@ -48,9 +49,9 @@ public class TestOrchestratorFactory {
         PipelineFactory pipelineFactory = new PipelineFactory(testTask);
         TestPipelineSplitOrchestrator pipelineSplitOrchestrator = new TestPipelineSplitOrchestrator();
         DefaultTestClassScannerFactory testClassScannerFactory = new DefaultTestClassScannerFactory();
-        TestDetectionOrchestrator detectionOrchestrator = new DefaultTestDetectionOrchestrator(
-                testClassScannerFactory.createTestClassScanner(testTask, pipelineSplitOrchestrator.getProcessor()));
         ReportsManager reportOrchestrator = new DefaultReportsManager();
+        TestDetectionOrchestrator detectionOrchestrator = new DefaultTestDetectionOrchestrator(
+                testClassScannerFactory.createTestClassScanner(testTask, pipelineSplitOrchestrator.getProcessor(), null));
         PipelinesManager pipelinesManager = new PipelinesManager(pipelineFactory, forkControl, reportOrchestrator.getProcessor());
 
         return new TestOrchestratorContext(testOrchestrator, detectionOrchestrator, pipelineSplitOrchestrator,

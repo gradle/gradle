@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
@@ -39,6 +41,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.util.LongIdGenerator
 import org.junit.Ignore
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
@@ -50,29 +53,27 @@ class TestNGTestClassProcessorTest {
     @Test
     public void executesATestClass() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestNGClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.id, equalTo(1L))
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -84,25 +85,25 @@ class TestNGTestClassProcessorTest {
     @Test
     public void executesAFactoryTestClass() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestNGClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -124,41 +125,45 @@ class TestNGTestClassProcessorTest {
         context.checking {
             Sequence sequence = context.sequence('seq')
 
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             inSequence(sequence)
 
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test ->
                 assertThat(test.name, equalTo('beforeMethod'))
                 assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, sameInstance(ATestNGClassWithBrokenSetupMethod.failure))
             }
             inSequence(sequence)
 
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.FAILURE))
+                assertThat(event.failure, sameInstance(ATestNGClassWithBrokenSetupMethod.failure))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
             }
             inSequence(sequence)
 
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
-                assertThat(test.name, equalTo('test'))
-                assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
-                assertThat(result.resultType, equalTo(ResultType.SKIPPED))
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.SKIPPED))
+                assertThat(event.failure, nullValue())
             }
             inSequence(sequence)
 
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo('Gradle test'))
-                assertThat(suite.className, nullValue())
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
             inSequence(sequence)
         }

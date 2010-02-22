@@ -19,9 +19,9 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.testing.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.detection.TestClassScanner;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
@@ -72,7 +72,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
     TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
-    TestClassScanner testClassScannerMock = context.mock(TestClassScanner.class);
+    Runnable testClassScannerMock = context.mock(Runnable.class);
     WorkerTestClassProcessorFactory testProcessorFactoryMock = context.mock(WorkerTestClassProcessorFactory.class);
     org.gradle.api.Action<WorkerProcessBuilder> workerConfigurationActionMock = context.mock(org.gradle.api.Action.class);
 
@@ -205,7 +205,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
             one(testFrameworkInstanceMock).getProcessorFactory();
             will(returnValue(testProcessorFactoryMock));
 
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher));
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher), with(notNullValue(TestListenerAdapter.class)));
             will(returnValue(testClassScannerMock));
 
             one(testClassScannerMock).run();
@@ -224,7 +224,7 @@ public class AntTestTest extends AbstractConventionTaskTest {
             one(testFrameworkInstanceMock).getProcessorFactory();
             will(returnValue(testProcessorFactoryMock));
 
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)));
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)), with(notNullValue(TestListenerAdapter.class)));
             will(returnValue(testClassScannerMock));
 
             final TestResult result = context.mock(TestResult.class);

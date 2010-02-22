@@ -17,21 +17,22 @@
 
 
 
+
+
 package org.gradle.api.testing.execution.fork
 
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.testing.TestClassProcessor
-import org.gradle.api.testing.TestClassProcessorFactory
 import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.messaging.ObjectConnection
 import org.gradle.process.WorkerProcessContext
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.integration.junit4.JMock
+import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
-import org.junit.Before
 
 @RunWith(JMock.class)
 public class TestWorkerTest extends MultithreadedTestCase {
@@ -77,45 +78,9 @@ public class TestWorkerTest extends MultithreadedTestCase {
 
             ignoring(resultProcessor)
 
-            one(processor).startProcessing(resultProcessor)
+            one(processor).startProcessing(withParam(notNullValue()))
             one(processor).processTestClass(test)
             one(processor).endProcessing()
-        }
-
-        run {
-            expectBlocksUntil(1) {
-                worker.execute(workerContext)
-            }
-        }
-    }
-
-    @Test
-    public void handlesFailedEndProcessing() {
-        RuntimeException failure = new RuntimeException()
-
-        context.checking {
-            one(factory).create(withParam(notNullValue()))
-            will(returnValue(processor))
-
-            one(connection).addOutgoing(TestResultProcessor.class)
-            will(returnValue(resultProcessor))
-
-            one(connection).addIncoming(TestClassProcessor.class, worker)
-            will {
-                start {
-                    worker.processTestClass(test)
-                    syncAt(1)
-                    willFailWith(sameInstance(failure))
-                    worker.endProcessing()
-                }
-            }
-
-            ignoring(resultProcessor)
-            
-            one(processor).startProcessing(resultProcessor)
-            one(processor).processTestClass(test)
-            one(processor).endProcessing()
-            will(throwException(failure))
         }
 
         run {

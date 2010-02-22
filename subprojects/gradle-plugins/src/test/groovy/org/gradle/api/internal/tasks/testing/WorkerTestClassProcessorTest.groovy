@@ -15,21 +15,20 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
-
-import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.api.testing.TestClassProcessor
+import org.gradle.api.testing.fabric.TestClassRunInfo
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TimeProvider
+import org.jmock.Sequence
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.testing.TestClassProcessor
-import org.junit.After
-import org.gradle.api.testing.fabric.TestClassRunInfo
-import org.jmock.Sequence
-import org.junit.Ignore
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class WorkerTestClassProcessorTest {
@@ -37,28 +36,21 @@ class WorkerTestClassProcessorTest {
     private final TestClassProcessor target = context.mock(TestClassProcessor.class)
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class)
     private final TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class)
+    private final TimeProvider timeProvider = context.mock(TimeProvider.class)
     private final Sequence sequence = context.sequence('seq')
-    private final ClassLoader appClassLoader = new ClassLoader() {}
-    private ClassLoader original
-    private final WorkerTestClassProcessor processor = new WorkerTestClassProcessor(target, 'worker-id', 'worker display name', appClassLoader)
+    private final WorkerTestClassProcessor processor = new WorkerTestClassProcessor(target, 'worker-id', 'worker display name', timeProvider)
 
-    @Before
-    public void setUp() {
-        original = Thread.currentThread().contextClassLoader
-    }
-
-    @After
-    public void tearDown() {
-        Thread.currentThread().contextClassLoader = original
-    }
-    
     @Test
     public void generatesAStartEventOnStartProcessing() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
-            will { TestInternal suite ->
+            one(timeProvider).getCurrentTime();
+            will(returnValue(100L))
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo('worker-id'))
                 assertThat(suite.name, equalTo('worker display name'))
+                assertThat(event.startTime, equalTo(100L))
             }
             inSequence(sequence)
 
@@ -72,10 +64,12 @@ class WorkerTestClassProcessorTest {
     @Test
     public void generatesACompleteEventOnEndProcessing() {
         context.checking {
-            def suite
-            one(resultProcessor).started(withParam(notNullValue()))
-            will { TestInternal param ->
-                suite = param
+            atLeast(1).of(timeProvider).getCurrentTime()
+            will(returnValue(200L))
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal suite ->
+                assertThat(suite.id, equalTo('worker-id'))
             }
             inSequence(sequence)
 
@@ -85,10 +79,12 @@ class WorkerTestClassProcessorTest {
             one(target).endProcessing()
             inSequence(sequence)
 
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
+            one(resultProcessor).completed(withParam(equalTo('worker-id')), withParam(notNullValue()))
             inSequence(sequence)
-            will { param, result ->
-                assertThat(param, sameInstance(suite))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.endTime, equalTo(200L))
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -97,46 +93,81 @@ class WorkerTestClassProcessorTest {
     }
 
     @Test
-    public void setsContextClassLoaderDuringExecution() {
+    public void firesFailureEventWhenStartProcessingFails() {
+        RuntimeException failure = new RuntimeException()
+
         context.checking {
-            ignoring(resultProcessor)
+            ignoring(timeProvider)
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            inSequence(sequence)
+
             one(target).startProcessing(resultProcessor)
-            will {
-                assertThat(Thread.currentThread().contextClassLoader, sameInstance(appClassLoader))
-            }
-            one(target).processTestClass(runInfo)
-            will {
-                assertThat(Thread.currentThread().contextClassLoader, sameInstance(appClassLoader))
-            }
+            inSequence(sequence)
+            will(throwException(failure))
+
+            one(resultProcessor).addFailure('worker-id', failure)
+            inSequence(sequence)
+        }
+
+        processor.startProcessing(resultProcessor)
+    }
+
+    @Test
+    public void completeEventContainsStopProcessingException() {
+        RuntimeException failure = new RuntimeException()
+
+        context.checking {
+            ignoring(timeProvider)
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            inSequence(sequence)
+
+            one(target).startProcessing(resultProcessor)
+            inSequence(sequence)
+
             one(target).endProcessing()
-            will {
-                assertThat(Thread.currentThread().contextClassLoader, sameInstance(appClassLoader))
+            inSequence(sequence)
+            will(throwException(failure))
+
+            one(resultProcessor).addFailure('worker-id', failure)
+            inSequence(sequence)
+
+            one(resultProcessor).completed(withParam(equalTo('worker-id')), withParam(notNullValue()))
+            inSequence(sequence)
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
         processor.startProcessing(resultProcessor)
-        assertThat(Thread.currentThread().contextClassLoader, sameInstance(original))
-
-        processor.processTestClass(runInfo)
-        assertThat(Thread.currentThread().contextClassLoader, sameInstance(original))
-        
         processor.endProcessing()
-        assertThat(Thread.currentThread().contextClassLoader, sameInstance(original))
     }
 
-    @Test @Ignore
-    public void completeEventContainsStartProcessingException() {
-        fail("implement me")
-    }
-
-    @Test @Ignore
-    public void completeEventContainsStopProcessingException() {
-        fail("implement me")
-    }
-
-    @Test @Ignore
+    @Test
     public void generatesAFailedEventOnFailureToProcessTestClass() {
-        fail("implement me")
+        RuntimeException failure = new RuntimeException()
+
+        context.checking {
+            ignoring(timeProvider)
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            inSequence(sequence)
+
+            one(target).startProcessing(resultProcessor)
+            inSequence(sequence)
+
+            one(target).processTestClass(runInfo)
+            inSequence(sequence)
+            will(throwException(failure))
+
+            one(resultProcessor).addFailure('worker-id', failure)
+            inSequence(sequence)
+        }
+
+        processor.startProcessing(resultProcessor)
+        processor.processTestClass(runInfo)
     }
 }
 

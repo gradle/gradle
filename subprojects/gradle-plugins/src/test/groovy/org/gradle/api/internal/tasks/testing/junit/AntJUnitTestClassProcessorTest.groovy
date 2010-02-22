@@ -15,21 +15,16 @@
  */
 
 
-
-
-
-
-
-
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.tasks.testing.TestResult
-import org.gradle.api.tasks.testing.TestResult.ResultType
+import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.testing.fabric.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.LongIdGenerator
 import org.gradle.util.TemporaryFolder
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
@@ -43,7 +38,6 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.util.LongIdGenerator
 
 @RunWith(JMock.class)
 class AntJUnitTestClassProcessorTest {
@@ -55,29 +49,27 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClass() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
-            will { TestInternal test ->
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.id, equalTo(1L))
-                assertThat(suite.name, equalTo(ATestClass.class.name))
-                assertThat(suite.className, equalTo(ATestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -89,25 +81,25 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesAJUnit3TestClass() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.name, equalTo('testOk'))
-                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
-                assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -119,53 +111,49 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesMultipleTestClasses() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
-            will { TestInternal test ->
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.id, equalTo(1L))
-                assertThat(suite.name, equalTo(ATestClass.class.name))
-                assertThat(suite.className, equalTo(ATestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.id, equalTo(3L))
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
-            will { TestInternal test ->
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(4L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.id, equalTo(4L))
-                assertThat(test.name, equalTo('testOk'))
-                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(4L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.id, equalTo(3L))
-                assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
-                assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -178,44 +166,39 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithRunWithAnnotation() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClassWithRunner.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithRunner.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('broken'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.id, equalTo(3L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
-                assertThat(test.id, equalTo(3L))
-                assertThat(test.name, equalTo('ok'))
-                assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
-                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('broken'))
-                assertThat(test.className, equalTo(ATestClassWithRunner.class.name))
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, notNullValue())
+            one(resultProcessor).addFailure(2L, CustomRunner.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.id, equalTo(1L))
-                assertThat(suite.name, equalTo(ATestClassWithRunner.class.name))
-                assertThat(suite.className, equalTo(ATestClassWithRunner.class.name))
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -227,39 +210,37 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithASuiteMethod() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo(ATestClassWithSuiteMethod.class.name))
                 assertThat(suite.className, equalTo(ATestClassWithSuiteMethod.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.id, equalTo(2L))
-                assertThat(test.name, equalTo('testOk'))
-                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).started(withParam(notNullValue()))
-            will { TestInternal test ->
-                assertThat(test.id, equalTo(3L))
-                assertThat(test.name, equalTo('testOk'))
-                assertThat(test.className, equalTo(AJunit3TestClass.class.name))
-            }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.id, equalTo(3L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithSuiteMethod.class.name))
-                assertThat(suite.className, equalTo(ATestClassWithSuiteMethod.class.name))
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -271,24 +252,26 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithBrokenConstructor() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo(ATestClassWithBrokenConstructor.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestClassWithBrokenConstructor.class.name))
+            }
+            one(resultProcessor).addFailure(2L, ATestClassWithBrokenConstructor.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
-                assertThat(test.name, equalTo('test'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenConstructor.class.name))
-                assertThat(result.exception, sameInstance(ATestClassWithBrokenConstructor.failure))
-            }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenConstructor.class.name))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -300,24 +283,25 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithBrokenSetup() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo(ATestClassWithBrokenSetup.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestClassWithBrokenSetup.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
-                assertThat(test.name, equalTo('test'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenSetup.class.name))
-                assertThat(result.exception, sameInstance(ATestClassWithBrokenSetup.failure))
+            one(resultProcessor).addFailure(2L, ATestClassWithBrokenSetup.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenSetup.class.name))
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -329,24 +313,25 @@ class AntJUnitTestClassProcessorTest {
     @Test
     public void executesATestClassWithBrokenRunner() {
         context.checking {
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal suite ->
                 assertThat(suite.name, equalTo(ATestClassWithBrokenRunner.class.name))
             }
-            one(resultProcessor).started(withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestInternal test ->
                 assertThat(test.name, equalTo('initializationError'))
                 assertThat(test.className, equalTo(ATestClassWithBrokenRunner.class.name))
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternal test, TestResult result ->
-                assertThat(test.name, equalTo('initializationError'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenRunner.class.name))
-                assertThat(result.exception, sameInstance(CustomRunnerWithBrokenConstructor.failure))
+            one(resultProcessor).addFailure(2L, CustomRunnerWithBrokenConstructor.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).completed(withParam(notNullValue()), withParam(nullValue()))
-            will { TestInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenRunner.class.name))
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
             }
         }
 
@@ -415,6 +400,7 @@ public static class ATestClassWithSuiteMethod {
 public static class ATestClassWithRunner {}
 
 public static class CustomRunner extends Runner {
+    static RuntimeException failure = new RuntimeException('broken')
     Class<?> type
 
     def CustomRunner(Class<?> type) {
@@ -436,7 +422,7 @@ public static class CustomRunner extends Runner {
         Description test2 = Description.createTestDescription(type, 'ok')
         runNotifier.fireTestStarted(test1)
         runNotifier.fireTestStarted(test2)
-        runNotifier.fireTestFailure(new Failure(test1, new RuntimeException('broken')))
+        runNotifier.fireTestFailure(new Failure(test1, failure))
         runNotifier.fireTestFinished(test2)
         runNotifier.fireTestFinished(test1)
     }

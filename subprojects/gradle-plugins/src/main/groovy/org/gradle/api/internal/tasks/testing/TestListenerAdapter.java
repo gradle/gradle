@@ -19,14 +19,24 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 
+import java.util.HashMap;
+import java.util.Map;
+
 public class TestListenerAdapter implements TestResultProcessor {
     private final TestListener listener;
+    private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
 
     public TestListenerAdapter(TestListener listener) {
         this.listener = listener;
     }
 
-    public void started(TestInternal test) {
+    public void started(TestInternal test, TestStartEvent event) {
+        TestState oldState = executing.put(test.getId(), new TestState(test, event));
+        if (oldState != null) {
+            throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
+                    test, test.getId()));
+        }
+        
         if (test.isComposite()) {
             listener.beforeSuite(test);
         } else {
@@ -34,12 +44,53 @@ public class TestListenerAdapter implements TestResultProcessor {
         }
     }
 
-    public void completed(TestInternal test, TestResult result) {
+    public void completed(Object testId, TestCompleteEvent event) {
+        TestState testState = executing.remove(testId);
+        if (testState == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Received a completed event for test with unknown id '%s'.", testId));
+        }
+        if (event.getFailure() != null) {
+            testState.failure = event.getFailure();
+        }
+        if (testState.isFailed() && testState.startEvent.getParentId() != null) {
+            executing.get(testState.startEvent.getParentId()).failedChild = true;
+        }
+
+        TestInternal test = testState.test;
+        TestResult.ResultType resultType = testState.isFailed() ? TestResult.ResultType.FAILURE
+                : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
+        DefaultTestResult result = new DefaultTestResult(resultType, testState.failure, testState.startEvent.getStartTime(),
+                event.getEndTime());
         if (test.isComposite()) {
-            assert result == null;
-            listener.afterSuite(test, new DefaultTestResult(null, 0, 0));
+            listener.afterSuite(test, result);
         } else {
             listener.afterTest(test, result);
+        }
+    }
+
+    public void addFailure(Object testId, Throwable result) {
+        TestState testState = executing.get(testId);
+        if (testState == null) {
+            throw new IllegalArgumentException(String.format(
+                    "Received a failure event for test with unknown id '%s'.", testId));
+        }
+        testState.failure = result;
+    }
+
+    private static class TestState {
+        final TestInternal test;
+        final TestStartEvent startEvent;
+        boolean failedChild;
+        Throwable failure;
+
+        private TestState(TestInternal test, TestStartEvent startEvent) {
+            this.test = test;
+            this.startEvent = startEvent;
+        }
+
+        boolean isFailed() {
+            return failedChild || failure != null;
         }
     }
 }

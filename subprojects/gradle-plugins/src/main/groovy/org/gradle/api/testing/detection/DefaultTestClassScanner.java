@@ -33,7 +33,7 @@ import java.util.Collection;
  *
  * @author Tom Eyckmans
  */
-public class DefaultTestClassScanner implements TestClassScanner {
+public class DefaultTestClassScanner implements Runnable {
     private final File testClassDirectory;
     private final Collection<String> includePatterns;
     private final Collection<String> excludePatterns;

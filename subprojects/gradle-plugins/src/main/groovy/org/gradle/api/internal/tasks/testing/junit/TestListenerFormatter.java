@@ -35,7 +35,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     private final TimeProvider timeProvider;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
-    private final Map<Object, TestState> executing = new IdentityHashMap<Object, TestState>();
+    private final Map<Object, TestInternal> executing = new IdentityHashMap<Object, TestInternal>();
 
     public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
@@ -47,17 +47,19 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         TestInternal testInternal;
         synchronized (lock) {
             testInternal = convert(idGenerator.generateId(), jUnitTest);
-            executing.put(jUnitTest, new TestState(testInternal, 0));
+            executing.put(jUnitTest, testInternal);
         }
-        resultProcessor.started(testInternal);
+        long startTime = timeProvider.getCurrentTime();
+        resultProcessor.started(testInternal, new TestStartEvent(startTime));
     }
 
     public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
+        long endTime = timeProvider.getCurrentTime();
         TestInternal testInternal;
         synchronized (lock) {
-            testInternal = executing.remove(jUnitTest).test;
+            testInternal = executing.remove(jUnitTest);
         }
-        resultProcessor.completed(testInternal, null);
+        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }
 
     public void setOutput(OutputStream outputStream) {
@@ -70,23 +72,25 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void startTest(Test test) {
-        long startTime = timeProvider.getCurrentTime();
         TestInternal testInternal;
         synchronized (lock) {
             testInternal = convert(idGenerator.generateId(), test);
-            TestState oldState = executing.put(test, new TestState(testInternal, startTime));
-            if (oldState != null) {
+            TestInternal oldTest = executing.put(test, testInternal);
+            if (oldTest != null) {
                 throw new IllegalStateException(String.format(
                         "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
             }
         }
-        resultProcessor.started(testInternal);
+        long startTime = timeProvider.getCurrentTime();
+        resultProcessor.started(testInternal, new TestStartEvent(startTime));
     }
 
     public void addError(Test test, Throwable throwable) {
+        TestInternal testInternal;
         synchronized (lock) {
-            executing.get(test).failure = throwable;
+            testInternal = executing.get(test);
         }
+        resultProcessor.addFailure(testInternal.getId(), throwable);
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {
@@ -96,13 +100,10 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     public void endTest(Test test) {
         long endTime = timeProvider.getCurrentTime();
         TestInternal testInternal;
-        DefaultTestResult result;
         synchronized (lock) {
-            TestState state = executing.remove(test);
-            testInternal = state.test;
-            result = new DefaultTestResult(state.failure, state.startTime, endTime);
+            testInternal = executing.remove(test);
         }
-        resultProcessor.completed(testInternal, result);
+        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }
 
     private TestInternal convert(Object id, JUnitTest jUnitTest) {
@@ -116,17 +117,6 @@ public class TestListenerFormatter implements JUnitResultFormatter {
             return new DefaultTest(id, testCase.getClass().getName(), testCase.getName());
         }
         return new DefaultTest(id, test.getClass().getName(), test.toString());
-    }
-
-    private static class TestState {
-        private final TestInternal test;
-        private final long startTime;
-        private Throwable failure;
-
-        private TestState(TestInternal test, long startTime) {
-            this.test = test;
-            this.startTime = startTime;
-        }
     }
 }
 

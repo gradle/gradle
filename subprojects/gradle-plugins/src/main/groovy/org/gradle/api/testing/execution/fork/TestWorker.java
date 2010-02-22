@@ -18,15 +18,19 @@ package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.AttachParentTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.listener.ContextClassLoaderProxy;
+import org.gradle.listener.ThreadSafeProxy;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.process.WorkerProcessContext;
 import org.gradle.util.CompositeIdGenerator;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.LongIdGenerator;
+import org.gradle.util.TrueTimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -51,11 +55,18 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
 
         IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(),
                 new LongIdGenerator());
-        processor = new WorkerTestClassProcessor(factory.create(idGenerator), idGenerator.generateId(),
-                workerProcessContext.getDisplayName(), workerProcessContext.getApplicationClassLoader());
+        TestClassProcessor targetProcessor = factory.create(idGenerator);
+        targetProcessor = new WorkerTestClassProcessor(targetProcessor,
+                idGenerator.generateId(), workerProcessContext.getDisplayName(), new TrueTimeProvider());
+        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
+                TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
+        processor = proxy.getSource();
+
 
         TestResultProcessor resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
-        processor.startProcessing(resultProcessor);
+        resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
+        ThreadSafeProxy<TestResultProcessor> resultProcessorProxy = new ThreadSafeProxy<TestResultProcessor>(TestResultProcessor.class, resultProcessor);
+        processor.startProcessing(resultProcessorProxy.getSource());
 
         serverConnection.addIncoming(TestClassProcessor.class, this);
 
