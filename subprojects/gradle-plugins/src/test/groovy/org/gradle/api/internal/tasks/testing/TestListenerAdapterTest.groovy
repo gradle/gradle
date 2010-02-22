@@ -15,10 +15,6 @@
  */
 
 
-
-
-
-
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.tasks.testing.TestListener
@@ -48,6 +44,9 @@ class TestListenerAdapterTest {
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(1L))
+                assertThat(result.failedTestCount, equalTo(0L))
             }
         }
 
@@ -69,6 +68,9 @@ class TestListenerAdapterTest {
                 assertThat(result.exception, sameInstance(failure))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(1L))
             }
         }
 
@@ -91,6 +93,9 @@ class TestListenerAdapterTest {
                 assertThat(result.exception, sameInstance(failure))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(1L))
             }
         }
 
@@ -109,6 +114,9 @@ class TestListenerAdapterTest {
                 assertThat(result.resultType, equalTo(ResultType.SKIPPED))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(0L))
             }
         }
 
@@ -127,6 +135,9 @@ class TestListenerAdapterTest {
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
+                assertThat(result.testCount, equalTo(0L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(0L))
             }
         }
 
@@ -141,11 +152,15 @@ class TestListenerAdapterTest {
 
         context.checking {
             one(listener).beforeSuite(suite)
+            one(test).setParent(suite)
             one(listener).beforeTest(test)
             one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
             one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
             will { arg, TestResult result ->
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(1L))
+                assertThat(result.failedTestCount, equalTo(0L))
             }
         }
 
@@ -163,13 +178,18 @@ class TestListenerAdapterTest {
 
         context.checking {
             one(listener).beforeSuite(suite)
+            one(ok).setParent(suite)
             one(listener).beforeTest(ok)
+            one(broken).setParent(suite)
             one(listener).beforeTest(broken)
             one(listener).afterTest(withParam(sameInstance(ok)), withParam(notNullValue()))
             one(listener).afterTest(withParam(sameInstance(broken)), withParam(notNullValue()))
             one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
             will { arg, TestResult result ->
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.testCount, equalTo(2L))
+                assertThat(result.successfulTestCount, equalTo(1L))
+                assertThat(result.failedTestCount, equalTo(1L))
             }
         }
 
@@ -188,11 +208,15 @@ class TestListenerAdapterTest {
 
         context.checking {
             one(listener).beforeSuite(suite)
+            one(test).setParent(suite)
             one(listener).beforeTest(test)
             one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
             one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
             will { arg, TestResult result ->
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(0L))
             }
         }
 
@@ -203,6 +227,61 @@ class TestListenerAdapterTest {
     }
 
     @Test
+    public void createsAnAggregateResultForTestSuiteWithNestedSuites() {
+        TestInternal root = suite('root')
+        TestInternal suite1 = suite('suite1')
+        TestInternal suite2 = suite('suite2')
+        TestInternal ok = test('ok')
+        TestInternal broken = test('broken')
+
+        context.checking {
+            one(listener).beforeSuite(root)
+            one(suite1).setParent(root)
+            one(listener).beforeSuite(suite1)
+            one(ok).setParent(suite1)
+            one(listener).beforeTest(ok)
+            one(listener).afterTest(withParam(sameInstance(ok)), withParam(notNullValue()))
+            one(suite2).setParent(root)
+            one(listener).beforeSuite(suite2)
+            one(broken).setParent(suite2)
+            one(listener).beforeTest(broken)
+            one(listener).afterTest(withParam(sameInstance(broken)), withParam(notNullValue()))
+            one(listener).afterSuite(withParam(sameInstance(suite1)), withParam(notNullValue()))
+            will { arg, TestResult result ->
+                assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(1L))
+                assertThat(result.failedTestCount, equalTo(0L))
+            }
+            one(listener).afterSuite(withParam(sameInstance(suite2)), withParam(notNullValue()))
+            will { arg, TestResult result ->
+                assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(1L))
+            }
+            one(listener).afterSuite(withParam(sameInstance(root)), withParam(notNullValue()))
+            will { arg, TestResult result ->
+                assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.testCount, equalTo(2L))
+                assertThat(result.successfulTestCount, equalTo(1L))
+                assertThat(result.failedTestCount, equalTo(1L))
+            }
+        }
+
+        adapter.started(root, new TestStartEvent(100L))
+        adapter.started(suite1, new TestStartEvent(100L, 'root'))
+        adapter.started(ok, new TestStartEvent(100L, 'suite1'))
+        adapter.started(suite2, new TestStartEvent(100L, 'root'))
+        adapter.started(broken, new TestStartEvent(100L, 'suite2'))
+        adapter.completed('ok', new TestCompleteEvent(200L))
+        adapter.completed('broken', new TestCompleteEvent(200L, ResultType.FAILURE, new RuntimeException()))
+        adapter.completed('suite1', new TestCompleteEvent(200L))
+        adapter.completed('suite2', new TestCompleteEvent(200L))
+        adapter.completed('root', new TestCompleteEvent(200L))
+    }
+
+    @Test
     public void createsAnAggregateResultForTestSuiteWithFailure() {
         TestInternal suite = suite('id')
         TestInternal test = test('testid')
@@ -210,6 +289,7 @@ class TestListenerAdapterTest {
 
         context.checking {
             one(listener).beforeSuite(suite)
+            one(test).setParent(suite)
             one(listener).beforeTest(test)
             one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
             one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
@@ -234,6 +314,7 @@ class TestListenerAdapterTest {
 
         context.checking {
             one(listener).beforeSuite(suite)
+            one(test).setParent(suite)
             one(listener).beforeTest(test)
             one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
             one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))

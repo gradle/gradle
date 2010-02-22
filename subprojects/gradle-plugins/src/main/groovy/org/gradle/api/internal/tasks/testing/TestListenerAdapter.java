@@ -36,6 +36,10 @@ public class TestListenerAdapter implements TestResultProcessor {
             throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
                     test, test.getId()));
         }
+        if (event.getParentId() != null) {
+            TestState parentState = executing.get(event.getParentId());
+            test.setParent(parentState.test);
+        }
         
         if (test.isComposite()) {
             listener.beforeSuite(test);
@@ -50,18 +54,8 @@ public class TestListenerAdapter implements TestResultProcessor {
             throw new IllegalArgumentException(String.format(
                     "Received a completed event for test with unknown id '%s'.", testId));
         }
-        if (event.getFailure() != null) {
-            testState.failure = event.getFailure();
-        }
-        if (testState.isFailed() && testState.startEvent.getParentId() != null) {
-            executing.get(testState.startEvent.getParentId()).failedChild = true;
-        }
-
+        TestResult result = testState.completed(event);
         TestInternal test = testState.test;
-        TestResult.ResultType resultType = testState.isFailed() ? TestResult.ResultType.FAILURE
-                : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
-        DefaultTestResult result = new DefaultTestResult(resultType, testState.failure, testState.startEvent.getStartTime(),
-                event.getEndTime());
         if (test.isComposite()) {
             listener.afterSuite(test, result);
         } else {
@@ -78,11 +72,14 @@ public class TestListenerAdapter implements TestResultProcessor {
         testState.failure = result;
     }
 
-    private static class TestState {
+    private class TestState {
         final TestInternal test;
         final TestStartEvent startEvent;
         boolean failedChild;
         Throwable failure;
+        long testCount;
+        long successfulCount;
+        long failedCount;
 
         private TestState(TestInternal test, TestStartEvent startEvent) {
             this.test = test;
@@ -91,6 +88,38 @@ public class TestListenerAdapter implements TestResultProcessor {
 
         boolean isFailed() {
             return failedChild || failure != null;
+        }
+
+        public TestResult completed(TestCompleteEvent event) {
+            if (event.getFailure() != null) {
+                failure = event.getFailure();
+            }
+            TestResult.ResultType resultType = isFailed() ? TestResult.ResultType.FAILURE
+                    : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
+
+            if (!test.isComposite()) {
+                testCount = 1;
+                switch (resultType) {
+                    case SUCCESS:
+                        successfulCount = 1;
+                        break;
+                    case FAILURE:
+                        failedCount = 1;
+                        break;
+                }
+            }
+
+            if (startEvent.getParentId() != null) {
+                TestState parentState = executing.get(startEvent.getParentId());
+                if (isFailed()) {
+                    parentState.failedChild = true;
+                }
+                parentState.testCount += testCount;
+                parentState.successfulCount += successfulCount;
+                parentState.failedCount += failedCount;
+            }
+
+            return new DefaultTestResult(resultType, failure, startEvent.getStartTime(), event.getEndTime(), testCount, successfulCount, failedCount);
         }
     }
 }

@@ -25,16 +25,18 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final ResultType result;
     private final long startTime;
     private final long endTime;
+    private final long testCount;
+    private final long successfulCount;
+    private final long failedCount;
 
-    public DefaultTestResult(Throwable error, long startTime, long endTime) {
-        this(error == null ? ResultType.SUCCESS : ResultType.FAILURE, error, startTime, endTime);
-    }
-    
-    public DefaultTestResult(ResultType result, Throwable error, long startTime, long endTime) {
+    public DefaultTestResult(ResultType result, Throwable error, long startTime, long endTime, long testCount, long successfulCount, long failedCount) {
         this.error = error;
         this.result = result;
         this.startTime = startTime;
         this.endTime = endTime;
+        this.testCount = testCount;
+        this.successfulCount = successfulCount;
+        this.failedCount = failedCount;
     }
 
     public ResultType getResultType() {
@@ -55,6 +57,22 @@ public class DefaultTestResult implements TestResult, Serializable {
 
     public long getEndTime() {
         return endTime;
+    }
+
+    public long getTestCount() {
+        return testCount;
+    }
+
+    public long getSuccessfulTestCount() {
+        return successfulCount;
+    }
+
+    public long getSkippedTestCount() {
+        return testCount - successfulCount - failedCount;
+    }
+
+    public long getFailedTestCount() {
+        return failedCount;
     }
 
     @Override

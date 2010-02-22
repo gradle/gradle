@@ -16,10 +16,35 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.api.tasks.testing.Test;
+import java.io.Serializable;
 
-public interface TestInternal extends Test {
-    Object getId();
+public abstract class AbstractTest implements TestInternal, Serializable {
+    private final Object id;
+    private final String name;
+    private TestInternal parent;
 
-    void setParent(TestInternal parent);
+    public AbstractTest(Object id, String name) {
+        this.id = id;
+        this.name = name;
+    }
+
+    public Object getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getClassName() {
+        return null;
+    }
+
+    public TestInternal getParent() {
+        return parent;
+    }
+
+    public void setParent(TestInternal parent) {
+        this.parent = parent;
+    }
 }

@@ -39,4 +39,11 @@ public interface Test {
      * @return true if this test is a composite test.
      */
     boolean isComposite();
+
+    /**
+     * Returns the parent of this test, if any.
+     *
+     * @return The parent of this test. Null if this test has no parent.
+     */
+    Test getParent();
 }

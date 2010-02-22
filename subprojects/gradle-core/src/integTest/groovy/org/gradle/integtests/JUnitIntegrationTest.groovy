@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -294,32 +296,32 @@ public class JUnitIntegrationTest {
             test.ignoreFailures = true
             class TestListenerImpl implements TestListener {
                 void beforeSuite(Test suite) { println "START [$suite] [$suite.name]" }
-                void afterSuite(Test suite, TestResult result) { println "FINISH [$suite] [$suite.name] [$result.resultType]" }
+                void afterSuite(Test suite, TestResult result) { println "FINISH [$suite] [$suite.name] [$result.resultType] [$result.testCount]" }
                 void beforeTest(Test test) { println "START [$test] [$test.name]" }
-                void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.error]" }
+                void afterTest(Test test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.testCount] [$result.error]" }
             }
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
         assertThat(result.getOutput(), containsLine("START [all tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [all tests] [] [FAILURE]"));
+        assertThat(result.getOutput(), containsLine("FINISH [all tests] [] [FAILURE] [4]"));
 
         assertThat(result.getOutput(), containsLine("START [test 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]"));
 
         assertThat(result.getOutput(), containsLine("START [test class SomeOtherTest] [SomeOtherTest]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]"));
         assertThat(result.getOutput(), containsLine("START [test pass(SomeOtherTest)] [pass]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [null]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test pass(SomeOtherTest)] [pass] [SUCCESS] [1] [null]"));
 
         assertThat(result.getOutput(), containsLine("START [test class SomeTest] [SomeTest]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest] [FAILURE]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]"));
         assertThat(result.getOutput(), containsLine("START [test fail(SomeTest)] [fail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [FAILURE] [junit.framework.AssertionFailedError: message]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [junit.framework.AssertionFailedError: message]"));
         assertThat(result.getOutput(), containsLine("START [test knownError(SomeTest)] [knownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [java.lang.RuntimeException: message]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]"));
         assertThat(result.getOutput(), containsLine("START [test unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
     }
 
     @Test

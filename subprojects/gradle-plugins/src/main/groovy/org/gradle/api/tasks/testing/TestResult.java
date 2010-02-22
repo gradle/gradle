@@ -49,4 +49,33 @@ public interface TestResult {
      * @return The end t ime, in milliseconds since the epoch.
      */
     long getEndTime();
+
+    /**
+     * Returns the total number of atomic tests executed for this test. This will return 1 if this test is itself an
+     * atomic test.
+     *
+     * @return The number of tests, possibly 0
+     */
+    long getTestCount();
+
+    /**
+     * Returns the number of successful atomic tests executed for this test.
+     *
+     * @return The number of tests, possibly 0
+     */
+    long getSuccessfulTestCount();
+
+    /**
+     * Returns the number of failed atomic tests executed for this test.
+     *
+     * @return The number of tests, possibly 0
+     */
+    long getFailedTestCount();
+
+    /**
+     * Returns the number of skipped atomic tests executed for this test.
+     *
+     * @return The number of tests, possibly 0
+     */
+    long getSkippedTestCount();
 }
