@@ -15,14 +15,16 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
+import org.apache.maven.model.Exclusion;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNull;
 import org.junit.Before;
 import org.junit.Test;
+
+import static junit.framework.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
 
 /**
  * @author Hans Dockter
@@ -41,7 +43,7 @@ public class DefaultExcludeRuleConverterTest {
     @Test
     public void convertableRule() {
         DefaultExcludeRule excludeRule = new DefaultExcludeRule(GUtil.map(ExcludeRule.GROUP_KEY, TEST_ORG, ExcludeRule.MODULE_KEY, TEST_MODULE));
-        MavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
+        Exclusion mavenExclude = excludeRuleConverter.convert(excludeRule);
         assertEquals(TEST_ORG, mavenExclude.getGroupId());
         assertEquals(TEST_MODULE, mavenExclude.getArtifactId());
     }

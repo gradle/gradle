@@ -15,6 +15,12 @@
  */
 package org.gradle.api.artifacts.maven;
 
+import org.apache.maven.project.MavenProject;
+import org.gradle.api.artifacts.Configuration;
+
+import java.io.Writer;
+import java.util.Set;
+
 /**
  * Is used for generating a Maven pom file and customizing the generation.
  * To learn about the Maven pom see: <a href="http://maven.apache.org/pom.html">http://maven.apache.org/pom.html</a>
@@ -58,16 +64,6 @@ public interface MavenPom {
     void setVersion(String version);
 
     /**
-     * @see #setClassifier(String)  
-     */
-    String getClassifier();
-
-    /**
-     * Sets the classifier property of the to be generated Maven pom.
-     */
-    void setClassifier(String classifier);
-
-    /**
      * @see #setPackaging(String)
      */
     String getPackaging();
@@ -77,18 +73,9 @@ public interface MavenPom {
      */
     void setPackaging(String packaging);
 
-    /**
-     * @see #setLicenseHeader(String)
-     */
-    String getLicenseHeader();
+    MavenProject getMavenProject();
 
-    /**
-     * Sets the licenseHeader property of the to be generated Maven pom.
-     */
-    void setLicenseHeader(String licenseHeader);
+    void addDependencies(Set<Configuration> configurations);
 
-    /**
-     * Creates a deep copy of a MavenPom
-     */
-    MavenPom copy();
+    void write(Writer pomWriter);
 }

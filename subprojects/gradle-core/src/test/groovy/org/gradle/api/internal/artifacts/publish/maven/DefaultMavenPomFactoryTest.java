@@ -15,28 +15,30 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
-import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
-import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
-import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import org.gradle.util.HelperUtil;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotSame;
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.hamcrest.Matchers;
+import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.notNullValue;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultMavenPomFactoryTest {
+    private Mockery context = new JUnit4Mockery();
     @Test
     public void createMavenPom() {
         DefaultConf2ScopeMappingContainer scopeMappings = new DefaultConf2ScopeMappingContainer();
-        final DefaultModuleDescriptor testModuleDescriptor = DefaultModuleDescriptor.newBasicInstance(ModuleRevisionId.newInstance("org", "name","version"), null);
-        testModuleDescriptor.addDependency(new DefaultDependencyDescriptor(ModuleRevisionId.newInstance("org1", "name1", "rev1"), false));
-        scopeMappings.addMapping(10, HelperUtil.createConfiguration("conf"), "scope");
-        DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(scopeMappings);
+        PomDependenciesConverter pomDependenciesConverter = context.mock(PomDependenciesConverter.class); 
+        DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(scopeMappings, pomDependenciesConverter);
         DefaultMavenPom mavenPom = (DefaultMavenPom) mavenPomFactory.createMavenPom();
         assertNotSame(scopeMappings, mavenPom.getScopeMappings());
         assertEquals(scopeMappings, mavenPom.getScopeMappings());
+        assertThat(mavenPom.getMavenProject(), notNullValue());
+        assertThat(mavenPom.getPomDependenciesConverter(), Matchers.sameInstance(pomDependenciesConverter));
     }
 }

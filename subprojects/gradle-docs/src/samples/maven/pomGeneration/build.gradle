@@ -73,7 +73,6 @@ uploadArchives {
 
 installer = install.repositories.mavenInstaller
 
-[installer, deployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
 if (hasProperty('customVersion')) {
     [installer, deployer]*.pom*.version = customVersion
     installer.pom.groupId = 'installGroup'

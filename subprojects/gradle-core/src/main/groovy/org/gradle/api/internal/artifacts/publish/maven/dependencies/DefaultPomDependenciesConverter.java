@@ -15,10 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import org.gradle.api.artifacts.*;
-import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Exclusion;
 import org.gradle.api.GradleException;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.DependencyArtifact;
+import org.gradle.api.artifacts.ExcludeRule;
+import org.gradle.api.artifacts.ModuleDependency;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 
 import java.util.*;
 
@@ -32,9 +37,9 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         this.excludeRuleConverter = excludeRuleConverter;
     }
 
-    public List<MavenDependency> convert(MavenPom pom, Set<Configuration> configurations) {
-        Map<ModuleDependency, String> dependenciesMap = createDependencyToScopeMap(pom, configurations);
-        List<MavenDependency> mavenDependencies = new ArrayList<MavenDependency>();
+    public List<org.apache.maven.model.Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
+        Map<ModuleDependency, String> dependenciesMap = createDependencyToScopeMap(conf2ScopeMappingContainer, configurations);
+        List<org.apache.maven.model.Dependency> mavenDependencies = new ArrayList<org.apache.maven.model.Dependency>();
         for (ModuleDependency dependency : dependenciesMap.keySet()) {
             if (dependency.getArtifacts().size() == 0) {
                 addFromDependencyDescriptor(mavenDependencies, dependency, dependenciesMap.get(dependency));
@@ -45,16 +50,16 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return mavenDependencies;
     }
 
-    private Map<ModuleDependency, String> createDependencyToScopeMap(MavenPom pom, Set<Configuration> configurations) {
+    private Map<ModuleDependency, String> createDependencyToScopeMap(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations) {
         Map<ModuleDependency, Set<Configuration>> dependencyToConfigurations = createDependencyToConfigurationsMap(configurations);
         Map<ModuleDependency, String> dependencyToScope = new HashMap<ModuleDependency, String>();
         for (ModuleDependency dependency : dependencyToConfigurations.keySet()) {
-            Conf2ScopeMapping conf2ScopeMapping = pom.getScopeMappings().getMapping(dependencyToConfigurations.get(dependency));
-            if (!useScope(pom, conf2ScopeMapping)) {
+            Conf2ScopeMapping conf2ScopeDependencyMapping = conf2ScopeMappingContainer.getMapping(dependencyToConfigurations.get(dependency));
+            if (!useScope(conf2ScopeMappingContainer, conf2ScopeDependencyMapping)) {
                 continue;
             }
-            dependencyToScope.put(findDependency(dependency, conf2ScopeMapping.getConfiguration()),
-                    conf2ScopeMapping.getScope());
+            dependencyToScope.put(findDependency(dependency, conf2ScopeDependencyMapping.getConfiguration()),
+                    conf2ScopeDependencyMapping.getScope());
         }
         return dependencyToScope;
     }
@@ -68,8 +73,8 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         throw new GradleException("Dependency could not be found. We should never get here!");
     }
 
-    private boolean useScope(MavenPom pom, Conf2ScopeMapping conf2ScopeMapping) {
-        return conf2ScopeMapping.getScope() != null || !pom.getScopeMappings().isSkipUnmappedConfs();
+    private boolean useScope(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Conf2ScopeMapping conf2ScopeMapping) {
+        return conf2ScopeMapping.getScope() != null || !conf2ScopeMappingContainer.isSkipUnmappedConfs();
     }
 
     private Map<ModuleDependency, Set<Configuration>> createDependencyToConfigurationsMap(Set<Configuration> configurations) {
@@ -85,38 +90,46 @@ public class DefaultPomDependenciesConverter implements PomDependenciesConverter
         return dependencySetMap;
     }
 
-    private void addFromArtifactDescriptor(List<MavenDependency> mavenDependencies, ModuleDependency dependency, String scope) {
+    private void addFromArtifactDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope) {
         for (DependencyArtifact artifact : dependency.getArtifacts()) {
             mavenDependencies.add(createMavenDependencyFromArtifactDescriptor(dependency, artifact, scope));
         }
     }
 
-    private void addFromDependencyDescriptor(List<MavenDependency> mavenDependencies, ModuleDependency dependency, String scope) {
+    private void addFromDependencyDescriptor(List<Dependency> mavenDependencies, ModuleDependency dependency, String scope) {
         mavenDependencies.add(createMavenDependencyFromDependencyDescriptor(dependency, scope));
     }
 
-    private MavenDependency createMavenDependencyFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope) {
+    private Dependency createMavenDependencyFromArtifactDescriptor(ModuleDependency dependency, DependencyArtifact artifact, String scope) {
         return createMavenDependency(dependency, artifact.getName(), artifact.getType(), scope, artifact.getClassifier());
     }
 
-    private MavenDependency createMavenDependencyFromDependencyDescriptor(ModuleDependency dependency, String scope) {
+    private Dependency createMavenDependencyFromDependencyDescriptor(ModuleDependency dependency, String scope) {
         return createMavenDependency(dependency, dependency.getName(), null, scope, null);
     }
 
-    private MavenDependency createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier) {
-        return new DefaultMavenDependency(
-                dependency.getGroup(), name, dependency.getVersion(), type, scope, getExcludes(dependency), false, classifier);
+    private Dependency createMavenDependency(ModuleDependency dependency, String name, String type, String scope, String classifier) {
+        Dependency mavenDependency =  new Dependency();
+        mavenDependency.setGroupId(dependency.getGroup());
+        mavenDependency.setArtifactId(name);
+        mavenDependency.setVersion(dependency.getVersion());
+        mavenDependency.setType(type);
+        mavenDependency.setScope(scope);
+        mavenDependency.setOptional(false);
+        mavenDependency.setClassifier(classifier);
+        mavenDependency.setExclusions(getExclusions(dependency));
+        return mavenDependency;
     }
 
-    private List<MavenExclude> getExcludes(ModuleDependency dependency) {
-        List<MavenExclude> mavenExcludes = new ArrayList<MavenExclude>();
+    private List<Exclusion> getExclusions(ModuleDependency dependency) {
+        List<Exclusion> mavenExclusions = new ArrayList<Exclusion>();
         for (ExcludeRule excludeRule : dependency.getExcludeRules()) {
-            DefaultMavenExclude mavenExclude = excludeRuleConverter.convert(excludeRule);
-            if (mavenExclude != null) {
-                mavenExcludes.add(mavenExclude);
+            Exclusion mavenExclusion = excludeRuleConverter.convert(excludeRule);
+            if (mavenExclusion != null) {
+                mavenExclusions.add(mavenExclusion);
             }
         }
-        return mavenExcludes;
+        return mavenExclusions;
     }
 
     public ExcludeRuleConverter getExcludeRuleConverter() {

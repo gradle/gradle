@@ -4,5 +4,4 @@
   <groupId>${groupId}</groupId>
   <artifactId>quickstart</artifactId>
   <version>${version}</version>
-  <packaging>jar</packaging>
 </project>

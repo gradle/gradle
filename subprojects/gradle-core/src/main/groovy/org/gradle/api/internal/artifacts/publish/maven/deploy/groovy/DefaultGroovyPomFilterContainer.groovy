@@ -15,17 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy
 
-import org.gradle.api.artifacts.maven.CopyableGroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.maven.PublishFilter
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomFactory
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer
-import org.gradle.util.ConfigureUtil;
+import org.gradle.util.ConfigureUtil
+import org.gradle.api.artifacts.maven.GroovyPomFilterContainer;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultGroovyPomFilterContainer extends BasePomFilterContainer implements CopyableGroovyPomFilterContainer {
+public class DefaultGroovyPomFilterContainer extends BasePomFilterContainer implements GroovyPomFilterContainer {
     DefaultGroovyPomFilterContainer(MavenPomFactory mavenPomFactory) {
         super(mavenPomFactory);
     }

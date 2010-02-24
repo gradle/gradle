@@ -15,79 +15,104 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
+import org.apache.maven.model.Dependency;
+import org.apache.maven.project.MavenProject;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.List;
+import java.util.Set;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultMavenPomTest {
     private static final String EXPECTED_PACKAGING = "something";
-    private static final String EXPECTED_LICENSE_HEADER = "licence";
     private static final String EXPECTED_GROUP_ID = "someGroup";
     private static final String EXPECTED_ARTIFACT_ID = "artifactId";
     private static final String EXPECTED_VERSION = "version";
-    private static final String EXPECTED_CLASSIFIER = "classifier";
 
-    DefaultMavenPom mavenPom;
-    PomFileWriter pomFileWriterMock;
-    Conf2ScopeMappingContainer conf2ScopeMappingContainerMock;
+    Mockery context = new JUnit4Mockery() {{
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }};
+
+    private DefaultMavenPom mavenPom;
+    private Conf2ScopeMappingContainer conf2ScopeMappingContainerMock;
+    private PomDependenciesConverter pomDependenciesConverterStub = context.mock(PomDependenciesConverter.class);
 
     @Before
     public void setUp() {
         conf2ScopeMappingContainerMock = new DefaultConf2ScopeMappingContainer();
-        mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock);
+        mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock, pomDependenciesConverterStub, new MavenProject());
         mavenPom.setPackaging(EXPECTED_PACKAGING);
-        mavenPom.setLicenseHeader(EXPECTED_LICENSE_HEADER);
         mavenPom.setGroupId(EXPECTED_GROUP_ID);
         mavenPom.setArtifactId(EXPECTED_ARTIFACT_ID);
         mavenPom.setVersion(EXPECTED_VERSION);
-        mavenPom.setClassifier(EXPECTED_CLASSIFIER);
     }
 
     @Test
     public void initAndSetter() {
         assertSame(conf2ScopeMappingContainerMock, mavenPom.getScopeMappings());
+        assertThat(mavenPom.getMavenProject().getModelVersion(), equalTo("4.0.0"));
         assertEquals(EXPECTED_PACKAGING, mavenPom.getPackaging());
         assertEquals(EXPECTED_ARTIFACT_ID, mavenPom.getArtifactId());
-        assertEquals(EXPECTED_CLASSIFIER, mavenPom.getClassifier());
         assertEquals(EXPECTED_GROUP_ID, mavenPom.getGroupId());
-        assertEquals(EXPECTED_LICENSE_HEADER, mavenPom.getLicenseHeader());
         assertEquals(EXPECTED_PACKAGING, mavenPom.getPackaging());
         assertEquals(EXPECTED_VERSION, mavenPom.getVersion());
     }
 
     @Test
-    public void setLicensHeader() {
-        assertEquals(EXPECTED_LICENSE_HEADER, mavenPom.getLicenseHeader());
-    }
-
-    @Test
-    public void copy() {
-        DefaultConf2ScopeMappingContainer expectedScopeMappings = new DefaultConf2ScopeMappingContainer();
-        DefaultMavenPom sourcePom = createTestPom(expectedScopeMappings);
-        DefaultMavenPom targetPom = (DefaultMavenPom) sourcePom.copy();
-        assertEquals(sourcePom.getArtifactId(), targetPom.getArtifactId());
-        assertEquals(sourcePom.getClassifier(), targetPom.getClassifier());
-        assertEquals(sourcePom.getGroupId(), targetPom.getGroupId());
-        assertEquals(sourcePom.getLicenseHeader(), targetPom.getLicenseHeader());
-        assertEquals(sourcePom.getPackaging(), targetPom.getPackaging());
-        assertEquals(sourcePom.getVersion(), targetPom.getVersion());
-
+    public void addDependencies() {
+        final Set<Configuration> configurations = WrapUtil.toSet(context.mock(Configuration.class));
+        final List<Dependency> mavenDependencies = WrapUtil.toList(context.mock(Dependency.class));
+        context.checking(new Expectations() {{
+            allowing(pomDependenciesConverterStub).convert(conf2ScopeMappingContainerMock, configurations);
+            will(returnValue(mavenDependencies));
+        }});
+        mavenPom.addDependencies(configurations);
+        assertEquals(mavenDependencies, mavenPom.getMavenProject().getDependencies());
     }
 
     private DefaultMavenPom createTestPom(DefaultConf2ScopeMappingContainer expectedScopeMappings) {
-        DefaultMavenPom sourcePom = new DefaultMavenPom(expectedScopeMappings);
+        DefaultMavenPom sourcePom = new DefaultMavenPom(expectedScopeMappings, pomDependenciesConverterStub, new MavenProject());
         sourcePom.setArtifactId("aid");
         sourcePom.setGroupId("gid");
         sourcePom.setVersion("vrs");
         sourcePom.setPackaging("pkg");
-        sourcePom.setClassifier("cls");
-        sourcePom.setLicenseHeader("lcs");
         return sourcePom;
     }
+
+    @Test
+    public void write() throws IOException {
+        final MavenProject mavenProjectMock = context.mock(MavenProject.class);
+        context.checking(new Expectations() {{
+            allowing(mavenProjectMock).setModelVersion(with(any(String.class)));
+        }});
+        DefaultMavenPom mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock, pomDependenciesConverterStub, mavenProjectMock);
+        final Writer someWriter = context.mock(Writer.class);
+        context.checking(new Expectations() {{
+            one(mavenProjectMock).writeModel(someWriter);
+        }});
+        mavenPom.write(someWriter);
+    }
+
+    @Test
+    public void beforeWrite() {
+            
+    }
+
 }

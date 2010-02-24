@@ -15,85 +15,128 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
+import org.apache.maven.artifact.Artifact;
+import org.apache.maven.project.MavenProject;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.execution.TaskExecutionGraphListener;
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.gradle.listener.ListenerBroadcast;
+
+import java.io.IOException;
+import java.io.Writer;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultMavenPom implements MavenPom {
+    private PomDependenciesConverter pomDependenciesConverter;
+    private MavenProject mavenProject;
     private Conf2ScopeMappingContainer scopeMappings;
-    private String groupId;
-    private String artifactId;
-    private String version;
-    private String classifier;
-    private String packaging;
-    private String licenseHeader;
-
-    public DefaultMavenPom(Conf2ScopeMappingContainer scopeMappings) {
+    
+    public DefaultMavenPom(Conf2ScopeMappingContainer scopeMappings, PomDependenciesConverter pomDependenciesConverter, MavenProject mavenProject) {
         this.scopeMappings = scopeMappings;
+        this.pomDependenciesConverter = pomDependenciesConverter;
+        this.mavenProject = mavenProject;
+        mavenProject.setModelVersion("4.0.0");
     }
 
     public Conf2ScopeMappingContainer getScopeMappings() {
         return scopeMappings;
     }
 
-    public String getGroupId() {
-        return groupId;
+    public Artifact getArtifact() {
+        return mavenProject.getArtifact();
+    }
+
+    public void setArtifact(Artifact artifact) {
+        mavenProject.setArtifact(artifact);
     }
 
     public void setGroupId(String groupId) {
-        this.groupId = groupId;
+        mavenProject.setGroupId(groupId);
     }
 
-    public String getArtifactId() {
-        return artifactId;
+    public String getGroupId() {
+        return mavenProject.getGroupId();
     }
 
     public void setArtifactId(String artifactId) {
-        this.artifactId = artifactId;
+        mavenProject.setArtifactId(artifactId);
     }
 
-    public String getVersion() {
-        return version;
+    public String getArtifactId() {
+        return mavenProject.getArtifactId();
+    }
+
+    public void setName(String name) {
+        mavenProject.setName(name);
+    }
+
+    public String getName() {
+        return mavenProject.getName();
     }
 
     public void setVersion(String version) {
-        this.version = version;
+        mavenProject.setVersion(version);
     }
 
-    public String getClassifier() {
-        return classifier;
-    }
-
-    public void setClassifier(String classifier) {
-        this.classifier = classifier;
+    public String getVersion() {
+        return mavenProject.getVersion();
     }
 
     public String getPackaging() {
-        return packaging;
+        return mavenProject.getPackaging();
     }
 
     public void setPackaging(String packaging) {
-        this.packaging = packaging;
+        mavenProject.setPackaging(packaging);
     }
 
-    public String getLicenseHeader() {
-        return licenseHeader;
+    public void setInceptionYear(String inceptionYear) {
+        mavenProject.setInceptionYear(inceptionYear);
     }
 
-    public void setLicenseHeader(String licenseHeader) {
-        this.licenseHeader = licenseHeader;
+    public String getInceptionYear() {
+        return mavenProject.getInceptionYear();
     }
 
-    public MavenPom copy() {
-        DefaultMavenPom newMavenPom = new DefaultMavenPom(scopeMappings);
-        newMavenPom.artifactId = getArtifactId();
-        newMavenPom.classifier = getClassifier();
-        newMavenPom.groupId = getGroupId();
-        newMavenPom.licenseHeader = getLicenseHeader();
-        newMavenPom.packaging = getPackaging();
-        newMavenPom.version = getVersion();
-        return newMavenPom;
+    public void setUrl(String url) {
+        mavenProject.setUrl(url);
+    }
+
+    public String getUrl() {
+        return mavenProject.getUrl();
+    }
+
+    public void setDescription(String description) {
+        mavenProject.setDescription(description);
+    }
+
+    public String getDescription() {
+        return mavenProject.getDescription();
+    }
+
+    public MavenProject getMavenProject() {
+        return mavenProject;
+    }
+    
+    public void addDependencies(Set<Configuration> configurations) {
+        mavenProject.setDependencies(pomDependenciesConverter.convert(getScopeMappings(),configurations));    
+    }
+
+    public PomDependenciesConverter getPomDependenciesConverter() {
+        return pomDependenciesConverter;
+    }
+
+    public void write(Writer pomWriter) {
+        try {
+            mavenProject.writeModel(pomWriter);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

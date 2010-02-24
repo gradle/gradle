@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.maven.CopyablePomFilterContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
@@ -29,7 +28,7 @@ import java.util.Map;
 /**
  * @author Hans Dockter
  */
-public class BasePomFilterContainer implements CopyablePomFilterContainer {
+public class BasePomFilterContainer implements PomFilterContainer {
     private Map<String, PomFilter> pomFilters = new HashMap<String, PomFilter>();
 
     private PomFilter defaultPomFilter;
@@ -107,15 +106,6 @@ public class BasePomFilterContainer implements CopyablePomFilterContainer {
 
     public Map<String, PomFilter> getPomFilters() {
         return pomFilters;
-    }
-
-    public PomFilterContainer copy() {
-        BasePomFilterContainer newPomFilterContainer = newInstance();
-        newPomFilterContainer.setDefaultPomFilter(getDefaultPomFilter().copy());
-        for (String key : pomFilters.keySet()) {
-            newPomFilterContainer.getPomFilters().put(key, pomFilters.get(key).copy());
-        }
-        return newPomFilterContainer;
     }
 
     protected BasePomFilterContainer newInstance() {
