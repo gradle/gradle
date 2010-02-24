@@ -69,8 +69,7 @@ dependencies {
 
     testCompile libraries.xmlunit
 
-    runtime libraries.ant_launcher,
-            "org.apache.ant:ant-trax:1.7.0@jar"
+    runtime libraries.ant_launcher
 
     integTestCompile libraries.jetty_depends
 

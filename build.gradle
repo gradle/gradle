@@ -41,10 +41,10 @@ startScriptsDir = new File("$buildDir/startScripts")
 archivesBaseName = 'gradle'
 
 libraries = [
-        ant             : 'org.apache.ant:ant:1.7.0@jar',
-        ant_junit       : 'org.apache.ant:ant-junit:1.7.0@jar',
-        ant_launcher    : 'org.apache.ant:ant-launcher:1.7.0@jar',
-        ant_nodeps      : 'org.apache.ant:ant-nodeps:1.7.0@jar',
+        ant             : 'org.apache.ant:ant:1.8.0@jar',
+        ant_junit       : 'org.apache.ant:ant-junit:1.8.0@jar',
+        ant_launcher    : 'org.apache.ant:ant-launcher:1.8.0@jar',
+        ant_nodeps      : 'org.apache.ant:ant-nodeps:1.8.0@jar',
         antlr           : 'antlr:antlr:2.7.7@jar',
         asm_all         : 'asm:asm-all:3.2@jar',
         commons_cli     : 'commons-cli:commons-cli:1.2@jar',
@@ -65,8 +65,7 @@ libraries = [
         xmlunit         : 'xmlunit:xmlunit:1.3'
     ]
 
-libraries.groovy_depends  = [libraries.groovy, libraries.ant, libraries.ant_launcher, libraries.commons_cli,
-        libraries.ant_junit, libraries.junit]
+libraries.groovy_depends  = [libraries.groovy, libraries.commons_cli]
 libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.22@jar", "org.mortbay.jetty:jetty-util:6.1.22@jar",
         "javax.servlet:servlet-api:2.5@jar"]
 

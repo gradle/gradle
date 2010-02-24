@@ -33,13 +33,15 @@ dependencies {
             libraries.asm_all,
             'biz.aQute:bndlib:0.0.384@jar',
             libraries.junit,
+            libraries.ant_junit,
+            libraries.ant,
             'org.testng:testng:5.11:jdk15',
             'dom4j:dom4j:1.6.1@jar',
             'jaxen:jaxen:1.1@jar'
 
     testCompile libraries.xmlunit
 
-    runtime libraries.ant_junit
+    runtime "org.apache.ant:ant-trax:1.8.0@jar"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
