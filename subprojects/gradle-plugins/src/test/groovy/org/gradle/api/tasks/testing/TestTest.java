@@ -189,7 +189,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
     private void expectOptionsBuilt() {
         context.checking(new Expectations() {{
-            AbstractTestFrameworkOptions testOptions = context.mock(AbstractTestFrameworkOptions.class);
+            TestFrameworkOptions testOptions = context.mock(TestFrameworkOptions.class);
             allowing(testFrameworkInstanceMock).getOptions();
             will(returnValue(testOptions));
             one(testFrameworkInstanceMock).getWorkerConfigurationAction();

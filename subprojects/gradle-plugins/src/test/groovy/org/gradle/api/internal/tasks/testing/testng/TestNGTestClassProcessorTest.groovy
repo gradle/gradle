@@ -17,10 +17,12 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
-import org.gradle.api.internal.tasks.testing.TestInternalDescriptor
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 
 import org.gradle.api.tasks.testing.TestResult.ResultType
@@ -48,19 +50,20 @@ class TestNGTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, new TestNGOptions(tmpDir.dir), [], new LongIdGenerator());
+    private final TestNGOptions options = new TestNGOptions(tmpDir.dir)
+    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, options, [], new LongIdGenerator());
 
     @Test
     public void executesATestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor suite ->
+            will { TestDescriptorInternal suite ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor test ->
+            will { TestDescriptorInternal test ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
@@ -86,12 +89,12 @@ class TestNGTestClassProcessorTest {
     public void executesAFactoryTestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor suite ->
+            will { TestDescriptorInternal suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor test ->
+            will { TestDescriptorInternal test ->
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
             }
@@ -126,14 +129,14 @@ class TestNGTestClassProcessorTest {
             Sequence sequence = context.sequence('seq')
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor suite ->
+            will { TestDescriptorInternal suite ->
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
             }
             inSequence(sequence)
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor test ->
+            will { TestDescriptorInternal test ->
                 assertThat(test.name, equalTo('beforeMethod'))
                 assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
             }
@@ -147,7 +150,7 @@ class TestNGTestClassProcessorTest {
             inSequence(sequence)
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor test ->
+            will { TestDescriptorInternal test ->
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestNGClassWithBrokenSetupMethod.class.name))
             }
@@ -174,6 +177,34 @@ class TestNGTestClassProcessorTest {
     }
 
     @Test
+    public void canIncludeAndExcludeGroups() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo('Gradle test'))
+                assertThat(suite.className, nullValue())
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('group1'))
+                assertThat(test.className, equalTo(ATestNGClassWithGroups.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('group2'))
+                assertThat(test.className, equalTo(ATestNGClassWithGroups.class.name))
+            }
+            ignoring(resultProcessor).completed(withParam(anything()), withParam(anything()))
+        }
+
+        options.includeGroups('group1', 'group2')
+        options.excludeGroups('group3')
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithGroups.class));
+        processor.endProcessing();
+    }
+
+    @Test
     public void failsEarlyForUnknownTestClass() {
         processor.startProcessing(resultProcessor)
         try {
@@ -187,7 +218,7 @@ class TestNGTestClassProcessorTest {
     private TestClassRunInfo testClass(Class<?> type) {
         return testClass(type.name)
     }
-    
+
     private TestClassRunInfo testClass(String testClassName) {
         TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class)
         context.checking {
@@ -213,6 +244,24 @@ public class ATestNGClass {
 
     @org.testng.annotations.Test
     public void ok() {
+    }
+}
+
+public class ATestNGClassWithGroups {
+    @org.testng.annotations.Test(groups="group1")
+    public void group1() {
+    }
+
+    @org.testng.annotations.Test(groups="group2")
+    public void group2() {
+    }
+
+    @org.testng.annotations.Test(groups="group2,group3")
+    public void excluded() {
+    }
+
+    @org.testng.annotations.Test(groups="group4")
+    public void ignored() {
     }
 }
 

@@ -40,7 +40,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     }
 
     public void onStart(ITestContext iTestContext) {
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), iTestContext.getName());
             suites.put(testInternal.getName(), testInternal.getId());
@@ -57,7 +57,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
     }
 
     public void onTestStart(ITestResult iTestResult) {
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(),
                     iTestResult.getName());
@@ -103,7 +103,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
 
     public void onConfigurationFailure(ITestResult testResult) {
         // Synthesise a test for the broken configuration method
-        TestInternalDescriptor test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
+        TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
                 testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
         resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(),

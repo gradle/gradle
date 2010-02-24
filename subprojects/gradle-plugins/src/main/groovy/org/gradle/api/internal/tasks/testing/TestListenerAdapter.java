@@ -30,7 +30,7 @@ public class TestListenerAdapter implements TestResultProcessor {
         this.listener = listener;
     }
 
-    public void started(TestInternalDescriptor test, TestStartEvent event) {
+    public void started(TestDescriptorInternal test, TestStartEvent event) {
         TestState oldState = executing.put(test.getId(), new TestState(test, event));
         if (oldState != null) {
             throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
@@ -55,7 +55,7 @@ public class TestListenerAdapter implements TestResultProcessor {
                     "Received a completed event for test with unknown id '%s'.", testId));
         }
         TestResult result = testState.completed(event);
-        TestInternalDescriptor test = testState.test;
+        TestDescriptorInternal test = testState.test;
         if (test.isComposite()) {
             listener.afterSuite(test, result);
         } else {
@@ -73,7 +73,7 @@ public class TestListenerAdapter implements TestResultProcessor {
     }
 
     private class TestState {
-        final TestInternalDescriptor test;
+        final TestDescriptorInternal test;
         final TestStartEvent startEvent;
         boolean failedChild;
         Throwable failure;
@@ -81,7 +81,7 @@ public class TestListenerAdapter implements TestResultProcessor {
         long successfulCount;
         long failedCount;
 
-        private TestState(TestInternalDescriptor test, TestStartEvent startEvent) {
+        private TestState(TestDescriptorInternal test, TestStartEvent startEvent) {
             this.test = test;
             this.startEvent = startEvent;
         }

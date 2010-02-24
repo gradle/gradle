@@ -13,18 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
 import org.gradle.util.GFileUtils
+import org.gradle.api.tasks.testing.TestFrameworkOptions
 
 /**
  * @author Tom Eyckmans
  */
-public class TestNGOptions extends AbstractTestFrameworkOptions implements Serializable {
+public class TestNGOptions extends TestFrameworkOptions implements Serializable {
 
     public static final String JDK_ANNOTATIONS = 'JDK'
     public static final String JAVADOC_ANNOTATIONS = 'Javadoc'
@@ -48,20 +50,20 @@ public class TestNGOptions extends AbstractTestFrameworkOptions implements Seria
     List testResources
 
     /**
-     * The list of groups to run.
+     * The set of groups to run.
      */
-    List includeGroups = []
+    Set<String> includeGroups = new HashSet<String>()
 
     /**
-     * The list of groups to exclude.
+     * The set of groups to exclude.
      */
-    List excludeGroups = []
+    Set<String> excludeGroups = new HashSet<String>()
 
     /**
-     * The list of fully qualified classes that are TestNG listeners (for example org.testng.ITestListener or
+     * The set of fully qualified classes that are TestNG listeners (for example org.testng.ITestListener or
      * org.testng.IReporter)
      */
-    List listeners = []
+    Set<String> listeners = new LinkedHashSet<String>()
 
     /**
      * The parallel mode to use for running the tests - either methods or tests.

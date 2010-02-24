@@ -35,7 +35,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     private final TimeProvider timeProvider;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
-    private final Map<Object, TestInternalDescriptor> executing = new IdentityHashMap<Object, TestInternalDescriptor>();
+    private final Map<Object, TestDescriptorInternal> executing = new IdentityHashMap<Object, TestDescriptorInternal>();
 
     public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
@@ -44,7 +44,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = convert(idGenerator.generateId(), jUnitTest);
             executing.put(jUnitTest, testInternal);
@@ -55,7 +55,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
 
     public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
         long endTime = timeProvider.getCurrentTime();
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.remove(jUnitTest);
         }
@@ -72,10 +72,10 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void startTest(Test test) {
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = convert(idGenerator.generateId(), test);
-            TestInternalDescriptor oldTest = executing.put(test, testInternal);
+            TestDescriptorInternal oldTest = executing.put(test, testInternal);
             if (oldTest != null) {
                 throw new IllegalStateException(String.format(
                         "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
@@ -86,7 +86,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     }
 
     public void addError(Test test, Throwable throwable) {
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.get(test);
         }
@@ -99,19 +99,19 @@ public class TestListenerFormatter implements JUnitResultFormatter {
 
     public void endTest(Test test) {
         long endTime = timeProvider.getCurrentTime();
-        TestInternalDescriptor testInternal;
+        TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.remove(test);
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }
 
-    private TestInternalDescriptor convert(Object id, JUnitTest jUnitTest) {
+    private TestDescriptorInternal convert(Object id, JUnitTest jUnitTest) {
         String className = jUnitTest.getName();
         return new DefaultTestClassDescriptor(id, className);
     }
 
-    protected TestInternalDescriptor convert(Object id, Test test) {
+    protected TestDescriptorInternal convert(Object id, Test test) {
         if (test instanceof TestCase) {
             TestCase testCase = (TestCase) test;
             return new DefaultTestDescriptor(id, testCase.getClass().getName(), testCase.getName());

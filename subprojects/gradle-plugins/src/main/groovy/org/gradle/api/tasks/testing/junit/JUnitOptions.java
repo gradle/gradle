@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.testing
+
+package org.gradle.api.tasks.testing.junit;
+
+import org.gradle.api.tasks.testing.TestFrameworkOptions;
 
 /**
- * @author Tom Eyckmans
+ * The JUnit specific test options.
  */
-
-public abstract class AbstractTestFrameworkOptions {
+public class JUnitOptions extends TestFrameworkOptions {
 }

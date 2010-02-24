@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
 
@@ -34,8 +36,8 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void attachesTestToCurrentlyExecutingSuite() {
-        TestInternalDescriptor suite = suite('suite')
-        TestInternalDescriptor test = test('test')
+        TestDescriptorInternal suite = suite('suite')
+        TestDescriptorInternal test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -50,8 +52,8 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void attachesSuiteToMostCurrentlyExecutingSuite() {
-        TestInternalDescriptor parent = suite('suite')
-        TestInternalDescriptor child = suite('test')
+        TestDescriptorInternal parent = suite('suite')
+        TestDescriptorInternal child = suite('test')
         TestStartEvent childStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -66,9 +68,9 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void popsSuiteOffStackWhenComplete() {
-        TestInternalDescriptor root = suite('root')
-        TestInternalDescriptor other = suite('suite1')
-        TestInternalDescriptor test = test('test')
+        TestDescriptorInternal root = suite('root')
+        TestDescriptorInternal other = suite('suite1')
+        TestDescriptorInternal test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -85,8 +87,8 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void doesNothingToTestWhichHasAParentId() {
-        TestInternalDescriptor suite = suite('suite')
-        TestInternalDescriptor test = test('test')
+        TestDescriptorInternal suite = suite('suite')
+        TestDescriptorInternal test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L, 'parent')
 
         context.checking {
@@ -101,7 +103,7 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void doesNothingToSuiteWhenNoSuiteExecuting() {
-        TestInternalDescriptor suite = suite('suite')
+        TestDescriptorInternal suite = suite('suite')
         TestStartEvent suiteStartEvent = new TestStartEvent(100L)
 
         context.checking {
@@ -115,7 +117,7 @@ class AttachParentTestResultProcessorTest {
 
     @Test
     public void doesNothingToTestWhenNoSuiteExecuting() {
-        TestInternalDescriptor test = test('test')
+        TestDescriptorInternal test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L)
 
         context.checking {
@@ -127,11 +129,11 @@ class AttachParentTestResultProcessorTest {
         assertThat(testStartEvent.parentId, nullValue())
     }
 
-    TestInternalDescriptor test(String id) {
-        [isComposite: {false}, getId: {id}] as TestInternalDescriptor
+    TestDescriptorInternal test(String id) {
+        [isComposite: {false}, getId: {id}] as TestDescriptorInternal
     }
 
-    TestInternalDescriptor suite(String id) {
-        [isComposite: {true}, getId: {id}] as TestInternalDescriptor
+    TestDescriptorInternal suite(String id) {
+        [isComposite: {true}, getId: {id}] as TestDescriptorInternal
     }
 }

@@ -14,20 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing.junit
-
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
-import org.gradle.api.tasks.testing.FormatterOptions
+package org.gradle.api.tasks.testing;
 
 /**
- * @author Hans Dockter
+ * The base class for any test framework specific options.
  */
-class JUnitOptions extends AbstractTestFrameworkOptions {
-    boolean filterTrace = true
-    boolean showOutput = false
-    boolean outputToFormatters = true
-
-    String printSummary = 'true'
-
-    FormatterOptions formatterOptions = new FormatterOptions()
+public class TestFrameworkOptions {
 }

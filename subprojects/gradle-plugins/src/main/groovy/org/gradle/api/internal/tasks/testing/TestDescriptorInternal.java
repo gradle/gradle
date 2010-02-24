@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.api.tasks.testing.TestDescriptor;
 
-public interface TestInternalDescriptor extends TestDescriptor {
+public interface TestDescriptorInternal extends TestDescriptor {
     Object getId();
 
-    void setParent(TestInternalDescriptor parent);
+    void setParent(TestDescriptorInternal parent);
 }

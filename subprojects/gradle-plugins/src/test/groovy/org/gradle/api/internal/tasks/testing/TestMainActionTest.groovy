@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.testing.TestClassProcessor
@@ -41,7 +43,7 @@ class TestMainActionTest {
             one(timeProvider).getCurrentTime()
             will(returnValue(100L))
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor suite, TestStartEvent event ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo('root'))
                 assertThat(event.startTime, equalTo(100L))
             }

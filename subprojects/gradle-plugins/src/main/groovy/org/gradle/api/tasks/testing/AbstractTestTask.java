@@ -325,12 +325,12 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
      *
      * @return The testframework options.
      */
-    public AbstractTestFrameworkOptions getOptions() {
+    public TestFrameworkOptions getOptions() {
         return options(null);
     }
 
-    public AbstractTestFrameworkOptions options(Closure testFrameworkConfigure) {
-        AbstractTestFrameworkOptions options = getTestFramework().getOptions();
+    public TestFrameworkOptions options(Closure testFrameworkConfigure) {
+        TestFrameworkOptions options = getTestFramework().getOptions();
         ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
         return options;
     }

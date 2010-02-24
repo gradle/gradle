@@ -71,6 +71,15 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
         testNg.addListener(listener);
         testNg.setVerbose(0);
+        testNg.setGroups(GUtil.join(options.getIncludeGroups(), ","));
+        testNg.setExcludedGroups(GUtil.join(options.getExcludeGroups(), ","));
+        for (String listenerClass : options.getListeners()) {
+            try {
+                testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass));
+            }
+        }
 
         if (!suiteFiles.isEmpty()) {
             testNg.setTestSuites(GFileUtils.toPaths(suiteFiles));

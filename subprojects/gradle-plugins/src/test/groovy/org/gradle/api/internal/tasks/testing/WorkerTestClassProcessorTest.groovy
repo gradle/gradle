@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.testing.TestClassProcessor
@@ -47,7 +49,7 @@ class WorkerTestClassProcessorTest {
             will(returnValue(100L))
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor suite, TestStartEvent event ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo('worker-id'))
                 assertThat(suite.name, equalTo('worker display name'))
                 assertThat(event.startTime, equalTo(100L))
@@ -68,7 +70,7 @@ class WorkerTestClassProcessorTest {
             will(returnValue(200L))
 
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestInternalDescriptor suite ->
+            will { TestDescriptorInternal suite ->
                 assertThat(suite.id, equalTo('worker-id'))
             }
             inSequence(sequence)

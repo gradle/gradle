@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import junit.framework.Test;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
-import org.gradle.api.internal.tasks.testing.TestInternalDescriptor;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
@@ -31,7 +31,7 @@ public class JUnit4TestListenerFormatter extends TestListenerFormatter {
     }
 
     @Override
-    protected TestInternalDescriptor convert(Object id, Test test) {
+    protected TestDescriptorInternal convert(Object id, Test test) {
         if (test instanceof Describable) {
             Describable describable = (Describable) test;
             Description description = describable.getDescription();

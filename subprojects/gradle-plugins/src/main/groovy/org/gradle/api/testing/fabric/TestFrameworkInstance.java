@@ -17,7 +17,7 @@
 package org.gradle.api.testing.fabric;
 
 import org.gradle.api.Action;
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
+import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.process.WorkerProcessBuilder;
@@ -34,7 +34,7 @@ public interface TestFrameworkInstance {
 
     void report();
 
-    AbstractTestFrameworkOptions getOptions();
+    TestFrameworkOptions getOptions();
 
     void applyForkArguments(JavaForkOptions forkOptions);
 
