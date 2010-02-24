@@ -91,5 +91,7 @@ public class EndOfStreamDispatchTest extends MultithreadedTestCase {
         start {
             dispatch.stop()
         }
+
+        waitForAll()
     }
 }
