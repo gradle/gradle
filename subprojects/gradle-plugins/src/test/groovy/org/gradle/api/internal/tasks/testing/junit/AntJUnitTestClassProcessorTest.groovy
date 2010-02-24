@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
@@ -342,11 +344,46 @@ class AntJUnitTestClassProcessorTest {
         processor.endProcessing();
     }
 
-    private TestClassRunInfo testClass(Class<?> testClass) {
-        TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class, testClass.name)
+    @Test
+    public void executesATestClassWhichCannotBeLoaded() {
+        String testClassName = 'org.gradle.api.internal.tasks.testing.junit.ATestClassWhichCannotBeLoaded'
+
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(testClassName))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('initializationError'))
+                assertThat(test.className, equalTo(testClassName))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, instanceOf(NoClassDefFoundError.class))
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(testClassName));
+        processor.endProcessing();
+    }
+
+    private TestClassRunInfo testClass(Class<?> type) {
+        return testClass(type.name)
+    }
+
+    private TestClassRunInfo testClass(String testClassName) {
+        TestClassRunInfo runInfo = context.mock(TestClassRunInfo.class, testClassName)
         context.checking {
             allowing(runInfo).getTestClassName()
-            will(returnValue(testClass.name))
+            will(returnValue(testClassName))
         }
         return runInfo;
     }
@@ -446,5 +483,11 @@ public static class CustomRunnerWithBrokenConstructor extends Runner {
 
     void run(RunNotifier notifier) {
         throw new UnsupportedOperationException();
+    }
+}
+
+public static class ATestClassWhichCannotBeLoaded {
+    static {
+        throw new NoClassDefFoundError()
     }
 }

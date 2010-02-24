@@ -36,8 +36,10 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Object, TestDescriptorInternal> executing = new IdentityHashMap<Object, TestDescriptorInternal>();
+    private TestDescriptorInternal currentSuite;
 
-    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
+    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
+                                 IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;
@@ -48,6 +50,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         synchronized (lock) {
             testInternal = convert(idGenerator.generateId(), jUnitTest);
             executing.put(jUnitTest, testInternal);
+            currentSuite = testInternal;
         }
         long startTime = timeProvider.getCurrentTime();
         resultProcessor.started(testInternal, new TestStartEvent(startTime));
@@ -58,6 +61,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.remove(jUnitTest);
+            currentSuite = null;
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }
@@ -87,10 +91,23 @@ public class TestListenerFormatter implements JUnitResultFormatter {
 
     public void addError(Test test, Throwable throwable) {
         TestDescriptorInternal testInternal;
+        boolean synthesiseFailedTest;
         synchronized (lock) {
-            testInternal = executing.get(test);
+            if (test == null) {
+                testInternal = new DefaultTestDescriptor(idGenerator.generateId(), currentSuite.getClassName(), "initializationError");
+                synthesiseFailedTest = true;
+            } else {
+                testInternal = executing.get(test);
+                synthesiseFailedTest = false;
+            }
         }
-        resultProcessor.addFailure(testInternal.getId(), throwable);
+        if (synthesiseFailedTest) {
+            // Do this when the Ant JUnitRunner fails to load the test class some how
+            resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
+            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), null, throwable));
+        } else {
+            resultProcessor.addFailure(testInternal.getId(), throwable);
+        }
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {
