@@ -21,9 +21,7 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
-import org.gradle.listener.ListenerBroadcast;
 
 import java.io.IOException;
 import java.io.Writer;
