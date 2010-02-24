@@ -9,35 +9,34 @@
 
 <body>
 
-${sidebar}
-
-<div id="header">
-    <table>
-        <tr>
-            <td id="title"><span><a href="index.php">Gradle</a></span></td>
-            <td id="quote"><span>A better way to build</span></td>
-        </tr>
-    </table>
+<div id="top">
+    <div id="header">
+        <div id="logo">
+            <div id="title"><a href="index.php">Gradle</a></div>
+            <div id="quote"><span>a better way to build</span></div>
+        </div>
+        <div id="navbar">
+            <ul>
+                <li><a href="index.html">HOME</a></li>
+                <li><a href="downloads.html">DOWNLOADS</a></li>
+                <li><a href="documentation.html">DOCUMENTATION</a></li>
+                <li><a href="community.html">COMMUNITY</a></li>
+                <li><a href="http://www.gradle.biz">GRADLE INC.</a></li>
+            </ul>
+        </div>
+    </div>
 </div>
-
-<div id="content">
+<div id="middle">
+    <div class="content">
     ${content}
+    </div>
+</div>
+<div id="bottom">
+    <div id="footer">
+        ${sidebar}
+    </div>
 </div>
 
-<script type="text/javascript">
-function adjustHeight() {
-    var sidebar = document.getElementById('sidebar');
-    var content = document.getElementById('content');
-    if (sidebar && content) {
-        var sidebarBottom = sidebar.offsetHeight + sidebar.offsetTop;
-        var contentBottom = content.offsetHeight + content.offsetTop;
-        if (sidebarBottom < contentBottom) {
-            sidebar.style.height = String(sidebar.offsetHeight + contentBottom - sidebarBottom) + 'px';
-        }
-    }
-}
-window.onload=adjustHeight;
-</script>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));

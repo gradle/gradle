@@ -47,18 +47,19 @@ task html(dependsOn: userguideContent) << {
     def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
     Closure transformClosure = {File contentFile, String contentAppendix = "" ->
         logger.info "Processing $contentFile"
-        def contentTemplate = engine.createTemplate(contentFile)
+        def fileInfo = extractInfo(contentFile)
+        def contentTemplate = engine.createTemplate(fileInfo.content)
         String content = contentTemplate.make(binding).toString()
         content += contentAppendix
         new File(buildWebsiteDir, contentFile.name).text =
-            skeletonTemplate.make(binding + [content: content, title: extractTitle(contentFile)]).toString()
+            skeletonTemplate.make(binding + [fileName: contentFile.name, content: content, title: fileInfo.title]).toString()
     }
     webContentSrcDir.eachFileMatch(~/^.+?\.html$/, transformClosure)
     transformClosure("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs/getting-started.html" as File)
-    transformClosure("$webContentSrcDir/index.php" as File, new File(webPhpSrcDir, "indexPhpNews.php").text)
-    File indexPhp = new File(buildWebsiteDir, "index.php")
-    indexPhp.write(new File(webPhpSrcDir, 'indexPhpHeader.php').text + indexPhp.text)
-    new File(buildWebsiteDir, "test-index.html").write(indexPhp.text)
+//    transformClosure("$webContentSrcDir/index.php" as File, new File(webPhpSrcDir, "indexPhpNews.php").text)
+//    File indexPhp = new File(buildWebsiteDir, "index.php")
+//    indexPhp.write(new File(webPhpSrcDir, 'indexPhpHeader.php').text + indexPhp.text)
+//    new File(buildWebsiteDir, "test-index.html").write(indexPhp.text)
 
     copy {
         from webSrcDir
@@ -68,16 +69,15 @@ task html(dependsOn: userguideContent) << {
     }
 }
 
-task ciBuild(dependsOn: [clean, html])
-
-String extractTitle(File contentFile) {
-    if (contentFile.name == 'index.php') {
-        return 'Home'
+def extractInfo(File contentFile) {
+    if (contentFile.name == 'index.html') {
+        return [title: 'Home', content: contentFile.text]
+    } else {
+        String content = '<html>' + contentFile.text + '</html>'
+        def doc = new XmlParser().parseText(content)
+        def title = doc.'**'.h1[0].text().trim()
+        return [title:  title, content: contentFile.text]
     }
-    String content = '<html>' + contentFile.text + '</html>'
-    def doc = new XmlParser().parseText(content)
-    title = doc.'**'.h1[0].text().trim()
-    title
 }
 
 task uploadWebsite(dependsOn: html) << {
@@ -90,6 +90,14 @@ task uploadWebsite(dependsOn: html) << {
         fileset(dir: buildWebsiteDir)
     }
 }
+
+task uploadLatestWebsite(dependsOn: html) << {
+    ftp(action: 'send', remotedir: 'latest') {
+        fileset(dir: buildWebsiteDir)
+    }
+}
+
+task ciBuild(dependsOn: [clean, html, uploadLatestWebsite])
 
 void ftp(Map args, Closure antFileset = {}) {
     ant {
