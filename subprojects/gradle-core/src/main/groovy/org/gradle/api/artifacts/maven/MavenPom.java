@@ -164,4 +164,12 @@ public interface MavenPom {
      * @param closure The closure to execute when the pom has been configured.
      */
     void whenConfigured(Closure closure);
+
+    /**
+     * <p>Adds a closure to be called when the pom xml has been created. The xml is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
+     *
+     * @param closure The closure to execute when the pom xml has been created.
+     */
+    void withXml(Closure closure);
 }

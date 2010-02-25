@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.publish.maven;
 
 import groovy.lang.Closure;
+import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.UncheckedIOException;
@@ -23,10 +24,12 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenPomListener;
+import org.gradle.api.artifacts.maven.XmlProvider;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
@@ -136,17 +139,25 @@ public class DefaultMavenPom implements MavenPom {
     }
     
     public void addDependencies(Set<Configuration> configurations) {
-        mavenProject.setDependencies(pomDependenciesConverter.convert(getScopeMappings(),configurations));    
+        getDependencies().addAll(pomDependenciesConverter.convert(getScopeMappings(),configurations));    
     }
 
     public PomDependenciesConverter getPomDependenciesConverter() {
         return pomDependenciesConverter;
     }
 
-    public void write(Writer pomWriter) {
+    public void write(final Writer pomWriter) {
         pomListeners.getSource().whenConfigured(this);
         try {
-            mavenProject.writeModel(pomWriter);
+            final StringWriter stringWriter = new StringWriter();
+            mavenProject.writeModel(stringWriter);
+            final StringBuilder stringBuilder = new StringBuilder(stringWriter.toString());
+            pomListeners.getSource().withXml(new XmlProvider() {
+                public StringBuilder asString() {
+                    return stringBuilder;
+                }
+            });
+            IOUtils.write(stringBuilder.toString(), pomWriter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -158,5 +169,9 @@ public class DefaultMavenPom implements MavenPom {
 
     public void whenConfigured(final Closure closure) {
         pomListeners.add("whenConfigured", closure);    
+    }
+
+    public void withXml(final Closure closure) {
+        pomListeners.add("withXml", closure);    
     }
 }

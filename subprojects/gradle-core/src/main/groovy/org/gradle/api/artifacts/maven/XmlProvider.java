@@ -18,8 +18,11 @@ package org.gradle.api.artifacts.maven;
 /**
  * @author Hans Dockter
  */
-public interface MavenPomListener {
-    void whenConfigured(MavenPom mavenPom);
-
-    void withXml(XmlProvider xmlProvider);
+public interface XmlProvider {
+    /**
+     * Returns the xml in form of a StringBuilder. Changes to the StringBuilder instance will be applied against the XML.
+     *
+     * @return A StringBuilder representation of the XML
+     */
+    StringBuilder asString();
 }
