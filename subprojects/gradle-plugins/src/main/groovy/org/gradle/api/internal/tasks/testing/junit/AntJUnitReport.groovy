@@ -13,7 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.tasks.testing.junit
+
+import org.apache.tools.ant.taskdefs.optional.junit.XMLResultAggregator
 /**
  * @author Tom Eyckmans
  */
@@ -21,7 +25,8 @@ package org.gradle.api.internal.tasks.testing.junit
 class AntJUnitReport {
 
     void execute(File testResultsDir, File testReportDir, AntBuilder ant) {
-        ant.junitreport(todir: testResultsDir.absolutePath) {
+        ant.project.addTaskDefinition('junitreport2', XMLResultAggregator.class)
+        ant.junitreport2(todir: testResultsDir.absolutePath) {
             fileset(dir: testResultsDir.absolutePath, includes: 'TEST-*.xml')
             report(todir: testReportDir.absolutePath)
         }

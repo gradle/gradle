@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 import java.text.DateFormat
 
 apply id: 'groovy'
@@ -67,9 +69,12 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
+
     testCompile libraries.xmlunit
 
     runtime libraries.ant_launcher
+    // TODO - this should be in the plugins project
+    runtime "org.apache.ant:ant-trax:1.8.0@jar"
 
     integTestCompile libraries.jetty_depends
 

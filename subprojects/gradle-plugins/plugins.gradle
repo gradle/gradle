@@ -17,6 +17,8 @@
 
 
 
+
+
 repositories {
     mavenRepo urls: 'http://www.aQute.biz/repo'
 }
@@ -40,8 +42,6 @@ dependencies {
             'jaxen:jaxen:1.1@jar'
 
     testCompile libraries.xmlunit
-
-    runtime "org.apache.ant:ant-trax:1.8.0@jar"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
