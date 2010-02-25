@@ -36,72 +36,132 @@ public interface MavenPom {
     Conf2ScopeMappingContainer getScopeMappings();
 
     /**
-     * @see #setGroupId(String)
+     * @see org.apache.maven.project.MavenProject#setGroupId(String)
      */
     String getGroupId();
 
     /**
-     * Sets the groupId property of the to be generated Maven pom.
+     * org.apache.maven.project.MavenProject#getGroupId
      */
     void setGroupId(String groupId);
 
     /**
-     * @see #setArtifactId(String)
+     * @see org.apache.maven.project.MavenProject#getArtifactId()
      */
     String getArtifactId();
 
     /**
-     * Sets the artifactId property of the to be generated Maven pom.
+     * @see org.apache.maven.project.MavenProject#setArtifactId(String)
      */
     void setArtifactId(String artifactId);
 
     /**
-     * @see #setVersion(String) 
+     * @see org.apache.maven.project.MavenProject#getVersion() 
      */
     String getVersion();
 
     /**
-     * Sets the version property of the to be generated Maven pom.
+     * @see org.apache.maven.project.MavenProject#setVersion(String)
      */
     void setVersion(String version);
 
     /**
-     * @see #setPackaging(String)
+     * @see org.apache.maven.project.MavenProject#getPackaging()
      */
     String getPackaging();
 
     /**
-     * Sets the packaging property of the to be generated Maven pom.
+     * @see org.apache.maven.project.MavenProject#setPackaging(String) 
      */
     void setPackaging(String packaging);
 
-    MavenProject getMavenProject();
-
-    void addDependencies(Set<Configuration> configurations);
-
-    void write(Writer pomWriter);
-
+    /**
+     * @see org.apache.maven.project.MavenProject#setDependencies(java.util.List)
+     */
     void setDependencies(List dependencies);
 
+    /**
+     * @see org.apache.maven.project.MavenProject#getDependencies()
+     */
     List getDependencies();
 
+    /**
+     * @see org.apache.maven.project.MavenProject#setName(String)
+     */
     void setName(String name);
 
+    /**
+     * @see org.apache.maven.project.MavenProject#getName()
+     */
     String getName();
 
+    /**
+     * @see org.apache.maven.project.MavenProject#setInceptionYear(String)
+     */
     void setInceptionYear(String inceptionYear);
 
+    /**
+     * @see org.apache.maven.project.MavenProject#getInceptionYear()
+     */
     String getInceptionYear();
 
+    /**
+     * @see org.apache.maven.project.MavenProject#setUrl(String)
+     */
     void setUrl(String url);
 
+    /**
+     * @see org.apache.maven.project.MavenProject#getUrl()
+     */
     String getUrl();
 
+    /**
+     * @see org.apache.maven.project.MavenProject#setDescription(String)
+     */
     void setDescription(String description);
 
+    /**
+     * @see org.apache.maven.project.MavenProject#getDescription() 
+     */
     String getDescription();
 
+    /**
+     * Returns the underlying native Maven {@link org.apache.maven.project.MavenProject} object. The MavenPom object
+     * delegates all the configuration information to this object. There are delegation methods only for a subset of
+     * options. For configuring aspects of the pom where the MavenPom object does not provide delegation methods,
+     * you can access the native Maven object directly.
+     *
+     * @return the underlying native Maven object
+     */
+    MavenProject getMavenProject();
+
+    /**
+     * Adds the pom dependency information from the Gradle dependency metadata.
+     *
+     * @param configurations The configuration from which the dependencies should be added to the pom.
+     * @see #getScopeMappings() 
+     */
+    void addDependencies(Set<Configuration> configurations);
+
+    /**
+     * Writes the generated pom.xml to a writer.
+     *
+     * @param writer The writer to write the pom xml.
+     */
+    void write(Writer writer);
+
+    /**
+     * <p>Adds a listener to the Maven pom, to be notified when the pom has been configured.</p>
+     *
+     * @param mavenPomListener The listener to add.
+     */
     void addMavenPomListener(MavenPomListener mavenPomListener);
 
+    /**
+     * <p>Adds a closure to be called when the pom has been configured. The pom is passed to the closure as a
+     * parameter.</p>
+     *
+     * @param closure The closure to execute when the pom has been configured.
+     */
     void whenConfigured(Closure closure);
 }
