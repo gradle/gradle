@@ -79,11 +79,7 @@ allprojects {
     }
 
     repositories {
-        add(new URLResolver()) {
-            name = 'artifactory_localRepo'
-            addArtifactPattern('http://gradle.artifactoryonline.com/gradle/ext-releases-local/[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])')
-        }
-        mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/repo1')
+        mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs-releases')
     }
 
     version = this.version
