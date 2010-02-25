@@ -26,7 +26,7 @@ import org.gradle.api.artifacts.maven.MavenPomListener
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.artifacts.maven.XmlProvider
 
-class MavenPomSpock extends Specification {
+class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_PACKAGING = "something";
     static final String EXPECTED_GROUP_ID = "someGroup";
     static final String EXPECTED_ARTIFACT_ID = "artifactId";

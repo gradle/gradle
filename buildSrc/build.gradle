@@ -19,7 +19,7 @@ apply id: 'groovy'
 apply id: 'code-quality'
 
 repositories {
-    mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs-releases')
+    mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
 }
 
 dependencies {

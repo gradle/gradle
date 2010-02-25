@@ -78,7 +78,7 @@ allprojects {
     }
 
     repositories {
-        mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs-releases')
+        mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
     }
 
     version = this.version
