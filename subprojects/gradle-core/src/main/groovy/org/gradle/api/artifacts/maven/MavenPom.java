@@ -15,10 +15,12 @@
  */
 package org.gradle.api.artifacts.maven;
 
+import groovy.lang.Closure;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.artifacts.Configuration;
 
 import java.io.Writer;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -78,4 +80,28 @@ public interface MavenPom {
     void addDependencies(Set<Configuration> configurations);
 
     void write(Writer pomWriter);
+
+    void setDependencies(List dependencies);
+
+    List getDependencies();
+
+    void setName(String name);
+
+    String getName();
+
+    void setInceptionYear(String inceptionYear);
+
+    String getInceptionYear();
+
+    void setUrl(String url);
+
+    String getUrl();
+
+    void setDescription(String description);
+
+    String getDescription();
+
+    void addMavenPomListener(MavenPomListener mavenPomListener);
+
+    void whenConfigured(Closure closure);
 }

@@ -19,17 +19,24 @@ import org.apache.maven.model.Dependency;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.MavenPomListener;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.TestClosure;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import java.io.IOException;
+import java.io.StringWriter;
 import java.io.Writer;
 import java.util.List;
 import java.util.Set;
@@ -40,6 +47,7 @@ import static org.junit.Assert.*;
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 public class DefaultMavenPomTest {
     private static final String EXPECTED_PACKAGING = "something";
     private static final String EXPECTED_GROUP_ID = "someGroup";
@@ -111,8 +119,23 @@ public class DefaultMavenPomTest {
     }
 
     @Test
-    public void beforeWrite() {
-            
+    public void notifiesListener() throws IOException {
+        mavenPom.addMavenPomListener(new MavenPomListener() {
+            public void whenConfigured(MavenPom mavenPom) {
+                mavenPom.setInceptionYear("1999");
+            }
+        });
+        mavenPom.write(new StringWriter());
+        assertThat(mavenPom.getInceptionYear(), equalTo("1999"));
     }
 
+    @Test
+    public void whenConfigured() {
+        final TestClosure runnable = context.mock(TestClosure.class);
+        context.checking(new Expectations() {{
+            one(runnable).call(mavenPom);
+        }});
+        mavenPom.whenConfigured(HelperUtil.toClosure(runnable));
+        mavenPom.write(new StringWriter());
+    }
 }

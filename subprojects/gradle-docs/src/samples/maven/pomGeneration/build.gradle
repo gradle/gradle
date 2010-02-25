@@ -79,6 +79,10 @@ if (hasProperty('customVersion')) {
     deployer.pom.groupId = 'deployGroup'
 }
 
+[installer, deployer]*.pom*.whenConfigured { pom ->
+   pom.dependencies.find { dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
+}
+
 // For our integration tests
 
 install.doLast {

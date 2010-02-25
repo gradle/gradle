@@ -10,23 +10,23 @@
       <groupId>group4</groupId>
       <artifactId>providedRuntime</artifactId>
       <version>1.0</version>
-      <scope>provided</scope>
       <type>zip</type>
+      <scope>provided</scope>
     </dependency>
     <dependency>
       <groupId>group4</groupId>
       <artifactId>providedRuntime-util</artifactId>
       <version>1.0</version>
-      <scope>provided</scope>
       <type>war</type>
+      <scope>provided</scope>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>group6</groupId>
       <artifactId>testRuntime</artifactId>
       <version>1.0</version>
       <scope>test</scope>
     </dependency>
-     <dependency>
+    <dependency>
       <groupId>group2</groupId>
       <artifactId>providedCompile</artifactId>
       <version>1.0</version>
@@ -39,8 +39,8 @@
       <scope>compile</scope>
       <exclusions>
         <exclusion>
-          <groupId>excludeGroup</groupId>
           <artifactId>excludeArtifact</artifactId>
+          <groupId>excludeGroup</groupId>
         </exclusion>
       </exclusions>
     </dependency>
@@ -49,6 +49,7 @@
       <artifactId>runtime</artifactId>
       <version>1.0</version>
       <scope>runtime</scope>
+      <optional>true</optional>
     </dependency>
     <dependency>
       <groupId>group5</groupId>

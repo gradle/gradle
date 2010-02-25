@@ -15,16 +15,20 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
+import groovy.lang.Closure;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.MavenPomListener;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.gradle.listener.ListenerBroadcast;
 
 import java.io.IOException;
 import java.io.Writer;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -34,6 +38,7 @@ public class DefaultMavenPom implements MavenPom {
     private PomDependenciesConverter pomDependenciesConverter;
     private MavenProject mavenProject;
     private Conf2ScopeMappingContainer scopeMappings;
+    private final ListenerBroadcast<MavenPomListener> pomListeners = new ListenerBroadcast<MavenPomListener>(MavenPomListener.class);
     
     public DefaultMavenPom(Conf2ScopeMappingContainer scopeMappings, PomDependenciesConverter pomDependenciesConverter, MavenProject mavenProject) {
         this.scopeMappings = scopeMappings;
@@ -68,6 +73,14 @@ public class DefaultMavenPom implements MavenPom {
 
     public String getArtifactId() {
         return mavenProject.getArtifactId();
+    }
+
+    public void setDependencies(List dependencies) {
+        mavenProject.setDependencies(dependencies);
+    }
+
+    public List getDependencies() {
+        return mavenProject.getDependencies();
     }
 
     public void setName(String name) {
@@ -131,10 +144,19 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public void write(Writer pomWriter) {
+        pomListeners.getSource().whenConfigured(this);
         try {
             mavenProject.writeModel(pomWriter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    public void addMavenPomListener(MavenPomListener mavenPomListener) {
+        pomListeners.add(mavenPomListener);    
+    }
+
+    public void whenConfigured(final Closure closure) {
+        pomListeners.add("whenConfigured", closure);    
     }
 }
