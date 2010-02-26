@@ -24,7 +24,6 @@ import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
-import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
@@ -116,16 +115,6 @@ public class TestTest extends AbstractConventionTaskTest {
     }
 
     @org.junit.Test
-    public void testExecuteWithMaxClassesPerForkLimit() {
-        configureTask();
-
-        test.setForkEvery(12L);
-        expectTestsExecuted(instanceOf(RestartEveryNTestClassProcessor.class));
-
-        test.executeTests();
-    }
-
-    @org.junit.Test
     public void testExecuteWithTestFailuresAndStopAtFailures() {
         configureTask();
         expectTestsFail();
@@ -192,8 +181,6 @@ public class TestTest extends AbstractConventionTaskTest {
             TestFrameworkOptions testOptions = context.mock(TestFrameworkOptions.class);
             allowing(testFrameworkInstanceMock).getOptions();
             will(returnValue(testOptions));
-            one(testFrameworkInstanceMock).getWorkerConfigurationAction();
-            will(returnValue(workerConfigurationActionMock));
         }});
     }
 
@@ -272,15 +259,11 @@ public class TestTest extends AbstractConventionTaskTest {
     private Matcher<TestClassProcessor> forkingProcessor() {
         return new BaseMatcher<TestClassProcessor>() {
             public boolean matches(Object o) {
-                if (!(o instanceof ForkingTestClassProcessor)) {
-                    return false;
-                }
-                ForkingTestClassProcessor processor = (ForkingTestClassProcessor) o;
-                return processor.getProcessorFactory() == testProcessorFactoryMock;
+                return o instanceof RestartEveryNTestClassProcessor;
             }
 
             public void describeTo(Description description) {
-                description.appendText("a forking test processor that uses ").appendValue(testProcessorFactoryMock);
+                description.appendText("a forking test processor");
             }
         };
     }

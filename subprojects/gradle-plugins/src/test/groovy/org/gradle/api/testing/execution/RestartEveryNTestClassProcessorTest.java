@@ -35,7 +35,7 @@ public class RestartEveryNTestClassProcessorTest {
     private final TestClassRunInfo test2 = context.mock(TestClassRunInfo.class, "test2");
     private final TestClassRunInfo test3 = context.mock(TestClassRunInfo.class, "test3");
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
+    private RestartEveryNTestClassProcessor processor = new RestartEveryNTestClassProcessor(factory, 2);
 
     @Test
     public void onFirstTestCreatesDelegateProcessor() {
@@ -117,6 +117,26 @@ public class RestartEveryNTestClassProcessorTest {
 
     @Test
     public void onEndOfProcessingDoesNothingWhenOnNthTest() {
+        context.checking(new Expectations() {{
+            one(factory).create();
+            will(returnValue(delegate));
+
+            one(delegate).startProcessing(resultProcessor);
+            one(delegate).processTestClass(test1);
+            one(delegate).processTestClass(test2);
+            one(delegate).endProcessing();
+        }});
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(test1);
+        processor.processTestClass(test2);
+        processor.endProcessing();
+    }
+
+    @Test
+    public void usesSingleBatchWhenNEqualsZero() {
+        processor = new RestartEveryNTestClassProcessor(factory, 0);
+
         context.checking(new Expectations() {{
             one(factory).create();
             will(returnValue(delegate));
