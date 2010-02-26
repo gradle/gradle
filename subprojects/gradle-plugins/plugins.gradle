@@ -19,6 +19,8 @@
 
 
 
+
+
 repositories {
     mavenRepo urls: 'http://www.aQute.biz/repo'
 }
@@ -49,5 +51,5 @@ dependencies {
 
 test {
     exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
-    options.fork(jvmArgs: ["-ea", "-Xms128m", "-Xmx256m", '-XX:+HeapDumpOnOutOfMemoryError'])
+    jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }

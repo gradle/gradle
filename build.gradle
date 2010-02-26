@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.gradle.api.artifacts.repositories.WebdavResolver
@@ -252,13 +254,14 @@ task intTestImage(type: Sync) {
     }
 }
 
-task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook']) {
+task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook']) {
     integTestUserDir = file('intTestHomeDir')
-    options.systemProperties['integTest.srcDir'] = file('src').absolutePath
-    options.systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
-    options.systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-    options.systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
+    systemProperties['integTest.srcDir'] = file('src').absolutePath
+    systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
+    systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
+    systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
+    forkEvery = 15
 
     testClassesDir = project(':core').sourceSets.integTest.classesDir
     classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
@@ -269,15 +272,14 @@ task integTest(type: AntTest, dependsOn: [intTestImage, binZip, allZip, srcZip, 
         if (isDevBuild()) {
             exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
         }
-        options.systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
+        systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
         def forkArgs
         if (noForkIntegTests()) {
-            options.systemProperties['org.gradle.integtest.nofork'] = "true"
-            forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx1024m', '-XX:MaxPermSize=384m', '-XX:+HeapDumpOnOutOfMemoryError']]
+            systemProperties['org.gradle.integtest.nofork'] = "true"
+            jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
         } else {
-            forkArgs = [forkMode: ForkMode.ONCE, jvmArgs: ['-ea', '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError']]
+            jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
         }
-        options.fork(forkArgs)
     }
 }
 

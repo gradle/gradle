@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,8 +43,8 @@ public class Install {
         this.pathAssembler = pathAssembler;
     }
 
-    String createDist(String urlRoot, String distBase, String distPath, String distName, String distVersion,
-                      String distClassifier, String zipBase, String zipPath) throws Exception {
+    public String createDist(String urlRoot, String distBase, String distPath, String distName, String distVersion,
+                             String distClassifier, String zipBase, String zipPath) throws Exception {
         String gradleHome = pathAssembler.gradleHome(distBase, distPath, distName, distVersion);
         File gradleHomeFile = new File(gradleHome);
         if (!alwaysDownload && !alwaysUnpack && gradleHomeFile.isDirectory()) {
