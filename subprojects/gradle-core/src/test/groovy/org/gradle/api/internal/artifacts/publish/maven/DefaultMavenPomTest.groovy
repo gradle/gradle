@@ -15,16 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven
 
-import spock.lang.*
-import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter
+import org.apache.maven.model.Dependency
+import org.apache.maven.project.MavenProject
+import org.gradle.api.Action
+import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer
-import org.apache.maven.project.MavenProject
-import org.gradle.api.artifacts.Configuration
-import org.apache.maven.model.Dependency
-import org.gradle.api.artifacts.maven.MavenPomListener
-import org.gradle.api.artifacts.maven.MavenPom
-import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter
+import spock.lang.Specification
 
 class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_PACKAGING = "something";
@@ -75,74 +73,52 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.getMavenProject().getDependencies() == generatedDependencies
     }
 
-    def write() {
-        def mavenProjectMock = Mock(MavenProject)
-        DefaultMavenPom mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock, pomDependenciesConverterStub, mavenProjectMock);
-        StringWriter pomWriter = new StringWriter()
-        String pomXml = "<project></project>"
+    void whenConfiguredWithAction() {
+        def called = false
 
         when:
-        mavenPom.write(pomWriter)
+        mavenPom.whenConfigured(new Action() {
+            void execute(def mavenPom) {
+                called = true
+            }
+        })
+        mavenPom.write(new StringWriter());
 
         then:
-        1 * mavenProjectMock.writeModel({actualWriter ->
-            actualWriter.write(pomXml)
-            true
-        })
-        pomWriter.toString() == pomXml
+        called
     }
 
-    void whenConfigured() {
-        def passedMavenPom = null
+    void withXmlWithAction() {
+        def called = false
+
+        when:
+        mavenPom.withXml(new Action() {
+            void execute(def mavenPom) {
+                called = true
+            }
+        })
+        mavenPom.write(new StringWriter());
+
+        then:
+        called
+    }
+
+    void writeWithHookManipulations() {
+        StringWriter pomWriter = new StringWriter()
+        
+        when:
         mavenPom.whenConfigured { mavenPom ->
-            passedMavenPom = mavenPom
+            mavenPom.inceptionYear = '1999'
         }
-
-        when:
-        mavenPom.write(new StringWriter());
-
-        then:
-        passedMavenPom.is(mavenPom)
-    }
-
-    void withXml() {
-        def mavenProjectMock = Mock(MavenProject)
-        DefaultMavenPom mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock, pomDependenciesConverterStub, mavenProjectMock);
-        String pomXml = "<project></project>"
-        String passedXml = null
         mavenPom.withXml { xmlProvider ->
-            passedXml = xmlProvider.asString()
+            xmlProvider.asString().append('someAppendix')
         }
-
-        when:
-        mavenPom.write(new StringWriter());
-
-        then:
-        1 * mavenProjectMock.writeModel({actualWriter ->
-            actualWriter.write(pomXml)
-            true
-        })
-        passedXml = pomXml
-    }
-
-    void notifiesListener() {
-        StringWriter pomWriter = new StringWriter()
-        mavenPom.addMavenPomListener(new MavenPomListener() {
-            public void whenConfigured(MavenPom mavenPom) {
-                mavenPom.setInceptionYear("1999");
-            }
-            public void withXml(XmlProvider xmlProvider) {
-                xmlProvider.asString().append("myAppendix")
-            }
-        })
-
-        when:
         mavenPom.write(pomWriter);
 
         then:
         mavenPom.inceptionYear == "1999"
         pomWriter.toString().contains("inceptionYear")
         pomWriter.toString().contains("1999")
-        pomWriter.toString().endsWith("myAppendix")
+        pomWriter.toString().endsWith("someAppendix")
     }
 }

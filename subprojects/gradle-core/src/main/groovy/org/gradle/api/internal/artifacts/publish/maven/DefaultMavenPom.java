@@ -19,11 +19,11 @@ import groovy.lang.Closure;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.artifacts.maven.MavenPomListener;
 import org.gradle.api.artifacts.maven.XmlProvider;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.listener.ListenerBroadcast;
@@ -41,8 +41,9 @@ public class DefaultMavenPom implements MavenPom {
     private PomDependenciesConverter pomDependenciesConverter;
     private MavenProject mavenProject;
     private Conf2ScopeMappingContainer scopeMappings;
-    private final ListenerBroadcast<MavenPomListener> pomListeners = new ListenerBroadcast<MavenPomListener>(MavenPomListener.class);
-    
+    private final ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
+    private final ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+
     public DefaultMavenPom(Conf2ScopeMappingContainer scopeMappings, PomDependenciesConverter pomDependenciesConverter, MavenProject mavenProject) {
         this.scopeMappings = scopeMappings;
         this.pomDependenciesConverter = pomDependenciesConverter;
@@ -147,12 +148,12 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public void write(final Writer pomWriter) {
-        pomListeners.getSource().whenConfigured(this);
+        whenConfiguredActions.getSource().execute(this);
         try {
             final StringWriter stringWriter = new StringWriter();
             mavenProject.writeModel(stringWriter);
             final StringBuilder stringBuilder = new StringBuilder(stringWriter.toString());
-            pomListeners.getSource().withXml(new XmlProvider() {
+            withXmlActions.getSource().execute(new XmlProvider() {
                 public StringBuilder asString() {
                     return stringBuilder;
                 }
@@ -163,15 +164,19 @@ public class DefaultMavenPom implements MavenPom {
         }
     }
 
-    public void addMavenPomListener(MavenPomListener mavenPomListener) {
-        pomListeners.add(mavenPomListener);    
+    public void whenConfigured(final Closure closure) {
+        whenConfiguredActions.add("execute", closure);
     }
 
-    public void whenConfigured(final Closure closure) {
-        pomListeners.add("whenConfigured", closure);    
+    public void whenConfigured(final Action<MavenPom> action) {
+        whenConfiguredActions.add(action);
     }
 
     public void withXml(final Closure closure) {
-        pomListeners.add("withXml", closure);    
+        withXmlActions.add("execute", closure);    
+    }
+
+    public void withXml(final Action<XmlProvider> action) {
+        withXmlActions.add(action);
     }
 }

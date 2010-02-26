@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
 import org.apache.maven.project.MavenProject;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.Configuration;
 
 import java.io.Writer;
@@ -151,13 +152,6 @@ public interface MavenPom {
     void write(Writer writer);
 
     /**
-     * <p>Adds a listener to the Maven pom, to be notified when the pom has been configured.</p>
-     *
-     * @param mavenPomListener The listener to add.
-     */
-    void addMavenPomListener(MavenPomListener mavenPomListener);
-
-    /**
      * <p>Adds a closure to be called when the pom has been configured. The pom is passed to the closure as a
      * parameter.</p>
      *
@@ -166,10 +160,26 @@ public interface MavenPom {
     void whenConfigured(Closure closure);
 
     /**
+     * <p>Adds an action to be called when the pom has been configured. The pom is passed to the action as a
+     * parameter.</p>
+     *
+     * @param action The action to execute when the pom has been configured.
+     */
+    void whenConfigured(Action<MavenPom> action);
+
+    /**
      * <p>Adds a closure to be called when the pom xml has been created. The xml is passed to the closure as a
      * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
      *
      * @param closure The closure to execute when the pom xml has been created.
      */
     void withXml(Closure closure);
+
+    /**
+     * <p>Adds an action to be called when the pom xml has been created. The xml is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
+     *
+     * @param action The action to execute when the pom xml has been created.
+     */
+    void withXml(Action<XmlProvider> action);
 }
