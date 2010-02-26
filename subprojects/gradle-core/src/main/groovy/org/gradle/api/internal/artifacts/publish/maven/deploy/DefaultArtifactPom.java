@@ -66,7 +66,12 @@ public class DefaultArtifactPom implements ArtifactPom {
         getPom().addDependencies(configurations);
         try {
             pomFile.getParentFile().mkdirs();
-            getPom().write(new FileWriter(pomFile));
+            FileWriter writer = new FileWriter(pomFile);
+            try {
+                getPom().write(writer);
+            } finally {
+                writer.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
