@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.resource.DelegatingResource;
+import org.gradle.api.internal.resource.Resource;
 import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 
@@ -30,17 +32,29 @@ public class ImportsScriptSource extends DelegatingScriptSource {
         this.rootDir = rootDir;
     }
 
-    public String getText() {
-        String text = getSource().getText();
-        assert text != null;
+    @Override
+    public Resource getResource() {
+        return new ImportsResource(super.getResource());
+    }
 
-        String imports;
-        if (text.length() > 0) {
-            imports = '\n' + importsReader.getImports(rootDir);
-        } else {
-            imports = "";
+    private class ImportsResource extends DelegatingResource {
+        private ImportsResource(Resource resource) {
+            super(resource);
         }
 
-        return text + imports;
+        @Override
+        public String getText() {
+            String text = getResource().getText();
+            assert text != null;
+
+            String imports;
+            if (text.length() > 0) {
+                imports = '\n' + importsReader.getImports(rootDir);
+            } else {
+                imports = "";
+            }
+
+            return text + imports;
+        }
     }
 }

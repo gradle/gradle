@@ -13,33 +13,40 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.groovy.scripts;
 
-import org.gradle.api.internal.resource.Resource;
-import org.gradle.api.internal.resource.StringResource;
-import org.gradle.util.HashUtil;
+package org.gradle.api.internal.resource;
 
-public class StringScriptSource implements ScriptSource {
-    public static final String EMBEDDED_SCRIPT_ID = "embedded_script_";
+import java.io.File;
+import java.net.URI;
+
+public class DelegatingResource implements Resource {
     private final Resource resource;
 
-    public StringScriptSource(String description, String content) {
-        resource = new StringResource(description, content == null ? "" : content);
-    }
-
-    public String getClassName() {
-        return EMBEDDED_SCRIPT_ID + HashUtil.createHash(resource.getText());
+    public DelegatingResource(Resource resource) {
+        this.resource = resource;
     }
 
     public Resource getResource() {
         return resource;
     }
 
-    public String getFileName() {
-        return getClassName();
-    }
-
     public String getDisplayName() {
         return resource.getDisplayName();
+    }
+
+    public File getFile() {
+        return resource.getFile();
+    }
+
+    public URI getURI() {
+        return resource.getURI();
+    }
+
+    public boolean getExists() {
+        return resource.getExists();
+    }
+
+    public String getText() {
+        return resource.getText();
     }
 }

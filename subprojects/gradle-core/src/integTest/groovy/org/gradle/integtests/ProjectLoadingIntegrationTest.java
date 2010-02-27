@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -133,7 +133,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void buildFailsWhenSpecifiedSettingsFileIsNotAFile() {
         ExecutionFailure result = inTestDirectory().usingSettingsFile(testFile("unknown")).runWithFailure();
-        result.assertThatDescription(startsWith("Cannot read settings file"));
+        result.assertThatDescription(startsWith("Could not read settings file"));
         result.assertThatDescription(endsWith("as it does not exist."));
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,23 +28,26 @@ public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationT
         createExternalJar()
         createBuildSrc()
 
-        testFile('external.gradle') << '''
-buildscript {
-    dependencies { classpath files('repo/test-1.3.jar') }
-}
-new org.gradle.test.BuildClass()
-new BuildSrcClass()
-println 'quiet message'
-captureStandardOutput(LogLevel.ERROR)
-println 'error message'
-assertNotNull(project)
-assertSame(buildscript.classLoader, getClass().classLoader.parent)
-assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)
-assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
-task doStuff
-someProp = 'value'
-'''
+        TestFile externalScript = testFile('external.gradle')
+        externalScript << """
+            buildscript {
+                dependencies { classpath files('repo/test-1.3.jar') }
+            }
+            new org.gradle.test.BuildClass()
+            new BuildSrcClass()
+            println 'quiet message'
+            captureStandardOutput(LogLevel.ERROR)
+            println 'error message'
+            assertNotNull(project)
+            assertEquals("$externalScript.absolutePath", buildscript.sourceFile as String)
+            assertEquals("${externalScript.toURI()}", buildscript.sourceURI as String)
+            assertSame(buildscript.classLoader, getClass().classLoader.parent)
+            assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
+            assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)
+            assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
+            task doStuff
+            someProp = 'value'
+"""
         testFile('build.gradle') << '''
 apply { url 'external.gradle' }
 assertEquals('value', someProp)
@@ -123,16 +126,21 @@ class ListenerImpl extends BuildAdapter {
 
     @Test
     public void canFetchScriptViaHttp() {
-        TestFile script = testFile('external.gradle') << '''
-task doStuff
-'''
+        TestFile script = testFile('external.gradle')
+
         HttpServer server = new HttpServer()
         server.add('/external.gradle', script)
         server.start()
 
+        script << """
+            task doStuff
+            assertNull(buildscript.sourceFile)
+            assertEquals("http://localhost:$server.port/external.gradle", buildscript.sourceURI as String)
+"""
+
         testFile('build.gradle') << """
-apply url: 'http://localhost:$server.port/external.gradle'
-defaultTasks 'doStuff'
+            apply url: 'http://localhost:$server.port/external.gradle'
+            defaultTasks 'doStuff'
 """
 
         inTestDirectory().run()

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.resource.Resource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -35,37 +36,44 @@ public class ImportsScriptSourceTest {
     private ScriptSource backingSource;
     private ImportsReader importsReader;
     private ImportsScriptSource source;
+    private Resource resource;
 
     @Before
     public void setUp() {
         context.setImposteriser(ClassImposteriser.INSTANCE);
         backingSource = context.mock(ScriptSource.class);
         importsReader = context.mock(ImportsReader.class);
+        resource = context.mock(Resource.class);
         source = new ImportsScriptSource(backingSource, importsReader, rootDir);
     }
     
     @Test
     public void prependsImportsToScriptText() {
-        context.checking(new Expectations() {
-            {
-                one(backingSource).getText();
-                will(returnValue("<content>"));
-                one(importsReader).getImports(rootDir);
-                will(returnValue("<imports>"));
-            }
-        });
+        context.checking(new Expectations() {{
+            one(backingSource).getResource();
+            will(returnValue(resource));
 
-        assertThat(source.getText(), equalTo("<content>\n<imports>"));
+            one(resource).getText();
+            will(returnValue("<content>"));
+
+            one(importsReader).getImports(rootDir);
+            will(returnValue("<imports>"));
+        }});
+
+        assertThat(source.getResource().getText(), equalTo("<content>\n<imports>"));
     }
 
     @Test
     public void doesNotPrependImportsWhenScriptHasNoText() {
         context.checking(new Expectations(){{
-            one(backingSource).getText();
+            one(backingSource).getResource();
+            will(returnValue(resource));
+
+            one(resource).getText();
             will(returnValue(""));
         }});
 
-        assertThat(source.getText(), equalTo(""));
+        assertThat(source.getResource().getText(), equalTo(""));
     }
 
     @Test
@@ -76,13 +84,9 @@ public class ImportsScriptSourceTest {
 
             one(backingSource).getDisplayName();
             will(returnValue("description"));
-
-            one(backingSource).getSourceFile();
-            will(returnValue(new File("sourceFile")));
         }});
 
         assertThat(source.getClassName(), equalTo("classname"));
         assertThat(source.getDisplayName(), equalTo("description"));
-        assertThat(source.getSourceFile(), equalTo(new File("sourceFile")));
     }
 }

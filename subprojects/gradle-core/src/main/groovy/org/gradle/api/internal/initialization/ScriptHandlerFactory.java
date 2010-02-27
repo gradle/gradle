@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.groovy.scripts.ScriptSource;
 
 public interface ScriptHandlerFactory {
-    ScriptHandlerInternal create(ClassLoader parentClassLoader);
+    ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader);
 
-    ScriptHandlerInternal create(ClassLoader parentClassLoader, DomainObjectContext context);
+    ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader, DomainObjectContext context);
 }

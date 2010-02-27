@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.internal.resource.CachingResource;
+import org.gradle.api.internal.resource.Resource;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -28,16 +30,16 @@ import static org.junit.Assert.*;
 public class CachingScriptSourceTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ScriptSource delegate = context.mock(ScriptSource.class);
-    private final CachingScriptSource source = new CachingScriptSource(delegate);
 
     @Test
     public void cachesContentOfSource() {
         context.checking(new Expectations() {{
-            one(delegate).getText();
-            will(returnValue("content"));
+            one(delegate).getResource();
+            will(returnValue(context.mock(Resource.class)));
         }});
 
-        assertThat(source.getText(), equalTo("content"));
-        assertThat(source.getText(), equalTo("content"));
+        CachingScriptSource source = new CachingScriptSource(delegate);
+        assertThat(source.getResource(), instanceOf(CachingResource.class));
+        assertThat(source.getResource(), sameInstance(source.getResource()));
     }
 }

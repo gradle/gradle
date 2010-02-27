@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,9 +29,6 @@ import java.io.File;
  */
 public class ProjectFactory implements IProjectFactory {
     private ScriptSource embeddedScript;
-
-    public ProjectFactory() {
-    }
 
     public ProjectFactory(ScriptSource embeddedScript) {
         this.embeddedScript = embeddedScript;

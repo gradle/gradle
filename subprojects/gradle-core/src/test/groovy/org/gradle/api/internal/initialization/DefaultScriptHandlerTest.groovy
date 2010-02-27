@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,16 @@ import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.groovy.scripts.ScriptSource
 
 @RunWith(JMock)
 public class DefaultScriptHandlerTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler)
-    private final DependencyHandler dependencyHandler = context.mock(DependencyHandler)
-    private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer)
-    private final Configuration configuration = context.mock(Configuration)
+    private final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class)
+    private final DependencyHandler dependencyHandler = context.mock(DependencyHandler.class)
+    private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
+    private final Configuration configuration = context.mock(Configuration.class)
+    private final ScriptSource scriptSource = context.mock(ScriptSource.class)
     private final ClassLoader parentClassLoader = [:] as ClassLoader
 
     @Test void addsClasspathConfiguration() {
@@ -42,7 +44,7 @@ public class DefaultScriptHandlerTest {
             one(configurationContainer).add('classpath')
         }
 
-        new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
+        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
     }
 
     @Test void createsAClassLoaderAndAddsContentsOfClassPathConfiguration() {
@@ -95,7 +97,7 @@ public class DefaultScriptHandlerTest {
             one(configurationContainer).add('classpath')
             will(returnValue(configuration))
         }
-        DefaultScriptHandler handler = new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
+        DefaultScriptHandler handler = new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
         return handler
     }
 }

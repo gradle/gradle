@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,15 +29,11 @@ public class ParentDirSettingsFinderStrategy extends AbstractSettingsFileSearchS
         File searchDir = startParameter.getCurrentDir().getParentFile();
         while (searchDir != null && startParameter.isSearchUpwards()) {
             File settingsFile = new File(searchDir, Settings.DEFAULT_SETTINGS_FILE);
-            if (settingsFile.exists() && settingsFile.isFile()) {
+            if (settingsFile.isFile()) {
                 return settingsFile;
             }
             searchDir = searchDir.getParentFile();
         }
         return null;
-    }
-
-    protected boolean isSettingsFile(File file) {
-        return file.isFile() && file.getName().equals(Settings.DEFAULT_SETTINGS_FILE);
     }
 }

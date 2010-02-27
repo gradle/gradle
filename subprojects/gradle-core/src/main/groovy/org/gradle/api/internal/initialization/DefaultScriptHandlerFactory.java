@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.initialization;
 
 import org.gradle.api.Project;
@@ -28,6 +29,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandl
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultConvention;
+import org.gradle.groovy.scripts.ScriptSource;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final RepositoryHandlerFactory repositoryHandlerFactory;
@@ -50,17 +52,18 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         this.dependencyFactory = dependencyFactory;
     }
 
-    public ScriptHandlerInternal create(ClassLoader parentClassLoader) {
-        return create(parentClassLoader, new BasicDomainObjectContext());
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader) {
+        return create(scriptSource, parentClassLoader, new BasicDomainObjectContext());
     }
 
-    public ScriptHandlerInternal create(ClassLoader parentClassLoader, DomainObjectContext context) {
+    public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader,
+                                        DomainObjectContext context) {
         RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(new DefaultConvention());
         ConfigurationContainer configurationContainer = configurationContainerFactory.createConfigurationContainer(
                 repositoryHandler, dependencyMetaDataProvider, context);
         DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory,
                 projectFinder);
-        return new DefaultScriptHandler(repositoryHandler, dependencyHandler, configurationContainer,
+        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer,
                 parentClassLoader);
     }
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api;
 
 import groovy.lang.Closure;
@@ -230,7 +231,7 @@ public interface Project extends Comparable<Project> {
     void setBuildDirName(String buildDirName);
 
     /**
-     * <p>Returns the build file Gradle will evaulate against this project object. The default is <code> {@value
+     * <p>Returns the build file Gradle will evaluate against this project object. The default is <code> {@value
      * #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null. <p/> <p>You can
      * access this property in your build file using <code>buildFile</code></p>
      *
@@ -1169,8 +1170,8 @@ public interface Project extends Comparable<Project> {
     PluginContainer getPlugins();
 
     /**
-     * Returns the build script handler for this project. You can use this handler to manage the classpath used to
-     * compile and execute the project's build script.
+     * Returns the build script handler for this project. You can use this handler to query details about the build
+     * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
      * @return the classpath handler. Never returns null.
      */

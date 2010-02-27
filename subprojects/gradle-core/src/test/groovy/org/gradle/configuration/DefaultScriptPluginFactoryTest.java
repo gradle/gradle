@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class DefaultScriptPluginFactoryTest {
             one(scriptCompilerFactoryMock).createCompiler(sourceWithImportsMock);
             will(returnValue(scriptCompilerMock));
 
-            one(scriptHandlerFactoryMock).create(parentClassLoader);
+            one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
             will(returnValue(scriptHandlerMock));
 
             allowing(scriptHandlerMock).getClassLoader();
@@ -130,7 +130,7 @@ public class DefaultScriptPluginFactoryTest {
 
             allowing(target).beforeCompile(with(notNullValue(ScriptPlugin.class)));
 
-            one(scriptHandlerFactoryMock).create(parentClassLoader);
+            one(scriptHandlerFactoryMock).create(sourceWithImportsMock, parentClassLoader);
             will(returnValue(scriptHandlerMock));
             
             allowing(scriptHandlerMock).getClassLoader();
