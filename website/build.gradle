@@ -25,7 +25,7 @@ gradleCoreProperties = GUtil.loadProperties(new File(gradleCorePath, Project.GRA
 
 version = gradleCoreProperties.previousVersion
 
-buildWebsiteDir = new File(buildDir, 'website')
+buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 
 task userguideContent << {
     def startParams = gradle.startParameter.newBuild()
@@ -38,28 +38,25 @@ task userguideContent << {
 task html(dependsOn: userguideContent) << {
     buildWebsiteDir.mkdirs()
     File webContentSrcDir = new File(webSrcDir, 'content')
-    File webPhpSrcDir = new File(webSrcDir, 'php')
     def engine = new SimpleTemplateEngine()
     def binding = [
+            php: new PhpIncludes(phpSrcDir: new File(webSrcDir, 'php')),
             currentRelease: version,
             sidebar: engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(currentRelease: version).toString()
     ]
     def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
-    Closure transformClosure = {File contentFile, String contentAppendix = "" ->
+    Closure transformClosure = {File contentFile ->
         logger.info "Processing $contentFile"
         def fileInfo = extractInfo(contentFile)
         def contentTemplate = engine.createTemplate(fileInfo.content)
         String content = contentTemplate.make(binding).toString()
-        content += contentAppendix
         new File(buildWebsiteDir, contentFile.name).text =
-            skeletonTemplate.make(binding + [fileName: contentFile.name, content: content, title: fileInfo.title]).toString()
+            fileInfo.prefix + skeletonTemplate.make(binding + [fileName: contentFile.name, content: content, title: fileInfo.title]).toString()
     }
     webContentSrcDir.eachFileMatch(~/^.+?\.html$/, transformClosure)
     transformClosure("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs/getting-started.html" as File)
-//    transformClosure("$webContentSrcDir/index.php" as File, new File(webPhpSrcDir, "indexPhpNews.php").text)
-//    File indexPhp = new File(buildWebsiteDir, "index.php")
-//    indexPhp.write(new File(webPhpSrcDir, 'indexPhpHeader.php').text + indexPhp.text)
-//    new File(buildWebsiteDir, "test-index.html").write(indexPhp.text)
+    transformClosure("$webContentSrcDir/index.php" as File)
+    transformClosure("$webContentSrcDir/news.php" as File)
 
     copy {
         from webSrcDir
@@ -70,13 +67,28 @@ task html(dependsOn: userguideContent) << {
 }
 
 def extractInfo(File contentFile) {
-    if (contentFile.name == 'index.html') {
-        return [title: 'Home', content: contentFile.text]
-    } else {
-        String content = '<html>' + contentFile.text + '</html>'
-        def doc = new XmlParser().parseText(content)
-        def title = doc.'**'.h1[0].text().trim()
-        return [title:  title, content: contentFile.text]
+    try {
+        def info
+        if (contentFile.name.startsWith('index.')) {
+            info = [title: 'Home', content: contentFile.text]
+        } else {
+            String content = '<html>' + contentFile.text + '</html>'
+            def doc = new XmlParser().parseText(content)
+            def title = doc.'**'.h1[0].text().trim()
+            info = [title:  title, content: contentFile.text]
+        }
+        if (contentFile.name.endsWith('.php')) {
+            File webPhpSrcDir = new File(webSrcDir, 'php')
+            String prefix = contentFile.name.replace('.php', 'Php')
+            File prefixFile = new File(webPhpSrcDir, "${prefix}Header.php")
+            info.prefix = prefixFile.file ? prefixFile.text : ''
+        } else {
+            info.prefix = ''
+        }
+
+        return info
+    } catch (Exception e) {
+        throw new GradleException("Could not extract meta-info from $contentFile.name.", e)
     }
 }
 
@@ -113,5 +125,17 @@ void ftp(Map args, Closure antFileset = {}) {
             antFileset.delegate = delegate
             antFileset()
         }
+    }
+}
+
+class PhpIncludes {
+    def File phpSrcDir
+
+    def propertyMissing(String name) {
+        File srcFile = new File(phpSrcDir, "${name}.php")
+        if (!srcFile.file) {
+            throw new MissingPropertyException(name, PhpIncludes.class)
+        }
+        srcFile.text
     }
 }

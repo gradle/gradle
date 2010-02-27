@@ -11,8 +11,6 @@ body {
 }
 
 body, td, div {
-    /*font-family: 'Lucida Grande','Lucida Sans Unicode','Lucida Sans','Geneva','Verdana',sans-serif;*/
-    /*font-family: Tahoma, Arial, Helvetica, sans-serif;*/
     font-family: Helvetica, sans-serif;
     font-size: 14px;
     color: #444444;
@@ -140,12 +138,14 @@ p {
 }
 
 .content {
-    border: #c0c0c0 solid 1px;
+/*border: #c0c0c0 solid 1px;*/
     -webkit-border-radius: 15px;
     -moz-border-radius: 15px;
+    -webkit-box-shadow: 0 0 20px #c0c0c0;
+    -moz-box-shadow: 0 0 20px #c0c0c0;
     background: white;
     padding-top: 20px;
-    padding-bottom: 25px;
+    padding-bottom: 35px;
     padding-left: 50px;
     padding-right: 50px;
 }
@@ -171,8 +171,7 @@ p {
 }
 
 #about {
-    width: 670px;
-    padding-right: 10px;
+    width: 620px;
 }
 
 #about h2 {
@@ -183,34 +182,71 @@ p {
     margin-top: 0.2em;
 }
 
-#gettingstarted {
+#rightcolumn {
     position: absolute;
-    top: 0px;
-    left: 730px;
-    width: 260px;
+    top: 0;
+    right: 0;
+}
+
+#gettingstarted {
+    /*background-color: #d5e8f5;*/
+    background-color: #e4eef5;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    padding-bottom: 20px;
+    margin-right: auto;
 }
 
 #gettingstarted h2 {
     background: #4a9935;
     color: white;
-    padding-left: 15px;
-    padding-right: 15px;
-    padding-top: 4px;
+    margin: 0;
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-top: 6px;
     padding-bottom: 4px;
-    -webkit-border-top-left-radius: 8px;
-    -webkit-border-top-right-radius: 8px;
-    -moz-border-radius-topleft: 8px;
-    -moz-border-radius-topright: 8px;
+    -webkit-border-top-left-radius: 10px;
+    -webkit-border-top-right-radius: 10px;
+    -moz-border-radius-topleft: 10px;
+    -moz-border-radius-topright: 10px;
 }
 
 #gettingstarted p {
     font-size: 120%;
     font-weight: bold;
     color: #444444;
-    padding-left: 15px;
-    padding-right: 15px;
+    padding-left: 25px;
+    padding-right: 25px;
     white-space: nowrap;
     margin-top: 20px;
+}
+
+#news {
+    margin-top: 40px;
+    width: 310px;
+    padding-left: 25px;
+}
+
+#news h2 {
+}
+
+#news ul {
+    margin: 0;
+    margin-top: 1em;
+    padding: 0;
+}
+
+#news li {
+    margin-left: 0;
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
+    list-style: none;
+}
+
+a.more {
+    text-align: right;
+    display: block;
+    width: 100%;
 }
 
 #footer {
