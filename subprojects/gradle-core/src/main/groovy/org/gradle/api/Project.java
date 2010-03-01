@@ -436,6 +436,7 @@ public interface Project extends Comparable<Project> {
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(String)} instead.
      */
     @Deprecated
     Task createTask(String name) throws InvalidUserDataException;
@@ -452,6 +453,7 @@ public interface Project extends Comparable<Project> {
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(String name, Action<? super Task> action) throws InvalidUserDataException;
@@ -473,6 +475,7 @@ public interface Project extends Comparable<Project> {
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
@@ -491,6 +494,7 @@ public interface Project extends Comparable<Project> {
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(Map<String, ?> args, String name, Action<? super Task> action) throws InvalidUserDataException;
@@ -507,6 +511,7 @@ public interface Project extends Comparable<Project> {
      * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(String name, Closure action);
@@ -525,6 +530,7 @@ public interface Project extends Comparable<Project> {
      * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(Map<String, ?> args, String name, Closure action);

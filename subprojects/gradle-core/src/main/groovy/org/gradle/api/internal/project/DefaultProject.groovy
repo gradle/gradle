@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,12 +35,11 @@ class DefaultProject extends AbstractProject {
     public DefaultProject(String name,
                           ProjectInternal parent,
                           File projectDir,
-                          File buildFile,
                           ScriptSource buildScriptSource,
                           GradleInternal gradle,
                           ServiceRegistryFactory serviceRegistryFactory
     ) {
-        super(name, parent, projectDir, buildFile, buildScriptSource, gradle, serviceRegistryFactory);
+        super(name, parent, projectDir, buildScriptSource, gradle, serviceRegistryFactory);
     }
 
     def propertyMissing(String name) {

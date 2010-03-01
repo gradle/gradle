@@ -16,6 +16,8 @@
 
 
 
+
+
 package org.gradle.util
 
 import java.rmi.server.UID
@@ -101,7 +103,6 @@ class HelperUtil {
                 name,
                 parentProject,
                 projectDir ?: new File(parentProject.getProjectDir(), name),
-                parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.gradle,
                 parentProject.gradle.serviceRegistryFactory

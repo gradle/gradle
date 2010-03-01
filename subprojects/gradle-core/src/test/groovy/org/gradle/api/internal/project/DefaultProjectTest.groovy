@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.project
 
 import java.awt.Point
 import java.text.FieldPosition
 import org.apache.tools.ant.types.FileSet
-import org.gradle.StartParameter
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Module
 import org.gradle.api.artifacts.dsl.ArtifactHandler
@@ -117,6 +118,8 @@ class DefaultProjectTest {
 
     @Before
     void setUp() {
+        rootDir = new File("/path/root").absoluteFile
+
         context.imposteriser = ClassImposteriser.INSTANCE
         dependencyFactoryMock = context.mock(DependencyFactory)
         outputRedirectorMock = context.mock(StandardOutputRedirector)
@@ -143,10 +146,10 @@ class DefaultProjectTest {
         context.checking {
             allowing(script).getDisplayName(); will(returnValue('[build file]'))
             allowing(script).getClassName(); will(returnValue('scriptClass'))
+            allowing(scriptHandlerMock).getSourceFile(); will(returnValue(new File(rootDir, TEST_BUILD_FILE_NAME)))
         }
 
         testScript = new EmptyScript()
-        StartParameter parameter = new StartParameter()
 
         testTask = HelperUtil.createTask(DefaultTask)
 
@@ -180,17 +183,12 @@ class DefaultProjectTest {
 
         build = context.mock(GradleInternal)
 
-        rootDir = new File("/path/root").absoluteFile
-        project = new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script,
-                build, projectServiceRegistryFactoryMock);
-        child1 = new DefaultProject("child1", project, new File("child1"), null, script,
-                build, projectServiceRegistryFactoryMock)
+        project = new DefaultProject('root', null, rootDir, script, build, projectServiceRegistryFactoryMock);
+        child1 = new DefaultProject("child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
-        childchild = new DefaultProject("childchild", child1, new File("childchild"), null, script,
-                build, projectServiceRegistryFactoryMock)
+        childchild = new DefaultProject("childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
-        child2 = new DefaultProject("child2", project, new File("child2"), null, script,
-                build, projectServiceRegistryFactoryMock)
+        child2 = new DefaultProject("child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
@@ -250,8 +248,7 @@ class DefaultProjectTest {
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
 
-        assertNotNull(new DefaultProject('root', null, rootDir, new File(rootDir, TEST_BUILD_FILE_NAME), script,
-                build, projectServiceRegistryFactoryMock).standardOutputRedirector)
+        assertNotNull(new DefaultProject('root', null, rootDir, script, build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 

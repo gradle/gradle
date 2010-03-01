@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
@@ -72,8 +73,6 @@ public abstract class AbstractProject implements ProjectInternal {
     private final GradleInternal gradle;
 
     private ProjectEvaluator projectEvaluator;
-
-    private File buildFile;
 
     private Script buildScript;
 
@@ -153,7 +152,6 @@ public abstract class AbstractProject implements ProjectInternal {
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
-                           File buildFile,
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
@@ -162,7 +160,6 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
-        this.buildFile = buildFile;
         this.state = State.CREATED;
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
@@ -246,15 +243,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File getBuildFile() {
-        return buildFile;
-    }
-
-    public void setBuildFile(File buildFile) {
-        this.buildFile = buildFile;
-    }
-
-    public Script getScript() {
-        return buildScript;
+        return getBuildscript().getSourceFile();
     }
 
     public void setScript(Script buildScript) {

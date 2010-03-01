@@ -49,7 +49,6 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getName(),
                 parent,
                 projectDescriptor.getProjectDir(),
-                projectDescriptor.getBuildFile(),
                 source,
                 gradle,
                 gradle.getServiceRegistryFactory());

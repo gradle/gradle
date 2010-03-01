@@ -176,7 +176,6 @@ public class ProjectFactoryTest {
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, gradle);
 
         assertEquals("somename", project.getName());
-        assertEquals(new File(rootDir, "build.gradle"), project.getBuildFile());
         assertSame(rootDir, project.getRootDir());
         assertSame(rootDir, project.getProjectDir());
         assertNull(project.getParent());
