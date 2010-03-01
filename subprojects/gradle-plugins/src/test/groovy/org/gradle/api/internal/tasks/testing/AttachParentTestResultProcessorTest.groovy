@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
 
@@ -80,6 +82,27 @@ class AttachParentTestResultProcessorTest {
         processor.started(root, new TestStartEvent(100L))
         processor.started(other, new TestStartEvent(100L))
         processor.completed('suite1', new TestCompleteEvent(200L))
+        processor.started(test, testStartEvent)
+
+        assertThat(testStartEvent.parentId, equalTo('root'))
+    }
+
+    @Test
+    public void implictlyCompleteSuitesWhenParentSuiteCompletes() {
+        TestDescriptorInternal root = suite('root')
+        TestDescriptorInternal parent = suite('parent')
+        TestDescriptorInternal suite = suite('suite1')
+        TestDescriptorInternal test = test('test')
+        TestStartEvent testStartEvent = new TestStartEvent(200L)
+
+        context.checking {
+            ignoring(target)
+        }
+
+        processor.started(root, new TestStartEvent(100L))
+        processor.started(parent, new TestStartEvent(100L))
+        processor.started(suite, new TestStartEvent(100L))
+        processor.completed('parent', new TestCompleteEvent(200L))
         processor.started(test, testStartEvent)
 
         assertThat(testStartEvent.parentId, equalTo('root'))

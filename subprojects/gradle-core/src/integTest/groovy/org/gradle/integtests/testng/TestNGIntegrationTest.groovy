@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project
@@ -63,9 +65,9 @@ public class TestNGIntegrationTest {
         result.assertTestFailed('org.gradle.BadTest', 'failingTest')
         result.assertConfigMethodFailed('org.gradle.TestWithBrokenSetup', 'setup')
         result.assertConfigMethodFailed('org.gradle.BrokenAfterSuite', 'cleanup')
-        assertThat(execution.error, containsString('Test method failingTest(org.gradle.BadTest) FAILED'))
-        assertThat(execution.error, containsString('Test method setup(org.gradle.TestWithBrokenSetup) FAILED'))
-        assertThat(execution.error, containsString('Test method cleanup(org.gradle.BrokenAfterSuite) FAILED'))
+        assertThat(execution.error, containsString('Test org.gradle.BadTest FAILED'))
+        assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenSetup FAILED'))
+        assertThat(execution.error, containsString('Test org.gradle.BrokenAfterSuite FAILED'))
     })
     static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')

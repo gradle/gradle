@@ -22,9 +22,15 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.slf4j.Logger;
 
+import java.util.HashSet;
+import java.util.Set;
+
+import static org.gradle.api.tasks.testing.TestResult.*;
+
 public class TestSummaryListener implements TestListener {
     private final Logger logger;
     private boolean hadFailures;
+    private final Set<String> failedClasses = new HashSet<String>();
 
     public TestSummaryListener(Logger logger) {
         this.logger = logger;
@@ -39,7 +45,15 @@ public class TestSummaryListener implements TestListener {
     }
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
-        logger.debug("Finished {}", suite);
+        if (result.getResultType() == ResultType.FAILURE && result.getException() != null) {
+            reportFailure(suite, toString(suite));
+        } else {
+            logger.debug("Finished {}", suite);
+        }
+        if (suite.getParent() == null && result.getResultType() == ResultType.FAILURE) {
+            hadFailures = true;
+            logger.error("{} out of {} tests failed.", result.getFailedTestCount(), result.getTestCount());
+        }
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -47,7 +61,7 @@ public class TestSummaryListener implements TestListener {
     }
 
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-        String testDescription = StringUtils.capitalize(testDescriptor.toString());
+        String testDescription = toString(testDescriptor);
         switch (result.getResultType()) {
             case SUCCESS:
                 logger.info("{} PASSED", testDescription);
@@ -56,11 +70,26 @@ public class TestSummaryListener implements TestListener {
                 logger.info("{} SKIPPED", testDescription);
                 break;
             case FAILURE:
-                logger.error("{} FAILED", testDescription);
-                hadFailures = true;
+                reportFailure(testDescriptor, testDescription);
                 break;
             default:
                 throw new IllegalArgumentException();
         }
+    }
+
+    private void reportFailure(TestDescriptor testDescriptor, String testDescription) {
+        String testClass = testDescriptor.getClassName();
+        if (testClass == null) {
+            logger.error("{} FAILED", testDescription);
+        } else {
+            logger.info("{} FAILED", testDescription);
+            if (failedClasses.add(testClass)) {
+                logger.error("Test {} FAILED", testClass);
+            }
+        }
+    }
+
+    private String toString(TestDescriptor testDescriptor) {
+        return StringUtils.capitalize(testDescriptor.toString());
     }
 }

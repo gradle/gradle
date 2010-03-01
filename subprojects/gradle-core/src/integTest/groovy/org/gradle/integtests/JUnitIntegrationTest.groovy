@@ -15,8 +15,6 @@
  */
 
 
-
-
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -106,7 +104,7 @@ public class JUnitIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.BrokenTest')
         result.assertTestFailed('org.gradle.BrokenTest', 'broken')
 
-        assertThat(failure.getError(), containsLine('Test broken(org.gradle.BrokenTest) FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenTest FAILED'));
     }
 
     @Test

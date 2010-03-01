@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -68,7 +68,12 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public void executesMultiProjectsTasksInASingleBuildAndEachTaskAtMostOnce() {
         testFile("settings.gradle").writelns("include 'child1', 'child2'");
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("task a", "allprojects {", "    task b", "    task c(dependsOn: ['b', ':a'])", "}");
+        buildFile.writelns(
+                "task a",
+                "allprojects {",
+                "    task b",
+                "    task c(dependsOn: ['b', ':a'])",
+                "}");
         usingBuildFile(buildFile).withTasks("a", "c").run().assertTasksExecuted(":a", ":b", ":c", ":child1:b",
                 ":child1:c", ":child2:b", ":child2:c");
         usingBuildFile(buildFile).withTasks("b", ":child2:c").run().assertTasksExecuted(":b", ":child1:b", ":child2:b",

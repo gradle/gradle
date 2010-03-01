@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.tasks.testing.TestDescriptor
@@ -23,6 +25,8 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.runner.RunWith
 import org.slf4j.Logger
+import org.junit.Test
+import org.junit.Before
 
 @RunWith(JMock.class)
 public class TestSummaryListenerTest {
@@ -30,7 +34,14 @@ public class TestSummaryListenerTest {
     private final Logger logger = context.mock(Logger.class)
     private final TestSummaryListener listener = new TestSummaryListener(logger)
 
-    @org.junit.Test
+    @Before
+    public void setup() {
+        context.checking {
+            ignoring(logger).debug(withParam(anything()), (Object) withParam(anything()))
+        }
+    }
+
+    @Test
     public void logsSuccessfulTests() {
         context.checking {
             one(logger).info('{} PASSED', '<test>')
@@ -38,7 +49,7 @@ public class TestSummaryListenerTest {
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SUCCESS))
     }
 
-    @org.junit.Test
+    @Test
     public void logsSkippedTests() {
         context.checking {
             one(logger).info('{} SKIPPED', '<test>')
@@ -46,20 +57,70 @@ public class TestSummaryListenerTest {
         listener.afterTest(test('<test>'), result(TestResult.ResultType.SKIPPED))
     }
 
-    @org.junit.Test
+    @Test
     public void logsFailedTestExecution() {
+        context.checking {
+            one(logger).info('{} FAILED', '<test>')
+            one(logger).error('Test {} FAILED', '<class>')
+        }
+        listener.afterTest(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE))
+    }
+
+    @Test
+    public void logsFailedTestExecutionWhenTestHasNoClass() {
         context.checking {
             one(logger).error('{} FAILED', '<test>')
         }
         listener.afterTest(test('<test>'), result(TestResult.ResultType.FAILURE))
     }
 
-    private TestResult result(TestResult.ResultType type) {
-        return {-> type} as TestResult
+    @Test
+    public void logsFailedSuiteExecution() {
+        context.checking {
+            one(logger).info('{} FAILED', '<test>')
+            one(logger).error('Test {} FAILED', '<class>')
+        }
+        listener.afterSuite(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE, new RuntimeException()))
     }
 
-    private TestDescriptor test(String name) {
-        return [toString: {-> name}] as TestDescriptor
+    @Test
+    public void logsFailedSuiteExecutionWhenSuiteHasNoClass() {
+        context.checking {
+            one(logger).error('{} FAILED', '<test>')
+        }
+        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, new RuntimeException()))
+    }
+
+    @Test
+    public void logsFailedSuiteExecutionWhenSuiteHasNoException() {
+        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE))
+    }
+
+    @Test
+    public void doesNotLogFailedClassMoreThanOnce() {
+        context.checking {
+            ignoring(logger).info(withParam(anything()), (Object) withParam(anything()))
+            one(logger).error('Test {} FAILED', '<class>')
+        }
+        listener.afterTest(test('<test1>', '<class>'), result(TestResult.ResultType.FAILURE))
+        listener.afterTest(test('<test2>', '<class>'), result(TestResult.ResultType.FAILURE))
+        listener.afterSuite(test('<test3>', '<class>'), result(TestResult.ResultType.FAILURE))
+    }
+
+    @Test
+    public void logsSummaryOnCompletionOfRootSuite() {
+        context.checking {
+            one(logger).error('{} out of {} tests failed.', 3L, 5L)
+        }
+        listener.afterSuite(test('<test>', null, null), result(TestResult.ResultType.FAILURE, null, 3, 5))
+    }
+
+    private TestResult result(TestResult.ResultType type, Throwable failure = null, long failures = 0, long total = 0) {
+        return [getResultType: {-> type}, getException: {-> failure}, getTestCount: {-> total}, getFailedTestCount: {-> failures}] as TestResult
+    }
+
+    private TestDescriptor test(String name, String className = null, TestDescriptor parent = [:] as TestDescriptor) {
+        return [toString: {-> name}, getClassName: {-> className}, getParent: {-> parent}] as TestDescriptor
     }
 }
 

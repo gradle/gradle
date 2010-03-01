@@ -27,7 +27,6 @@ import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
-import org.gradle.process.WorkerProcessBuilder;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -73,7 +72,6 @@ public class TestTest extends AbstractConventionTaskTest {
     TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
     Runnable testClassScannerMock = context.mock(Runnable.class);
     WorkerTestClassProcessorFactory testProcessorFactoryMock = context.mock(WorkerTestClassProcessorFactory.class);
-    org.gradle.api.Action<WorkerProcessBuilder> workerConfigurationActionMock = context.mock(org.gradle.api.Action.class);
 
     private FileCollection classpathMock = context.mock(FileCollection.class);
     private Test test;
@@ -217,10 +215,15 @@ public class TestTest extends AbstractConventionTaskTest {
             final TestResult result = context.mock(TestResult.class);
             allowing(result).getResultType();
             will(returnValue(TestResult.ResultType.FAILURE));
+            ignoring(result);
 
             final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
             allowing(testDescriptor).getName();
             will(returnValue("test"));
+            allowing(testDescriptor).getParent();
+            will(returnValue(null));
+
+            ignoring(testDescriptor);
 
             one(testClassScannerMock).run();
             will(new Action() {
@@ -229,7 +232,7 @@ public class TestTest extends AbstractConventionTaskTest {
                 }
 
                 public Object invoke(Invocation invocation) throws Throwable {
-                    TestTest.this.test.getTestListenerBroadcaster().getSource().afterTest(testDescriptor, result);
+                    TestTest.this.test.getTestListenerBroadcaster().getSource().afterSuite(testDescriptor, result);
                     return null;
                 }
             });

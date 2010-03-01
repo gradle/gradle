@@ -16,39 +16,27 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import java.util.LinkedList;
-
-public class AttachParentTestResultProcessor implements TestResultProcessor {
+public class LoggingResultProcessor implements TestResultProcessor {
+    private final String prefix;
     private final TestResultProcessor processor;
-    private final LinkedList<Object> suiteStack = new LinkedList<Object>();
 
-    public AttachParentTestResultProcessor(TestResultProcessor processor) {
+    public LoggingResultProcessor(String prefix, TestResultProcessor processor) {
+        this.prefix = prefix;
         this.processor = processor;
     }
 
     public void started(TestDescriptorInternal test, TestStartEvent event) {
-        if (event.getParentId() == null && !suiteStack.isEmpty()) {
-            event.setParentId(suiteStack.getFirst());
-        }
-        if (test.isComposite()) {
-            if (suiteStack.contains(test.getId())) {
-                throw new IllegalArgumentException(String.format("Multiple start events received for test with id '%s'.", test.getId()));
-            }
-            suiteStack.addFirst(test.getId());
-        }
+        System.out.println(String.format("%s START %s %s", prefix, test.getId(), test));
         processor.started(test, event);
     }
 
     public void addFailure(Object testId, Throwable result) {
+        System.out.println(String.format("%s FAILED %s %s", prefix, testId, result));
         processor.addFailure(testId, result);
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        int pos = suiteStack.indexOf(testId);
-        if (pos >= 0) {
-            // Implicitly stop everything up to the given test
-            suiteStack.subList(0, pos + 1).clear();
-        }
+        System.out.println(String.format("%s COMPLETED %s %s", prefix, testId, event.getFailure()));
         processor.completed(testId, event);
     }
 }
