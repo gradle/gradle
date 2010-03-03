@@ -8,8 +8,8 @@ gradle.taskGraph.beforeTask { Task task ->
     println "executing $task ..."
 }
 
-gradle.taskGraph.afterTask { Task task, TaskExecutionResult result ->
-    if (result.failure) {
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+    if (state.failure) {
         println "FAILED"
     }
     else {

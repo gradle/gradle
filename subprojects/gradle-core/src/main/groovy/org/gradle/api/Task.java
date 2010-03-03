@@ -252,8 +252,8 @@ public interface Task extends Comparable<Task> {
     void setOnlyIf(Spec<? super Task> onlyIfSpec);
 
     /**
-     * Returns the execution state of this task. This provides information about the execution state of this task, such
-     * as whether it has executed, been skipped, has failed, etc.
+     * Returns the execution state of this task. This provides information about the execution of this task, such as
+     * whether it has executed, been skipped, has failed, etc.
      *
      * @return The execution state of this task. Never returns null.
      */
@@ -267,13 +267,6 @@ public interface Task extends Comparable<Task> {
      * @return true if this task did any work
      */
     boolean getDidWork();
-
-    /**
-     * <p>Returns true if this task has been executed.</p>
-     *
-     * @return true if this task has been executed already, false otherwise.
-     */
-    boolean getExecuted();
 
     /**
      * <p>Returns the path of the task, which is a fully qualified name for the task. The path of a task is the path of

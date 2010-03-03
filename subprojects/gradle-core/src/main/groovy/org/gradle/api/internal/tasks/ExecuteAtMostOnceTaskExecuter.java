@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.configuration;
 
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectStateInternal;
+package org.gradle.api.internal.tasks;
 
-public interface ProjectEvaluator {
-    void evaluate(ProjectInternal project, ProjectStateInternal state);
+import org.gradle.api.internal.TaskInternal;
+
+public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
+    private final TaskExecuter executer;
+
+    public ExecuteAtMostOnceTaskExecuter(TaskExecuter executer) {
+        this.executer = executer;
+    }
+
+    public void execute(TaskInternal task, TaskStateInternal state) {
+        if (state.getExecuted()) {
+            return;
+        }
+        executer.execute(task, state);
+    }
 }

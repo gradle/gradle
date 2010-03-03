@@ -25,9 +25,9 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.hamcrest.Matcher;
@@ -185,11 +185,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             current = task;
         }
 
-        public void afterExecute(Task task, TaskExecutionResult result) {
+        public void afterExecute(Task task, TaskState state) {
             assertThat(task, sameInstance(current));
             current = null;
             executedTasks.add(task.getPath());
-            if (result.getSkipMessage() != null) {
+            if (state.getSkipMessage() != null) {
                 skippedTasks.add(task.getPath());
             }
         }

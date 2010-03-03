@@ -17,8 +17,8 @@ package org.gradle.api;
 
 /**
  * <p>An {@code ProjectEvaluationListener} is notified when a project is evaluated. You add can add an {@code
- * ProjectEvaluationListener} to a {@link org.gradle.api.invocation.Gradle} using
- * {@link org.gradle.api.invocation.Gradle#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
+ * ProjectEvaluationListener} to a {@link org.gradle.api.invocation.Gradle} using {@link
+ * org.gradle.api.invocation.Gradle#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
  *
  * @author Hans Dockter
  */
@@ -35,7 +35,8 @@ public interface ProjectEvaluationListener {
      * other projects.</p>
      *
      * @param project The project which was evaluated. Never null.
-     * @param failure The evaluation failure, if any.
+     * @param state The project evaluation state. If project evaluation failed, the exception is available in this
+     * state. Never null.
      */
-    void afterEvaluate(Project project, Throwable failure);
+    void afterEvaluate(Project project, ProjectState state);
 }

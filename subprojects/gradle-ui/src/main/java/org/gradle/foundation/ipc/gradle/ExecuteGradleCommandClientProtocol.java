@@ -21,12 +21,12 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.foundation.ipc.basic.ClientProcess;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.Server;
@@ -179,7 +179,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
           client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, new Float(percentComplete));
         }
 
-       public void afterExecute(Task task, TaskExecutionResult result) {
+       public void afterExecute(Task task, TaskState state) {
           totalTasksExecuted++;
           percentComplete = (totalTasksExecuted / totalTasksToExecute) * 100;
           String currentTaskName = task.getProject().getName() + ":" + task.getName();

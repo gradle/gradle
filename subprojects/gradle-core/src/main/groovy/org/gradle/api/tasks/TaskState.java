@@ -16,19 +16,29 @@
 
 package org.gradle.api.tasks;
 
-import org.gradle.api.execution.TaskExecutionResult;
-
 /**
  * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}. You can obtain a
  * {@code TaskState} instance by calling {@link org.gradle.api.Task#getState()}.
  */
-public interface TaskState extends TaskExecutionResult {
+public interface TaskState {
     /**
      * <p>Returns true if this task has been executed.</p>
      *
      * @return true if this task has been executed.
      */
     boolean getExecuted();
+
+    /**
+     * Returns the exception describing the task failure, if any.
+     *
+     * @return The exception, or null if the task did not fail.
+     */
+    Throwable getFailure();
+
+    /**
+     * Throws the task failure, if any. Does nothing if the task did not fail.
+     */
+    void rethrowFailure();
 
     /**
      * <p>Checks if the task actually did any work.  Even if a task executes, it may determine that it has nothing to
@@ -45,4 +55,11 @@ public interface TaskState extends TaskExecutionResult {
      * @return true if this task has been executed and skipped.
      */
     boolean getSkipped();
+
+    /**
+     * Returns a message describing why the task was skipped.
+     *
+     * @return the mesages. returns null if the task was not skipped.
+     */
+    String getSkipMessage();
 }

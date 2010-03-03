@@ -1254,4 +1254,12 @@ public interface Project extends Comparable<Project> {
      * @param options The options to use to configure the {@code ObjectConfigurationAction}.
      */
     void apply(Map<String, ?> options);
+
+    /**
+     * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
+     * project, such as whether it has failed.
+     *
+     * @return the project state. Never returns null.
+     */
+    ProjectState getState();
 }

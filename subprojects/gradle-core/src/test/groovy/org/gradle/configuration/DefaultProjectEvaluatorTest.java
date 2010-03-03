@@ -17,7 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
@@ -36,7 +36,7 @@ public class DefaultProjectEvaluatorTest {
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ProjectEvaluationListener listener = context.mock(ProjectEvaluationListener.class);
     private final ProjectEvaluator delegate = context.mock(ProjectEvaluator.class, "delegate");
-    private final ProjectState state = context.mock(ProjectState.class);
+    private final ProjectStateInternal state = context.mock(ProjectStateInternal.class);
     private final DefaultProjectEvaluator evaluator = new DefaultProjectEvaluator(delegate);
 
     @Before
@@ -80,10 +80,7 @@ public class DefaultProjectEvaluatorTest {
             one(state).executed();
             inSequence(sequence);
 
-            one(state).getFailure();
-            will(returnValue(null));
-
-            one(listener).afterEvaluate(project, null);
+            one(listener).afterEvaluate(project, state);
             inSequence(sequence);
         }});
 
@@ -115,11 +112,8 @@ public class DefaultProjectEvaluatorTest {
 
             one(state).executed();
             inSequence(sequence);
-
-            one(state).getFailure();
-            will(returnValue(null));
             
-            one(listener).afterEvaluate(project, null);
+            one(listener).afterEvaluate(project, state);
             inSequence(sequence);
         }});
 

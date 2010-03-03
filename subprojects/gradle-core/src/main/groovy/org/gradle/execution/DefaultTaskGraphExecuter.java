@@ -155,9 +155,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     private void doExecute(Iterable<? extends Task> tasks) {
         for (Task task : tasks) {
-            if (!task.getExecuted()) {
-                executeTask(task);
-            }
+            executeTask(task);
         }
     }
 

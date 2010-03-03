@@ -92,7 +92,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Set<Project> dependsOnProjects = new HashSet<Project>();
 
-    private ProjectState state;
+    private ProjectStateInternal state;
 
     private FileResolver fileResolver;
     private FileOperations fileOperations;
@@ -155,7 +155,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
-        this.state = new ProjectState();
+        this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
 
@@ -321,7 +321,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return dynamicObjectHelper.getAdditionalProperties();
     }
 
-    public ProjectState getState() {
+    public ProjectStateInternal getState() {
         return state;
     }
 

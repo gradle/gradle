@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
@@ -29,18 +28,6 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
     private static final Logger LOGGER = LoggerFactory.getLogger(ExecutionShortCircuitTaskExecuter.class);
     private final TaskExecuter executer;
     private final TaskArtifactStateRepository repository;
-    private static final TaskExecutionResult UP_TO_DATE_RESULT = new TaskExecutionResult() {
-        public Throwable getFailure() {
-            return null;
-        }
-
-        public void rethrowFailure() {
-        }
-
-        public String getSkipMessage() {
-            return "UP-TO-DATE";
-        }
-    };
 
     public ExecutionShortCircuitTaskExecuter(TaskExecuter executer, TaskArtifactStateRepository repository) {
         this.executer = executer;

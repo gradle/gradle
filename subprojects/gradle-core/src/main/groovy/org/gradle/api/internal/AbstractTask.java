@@ -189,10 +189,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return onlyIfSpec;
     }
 
-    public boolean getExecuted() {
-        return state.getExecuted();
-    }
-
     public boolean getDidWork() {
         return state.getDidWork();
     }

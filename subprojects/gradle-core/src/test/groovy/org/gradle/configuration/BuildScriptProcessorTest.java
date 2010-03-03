@@ -16,7 +16,7 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -33,7 +33,7 @@ public class BuildScriptProcessorTest {
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final ScriptPluginFactory configurerFactory = context.mock(ScriptPluginFactory.class);
     private final ScriptPlugin scriptPlugin = context.mock(ScriptPlugin.class);
-    private final ProjectState state = context.mock(ProjectState.class);
+    private final ProjectStateInternal state = context.mock(ProjectStateInternal.class);
     private final BuildScriptProcessor evaluator = new BuildScriptProcessor(configurerFactory);
 
     @Before

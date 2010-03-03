@@ -17,7 +17,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectStateInternal;
 
 public class DefaultProjectEvaluator implements ProjectEvaluator {
     private final ProjectEvaluator evaluator;
@@ -26,7 +26,7 @@ public class DefaultProjectEvaluator implements ProjectEvaluator {
         this.evaluator = evaluator;
     }
 
-    public void evaluate(ProjectInternal project, ProjectState state) {
+    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
         if (state.getExecuted()) {
             return;
         }
@@ -39,7 +39,7 @@ public class DefaultProjectEvaluator implements ProjectEvaluator {
         } finally {
             state.setExecuting(false);
             state.executed();
-            listener.afterEvaluate(project, state.getFailure());
+            listener.afterEvaluate(project, state);
         }
     }
 }

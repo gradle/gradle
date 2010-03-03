@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,28 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.execution;
+
+package org.gradle.api;
 
 /**
- * A {@code TaskExecutionResult} contains the result of executing a task.
+ * {@code ProjectState} provides information about the execution state of a project.
  */
-public interface TaskExecutionResult {
+public interface ProjectState {
     /**
-     * Returns the exception describing the task failure, if any.
+     * <p>Returns true if this project has been evaluated.</p>
      *
-     * @return The exception, or null if the task did not fail.
+     * @return true if this project has been evaluated.
+     */
+    boolean getExecuted();
+
+    /**
+     * Returns the exception describing the project failure, if any.
+     *
+     * @return The exception, or null if project evaluation did not fail.
      */
     Throwable getFailure();
 
     /**
-     * Throws the task failure, if any. Does nothing if the task did not fail.
+     * Throws the project failure, if any. Does nothing if the project did not fail.
      */
     void rethrowFailure();
-
-    /**
-     * Returns a message describing why the task was skipped.
-     *
-     * @return the mesages. returns null if the task was not skipped.
-     */
-    String getSkipMessage();
 }
