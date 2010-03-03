@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.execution;
+
+package org.gradle.api.tasks;
 
 /**
- * A {@code TaskExecutionResult} contains the result of executing a task.
+ * {@code TaskState} provides information about the execution state of a {@link org.gradle.api.Task}. You can obtain a
+ * {@code TaskState} instance by calling {@link org.gradle.api.Task#getState()}.
  */
-public interface TaskExecutionResult {
+public interface TaskState {
+    /**
+     * <p>Returns true if this task has been executed.</p>
+     *
+     * @return true if this task has been executed.
+     */
+    boolean getExecuted();
+
     /**
      * Returns the exception describing the task failure, if any.
      *
@@ -30,6 +39,22 @@ public interface TaskExecutionResult {
      * Throws the task failure, if any. Does nothing if the task did not fail.
      */
     void rethrowFailure();
+
+    /**
+     * <p>Checks if the task actually did any work.  Even if a task executes, it may determine that it has nothing to
+     * do.  For example, the Compile task may determine that source files have not changed since the last time a the
+     * task was run.</p>
+     *
+     * @return true if this task has been executed and did any work.
+     */
+    boolean getDidWork();
+
+    /**
+     * Returns true if the execution of this task was skipped for some reason.
+     *
+     * @return true if this task has been executed and skipped.
+     */
+    boolean getSkipped();
 
     /**
      * Returns a message describing why the task was skipped.

@@ -14,25 +14,27 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.initialization
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.api.invocation.Gradle
+import org.gradle.api.plugins.Convention
+import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
+import org.jmock.api.Action
 import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.*
-import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import org.jmock.api.Action
-import org.gradle.api.plugins.Convention
-import org.gradle.api.internal.plugins.EmbeddableJavaProject
-import org.gradle.groovy.scripts.StringScriptSource
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -144,11 +146,15 @@ class BuildSourceBuilderTest {
     }
 
     @Test public void testCreateDependencyWithNonExistingBuildScript() {
-        StartParameter modifiedStartParameter = this.expectedStartParameter.newInstance()
-        modifiedStartParameter.setBuildScriptSource(new StringScriptSource("default buildSrc build script", BuildSourceBuilder.getDefaultScript()))
         context.checking {
             allowing(cacheInvalidationStrategyMock).isValid(expectedArtifactPath as File, testBuildSrcDir); will(returnValue(false))
-            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
+            one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()))
+            will { StartParameter param ->
+                assertThat(param.buildScriptSource, instanceOf(StringScriptSource.class))
+                assertThat(param.buildScriptSource.displayName, equalTo('default buildSrc build script'))
+                assertThat(param.buildScriptSource.resource.text, equalTo(BuildSourceBuilder.defaultScript))
+                return gradleMock
+            }
             one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
             one(gradleMock).run(); will(returnValue(expectedBuildResult))
         }

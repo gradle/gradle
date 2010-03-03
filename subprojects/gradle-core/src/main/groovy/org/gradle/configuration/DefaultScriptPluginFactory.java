@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -89,14 +89,14 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 scriptAware.beforeCompile(this);
             }
             ScriptClassLoaderProvider classLoaderProvider = this.classLoaderProvider;
+            ScriptSource withImports = importsReader.withImports(scriptSource, null);
 
             if (classLoaderProvider == null) {
-                ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(classLoader);
+                ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(withImports, classLoader);
                 services.add(ScriptHandlerInternal.class, defaultScriptHandler);
                 classLoaderProvider = defaultScriptHandler;
             }
             
-            ScriptSource withImports = importsReader.withImports(scriptSource, null);
             ScriptCompiler compiler = scriptCompilerFactory.createCompiler(withImports);
 
             compiler.setClassloader(classLoaderProvider.getClassLoader());

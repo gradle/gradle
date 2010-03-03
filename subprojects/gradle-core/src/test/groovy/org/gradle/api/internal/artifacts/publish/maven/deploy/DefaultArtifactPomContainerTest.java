@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
-import org.gradle.api.internal.artifacts.publish.maven.PomFileWriter;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -55,7 +54,6 @@ public class DefaultArtifactPomContainerTest {
     private ArtifactPom artifactPomMock;
     private MavenPom mavenPomMock;
     private MavenPom mavenTemplatePomMock;
-    private PomFileWriter pomFileWriterMock;
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
@@ -73,7 +71,6 @@ public class DefaultArtifactPomContainerTest {
         expectedArtifact = createTestArtifact("someName");
         pomFilterContainerMock = context.mock(PomFilterContainer.class);
         pomFilterMock = context.mock(PomFilter.class);
-        pomFileWriterMock = context.mock(PomFileWriter.class);
         artifactPomMock = context.mock(ArtifactPom.class);
         artifactPomFactoryMock = context.mock(ArtifactPomFactory.class);
         publishFilterMock = context.mock(PublishFilter.class);
@@ -82,7 +79,7 @@ public class DefaultArtifactPomContainerTest {
         metaInfoProviderMock = context.mock(MavenPomMetaInfoProvider.class);
 
         artifactPomContainer = new DefaultArtifactPomContainer(metaInfoProviderMock, pomFilterContainerMock,
-                pomFileWriterMock, artifactPomFactoryMock);
+                artifactPomFactoryMock);
     }
 
     @Test
@@ -99,7 +96,7 @@ public class DefaultArtifactPomContainerTest {
             allowing(artifactPomMock).getArtifactFile(); will(returnValue(expectedFile));
             allowing(artifactPomMock).getClassifiers(); will(returnValue(new HashSet<ClassifierArtifact>()));
             allowing(metaInfoProviderMock).getMavenPomDir(); will(returnValue(TEST_POM_DIR));
-            one(pomFileWriterMock).write(with(same(mavenPomMock)), with(same(testConfigurations)), with(equal(expectedPomFile)));
+            one(artifactPomMock).writePom(with(same(testConfigurations)), with(equal(expectedPomFile)));
         }});
         artifactPomContainer.addArtifact(expectedArtifact, expectedFile);
         Set<DeployableFilesInfo> deployableFilesInfos = artifactPomContainer.createDeployableFilesInfos(testConfigurations);

@@ -44,11 +44,10 @@ public class DefaultTestResult implements TestResult, Serializable {
     }
 
     public Throwable getException() {
-        if (error != null) {
-            return error;
+        if (result != ResultType.FAILURE) {
+            throw new IllegalStateException("No exception to return");
         }
-
-        throw new IllegalStateException("No exception to return");
+        return error;
     }
 
     public long getStartTime() {

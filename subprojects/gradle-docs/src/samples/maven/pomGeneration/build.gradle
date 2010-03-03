@@ -73,11 +73,14 @@ uploadArchives {
 
 installer = install.repositories.mavenInstaller
 
-[installer, deployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
 if (hasProperty('customVersion')) {
     [installer, deployer]*.pom*.version = customVersion
     installer.pom.groupId = 'installGroup'
     deployer.pom.groupId = 'deployGroup'
+}
+
+[installer, deployer]*.pom*.whenConfigured { pom ->
+   pom.dependencies.find { dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
 }
 
 // For our integration tests

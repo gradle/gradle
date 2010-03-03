@@ -292,12 +292,8 @@ public class Test extends AbstractTestTask implements JavaForkOptions {
             }
         };
 
-        TestClassProcessor processor;
-        if (getForkEvery() != null) {
-            processor = new RestartEveryNTestClassProcessor(processorFactory, getForkEvery());
-        } else {
-            processor = processorFactory.create();
-        }
+        Long forkEvery = getForkEvery();
+        TestClassProcessor processor = new RestartEveryNTestClassProcessor(processorFactory, forkEvery == null ? 0 : forkEvery);
 
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);

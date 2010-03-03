@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,16 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import groovy.lang.Closure;
 
+import java.io.File;
+import java.net.URI;
+
 /**
  * <p>A {@code ScriptHandler} allows you to manage the compilation and execution of a build script. You can declare the
  * classpath used to compile and execute a build script. This classpath is also used to load the plugins which the build
- * script uses. You can obtain a {@code ScriptHandler} instance using {@link org.gradle.api.Project#getBuildscript()}.
- * </p>
+ * script uses.</p>
+ *
+ * <p>You can obtain a {@code ScriptHandler} instance using {@link org.gradle.api.Project#getBuildscript()} or {@link
+ * org.gradle.api.Script#getBuildscript()}.</p>
  *
  * <p>To declare the script classpath, you use the {@link org.gradle.api.artifacts.dsl.DependencyHandler} provided by
  * {@link #getDependencies()} to attach dependencies to the {@value #CLASSPATH_CONFIGURATION} configuration. These
@@ -39,6 +44,20 @@ public interface ScriptHandler {
      * The name of the configuration used to assemble the script classpath.
      */
     String CLASSPATH_CONFIGURATION = "classpath";
+
+    /**
+     * Returns the file containing the source for the script, if any.
+     *
+     * @return The source file. Returns null if the script source is not a file.
+     */
+    File getSourceFile();
+
+    /**
+     * Returns the URI for the script source, if any.
+     *
+     * @return The source URI. Returns null if the script source has no URI.
+     */
+    URI getSourceURI();
 
     /**
      * Returns a handler to create repositories which are used for retrieving dependencies for the script classpath.

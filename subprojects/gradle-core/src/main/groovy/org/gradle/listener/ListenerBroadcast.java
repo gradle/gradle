@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.listener;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.messaging.dispatch.BroadcastDispatch;
 import org.gradle.messaging.dispatch.StoppableDispatch;
@@ -106,6 +108,13 @@ public class ListenerBroadcast<T> implements StoppableDispatch<MethodInvocation>
      */
     public void add(String methodName, Closure closure) {
         broadcast.add(methodName, closure);
+    }
+
+    /**
+     * Adds an action to be executed when the given method is called.
+     */
+    public void add(String methodName, Action<?> action) {
+        broadcast.add(methodName, action);
     }
 
     /**

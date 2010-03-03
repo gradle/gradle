@@ -16,25 +16,24 @@
 
 package org.gradle.execution;
 
-import org.gradle.api.*;
+import org.gradle.api.Action;
+import org.gradle.api.CircularReferenceException;
+import org.gradle.api.DefaultTask;
+import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskExecutionException;
-import org.gradle.listener.ListenerManager;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.listener.ListenerBroadcast;
-import static org.gradle.util.HelperUtil.*;
+import org.gradle.listener.ListenerManager;
 import org.gradle.util.TestClosure;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -43,6 +42,11 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.HelperUtil.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -280,9 +284,9 @@ public class DefaultTaskGraphExecuterTest {
 
         context.checking(new Expectations() {{
             one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(equalTo(a)), with(notNullValue(TaskExecutionResult.class)));
+            one(listener).afterExecute(with(equalTo(a)), with(notNullValue(TaskState.class)));
             one(listener).beforeExecute(b);
-            one(listener).afterExecute(with(equalTo(b)), with(notNullValue(TaskExecutionResult.class)));
+            one(listener).afterExecute(with(equalTo(b)), with(notNullValue(TaskState.class)));
         }});
 
         taskExecuter.execute();
@@ -304,7 +308,7 @@ public class DefaultTaskGraphExecuterTest {
 
         context.checking(new Expectations() {{
             one(listener).beforeExecute(a);
-            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(TaskExecutionResult.class)));
+            one(listener).afterExecute(with(sameInstance(a)), with(notNullValue(TaskState.class)));
         }});
 
         try {

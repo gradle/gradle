@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,37 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks;
 
-import org.gradle.api.execution.TaskExecutionResult;
-import org.gradle.api.Task;
+package org.gradle.api.internal.project;
+
 import org.gradle.api.GradleException;
+import org.gradle.api.ProjectState;
 
-class DefaultTaskExecutionResult implements TaskExecutionResult {
-    private final Task task;
-    private final Throwable failure;
-    private final String skipMessage;
+public class ProjectStateInternal implements ProjectState {
+    private boolean executing;
+    private boolean executed;
+    private Throwable failure;
 
-    public DefaultTaskExecutionResult(Task task, Throwable failure, String skipMessage) {
-        this.task = task;
+    public boolean getExecuted() {
+        return executed;
+    }
+
+    public void executed() {
+        executed = true;
+    }
+
+    public void executed(Throwable failure) {
+        assert this.failure == null;
         this.failure = failure;
-        this.skipMessage = skipMessage;
+        executed = true;
+    }
+
+    public boolean getExecuting() {
+        return executing;
+    }
+
+    public void setExecuting(boolean executing) {
+        this.executing = executing;
     }
 
     public Throwable getFailure() {
@@ -41,10 +57,6 @@ class DefaultTaskExecutionResult implements TaskExecutionResult {
         if (failure instanceof RuntimeException) {
             throw (RuntimeException) failure;
         }
-        throw new GradleException(String.format("Task %s failed with an exception.", task), failure);
-    }
-
-    public String getSkipMessage() {
-        return skipMessage;
+        throw new GradleException(failure);
     }
 }

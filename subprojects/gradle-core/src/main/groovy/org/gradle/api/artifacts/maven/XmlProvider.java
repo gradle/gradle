@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven;
-
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.MavenPom;
-
-import java.io.File;
-import java.util.Set;
+package org.gradle.api.artifacts.maven;
 
 /**
  * @author Hans Dockter
  */
-public interface PomFileWriter {
-    void write(MavenPom pom, Set<Configuration> configurations, File output);
+public interface XmlProvider {
+    /**
+     * Returns the xml in form of a StringBuilder. Changes to the StringBuilder instance will be applied against the XML.
+     *
+     * @return A StringBuilder representation of the XML
+     */
+    StringBuilder asString();
 }

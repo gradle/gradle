@@ -31,6 +31,4 @@ public interface PomFilter {
     MavenPom getPomTemplate();
 
     void setPomTemplate(MavenPom pom);
-
-    PomFilter copy();
 }

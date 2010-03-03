@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -156,17 +155,17 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
 
     private void doExecute(Iterable<? extends Task> tasks) {
         for (Task task : tasks) {
-            if (!task.getExecuted()) {
-                executeTask(task);
-            }
+            executeTask(task);
         }
     }
 
     private void executeTask(Task task) {
         taskListeners.getSource().beforeExecute(task);
-        TaskExecutionResult result = ((TaskInternal) task).execute();
-        taskListeners.getSource().afterExecute(task, result);
-        result.rethrowFailure();
+        try {
+            ((TaskInternal) task).execute();
+        } finally {
+            taskListeners.getSource().afterExecute(task, task.getState());
+        }
     }
 
     public boolean hasTask(Task task) {

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.*;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.*;
 import org.gradle.util.GFileUtils;
@@ -429,7 +428,7 @@ public class StartParameter {
         } else {
             File canonicalFile = GFileUtils.canonicalise(settingsFile);
             currentDir = canonicalFile.getParentFile();
-            settingsScriptSource = new StrictScriptSource(new UriScriptSource("settings file", canonicalFile));
+            settingsScriptSource = new UriScriptSource("settings file", canonicalFile);
         }
     }
 

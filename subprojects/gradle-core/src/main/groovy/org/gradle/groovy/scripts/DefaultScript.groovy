@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.groovy.scripts
 
 import org.gradle.api.file.ConfigurableFileCollection
@@ -47,8 +49,8 @@ abstract class DefaultScript extends BasicScript {
         this.services = services
         if (target instanceof FileOperations) {
             fileOperations = target
-        } else if (scriptSource.sourceFile) {
-            fileOperations = new DefaultFileOperations(new BaseDirConverter(scriptSource.sourceFile.parentFile), null, null)
+        } else if (scriptSource.resource.file) {
+            fileOperations = new DefaultFileOperations(new BaseDirConverter(scriptSource.resource.file.parentFile), null, null)
         } else {
             fileOperations = new DefaultFileOperations(new IdentityFileResolver(), null, null)
         }

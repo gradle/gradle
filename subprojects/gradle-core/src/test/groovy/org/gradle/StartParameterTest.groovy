@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -145,7 +145,8 @@ class StartParameterTest {
         parameter.settingsFile = file
 
         assertThat(parameter.currentDir, equalTo(file.canonicalFile.parentFile))
-        assertThat(parameter.settingsScriptSource.source, reflectionEquals(new UriScriptSource("settings file", file.canonicalFile)))
+        assertThat(parameter.settingsScriptSource, instanceOf(UriScriptSource.class))
+        assertThat(parameter.settingsScriptSource.resource.file, equalTo(file.canonicalFile))
     }
 
     @Test public void testSetNullSettingsFile() {
@@ -191,8 +192,10 @@ class StartParameterTest {
     @Test public void testUseEmbeddedBuildFile() {
         StartParameter parameter = new StartParameter();
         parameter.useEmbeddedBuildFile("<content>")
-        assertThat(parameter.buildScriptSource, reflectionEquals(new StringScriptSource("embedded build file", "<content>")))
-        assertThat(parameter.settingsScriptSource, reflectionEquals(new StringScriptSource("empty settings file", "")))
+        assertThat(parameter.buildScriptSource, instanceOf(StringScriptSource.class))
+        assertThat(parameter.buildScriptSource.resource.text, equalTo("<content>"))
+        assertThat(parameter.settingsScriptSource, instanceOf(StringScriptSource.class))
+        assertThat(parameter.settingsScriptSource.resource.text, equalTo(""))
         assertThat(parameter.searchUpwards, equalTo(false))
     }
 

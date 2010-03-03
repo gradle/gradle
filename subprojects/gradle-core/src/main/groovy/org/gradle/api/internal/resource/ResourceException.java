@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
-import java.io.PrintWriter;
-import java.util.List;
+package org.gradle.api.internal.resource;
 
-/**
- * @author Hans Dockter
- */
-public interface MavenDependency {
-    String getGroupId();
+import org.gradle.api.GradleException;
 
-    String getArtifactId();
+public class ResourceException extends GradleException {
+    public ResourceException(String message) {
+        super(message);
+    }
 
-    String getVersion();
-
-    boolean isOptional();
-
-    String getType();
-
-    String getClassifier();
-
-    String getScope();
-
-    List<MavenExclude> getMavenExcludes();
-
-    void write(PrintWriter writer);
+    public ResourceException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

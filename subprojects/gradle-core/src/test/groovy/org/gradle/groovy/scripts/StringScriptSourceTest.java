@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ package org.gradle.groovy.scripts;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
+
+import org.gradle.api.internal.resource.StringResource;
 import org.junit.Test;
 
 public class StringScriptSourceTest {
@@ -25,18 +27,8 @@ public class StringScriptSourceTest {
 
     @Test
     public void usesProvidedContent() {
-        assertThat(source.getText(), equalTo("<content>"));
-    }
-
-    @Test
-    public void hasNoContentWhenScriptContentIsEmpty() {
-        StringScriptSource source = new StringScriptSource("<description>", "");
-        assertThat(source.getText(), equalTo(""));
-    }
-
-    @Test
-    public void hasNoSourceFile() {
-        assertThat(source.getSourceFile(), nullValue());
+        assertThat(source.getResource(), instanceOf(StringResource.class));
+        assertThat(source.getResource().getText(), equalTo("<content>"));
     }
 
     @Test

@@ -13,6 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+
+
 import java.text.DateFormat
 
 apply id: 'groovy'
@@ -67,10 +71,11 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
-    testCompile libraries.xmlunit
+    testCompile libraries.xmlunit, "org.spockframework:spock-core:0.4-groovy-1.7-SNAPSHOT"
 
-    runtime libraries.ant_launcher,
-            "org.apache.ant:ant-trax:1.7.0@jar"
+    runtime libraries.ant_launcher
+    // TODO - this should be in the plugins project
+    runtime "org.apache.ant:ant-trax:1.8.0@jar"
 
     integTestCompile libraries.jetty_depends
 
@@ -93,16 +98,7 @@ ide.dependsOn ideVersionProperties
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
 test {
-    xmsSize = '128m'
-    xmxSize = '512m'
-    maxPermSize = '128m'
-
-    // there must be a nicer way of doing this...
-    try { xmsSize = customXmsSize; logger.debug('Using custom Xms size: ' + xmsSize + ' for :core:test') } catch (MissingPropertyException e) { }
-    try { xmxSize = customXmxSize; logger.debug('Using custom Xmx size: ' + xmxSize + ' for :core:test') } catch (MissingPropertyException e) { }
-    try { maxPermSize = customMaxPermSize; logger.debug('Using custom MaxPermSize: ' + maxPermSize + ' for :core:test') } catch (MissingPropertyException e) { }
-
-    options.fork(jvmArgs: ["-ea", "-Xms${xmsSize}", "-Xmx${xmxSize}", "-XX:MaxPermSize=${maxPermSize}", '-XX:+HeapDumpOnOutOfMemoryError'])
+    jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
 
 class WriteVersionProperties extends DefaultTask {

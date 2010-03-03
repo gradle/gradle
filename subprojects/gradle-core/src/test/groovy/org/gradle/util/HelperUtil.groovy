@@ -14,6 +14,10 @@
  * limitations under the License.
  */
 
+
+
+
+
 package org.gradle.util
 
 import java.rmi.server.UID
@@ -99,7 +103,6 @@ class HelperUtil {
                 name,
                 parentProject,
                 projectDir ?: new File(parentProject.getProjectDir(), name),
-                parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.gradle,
                 parentProject.gradle.serviceRegistryFactory
@@ -168,7 +171,7 @@ class HelperUtil {
         configuration.setScriptBaseClass(TestScript.getName());
 
         GroovyShell shell = new GroovyShell(configuration)
-        Script script = shell.parse(source.getText())
+        Script script = shell.parse(source.resource.text)
         script.setScriptSource(source)
         return script.run()
     }

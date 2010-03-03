@@ -13,10 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.GradleException;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -29,30 +29,31 @@ public class SkipTaskExecuter implements TaskExecuter {
         this.executer = executer;
     }
 
-    public TaskExecutionResult execute(TaskInternal task, TaskState state) {
+    public void execute(TaskInternal task, TaskStateInternal state) {
         logger.debug("Starting to execute {}", task);
         try {
-            return doExecute(task, state);
+            doExecute(task, state);
         } finally {
-            state.setExecuted(true);
+            state.executed();
             logger.debug("Finished executing {}", task);
         }
     }
 
-    private TaskExecutionResult doExecute(TaskInternal task, TaskState state) {
+    private void doExecute(TaskInternal task, TaskStateInternal state) {
         boolean skip;
         try {
             skip = !task.getOnlyIf().isSatisfiedBy(task);
         } catch (Throwable t) {
-            Throwable failure = new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t);
-            return new DefaultTaskExecutionResult(task, failure, null);
+            state.executed(new GradleException(String.format("Could not evaluate onlyIf predicate for %s.", task), t));
+            return;
         }
 
         if (skip) {
             logger.info("Skipping execution as task onlyIf is false.");
-            return new DefaultTaskExecutionResult(task, null, "SKIPPED");
+            state.skipped("SKIPPED");
+            return;
         }
 
-        return executer.execute(task, state);
+        executer.execute(task, state);
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.StandardOutputRedirector;
+import org.gradle.api.internal.resource.Resource;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GUtil;
@@ -90,23 +91,28 @@ public class DefaultScriptCompilerFactoryTest {
         expectedScriptRunner = context.mock(ScriptRunner.class);
         scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, scriptRunnerFactoryMock, cacheRepositoryMock);
         source = context.mock(ScriptSource.class);
-        expectedSource = new CachingScriptSource(source);
-        String expectedHash = HashUtil.createHash(TEST_SCRIPT_TEXT);
-        expectedCacheProperties = GUtil.map("source.filename", "file-name", "source.hash", expectedHash);
 
         context.checking(new Expectations() {{
+            Resource resource = context.mock(Resource.class);
+
             allowing(source).getDisplayName();
             will(returnValue("[script source]"));
             allowing(source).getClassName();
             will(returnValue("class-name"));
             allowing(source).getFileName();
             will(returnValue("file-name"));
-            allowing(source).getText();
+            allowing(source).getResource();
+            will(returnValue(resource));
+            allowing(resource).getText();
             will(returnValue(TEST_SCRIPT_TEXT));
 
             allowing(cacheMock).getBaseDir();
             will(returnValue(cacheDir));
         }});
+
+        expectedSource = new CachingScriptSource(source);
+        String expectedHash = HashUtil.createHash(TEST_SCRIPT_TEXT);
+        expectedCacheProperties = GUtil.map("source.filename", "file-name", "source.hash", expectedHash);
 
         originalClassLoader = Thread.currentThread().getContextClassLoader();
         Thread.currentThread().setContextClassLoader(testClassLoader);

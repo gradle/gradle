@@ -17,9 +17,9 @@ package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.TaskState;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -32,7 +32,7 @@ public class TaskExecutionLoggerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Logger logger = context.mock(Logger.class);
     private final Task task = context.mock(Task.class);
-    private final TaskExecutionResult result = context.mock(TaskExecutionResult.class);
+    private final TaskState state = context.mock(TaskState.class);
     private final TaskExecutionLogger executionLogger = new TaskExecutionLogger(logger);
     private final Gradle gradle = context.mock(Gradle.class);
 
@@ -54,7 +54,7 @@ public class TaskExecutionLoggerTest {
             will(returnValue(null));
             allowing(task).getPath();
             will(returnValue(":path"));
-            allowing(result).getSkipMessage();
+            allowing(state).getSkipMessage();
             will(returnValue(null));
         }});
 
@@ -66,7 +66,7 @@ public class TaskExecutionLoggerTest {
 
         executionLogger.beforeActions(task);
         executionLogger.afterActions(task);
-        executionLogger.afterExecute(task, result);
+        executionLogger.afterExecute(task, state);
     }
 
     @Test
@@ -82,7 +82,7 @@ public class TaskExecutionLoggerTest {
             will(returnValue("build"));
             allowing(task).getPath();
             will(returnValue(":path"));
-            allowing(result).getSkipMessage();
+            allowing(state).getSkipMessage();
             will(returnValue(null));
         }});
 
@@ -94,7 +94,7 @@ public class TaskExecutionLoggerTest {
 
         executionLogger.beforeActions(task);
         executionLogger.afterActions(task);
-        executionLogger.afterExecute(task, result);
+        executionLogger.afterExecute(task, state);
     }
 
     @Test
@@ -104,7 +104,7 @@ public class TaskExecutionLoggerTest {
             will(returnValue(null));
             allowing(task).getPath();
             will(returnValue("path"));
-            allowing(result).getSkipMessage();
+            allowing(state).getSkipMessage();
             will(returnValue("skipped"));
         }});
 
@@ -114,6 +114,6 @@ public class TaskExecutionLoggerTest {
             one(logger).lifecycle("{} {}", "path", "skipped");
         }});
 
-        executionLogger.afterExecute(task, result);
+        executionLogger.afterExecute(task, state);
     }
 }

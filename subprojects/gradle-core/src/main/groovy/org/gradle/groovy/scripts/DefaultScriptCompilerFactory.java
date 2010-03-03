@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -75,7 +75,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
         private <T extends Script> T loadViaCache(ClassLoader classLoader, Class<T> scriptBaseClass) {
             Map<String, Object> properties = new HashMap<String, Object>();
             properties.put("source.filename", source.getFileName());
-            properties.put("source.hash", HashUtil.createHash(source.getText()));
+            properties.put("source.hash", HashUtil.createHash(source.getResource().getText()));
 
             PersistentCache cache = cacheRepository.getGlobalCache(String.format("scripts/%s", source.getClassName()),
                     properties);

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
@@ -63,17 +64,11 @@ public abstract class AbstractProject implements ProjectInternal {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
 
-    public enum State {
-        CREATED, INITIALIZING, INITIALIZED
-    }
-
     private final Project rootProject;
 
     private final GradleInternal gradle;
 
     private ProjectEvaluator projectEvaluator;
-
-    private File buildFile;
 
     private Script buildScript;
 
@@ -97,7 +92,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Set<Project> dependsOnProjects = new HashSet<Project>();
 
-    private State state;
+    private ProjectStateInternal state;
 
     private FileResolver fileResolver;
     private FileOperations fileOperations;
@@ -132,8 +127,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
 
-    private ListenerBroadcast<Action> afterEvaluateActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> beforeEvaluateActions = new ListenerBroadcast<Action>(Action.class);
+    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
     private StandardOutputRedirector standardOutputRedirector;
     private DynamicObjectHelper dynamicObjectHelper;
@@ -153,7 +147,6 @@ public abstract class AbstractProject implements ProjectInternal {
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
-                           File buildFile,
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
@@ -162,8 +155,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
-        this.buildFile = buildFile;
-        this.state = State.CREATED;
+        this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
 
@@ -198,6 +190,8 @@ public abstract class AbstractProject implements ProjectInternal {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
         dynamicObjectHelper.addObject(taskContainer.getAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
+
+        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
     }
 
     public RepositoryHandler createRepositoryHandler() {
@@ -246,15 +240,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File getBuildFile() {
-        return buildFile;
-    }
-
-    public void setBuildFile(File buildFile) {
-        this.buildFile = buildFile;
-    }
-
-    public Script getScript() {
-        return buildScript;
+        return getBuildscript().getSourceFile();
     }
 
     public void setScript(Script buildScript) {
@@ -335,7 +321,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return dynamicObjectHelper.getAdditionalProperties();
     }
 
-    public State getState() {
+    public ProjectStateInternal getState() {
         return state;
     }
 
@@ -504,18 +490,8 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public AbstractProject evaluate() {
-        if (state == State.INITIALIZED) {
-            return this;
-        }
-        Clock clock = new Clock();
-        logger.info(String.format("Evaluating %s using %s.", this, getBuildScriptSource().getDisplayName()));
-        beforeEvaluateActions.getSource().execute(this);
-        state = State.INITIALIZING;
-        projectEvaluator.evaluate(this);
-        logger.debug("Timing: Running the build script took " + clock.getTime());
-        state = State.INITIALIZED;
-        afterEvaluateActions.getSource().execute(this);
-        logger.debug("Timing: Project evaluation took " + clock.getTime());
+        projectEvaluator.evaluate(this, state);
+        state.rethrowFailure();
         return this;
     }
 
@@ -621,7 +597,7 @@ public abstract class AbstractProject implements ProjectInternal {
             throw new InvalidUserDataException("You must specify a project!");
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
-        if (projectToEvaluate.getState() == State.INITIALIZING) {
+        if (projectToEvaluate.getState().getExecuting()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                     projectToEvaluate));
         }
@@ -768,20 +744,24 @@ public abstract class AbstractProject implements ProjectInternal {
         this.dependencyHandler = dependencyHandler;
     }
 
+    public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
+        return evaluationListener.getSource();
+    }
+
     public void beforeEvaluate(Action<? super Project> action) {
-        beforeEvaluateActions.add(action);
+        evaluationListener.add("beforeEvaluate", action);
     }
 
     public void afterEvaluate(Action<? super Project> action) {
-        afterEvaluateActions.add(action);
+        evaluationListener.add("afterEvaluate", action);
     }
 
     public void beforeEvaluate(Closure closure) {
-        beforeEvaluateActions.add("execute", closure);
+        evaluationListener.add("beforeEvaluate", closure);
     }
 
     public void afterEvaluate(Closure closure) {
-        afterEvaluateActions.add("execute", closure);
+        evaluationListener.add("afterEvaluate", closure);
     }
 
     public Logger getLogger() {

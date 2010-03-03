@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -35,19 +34,19 @@ public class DefaultTaskExecuter implements TaskExecuter {
         this.listener = listener;
     }
 
-    public TaskExecutionResult execute(TaskInternal task, TaskState state) {
+    public void execute(TaskInternal task, TaskStateInternal state) {
         listener.beforeActions(task);
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state);
-            return new DefaultTaskExecutionResult(task, failure, null);
+            state.executed(failure);
         } finally {
             state.setExecuting(false);
             listener.afterActions(task);
         }
     }
 
-    private GradleException executeActions(TaskInternal task, TaskState state) {
+    private GradleException executeActions(TaskInternal task, TaskStateInternal state) {
         logger.debug("Executing actions for {}.", task);
         for (Action<? super Task> action : task.getActions()) {
             state.setDidWork(true);

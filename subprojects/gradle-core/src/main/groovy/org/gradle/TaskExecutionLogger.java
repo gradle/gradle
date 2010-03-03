@@ -18,10 +18,10 @@ package org.gradle;
 import org.gradle.api.Project;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.tasks.TaskState;
 
 /**
  * A listener which logs the execution of tasks.
@@ -43,9 +43,9 @@ public class TaskExecutionLogger implements TaskExecutionListener, TaskActionLis
     public void afterActions(Task task) {
     }
 
-    public void afterExecute(Task task, TaskExecutionResult result) {
-        if (result.getSkipMessage() != null) {
-            logger.lifecycle("{} {}", getDisplayName(task), result.getSkipMessage());
+    public void afterExecute(Task task, TaskState state) {
+        if (state.getSkipMessage() != null) {
+            logger.lifecycle("{} {}", getDisplayName(task), state.getSkipMessage());
         }
     }
 

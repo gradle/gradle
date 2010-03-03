@@ -15,10 +15,6 @@
  */
 
 
-
-
-
-
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
@@ -315,16 +311,16 @@ class AntJUnitTestClassProcessorTest {
     }
 
     @Test
-    public void executesATestClassWithBrokenRunner() {
+    public void executesATestClassWithRunnerThatCannotBeConstructed() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenRunner.class.name))
+                assertThat(suite.name, equalTo(ATestClassWithUnconstructableRunner.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
                 assertThat(test.name, equalTo('initializationError'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenRunner.class.name))
+                assertThat(test.className, equalTo(ATestClassWithUnconstructableRunner.class.name))
             }
             one(resultProcessor).addFailure(2L, CustomRunnerWithBrokenConstructor.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
@@ -340,7 +336,7 @@ class AntJUnitTestClassProcessorTest {
         }
 
         processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestClassWithBrokenRunner.class));
+        processor.processTestClass(testClass(ATestClassWithUnconstructableRunner.class));
         processor.endProcessing();
     }
 
@@ -403,7 +399,7 @@ public static class ATestClassWithBrokenConstructor {
     static RuntimeException failure = new RuntimeException()
 
     def ATestClassWithBrokenConstructor() {
-        throw failure
+        throw failure.fillInStackTrace()
     }
 
     @Test
@@ -416,7 +412,7 @@ public static class ATestClassWithBrokenSetup {
 
     @Before
     public void setup() {
-        throw failure
+        throw failure.fillInStackTrace()
     }
 
     @Test
@@ -461,20 +457,20 @@ public static class CustomRunner extends Runner {
         Description test2 = Description.createTestDescription(type, 'ok')
         runNotifier.fireTestStarted(test1)
         runNotifier.fireTestStarted(test2)
-        runNotifier.fireTestFailure(new Failure(test1, failure))
+        runNotifier.fireTestFailure(new Failure(test1, failure.fillInStackTrace()))
         runNotifier.fireTestFinished(test2)
         runNotifier.fireTestFinished(test1)
     }
 }
 
 @RunWith(CustomRunnerWithBrokenConstructor.class)
-public static class ATestClassWithBrokenRunner {}
+public static class ATestClassWithUnconstructableRunner {}
 
 public static class CustomRunnerWithBrokenConstructor extends Runner {
     static RuntimeException failure = new RuntimeException()
 
     def CustomRunnerWithBrokenConstructor(Class<?> type) {
-        throw failure
+        throw failure.fillInStackTrace()
     }
 
     Description getDescription() {

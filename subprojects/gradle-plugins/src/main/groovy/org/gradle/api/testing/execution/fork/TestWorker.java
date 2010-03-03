@@ -53,15 +53,11 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
 
-        IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(),
-                new LongIdGenerator());
+        IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
         TestClassProcessor targetProcessor = factory.create(idGenerator);
-        targetProcessor = new WorkerTestClassProcessor(targetProcessor,
-                idGenerator.generateId(), workerProcessContext.getDisplayName(), new TrueTimeProvider());
-        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
-                TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
+        targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(), workerProcessContext.getDisplayName(), new TrueTimeProvider());
+        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
-
 
         TestResultProcessor resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         resultProcessor = new AttachParentTestResultProcessor(resultProcessor);

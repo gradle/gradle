@@ -28,7 +28,7 @@ import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFacto
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskState;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
@@ -189,7 +189,7 @@ public abstract class AbstractTaskTest {
         task.setExecuter(executer);
 
         context.checking(new Expectations(){{
-            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskState.class)));
+            one(executer).execute(with(sameInstance(task)), with(notNullValue(TaskStateInternal.class)));
         }});
 
         task.execute();
@@ -227,7 +227,7 @@ public abstract class AbstractTaskTest {
             public void execute(Task task) {
                 task.disableStandardOutputCapture();
             }
-        })).execute().rethrowFailure();
+        })).execute();
     }
 
     @Test(expected=TaskExecutionException.class)
@@ -236,7 +236,7 @@ public abstract class AbstractTaskTest {
             public void execute(Task task) {
                 task.captureStandardOutput(LogLevel.DEBUG);
             }
-        })).execute().rethrowFailure();
+        })).execute();
     }
 
     @Test

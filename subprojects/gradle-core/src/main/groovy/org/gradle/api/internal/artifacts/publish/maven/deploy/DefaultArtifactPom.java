@@ -16,12 +16,19 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.File;
-import java.util.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -55,6 +62,21 @@ public class DefaultArtifactPom implements ArtifactPom {
         return Collections.unmodifiableSet(classifiers);
     }
 
+    public void writePom(Set<Configuration> configurations, File pomFile) {
+        getPom().addDependencies(configurations);
+        try {
+            pomFile.getParentFile().mkdirs();
+            FileWriter writer = new FileWriter(pomFile);
+            try {
+                getPom().write(writer);
+            } finally {
+                writer.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void addArtifact(Artifact artifact, File src) {
         throwExceptionIfArtifactOrSrcIsNull(artifact, src);
         if (hasClassifier(artifact)) {
@@ -77,7 +99,7 @@ public class DefaultArtifactPom implements ArtifactPom {
                 artifact.getType(), artifactFile);
         if (classifiers.contains(classifierArtifact)) {
             throw new InvalidUserDataException("A pom can't have multiple artifacts for the same classifier=" + classifier +
-                    " Artifact trying to assign: " + artifact); 
+                    " Artifact trying to assign: " + artifact);
         }
         classifiers.add(classifierArtifact);
     }
@@ -91,16 +113,16 @@ public class DefaultArtifactPom implements ArtifactPom {
     }
 
     private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom, boolean setType) {
-        if (pom.getGroupId() == null) {
+        if (pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID)) {
             pom.setGroupId(artifact.getModuleRevisionId().getOrganisation());
         }
-        if (pom.getArtifactId() == null) {
+        if (pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID)) {
             pom.setArtifactId(artifact.getName());
         }
-        if (pom.getVersion() == null) {
+        if (pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION)) {
             pom.setVersion(artifact.getModuleRevisionId().getRevision());
         }
-        if (setType && pom.getPackaging() == null) {
+        if (setType) {
             pom.setPackaging(artifact.getType());
         }
     }

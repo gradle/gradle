@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,21 +32,20 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 
-task integTest(type: AntTest, dependsOn: [ rootProject.intTestImage ]) {
-    options.fork(jvmArgs: ["-ea"])
-    options.systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-    options.systemProperties['integTest.srcDir'] = file('src').absolutePath
-    options.systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTest.integTestUserDir.absolutePath
+task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
+    systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
+    systemProperties['integTest.srcDir'] = file('src').absolutePath
+    systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTest.integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
 
-    doFirst { task -> task.options.systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
+    doFirst { task -> systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
 }
 
 compileJava.options.depend()
 
 //this is just to exclude integration tests
 test {
-    options.fork(jvmArgs: ['-ea', '-Xms128m', '-Xmx1g', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'])
+    jvmArgs '-Xms128m', '-Xmx256m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 
     exclude 'org/gradle/integtests/**/*.*'
 }

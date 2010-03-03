@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,26 +15,21 @@
  */
 package org.gradle.groovy.scripts;
 
-import java.io.File;
+import org.gradle.api.internal.resource.Resource;
 
 /**
- * The source for the text of a script.
+ * The source for the text of a script, with some meta-info about the script.
  */
 public interface ScriptSource {
-    /**
-     * Returns the text of this script. Returns an empty String if this script has no text. Never returns null.
-     */
-    String getText();
-
     /**
      * Returns the name to use for the compiled class for this script. Never returns null.
      */
     String getClassName();
 
     /**
-     * Returns the source file for this script, if any. Returns null if there is no source file for this script.
+     * Returns the source for this script. Never returns null.
      */
-    File getSourceFile();
+    Resource getResource();
 
     /**
      * Returns the file name that is inserted into the class during compilation.  For a script with a source

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts.maven;
 
-/**
- * @author Hans Dockter
- */
-public interface CopyablePomFilterContainer extends PomFilterContainer {
-    PomFilterContainer copy();
+package org.gradle.api.internal.tasks;
+
+import org.gradle.api.internal.TaskInternal;
+
+public class ExecuteAtMostOnceTaskExecuter implements TaskExecuter {
+    private final TaskExecuter executer;
+
+    public ExecuteAtMostOnceTaskExecuter(TaskExecuter executer) {
+        this.executer = executer;
+    }
+
+    public void execute(TaskInternal task, TaskStateInternal state) {
+        if (state.getExecuted()) {
+            return;
+        }
+        executer.execute(task, state);
+    }
 }

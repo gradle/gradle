@@ -31,6 +31,9 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
             event.setParentId(suiteStack.getFirst());
         }
         if (test.isComposite()) {
+            if (suiteStack.contains(test.getId())) {
+                throw new IllegalArgumentException(String.format("Multiple start events received for test with id '%s'.", test.getId()));
+            }
             suiteStack.addFirst(test.getId());
         }
         processor.started(test, event);
@@ -41,13 +44,10 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        if (!suiteStack.isEmpty()) {
-            if (suiteStack.getFirst().equals(testId)) {
-                suiteStack.removeFirst();
-            }
-            if (suiteStack.contains(testId)) {
-                throw new IllegalArgumentException(String.format("Out of order completion event received for test with id '%s'.", testId));
-            }
+        int pos = suiteStack.indexOf(testId);
+        if (pos >= 0) {
+            // Implicitly stop everything up to the given test
+            suiteStack.subList(0, pos + 1).clear();
         }
         processor.completed(testId, event);
     }

@@ -13,26 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.scripts;
 
-import org.apache.commons.io.FileUtils;
-
-import static org.gradle.util.Matchers.*;
-
-import org.gradle.util.TestFile;
+import org.gradle.api.internal.resource.UriResource;
 import org.gradle.util.TemporaryFolder;
-
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
+import org.gradle.util.TestFile;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class UriScriptSourceTest {
     private TestFile testDir;
@@ -59,67 +56,23 @@ public class UriScriptSourceTest {
     @Test
     public void canConstructSourceFromFile() {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
-        assertThat(source.getSourceFile(), equalTo(scriptFile));
+        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource().getFile(), equalTo(scriptFile));
     }
 
     @Test
     public void canConstructSourceFromFileURI() {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
-        assertThat(source.getSourceFile(), equalTo(scriptFile));
+        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource().getFile(), equalTo(scriptFile));
     }
 
     @Test
     public void canConstructSourceFromJarURI() throws URISyntaxException {
-        UriScriptSource source = new UriScriptSource("<file-type>", createJar());
-        assertThat(source.getSourceFile(), nullValue());
-    }
-
-    @Test
-    public void loadsScriptFileContentWhenFileExists() throws IOException {
-        FileUtils.writeStringToFile(scriptFile, "<content>");
-
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
-        assertThat(source.getText(), equalTo("<content>"));
-    }
-
-    @Test
-    public void hasNoContentWhenScriptFileDoesNotExist() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
-        assertThat(source.getText(), equalTo(""));
-    }
-
-    @Test
-    public void loadsScriptFileContentUsingFileUriWhenFileExists() throws IOException {
-        FileUtils.writeStringToFile(scriptFile, "<content>");
-
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
-        assertThat(source.getText(), equalTo("<content>"));
-    }
-
-    @Test
-    public void hasNoContentWhenUsingFileUriAndFileDoesNotExist() {
-        UriScriptSource source = new UriScriptSource("<file-type>", scriptFileUri);
-        assertThat(source.getText(), equalTo(""));
-    }
-
-    @Test
-    public void loadsScriptFileContentUsingJarUriWhenFileExists() throws Exception {
-        FileUtils.writeStringToFile(scriptFile, "<content>");
-
-        UriScriptSource source = new UriScriptSource("<file-type>", createJar());
-        assertThat(source.getText(), equalTo("<content>"));
-    }
-
-    @Test
-    public void hasNoContentWhenUsingJarUriAndFileDoesNotExist() throws URISyntaxException {
-        UriScriptSource source = new UriScriptSource("<file-type>", createJar());
-        assertThat(source.getText(), equalTo(""));
-    }
-
-    @Test
-    public void hasNoContentWhenUsingHttpUriAndFileDoesNotExist() throws URISyntaxException {
-        UriScriptSource source = new UriScriptSource("<file-type>", new URI("http://www.gradle.org/unknown.txt"));
-        assertThat(source.getText(), equalTo(""));
+        URI uri = createJar();
+        UriScriptSource source = new UriScriptSource("<file-type>", uri);
+        assertThat(source.getResource(), instanceOf(UriResource.class));
+        assertThat(source.getResource().getURI(), equalTo(uri));
     }
 
     @Test

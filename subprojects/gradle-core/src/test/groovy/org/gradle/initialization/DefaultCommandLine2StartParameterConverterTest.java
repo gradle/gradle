@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
@@ -24,19 +25,23 @@ import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuildExecuter;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
-import org.gradle.groovy.scripts.StrictScriptSource;
-import org.gradle.util.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.util.GUtil;
+import org.gradle.util.Matchers;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.WrapUtil;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
+
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -124,7 +129,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter, noTasks);
         if (embedded) {
-            assertThat(actualStartParameter.getBuildScriptSource().getText(), equalTo(expectedEmbeddedScript));
+            assertThat(actualStartParameter.getBuildScriptSource().getResource().getText(), equalTo(expectedEmbeddedScript));
         } else {
             assert !GUtil.isTrue(actualStartParameter.getBuildScriptSource());
         }
@@ -164,8 +169,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withSpecifiedSettingsFileName() throws IOException {
         checkConversion("-c", "somesettings");
 
-        assertThat(actualStartParameter.getSettingsScriptSource(), instanceOf(StrictScriptSource.class));
-        assertThat(actualStartParameter.getSettingsScriptSource().getSourceFile(), equalTo(new File(
+        assertThat(actualStartParameter.getSettingsScriptSource(), instanceOf(UriScriptSource.class));
+        assertThat(actualStartParameter.getSettingsScriptSource().getResource().getFile(), equalTo(new File(
                 "somesettings").getCanonicalFile()));
     }
 

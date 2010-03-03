@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.tasks.SkipTaskExecuter;
+import org.gradle.api.internal.tasks.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
@@ -129,7 +129,7 @@ public class TopLevelBuildServiceRegistryTest {
         context.checking(new Expectations(){{
             one(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
         }});
-        assertThat(factory.get(TaskExecuter.class), instanceOf(SkipTaskExecuter.class));
+        assertThat(factory.get(TaskExecuter.class), instanceOf(ExecuteAtMostOnceTaskExecuter.class));
         assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));
     }
 

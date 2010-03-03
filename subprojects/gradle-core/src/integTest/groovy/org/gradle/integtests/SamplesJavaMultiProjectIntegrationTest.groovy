@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.GFileUtils
@@ -104,6 +106,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/shared/Person.class',
+                'org/gradle/shared/package-info.class',
                 'org/gradle/shared/main.properties'
         )
 

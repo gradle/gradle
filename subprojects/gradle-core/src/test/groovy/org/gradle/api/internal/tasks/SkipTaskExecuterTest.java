@@ -13,15 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -29,15 +30,16 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class SkipTaskExecuterTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
     private final Spec<Task> spec = context.mock(Spec.class);
-    private final TaskState state = new TaskState();
+    private final TaskStateInternal state = context.mock(TaskStateInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final TaskExecuter delegate = context.mock(TaskExecuter.class);
     private final SkipTaskExecuter executer = new SkipTaskExecuter(delegate);
@@ -62,8 +64,6 @@ public class SkipTaskExecuterTest {
 
     @Test
     public void executesTask() {
-        final TaskExecutionResult result = context.mock(TaskExecutionResult.class);
-
         context.checking(new Expectations() {{
             allowing(task).getEnabled();
             will(returnValue(true));
@@ -72,12 +72,11 @@ public class SkipTaskExecuterTest {
             will(returnValue(true));
 
             one(delegate).execute(task, state);
-            will(returnValue(result));
+
+            one(state).executed();
         }});
 
-        assertThat(executer.execute(task, state), sameInstance(result));
-
-        assertTrue(state.isExecuted());
+        executer.execute(task, state);
     }
 
     @Test
@@ -87,34 +86,31 @@ public class SkipTaskExecuterTest {
             will(returnValue(true));
             one(spec).isSatisfiedBy(task);
             will(returnValue(false));
+            one(state).skipped("SKIPPED");
+            one(state).executed();
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), equalTo("SKIPPED"));
-        assertTrue(state.isExecuted());
-        assertFalse(state.isDidWork());
+        executer.execute(task, state);
     }
 
     @Test
     public void wrapsOnlyIfPredicateFailure() {
         final Throwable failure = new RuntimeException();
+        final Collector<Throwable> wrappedFailure = collector();
         context.checking(new Expectations() {{
             allowing(task).getEnabled();
             will(returnValue(true));
             one(spec).isSatisfiedBy(task);
             will(throwException(failure));
+            one(state).executed(with(notNullValue(GradleException.class)));
+            will(collectTo(wrappedFailure));
+            one(state).executed();
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
+        executer.execute(task, state);
 
-        GradleException exception = (GradleException) result.getFailure();
+        GradleException exception = (GradleException) wrappedFailure.get();
         assertThat(exception.getMessage(), equalTo("Could not evaluate onlyIf predicate for <task>."));
         assertThat(exception.getCause(), sameInstance(failure));
-
-        assertThat(result.getSkipMessage(), nullValue());
-        assertTrue(state.isExecuted());
-        assertFalse(state.isDidWork());
     }
 }

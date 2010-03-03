@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,21 +20,26 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.ObservableUrlClassLoader;
 
 import java.io.File;
 import java.net.MalformedURLException;
+import java.net.URI;
 
 public class DefaultScriptHandler implements ScriptHandlerInternal {
+    private final ScriptSource scriptSource;
     private final RepositoryHandler repositoryHandler;
     private final DependencyHandler dependencyHandler;
     private final ConfigurationContainer configContainer;
     private final ObservableUrlClassLoader classLoader;
     private final Configuration classpathConfiguration;
 
-    public DefaultScriptHandler(RepositoryHandler repositoryHandler, DependencyHandler dependencyHandler,
-                                ConfigurationContainer configContainer, ClassLoader parentClassLoader) {
+    public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
+                                DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
+                                ClassLoader parentClassLoader) {
+        this.scriptSource = scriptSource;
         this.repositoryHandler = repositoryHandler;
         this.dependencyHandler = dependencyHandler;
         this.configContainer = configContainer;
@@ -66,6 +71,14 @@ public class DefaultScriptHandler implements ScriptHandlerInternal {
         return classLoader;
     }
 
+    public File getSourceFile() {
+        return scriptSource.getResource().getFile();
+    }
+
+    public URI getSourceURI() {
+        return scriptSource.getResource().getURI();
+    }
+    
     public void updateClassPath() {
         for (File file : classpathConfiguration.getFiles()) {
             try {

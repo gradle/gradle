@@ -27,10 +27,9 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
 import org.gradle.api.plugins.Convention;
-import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.util.Matchers;
+import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
@@ -92,6 +91,7 @@ public class ProjectFactoryTest {
             will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));
+            ignoring(gradle).getProjectEvaluationBroadcaster();
         }});
 
         projectFactory = new ProjectFactory(null);
@@ -113,8 +113,9 @@ public class ProjectFactoryTest {
         assertSame(project, project.getRootProject());
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new UriScriptSource("build file", buildFile);
-        assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
+        assertThat(project.getBuildScriptSource(), instanceOf(UriScriptSource.class));
+        assertThat(project.getBuildScriptSource().getDisplayName(), startsWith("build file "));
+        assertThat(project.getBuildScriptSource().getResource().getFile(), equalTo(buildFile));
     }
 
     @Test
@@ -140,8 +141,9 @@ public class ProjectFactoryTest {
         assertSame(project, parentProject.getChildProjects().get("somename"));
         checkProjectResources(project);
 
-        ScriptSource expectedScriptSource = new UriScriptSource("build file", buildFile);
-        assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
+        assertThat(project.getBuildScriptSource(), instanceOf(UriScriptSource.class));
+        assertThat(project.getBuildScriptSource().getDisplayName(), startsWith("build file "));
+        assertThat(project.getBuildScriptSource().getResource().getFile(), equalTo(buildFile));
     }
 
     @Test
@@ -161,8 +163,9 @@ public class ProjectFactoryTest {
         DefaultProject rootProject = projectFactory.createProject(descriptor("root"), null, gradle);
         DefaultProject project = projectFactory.createProject(descriptor("somename", projectDir), rootProject, gradle);
 
-        ScriptSource expectedScriptSource = new StringScriptSource("empty build file", "");
-        assertThat(project.getBuildScriptSource(), Matchers.reflectionEquals(expectedScriptSource));
+        assertThat(project.getBuildScriptSource(), instanceOf(StringScriptSource.class));
+        assertThat(project.getBuildScriptSource().getDisplayName(), equalTo("empty build file"));
+        assertThat(project.getBuildScriptSource().getResource().getText(), equalTo(""));
     }
 
     @Test
@@ -174,7 +177,6 @@ public class ProjectFactoryTest {
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, gradle);
 
         assertEquals("somename", project.getName());
-        assertEquals(new File(rootDir, "build.gradle"), project.getBuildFile());
         assertSame(rootDir, project.getRootDir());
         assertSame(rootDir, project.getProjectDir());
         assertNull(project.getParent());
