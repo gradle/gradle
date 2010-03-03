@@ -15,13 +15,30 @@
   -->
 <xsl:stylesheet
         xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
-    <xsl:import href="html/docbook.xsl"/>
+    <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
     <xsl:param name="section.autolabel">0</xsl:param>
     <xsl:param name="chapter.autolabel">0</xsl:param>
+    <xsl:param name="appendix.autolabel">0</xsl:param>
+    <xsl:param name="root.filename">userguide</xsl:param>
+    <xsl:param name="chunk.section.depth">0</xsl:param>
+    <xsl:param name="chunk.quietly">1</xsl:param>
+    <xsl:param name="use.id.as.filename">1</xsl:param>
 
-    <xsl:template match="/">
-        <xsl:apply-templates select="*"/>
+    <!-- Custom page -->
+    <xsl:template name="chunk-element-content">
+        <xsl:param name="prev"/>
+        <xsl:param name="next"/>
+        <xsl:param name="nav.context"/>
+        <xsl:param name="content">
+            <xsl:apply-imports/>
+        </xsl:param>
+
+        <xsl:copy-of select="$content"/>
     </xsl:template>
+
+    <!--<xsl:template match="book"></xsl:template>-->
+
+    <!--<xsl:template match="*" mode="object.xref.markup">[implement me]</xsl:template>-->
 </xsl:stylesheet>

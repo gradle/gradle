@@ -38,7 +38,7 @@
     </bookinfo>
     <xi:include href='introduction.xml'/>
     <xi:include href='overview.xml'/>
-    <xi:include href='gettingStarted.xml'/>
+    <xi:include href='installation.xml'/>
     <xi:include href='buildScriptsTutorial.xml'/>
     <xi:include href='javaTutorial.xml'/>
     <xi:include href='groovyTutorial.xml'/>

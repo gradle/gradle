@@ -176,8 +176,8 @@ task groovydoc(type: Groovydoc) {
 
 task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
     standalone = true
-    sourceFile = new File(userguideSrcDir, 'gettingStarted.xml')
-    destFile = new File(docbookSrc, 'gettingStarted.xml')
+    sourceFile = new File(userguideSrcDir, 'installation.xml')
+    destFile = new File(docbookSrc, 'installation.xml')
     doFirst {task ->
         task.javadocUrl = remoteLocations.javadocUrl
         task.groovydocUrl = remoteLocations.groovydocUrl
@@ -190,10 +190,20 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task websiteDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
+task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
+    standalone = true
+    sourceFile = new File(userguideSrcDir, 'website.xml')
+    destFile = new File(docbookSrc, 'website.xml')
+    doFirst {task ->
+        task.javadocUrl = remoteLocations.javadocUrl
+        task.groovydocUrl = remoteLocations.groovydocUrl
+    }
+}
+
+task websiteDocs(type: Docbook2Xhtml, dependsOn: websiteDocsSrc) {
     File websiteDocs = new File(buildDir, 'websiteDocs')
-    source userguideFragmentSrc.destFile
-    destFile = new File(websiteDocs, 'getting-started.html')
+    source websiteDocsSrc.destFile
+    destFile = new File(websiteDocs, 'website.html')
     stylesheetName = 'docFragment.xsl'
 }
 

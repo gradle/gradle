@@ -25,10 +25,12 @@
 <div id="rightcolumn">
 <div id="gettingstarted">
     <h2>Get started</h2>
-    <p>1. Download <a href="http://dist.codehaus.org/gradle/gradle-${currentRelease}-all.zip">gradle-${currentRelease}-all.zip</a></p>
-    <p>2. Try the <a href="tutorials.html">tutorials</a></p>
-    <p>3. Read the <a href="documentation.html">documentation</a></p>
-    <p>4. Join the <a href="community.html">community</a></p>
+    <ol>
+        <li>Download <a href="http://dist.codehaus.org/gradle/gradle-${currentRelease}-all.zip">gradle-${currentRelease}-all.zip</a></li>
+        <li>Try the <a href="tutorials.html">tutorials</a></li>
+        <li>Read the <a href="documentation.html">documentation</a></li>
+        <li>Join the <a href="community.html">community</a></li>
+    </ol>
 </div>
 
 <div id="news">

@@ -1,4 +1,6 @@
 import groovy.text.SimpleTemplateEngine
+import groovy.text.Template
+import groovy.text.TemplateEngine
 
 // to get a clean
 apply id: 'base'
@@ -45,50 +47,30 @@ task html(dependsOn: userguideContent) << {
             sidebar: engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(currentRelease: version).toString()
     ]
     def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
-    Closure transformClosure = {File contentFile ->
-        logger.info "Processing $contentFile"
-        def fileInfo = extractInfo(contentFile)
-        def contentTemplate = engine.createTemplate(fileInfo.content)
-        String content = contentTemplate.make(binding).toString()
-        new File(buildWebsiteDir, contentFile.name).text =
-            fileInfo.prefix + skeletonTemplate.make(binding + [fileName: contentFile.name, content: content, title: fileInfo.title]).toString()
+
+    List pages = []
+    webContentSrcDir.eachFileMatch(~/^.+?\.html$/) { pages << new Page(srcFile: it) }
+    File generatedDocs = new File("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs")
+    generatedDocs.eachFileMatch(~/^.+?\.html$/) {
+        if (it.name != 'userguide.html' && it.name != 'website.html') {
+            pages << new GeneratedPage(srcFile: it)
+        }
     }
-    webContentSrcDir.eachFileMatch(~/^.+?\.html$/, transformClosure)
-    transformClosure("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs/getting-started.html" as File)
-    transformClosure("$webContentSrcDir/index.php" as File)
-    transformClosure("$webContentSrcDir/news.php" as File)
+    pages << new IndexPage(srcFile: "$webContentSrcDir/index.php" as File)
+    pages << new PhpPage(srcFile: "$webContentSrcDir/news.php" as File)
+    pages.each { Page page ->
+        page.destFile = new File(buildWebsiteDir, page.srcFile.name)
+        page.engine = engine
+        page.pageTemplate = skeletonTemplate
+        page.templateBinding = binding
+        page.transform()
+    }
 
     copy {
         from webSrcDir
         into buildWebsiteDir
         include 'css/**'
         include 'img/**'
-    }
-}
-
-def extractInfo(File contentFile) {
-    try {
-        def info
-        if (contentFile.name.startsWith('index.')) {
-            info = [title: 'Home', content: contentFile.text]
-        } else {
-            String content = '<html>' + contentFile.text + '</html>'
-            def doc = new XmlParser().parseText(content)
-            def title = doc.'**'.h1[0].text().trim()
-            info = [title:  title, content: contentFile.text]
-        }
-        if (contentFile.name.endsWith('.php')) {
-            File webPhpSrcDir = new File(webSrcDir, 'php')
-            String prefix = contentFile.name.replace('.php', 'Php')
-            File prefixFile = new File(webPhpSrcDir, "${prefix}Header.php")
-            info.prefix = prefixFile.file ? prefixFile.text : ''
-        } else {
-            info.prefix = ''
-        }
-
-        return info
-    } catch (Exception e) {
-        throw new GradleException("Could not extract meta-info from $contentFile.name.", e)
     }
 }
 
@@ -125,6 +107,62 @@ void ftp(Map args, Closure antFileset = {}) {
             antFileset.delegate = delegate
             antFileset()
         }
+    }
+}
+
+class Page {
+    def File srcFile
+    def File destFile
+    def Template pageTemplate
+    def Map templateBinding
+    def TemplateEngine engine
+
+    def transform() {
+        println "Processing $srcFile.name"
+        destFile.text = text
+    }
+
+    def getTitle() {
+        def content = srcFile.text
+        def matcher = content =~ /<h1.*>([^<]+)<\/h1>/
+        if (!matcher) {
+            throw new GradleException("Could not find title in $srcFile.name.")
+        }
+        def title = matcher[0][1].trim()
+        println "$srcFile.name -> $title"
+        title
+    }
+
+    def getContent() {
+        def contentTemplate = engine.createTemplate(srcFile.text)
+        contentTemplate.make(templateBinding).toString()
+    }
+
+    def getText() {
+        pageTemplate.make(templateBinding + [fileName: srcFile.name, content: content, title: title]).toString()
+    }
+}
+
+class PhpPage extends Page {
+
+    def String getText() {
+        File webPhpSrcDir = new File(srcFile.parentFile.parentFile, 'php')
+        String prefix = srcFile.name.replace('.php', 'Php')
+        File prefixFile = new File(webPhpSrcDir, "${prefix}Header.php")
+        String text = super.getText()
+        return prefixFile.file ? prefixFile.text + text : text
+    }
+}
+
+class IndexPage extends PhpPage {
+    def Object getTitle() {
+        'Home'
+    }
+}
+
+class GeneratedPage extends Page {
+    def String getContent() {
+        srcFile.text
     }
 }
 

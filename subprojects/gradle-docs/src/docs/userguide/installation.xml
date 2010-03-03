@@ -13,8 +13,8 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="getting_started">
-<title>Getting Started</title>
+<chapter id="installation">
+<title>Installing Gradle</title>
 
 <section>
     <title>Prerequisites</title>

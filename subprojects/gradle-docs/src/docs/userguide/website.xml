@@ -1,0 +1,83 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<book xmlns:xi="http://www.w3.org/2001/XInclude">
+    <chapter id="tutorials">
+        <title>Tutorials</title>
+        <para>Here are some of the Gradle tutorials.</para>
+        <variablelist>
+            <varlistentry>
+                <term><xref linkend="installation"/></term>
+                <listitem>
+                    <para>Describes how to install Gradle.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><xref linkend="tutorial_using_tasks"/></term>
+                <listitem>
+                    <para>Introduces the basic build script elements: <firstterm>projects</firstterm> and
+                        <firstterm>tasks</firstterm>.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><xref linkend="tutorial_java_projects"/></term>
+                <listitem>
+                    <para>shows how to start using Gradle's build-by-convention support for Java projects.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><xref linkend="tutorial_groovy_projects"/></term>
+                <listitem>
+                    <para>shows how to use Gradle's build-by-convention support for Groovy projects.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><xref linkend="web_project_tutorial"/></term>
+                <listitem>
+                    <para>shows how to use Gradle's build-by-convention support for Web applications.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </chapter>
+
+    <xi:include href='installation.xml'/>
+    <xi:include href='buildScriptsTutorial.xml'/>
+    <xi:include href='javaTutorial.xml'/>
+    <xi:include href='groovyTutorial.xml'/>
+    <xi:include href='webTutorial.xml'/>
+    <xi:include href='artifactDependenciesTutorial.xml'/>
+    <xi:include href='logging.xml'/>
+    <xi:include href='commandLineTutorial.xml'/>
+    <xi:include href='tasks.xml'/>
+    <xi:include href='thisAndThat.xml'/>
+    <xi:include href='plugins.xml'/>
+    <xi:include href='javaPlugin.xml'/>
+    <xi:include href='groovyPlugin.xml'/>
+    <xi:include href='warPlugin.xml'/>
+    <xi:include href='jettyPlugin.xml'/>
+    <xi:include href='depMngmt.xml'/>
+    <xi:include href='ant.xml'/>
+    <xi:include href='buildLifecycle.xml'/>
+    <xi:include href='organizeBuildLogic.xml'/>
+    <xi:include href='multiproject.xml'/>
+    <xi:include href='customTasks.xml'/>
+    <xi:include href='customPlugins.xml'/>
+    <xi:include href='projectReports.xml'/>
+    <xi:include href='workingWithFiles.xml'/>
+    <xi:include href='artifactMngmt.xml'/>
+    <xi:include href='ideSupport.xml'/>
+    <xi:include href='commandLine.xml'/>
+</book>

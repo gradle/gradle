@@ -11,7 +11,7 @@ body {
 }
 
 body, td, div {
-    font-family: Helvetica, sans-serif;
+    font-family: 'DejaVu Sans', 'Lucida Grande', 'Verdana', sans-serif;
     font-size: 14px;
     color: #444444;
 }
@@ -82,6 +82,7 @@ p {
     position: absolute;
     left: 0;
     bottom: 10px;
+    font-family: Helvetica, sans-serif;
 }
 
 #header #title {
@@ -90,12 +91,14 @@ p {
     padding-right: 0.5em;
     color: #4a9935;
     line-height: 36pt;
+    font-family: inherit;
 }
 
 #header #quote {
     font-size: 14pt;
     padding-left: 6px;
     color: #808080;
+    font-family: inherit;
 }
 
 #header a {
@@ -138,7 +141,6 @@ p {
 }
 
 .content {
-/*border: #c0c0c0 solid 1px;*/
     -webkit-border-radius: 15px;
     -moz-border-radius: 15px;
     -webkit-box-shadow: 0 0 20px #c0c0c0;
@@ -163,6 +165,7 @@ p {
 #homeTitle {
     font-size: 300%;
     margin-top: 0.5em;
+    font-family: Helvetica, sans-serif;
 }
 
 #homeContent {
@@ -193,7 +196,6 @@ p {
     background-color: #e4eef5;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
-    padding-bottom: 20px;
     margin-right: auto;
 }
 
@@ -211,14 +213,24 @@ p {
     -moz-border-radius-topright: 10px;
 }
 
-#gettingstarted p {
+#gettingstarted ol {
+    margin: 0;
+    padding: 0;
+    margin-left: 25px;
+    margin-right: 25px;
+    padding-bottom: 1px;
+}
+
+#gettingstarted li {
     font-size: 120%;
     font-weight: bold;
     color: #444444;
-    padding-left: 25px;
-    padding-right: 25px;
     white-space: nowrap;
-    margin-top: 20px;
+    margin: 0;
+    padding: 0;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    list-style-position: inside;
 }
 
 #news {
