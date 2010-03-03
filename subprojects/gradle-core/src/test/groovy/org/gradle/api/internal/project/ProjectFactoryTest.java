@@ -91,6 +91,7 @@ public class ProjectFactoryTest {
             will(returnValue(buildScriptClassLoader));
             allowing(gradle).getGradleUserHomeDir();
             will(returnValue(new File("gradleUserHomeDir")));
+            ignoring(gradle).getProjectEvaluationBroadcaster();
         }});
 
         projectFactory = new ProjectFactory(null);

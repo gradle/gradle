@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api;
 
 import groovy.lang.Closure;
@@ -24,6 +25,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
+import org.gradle.api.tasks.TaskState;
 
 import java.util.List;
 import java.util.Set;
@@ -137,8 +139,6 @@ public interface Task extends Comparable<Task> {
 
     public static final String TASK_ACTION = "action";
 
-    public final static String AUTOSKIP_PROPERTY_PREFIX = "skip.";
-
     /**
      * </p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
      *
@@ -250,6 +250,14 @@ public interface Task extends Comparable<Task> {
      * @param onlyIfSpec specifies if a task should be run
      */
     void setOnlyIf(Spec<? super Task> onlyIfSpec);
+
+    /**
+     * Returns the execution state of this task. This provides information about the execution state of this task, such
+     * as whether it has executed, been skipped, has failed, etc.
+     *
+     * @return The execution state of this task. Never returns null.
+     */
+    TaskState getState();
 
     /**
      * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing to

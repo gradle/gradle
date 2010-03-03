@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.execution.TaskExecutionResult;
@@ -20,7 +21,7 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskState;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -46,20 +47,21 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
         this.repository = repository;
     }
 
-    public TaskExecutionResult execute(TaskInternal task, TaskState state) {
+    public void execute(TaskInternal task, TaskStateInternal state) {
         LOGGER.debug("Determining if {} is up-to-date", task);
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         if (taskArtifactState.isUpToDate()) {
             LOGGER.debug("{} is up-to-date", task);
-            return UP_TO_DATE_RESULT;
+            state.skipped("UP-TO-DATE");
+            return;
+
         }
         LOGGER.debug("{} is not up-to-date", task);
 
         taskArtifactState.invalidate();
-        TaskExecutionResult executionResult = executer.execute(task, state);
-        if (executionResult.getFailure() == null) {
+        executer.execute(task, state);
+        if (state.getFailure() == null) {
             taskArtifactState.update();
         }
-        return executionResult;
     }
 }

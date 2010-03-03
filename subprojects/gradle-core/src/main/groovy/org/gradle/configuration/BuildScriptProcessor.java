@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,30 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.util.Clock;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class BuildScriptProcessor implements ProjectEvaluator {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildScriptProcessor.class);
     private final ScriptPluginFactory configurerFactory;
 
     public BuildScriptProcessor(ScriptPluginFactory configurerFactory) {
         this.configurerFactory = configurerFactory;
     }
 
-    public void evaluate(final ProjectInternal project) {
-        ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource());
-        configurer.use(project);
+    public void evaluate(ProjectInternal project, ProjectState state) {
+        LOGGER.info(String.format("Evaluating %s using %s.", project, project.getBuildScriptSource().getDisplayName()));
+        Clock clock = new Clock();
+
+        try {
+            ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource());
+            configurer.use(project);
+        } catch (Exception e) {
+            state.executed(e);
+        }
+
+        LOGGER.debug("Timing: Running the build script took " + clock.getTime());
     }
 }

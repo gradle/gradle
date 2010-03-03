@@ -16,6 +16,8 @@
 
 
 
+
+
 package org.gradle.api.internal.project
 
 import java.awt.Point
@@ -158,6 +160,7 @@ class DefaultProjectTest {
 
         projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory, 'parent')
         serviceRegistryMock = context.mock(ServiceRegistryFactory, 'project')
+        build = context.mock(GradleInternal)
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
@@ -179,9 +182,11 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
             allowing(serviceRegistryMock).get(FileOperations); will(returnValue([:] as FileOperations))
+            Object listener = context.mock(ProjectEvaluationListener)
+            ignoring(listener)
+            allowing(build).getProjectEvaluationBroadcaster();
+            will(returnValue(listener))
         }
-
-        build = context.mock(GradleInternal)
 
         project = new DefaultProject('root', null, rootDir, script, build, projectServiceRegistryFactoryMock);
         child1 = new DefaultProject("child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock)
@@ -272,7 +277,7 @@ class DefaultProjectTest {
         assert project.repositoryHandlerFactory.is(repositoryHandlerFactoryMock)
         assertSame(repositoryHandlerMock, project.repositories)
         assert projectRegistry.is(project.projectRegistry)
-        assertEquals AbstractProject.State.CREATED, project.state
+        assertFalse project.state.executed
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
@@ -295,50 +300,45 @@ class DefaultProjectTest {
         Action<Project> listener = context.mock(Action)
         context.checking {
             one(listener).execute(project)
-            one(projectEvaluator).evaluate(project)
         }
         project.beforeEvaluate(listener)
-        project.evaluate()
+        project.projectEvaluationBroadcaster.beforeEvaluate(project)
     }
 
     @Test public void testExecutesActionAfterEvaluation() {
         Action<Project> listener = context.mock(Action)
         context.checking {
-            one(projectEvaluator).evaluate(project)
             one(listener).execute(project)
         }
         project.afterEvaluate(listener)
-        project.evaluate()
+        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
     }
 
     @Test public void testExecutesClosureBeforeEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
             one(listener).call(project)
-            one(projectEvaluator).evaluate(project)
         }
 
         project.beforeEvaluate(HelperUtil.toClosure(listener))
-        project.evaluate()
+        project.projectEvaluationBroadcaster.beforeEvaluate(project)
     }
 
     @Test public void testExecutesClosureAfterEvaluation() {
         TestClosure listener = context.mock(TestClosure)
         context.checking {
-            one(projectEvaluator).evaluate(project)
             one(listener).call(project)
         }
 
         project.afterEvaluate(HelperUtil.toClosure(listener))
-        project.evaluate()
+        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
     }
 
     @Test void testEvaluate() {
         context.checking {
-            one(projectEvaluator).evaluate(project)
+            one(projectEvaluator).evaluate(project, project.state)
         }
         assertSame(project, project.evaluate())
-        assertEquals(AbstractProject.State.INITIALIZED, project.state)
     }
 
     @Test void testUsePluginWithString() {
@@ -359,14 +359,14 @@ class DefaultProjectTest {
     @Test void testEvaluationDependsOn() {
         boolean mockReader2Finished = false
         boolean mockReader1Called = false
-        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project ->
+        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project, state ->
             project.evaluationDependsOn(child1.path)
             assertTrue(mockReader2Finished)
             mockReader1Called = true
             testScript
         }] as ProjectEvaluator
         final ProjectEvaluator mockReader2 = [
-                evaluate: {DefaultProject project ->
+                evaluate: {DefaultProject project, state ->
                     mockReader2Finished = true
                     testScript
                 }] as ProjectEvaluator
@@ -385,11 +385,13 @@ class DefaultProjectTest {
     }
 
     @Test (expected = CircularReferenceException) void testEvaluationDependsOnWithCircularDependency() {
-        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project ->
+        final ProjectEvaluator mockReader1 = [evaluate: {DefaultProject project, ProjectState state ->
+            state.executing = true
             project.evaluationDependsOn(child1.path)
             testScript
         }] as ProjectEvaluator
-        final ProjectEvaluator mockReader2 = [evaluate: {DefaultProject project ->
+        final ProjectEvaluator mockReader2 = [evaluate: {DefaultProject project, ProjectState state ->
+            state.executing = true
             project.evaluationDependsOn(project.path)
             testScript
         }] as ProjectEvaluator
@@ -414,7 +416,7 @@ class DefaultProjectTest {
 
     @Test void testDependsOn() {
         boolean mockReaderCalled = false
-        final ProjectEvaluator mockReader = [evaluate: {DefaultProject project ->
+        final ProjectEvaluator mockReader = [evaluate: {DefaultProject project, state ->
             mockReaderCalled = true
             testScript
         }] as ProjectEvaluator
@@ -435,7 +437,7 @@ class DefaultProjectTest {
 
     @Test void testDependsOnChildren() {
         context.checking {
-            never(projectEvaluator).evaluate(child1)
+            never(projectEvaluator).evaluate(child1, child1.state)
         }
 
         project.dependsOnChildren()
@@ -447,8 +449,8 @@ class DefaultProjectTest {
 
     @Test void testDependsOnChildrenIncludingEvaluate() {
         context.checking {
-            one(projectEvaluator).evaluate(child1)
-            one(projectEvaluator).evaluate(child2)
+            one(projectEvaluator).evaluate(child1, child1.state)
+            one(projectEvaluator).evaluate(child2, child2.state)
         }
         project.dependsOnChildren(true)
         assertTrue(project.dependsOnProjects.contains(child1))

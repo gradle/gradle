@@ -28,11 +28,33 @@ import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.jmock.lib.legacy.ClassImposteriser;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JUnit4GroovyMockery extends JUnit4Mockery {
+    private final ConcurrentMap<String, AtomicInteger> names = new ConcurrentHashMap<String, AtomicInteger>();
+
+    public JUnit4GroovyMockery() {
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }
+
+    @Override
+    public <T> T mock(Class<T> typeToMock) {
+        String name = typeToMock.getSimpleName();
+        names.putIfAbsent(name, new AtomicInteger());
+        int count = names.get(name).getAndIncrement();
+        if (count == 0) {
+            return mock(typeToMock, name);
+        } else {
+            return mock(typeToMock, name + count);
+        }
+    }
+
     class ClosureExpectations extends Expectations {
         void closureInit(Closure cl, Object delegate) {
             cl.setDelegate(delegate);
