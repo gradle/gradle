@@ -33,8 +33,8 @@ import java.io.InputStream;
 import java.io.IOException;
 
 /**
- * This just wraps up an OutputPanel so it has a tab header that an be dynamic. The current (rather awkward) JTabbedPane
- * implemenation is to separate the tab contents from its component. This only works with java 1.6 or later.
+ * This just wraps up an OutputPanel so it has a tab header that can be dynamic. The current (rather awkward) JTabbedPane
+ * implementation is to separate the tab contents from its component. This only works with java 1.6 or later.
  *
  * @author mhunsicker
  */

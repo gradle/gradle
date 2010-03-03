@@ -21,14 +21,16 @@ import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.gradleplugin.userinterface.swing.generic.BasicGradleUI;
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
+import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1;
 import org.gradle.openapi.external.ui.*;
 import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapper;
+import org.gradle.openapi.wrappers.foundation.favorites.FavoritesEditorWrapper;
 
-import javax.swing.JComponent;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
-import java.awt.Font;
 
 /**
 * Implementation of BasicGradleUI meant to help shield external users from internal changes.
@@ -287,5 +289,15 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
    public GradleInterfaceVersion1 getGradleInterfaceVersion1()
    {
       return gradleInterfaceWrapper;
+   }
+
+
+   /**
+     * Returns a FavoritesEditor. This is useful for getting a list of all favorites or
+     * modifying them.
+     * @return a FavoritesEditorVersion1. Use this to interact with the favorites.
+     */
+   public FavoritesEditorVersion1 getFavoritesEditor() {
+      return new FavoritesEditorWrapper( basicGradleUI.getGradlePluginLord().getFavoritesEditor() );
    }
 }

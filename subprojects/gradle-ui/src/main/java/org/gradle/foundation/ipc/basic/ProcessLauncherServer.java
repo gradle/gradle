@@ -43,15 +43,14 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
         public void aboutToKillProcess();
 
         /**
-         * fill in the information needed to execute the other process.
-         *
+         * Fill in the ExecutionInfo object with information needed to execute the other process.
          * @param serverPort the port the server is listening on. The client should send messages here
-         * @param executionInfo an object continain information about what we execute.
+         * @return an executionInfo object containing information about what we execute.
          */
-        public void getExecutionInfo(int serverPort, ExecutionInfo executionInfo);
+        public ExecutionInfo getExecutionInfo(int serverPort );
 
         /**
-         * Notification that the client has shutdown. Note: this can occur before communciations has ever started. You
+         * Notification that the client has shutdown. Note: this can occur before communications has ever started. You
          * SHOULD get this notification before receiving serverExited, even if the client fails to launch or locks up.
          *
          * @param result the return code of the client application
@@ -62,7 +61,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
 
     public interface ServerObserver extends Server.ServerObserver {
         /**
-         * Notification that the client has shutdown. Note: this can occur before communciations has ever started. You
+         * Notification that the client has shutdown. Note: this can occur before communications has ever started. You
          * SHOULD get this notification before receiving serverExited, even if the client fails to launch or locks up.
          *
          * @param result the return code of the client application
@@ -86,13 +85,12 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
     private void launchExternalProcess() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                ExecutionInfo executionInfo = new ExecutionInfo();
-                protocol.getExecutionInfo(getPort(), executionInfo);
+                ExecutionInfo executionInfo = protocol.getExecutionInfo(getPort() );
 
                 ExecHandleBuilder builder = new ExecHandleBuilder();
-                builder.execDirectory(executionInfo.workingDirectory);
-                builder.commandLine(executionInfo.commandLineArguments);
-                builder.environment(executionInfo.environmentVariables);
+                builder.execDirectory(executionInfo.getWorkingDirectory());
+                builder.commandLine(executionInfo.getCommandLineArguments() );
+                builder.environment(executionInfo.getEnvironmentVariables() );
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 builder.standardOutput(output);
                 builder.errorOutput(output);
@@ -113,6 +111,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
 
                 setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
+                executionInfo.processExecutionComplete();
                 notifyClientExited( execHandle.getExitCode(), output.toString() );
             }
         });

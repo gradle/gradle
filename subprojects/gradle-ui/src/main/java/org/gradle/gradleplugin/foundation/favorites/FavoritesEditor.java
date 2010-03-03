@@ -179,7 +179,7 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     public FavoriteTask addFavorite(String fullCommandLine, boolean alwaysShowOutput) {
-        FavoriteTask favorite = addFavoriteInternal(fullCommandLine, alwaysShowOutput);
+        FavoriteTask favorite = addFavorite(fullCommandLine, fullCommandLine, alwaysShowOutput);
         if (favorite != null) {
             notifyFavoritesChanged();
         }
@@ -187,13 +187,8 @@ public class FavoritesEditor implements SettingsSerializable {
         return favorite;
     }
 
-    private FavoriteTask addFavoriteInternal(String fullCommandLine, boolean alwaysShowOutput) {
-        FavoriteTask existingFavorite = getFavorite(fullCommandLine);
-        if (existingFavorite != null) {
-            return existingFavorite;
-        }  //already have it.
-
-        FavoriteTask favoriteTask = new FavoriteTask(fullCommandLine, fullCommandLine, alwaysShowOutput);
+    public FavoriteTask addFavorite(String fullCommandLine, String displayName, boolean alwaysShowOutput) {
+        FavoriteTask favoriteTask = new FavoriteTask(fullCommandLine, displayName, alwaysShowOutput);
         favoriteTasks.add(favoriteTask);
         return favoriteTask;
     }
@@ -210,7 +205,7 @@ public class FavoritesEditor implements SettingsSerializable {
         while (iterator.hasNext()) {
             TaskView task = iterator.next();
             String fullTaskName = task.getFullTaskName();
-            if (addFavoriteInternal(fullTaskName, alwaysShowOutput) != null) {
+            if (this.addFavorite(fullTaskName, alwaysShowOutput) != null) {
                 addedFavorite = true;
             }
         }
@@ -231,18 +226,18 @@ public class FavoritesEditor implements SettingsSerializable {
      * that isn't really a task.
      *
      * @param addFavoriteInteraction allows us to interact with the user
-     * @return true if we added it, false if not
+     * @return the favorite that was added, or null if the user canceled
      */
-    public boolean addFavorite(EditFavoriteInteraction addFavoriteInteraction) {
+    public FavoriteTask addFavorite(EditFavoriteInteraction addFavoriteInteraction) {
         FavoriteTask newFavorite = new FavoriteTask("", "", false);
         if (!editInternal(newFavorite, addFavoriteInteraction)) {
-            return false;
+            return null;
         }
 
         favoriteTasks.add(newFavorite);
 
         notifyFavoritesChanged();
-        return true;
+        return newFavorite;
     }
 
     /**
@@ -474,4 +469,30 @@ public class FavoritesEditor implements SettingsSerializable {
         return newFavoriteTask;
     }
 
+    /**
+     * This combines all the command lines of the favorites list into a single command line.
+     * This is useful for allowing a user to execute multiple favorites at once.
+     * Note: this doesn't do anything intelligent by trying to weed out duplicates.
+     * Gradle handles that nicely already.
+     * @param favoriteTasks the favorite tasks to combine
+     * @return a single String of all the command combined.
+     */
+    public static String combineFavoriteCommandLines( List<FavoriteTask> favoriteTasks )
+    {
+        StringBuilder builder = new StringBuilder();
+
+        Iterator<FavoriteTask> iterator = favoriteTasks.iterator();
+        while( iterator.hasNext() )
+        {
+           FavoriteTask favoriteTask = iterator.next();
+
+           builder.append( favoriteTask.getFullCommandLine() );
+           if( iterator.hasNext() )
+           {
+               builder.append( ' ' );
+           }
+        }
+
+        return builder.toString();
+    }
 }

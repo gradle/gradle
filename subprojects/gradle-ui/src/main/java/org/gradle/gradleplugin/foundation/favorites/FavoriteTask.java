@@ -42,9 +42,7 @@ public class FavoriteTask {
     }
 
     //if you're wanting to set this, go through the FavoritesEditor.
-    /*package*/
-
-    void setFullCommandLine(String fullCommandLine) {
+    /*package*/ void setFullCommandLine(String fullCommandLine) {
         this.fullCommandLine = fullCommandLine;
     }
 
@@ -53,9 +51,7 @@ public class FavoriteTask {
     }
 
     //if you're wanting to set this, go through the FavoritesEditor.
-    /*package*/
-
-    void setDisplayName(String displayName) {
+    /*package*/ void setDisplayName(String displayName) {
         this.displayName = displayName;
     }
 
@@ -64,9 +60,7 @@ public class FavoriteTask {
     }
 
     //if you're wanting to set this, go through the FavoritesEditor.
-    /*package*/
-
-    void setAlwaysShowOutput(boolean alwaysShowOutput) {
+    /*package*/ void setAlwaysShowOutput(boolean alwaysShowOutput) {
         this.alwaysShowOutput = alwaysShowOutput;
     }
 }

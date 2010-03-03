@@ -16,8 +16,9 @@
 package org.gradle.openapi.external.ui;
 
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
+import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1;
 
-import javax.swing.JComponent;
+import javax.swing.*;
 import java.io.File;
 
 /*
@@ -190,4 +191,11 @@ public interface BasicGradleUIVersion1
      * You can also execute tasks from it and perform certain setup.
      */
    public GradleInterfaceVersion1 getGradleInterfaceVersion1();
+
+    /**
+     * Returns a FavoritesEditor. This is useful for getting a list of all favorites or
+     * modifying them.
+     * @return a FavoritesEditorVersion1. Use this to interact with the favorites.
+     */
+   public FavoritesEditorVersion1 getFavoritesEditor();
 }

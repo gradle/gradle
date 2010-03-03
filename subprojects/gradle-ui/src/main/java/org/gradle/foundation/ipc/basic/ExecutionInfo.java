@@ -25,23 +25,24 @@ import java.util.HashMap;
    Fill this in with whatever you need to launch your external process.
    @author mhunsicker
 */
-public class ExecutionInfo {
-    public String[] commandLineArguments;
-    public File workingDirectory;
-    public HashMap<String, String> environmentVariables = new HashMap<String, String>();
+public interface ExecutionInfo {
+    /**
+     * @return the command line arguments passed to gradle.
+     */
+    public String[] getCommandLineArguments();
 
-    public void setCommandLineArguments(String[] commandLineArguments) {
-        this.commandLineArguments = commandLineArguments;
-    }
+    /**
+     * @return the working directory from which the JVM will execute.
+     */
+    public File getWorkingDirectory();
 
-    public void setWorkingDirectory(File workingDirectory) {
-        this.workingDirectory = workingDirectory;
-    }
+    /**
+     * @return a hashmap of environment variables and their values that are passed to the JVM that is created.
+     */
+    public HashMap<String, String> getEnvironmentVariables();
 
-    public void addEnvironmentVariable(String name, String value) {
-        this.environmentVariables.put(name, value);
-    }
-
-    public ExecutionInfo() {
-    }
+    /**
+     * Notification that execution has completed. This provides a place to cleanup any init scripts you have created.
+     */
+    public void processExecutionComplete();
 }
