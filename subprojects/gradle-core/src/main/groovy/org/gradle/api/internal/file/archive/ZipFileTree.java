@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,9 +32,7 @@ import org.gradle.util.HashUtil;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.Enumeration;
-import java.util.Collection;
-import java.util.Collections;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ZipFileTree extends AbstractFileTree {
@@ -70,9 +68,17 @@ public class ZipFileTree extends AbstractFileTree {
         try {
             ZipFile zip = new ZipFile(zipFile);
             try {
+                // The iteration order of zip.getEntries() is based on the hash of the zip entry. This isn't much use
+                // to us. So, collect the entries in a map and iterate over them in alphabetical order.
+                Map<String, ZipEntry> entriesByName = new TreeMap<String, ZipEntry>();
                 Enumeration entries = zip.getEntries();
-                while (!stopFlag.get() && entries.hasMoreElements()) {
-                    final ZipEntry entry = (ZipEntry) entries.nextElement();
+                while (entries.hasMoreElements()) {
+                    ZipEntry entry = (ZipEntry) entries.nextElement();
+                    entriesByName.put(entry.getName(), entry);
+                }
+                Iterator<ZipEntry> sortedEntries = entriesByName.values().iterator();
+                while (!stopFlag.get() && sortedEntries.hasNext()) {
+                    ZipEntry entry = sortedEntries.next();
                     if (entry.isDirectory()) {
                         visitor.visitDir(new DetailsImpl(entry, zip, stopFlag));
                     } else {
