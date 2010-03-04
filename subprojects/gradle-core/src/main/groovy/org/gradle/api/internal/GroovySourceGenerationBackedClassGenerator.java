@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,6 +90,9 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
             }
             src.format("public void setConventionMapping(org.gradle.api.internal.ConventionMapping conventionMapping) { this.mapping = conventionMapping }%n");
             src.format("public org.gradle.api.internal.ConventionMapping getConventionMapping() { return mapping }%n");
+        }
+
+        public void mixInGroovyObject() {
         }
 
         public void addDynamicMethods() {
