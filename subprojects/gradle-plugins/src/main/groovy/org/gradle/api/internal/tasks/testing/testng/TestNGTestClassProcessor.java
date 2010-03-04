@@ -54,8 +54,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     public void processTestClass(TestClassRunInfo testClass) {
         try {
             testClasses.add(applicationClassLoader.loadClass(testClass.getTestClassName()));
-        } catch (ClassNotFoundException e) {
-            throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()));
+        } catch (Throwable e) {
+            throw new GradleException(String.format("Could not load test class '%s'.", testClass.getTestClassName()), e);
         }
     }
 
@@ -76,8 +76,8 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         for (String listenerClass : options.getListeners()) {
             try {
                 testNg.addListener(applicationClassLoader.loadClass(listenerClass).newInstance());
-            } catch (Exception e) {
-                throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass));
+            } catch (Throwable e) {
+                throw new GradleException(String.format("Could not add a test listener with class '%s'.", listenerClass), e);
             }
         }
 
