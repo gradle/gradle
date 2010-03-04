@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests
 
 
@@ -39,7 +41,7 @@ public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationT
             captureStandardOutput(LogLevel.ERROR)
             println 'error message'
             assertNotNull(project)
-            assertEquals("$externalScript.absolutePath", buildscript.sourceFile as String)
+            assertEquals("${externalScript.absolutePath.replace("\\", "\\\\")}", buildscript.sourceFile as String)
             assertEquals("${externalScript.toURI()}", buildscript.sourceURI as String)
             assertSame(buildscript.classLoader, getClass().classLoader.parent)
             assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
