@@ -18,6 +18,8 @@
 
 
 
+
+
 package org.gradle.util
 
 import java.rmi.server.UID
@@ -56,6 +58,7 @@ import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
+import org.gradle.api.internal.ClassGenerator
 
 /**
  * @author Hans Dockter
@@ -64,8 +67,8 @@ class HelperUtil {
 
     public static final Closure TEST_CLOSURE = {}
     public static final Spec TEST_SEPC  = new AndSpec()
-    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
-
+    private static final ClassGenerator CLASS_GENERATOR = new GroovySourceGenerationBackedClassGenerator()
+    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(CLASS_GENERATOR))
 
     static <T extends Task> T createTask(Class<T> type) {
         return createTask(type, createRootProject())
@@ -88,7 +91,7 @@ class HelperUtil {
         startParameter.gradleUserHomeDir = new File(rootDir, 'home')
         TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameter)
         serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
-        IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
+        IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"), CLASS_GENERATOR)
 
         DefaultGradle build = new DefaultGradle(null, startParameter, serviceRegistryFactory)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
@@ -99,7 +102,8 @@ class HelperUtil {
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name, File projectDir = null) {
-        DefaultProject project = new DefaultProject(
+        DefaultProject project = CLASS_GENERATOR.newInstance(
+                DefaultProject.class,
                 name,
                 parentProject,
                 projectDir ?: new File(parentProject.getProjectDir(), name),

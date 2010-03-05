@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -52,12 +52,13 @@ public class ConfigureUtil {
         if (configureClosure == null) {
             return delegate;
         }
-        configureClosure.setResolveStrategy(resolveStrategy);
-        configureClosure.setDelegate(delegate);
-        if (configureClosure.getMaximumNumberOfParameters() == 0) {
-            configureClosure.call();
+        Closure copy = (Closure) configureClosure.clone();
+        copy.setResolveStrategy(resolveStrategy);
+        copy.setDelegate(delegate);
+        if (copy.getMaximumNumberOfParameters() == 0) {
+            copy.call();
         } else {
-            configureClosure.call(delegate);
+            copy.call(delegate);
         }
         return delegate;
     }

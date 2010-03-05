@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.ProjectDescriptor;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -66,6 +67,7 @@ public class ProjectFactoryTest {
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
     private ServiceRegistryFactory serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameterStub);
+    private ClassGenerator classGeneratorMock = serviceRegistryFactory.get(ClassGenerator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 
     private ProjectFactory projectFactory;
@@ -94,7 +96,7 @@ public class ProjectFactoryTest {
             ignoring(gradle).getProjectEvaluationBroadcaster();
         }});
 
-        projectFactory = new ProjectFactory(null);
+        projectFactory = new ProjectFactory(null, classGeneratorMock);
     }
 
     @Test
@@ -172,7 +174,7 @@ public class ProjectFactoryTest {
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
 
-        ProjectFactory projectFactory = new ProjectFactory(expectedScriptSource);
+        ProjectFactory projectFactory = new ProjectFactory(expectedScriptSource, classGeneratorMock);
 
         DefaultProject project = projectFactory.createProject(descriptor("somename"), null, gradle);
 

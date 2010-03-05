@@ -14,27 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.util;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.specs.Spec;
-import org.gradle.util.Configurable;
+import groovy.lang.Closure;
 
-public interface TaskInternal extends Task, Configurable<Task> {
-    Spec<? super TaskInternal> getOnlyIf();
-
-    /**
-     * Executes this task.
-     */
-    void execute();
-
-    StandardOutputCapture getStandardOutputCapture();
-
-    TaskExecuter getExecuter();
-
-    void setExecuter(TaskExecuter executer);
-
-    TaskOutputsInternal getOutputs();
+public interface Configurable<T> {
+    T configure(Closure cl);
 }
