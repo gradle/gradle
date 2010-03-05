@@ -21,6 +21,7 @@ import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.internal.artifacts.configurations.Configurations
+import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.SourceSet
@@ -29,11 +30,12 @@ import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.gradle.util.Matchers.*
-import static org.gradle.util.WrapUtil.*
+import static org.gradle.util.Matchers.builtBy
+import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.plugins.EmbeddableJavaProject
 
 /**
  * @author Hans Dockter
@@ -51,7 +53,7 @@ class JavaPluginTest {
         assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
 
         assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
-        assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME]))
+        assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, sameInstance(project.sourceSets.main.runtimeClasspath))
     }
 
@@ -200,7 +202,7 @@ class JavaPluginTest {
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
 
-        task = project.tasks[JavaPlugin.CHECK_TASK_NAME]
+        task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.TEST_TASK_NAME))
 
@@ -218,24 +220,23 @@ class JavaPluginTest {
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.JAR_TASK_NAME))
 
-        task = project.tasks[JavaPlugin.BUILD_TASK_NAME]
+        task = project.tasks[JavaBasePlugin.BUILD_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn(BasePlugin.ASSEMBLE_TASK_NAME, JavaPlugin.CHECK_TASK_NAME))
+        assertThat(task, dependsOn(BasePlugin.ASSEMBLE_TASK_NAME, JavaBasePlugin.CHECK_TASK_NAME))
 
-                task = project.tasks[JavaPlugin.BUILD_NEEDED_TASK_NAME]
+        task = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn(JavaPlugin.BUILD_TASK_NAME))
+        assertThat(task, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
 
-        task = project.tasks[JavaPlugin.BUILD_DEPENDENTS_TASK_NAME]
+        task = project.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn(JavaPlugin.BUILD_TASK_NAME))
+        assertThat(task, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
     }
 
     @Test public void appliesMappingsToTasksDefinedByBuildScript() {
         javaPlugin.use(project)
 
         def task = project.createTask('customCompile', type: Compile)
-        assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
@@ -280,10 +281,10 @@ class JavaPluginTest {
             compile project(path: commonProject.path, configuration: 'compile')
         }
 
-        Task task = middleProject.tasks[JavaPlugin.BUILD_NEEDED_TASK_NAME];
+        Task task = middleProject.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME];
         assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build',':common:build'] as Set))
 
-        task = middleProject.tasks[JavaPlugin.BUILD_DEPENDENTS_TASK_NAME];
+        task = middleProject.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME];
         assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build',':app:build'] as Set))
     }
 }

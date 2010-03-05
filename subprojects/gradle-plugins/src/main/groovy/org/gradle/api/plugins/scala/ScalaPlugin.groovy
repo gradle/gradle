@@ -18,73 +18,24 @@ package org.gradle.api.plugins.scala;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.file.FileTreeElement
-import org.gradle.api.internal.tasks.DefaultScalaSourceSet
 import org.gradle.api.plugins.JavaPlugin
-import org.gradle.api.plugins.JavaPluginConvention
-import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.scala.ScalaCompile
-import org.gradle.api.tasks.scala.ScalaDefine
 import org.gradle.api.tasks.scala.ScalaDoc
 
 public class ScalaPlugin implements Plugin<Project> {
-    // public configurations
-    public static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools";
-
     // tasks
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
-    public static final String SCALA_DEFINE_TASK_NAME = "defineScalaAnt";
 
     public void use(Project project) {
-        JavaPlugin javaPlugin = project.plugins.usePlugin(JavaPlugin.class);
+        project.plugins.usePlugin(ScalaBasePlugin.class);
+        project.plugins.usePlugin(JavaPlugin.class);
 
-        project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME).setVisible(false).setTransitive(true).
-                setDescription("The Scala tools libraries to be used for this Scala project.");
-
-        configureDefine(project);
-        configureCompileDefaults(project, javaPlugin)
-        configureSourceSetDefaults(project, javaPlugin)
         configureScaladoc(project);
-    }
-
-    private void configureSourceSetDefaults(Project project, JavaPlugin javaPlugin) {
-        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet sourceSet ->
-            sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
-            sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
-            sourceSet.allJava.add(sourceSet.scala.matching(sourceSet.java.filter))
-            sourceSet.allSource.add(sourceSet.scala)
-            sourceSet.resources.filter.exclude { FileTreeElement element -> sourceSet.scala.contains(element.file) }
-
-            String taskName = sourceSet.getCompileTaskName('scala')
-            ScalaCompile scalaCompile = project.tasks.add(taskName, ScalaCompile.class);
-            scalaCompile.dependsOn sourceSet.getCompileTaskName('java')
-            javaPlugin.configureForSourceSet(sourceSet, scalaCompile);
-            scalaCompile.description = "Compiles the $sourceSet.scala.";
-            scalaCompile.conventionMapping.defaultSource = { sourceSet.scala }
-
-            project.tasks[sourceSet.classesTaskName].dependsOn(taskName)
-        }
-    }
-
-    private void configureDefine(Project project) {
-        ScalaDefine define = project.tasks.add(SCALA_DEFINE_TASK_NAME, ScalaDefine.class);
-        define.conventionMapping.classpath = { project.configurations[SCALA_TOOLS_CONFIGURATION_NAME] }
-        define.description = "Defines the Scala ant tasks.";
-    }
-
-    private void configureCompileDefaults(final Project project, JavaPlugin javaPlugin) {
-        project.tasks.withType(ScalaCompile.class).allTasks {ScalaCompile compile ->
-            compile.dependsOn(SCALA_DEFINE_TASK_NAME)
-        }
     }
 
     private void configureScaladoc(final Project project) {
         project.getTasks().withType(ScalaDoc.class).allTasks {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.classpath = { project.sourceSets.main.classes + project.sourceSets.main.compileClasspath }
             scalaDoc.conventionMapping.defaultSource = { project.sourceSets.main.scala }
-            scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
-            scalaDoc.conventionMapping.title = { project.apiDocTitle }
-            scalaDoc.dependsOn(SCALA_DEFINE_TASK_NAME)
         }
         project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class).description = "Generates scaladoc for the source code.";
     }

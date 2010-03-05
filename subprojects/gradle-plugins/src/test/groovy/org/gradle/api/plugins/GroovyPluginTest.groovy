@@ -22,8 +22,9 @@ import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.gradle.util.Matchers.*
-import static org.gradle.util.WrapUtil.*
+import static org.gradle.util.Matchers.dependsOn
+import static org.gradle.util.WrapUtil.toLinkedSet
+import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -44,11 +45,11 @@ class GroovyPluginTest {
         groovyPlugin.use(project)
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyPlugin.GROOVY_CONFIGURATION_NAME)))
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
 
-        configuration = project.configurations.getByName(GroovyPlugin.GROOVY_CONFIGURATION_NAME)
+        configuration = project.configurations.getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
@@ -117,12 +118,8 @@ class GroovyPluginTest {
 
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
         groovyPlugin.use(project)
-        
-        def task = project.createTask('otherCompile', type: GroovyCompile)
-        assertThat(task.classpath, sameInstance(project.sourceSets.main.compileClasspath))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))
 
-        task = project.createTask('otherGroovydoc', type: Groovydoc)
+        def task = project.createTask('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))
         assertThat(task.docTitle, equalTo(project.apiDocTitle))
