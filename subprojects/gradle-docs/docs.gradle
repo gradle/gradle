@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
@@ -30,6 +45,7 @@ RemoteLocations remoteLocations = new RemoteLocations(version: version)
 
 srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
+cssSrcDir = new File(srcDocsDir, 'css')
 
 docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
@@ -71,8 +87,8 @@ task userguideStyleSheets(type: Copy) {
     from(stylesheetsDir) {
         include '*.xsl'
     }
-    from(userguideSrcDir) {
-        include 'style.css'
+    from(cssSrcDir) {
+        include '*.css'
     }
     from(zipTree(configurations.userGuideStyleSheets.singleFile)) {
         // Remove the prefix
@@ -115,8 +131,11 @@ task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
     stylesheetName = 'userGuideHtml.xsl'
     resources = fileTree {
         from userguideSrcDir
-        include 'style.css'
         include 'images/*.png'
+    }
+    resources += fileTree {
+        from cssSrcDir
+        include '*.css'
     }
 }
 
@@ -126,8 +145,11 @@ task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = fileTree {
         from userguideSrcDir
-        include 'style.css'
         include 'images/*.png'
+    }
+    resources += fileTree {
+        from cssSrcDir
+        include '*.css'
     }
 }
 
@@ -137,9 +159,11 @@ task userguideXhtml(type: Docbook2Xhtml, dependsOn: remoteUserguideDocbook) {
     stylesheetName = 'userGuidePdf.xsl'
     resources = fileTree {
         from userguideSrcDir
-        include 'style.css'
-        include 'print.css'
         include 'images/*.png'
+    }
+    resources += fileTree {
+        from cssSrcDir
+        include '*.css'
     }
 }
 
@@ -204,7 +228,11 @@ task websiteDocs(type: Docbook2Xhtml, dependsOn: websiteDocsSrc) {
     File websiteDocs = new File(buildDir, 'websiteDocs')
     source websiteDocsSrc.destFile
     destFile = new File(websiteDocs, 'website.html')
-    stylesheetName = 'docFragment.xsl'
+    stylesheetName = 'websiteHtml.xsl'
+    resources = fileTree {
+        from cssSrcDir
+        include '*.css'
+    }
 }
 
 task userguide(dependsOn: [userguideHtml, userguideSingleHtml, userguidePdf], description: 'Generates the userguide')

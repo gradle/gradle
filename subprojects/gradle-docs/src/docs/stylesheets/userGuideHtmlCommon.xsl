@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,13 +19,19 @@
     <xsl:import href="highlighting/common.xsl"/>
     <xsl:import href="html/highlight.xsl"/>
 
-    <xsl:param name="html.stylesheet">style.css</xsl:param>
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
     <xsl:param name="section.autolabel">1</xsl:param>
     <xsl:param name="section.label.includes.component.label">1</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
     <xsl:param name="highlight.source" select="1"/>
+
+    <!-- Use custom style sheet content -->
+    <xsl:param name="html.stylesheet">DUMMY</xsl:param>
+    <xsl:template name="output.html.stylesheets">
+        <link href="base.css" rel="stylesheet" type="text/css"/>
+        <link href="style.css" rel="stylesheet" type="text/css"/>
+    </xsl:template>
 
     <xsl:param name="generate.toc">
         book toc,title,example

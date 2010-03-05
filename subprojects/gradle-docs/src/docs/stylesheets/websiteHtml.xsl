@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@
         <xsl:copy-of select="$content"/>
     </xsl:template>
 
-    <!--<xsl:template match="book"></xsl:template>-->
-
-    <!--<xsl:template match="*" mode="object.xref.markup">[implement me]</xsl:template>-->
+    <xsl:template match="chapter|section" mode="object.xref.markup">
+        <xsl:value-of select="title"/>
+    </xsl:template>
 </xsl:stylesheet>

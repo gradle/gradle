@@ -6,7 +6,7 @@
 ?>
 
 <div class="item">
-    <h2><a href="<?php echo $item->get_permalink(); ?>"><?php echo $item->get_title(); ?></a></h2>
+    <h2><?php echo $item->get_title(); ?></h2>
 
     <p><?php echo $item->get_description(); ?></p>
 

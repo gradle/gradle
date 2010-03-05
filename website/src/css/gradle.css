@@ -1,46 +1,33 @@
-html {
-    height: 100%;
-    min-height: 100%
-}
 
-body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    min-height: 100%
-}
-
-body, td, div {
-    font-family: 'DejaVu Sans', 'Lucida Grande', 'Verdana', sans-serif;
-    font-size: 14px;
-    color: #444444;
-}
-
-div {
-    margin: 0;
-    padding: 0;
-}
-
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 h1 {
     font-size: 200%;
-    font-weight: bold;
-    color: #444444;
     margin-top: 1em;
     margin-bottom: 0.6em;
 }
 
 h2 {
     font-size: 140%;
-    font-weight: bold;
-    color: #444444;
     margin-top: 1em;
     margin-bottom: 0.2em;
 }
 
 h3 {
     font-size: 120%;
-    font-weight: bold;
-    color: #444444;
     margin-top: 1em;
     margin-bottom: 0.2em;
 }
@@ -48,7 +35,6 @@ h3 {
 p {
     margin-top: 0.8em;
     margin-bottom: 0.8em;
-    line-height: 1.4em;
 }
 
 #top {
@@ -113,7 +99,7 @@ p {
 
 #navbar {
     position: absolute;
-    left: 230px;
+    right: 0;
     bottom: 10px;
 }
 
@@ -132,12 +118,16 @@ p {
     font-weight: bold;
     color: #444444;
     text-decoration: none;
-    margin-right: 20px;
+    margin-left: 50px;
 }
 
 #navbar a:hover {
     color: #444444;
     text-decoration: underline;
+}
+
+#navbar .selected {
+    color: #327bad;
 }
 
 .content {
@@ -239,13 +229,11 @@ p {
     padding-left: 25px;
 }
 
-#news h2 {
-}
-
 #news ul {
     margin: 0;
     margin-top: 1em;
     padding: 0;
+    line-height: 1.5em;
 }
 
 #news li {
@@ -266,6 +254,11 @@ a.more {
     padding-top: 20px;
     padding-bottom: 20px;
     font-size: 90%;
+    line-height: 1.5em;
+}
+
+#footer div {
+    font-size: inherit;
 }
 
 #footer a {

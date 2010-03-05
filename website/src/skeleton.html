@@ -1,9 +1,25 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
         "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Gradle - ${title}</title>
+    <link href="css/base.css" rel="stylesheet" type="text/css"/>
     <link href="css/gradle.css" rel="stylesheet" type="text/css"/>
 </head>
 
@@ -17,11 +33,17 @@
         </div>
         <div id="navbar">
             <ul>
-                <li><a href="index.php">HOME</a></li>
-                <li><a href="downloads.html">DOWNLOADS</a></li>
-                <li><a href="documentation.html">DOCUMENTATION</a></li>
-                <li><a href="community.html">COMMUNITY</a></li>
-                <li><a href="http://www.gradle.biz">GRADLE INC.</a></li>
+<%
+Map urls = new LinkedHashMap()
+urls.HOME = 'index.php'
+urls.DOWNLOADS = 'downloads.html'
+urls.DOCUMENTATION = 'documentation.html'
+urls.COMMUNITY = 'community.html'
+urls.'GRADLE INC.' = 'http://www.gradle.biz'
+for (entry in urls.entrySet() ) {
+%>
+    <li><a href="${entry.value}" class="${fileName == entry.value ? 'selected' : ''}">${entry.key}</a></li>
+<% } %>
             </ul>
         </div>
     </div>
