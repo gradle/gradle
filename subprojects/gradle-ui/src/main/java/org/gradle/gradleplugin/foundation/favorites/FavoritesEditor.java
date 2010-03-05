@@ -190,7 +190,9 @@ public class FavoritesEditor implements SettingsSerializable {
     public FavoriteTask addFavorite(String fullCommandLine, String displayName, boolean alwaysShowOutput) {
         if( ( fullCommandLine == null || fullCommandLine.trim().equals( "" ) ) &&
             ( displayName == null || displayName.trim().equals( "" ) ) )    //don't allow someone to add a blank favorite.
+        {
             return null;
+        }
 
         FavoriteTask favoriteTask = new FavoriteTask(fullCommandLine, displayName, alwaysShowOutput);
         favoriteTasks.add(favoriteTask);
