@@ -16,12 +16,9 @@
 
 package org.gradle.integtests
 
-import java.util.jar.Manifest
 import org.gradle.util.TestFile
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.equalTo
-import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter

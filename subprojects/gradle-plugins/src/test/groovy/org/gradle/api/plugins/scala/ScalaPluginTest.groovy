@@ -16,8 +16,6 @@
 package org.gradle.api.plugins.scala
 
 import org.gradle.api.Project
-import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
@@ -25,9 +23,9 @@ import org.gradle.util.HelperUtil
 import org.junit.Test
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toSet
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.assertTrue
 
 public class ScalaPluginTest {
 
@@ -36,15 +34,7 @@ public class ScalaPluginTest {
 
     @Test public void appliesTheJavaPluginToTheProject() {
         scalaPlugin.use(project)
-        assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin))
-    }
-
-    @Test public void addsScalaToolsConfigurationToTheProject() {
-        scalaPlugin.use(project)
-        def configuration = project.configurations.getByName(ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
-        assertFalse(configuration.visible)
-        assertTrue(configuration.transitive)
+        assertTrue(project.getPlugins().hasPlugin(JavaPlugin))
     }
 
     @Test public void addsScalaConventionToEachSourceSetAndAppliesMappings() {
@@ -57,10 +47,6 @@ public class ScalaPluginTest {
         sourceSet = project.sourceSets.test
         assertThat(sourceSet.scala.displayName, equalTo("test Scala source"))
         assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/test/scala"))))
-
-        sourceSet = project.sourceSets.add('custom')
-        assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
-        assertThat(sourceSet.scala.srcDirs, equalTo(toLinkedSet(project.file("src/custom/scala"))))
     }
 
     @Test public void addsCompileTaskForEachSourceSet() {
@@ -79,14 +65,6 @@ public class ScalaPluginTest {
         assertThat(task.classpath, equalTo(project.sourceSets.test.compileClasspath))
         assertThat(task.defaultSource, equalTo(project.sourceSets.test.scala))
         assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
-
-        project.sourceSets.add('custom')
-        task = project.tasks['compileCustomScala']
-        assertThat(task, instanceOf(ScalaCompile.class))
-        assertThat(task.description, equalTo('Compiles the custom Scala source.'))
-        assertThat(task.classpath, equalTo(project.sourceSets.custom.compileClasspath))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.scala))
-        assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME, 'compileCustomJava'))
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
@@ -99,14 +77,6 @@ public class ScalaPluginTest {
         assertThat(task, dependsOn(hasItem('compileTestScala')))
     }
     
-    @Test public void configuresCompileTasksDefinedByTheBuildScript() {
-        scalaPlugin.use(project)
-
-        def task = project.createTask('otherCompile', type: ScalaCompile)
-        assertThat(task.defaultSource, nullValue())
-        assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME))
-    }
-
     @Test public void addsScalaDocTasksToTheProject() {
         scalaPlugin.use(project)
 
@@ -125,10 +95,7 @@ public class ScalaPluginTest {
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME, ScalaBasePlugin.SCALA_DEFINE_TASK_NAME))
-        assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.classes))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.compileClasspath))
-        assertThat(task.title, equalTo(project.apiDocTitle))
     }
 }

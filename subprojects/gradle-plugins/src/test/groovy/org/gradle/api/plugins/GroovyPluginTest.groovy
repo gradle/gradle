@@ -48,14 +48,9 @@ class GroovyPluginTest {
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
         assertFalse(configuration.transitive)
-
-        configuration = project.configurations.getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
-        assertFalse(configuration.visible)
-        assertFalse(configuration.transitive)
     }
 
-    @Test public void addsGroovyConventionToEachSourceSetAndAppliesMappings() {
+    @Test public void addsGroovyConventionToEachSourceSet() {
         groovyPlugin.use(project)
 
         def sourceSet = project.sourceSets.main
@@ -65,10 +60,6 @@ class GroovyPluginTest {
         sourceSet = project.sourceSets.test
         assertThat(sourceSet.groovy.displayName, equalTo("test Groovy source"))
         assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/test/groovy"))))
-
-        sourceSet = project.sourceSets.add('custom')
-        assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
-        assertThat(sourceSet.groovy.srcDirs, equalTo(toLinkedSet(project.file("src/custom/groovy"))))
     }
 
     @Test public void addsCompileTaskForEachSourceSet() {
@@ -85,14 +76,6 @@ class GroovyPluginTest {
         assertThat(task.description, equalTo('Compiles the test Groovy source.'))
         assertThat(task.defaultSource, equalTo(project.sourceSets.test.groovy))
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
-
-        project.sourceSets.add('custom')
-
-        task = project.tasks['compileCustomGroovy']
-        assertThat(task, instanceOf(GroovyCompile.class))
-        assertThat(task.description, equalTo('Compiles the custom Groovy source.'))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.groovy))
-        assertThat(task, dependsOn('compileCustomJava'))
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
@@ -120,9 +103,6 @@ class GroovyPluginTest {
         groovyPlugin.use(project)
 
         def task = project.createTask('otherGroovydoc', type: Groovydoc)
-        assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))
-        assertThat(task.docTitle, equalTo(project.apiDocTitle))
-        assertThat(task.windowTitle, equalTo(project.apiDocTitle))
     }
 }

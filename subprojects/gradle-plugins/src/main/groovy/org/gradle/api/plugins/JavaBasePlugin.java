@@ -17,10 +17,8 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
@@ -33,8 +31,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.Arrays;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -54,7 +50,6 @@ public class JavaBasePlugin implements Plugin<Project> {
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project);
         project.getConvention().getPlugins().put("java", javaConvention);
-        project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));
 
         configureConfigurations(project);
         configureCompileDefaults(project, javaConvention);
@@ -238,21 +233,5 @@ public class JavaBasePlugin implements Plugin<Project> {
 
     void configureConfigurations(final Project project) {
         project.setProperty("status", "integration");
-    }
-
-    private static class EmbeddableJavaProjectImpl implements EmbeddableJavaProject {
-        private final JavaPluginConvention convention;
-
-        public EmbeddableJavaProjectImpl(JavaPluginConvention convention) {
-            this.convention = convention;
-        }
-
-        public Collection<String> getRebuildTasks() {
-            return Arrays.asList(BasePlugin.CLEAN_TASK_NAME, BUILD_TASK_NAME);
-        }
-
-        public FileCollection getRuntimeClasspath() {
-            return convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
-        }
     }
 }

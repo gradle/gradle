@@ -24,9 +24,11 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
+import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
@@ -37,6 +39,8 @@ import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Set;
 
 
@@ -65,6 +69,7 @@ public class JavaPlugin implements Plugin<Project> {
         project.getPlugins().usePlugin(JavaBasePlugin.class);
 
         JavaPluginConvention javaConvention = (JavaPluginConvention) project.getConvention().getPlugins().get("java");
+        project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));
 
         configureConfigurations(project);
         configureSourceSetDefaults(javaConvention);
@@ -220,6 +225,22 @@ public class JavaPlugin implements Plugin<Project> {
         Project project = task.getProject();
         final Configuration configuration = project.getConfigurations().getByName(configurationName);
         task.dependsOn(configuration.getTaskDependencyFromProjectDependency(useDependedOn, otherProjectTaskName));
+    }
+
+    private static class EmbeddableJavaProjectImpl implements EmbeddableJavaProject {
+        private final JavaPluginConvention convention;
+
+        public EmbeddableJavaProjectImpl(JavaPluginConvention convention) {
+            this.convention = convention;
+        }
+
+        public Collection<String> getRebuildTasks() {
+            return Arrays.asList(BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME);
+        }
+
+        public FileCollection getRuntimeClasspath() {
+            return convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
+        }
     }
 
 
