@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -188,6 +188,10 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     public FavoriteTask addFavorite(String fullCommandLine, String displayName, boolean alwaysShowOutput) {
+        if( ( fullCommandLine == null || fullCommandLine.trim().equals( "" ) ) &&
+            ( displayName == null || displayName.trim().equals( "" ) ) )    //don't allow someone to add a blank favorite.
+            return null;
+
         FavoriteTask favoriteTask = new FavoriteTask(fullCommandLine, displayName, alwaysShowOutput);
         favoriteTasks.add(favoriteTask);
         return favoriteTask;
