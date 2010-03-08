@@ -141,7 +141,7 @@
                 the build file. This means you can use any of the mechanisms shown in earlier chapters to customise
                 these tasks. For example, you can set the properties of a task, add behaviour to a task, change the
                 dependencies of a task, or replace a task entirely. In our sample, we will configure the
-                <literal>test</literal> task, which is of type <apilink class="org.gradle.api.tasks.testing.AntTest"/>, to
+                <literal>test</literal> task, which is of type <apilink class="org.gradle.api.tasks.testing.Test"/>, to
                 add a system property when the tests are executed: </para>
             <sample id="javaQuickstart" dir="java/quickstart" title="Adding system property">
                 <sourcefile file="build.gradle" snippet="task-customisation"/>

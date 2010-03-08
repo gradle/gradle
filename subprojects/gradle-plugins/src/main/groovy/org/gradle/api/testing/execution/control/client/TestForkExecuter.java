@@ -15,14 +15,15 @@
  */
 package org.gradle.api.testing.execution.control.client;
 
-import org.gradle.api.testing.execution.control.client.transport.ExternalIoConnectorFactory;
-import org.gradle.api.testing.execution.control.client.transport.IoConnectorFactory;
-import org.gradle.api.testing.execution.control.messages.TestControlMessage;
+import org.gradle.api.testing.execution.control.messages.client.ForkStartedMessage;
+import org.gradle.api.testing.execution.control.messages.client.ForkStoppedMessage;
+import org.gradle.api.testing.execution.control.messages.client.TestClientControlMessage;
 import org.gradle.api.testing.execution.fork.ForkExecuter;
-import org.gradle.listener.dispatch.AsyncDispatch;
+import org.gradle.messaging.TcpMessagingClient;
+import org.gradle.messaging.dispatch.Dispatch;
 
+import java.net.URI;
 import java.util.List;
-import java.util.concurrent.Executors;
 
 /**
  * @author Tom Eyckmans
@@ -35,29 +36,20 @@ public class TestForkExecuter implements ForkExecuter {
 
     public void execute() {
         try {
-            final int pipelineId = Integer.parseInt(arguments.get(0));
             final int forkId = Integer.parseInt(arguments.get(1));
-            final int testServerPort = Integer.parseInt(arguments.get(2));
+            final URI testServerUri = new URI(arguments.get(2));
 
-            AsyncDispatch<TestControlMessage> asyncDispatch = new AsyncDispatch<TestControlMessage>(Executors.newSingleThreadExecutor());
-
-            final IoConnectorFactory ioConnectorFactory = new ExternalIoConnectorFactory(testServerPort);
-            final DefaultTestControlClient testControlClient = new DefaultTestControlClient(forkId, ioConnectorFactory, asyncDispatch);
-
+            TcpMessagingClient client = new TcpMessagingClient(getClass().getClassLoader(), testServerUri);
             try {
-                testControlClient.open();
-                testControlClient.reportStarted();
+                Dispatch<TestClientControlMessage> outgoing = client.getConnection().addOutgoing(Dispatch.class);
+                outgoing.dispatch(new ForkStartedMessage(forkId));
 
-                TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(
-                        testControlClient, sandboxClassLoader);
-                asyncDispatch.add(testControlMessageDispatcher);
-
+                TestControlMessageDispatcher testControlMessageDispatcher = new TestControlMessageDispatcher(forkId, outgoing, sandboxClassLoader);
                 testControlMessageDispatcher.waitForExitReceived();
-                asyncDispatch.stop();
 
-                testControlClient.reportStopped();
+                outgoing.dispatch(new ForkStoppedMessage(forkId));
             } finally {
-                testControlClient.close();
+                client.stop();
             }
         } catch (Throwable t) {
             t.printStackTrace();

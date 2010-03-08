@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,10 +25,14 @@ import java.util.concurrent.CopyOnWriteArrayList;
  */
 public class MultiParentClassLoader extends ClassLoader {
     private final List<ClassLoader> parents;
+    private final JavaMethod<ClassLoader, Package[]> getPackagesMethod;
+    private final JavaMethod<ClassLoader, Package> getPackageMethod;
 
     public MultiParentClassLoader(ClassLoader... parents) {
         super(parents.length == 0 ? null : parents[0]);
         this.parents = new CopyOnWriteArrayList<ClassLoader>(Arrays.asList(parents));
+        getPackagesMethod = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class, Package[].class, "getPackages");
+        getPackageMethod = new JavaMethod<ClassLoader, Package>(ClassLoader.class, Package.class, "getPackage", String.class);
     }
 
     public void addParent(ClassLoader parent) {
@@ -50,7 +54,7 @@ public class MultiParentClassLoader extends ClassLoader {
     @Override
     protected Package getPackage(String name) {
         for (ClassLoader parent : parents) {
-            Package p = (Package) ReflectionUtil.invoke(parent, "getPackage", new Object[]{name});
+            Package p = getPackageMethod.invoke(parent, name);
             if (p != null) {
                 return p;
             }
@@ -62,7 +66,7 @@ public class MultiParentClassLoader extends ClassLoader {
     protected Package[] getPackages() {
         Set<Package> packages = new LinkedHashSet<Package>();
         for (ClassLoader parent : parents) {
-            Package[] parentPackages = (Package[]) ReflectionUtil.invoke(parent, "getPackages", new Object[0]);
+            Package[] parentPackages = getPackagesMethod.invoke(parent);
             packages.addAll(Arrays.asList(parentPackages));
         }
         return packages.toArray(new Package[packages.size()]);

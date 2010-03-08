@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ public abstract class AbstractBlockingQueueItemConsumer<T> implements Runnable {
     private final TimeUnit pollTimeoutTimeUnit;
     private final AtomicBoolean keepConsuming = new AtomicBoolean(true);
     private final AtomicBoolean ended = new AtomicBoolean(false);
-    private volatile Throwable endCause = null;
+    private volatile Throwable endCause;
 
     protected AbstractBlockingQueueItemConsumer(BlockingQueue<T> toConsumeQueue, long pollTimeout,
                                                 TimeUnit pollTimeoutTimeUnit) {

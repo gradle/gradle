@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -152,7 +152,7 @@ public class DefaultSourceDirectorySetTest {
             set.stopExecutionIfEmpty()
             fail()
         } catch (StopExecutionException e) {
-            assertThat(e.message, equalTo('No files found in <display-name>.'))
+            assertThat(e.message, equalTo('<display-name> does not contain any files.'))
         }
     }
 
@@ -166,7 +166,7 @@ public class DefaultSourceDirectorySetTest {
             set.stopExecutionIfEmpty()
             fail()
         } catch (StopExecutionException e) {
-            assertThat(e.message, equalTo('No files found in <display-name>.'))
+            assertThat(e.message, equalTo('<display-name> does not contain any files.'))
         }
     }
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,7 +29,7 @@ public class AmountOfTestCasesDataGatherer extends ReforkReasonKeyLink implement
             DataGatherMoment.AFTER_TEST_EXECUTION);
 
     private long reforkEvery = -1;
-    private long amountOfTestsExecutedByFork = 0;
+    private long amountOfTestsExecutedByFork;
 
     public AmountOfTestCasesDataGatherer(ReforkReasonKey reforkReasonKey) {
         super(reforkReasonKey);
@@ -75,7 +75,7 @@ public class AmountOfTestCasesDataGatherer extends ReforkReasonKeyLink implement
         if ( reforkEvery >= 1 ) {
             final int dataSendNeededCheck = Math.round(amountOfTestsExecutedByFork % reforkEvery);
 
-            dataSendNeeded = (dataSendNeededCheck == 0);
+            dataSendNeeded = dataSendNeededCheck == 0;
         }
 
         return dataSendNeeded;

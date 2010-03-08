@@ -131,6 +131,6 @@ class SamplesMavenPomGenerationIntegrationTest {
         Diff diff = new Diff(expectedXml, actualXml)
         diff.overrideElementQualifier(new RecursiveElementNameAndTextQualifier())
         XMLAssert.assertXMLEqual(diff, true);
-        Assert.assertThat(actualXml, Matchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>%n<!-- mylicenseheader -->')))
+        Assert.assertThat(actualXml, Matchers.startsWith(String.format('<?xml version="1.0" encoding="UTF-8"?>')))
     }
 }

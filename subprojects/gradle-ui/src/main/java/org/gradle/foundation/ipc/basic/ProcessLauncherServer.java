@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,13 +88,13 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 ExecutionInfo executionInfo = protocol.getExecutionInfo(getPort() );
 
                 ExecHandleBuilder builder = new ExecHandleBuilder();
-                builder.execDirectory(executionInfo.getWorkingDirectory());
-                builder.commandLine(executionInfo.getCommandLineArguments() );
-                builder.environment(executionInfo.getEnvironmentVariables() );
+                builder.workingDir(executionInfo.getWorkingDirectory());
+                builder.commandLine(executionInfo.getCommandLineArguments());
+                builder.environment(executionInfo.getEnvironmentVariables());
                 ByteArrayOutputStream output = new ByteArrayOutputStream();
                 builder.standardOutput(output);
                 builder.errorOutput(output);
-                ExecHandle execHandle = builder.getExecHandle();
+                ExecHandle execHandle = builder.build();
                 setExternalProcess(execHandle);
 
                 try {

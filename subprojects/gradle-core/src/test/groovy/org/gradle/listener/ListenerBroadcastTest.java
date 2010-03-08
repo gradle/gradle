@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.listener;
 
-import org.gradle.listener.dispatch.MethodInvocation;
+import org.gradle.api.Action;
+import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.TestClosure;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -24,6 +26,7 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import static org.gradle.util.HelperUtil.*;
+import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -35,9 +38,7 @@ public class ListenerBroadcastTest {
     @Test
     public void createsSourceObject() {
         assertThat(broadcast.getSource(), notNullValue());
-        assertTrue(broadcast.getSource().equals(broadcast.getSource()));
-        assertFalse(broadcast.getSource().equals("something"));
-        assertFalse(broadcast.getSource().equals(null));
+        assertThat(broadcast.getSource(), strictlyEqual(broadcast.getSource()));
         assertFalse(broadcast.getSource().equals(new ListenerBroadcast<TestListener>(TestListener.class).getSource()));
         assertEquals(broadcast.getSource().hashCode(), broadcast.getSource().hashCode());
         assertThat(broadcast.getSource().toString(), equalTo("TestListener broadcast"));
@@ -119,6 +120,37 @@ public class ListenerBroadcastTest {
     @Test
     public void closureCanHaveFewerParametersThanEventMethod() {
         broadcast.add("event2", toClosure("{ a -> 'result' }"));
+        broadcast.getSource().event2(1, "param");
+        broadcast.getSource().event2(2, null);
+    }
+
+    @Test
+    public void canUseActionForSingleEventMethod() {
+        final Action<String> action = context.mock(Action.class);
+        context.checking(new Expectations() {{
+            one(action).execute("param");
+        }});
+
+        broadcast.add("event1", action);
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void doesNotNotifyActionForOtherEventMethods() {
+        final Action<String> action = context.mock(Action.class);
+
+        broadcast.add("event1", action);
+        broadcast.getSource().event2(9, "param");
+    }
+
+    @Test
+    public void actionCanHaveFewerParametersThanEventMethod() {
+        final Action<Integer> action = context.mock(Action.class);
+        context.checking(new Expectations(){{
+            one(action).execute(1);
+            one(action).execute(2);
+        }});
+        broadcast.add("event2", action);
         broadcast.getSource().event2(1, "param");
         broadcast.getSource().event2(2, null);
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class Matchers {
     @Factory
@@ -54,7 +55,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("has same items as ").appendValue(items);
+                description.appendText("an Iterable that has same items as ").appendValue(items);
             }
         };
     }
@@ -67,7 +68,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("matches regexp ").appendValue(pattern);
+                description.appendText("a CharSequence that matches regexp ").appendValue(pattern);
             }
         };
     }
@@ -98,7 +99,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("strictly equals ").appendValue(other);
+                description.appendText("an Object that strictly equals ").appendValue(other);
             }
         };
     }
@@ -111,7 +112,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("contains line ").appendValue(line);
+                description.appendText("a String that contains line ").appendValue(line);
             }
         };
     }
@@ -136,7 +137,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("contains line that matches ").appendDescriptionOf(matcher);
+                description.appendText("a String that contains line that is ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -150,7 +151,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("is empty");
+                description.appendText("an empty Iterable");
             }
         };
     }
@@ -160,11 +161,11 @@ public class Matchers {
         return new BaseMatcher<Map<?, ?>>() {
             public boolean matches(Object o) {
                 Map<?, ?> map = (Map<?, ?>) o;
-                return map.isEmpty();
+                return map != null && map.isEmpty();
             }
 
             public void describeTo(Description description) {
-                description.appendText("is empty");
+                description.appendText("an empty map");
             }
         };
     }
@@ -174,11 +175,11 @@ public class Matchers {
         return new BaseMatcher<Object[]>() {
             public boolean matches(Object o) {
                 Object[] array = (Object[]) o;
-                return array.length == 0;
+                return array != null && array.length == 0;
             }
 
             public void describeTo(Description description) {
-                description.appendText("is empty");
+                description.appendText("an empty array");
             }
         };
     }
@@ -192,7 +193,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("exception messages ").appendDescriptionOf(matcher);
+                description.appendText("an exception with message that is ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -222,7 +223,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("depends on ").appendDescriptionOf(matcher);
+                description.appendText("a Task that depends on ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -252,7 +253,7 @@ public class Matchers {
             }
 
             public void describeTo(Description description) {
-                description.appendText("built by ").appendDescriptionOf(matcher);
+                description.appendText("a Buildable that is built by ").appendDescriptionOf(matcher);
             }
         };
     }
@@ -296,13 +297,16 @@ public class Matchers {
 
     public static class Collector<T> {
         private T value;
+        private boolean set;
 
         public T get() {
+            assertTrue(set);
             return value;
         }
 
         void setValue(Object parameter) {
             value = (T) parameter;
+            set = true;
         }
     }
 }

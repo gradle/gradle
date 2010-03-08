@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -41,6 +42,7 @@ import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.project.taskfactory.*;
 import org.gradle.api.internal.tasks.DefaultTaskExecuter;
+import org.gradle.api.internal.tasks.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.SkipTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.AutoCloseCacheFactory;
@@ -52,6 +54,11 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.messaging.MessagingServer;
+import org.gradle.messaging.TcpMessagingServer;
+import org.gradle.process.DefaultWorkerProcessFactory;
+import org.gradle.process.WorkerProcessFactory;
+import org.gradle.util.LongIdGenerator;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.WrapUtil;
 
@@ -83,11 +90,13 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected TaskExecuter createTaskExecuter() {
-        return new SkipTaskExecuter(
-                new ExecutionShortCircuitTaskExecuter(
-                        new DefaultTaskExecuter(
-                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class)),
-                        get(TaskArtifactStateRepository.class)));
+        return new ExecuteAtMostOnceTaskExecuter(
+                new SkipTaskExecuter(
+                        new ExecutionShortCircuitTaskExecuter(
+                                new PostExecutionAnalysisTaskExecuter(
+                                        new DefaultTaskExecuter(
+                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                        get(TaskArtifactStateRepository.class))));
     }
 
     protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
@@ -278,6 +287,15 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected IsolatedAntBuilder createIsolatedAntBuilder() {
         return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
+    }
+
+    protected WorkerProcessFactory createWorkerProcessFactory() {
+        ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
+        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry, null, new LongIdGenerator());
+    }
+    
+    protected MessagingServer createMessagingServer() {
+        return new TcpMessagingServer(get(ClassLoaderFactory.class).getRootClassLoader());
     }
     
     public ServiceRegistryFactory createFor(Object domainObject) {

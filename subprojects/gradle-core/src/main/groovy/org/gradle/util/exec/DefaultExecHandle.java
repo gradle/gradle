@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@ import org.gradle.util.ThreadUtils;
 import org.gradle.util.shutdown.ShutdownHookActionRegister;
 
 import java.io.File;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -77,20 +79,10 @@ public class DefaultExecHandle implements ExecHandle {
      * The variables to set in the environment the executable is run in.
      */
     private final Map<String, String> environment;
-    /**
-     * Time in ms to sleep the 'main' Thread that is waiting for the external process to be terminated. Note that this
-     * timeout is only used when the {@link Process#waitFor} method is interrupted so it's use very limited.
-     */
-    private final long keepWaitingTimeout;
 
-    /**
-     * The output handle to pass the standard output of the external process to.
-     */
-    private final ExecOutputHandle standardOutputHandle;
-    /**
-     * The output handle to pass the error output of the external process to.
-     */
-    private final ExecOutputHandle errorOutputHandle;
+    private final OutputStream standardOutput;
+    private final OutputStream errorOutput;
+    private final InputStream standardInput;
 
     /**
      * Lock to guard all mutable state
@@ -98,6 +90,8 @@ public class DefaultExecHandle implements ExecHandle {
     private final Lock lock;
 
     private final Condition stateChange;
+
+    private final ExecutorService threadPool;
 
     /**
      * State of this ExecHandle.
@@ -108,18 +102,17 @@ public class DefaultExecHandle implements ExecHandle {
      * When not null, the runnable that is waiting
      */
     private ExecHandleRunner execHandleRunner;
-    private ExecutorService threadPool;
 
     private int exitCode;
     private Throwable failureCause;
 
-    private final ListenerBroadcast<ExecHandleListener> broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class);
+    private final ListenerBroadcast<ExecHandleListener> broadcast;
 
-    private ExecHandleShutdownHookAction shutdownHookAction;
+    private final ExecHandleShutdownHookAction shutdownHookAction;
 
     DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
-                      Map<String, String> environment, long keepWaitingTimeout, ExecOutputHandle standardOutputHandle,
-                      ExecOutputHandle errorOutputHandle, List<ExecHandleListener> listeners) {
+                      Map<String, String> environment, OutputStream standardOutput, OutputStream errorOutput,
+                      InputStream standardInput, List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = new ArrayList<String>();
@@ -130,12 +123,15 @@ public class DefaultExecHandle implements ExecHandle {
         }
         this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
-        this.keepWaitingTimeout = keepWaitingTimeout;
-        this.standardOutputHandle = standardOutputHandle;
-        this.errorOutputHandle = errorOutputHandle;
+        this.standardOutput = standardOutput;
+        this.errorOutput = errorOutput;
+        this.standardInput = standardInput;
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
+        threadPool = Executors.newCachedThreadPool();
+        shutdownHookAction = new ExecHandleShutdownHookAction(this);
+        broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, threadPool);
         if (listeners != null) {
             broadcast.addAll(listeners);
         }
@@ -157,16 +153,16 @@ public class DefaultExecHandle implements ExecHandle {
         return Collections.unmodifiableMap(environment);
     }
 
-    public long getKeepWaitingTimeout() {
-        return keepWaitingTimeout;
+    public OutputStream getStandardOutput() {
+        return standardOutput;
     }
 
-    public ExecOutputHandle getStandardOutputHandle() {
-        return standardOutputHandle;
+    public OutputStream getErrorOutput() {
+        return errorOutput;
     }
 
-    public ExecOutputHandle getErrorOutputHandle() {
-        return errorOutputHandle;
+    public InputStream getStandardInput() {
+        return standardInput;
     }
 
     public ExecHandleState getState() {
@@ -226,6 +222,8 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     private void setEndStateInfo(ExecHandleState state, int exitCode, Throwable failureCause) {
+        ShutdownHookActionRegister.removeAction(shutdownHookAction);
+
         lock.lock();
         try {
             setState(state);
@@ -234,6 +232,10 @@ public class DefaultExecHandle implements ExecHandle {
         } finally {
             lock.unlock();
         }
+
+        broadcast.getSource().executionFinished(this);
+        broadcast.stop();
+        threadPool.shutdown();
     }
 
     public void start() {
@@ -247,7 +249,6 @@ public class DefaultExecHandle implements ExecHandle {
             exitCode = -1;
             failureCause = null;
 
-            threadPool = Executors.newFixedThreadPool(3);
             execHandleRunner = new ExecHandleRunner(this, threadPool);
 
             threadPool.execute(execHandleRunner);
@@ -281,15 +282,6 @@ public class DefaultExecHandle implements ExecHandle {
         return getState();
     }
 
-    private void shutdownThreadPool() {
-        ThreadUtils.run(new Runnable() {
-
-            public void run() {
-                ThreadUtils.shutdown(threadPool);
-            }
-        });
-    }
-
     public ExecHandleState startAndWaitForFinish() {
         start();
         waitForFinish();
@@ -297,7 +289,6 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void started() {
-        shutdownHookAction = new ExecHandleShutdownHookAction(this);
         ShutdownHookActionRegister.addAction(shutdownHookAction);
 
         setState(ExecHandleState.STARTED);
@@ -305,41 +296,27 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void finished(int exitCode) {
-        ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
         if (exitCode != normalTerminationExitCode) {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
                     "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
-            shutdownThreadPool();
-            broadcast.getSource().executionFailed(this);
         } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
-            shutdownThreadPool();
-            broadcast.getSource().executionFinished(this);
         }
     }
 
     void aborted() {
-        ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
-        setState(ExecHandleState.ABORTED);
-        shutdownThreadPool();
-        broadcast.getSource().executionAborted(this);
+        setEndStateInfo(ExecHandleState.ABORTED, -1, null);
     }
 
     void failed(Throwable failureCause) {
-        ShutdownHookActionRegister.removeAction(shutdownHookAction);
-
         setEndStateInfo(ExecHandleState.FAILED, -1, failureCause);
-        shutdownThreadPool();
-        broadcast.getSource().executionFailed(this);
     }
 
-    public void addListeners(ExecHandleListener... listeners) {
-        broadcast.addAll(Arrays.asList(listeners));
+    public void addListener(ExecHandleListener listener) {
+        broadcast.add(listener);
     }
 
-    public void removeListeners(ExecHandleListener... listeners) {
-        broadcast.removeAll(Arrays.asList(listeners));
+    public void removeListener(ExecHandleListener listener) {
+        broadcast.remove(listener);
     }
 }

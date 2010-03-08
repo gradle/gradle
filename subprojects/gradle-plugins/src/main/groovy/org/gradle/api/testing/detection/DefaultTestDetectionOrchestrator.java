@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.detection;
 
 import org.gradle.util.ThreadUtils;
@@ -28,9 +29,9 @@ import java.util.concurrent.locks.ReentrantLock;
 public class DefaultTestDetectionOrchestrator implements TestDetectionOrchestrator {
     private final Lock detectionRunStateLock;
     private Thread detectionThread;
-    private final TestClassScanner scanner;
+    private final Runnable scanner;
 
-    public DefaultTestDetectionOrchestrator(TestClassScanner scanner) {
+    public DefaultTestDetectionOrchestrator(Runnable scanner) {
         this.scanner = scanner;
         this.detectionRunStateLock = new ReentrantLock();
     }

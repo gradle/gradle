@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -49,7 +49,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
-        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
+        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration ':compile'"));
         failure.assertThatCause(containsString("unresolved dependency: test#unknownProjectA;1.2: not found"));
         failure.assertThatCause(containsString("unresolved dependency: test#unknownProjectB;2.1.5: not found"));
     }
@@ -66,7 +66,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");
-        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration 'compile'"));
+        failure.assertThatCause(startsWith("Could not resolve all dependencies for configuration ':compile'"));
         failure.assertThatCause(containsString("a module is not authorized to depend on itself"));
     }
 

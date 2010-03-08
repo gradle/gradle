@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.scripts;
 
 import groovy.lang.Script;
@@ -28,6 +29,7 @@ import org.codehaus.groovy.control.SourceUnit;
 import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
+import org.gradle.api.internal.resource.Resource;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
@@ -93,13 +95,17 @@ public class DefaultScriptCompilationHandlerTest {
     private ScriptSource scriptSource(final String scriptText) {
         final ScriptSource source = context.mock(ScriptSource.class, scriptText);
         context.checking(new Expectations(){{
+            Resource resource = context.mock(Resource.class, scriptText + "resource");
+
             allowing(source).getClassName();
             will(returnValue(scriptClassName));
             allowing(source).getFileName();
             will(returnValue(scriptFileName));
             allowing(source).getDisplayName();
             will(returnValue("script-display-name"));
-            allowing(source).getText();
+            allowing(source).getResource();
+            will(returnValue(resource));
+            allowing(resource).getText();
             will(returnValue(scriptText));
         }});
         return source;

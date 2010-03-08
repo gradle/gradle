@@ -58,4 +58,9 @@ public class FavoriteTaskWrapper implements FavoriteTaskVersion1 {
     /*package*/ FavoriteTask getFavoriteTask() {
         return favoriteTask;
     }
+
+    @Override
+    public int hashCode() {
+        return favoriteTask.hashCode();
+    }
 }

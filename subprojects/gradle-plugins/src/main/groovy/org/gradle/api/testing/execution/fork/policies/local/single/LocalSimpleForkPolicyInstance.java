@@ -18,8 +18,7 @@ package org.gradle.api.testing.execution.fork.policies.local.single;
 import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.PipelineDispatcherForkInfoListener;
 import org.gradle.api.testing.execution.QueueingPipeline;
-import org.gradle.api.testing.execution.control.server.ExternalControlServerFactory;
-import org.gradle.api.testing.execution.control.server.TestControlServer;
+import org.gradle.api.testing.execution.control.server.ControlServerFactory;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandleFactory;
 import org.gradle.api.testing.execution.fork.ForkControl;
 import org.gradle.api.testing.execution.fork.ForkInfo;
@@ -36,18 +35,19 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
 
     private final QueueingPipeline pipeline;
     private final ForkControl forkControl;
-    private TestControlServer server;
-    private final ExternalControlServerFactory serverFactory;
+    private final ControlServerFactory serverFactory;
+    private final PipelineDispatcher pipelineDispatcher;
 
     public LocalSimpleForkPolicyInstance(QueueingPipeline pipeline, ForkControl forkControl,
-                                         ExternalControlServerFactory serverFactory) {
+                                         ControlServerFactory serverFactory) {
         this.serverFactory = serverFactory;
         this.pipeline = pipeline;
         this.forkControl = forkControl;
+        pipelineDispatcher = new PipelineDispatcher(pipeline, new TestServerClientHandleFactory(forkControl));
     }
 
     public ForkPolicyForkInfo createForkPolicyForkInfo(ForkInfo forkInfo) {
-        return new LocalSimpleForkPolicyForkInfo(forkInfo, server, forkControl);
+        return new LocalSimpleForkPolicyForkInfo(forkInfo, serverFactory, forkControl, pipelineDispatcher);
     }
 
     public void initialize() {
@@ -57,13 +57,6 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
                 .getAmountToStart();
 
         LOGGER.info("Setting up test server & fork for pipeline {}", pipelineId);
-
-        final PipelineDispatcher pipelineDispatcher = new PipelineDispatcher(pipeline,
-                new TestServerClientHandleFactory(forkControl));
-
-        // startup the test server
-        server = serverFactory.createTestControlServer(pipelineDispatcher);
-        server.start();
 
         // TODO [teyck] I think it would be better to start the forks for a pipeline when a certain amount of tests are found.
         for (int i = 0; i < amountToStart; i++) {
@@ -76,6 +69,5 @@ public class LocalSimpleForkPolicyInstance implements ForkPolicyInstance {
     }
 
     public void stop() {
-        server.stop();
     }
 }

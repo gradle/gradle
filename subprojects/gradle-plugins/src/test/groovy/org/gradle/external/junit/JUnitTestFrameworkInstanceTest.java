@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,53 +13,43 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.junit;
 
-import static junit.framework.Assert.assertNotNull;
-import org.gradle.api.file.FileVisitor;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.tasks.testing.*;
-import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
-import org.gradle.api.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
 
-import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.TreeSet;
+import static junit.framework.Assert.assertNotNull;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Tom Eyckmans
  */
 public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanceTest {
 
-    private JUnitTestFramework jUnitTestFrameworkMock;
     private JUnitTestFrameworkInstance jUnitTestFrameworkInstance;
 
-    private AntJUnitExecute antJUnitExecuteMock;
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
-    private JunitForkOptions jUnitForkOptionsMock;
-    private ListenerBroadcast<TestListener> listenerBroadcastMock;
-    private AbstractTestTask testTask;
+    private IdGenerator<?> idGenerator;
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
 
-        jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
-        antJUnitExecuteMock = context.mock(AntJUnitExecute.class);
+        JUnitTestFramework jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
-        jUnitForkOptionsMock = context.mock(JunitForkOptions.class);
-        listenerBroadcastMock = context.mock(ListenerBroadcast.class);
-        testTask = context.mock(AntTest.class, "JUnitTestFrameworkInstanceTest");
+        idGenerator = context.mock(IdGenerator.class);
 
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testTask, jUnitTestFrameworkMock);
+        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock, jUnitTestFrameworkMock);
     }
 
     @org.junit.Test
@@ -67,49 +57,26 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         setMocks();
 
         context.checking(new Expectations() {{
-            one(jUnitOptionsMock).getForkOptions(); will(returnValue(jUnitForkOptionsMock));
-            one(jUnitOptionsMock).setFork(true);
-            one(jUnitForkOptionsMock).setForkMode(ForkMode.PER_TEST);
-            one(projectMock).getProjectDir(); will(returnValue(projectDir));
-            one(jUnitForkOptionsMock).setDir(projectDir);
             one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
             one(testMock).getClasspath();will(returnValue(classpathMock));
-            one(testMock).getClassPathRegistry();will(returnValue(context.mock(ClassPathRegistry.class)));
-            one(classpathMock).getAsFileTree();will(returnValue(classpathAsFileTreeMock));
-            one(classpathAsFileTreeMock).visit(with(aNonNull(FileVisitor.class)));
         }});
 
-        jUnitTestFrameworkInstance.initialize(projectMock, testMock);
+        jUnitTestFrameworkInstance.initialize();
 
         assertNotNull(jUnitTestFrameworkInstance.getOptions());
-        assertNotNull(jUnitTestFrameworkInstance.getAntJUnitExecute());
         assertNotNull(jUnitTestFrameworkInstance.getAntJUnitReport());
     }
 
-
     @org.junit.Test
-    public void testExecute() {
+    public void testCreatesTestProcessor() {
         setMocks();
 
-        expectHandleEmptyIncludesExcludes();
-
-        final Set<File> classpathSet = new TreeSet<File>();
-        final List<File> classpathList = new ArrayList<File>();
-
         context.checking(new Expectations() {{
-            one(testMock).getTestListenerBroadcaster(); will(returnValue(listenerBroadcastMock));
-            one(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
-            one(testMock).getClasspath(); will(returnValue(classpathMock));
-            one(classpathMock).getFiles(); will(returnValue(classpathSet));
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
-            one(testMock).getIncludes(); will(returnValue(null));
-            one(testMock).getExcludes(); will(returnValue(null));
-            one(projectMock).getAnt(); will(returnValue(antBuilderMock));
-            one(antJUnitExecuteMock).execute(testClassesDir, classpathList, testResultsDir, null, null,
-                                             jUnitOptionsMock, antBuilderMock, listenerBroadcastMock);
         }});
 
-        jUnitTestFrameworkInstance.execute(projectMock, testMock, null, null);
+        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create(idGenerator);
+        assertThat(testClassProcessor, instanceOf(AntJUnitTestClassProcessor.class));
     }
 
     @org.junit.Test
@@ -120,17 +87,28 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
             one(testMock).getTestReportDir(); will(returnValue(testReportDir));
             one(projectMock).getAnt(); will(returnValue(antBuilderMock));
+            one(testMock).isTestReport(); will(returnValue(true));
             one(antJUnitReportMock).execute(
                     testResultsDir, testReportDir,
                     antBuilderMock
             );
         }});
 
-        jUnitTestFrameworkInstance.report(projectMock, testMock);
+        jUnitTestFrameworkInstance.report();
+    }
+
+    @org.junit.Test
+    public void testReportWithDisabledReport() {
+        setMocks();
+
+        context.checking(new Expectations() {{
+            one(testMock).isTestReport(); will(returnValue(false));
+        }});
+
+        jUnitTestFrameworkInstance.report();
     }
 
     private void setMocks() {
-        jUnitTestFrameworkInstance.setAntJUnitExecute(antJUnitExecuteMock);
         jUnitTestFrameworkInstance.setAntJUnitReport(antJUnitReportMock);
         jUnitTestFrameworkInstance.setOptions(jUnitOptionsMock);
     }

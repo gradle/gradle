@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,55 +34,64 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
     }
 
     public Plugin usePlugin(String id) {
-        return addPluginInternal(getTypeForId(id), id);
+        return addPluginInternal(getTypeForId(id));
     }
 
     public <T extends Plugin> T usePlugin(Class<T> type) {
-        return addPluginInternal(type, getNameForType(type));
+        return addPluginInternal(type);
     }
 
-    public boolean hasPlugin(String name) {
-        return findPlugin(name) != null;
+    public boolean hasPlugin(String id) {
+        return findPlugin(id) != null;
     }
 
     public boolean hasPlugin(Class<? extends Plugin> type) {
         return findPlugin(type) != null;
     }
 
-    public Plugin findPlugin(String name) {
-        return findByName(name);
+    public Plugin findPlugin(String id) {
+        return findPlugin(getTypeForId(id));
     }
 
-    public Plugin findPlugin(Class<? extends Plugin> type) {
-        return findByName(getNameForType(type));
-    }
-
-    private <T extends Plugin> T addPluginInternal(Class<T> type, String name) {
-        if (findByName(name) == null) {
-            Plugin plugin = providePlugin(type);
-            addObject(name, plugin);
+    public <T extends Plugin> T findPlugin(Class<T> type) {
+        for (Plugin plugin : getAll()) {
+            if (plugin.getClass().equals(type)) {
+                return type.cast(plugin);
+            }
         }
-        return (T) findByName(name);
+        return null;
+    }
+
+    private <T extends Plugin> T addPluginInternal(Class<T> type) {
+        if (findPlugin(type) == null) {
+            Plugin plugin = providePlugin(type);
+            addObject(plugin);
+        }
+        return type.cast(findPlugin(type));
     }
 
     public Plugin getPlugin(String id) {
-        Plugin plugin = findByName(id);
+        Plugin plugin = findPlugin(id);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with id " + id + " has not been used.");
         }
         return plugin;
     }
 
-    public Plugin getPlugin(Class<? extends Plugin> type) {
-        Plugin plugin = findByName(getNameForType(type));
+    public Plugin getAt(String id) throws UnknownPluginException {
+        return getPlugin(id);
+    }
+
+    public <T extends Plugin> T getAt(Class<T> type) throws UnknownPluginException {
+        return getPlugin(type);
+    }
+
+    public <T extends Plugin> T getPlugin(Class<T> type) throws UnknownPluginException {
+        Plugin plugin = findPlugin(type);
         if (plugin == null) {
             throw new UnknownPluginException("Plugin with type " + type + " has not been used.");
         }
-        return plugin;
-    }
-
-    protected String getNameForType(Class<? extends Plugin> type) {
-        return pluginRegistry.getNameForType(type);
+        return type.cast(plugin);
     }
 
     protected Class<? extends Plugin> getTypeForId(String id) {

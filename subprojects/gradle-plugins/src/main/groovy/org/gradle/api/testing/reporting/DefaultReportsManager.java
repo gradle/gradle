@@ -15,11 +15,12 @@
  */
 package org.gradle.api.testing.reporting;
 
-import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.api.testing.execution.PipelinesManager;
+import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.api.testing.reporting.policies.Report;
 import org.gradle.api.testing.reporting.policies.ReportPolicy;
 import org.gradle.listener.AsyncListenerBroadcast;
+
+import java.util.Collection;
 
 /**
  * @author Tom Eyckmans
@@ -36,15 +37,11 @@ public class DefaultReportsManager implements ReportsManager {
         return broadcast.getSource();
     }
 
-    public void initialize(NativeTest testTask, PipelinesManager pipelinesManager) {
-        for ( ReportPolicy reportPolicy : testTask.getReportConfigs()) {
-            Report report = reportPolicy.createReportPolicyInstance(
-                    testTask.getTestFramework());
+    public void start(Collection<ReportPolicy> reportConfigs, TestFrameworkInstance testFramework) {
+        for ( ReportPolicy reportPolicy : reportConfigs) {
+            Report report = reportPolicy.createReportPolicyInstance(testFramework);
             broadcast.add(report);
         }
-    }
-
-    public void startReporting() {
         broadcast.getSource().start();
     }
 

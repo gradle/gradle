@@ -14,6 +14,12 @@
  * limitations under the License.
  */
 
+
+
+
+
+
+
 package org.gradle.util
 
 import java.rmi.server.UID
@@ -52,6 +58,7 @@ import org.gradle.api.internal.project.*
 import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
+import org.gradle.api.internal.ClassGenerator
 
 /**
  * @author Hans Dockter
@@ -60,18 +67,18 @@ class HelperUtil {
 
     public static final Closure TEST_CLOSURE = {}
     public static final Spec TEST_SEPC  = new AndSpec()
-    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(new GroovySourceGenerationBackedClassGenerator()));
-
+    private static final ClassGenerator CLASS_GENERATOR = new GroovySourceGenerationBackedClassGenerator()
+    private static final ITaskFactory TASK_FACTORY = new AnnotationProcessingTaskFactory(new TaskFactory(CLASS_GENERATOR))
 
     static <T extends Task> T createTask(Class<T> type) {
         return createTask(type, createRootProject())
     }
     
-    static <T extends Task> T createTask(Class<T> type, Project project) {
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project) {
         return createTask(type, project, 'name')
     }
 
-    static <T extends Task> T createTask(Class<T> type, Project project, String name) {
+    static <T extends Task> T createTask(Class<T> type, ProjectInternal project, String name) {
         return TASK_FACTORY.createTask(project, [name: name, type: type])
     }
 
@@ -84,7 +91,7 @@ class HelperUtil {
         startParameter.gradleUserHomeDir = new File(rootDir, 'home')
         TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameter)
         serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
-        IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"))
+        IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"), CLASS_GENERATOR)
 
         DefaultGradle build = new DefaultGradle(null, startParameter, serviceRegistryFactory)
         DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
@@ -95,11 +102,11 @@ class HelperUtil {
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name, File projectDir = null) {
-        DefaultProject project = new DefaultProject(
+        DefaultProject project = CLASS_GENERATOR.newInstance(
+                DefaultProject.class,
                 name,
                 parentProject,
                 projectDir ?: new File(parentProject.getProjectDir(), name),
-                parentProject.buildFile,
                 new StringScriptSource("test build file", null),
                 parentProject.gradle,
                 parentProject.gradle.serviceRegistryFactory
@@ -168,7 +175,7 @@ class HelperUtil {
         configuration.setScriptBaseClass(TestScript.getName());
 
         GroovyShell shell = new GroovyShell(configuration)
-        Script script = shell.parse(source.getText())
+        Script script = shell.parse(source.resource.text)
         script.setScriptSource(source)
         return script.run()
     }
@@ -192,7 +199,7 @@ class HelperUtil {
     }
 
     static org.gradle.api.artifacts.Configuration createConfiguration(String name) {
-        return new DefaultConfiguration(name, null, null)
+        return new DefaultConfiguration(name, name, null, null)
     }
 }
 

@@ -63,7 +63,7 @@ public class EclipseClasspathTest extends AbstractTaskTest {
     @Before
     public void setUp() {
         super.setUp();
-        expectedSrcDirs = WrapUtil.<Object>toList("src/main/java", "src/main/resources");
+        expectedSrcDirs = WrapUtil.<Object>toList("src/main/java", "src/main/java", "src/main/resources");
         expectedTestSrcDirs = WrapUtil.<Object>toList("src/test/java", "src/test/resources");
         createProjectDirs(expectedSrcDirs, expectedTestSrcDirs);
         projectDependencyMock = context.mock(DefaultProjectDependency.class);

@@ -5,22 +5,19 @@ repositories {
 }
 
 dependencies {
-	testCompile module('org.testng:testng:5.8') {
-	    artifact {
-	        name = 'testng'
-	        type = 'jar'
-	        extension = 'jar'
-	        classifier = 'jdk15'
-        }
-	}
+    testCompile 'org.testng:testng:5.8:jdk15'
 }
 
 test {
 	useTestNG() {
         suiteXmlBuilder().suite(name: 'testing-testng') {
             test (name : 'testing-testng', annotations : 'JDK', verbose:'1') {
-                classes {
-                    'class' (name: 'org.gradle.testng.UserImplTest')
+                classes([:]) {
+                    'class' (name: 'org.gradle.testng.UserImplTest') {
+                        methods([:]) {
+                            include(name: 'testOkFirstName')
+                        }
+                    }
                 }
             }
         }

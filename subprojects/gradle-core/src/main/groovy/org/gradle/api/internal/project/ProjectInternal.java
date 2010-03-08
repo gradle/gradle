@@ -17,7 +17,9 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
+import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.artifacts.Module;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.DynamicObject;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileOperations;
@@ -26,7 +28,7 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 
-public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations {
+public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, DomainObjectContext {
     ProjectInternal getParent();
 
     Project evaluate();
@@ -39,9 +41,11 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     IProjectRegistry<ProjectInternal> getProjectRegistry();
 
-    DynamicObject getInheritedScope();                                               
+    DynamicObject getInheritedScope();
 
     GradleInternal getGradle();
+
+    ProjectEvaluationListener getProjectEvaluationBroadcaster();
 
     FileResolver getFileResolver();
 

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
-import org.gradle.api.internal.tasks.SkipTaskExecuter;
+import org.gradle.api.internal.tasks.ExecuteAtMostOnceTaskExecuter;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
@@ -35,6 +35,8 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.process.DefaultWorkerProcessFactory;
+import org.gradle.process.WorkerProcessFactory;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
@@ -61,6 +63,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
+    private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
 
     @Before
     public void setUp() {
@@ -70,7 +73,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(cacheFactory));
             allowing(parent).get(ClassPathRegistry.class);
             will(returnValue(classPathRegistry));
-
+            allowing(parent).get(ClassLoaderFactory.class);
+            will(returnValue(classLoaderFactory));
         }});
     }
     
@@ -125,7 +129,7 @@ public class TopLevelBuildServiceRegistryTest {
         context.checking(new Expectations(){{
             one(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
         }});
-        assertThat(factory.get(TaskExecuter.class), instanceOf(SkipTaskExecuter.class));
+        assertThat(factory.get(TaskExecuter.class), instanceOf(ExecuteAtMostOnceTaskExecuter.class));
         assertThat(factory.get(TaskExecuter.class), sameInstance(factory.get(TaskExecuter.class)));
     }
 
@@ -181,13 +185,20 @@ public class TopLevelBuildServiceRegistryTest {
         assertThat(factory.get(IsolatedAntBuilder.class), sameInstance(factory.get(IsolatedAntBuilder.class)));
     }
 
+    @Test
+    public void providesAWorkerProcessFactory() {
+        context.checking(new Expectations() {{
+            one(classLoaderFactory).getRootClassLoader();
+            will(returnValue(new ClassLoader() {
+            }));
+        }});
+        
+        assertThat(factory.get(WorkerProcessFactory.class), instanceOf(DefaultWorkerProcessFactory.class));
+        assertThat(factory.get(WorkerProcessFactory.class), sameInstance(factory.get(WorkerProcessFactory.class)));
+    }
+
     private void expectScriptClassLoaderCreated() {
         context.checking(new Expectations() {{
-            ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
-
-            allowing(parent).get(ClassLoaderFactory.class);
-            will(returnValue(classLoaderFactory));
-
             one(classLoaderFactory).createScriptClassLoader();
             will(returnValue(new MultiParentClassLoader()));
         }});

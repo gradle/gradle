@@ -17,14 +17,14 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertSame;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
 
 /**
  * @author Hans Dockter
@@ -51,17 +51,5 @@ public class DefaultPomFilterTest {
         assertEquals(TEST_NAME, pomFilter.getName());
         assertSame(mavenPomMock, pomFilter.getPomTemplate());
         assertSame(publishFilterMock, pomFilter.getFilter());
-    }
-
-    @Test
-    public void testCopy() {
-        final MavenPom copiedMavenPomMock = context.mock(MavenPom.class, "mavenPomCopy");
-        context.checking(new Expectations() {{
-            allowing(mavenPomMock).copy(); will(returnValue(copiedMavenPomMock));
-        }});
-        DefaultPomFilter copiedFilter = (DefaultPomFilter) pomFilter.copy();
-        assertEquals(TEST_NAME, copiedFilter.getName());
-        assertSame(copiedMavenPomMock, copiedFilter.getPomTemplate());
-        assertSame(publishFilterMock, copiedFilter.getFilter());
     }
 }

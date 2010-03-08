@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
@@ -104,7 +105,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected ConfigurationContainer createConfigurationContainer() {
         return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
-                get(DependencyMetaDataProvider.class));
+                get(DependencyMetaDataProvider.class), project);
     }
 
     protected ArtifactHandler createArtifactHandler() {
@@ -136,7 +137,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         } else {
             parentClassLoader = project.getGradle().getScriptClassLoader();
         }
-        return factory.create(parentClassLoader);
+        return factory.create(project.getBuildScriptSource(), parentClassLoader, project);
     }
 
     protected DependencyMetaDataProvider createDependencyMetaDataProvider() {

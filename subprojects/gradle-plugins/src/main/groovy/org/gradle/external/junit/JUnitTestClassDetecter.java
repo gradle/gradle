@@ -26,10 +26,10 @@ import org.objectweb.asm.commons.EmptyVisitor;
  * @author Tom Eyckmans
  */
 class JUnitTestClassDetecter extends TestClassVisitor {
-    private boolean isAbstract = false;
-    private String className = null;
-    private String superClassName = null;
-    private boolean test = false;
+    private boolean isAbstract;
+    private String className;
+    private String superClassName;
+    private boolean test;
 
     JUnitTestClassDetecter(final TestFrameworkDetector detector) {
         super(detector);

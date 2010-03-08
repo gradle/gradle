@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,35 +15,24 @@
  */
 package org.gradle.groovy.scripts;
 
+import org.gradle.api.internal.resource.Resource;
+import org.gradle.api.internal.resource.StringResource;
 import org.gradle.util.HashUtil;
-import org.apache.commons.lang.builder.EqualsBuilder;
-import org.apache.commons.lang.builder.HashCodeBuilder;
-
-import java.io.File;
 
 public class StringScriptSource implements ScriptSource {
     public static final String EMBEDDED_SCRIPT_ID = "embedded_script_";
-    private final String description;
-    private final String content;
+    private final Resource resource;
 
     public StringScriptSource(String description, String content) {
-        this.description = description;
-        this.content = content;
-    }
-
-    public String getText() {
-        if (content == null) {
-            return "";
-        }
-        return content;
+        resource = new StringResource(description, content == null ? "" : content);
     }
 
     public String getClassName() {
-        return EMBEDDED_SCRIPT_ID + HashUtil.createHash(content);
+        return EMBEDDED_SCRIPT_ID + HashUtil.createHash(resource.getText());
     }
 
-    public File getSourceFile() {
-        return null;
+    public Resource getResource() {
+        return resource;
     }
 
     public String getFileName() {
@@ -51,14 +40,6 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getDisplayName() {
-        return description;
-    }
-
-    public boolean equals(Object obj) {
-        return EqualsBuilder.reflectionEquals(this, obj);
-    }
-
-    public int hashCode() {
-        return HashCodeBuilder.reflectionHashCode(this);
+        return resource.getDisplayName();
     }
 }

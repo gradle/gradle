@@ -291,7 +291,6 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
       return gradleInterfaceWrapper;
    }
 
-
    /**
      * Returns a FavoritesEditor. This is useful for getting a list of all favorites or
      * modifying them.

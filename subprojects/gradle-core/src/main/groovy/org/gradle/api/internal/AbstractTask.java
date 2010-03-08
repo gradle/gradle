@@ -13,25 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskState;
+import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.specs.AndSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskState;
 import org.gradle.util.ConfigureUtil;
 
 import java.util.ArrayList;
@@ -74,7 +75,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final ServiceRegistry services;
 
-    private final TaskState state = new TaskState();
+    private final TaskStateInternal state;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -92,6 +93,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         assert project != null;
         assert name != null;
         path = project.absolutePath(name);
+        state = new TaskStateInternal(toString());
         dynamicObjectHelper = new DynamicObjectHelper(this, new DefaultConvention());
         dependencies = new DefaultTaskDependency(project.getTasks());
         services = project.getServiceRegistryFactory().createFor(this);
@@ -114,7 +116,11 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             nextInstance.set(null);
         }
     }
-    
+
+    public TaskState getState() {
+        return state;
+    }
+
     public AntBuilder getAnt() {
         return project.getAnt();
     }
@@ -183,12 +189,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return onlyIfSpec;
     }
 
-    public boolean getExecuted() {
-        return state.isExecuted();
-    }
-
     public boolean getDidWork() {
-        return state.isDidWork();
+        return state.getDidWork();
     }
 
     public void setDidWork(boolean didWork) {
@@ -216,8 +218,9 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
-    public TaskExecutionResult execute() {
-        return executer.execute(this, state);
+    public void execute() {
+        executer.execute(this, state);
+        state.rethrowFailure();
     }
 
     public TaskExecuter getExecuter() {
@@ -296,7 +299,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     private void throwExceptionDuringExecutionTime(String operation) {
-        if (state.isExecuting()) {
+        if (state.getExecuting()) {
             throw new IllegalOperationAtExecutionTimeException("The operation " + operation + " must not be called at execution time.");
         }
     }

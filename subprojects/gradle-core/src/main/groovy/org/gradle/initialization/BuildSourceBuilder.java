@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,7 +20,7 @@ import org.apache.commons.io.IOUtils;
 import org.gradle.*;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.plugins.EmbedableJavaProject;
+import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
@@ -137,13 +137,13 @@ public class BuildSourceBuilder {
     }
 
     private static class BuildSrcBuildListener extends BuildAdapter {
-        private EmbedableJavaProject projectInfo;
+        private EmbeddableJavaProject projectInfo;
         private Set<File> classpath;
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
             projectInfo = gradle.getRootProject().getConvention().getPlugin(
-                    EmbedableJavaProject.class);
+                    EmbeddableJavaProject.class);
             gradle.getStartParameter().setTaskNames(projectInfo.getRebuildTasks());
             classpath = projectInfo.getRuntimeClasspath().getFiles();
         }

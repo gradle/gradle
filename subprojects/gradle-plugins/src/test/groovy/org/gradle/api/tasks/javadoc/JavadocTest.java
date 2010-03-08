@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -79,8 +79,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(javadocExecHandleBuilderMock).options(task.getOptions());
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).optionsFile(optionsFile);
-            will(returnValue(javadocExecHandleBuilderMock));
-            one(javadocExecHandleBuilderMock).destinationDirectory(destDir);
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).getExecHandle();
             will(returnValue(execHandleMock));

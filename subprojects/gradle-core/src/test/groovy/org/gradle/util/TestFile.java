@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,9 @@ import org.apache.tools.ant.taskdefs.Zip;
 import org.gradle.api.UncheckedIOException;
 import org.hamcrest.Matcher;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -60,11 +62,11 @@ public class TestFile extends File {
     }
 
     private static File join(File file, Object[] path) {
-        File current = GFileUtils.canonicalise(file);
+        File current = file.getAbsoluteFile();
         for (Object p : path) {
-            current = GFileUtils.canonicalise(new File(current, p.toString()));
+            current = new File(current, p.toString());
         }
-        return current;
+        return GFileUtils.canonicalise(current);
     }
 
     public TestFile file(Object... path) {
@@ -102,6 +104,26 @@ public class TestFile extends File {
             return FileUtils.readFileToString(this);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not read from test file '%s'", this), e);
+        }
+    }
+
+    public List<String> linesThat(Matcher<? super String> matcher) {
+        try {
+            BufferedReader reader = new BufferedReader(new FileReader(this));
+            try {
+                List<String> lines = new ArrayList<String>();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    if (matcher.matches(line)) {
+                        lines.add(line);
+                    }
+                }
+                return lines;
+            } finally {
+                reader.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -145,9 +167,10 @@ public class TestFile extends File {
      * }
      * </pre>
      */
-    public void create(Closure structure) {
+    public TestFile create(Closure structure) {
         assertTrue(isDirectory() || mkdirs());
         new TestDirHelper(this).apply(structure);
+        return this;
     }
 
     @Override
@@ -163,30 +186,36 @@ public class TestFile extends File {
         return write(formatter);
     }
 
-    public void assertExists() {
+    public TestFile assertExists() {
         assertTrue(String.format("%s does not exist", this), exists());
+        return this;
     }
 
-    public void assertIsFile() {
+    public TestFile assertIsFile() {
         assertTrue(String.format("%s is not a file", this), isFile());
+        return this;
     }
 
-    public void assertIsDir() {
+    public TestFile assertIsDir() {
         assertTrue(String.format("%s is not a directory", this), isDirectory());
+        return this;
     }
 
-    public void assertDoesNotExist() {
+    public TestFile assertDoesNotExist() {
         assertFalse(String.format("%s should not exist", this), exists());
+        return this;
     }
 
-    public void assertContents(Matcher<String> matcher) {
+    public TestFile assertContents(Matcher<String> matcher) {
         assertThat(getText(), matcher);
+        return this;
     }
 
-    public void assertPermissions(Matcher<String> matcher) {
+    public TestFile assertPermissions(Matcher<String> matcher) {
         if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
             assertThat(String.format("mismatched permissions for '%s'", this), getPermissions(), matcher);
         }
+        return this;
     }
 
     private String getPermissions() {
@@ -196,12 +225,13 @@ public class TestFile extends File {
     /**
      * Asserts that this file contains exactly the given set of descendants.
      */
-    public void assertHasDescendants(String... descendants) {
+    public TestFile assertHasDescendants(String... descendants) {
         Set<String> actual = new TreeSet<String>();
         assertIsDir();
         visit(actual, "", this);
         Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
         assertEquals(expected, actual);
+        return this;
     }
 
     private void visit(Set<String> names, String prefix, File file) {

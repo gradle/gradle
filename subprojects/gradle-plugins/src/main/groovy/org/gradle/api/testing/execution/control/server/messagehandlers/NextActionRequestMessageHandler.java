@@ -15,11 +15,11 @@
  */
 package org.gradle.api.testing.execution.control.server.messagehandlers;
 
-import org.apache.mina.core.session.IoSession;
 import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.control.messages.client.NextActionRequestMessage;
 import org.gradle.api.testing.execution.control.messages.server.ExecuteTestActionMessage;
 import org.gradle.api.testing.execution.control.messages.server.StopForkActionMessage;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.messages.server.WaitActionMesssage;
 import org.gradle.api.testing.execution.control.refork.ReforkContextData;
 import org.gradle.api.testing.execution.control.refork.ReforkControl;
@@ -28,6 +28,7 @@ import org.gradle.api.testing.fabric.TestClassProcessResult;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.reporting.TestClassProcessResultReportInfo;
 import org.gradle.api.testing.reporting.TestReportProcessor;
+import org.gradle.messaging.dispatch.Dispatch;
 
 import java.util.Collections;
 import java.util.Set;
@@ -45,43 +46,42 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
         return Collections.singleton(NextActionRequestMessage.class);
     }
 
-    public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {
+    public void handle(Object controlMessage, TestServerClientHandle client, Dispatch<TestServerControlMessage> clientConnection) {
         final NextActionRequestMessage message = (NextActionRequestMessage) controlMessage;
         final int forkId = message.getForkId();
         final int pipelineId = pipeline.getId();
 
         if (pipelineDispatcher.isStopping()) {
-            stopClient(ioSession, pipelineId, client);
+            stopClient(pipelineId, clientConnection);
         } else {
             final TestClassProcessResult previousProcesTestResult = message.getPreviousProcessedTestResult();
 
             processPreviousTestResult(forkId, previousProcesTestResult);
 
             if (isReforkNeeded(message)) {
-                restartClient(ioSession, pipelineId, client);
+                restartClient(pipelineId, client, clientConnection);
             } else {
                 final TestClassRunInfo nextTest = client.nextTest(pipelineDispatcher);
 
                 if (nextTest == null) {
-                    ioSession.write(new WaitActionMesssage(pipelineId, 1000));
+                    clientConnection.dispatch(new WaitActionMesssage(pipelineId, 1000));
                 } else {
-                    ioSession.write(new ExecuteTestActionMessage(pipelineId, nextTest));
+                    clientConnection.dispatch(new ExecuteTestActionMessage(pipelineId, nextTest));
                 }
             }
         }
     }
 
-    void stopClient(IoSession ioSession, int pipelineId, TestServerClientHandle client) {
-        ioSession.write(new StopForkActionMessage(pipelineId));
+    private void stopClient(int pipelineId, Dispatch<TestServerControlMessage> clientConnection) {
+        clientConnection.dispatch(new StopForkActionMessage(pipelineId));
     }
 
-    void restartClient(IoSession ioSession, int pipelineId, TestServerClientHandle client) {
+    private void restartClient(int pipelineId, TestServerClientHandle client, Dispatch<TestServerControlMessage> clientConnection) {
         client.restarting();
-
-        ioSession.write(new StopForkActionMessage(pipelineId));
+        clientConnection.dispatch(new StopForkActionMessage(pipelineId));
     }
 
-    void processPreviousTestResult(int forkId, TestClassProcessResult previousProcessResult) {
+    private void processPreviousTestResult(int forkId, TestClassProcessResult previousProcessResult) {
         if (previousProcessResult != null) {
             final TestClassProcessResultReportInfo result = new TestClassProcessResultReportInfo(forkId, pipeline,
                     previousProcessResult);
@@ -90,7 +90,7 @@ public class NextActionRequestMessageHandler extends AbstractTestServerControlMe
         }
     }
 
-    boolean isReforkNeeded(NextActionRequestMessage message) {
+    private boolean isReforkNeeded(NextActionRequestMessage message) {
         boolean reforkNeeded = false;
 
         final ReforkControl reforkControl = pipeline.getReforkController();

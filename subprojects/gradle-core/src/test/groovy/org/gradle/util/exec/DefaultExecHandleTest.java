@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,6 +23,7 @@ import static org.junit.Assert.assertEquals;
 import org.apache.tools.ant.util.JavaEnvUtils;
 import org.apache.commons.io.FileUtils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -58,13 +59,6 @@ public class DefaultExecHandleTest {
 
     @Test
     public void testJavadocVersion() throws IOException {
-        StreamWriterExecOutputHandle outHandle = new StreamWriterExecOutputHandle(System.out, true);
-        StreamWriterExecOutputHandle errHandle = new StreamWriterExecOutputHandle(System.err, true);
-
-        System.out.println("Javadoc executable = " + JavaEnvUtils.getJdkExecutable("javadoc"));
-
-
-
         execHandle = new DefaultExecHandle(
                 tmpDir,
                 JavaEnvUtils.getJdkExecutable("javadoc"),
@@ -73,10 +67,9 @@ public class DefaultExecHandleTest {
                         "-d", new File("tmp/javadocTmpOut").getAbsolutePath(),
                         "-sourcepath", "src/main/groovy",
                         "org.gradle"), 0,
-                System.getenv(),
-                100,
-                outHandle,
-                errHandle,
+                System.getenv(), System.out,
+                System.err,
+                new ByteArrayInputStream(new byte[0]),
                 null
         );
 
@@ -91,11 +84,6 @@ public class DefaultExecHandleTest {
 
     @Test
     public void testAbort() throws IOException {
-        StreamWriterExecOutputHandle outHandle = new StreamWriterExecOutputHandle(System.out, true);
-        StreamWriterExecOutputHandle errHandle = new StreamWriterExecOutputHandle(System.err, true);
-
-        System.out.println("Javadoc executable = " + JavaEnvUtils.getJdkExecutable("javadoc"));
-
         execHandle = new DefaultExecHandle(
                 tmpDir,
                 JavaEnvUtils.getJdkExecutable("javadoc"),
@@ -104,10 +92,9 @@ public class DefaultExecHandleTest {
                         "-d", new File("tmp/javadocTmpOut").getAbsolutePath(),
                         "-sourcepath", "src/main/groovy",
                         "org.gradle"), 0,
-                System.getenv(),
-                100,
-                outHandle,
-                errHandle,
+                System.getenv(), System.out,
+                System.err,
+                new ByteArrayInputStream(new byte[0]),
                 null
         );
 

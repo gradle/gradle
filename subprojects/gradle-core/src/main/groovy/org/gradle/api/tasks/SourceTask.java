@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,14 +36,15 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     private final PatternFilterable patternSet = new PatternSet();
 
     /**
-     * Returns the source for this task, after the include and exclude patterns have been applied.
+     * Returns the source for this task, after the include and exclude patterns have been applied. Ignores source files
+     * which do not exist.
      *
      * @return The source.
      */
     @InputFiles
     @SkipWhenEmpty
     public FileTree getSource() {
-        FileTree src = this.source.isEmpty() ? getDefaultSource() : getProject().files(this.source).getAsFileTree();
+        FileTree src = this.source.isEmpty() ? getDefaultSource() : getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
         return src == null ? null : src.matching(patternSet);
     }
 

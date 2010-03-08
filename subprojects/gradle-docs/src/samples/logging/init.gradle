@@ -20,7 +20,7 @@ class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluat
         logger.lifecycle("LOGGER: evaluating $project.path")
     }
 
-    public void afterEvaluate(Project project, Throwable failure) {
+    public void afterEvaluate(Project project, ProjectState state) {
         logger.info('LOGGER: evaluated project')
     }
 
@@ -28,7 +28,7 @@ class CustomLogger extends BuildAdapter implements BuildListener, ProjectEvaluat
         logger.lifecycle("LOGGER: executing $task.path")
     }
 
-    public void afterExecute(Task task, TaskExecutionResult result) {
+    public void afterExecute(Task task, TaskState state) {
         logger.info('LOGGER: executed task')
     }
 

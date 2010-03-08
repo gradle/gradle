@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,52 +15,27 @@
  */
 package org.gradle.groovy.scripts;
 
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.GradleException;
-import org.gradle.util.GFileUtils;
+import org.gradle.api.internal.resource.Resource;
+import org.gradle.api.internal.resource.UriResource;
 import org.gradle.util.HashUtil;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.InputStream;
 import java.net.URI;
 
 /**
  * A {@link ScriptSource} which loads the script from a URI.
  */
 public class UriScriptSource implements ScriptSource {
-    private final String description;
-    private final File sourceFile;
-    private final URI sourceUri;
+    private final Resource resource;
     private String className;
 
     public UriScriptSource(String description, File sourceFile) {
-        this.description = description;
-        this.sourceFile = GFileUtils.canonicalise(sourceFile);
-        this.sourceUri = sourceFile.toURI();
+        resource = new UriResource(description, sourceFile);
     }
 
     public UriScriptSource(String description, URI sourceUri) {
-        this.description = description;
-        this.sourceFile = sourceUri.getScheme().equals("file") ? GFileUtils.canonicalise(new File(sourceUri.getPath()))
-                : null;
-        this.sourceUri = sourceUri;
-    }
-
-    public String getText() {
-        try {
-            InputStream inputStream = sourceUri.toURL().openStream();
-            try {
-                return IOUtils.toString(inputStream);
-            } finally {
-                inputStream.close();
-            }
-        } catch (FileNotFoundException e ) {
-            return "";
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not read %s.", getDisplayName()), e);
-        }
+        resource = new UriResource(description, sourceUri);
     }
 
     /**
@@ -69,6 +44,7 @@ public class UriScriptSource implements ScriptSource {
      */
     public String getClassName() {
         if (className == null) {
+            URI sourceUri = resource.getURI();
             String name = StringUtils.substringAfterLast(sourceUri.getPath(), "/");
             StringBuilder className = new StringBuilder(name.length());
             for (int i = 0; i < name.length(); i++) {
@@ -92,15 +68,17 @@ public class UriScriptSource implements ScriptSource {
         return className;
     }
 
-    public File getSourceFile() {
-        return sourceFile;
+    public Resource getResource() {
+        return resource;
     }
 
     public String getFileName() {
+        File sourceFile = resource.getFile();
+        URI sourceUri = resource.getURI();
         return sourceFile != null ? sourceFile.getPath() : sourceUri.toString();
     }
 
     public String getDisplayName() {
-        return String.format("%s '%s'", description, sourceFile != null ? sourceFile.getAbsolutePath() : sourceUri);
+        return resource.getDisplayName();
     }
 }

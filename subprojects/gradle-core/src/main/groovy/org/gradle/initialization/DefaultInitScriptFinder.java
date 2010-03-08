@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.groovy.scripts.StrictScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
 
 import java.io.File;
@@ -35,7 +34,7 @@ public class DefaultInitScriptFinder implements InitScriptFinder
         List<File> scriptFiles = gradle.getStartParameter().getInitScripts();
         List<ScriptSource> scripts = new ArrayList<ScriptSource>(scriptFiles.size());
         for (File file : scriptFiles) {
-            scripts.add(new StrictScriptSource(new UriScriptSource("initialization script", file)));
+            scripts.add(new UriScriptSource("initialization script", file));
         }
 
         return scripts;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.apache.commons.io.filefilter.IOFileFilter;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
 import java.util.zip.Checksum;
@@ -109,7 +110,27 @@ public class GFileUtils {
         return FileUtils.toFiles(urls);
     }
 
-    public static URL[] toURLs(Collection<File> files) {
+    public static List<String> toPaths(Collection<File> files) {
+        List<String> paths = new ArrayList<String>();
+        for (File file : files) {
+            paths.add(file.getAbsolutePath());
+        }
+        return paths;
+    }
+
+    public static List<URL> toURLs(Iterable<File> files) {
+        List<URL> urls = new ArrayList<URL>();
+        for (File file : files) {
+            try {
+                urls.add(file.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return urls;
+    }
+
+    public static URL[] toURLArray(Collection<File> files) {
         return toURLs(files.toArray(new File[files.size()]));
     }
 

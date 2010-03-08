@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,9 +19,12 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
+import org.apache.ivy.util.Message;
+import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
@@ -42,6 +45,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
     public DefaultIvyDependencyResolver(IvyReportConverter ivyReportTranslator) {
         this.ivyReportTranslator = ivyReportTranslator;
+        Message.setDefaultLogger(new IvyLoggingAdaper());
     }
 
     public ResolvedConfiguration resolve(Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
@@ -96,7 +100,12 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
                 Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
                 if (resolvedDependencies != null) {
                     for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                        files.addAll(ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(null)));
+                        for (File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(null))) {
+                            if (depFile == null) {
+                                throw new GradleException(String.format("Resolved files for %s contains a null value.", resolvedDependency));
+                            }
+                            files.add(depFile);
+                        }
                     }
                 }
             }

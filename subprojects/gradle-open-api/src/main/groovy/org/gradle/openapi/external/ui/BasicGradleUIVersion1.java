@@ -17,7 +17,6 @@ package org.gradle.openapi.external.ui;
 
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1;
-
 import javax.swing.*;
 import java.io.File;
 

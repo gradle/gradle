@@ -106,4 +106,9 @@ public class FileLink
              otherFileLink.file.equals( file );
       //we do NOT want to compare the FileLinkDefinition. These aren't set usually for tests and we don't have easy access to them anyway.
    }
+
+    @Override
+    public int hashCode() {
+        return endingIndex ^ startingIndex ^ lineNumber ^ file.hashCode();
+    }
 }

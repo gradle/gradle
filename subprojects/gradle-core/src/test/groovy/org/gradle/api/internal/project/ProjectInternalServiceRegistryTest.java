@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
@@ -75,6 +76,7 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(gradle));
             allowing(project).getProjectDir();
             will(returnValue(new File("project-dir")));
+            allowing(project).getBuildScriptSource();
             allowing(parent).get(ITaskFactory.class);
             will(returnValue(taskFactory));
             allowing(parent).get(RepositoryHandlerFactory.class);
@@ -204,7 +206,7 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(repositoryHandler));
 
             one(configurationContainerFactory).createConfigurationContainer(with(sameInstance(repositoryHandler)), with(
-                    notNullValue(DependencyMetaDataProvider.class)));
+                    notNullValue(DependencyMetaDataProvider.class)), with(sameInstance(project)));
             will(returnValue(configurationContainer));
         }});
     }

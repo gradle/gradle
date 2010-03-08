@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
@@ -31,9 +30,9 @@ import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
 import org.gradle.external.junit.JUnitTestFramework;
 import org.gradle.external.testng.TestNGTestFramework;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.listener.ListenerManager;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ListenerManager;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -50,25 +49,27 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
 
-    protected List<File> testSrcDirs = new ArrayList<File>();
+    private List<File> testSrcDirs = new ArrayList<File>();
 
-    protected File testClassesDir;
+    private File testClassesDir;
 
-    protected File testResultsDir;
+    private File testResultsDir;
 
-    protected File testReportDir;
+    private File testReportDir;
 
-    protected PatternFilterable patternSet = new PatternSet();
+    private PatternFilterable patternSet = new PatternSet();
 
-    protected boolean ignoreFailures;
+    private boolean ignoreFailures;
 
-    protected FileCollection classpath;
+    private FileCollection classpath;
 
     private TestFrameworkInstance testFrameworkInstance;
 
-    protected boolean testReport = true;
+    private boolean testReport = true;
 
-    protected boolean scanForTestClasses = true;
+    private boolean scanForTestClasses = true;
+
+    private Long forkEvery;
 
     /**
      * The broadcaster for all {@link TestListener} implementations that have been registered with ListenerManager.
@@ -87,14 +88,10 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
      * @return The {@link TestListener} broadcaster.  This broadcaster will send messages to all listeners that have
      *         been registered with the ListenerManager.
      */
-    public ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
+    ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
         return testListenerBroadcaster;
     }
 
-    public ClassPathRegistry getClassPathRegistry() {
-        return getServices().get(ClassPathRegistry.class);
-    }
-    
     /**
      * Registers a test listener with this task.  This listener will NOT be notified of tests executed by other tasks.
      * To get that behavior, use {@link org.gradle.api.invocation.Gradle#addListener(Object)}.
@@ -118,7 +115,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * Adds a closure to be notified before a test is executed. A {@link org.gradle.api.tasks.testing.Test} instance is
+     * Adds a closure to be notified before a test is executed. A {@link TestDescriptor} instance is
      * passed to the closure as a parameter.
      *
      * @param closure The closure to call.
@@ -128,7 +125,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * Adds a closure to be notified after a test has executed. A {@link org.gradle.api.tasks.testing.Test} and {@link
+     * Adds a closure to be notified after a test has executed. A {@link TestDescriptor} and {@link
      * org.gradle.api.tasks.testing.TestResult} instance are passed to the closure as a parameter.
      *
      * @param closure The closure to call.
@@ -328,17 +325,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
      *
      * @return The testframework options.
      */
-    public Object getOptions() {
+    public TestFrameworkOptions getOptions() {
         return options(null);
     }
 
-    public Object options(Closure testFrameworkConfigure) {
-        final Object options = getTestFramework().getOptions();
-
-        if (testFrameworkConfigure != null) {
-            ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
-        }
-
+    public TestFrameworkOptions options(Closure testFrameworkConfigure) {
+        TestFrameworkOptions options = getTestFramework().getOptions();
+        ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
         return options;
     }
 
@@ -353,7 +346,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
         this.testFrameworkInstance = testFramework.getInstance(this);
 
-        testFrameworkInstance.initialize(getProject(), this);
+        testFrameworkInstance.initialize();
 
         if (testFrameworkConfigure != null) {
             ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
@@ -445,5 +438,24 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     public void setScanForTestClasses(boolean scanForTestClasses) {
         this.scanForTestClasses = scanForTestClasses;
+    }
+
+    /**
+     * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be
+     * restarted when this limit is reached.
+     *
+     * @return The maximum number of test classes. Returns null when there is no maximum.
+     */
+    public Long getForkEvery() {
+        return forkEvery;
+    }
+
+    /**
+     * Sets the maximum number of test classes to execute in a forked test process. Use null to use no maximum.
+     *
+     * @param forkEvery The maximum number of test classes. Use null to specify no maximum.
+     */
+    public void setForkEvery(Long forkEvery) {
+        this.forkEvery = forkEvery;
     }
 }

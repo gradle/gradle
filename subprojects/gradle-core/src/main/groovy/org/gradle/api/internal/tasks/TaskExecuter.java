@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks;
 
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 
 public interface TaskExecuter {
     /**
-     * Executes the given task. If the task fails with an exception, the exception is packaged in the returned result.
+     * Executes the given task. If the task fails with an exception, the exception is packaged in the provided task
+     * state.
      */
-    TaskExecutionResult execute(TaskInternal task, TaskState state);
+    void execute(TaskInternal task, TaskStateInternal state);
 }

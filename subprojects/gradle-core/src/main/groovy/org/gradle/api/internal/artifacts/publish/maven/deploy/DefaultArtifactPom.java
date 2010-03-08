@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,31 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
+import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.File;
-import java.util.*;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultArtifactPom implements ArtifactPom {
-    private MavenPom pom;
+    private final MavenPom pom;
 
     private Artifact artifact;
 
     private File artifactFile;
 
-    private Set<ClassifierArtifact> classifiers = new HashSet<ClassifierArtifact>();
+    private final Set<ClassifierArtifact> classifiers = new HashSet<ClassifierArtifact>();
 
     public DefaultArtifactPom(MavenPom pom) {
         this.pom = pom;
@@ -43,34 +50,38 @@ public class DefaultArtifactPom implements ArtifactPom {
         return pom;
     }
 
-    public void setPom(MavenPom pom) {
-        this.pom = pom;
-    }
-
     public File getArtifactFile() {
         return artifactFile;
-    }
-
-    public void setArtifactFile(File artifactFile) {
-        this.artifactFile = artifactFile;
     }
 
     public Artifact getArtifact() {
         return artifact;
     }
 
-    public void setArtifact(Artifact artifact) {
-        this.artifact = artifact;
-    }
-
     public Set<ClassifierArtifact> getClassifiers() {
         return Collections.unmodifiableSet(classifiers);
     }
 
+    public void writePom(Set<Configuration> configurations, File pomFile) {
+        getPom().addDependencies(configurations);
+        try {
+            pomFile.getParentFile().mkdirs();
+            FileWriter writer = new FileWriter(pomFile);
+            try {
+                getPom().write(writer);
+            } finally {
+                writer.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
     public void addArtifact(Artifact artifact, File src) {
-        throwEceptionIfArtifactOrSrcIsNull(artifact, src);
+        throwExceptionIfArtifactOrSrcIsNull(artifact, src);
         if (hasClassifier(artifact)) {
             addClassifierArtifact(artifact, src);
+            assignArtifactValuesToPom(artifact, pom, false);
             return;
         }
         if (this.artifact != null) {
@@ -79,7 +90,7 @@ public class DefaultArtifactPom implements ArtifactPom {
         }
         this.artifact = artifact;
         this.artifactFile = src;
-        assignArtifactValuesToPom(artifact, pom);
+        assignArtifactValuesToPom(artifact, pom, true);
     }
 
     private void addClassifierArtifact(Artifact artifact, File artifactFile) {
@@ -88,7 +99,7 @@ public class DefaultArtifactPom implements ArtifactPom {
                 artifact.getType(), artifactFile);
         if (classifiers.contains(classifierArtifact)) {
             throw new InvalidUserDataException("A pom can't have multiple artifacts for the same classifier=" + classifier +
-                    " Artifact trying to assign: " + artifact); 
+                    " Artifact trying to assign: " + artifact);
         }
         classifiers.add(classifierArtifact);
     }
@@ -101,22 +112,22 @@ public class DefaultArtifactPom implements ArtifactPom {
         return artifact.getExtraAttribute(Dependency.CLASSIFIER);
     }
 
-    private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom) {
-        if (pom.getGroupId() == null) {
+    private void assignArtifactValuesToPom(Artifact artifact, MavenPom pom, boolean setType) {
+        if (pom.getGroupId().equals(MavenProject.EMPTY_PROJECT_GROUP_ID)) {
             pom.setGroupId(artifact.getModuleRevisionId().getOrganisation());
         }
-        if (pom.getArtifactId() == null) {
+        if (pom.getArtifactId().equals(MavenProject.EMPTY_PROJECT_ARTIFACT_ID)) {
             pom.setArtifactId(artifact.getName());
         }
-        if (pom.getVersion() == null) {
+        if (pom.getVersion().equals(MavenProject.EMPTY_PROJECT_VERSION)) {
             pom.setVersion(artifact.getModuleRevisionId().getRevision());
         }
-        if (pom.getPackaging() == null) {
+        if (setType) {
             pom.setPackaging(artifact.getType());
         }
     }
 
-    private void throwEceptionIfArtifactOrSrcIsNull(Artifact artifact, File src) {
+    private void throwExceptionIfArtifactOrSrcIsNull(Artifact artifact, File src) {
         if (artifact == null) {
             throw new InvalidUserDataException("Artifact must not be null.");
         }
@@ -124,5 +135,4 @@ public class DefaultArtifactPom implements ArtifactPom {
             throw new InvalidUserDataException("Src file must not be null.");
         }
     }
-
 }

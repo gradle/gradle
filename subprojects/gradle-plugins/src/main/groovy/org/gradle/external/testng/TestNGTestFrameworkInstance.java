@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,27 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.testng;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
-import org.gradle.api.Project;
+import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.testng.AntTestNGExecute;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
+import org.gradle.api.tasks.util.JavaForkOptions;
+import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.util.IdGenerator;
 
-import java.util.Collection;
+import java.io.File;
+import java.io.Serializable;
 import java.util.List;
-import java.util.Map;
 
 /**
  * @author Tom Eyckmans
  */
-public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<TestNGTestFramework> {
+public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
-    private AntTestNGExecute antTestNGExecute;
     private TestNGOptions options;
     private TestNGDetector detector;
 
@@ -41,24 +44,28 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         super(testTask, testFramework);
     }
 
-    public void initialize(Project project, AbstractTestTask testTask) {
-        antTestNGExecute = new AntTestNGExecute();
-        options = new TestNGOptions(testFramework, project.getProjectDir());
-
-        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(project.property("sourceCompatibility")));
-
+    public void initialize() {
+        options = new TestNGOptions(testTask.getProject().getProjectDir());
+        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property(
+                "sourceCompatibility")));
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
-                        Collection<String> excludes) {
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
         options.setTestResources(testTask.getTestSrcDirs());
-
-        antTestNGExecute.execute(testTask.getTestClassesDir(), testTask.getClasspath(), testTask.getTestResultsDir(),
-                testTask.getTestReportDir(), includes, excludes, options, project.getAnt(), testTask.getTestListenerBroadcaster());
+        List<File> suiteFiles = options.getSuites(testTask.getTestReportDir());
+        return new TestClassProcessorFactoryImpl(testTask.getTestReportDir(), options, suiteFiles);
     }
 
-    public void report(Project project, AbstractTestTask testTask) {
+    public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
+        return new Action<WorkerProcessBuilder>() {
+            public void execute(WorkerProcessBuilder workerProcessBuilder) {
+                workerProcessBuilder.sharedPackages("org.testng");
+            }
+        };
+    }
+
+    public void report() {
         // TODO currently reports are always generated because the antTestNGExecute task uses the
         // default listeners and these generate reports by default.
     }
@@ -71,38 +78,27 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance<T
         this.options = options;
     }
 
-    AntTestNGExecute getAntTestNGExecute() {
-        return antTestNGExecute;
-    }
-
-    void setAntTestNGExecute(AntTestNGExecute antTestNGExecute) {
-        this.antTestNGExecute = antTestNGExecute;
-    }
-
     public TestNGDetector getDetector() {
         return detector;
     }
 
-    public void applyForkArguments(ExecHandleBuilder forkHandleBuilder) {
-
-        if (StringUtils.isNotEmpty(options.getJvm())) {
-            forkHandleBuilder.execCommand(options.getJvm());
-        } else {
-            useDefaultJvm(forkHandleBuilder);
-        }
-
-        useDefaultDirectory(forkHandleBuilder);
+    public void applyForkArguments(JavaForkOptions javaForkOptions) {
+        // TODO - implement
     }
 
-    public void applyForkJvmArguments(ExecHandleBuilder forkHandleBuilder) {
-        final List<String> jvmArgs = options.getJvmArgs();
-        if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            forkHandleBuilder.arguments(jvmArgs);
+    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
+        private final File testReportDir;
+        private final TestNGOptions options;
+        private final List<File> suiteFiles;
+
+        public TestClassProcessorFactoryImpl(File testReportDir, TestNGOptions options, List<File> suiteFiles) {
+            this.testReportDir = testReportDir;
+            this.options = options;
+            this.suiteFiles = suiteFiles;
         }
 
-        final Map<String, String> environment = options.getEnvironment();
-        if (environment != null && !environment.isEmpty()) {
-            forkHandleBuilder.environment(environment);
+        public TestClassProcessor create(IdGenerator<?> idGenerator) {
+            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, idGenerator);
         }
     }
 }

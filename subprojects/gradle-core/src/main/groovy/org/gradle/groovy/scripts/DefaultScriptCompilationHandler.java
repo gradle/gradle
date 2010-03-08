@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -87,7 +87,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 return compilationUnit;
             }
         };
-        String scriptText = source.getText();
+        String scriptText = source.getResource().getText();
         String scriptName = source.getClassName();
         Class scriptClass;
         GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");

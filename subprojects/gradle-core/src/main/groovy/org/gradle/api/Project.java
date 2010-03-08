@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api;
 
 import groovy.lang.Closure;
@@ -230,7 +231,7 @@ public interface Project extends Comparable<Project> {
     void setBuildDirName(String buildDirName);
 
     /**
-     * <p>Returns the build file Gradle will evaulate against this project object. The default is <code> {@value
+     * <p>Returns the build file Gradle will evaluate against this project object. The default is <code> {@value
      * #DEFAULT_BUILD_FILE}</code>. If an embedded script is provided the build file will be null. <p/> <p>You can
      * access this property in your build file using <code>buildFile</code></p>
      *
@@ -435,6 +436,7 @@ public interface Project extends Comparable<Project> {
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(String)} instead.
      */
     @Deprecated
     Task createTask(String name) throws InvalidUserDataException;
@@ -451,6 +453,7 @@ public interface Project extends Comparable<Project> {
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(String name, Action<? super Task> action) throws InvalidUserDataException;
@@ -472,6 +475,7 @@ public interface Project extends Comparable<Project> {
      * @param name The name of the task to be created
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(Map<String, ?> args, String name) throws InvalidUserDataException;
@@ -490,6 +494,7 @@ public interface Project extends Comparable<Project> {
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(Map<String, ?> args, String name, Action<? super Task> action) throws InvalidUserDataException;
@@ -506,6 +511,7 @@ public interface Project extends Comparable<Project> {
      * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(String name, Closure action);
@@ -524,6 +530,7 @@ public interface Project extends Comparable<Project> {
      * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
+     * @deprecated You should use {@link #task(java.util.Map, String)} instead.
      */
     @Deprecated
     Task createTask(Map<String, ?> args, String name, Closure action);
@@ -1169,8 +1176,8 @@ public interface Project extends Comparable<Project> {
     PluginContainer getPlugins();
 
     /**
-     * Returns the build script handler for this project. You can use this handler to manage the classpath used to
-     * compile and execute the project's build script.
+     * Returns the build script handler for this project. You can use this handler to query details about the build
+     * script for this project, and manage the classpath used to compile and execute the project's build script.
      *
      * @return the classpath handler. Never returns null.
      */
@@ -1247,4 +1254,12 @@ public interface Project extends Comparable<Project> {
      * @param options The options to use to configure the {@code ObjectConfigurationAction}.
      */
     void apply(Map<String, ?> options);
+
+    /**
+     * Returns the evaluation state of this project. You can use this to access information about the evaluation of this
+     * project, such as whether it has failed.
+     *
+     * @return the project state. Never returns null.
+     */
+    ProjectState getState();
 }

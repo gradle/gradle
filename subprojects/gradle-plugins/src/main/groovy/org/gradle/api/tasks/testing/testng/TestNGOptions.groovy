@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,47 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions
-import org.gradle.util.GFileUtils
 import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.external.testng.TestNGTestFramework
+import org.gradle.util.GFileUtils
+import org.gradle.api.tasks.testing.TestFrameworkOptions
 
 /**
  * @author Tom Eyckmans
  */
-
-public class TestNGOptions extends AbstractTestFrameworkOptions {
+public class TestNGOptions extends TestFrameworkOptions implements Serializable {
 
     public static final String JDK_ANNOTATIONS = 'JDK'
     public static final String JAVADOC_ANNOTATIONS = 'Javadoc'
 
     /**
-     * Either the string "JDK" or "Javadoc". Defines which kind of annotations are used in these tests. If you use "Javadoc", you will also need to specify "sourcedir".
+     * When true, Javadoc annotations are used for these tests. When false, JDK annotations are used. If you use
+     * Javadoc annotations, you will also need to specify "sourcedir".
      *
-     * Not required.
-     *
-     * Defaults to "JDK" if you're using the JDK 5 jar and to "Javadoc" if you're using the JDK 1.4 jar.
+     * Defaults to JDK annotations if you're using the JDK 5 jar and to Javadoc annotations if you're using the JDK 1.4
+     * jar.
      */
-    String annotations
+    boolean javadocAnnotations
 
-    /**
-     * A reference to a FileSet structure of the test classes to be run. 
-     */
-    // String classfilesetref
-
-    /**
-     * A PATH-like structure for the tests to be run.
-     */
-    // String classpath
-
-    /**
-     * A reference to a PATH-like structure for the tests to be run. 
-     */
-    // String classpathref
+    def String getAnnotations() {
+        return javadocAnnotations ? JAVADOC_ANNOTATIONS : JDK_ANNOTATIONS;
+    }
 
     /**
      * List of all directories containing Test sources. Should be set if annotations is 'Javadoc'.
@@ -61,103 +50,20 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     List testResources
 
     /**
-     * Print the TestNG launcher command.
-     *
-     * Not required. 
-     *
-     * Defaults to false
+     * The set of groups to run.
      */
-    boolean dumpCommand = false
+    Set<String> includeGroups = new HashSet<String>()
 
     /**
-     * Enables JDK 1.4 assertion.
-     *
-     * Not required.
-     *
-     * Defaults to true 
+     * The set of groups to exclude.
      */
-    boolean enableAssert = true
+    Set<String> excludeGroups = new HashSet<String>()
 
     /**
-     * The name of a property to set in the event of a failure. It is used only if the haltonfailure is not set.
-     *
-     * Not required.
+     * The set of fully qualified classes that are TestNG listeners (for example org.testng.ITestListener or
+     * org.testng.IReporter)
      */
-    //String failureProperty = Test.FAILURES_OR_ERRORS_PROPERTY
-
-    /**
-     * Stop the build process if a failure has occurred during the test run.
-     *
-     * Not required.
-     *
-     * Defaults to false 
-     */
-    // boolean haltonfailure = false
-
-    /**
-     * Stop the build process if there is at least on skipped test.
-     *
-     * Not required. 
-     *
-     * Default to false
-     */
-    // boolean haltonskipped = false
-
-    /**
-     * The list of groups to run, separated by spaces or commas.
-     */
-    List includeGroups = []
-
-    /**
-     * The list of groups to exclude, separated by spaces or commas.
-     */
-    List excludeGroups = []
-
-    /**
-     * The JVM to use, which will be run by Runtime.exec()
-     *
-     * Default to 'java'
-     */
-    String jvm = null
-
-    /**
-     * A comma or space-separated list of fully qualified classes that are TestNG listeners (for example 
-     * org.testng.ITestListener or org.testng.IReporter)
-     *
-     * Not required.
-     */
-    List listeners = []
-
-    /**
-     * Directory for reports output.
-     */
-    //String outputDir
-
-    /**
-     * The name of a property to set in the event of a skipped test. It is used only if the haltonskipped is not set.
-     *
-     * Not required.
-     */
-    String skippedProperty = null
-
-    /**
-     * A PATH-like structure for JDK 1.4 tests (using JavaDoc-like annotations)
-     */
-    // List sourcedir => covered by testResources
-
-    /**
-     * A reference to a PATH-like structure for JDK 1.4 tests (using JavaDoc-like annotations).
-     */
-    // String sourcedirref = null => covered by testResources
-
-    /**
-     * A fully qualified name of a TestNG starter.
-     *
-     * Not required.
-     *
-     * Defaults to  org.testng.TestNG
-     */
-    String suiteRunnerClass = null
+    Set<String> listeners = new LinkedHashSet<String>()
 
     /**
      * The parallel mode to use for running the tests - either methods or tests.
@@ -174,11 +80,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     int threadCount = 1
 
     /**
-     * Path to a jar containing tests and a suite definition. 
-     */
-    // String testJar
-
-    /**
      * Whether the default listeners and reporters should be used.
      *
      * Defaults to true.
@@ -186,37 +87,14 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
     boolean useDefaultListeners = true
 
     /**
-     * The maximum time out in milliseconds that all the tests should run under.
-     */
-    long timeOut = Long.MAX_VALUE
-
-    /**
-     * The directory where the ant task should change to before running TestNG.
-     */
-    //String workingDir
-
-    /**
-     * A reference to a FileSet structure for the suite definitions to be run.
-     */
-    //String xmlfilesetref = null
-
-    /**
      * Sets the default name of the test suite, if one is not specified in a suite xml file or in the source code.
      */
-    String suiteName = null
+    String suiteName = 'Gradle suite'
 
     /**
      * Sets the default name of the test, if one is not specified in a suite xml file or in the source code.
-     *
-     * Not required. 
-     *
-     * Defaults to "Ant test"
      */
-    String testName = null
-
-    List jvmArgs = []
-    Map systemProperties = [:]
-    Map environment = [:]
+    String testName = 'Gradle test'
 
     /**
      * The suiteXmlFiles to use for running TestNG.
@@ -225,12 +103,11 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
      */
     List<File> suiteXmlFiles = []
 
-    StringWriter suiteXmlWriter = null
-    MarkupBuilder suiteXmlBuilder = null
+    transient StringWriter suiteXmlWriter = null
+    transient MarkupBuilder suiteXmlBuilder = null
     private File projectDir
 
-    public TestNGOptions(TestNGTestFramework testngTestFramework, File projectDir) {
-        super(testngTestFramework)
+    public TestNGOptions(File projectDir) {
         this.projectDir = projectDir
     }
 
@@ -240,48 +117,6 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         } else {
             javadocAnnotations()
         }
-    }
-
-    List excludedFieldsFromOptionMap() {
-        List excludedFieldsFromOptionMap = ['testResources', 'projectDir',
-                'systemProperties', 'jvmArgs', 'environment',
-                'suiteXmlFiles', 'suiteXmlWriter', 'suiteXmlBuilder', 'listeners', 'includeGroups', 'excludeGroups']
-
-        if (jvm == null) excludedFieldsFromOptionMap << 'jvm'
-        if (skippedProperty == null) excludedFieldsFromOptionMap << 'skippedProperty'
-        if (suiteRunnerClass == null) excludedFieldsFromOptionMap << 'suiteRunnerClass'
-        if (parallel == null) {
-            excludedFieldsFromOptionMap << 'parallel'
-            excludedFieldsFromOptionMap << 'threadCount'
-        }
-        if (timeOut == Long.MAX_VALUE) excludedFieldsFromOptionMap << 'timeOut'
-        if (suiteName == null) excludedFieldsFromOptionMap << 'suiteName'
-        if (testName == null) excludedFieldsFromOptionMap << 'testName'
-
-        return excludedFieldsFromOptionMap
-    }
-
-    Map fieldName2AntMap() {
-        [
-                outputDir: 'outputdir',
-                suiteName: 'suitename',
-                testName: 'testname'
-        ]
-    }
-
-    Map optionMap() {
-        Map optionMap = super.optionMap()
-
-        if (!listeners.empty)
-            optionMap.put('listeners', listeners.join(', '));
-
-        if (!includeGroups.empty)
-            optionMap.put('groups', includeGroups.join(', '));
-
-        if (!excludeGroups.empty)
-            optionMap.put('excludedGroups', excludeGroups.join(', '));
-
-        return optionMap;
     }
 
     MarkupBuilder suiteXmlBuilder() {
@@ -326,8 +161,9 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
             final File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
 
             if (buildSuiteXml.exists()) {
-                if (!buildSuiteXml.delete())
-                throw new RuntimeException("failed to remove already existing build-suite.xml file");
+                if (!buildSuiteXml.delete()) {
+                    throw new RuntimeException("failed to remove already existing build-suite.xml file");
+                }
             }
 
             buildSuiteXml.append('<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">');
@@ -339,21 +175,13 @@ public class TestNGOptions extends AbstractTestFrameworkOptions {
         return suites
     }
 
-    TestNGOptions dumpCommand() {
-        this.dumpCommand = true
-
-        return this
-    }
-
     TestNGOptions jdkAnnotations() {
-        this.annotations = JDK_ANNOTATIONS
-
+        javadocAnnotations = false
         return this
     }
 
     TestNGOptions javadocAnnotations() {
-        this.annotations = JAVADOC_ANNOTATIONS
-
+        javadocAnnotations = true
         return this
     }
 

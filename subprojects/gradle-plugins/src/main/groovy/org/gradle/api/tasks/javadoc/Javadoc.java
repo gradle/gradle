@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -94,8 +94,7 @@ public class Javadoc extends SourceTask {
     }
 
     private void executeExternalJavadoc() {
-        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile())
-                .destinationDirectory(getDestinationDir());
+        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
 
         final ExecHandle execHandle = javadocExecHandleBuilder.getExecHandle();
 
@@ -112,7 +111,7 @@ public class Javadoc extends SourceTask {
                     break;
                 }
             default:
-                throw new GradleException("Javadoc generation ended in an unkown end state." + execHandle.getState());
+                throw new GradleException("Javadoc generation ended in an unknown end state." + execHandle.getState());
         }
     }
 

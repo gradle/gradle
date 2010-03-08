@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JMock;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Arrays;
@@ -30,12 +32,13 @@ import java.util.List;
 /**
  * @author Tom Eyckmans
  */
+@RunWith(JMock.class)
 public abstract class AbstractTestFrameworkInstanceTest {
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
     protected Project projectMock;
-    protected AntTest testMock;
+    protected Test testMock;
 
     protected final File projectDir = new File("projectDir");
     protected final File testClassesDir = new File("testClassesDir");
@@ -50,20 +53,14 @@ public abstract class AbstractTestFrameworkInstanceTest {
         context.setImposteriser(ClassImposteriser.INSTANCE);
 
         projectMock = context.mock(Project.class);
-        testMock = context.mock(AntTest.class);
+        testMock = context.mock(Test.class);
         antBuilderMock = context.mock(AntBuilder.class);
         classpathMock = context.mock(FileCollection.class);
         classpathAsFileTreeMock = context.mock(FileTree.class);
-    }
 
-    protected void expectHandleEmptyIncludesExcludes() {
-        context.checking(new Expectations() {{
-            one(testMock).getIncludes();
-            will(returnValue(null));
-            one(testMock).include("**/*Tests.class", "**/*Test.class");
-            one(testMock).getExcludes();
-            will(returnValue(null));
-            one(testMock).exclude("**/Abstract*.class");
+        context.checking(new Expectations(){{
+            allowing(testMock).getProject();
+            will(returnValue(projectMock));
         }});
     }
 }

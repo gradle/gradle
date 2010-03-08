@@ -15,22 +15,27 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven;
 
+import org.apache.maven.project.MavenProject;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultMavenPomFactory implements MavenPomFactory {
     private Conf2ScopeMappingContainer conf2ScopeMappingContainer;
+    private PomDependenciesConverter pomDependenciesConverter;
+    
 
-    public DefaultMavenPomFactory(Conf2ScopeMappingContainer conf2ScopeMappingContainer) {
+    public DefaultMavenPomFactory(Conf2ScopeMappingContainer conf2ScopeMappingContainer, PomDependenciesConverter pomDependenciesConverter) {
         this.conf2ScopeMappingContainer = conf2ScopeMappingContainer;
+        this.pomDependenciesConverter = pomDependenciesConverter;
     }
 
     public MavenPom createMavenPom() {
         return new DefaultMavenPom(
-                new DefaultConf2ScopeMappingContainer(conf2ScopeMappingContainer.getMappings()));
+                new DefaultConf2ScopeMappingContainer(conf2ScopeMappingContainer.getMappings()), pomDependenciesConverter, new MavenProject());
     }
 }

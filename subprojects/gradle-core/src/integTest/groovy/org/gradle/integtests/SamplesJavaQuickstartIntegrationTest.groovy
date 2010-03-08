@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,8 +40,8 @@ class SamplesJavaQuickstartIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
         // Check tests have run
-        javaprojectDir.file('build/test-results/TEST-org.gradle.PersonTest.xml').assertIsFile()
-        javaprojectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
+        JUnitTestResult result = new JUnitTestResult(javaprojectDir)
+        result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists
         javaprojectDir.file("build/libs/quickstart-1.0.jar").assertIsFile()

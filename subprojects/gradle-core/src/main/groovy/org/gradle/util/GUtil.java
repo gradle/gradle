@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -84,6 +84,14 @@ public class GUtil {
 
     public static String join(Object[] self, String separator) {
         return join(Arrays.asList(self), separator);
+    }
+
+    public static List<String> prefix(String prefix, Collection<String> strings) {
+        List<String> prefixed = new ArrayList<String>();
+        for (String string : strings) {
+            prefixed.add(prefix + string);
+        }
+        return prefixed;
     }
 
     public static boolean isTrue(Object object) {

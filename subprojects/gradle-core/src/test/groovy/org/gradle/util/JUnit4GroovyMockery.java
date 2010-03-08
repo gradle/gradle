@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,48 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.util;
 
 /**
  * @author Hans Dockter
  */
+
 import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.hamcrest.Matcher;
+import org.jmock.lib.legacy.ClassImposteriser;
+
+import java.util.Arrays;
+import java.util.List;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class JUnit4GroovyMockery extends JUnit4Mockery {
+    private final ConcurrentMap<String, AtomicInteger> names = new ConcurrentHashMap<String, AtomicInteger>();
+
+    public JUnit4GroovyMockery() {
+        setImposteriser(ClassImposteriser.INSTANCE);
+    }
+
+    @Override
+    public <T> T mock(Class<T> typeToMock) {
+        String name = typeToMock.getSimpleName();
+        names.putIfAbsent(name, new AtomicInteger());
+        int count = names.get(name).getAndIncrement();
+        if (count == 0) {
+            return mock(typeToMock, name);
+        } else {
+            return mock(typeToMock, name + count);
+        }
+    }
+
     class ClosureExpectations extends Expectations {
         void closureInit(Closure cl, Object delegate) {
             cl.setDelegate(delegate);
@@ -45,7 +72,18 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
                 }
 
                 public Object invoke(Invocation invocation) throws Throwable {
-                    return cl.call(invocation.getParametersAsArray());
+                    List<Object> params = Arrays.asList(invocation.getParametersAsArray());
+                    Object result;
+                    try {
+                        result = cl.call(params.subList(0, Math.min(invocation.getParametersAsArray().length,
+                                cl.getMaximumNumberOfParameters())));
+                    } catch (InvokerInvocationException e) {
+                        throw e.getCause();
+                    }
+                    if (invocation.getInvokedMethod().getReturnType().isInstance(result)) {
+                        return result;
+                    }
+                    return null;
                 }
             });
         }

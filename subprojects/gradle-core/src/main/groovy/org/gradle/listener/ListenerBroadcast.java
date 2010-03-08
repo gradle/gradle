@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.listener;
 
 import groovy.lang.Closure;
+import org.gradle.api.Action;
 import org.gradle.api.Transformer;
-import org.gradle.listener.dispatch.BroadcastDispatch;
-import org.gradle.listener.dispatch.StoppableDispatch;
-import org.gradle.listener.dispatch.MethodInvocation;
-import org.gradle.listener.dispatch.ProxyDispatchAdapter;
+import org.gradle.messaging.dispatch.BroadcastDispatch;
+import org.gradle.messaging.dispatch.StoppableDispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
 
 /**
  * <p>Manages a set of listeners of type T. Provides an implementation of T which can be used to broadcast to all
@@ -106,6 +108,13 @@ public class ListenerBroadcast<T> implements StoppableDispatch<MethodInvocation>
      */
     public void add(String methodName, Closure closure) {
         broadcast.add(methodName, closure);
+    }
+
+    /**
+     * Adds an action to be executed when the given method is called.
+     */
+    public void add(String methodName, Action<?> action) {
+        broadcast.add(methodName, action);
     }
 
     /**

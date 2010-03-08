@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -147,11 +147,8 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
             Expression mapArg = null;
             List<Expression> extraArgs = Collections.emptyList();
 
-            if (nestedMethod.getArguments() instanceof NamedArgumentListExpression) {
-                // Matches: task <identifier>(<options-map>)
-                mapArg = nestedMethod.getArguments();
-            } else if (nestedMethod.getArguments() instanceof ArgumentListExpression) {
-                ArgumentListExpression nestedArgs = (ArgumentListExpression) nestedMethod.getArguments();
+            if (nestedMethod.getArguments() instanceof TupleExpression) {
+                TupleExpression nestedArgs = (TupleExpression) nestedMethod.getArguments();
                 if (nestedArgs.getExpressions().size() == 2
                         && nestedArgs.getExpression(0) instanceof MapExpression
                         && nestedArgs.getExpression(1) instanceof ClosureExpression) {
@@ -161,6 +158,9 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
                 } else if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof ClosureExpression) {
                     // Matches: task <identifier> <closure>
                     extraArgs = nestedArgs.getExpressions();
+                } else if (nestedArgs.getExpressions().size() == 1 && nestedArgs.getExpression(0) instanceof NamedArgumentListExpression) {
+                    // Matches: task <identifier>(<options-map>)
+                    mapArg = nestedArgs.getExpression(0);
                 }
                 else if (nestedArgs.getExpressions().size() != 0) {
                     return false;

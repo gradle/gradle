@@ -6,7 +6,7 @@ class CustomEventLogger extends BuildAdapter implements BuildListener, TaskExecu
         println "[$task.name]"
     }
 
-    public void afterExecute(Task task, TaskExecutionResult result) {
+    public void afterExecute(Task task, TaskState state) {
         println()
     }
     

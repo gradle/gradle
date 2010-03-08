@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,18 +16,21 @@
 
 package org.gradle.util.exec;
 
-import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExecHandleRunner implements Runnable {
-
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
-    private final AtomicBoolean keepWaiting;
-    private final ExecutorService threadPool;
+    private final Executor threadPool;
+    private final Lock lock;
+    private Process process;
+    private boolean aborted;
 
     public ExecHandleRunner(DefaultExecHandle execHandle, ExecutorService threadPool) {
         if (execHandle == null) {
@@ -35,52 +38,52 @@ public class ExecHandleRunner implements Runnable {
         }
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
-        this.keepWaiting = new AtomicBoolean(true);
+        this.lock = new ReentrantLock();
         this.threadPool = threadPool;
     }
 
     public void stopWaiting() {
-        keepWaiting.set(false);
+        lock.lock();
+        try {
+            aborted = true;
+            if (process != null) {
+                process.destroy();
+            }
+        } finally {
+            lock.lock();
+        }
     }
 
     public void run() {
-        final ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
-        final long keepWaitingTimeout = execHandle.getKeepWaitingTimeout();
-
+        ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         try {
-            final Process process = processBuilder.start();
+            Process process = processBuilder.start();
+            lock.lock();
+            try {
+                this.process = process;
+            } finally {
+                lock.unlock();
+            }
 
-            final ExecOutputHandleRunner standardOutputHandleRunner = new ExecOutputHandleRunner(
-                    process.getInputStream(), execHandle.getStandardOutputHandle());
-            final ExecOutputHandleRunner errorOutputHandleRunner = new ExecOutputHandleRunner(process.getErrorStream(),
-                    execHandle.getErrorOutputHandle());
+            ExecOutputHandleRunner standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
+                    process.getInputStream(), execHandle.getStandardOutput());
+            ExecOutputHandleRunner errorOutputRunner = new ExecOutputHandleRunner("read process error output",
+                    process.getErrorStream(), execHandle.getErrorOutput());
+            ExecOutputHandleRunner standardInputRunner = new ExecOutputHandleRunner("write process standard input",
+                    execHandle.getStandardInput(), process.getOutputStream());
 
-            threadPool.execute(standardOutputHandleRunner);
-            threadPool.execute(errorOutputHandleRunner);
+            threadPool.execute(standardInputRunner);
+            threadPool.execute(standardOutputRunner);
+            threadPool.execute(errorOutputRunner);
 
             // signal started after all threads are started otherwise RejectedExecutionException may be thrown
             // by the ExecutorService because shutdown may already be called on it
             // especially when the startAndWaitForFinish method is used on the ExecHandle.
             execHandle.started();
 
-            int exitCode = -1;
-            boolean processFinishedNormally = false;
-            while (keepWaiting.get() && !processFinishedNormally) {
-                try {
-                    exitCode = process.exitValue();
-                    processFinishedNormally = true;
-                } catch (IllegalThreadStateException e) {
-                    // ignore
-                }
-                try {
-                    Thread.sleep(keepWaitingTimeout);
-                } catch (InterruptedException e) {
-                    // ignore
-                }
-            }
+            int exitCode = process.waitFor();
 
-            if (!keepWaiting.get()) {
-                process.destroy();
+            if (aborted) {
                 execHandle.aborted();
             } else {
                 execHandle.finished(exitCode);

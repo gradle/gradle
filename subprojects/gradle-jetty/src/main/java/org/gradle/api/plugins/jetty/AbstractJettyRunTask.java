@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -167,7 +167,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         for (File additionalRuntimeJar : getAdditionalRuntimeJars()) {
             additionalClasspath.add(additionalRuntimeJar);
         }
-        URLClassLoader jettyClassloader = new URLClassLoader(GFileUtils.toURLs(additionalClasspath), originalClassloader);
+        URLClassLoader jettyClassloader = new URLClassLoader(GFileUtils.toURLArray(additionalClasspath), originalClassloader);
         try {
             Thread.currentThread().setContextClassLoader(jettyClassloader);
             startJetty();
@@ -286,7 +286,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         if (webAppConfig == null) {
             webAppConfig = new JettyPluginWebAppContext();
         }
-        webAppConfig.setContextPath((getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath()));
+        webAppConfig.setContextPath(getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath());
         if (getTmpDirectory() != null) {
             webAppConfig.setTempDirectory(getTmpDirectory());
         }
@@ -337,7 +337,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         scanner.setScanInterval(getScanIntervalSeconds());
         scanner.setRecursive(true);
         List listeners = getScannerListeners();
-        Iterator itor = (listeners == null ? null : listeners.iterator());
+        Iterator itor = listeners == null ? null : listeners.iterator();
         while (itor != null && itor.hasNext()) {
             scanner.addListener((Scanner.Listener) itor.next());
         }

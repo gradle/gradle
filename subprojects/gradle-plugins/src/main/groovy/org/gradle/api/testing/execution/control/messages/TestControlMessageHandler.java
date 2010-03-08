@@ -15,8 +15,9 @@
  */
 package org.gradle.api.testing.execution.control.messages;
 
-import org.apache.mina.core.session.IoSession;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
 import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
+import org.gradle.messaging.dispatch.Dispatch;
 
 import java.util.Set;
 
@@ -26,5 +27,5 @@ import java.util.Set;
 public interface TestControlMessageHandler {
     Set<? extends Class<?>> getMessageClasses();
 
-    void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client);
+    void handle(Object controlMessage, TestServerClientHandle client, Dispatch<TestServerControlMessage> clientConnection);
 }

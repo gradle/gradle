@@ -15,12 +15,13 @@
  */
 package org.gradle.api.testing.execution.control.server.messagehandlers;
 
-import org.apache.mina.core.session.IoSession;
+import org.gradle.api.tasks.testing.NativeTest;
 import org.gradle.api.testing.execution.PipelineDispatcher;
 import org.gradle.api.testing.execution.control.messages.client.ForkStartedMessage;
-import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
 import org.gradle.api.testing.execution.control.messages.server.InitializeActionMessage;
-import org.gradle.api.tasks.testing.NativeTest;
+import org.gradle.api.testing.execution.control.messages.server.TestServerControlMessage;
+import org.gradle.api.testing.execution.control.server.TestServerClientHandle;
+import org.gradle.messaging.dispatch.Dispatch;
 
 import java.util.Collections;
 import java.util.Set;
@@ -38,7 +39,7 @@ public class ForkStartedMessageHandler extends AbstractTestServerControlMessageH
         return Collections.singleton(ForkStartedMessage.class);
     }
 
-    public void handle(IoSession ioSession, Object controlMessage, TestServerClientHandle client) {
+    public void handle(Object controlMessage, TestServerClientHandle client, Dispatch<TestServerControlMessage> clientConnection) {
         client.started();
 
         final InitializeActionMessage initializeForkMessage = new InitializeActionMessage(pipeline.getId());
@@ -48,6 +49,6 @@ public class ForkStartedMessageHandler extends AbstractTestServerControlMessageH
         initializeForkMessage.setReforkItemConfigs(pipeline.getConfig().getReforkReasonConfigs());
         // TODO add sandbox classpath ?
 
-        ioSession.write(initializeForkMessage);
+        clientConnection.dispatch(initializeForkMessage);
     }
 }

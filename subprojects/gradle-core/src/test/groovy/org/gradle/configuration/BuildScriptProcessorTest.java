@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,24 +16,24 @@
 package org.gradle.configuration;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateInternal;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 @RunWith(JMock.class)
 public class BuildScriptProcessorTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final ScriptPluginFactory configurerFactory = context.mock(ScriptPluginFactory.class);
     private final ScriptPlugin scriptPlugin = context.mock(ScriptPlugin.class);
+    private final ProjectStateInternal state = context.mock(ProjectStateInternal.class);
     private final BuildScriptProcessor evaluator = new BuildScriptProcessor(configurerFactory);
 
     @Before
@@ -41,6 +41,7 @@ public class BuildScriptProcessorTest {
         context.checking(new Expectations() {{
             allowing(project).getBuildScriptSource();
             will(returnValue(scriptSource));
+            ignoring(scriptSource);
         }});
     }
 
@@ -53,6 +54,6 @@ public class BuildScriptProcessorTest {
             one(scriptPlugin).use(project);
         }});
 
-        evaluator.evaluate(project);
+        evaluator.evaluate(project, state);
     }
 }

@@ -15,7 +15,7 @@
  */
 package org.gradle.api.testing.fabric;
 
-import org.gradle.api.testing.detection.TestClassProcessor;
+import org.gradle.api.testing.TestClassProcessor;
 
 import java.io.File;
 

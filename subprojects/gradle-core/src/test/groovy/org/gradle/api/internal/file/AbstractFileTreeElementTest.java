@@ -19,6 +19,7 @@ import org.gradle.api.file.RelativePath;
 import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.GFileUtils;
+
 import static org.junit.Assert.*;
 
 import org.junit.Rule;
@@ -32,7 +33,8 @@ public class AbstractFileTreeElementTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
 
-    @Test public void testNeedsCopy() throws IOException {
+    @Test
+    public void testNeedsCopy() throws IOException {
         TestFile source = tmpDir.createFile("src");
         TestFile dest = tmpDir.getDir().file("dest");
         dest.assertDoesNotExist();

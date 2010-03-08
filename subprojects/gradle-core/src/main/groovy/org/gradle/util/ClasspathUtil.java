@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -43,6 +43,17 @@ public class ClasspathUtil {
             t.printStackTrace();
             throw new RuntimeException("Error, could not add URL to system classloader", t);
         }
+    }
+
+    public static List<URL> getClasspath(ClassLoader classLoader) {
+        List<URL> implementationClassPath = new ArrayList<URL>();
+        for ( ClassLoader cl = classLoader;
+                cl != ClassLoader.getSystemClassLoader().getParent(); cl = cl.getParent()) {
+            if (cl instanceof URLClassLoader) {
+                implementationClassPath.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
+            }
+        }
+        return implementationClassPath;
     }
 
     public static File getToolsJar() {

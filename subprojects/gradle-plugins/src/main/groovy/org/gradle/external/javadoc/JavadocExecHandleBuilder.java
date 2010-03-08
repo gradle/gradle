@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,8 @@
 
 package org.gradle.external.javadoc;
 
-import org.apache.tools.ant.util.JavaEnvUtils;
 import org.gradle.api.GradleException;
+import org.gradle.util.Jvm;
 import org.gradle.util.exec.ExecHandle;
 import org.gradle.util.exec.ExecHandleBuilder;
 
@@ -31,10 +31,6 @@ public class JavadocExecHandleBuilder {
     private File execDirectory;
     private MinimalJavadocOptions options;
     private File optionsFile;
-    private File destinationDirectory;
-
-    public JavadocExecHandleBuilder() {
-    }
 
     public JavadocExecHandleBuilder execDirectory(File directory) {
         if (directory == null) {
@@ -65,21 +61,6 @@ public class JavadocExecHandleBuilder {
         return this;
     }
 
-    public JavadocExecHandleBuilder destinationDirectory(File destinationDirectory) {
-        if (destinationDirectory == null) {
-            throw new IllegalArgumentException("destinationDirectory == null!");
-        }
-        if (!destinationDirectory.exists()) {
-            throw new IllegalArgumentException("destinationDirectory doesn't exists!");
-        }
-        if (destinationDirectory.isFile()) {
-            throw new IllegalArgumentException("destinationDirectory is a file");
-        }
-
-        this.destinationDirectory = destinationDirectory;
-        return this;
-    }
-
     public ExecHandle getExecHandle() {
         try {
             options.write(optionsFile);
@@ -87,13 +68,13 @@ public class JavadocExecHandleBuilder {
             throw new GradleException("Faild to store javadoc options.", e);
         }
 
-        final ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder(true).execDirectory(execDirectory)
-                .execCommand(JavaEnvUtils.getJdkExecutable(
-                        "javadoc")) // reusing Ant knowledge here would be stupid not to
-                .arguments("@" + optionsFile.getAbsolutePath());
+        ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder();
+        execHandleBuilder.workingDir(execDirectory);
+        execHandleBuilder.executable(Jvm.current().getJavadocExecutable());
+        execHandleBuilder.arguments("@" + optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execHandleBuilder);
 
-        return execHandleBuilder.getExecHandle();
+        return execHandleBuilder.build();
     }
 }

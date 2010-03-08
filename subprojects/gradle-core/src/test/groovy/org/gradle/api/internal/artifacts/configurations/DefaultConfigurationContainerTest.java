@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.UnknownConfigurationException;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
@@ -45,7 +46,8 @@ public class DefaultConfigurationContainerTest {
 
     private IvyService ivyServiceDummy = context.mock(IvyService.class);
     private ClassGenerator classGenerator = context.mock(ClassGenerator.class);
-    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, classGenerator);
+    private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class);
+    private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(ivyServiceDummy, classGenerator, domainObjectContext);
 
     @Test
     public void init() {
@@ -139,9 +141,10 @@ public class DefaultConfigurationContainerTest {
 
     private void expectConfigurationCreated(final String name) {
         context.checking(new Expectations(){{
-            one(classGenerator).newInstance(DefaultConfiguration.class, name, configurationContainer,
-                    ivyServiceDummy);
-            will(returnValue(new DefaultConfiguration(name, configurationContainer, ivyServiceDummy)));
+            one(domainObjectContext).absolutePath(name);
+            will(returnValue(name));
+            one(classGenerator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy);
+            will(returnValue(new DefaultConfiguration(name, name, configurationContainer, ivyServiceDummy)));
         }});
     }
 

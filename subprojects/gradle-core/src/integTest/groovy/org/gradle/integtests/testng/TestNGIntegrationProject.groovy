@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests.testng
 /**
  * @author Tom Eyckmans
@@ -21,7 +23,7 @@ package org.gradle.integtests.testng
 public class TestNGIntegrationProject {
     String name
     boolean expectFailure
-    def assertClosure
+    Closure assertClosure
 
     static TestNGIntegrationProject failingIntegrationProject(String language, String jdk, assertClosure)
     {
@@ -45,15 +47,20 @@ public class TestNGIntegrationProject {
 
     public TestNGIntegrationProject(String name, boolean expectFailure, String nameSuffix, assertClosure)
     {
-        if ( nameSuffix == null )
+        if ( nameSuffix == null ) {
             this.name = name
-        else
-            this.name = name + nameSuffix 
+        } else {
+            this.name = name + nameSuffix
+        }
         this.expectFailure = expectFailure
         this.assertClosure = assertClosure
     }
 
     void doAssert(projectDir, result) {
-        assertClosure(name, projectDir, result)
+        if (assertClosure.maximumNumberOfParameters == 3) {
+            assertClosure(name, projectDir, new TestNgResult(projectDir))
+        } else {
+            assertClosure(name, projectDir, new TestNgResult(projectDir), result)
+        }
     }
 }

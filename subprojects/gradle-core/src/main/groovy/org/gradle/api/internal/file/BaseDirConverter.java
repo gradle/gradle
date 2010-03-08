@@ -43,7 +43,8 @@ public class BaseDirConverter extends AbstractFileResolver {
         // Find and remove common prefix
         int maxDepth = Math.min(basePath.size(), targetPath.size());
         int prefixLen = 0;
-        for (; prefixLen < maxDepth && basePath.get(prefixLen).equals(targetPath.get(prefixLen)); prefixLen++) {
+        while (prefixLen < maxDepth && basePath.get(prefixLen).equals(targetPath.get(prefixLen))) {
+            prefixLen++;
         }
         basePath = basePath.subList(prefixLen, basePath.size());
         targetPath = targetPath.subList(prefixLen, targetPath.size());

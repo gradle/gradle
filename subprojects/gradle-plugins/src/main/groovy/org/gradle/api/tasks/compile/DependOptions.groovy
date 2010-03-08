@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ package org.gradle.api.tasks.compile
  *      <li>srcDir  - <b>IGNORED</b> - set automatically</li>
  *      <li>destDir - <b>IGNORED</b> - set automatically</li>
  *      <li>cache - <b>IGNORED</b> - set automatically</li>
- *      <li>closure - boolean controling depth of dependency graph traversal</li>
+ *      <li>closure - boolean controlling depth of dependency graph traversal</li>
  *      <li>dump - dump dependency information to log</li>
  *      <li>classpath - extra classes to check</li>
  *      <li>warnOnRmiStubs - disables warnings for rmi stubs with no source</li>

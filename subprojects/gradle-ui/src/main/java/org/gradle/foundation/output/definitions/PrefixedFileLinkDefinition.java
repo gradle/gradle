@@ -187,14 +187,11 @@ public class PrefixedFileLinkDefinition implements FileLinkDefinition
          if( lineDelimterIndex != -1 )
          {
             String lineNumberText = textAfterPath.substring( lineDelimterIndex + lineNumberDelimiter.length() );
-            try
-            {
-               lineNumberText = lineNumberText.trim();
-               lineNumberText = getConsecutiveNumbers( lineNumberText );
+
+            lineNumberText = lineNumberText.trim();
+            lineNumberText = getConsecutiveNumbers( lineNumberText );
+            if( !"".equals( lineNumberText ) ) {
                return Integer.parseInt( lineNumberText );
-            }
-            catch( Exception e )
-            {
             }
          }
       }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,8 +27,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
-    private boolean searchUpwards = false;
-    private boolean disableTestGradleUserHome = false;
+    private boolean searchUpwards;
+    private boolean disableTestGradleUserHome;
 
     public GradleExecuter inDirectory(File directory) {
         workingDir = directory;

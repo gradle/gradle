@@ -13,15 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.detection;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
 import org.objectweb.asm.ClassReader;
+import org.objectweb.asm.Type;
 
 import java.io.BufferedInputStream;
 import java.io.File;
@@ -33,8 +36,6 @@ import java.util.*;
  * @author Tom Eyckmans
  */
 public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> implements TestFrameworkDetector {
-    protected static final String CLASS_FILE_EXT = ".class";
-
     protected static final String TEST_CASE = "junit/framework/TestCase";
     protected static final String GROOVY_TEST_CASE = "groovy/util/GroovyTestCase";
 
@@ -148,7 +149,8 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
      */
     protected void publishTestClass(boolean isTest, TestClassVisitor classVisitor, boolean superClass) {
         if (isTest && !classVisitor.isAbstract() && !superClass) {
-            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(classVisitor.getClassName()));
+            String className = Type.getObjectType(classVisitor.getClassName()).getClassName();
+            testClassProcessor.processTestClass(new DefaultTestClassRunInfo(className));
         }
     }
 
@@ -170,13 +172,7 @@ public abstract class AbstractTestFrameworkDetector<T extends TestClassVisitor> 
         boolean isKnownTestCase = false;
 
         if (StringUtils.isNotEmpty(testCaseClassName)) {
-            final Iterator<String> knownTestCaseClassNamesIterator = knownTestCaseClassNames.iterator();
-            while (!isKnownTestCase && knownTestCaseClassNamesIterator.hasNext()) {
-                final String currentKnownTestCaseClassName = knownTestCaseClassNamesIterator.next();
-                if (currentKnownTestCaseClassName.equals(testCaseClassName)) {
-                    isKnownTestCase = true;
-                }
-            }
+            isKnownTestCase = knownTestCaseClassNames.contains(testCaseClassName);
         }
 
         return isKnownTestCase;

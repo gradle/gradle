@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.internal.artifacts.publish.maven.PomFileWriter;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
 import java.io.File;
@@ -35,14 +34,12 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
     private Map<String, ArtifactPom> artifactPoms = new HashMap<String, ArtifactPom>();
     private final MavenPomMetaInfoProvider pomMetaInfoProvider;
     private PomFilterContainer pomFilterContainer;
-    private PomFileWriter pomFileWriter;
     private ArtifactPomFactory artifactPomFactory;
 
     public DefaultArtifactPomContainer(MavenPomMetaInfoProvider pomMetaInfoProvider, PomFilterContainer pomFilterContainer,
-                                       PomFileWriter pomFileWriter, ArtifactPomFactory artifactPomFactory) {
+                                       ArtifactPomFactory artifactPomFactory) {
         this.pomMetaInfoProvider = pomMetaInfoProvider;
         this.pomFilterContainer = pomFilterContainer;
-        this.pomFileWriter = pomFileWriter;
         this.artifactPomFactory = artifactPomFactory;
     }
 
@@ -65,7 +62,7 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         for (String activeArtifactPomName : artifactPoms.keySet()) {
             ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
             File pomFile = createPomFile(activeArtifactPomName);
-            pomFileWriter.write(activeArtifactPom.getPom(), configurations, pomFile);
+            activeArtifactPom.writePom(configurations, pomFile);
             deployableFilesInfos.add(new DeployableFilesInfo(pomFile, activeArtifactPom.getArtifactFile(), activeArtifactPom.getClassifiers()));
         }
         return deployableFilesInfos;

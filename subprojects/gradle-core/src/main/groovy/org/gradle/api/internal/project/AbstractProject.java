@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
@@ -55,25 +56,21 @@ import org.gradle.util.*;
 import java.io.File;
 import java.util.*;
 
+import static java.util.Collections.*;
+import static org.gradle.util.GUtil.*;
+
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements ProjectInternal {
-    private static Logger logger = Logging.getLogger(AbstractProject.class);
+public abstract class AbstractProject implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
-
-    public enum State {
-        CREATED, INITIALIZING, INITIALIZED
-    }
 
     private final Project rootProject;
 
     private final GradleInternal gradle;
 
     private ProjectEvaluator projectEvaluator;
-
-    private File buildFile;
 
     private Script buildScript;
 
@@ -97,14 +94,14 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private Set<Project> dependsOnProjects = new HashSet<Project>();
 
-    private State state;
+    private ProjectStateInternal state;
 
     private FileResolver fileResolver;
     private FileOperations fileOperations;
 
     private AntBuilderFactory antBuilderFactory;
 
-    private AntBuilder ant = null;
+    private AntBuilder ant;
 
     private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
 
@@ -132,8 +129,7 @@ public abstract class AbstractProject implements ProjectInternal {
 
     private ScriptClassLoaderProvider scriptClassLoaderProvider;
 
-    private ListenerBroadcast<Action> afterEvaluateActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> beforeEvaluateActions = new ListenerBroadcast<Action>(Action.class);
+    private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
     private StandardOutputRedirector standardOutputRedirector;
     private DynamicObjectHelper dynamicObjectHelper;
@@ -153,7 +149,6 @@ public abstract class AbstractProject implements ProjectInternal {
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
-                           File buildFile,
                            ScriptSource buildScriptSource,
                            GradleInternal gradle,
                            ServiceRegistryFactory serviceRegistryFactory) {
@@ -162,8 +157,7 @@ public abstract class AbstractProject implements ProjectInternal {
         this.projectDir = projectDir;
         this.parent = parent;
         this.name = name;
-        this.buildFile = buildFile;
-        this.state = State.CREATED;
+        this.state = new ProjectStateInternal();
         this.buildScriptSource = buildScriptSource;
         this.gradle = gradle;
 
@@ -198,6 +192,8 @@ public abstract class AbstractProject implements ProjectInternal {
             dynamicObjectHelper.setParent(parent.getInheritedScope());
         }
         dynamicObjectHelper.addObject(taskContainer.getAsDynamicObject(), DynamicObjectHelper.Location.AfterConvention);
+
+        evaluationListener.add(gradle.getProjectEvaluationBroadcaster());
     }
 
     public RepositoryHandler createRepositoryHandler() {
@@ -246,15 +242,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public File getBuildFile() {
-        return buildFile;
-    }
-
-    public void setBuildFile(File buildFile) {
-        this.buildFile = buildFile;
-    }
-
-    public Script getScript() {
-        return buildScript;
+        return getBuildscript().getSourceFile();
     }
 
     public void setScript(Script buildScript) {
@@ -279,7 +267,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return parent;
     }
 
-    public DynamicObjectHelper getDynamicObjectHelper() {
+    public DynamicObject getAsDynamicObject() {
         return dynamicObjectHelper;
     }
 
@@ -335,7 +323,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return dynamicObjectHelper.getAdditionalProperties();
     }
 
-    public State getState() {
+    public ProjectStateInternal getState() {
         return state;
     }
 
@@ -456,7 +444,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project findProject(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (!isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         return projectRegistry.getProject(isAbsolutePath(path) ? path : absolutePath(path));
@@ -504,18 +492,8 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public AbstractProject evaluate() {
-        if (state == State.INITIALIZED) {
-            return this;
-        }
-        Clock clock = new Clock();
-        logger.info(String.format("Evaluating %s using %s.", this, getBuildScriptSource().getDisplayName()));
-        beforeEvaluateActions.getSource().execute(this);
-        state = State.INITIALIZING;
-        projectEvaluator.evaluate(this);
-        logger.debug("Timing: Running the build script took " + clock.getTime());
-        state = State.INITIALIZED;
-        afterEvaluateActions.getSource().execute(this);
-        logger.debug("Timing: Project evaluation took " + clock.getTime());
+        projectEvaluator.evaluate(this, state);
+        state.rethrowFailure();
         return this;
     }
 
@@ -607,7 +585,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public void dependsOn(String path, boolean evaluateDependsOnProject) {
-        if (!GUtil.isTrue(path)) {
+        if (!isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         dependsOnProjects.add(project(path));
@@ -617,11 +595,11 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project evaluationDependsOn(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (!isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
-        if (projectToEvaluate.getState() == State.INITIALIZING) {
+        if (projectToEvaluate.getState().getExecuting()) {
             throw new CircularReferenceException(String.format("Circular referencing during evaluation for %s.",
                     projectToEvaluate));
         }
@@ -670,7 +648,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Set<Task> getTasksByName(final String name, boolean recursive) {
-        if (!GUtil.isTrue(name)) {
+        if (!isTrue(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
         final Set<Task> foundTasks = new HashSet<Task>();
@@ -768,20 +746,24 @@ public abstract class AbstractProject implements ProjectInternal {
         this.dependencyHandler = dependencyHandler;
     }
 
+    public ProjectEvaluationListener getProjectEvaluationBroadcaster() {
+        return evaluationListener.getSource();
+    }
+
     public void beforeEvaluate(Action<? super Project> action) {
-        beforeEvaluateActions.add(action);
+        evaluationListener.add("beforeEvaluate", action);
     }
 
     public void afterEvaluate(Action<? super Project> action) {
-        afterEvaluateActions.add(action);
+        evaluationListener.add("afterEvaluate", action);
     }
 
     public void beforeEvaluate(Closure closure) {
-        beforeEvaluateActions.add("execute", closure);
+        evaluationListener.add("beforeEvaluate", closure);
     }
 
     public void afterEvaluate(Closure closure) {
-        afterEvaluateActions.add("execute", closure);
+        evaluationListener.add("afterEvaluate", closure);
     }
 
     public Logger getLogger() {
@@ -807,6 +789,10 @@ public abstract class AbstractProject implements ProjectInternal {
 
     public Object property(String propertyName) throws MissingPropertyException {
         return dynamicObjectHelper.getProperty(propertyName);
+    }
+
+    public void setProperty(String name, Object value) {
+        dynamicObjectHelper.setProperty(name, value);
     }
 
     public boolean hasProperty(String propertyName) {
@@ -850,4 +836,91 @@ public abstract class AbstractProject implements ProjectInternal {
         ConfigureUtil.configure(options, action);
         action.execute();
     }
+
+    public AntBuilder ant(Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, getAnt());
+    }
+
+    public void subprojects(Closure configureClosure) {
+        configure(getSubprojects(), configureClosure);
+    }
+
+    public void allprojects(Closure configureClosure) {
+        configure(getAllprojects(), configureClosure);
+    }
+
+    public Project project(String path, Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, project(path));
+    }
+
+    public Object configure(Object object, Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, object);
+    }
+
+    public Iterable<?> configure(Iterable<?> objects, Closure configureClosure) {
+        for (Object object : objects) {
+            configure(object, configureClosure);
+        }
+        return objects;
+    }
+
+    public void configurations(Closure configureClosure) {
+        ((Configurable<?>) getConfigurations()).configure(configureClosure);
+    }
+
+    public void repositories(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getRepositories());
+    }
+
+    public void dependencies(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getDependencies());
+    }
+
+    public void artifacts(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getArtifacts());
+    }
+
+    public void buildscript(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getBuildscript());
+    }
+
+    public Task task(String task) {
+        return taskContainer.add(task);
+    }
+
+    public Task task(Object task) {
+        return taskContainer.add(task.toString());
+    }
+
+    public Task task(String task, Closure configureClosure) {
+        return taskContainer.add(task).configure(configureClosure);
+    }
+
+    public Task task(Object task, Closure configureClosure) {
+        return task(task.toString(), configureClosure);
+    }
+
+    public Task task(Map options, String task) {
+        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task)));
+    }
+
+    public Task task(Map options, Object task) {
+        return task(options, task.toString());
+    }
+
+    public Task task(Map options, String task, Closure configureClosure) {
+        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+    }
+
+    public Task task(Map options, Object task, Closure configureClosure) {
+        return task(options, task.toString(), configureClosure);
+    }
+
+    /**
+     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     */
+    public Object passThrough(Object object) {
+        return object;
+    }
+
 }

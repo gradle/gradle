@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -59,7 +59,7 @@ public class NameMatcher {
         if (pattern.length() == 0) {
             return null;
         }
-        
+
         Pattern camelCasePattern = getPatternForName(pattern);
         Pattern normalisedCamelCasePattern = Pattern.compile(camelCasePattern.pattern(), Pattern.CASE_INSENSITIVE);
         String normalisedPattern = pattern.toUpperCase();
@@ -102,8 +102,11 @@ public class NameMatcher {
         int pos = 0;
         StringBuilder builder = new StringBuilder();
         while (matcher.find()) {
-            builder.append(Pattern.quote(name.substring(pos, matcher.start())));
-            builder.append(matcher.group());
+            String prefix = name.substring(pos, matcher.start());
+            if (prefix.length() > 0) {
+                builder.append(Pattern.quote(prefix));
+            }
+            builder.append(Pattern.quote(matcher.group()));
             builder.append("[\\p{javaLowerCase}\\p{Digit}]*");
             pos = matcher.end();
         }

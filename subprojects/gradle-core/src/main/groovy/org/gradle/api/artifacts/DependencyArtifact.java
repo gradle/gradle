@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public interface DependencyArtifact {
 
     /**
      * Returns the type of the dependency artifact. Often the type is the same as the extension,
-     * but sometimes this is not the case. For example for an ivy xml module decsriptor, the type is
+     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @see #getExtension() 
@@ -39,8 +39,8 @@ public interface DependencyArtifact {
     String getType();
 
     /**
-     * Returns the extension of this dependency artifact. Often the extendsion is the same as the type,
-     * but sometimes this is not the case. For example for an ivy xml module decsriptor, the type is
+     * Returns the extension of this dependency artifact. Often the extension is the same as the type,
+     * but sometimes this is not the case. For example for an ivy xml module descriptor, the type is
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @see #getType() 

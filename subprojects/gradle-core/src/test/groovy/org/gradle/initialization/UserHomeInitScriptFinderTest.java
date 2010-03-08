@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,40 +15,65 @@
  */
 package org.gradle.initialization;
 
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import static org.hamcrest.Matchers.equalTo;
+import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.util.TemporaryFolder;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class UserHomeInitScriptFinderTest {
-    @Test
-    public void testFindScripts() throws IOException {
-        JUnit4Mockery context = new JUnit4Mockery();
+    @Rule
+    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final GradleInternal gradleMock = context.mock(GradleInternal.class);
+    private final InitScriptFinder initScriptFinderMock = context.mock(InitScriptFinder.class);
+    private final StartParameter testStartParameter = new StartParameter();
 
-        final GradleInternal gradleMock = context.mock(GradleInternal.class);
-        final InitScriptFinder initScriptFinderMock = context.mock(InitScriptFinder.class);
-        final StartParameter testStartParameter = new StartParameter();
-        final File homeDir = new File("gradle home dir").getCanonicalFile();
-        testStartParameter.setGradleUserHomeDir(homeDir);
+    @Before
+    public void setup() {
+        testStartParameter.setGradleUserHomeDir(tmpDir.getDir());
+        context.checking(new Expectations() {{
+            allowing(gradleMock).getStartParameter();
+            will(returnValue(testStartParameter));
+        }});
+    }
+
+    @Test
+    public void addsUserInitScriptWhenItExists() throws IOException {
+        File initScript = tmpDir.file("init.gradle").createFile();
 
         context.checking(new Expectations() {{
             allowing(initScriptFinderMock).findScripts(gradleMock);
             will(returnValue(new ArrayList()));
-            allowing(gradleMock).getStartParameter();
-            will(returnValue(testStartParameter));
         }});
 
         List<ScriptSource> sourceList = new UserHomeInitScriptFinder(initScriptFinderMock).findScripts(gradleMock);
         assertThat(sourceList.size(), equalTo(1));
-        assertThat(sourceList.get(0).getSourceFile(), equalTo(new File(homeDir, "init.gradle")));
+        assertThat(sourceList.get(0), instanceOf(UriScriptSource.class));
+        assertThat(sourceList.get(0).getResource().getFile(), equalTo(initScript));
+    }
+
+    @Test
+    public void doesNotAddUserInitScriptWhenItDoesNotExist() throws IOException {
+        context.checking(new Expectations() {{
+            allowing(initScriptFinderMock).findScripts(gradleMock);
+            will(returnValue(new ArrayList()));
+        }});
+
+        List<ScriptSource> sourceList = new UserHomeInitScriptFinder(initScriptFinderMock).findScripts(gradleMock);
+        assertThat(sourceList.size(), equalTo(0));
     }
 }

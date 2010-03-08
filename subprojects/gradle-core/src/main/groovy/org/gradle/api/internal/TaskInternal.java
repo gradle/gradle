@@ -17,18 +17,18 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Task;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.Configurable;
 
-public interface TaskInternal extends Task {
+public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
 
     /**
-     * Executes this task. If execution fails with an exception, the exception is packaged in the returned result.
+     * Executes this task.
      */
-    TaskExecutionResult execute();
+    void execute();
 
     StandardOutputCapture getStandardOutputCapture();
 

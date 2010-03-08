@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,7 @@ import org.gradle.api.Plugin;
  * particular project.</p>
  *
  * <p>Plugins can be specified using either an id or type. The id of a plugin is specified using a
- * META-INF/gradle-plugins.properties resource.</p>
- *
- * <p>The name of a plugin is its id. In the case a plugin does not has an id, its name is the fully qualified class
- * name.</p>
+ * META-INF/gradle-plugins/${id}.properties resource.</p>
  *
  * @author Hans Dockter
  */
@@ -50,11 +47,11 @@ public interface PluginContainer extends PluginCollection<Plugin> {
     <T extends Plugin> T usePlugin(Class<T> type);
 
     /**
-     * Returns true if the container has a plugin with the given name, false otherwise.
+     * Returns true if the container has a plugin with the given id, false otherwise.
      *
-     * @param name The name of the plugin
+     * @param id The id of the plugin
      */
-    boolean hasPlugin(String name);
+    boolean hasPlugin(String id);
 
     /**
      * Returns true if the container has a plugin with the given type, false otherwise.
@@ -64,12 +61,12 @@ public interface PluginContainer extends PluginCollection<Plugin> {
     boolean hasPlugin(Class<? extends Plugin> type);
 
     /**
-     * Returns the plugin for the given name.
+     * Returns the plugin for the given id.
      *
-     * @param name The name of the plugin
-     * @return the plugin or null if no plugin for the given name exists.
+     * @param id The id of the plugin
+     * @return the plugin or null if no plugin for the given id exists.
      */
-    Plugin findPlugin(String name);
+    Plugin findPlugin(String id);
 
     /**
      * Returns the plugin for the given type.
@@ -77,12 +74,13 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param type The type of the plugin
      * @return the plugin or null if no plugin for the given type exists.
      */
-    Plugin findPlugin(Class<? extends Plugin> type);
+    <T extends Plugin> T findPlugin(Class<T> type);
 
     /**
      * Returns a plugin with the specified id if this plugin has been used in the project.
      *
      * @param id The id of the plugin
+     * @throws UnknownPluginException When there is no plugin with the given id.
      */
     Plugin getPlugin(String id) throws UnknownPluginException;
 
@@ -90,6 +88,25 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * Returns a plugin with the specified type if this plugin has been used in the project.
      *
      * @param type The type of the plugin
+     * @throws UnknownPluginException When there is no plugin with the given type.
      */
-    Plugin getPlugin(Class<? extends Plugin> type) throws UnknownPluginException;
+    <T extends Plugin> T getPlugin(Class<T> type) throws UnknownPluginException;
+
+    /**
+     * Returns a plugin with the specified id if this plugin has been used in the project. You can use the Groovy
+     * {@code []} operator to call this method from a build script.
+     *
+     * @param id The id of the plugin
+     * @throws UnknownPluginException When there is no plugin with the given id.
+     */
+    Plugin getAt(String id) throws UnknownPluginException;
+
+    /**
+     * Returns a plugin with the specified type if this plugin has been used in the project. You can use the Groovy
+     * {@code []} operator to call this method from a build script.
+     *
+     * @param type The type of the plugin
+     * @throws UnknownPluginException When there is no plugin with the given type.
+     */
+    <T extends Plugin> T getAt(Class<T> type) throws UnknownPluginException;
 }

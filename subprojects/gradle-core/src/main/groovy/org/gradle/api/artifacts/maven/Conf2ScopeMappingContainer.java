@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.gradle.api.artifacts.maven;
 
 import org.gradle.api.artifacts.Configuration;
 
+import java.util.Collection;
 import java.util.Map;
 
 /**
@@ -36,13 +37,13 @@ public interface Conf2ScopeMappingContainer {
      * Maven scope. A configuration can be mapped to one and only one scope. If this method is called
      * more than once for a particular configuration, the last call wins.</p>
      *
-     * See {@link #getMapping(Configuration[])} for the rules how a scope is choosen from a set of mappings.
+     * See {@link #getMapping(java.util.Collection)} for the rules how a scope is choosen from a set of mappings.
      *
      * @param priority a number that is used for comparison with the priority of other scopes.
      * @param configuration a Gradle configuration name (must not be null).
      * @param scope A Maven scope name (must not be null)
      * @return this
-     * @see #getMapping(Configuration[])
+     * @see #getMapping(java.util.Collection) 
      */
     Conf2ScopeMappingContainer addMapping(int priority, Configuration configuration, String scope);
 
@@ -52,17 +53,17 @@ public interface Conf2ScopeMappingContainer {
      * (due to the the nature of a Maven pom).
      *
      * <p>Which scope is returned depends on the existing mappings. See {@link #addMapping(int, Configuration, String)}. If
-     * only one configuration is mapped, this mapping is used to choose the scope. If more than one configuraton of a
+     * only one configuration is mapped, this mapping is used to choose the scope. If more than one configuration of a
      * dependency is mapped, and those mappings all map to the same scope, this scope is used. If more than one
      * configuration is mapped and the mappings map to different scopes, the mapping with the highest priority is used.
      * If there is more than one mapping with the highest priority and those mappings map to different scopes, an
      * exception is thrown.</p>
      *
-     * @param configurations The configuration names 
+     * @param configurations The configuration
      * @return The scope corresponding to the given configurations. Returns null if no such scope can be found.
      * @see #addMapping(int, Configuration, String)
      */
-    Conf2ScopeMapping getMapping(Configuration... configurations);
+    Conf2ScopeMapping getMapping(Collection<Configuration> configurations);
 
     /**
      * Returns a map with all the configuration to scope mappings. If no such mapping has been defined,

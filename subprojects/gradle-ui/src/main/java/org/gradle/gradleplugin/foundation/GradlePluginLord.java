@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ public class GradlePluginLord {
     private ExecutionQueue<Request> executionQueue;
     private LinkedBlockingQueue<Request> currentlyExecutingRequests = new LinkedBlockingQueue<Request>();
 
-    private boolean isStarted = false;  //this flag is mostly to prevent initialization from firing off repeated refresh requests.
+    private boolean isStarted;  //this flag is mostly to prevent initialization from firing off repeated refresh requests.
 
     private StartParameter.ShowStacktrace stackTraceLevel = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
     private LogLevel logLevel = LogLevel.LIFECYCLE;

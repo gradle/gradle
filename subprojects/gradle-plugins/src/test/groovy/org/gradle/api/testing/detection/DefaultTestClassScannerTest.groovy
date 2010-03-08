@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.testing.detection
 
 import org.gradle.util.JUnit4GroovyMockery
@@ -22,6 +24,8 @@ import org.junit.Test
 import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 import org.gradle.api.testing.fabric.TestFrameworkDetector
+import org.gradle.api.testing.TestClassProcessor
+import org.jmock.Sequence
 
 @RunWith(JMock.class)
 public class DefaultTestClassScannerTest {
@@ -47,9 +51,12 @@ public class DefaultTestClassScannerTest {
         }
 
         context.checking {
+            Sequence sequence = context.sequence('seq')
             one(detector).startDetection(processor)
+            inSequence(sequence)
             one(detector).processTestClass(tmpDir.file('dir1/Class1.class'))
             one(detector).processTestClass(tmpDir.file('dir2/Class2.class'))
+            inSequence(sequence)
         }
         
         scanner.run()

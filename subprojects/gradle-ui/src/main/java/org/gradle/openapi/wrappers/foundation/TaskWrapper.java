@@ -81,4 +81,9 @@ public class TaskWrapper implements TaskVersion1 {
         TaskWrapper otherTaskWrapper = (TaskWrapper) obj;
         return otherTaskWrapper.taskView.equals( taskView );
     }
+
+    @Override
+    public int hashCode() {
+        return taskView.hashCode();
+    }
 }

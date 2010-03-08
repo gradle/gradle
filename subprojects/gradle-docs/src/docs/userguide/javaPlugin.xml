@@ -153,7 +153,7 @@
                     <literal>compileTest</literal>,
                     plus all tasks which produce the test runtime classpath.
                 </td>
-                <td><apilink class="org.gradle.api.tasks.testing.AntTest"/></td>
+                <td><apilink class="org.gradle.api.tasks.testing.Test"/></td>
                 <td>Runs the unit tests using JUnit or TestNG.</td>
             </tr>
             <tr>
@@ -1030,7 +1030,7 @@
 
     <section id='sec:java_test'>
         <title>Test</title>
-        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.AntTest"/>. It
+        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>. It
             executes all unit tests found in the <literal>test</literal> source set.
         </para>
         <table>
@@ -1068,14 +1068,15 @@
                 <td><literal>sourceSets.test.java.srcDirs</literal></td>
             </tr>
         </table>
-        <para>Have a look at <apilink class="org.gradle.api.tasks.testing.AntTest"/>
+        <para>Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/>
             for its complete API. Right now the test results are always in XML-format. The task has a
-            <literal>stopAtFailuresOrErrors</literal>
+            <literal>ignoreFailures</literal>
             property to control the behavior when tests are failing. Test
             <emphasis>always</emphasis>
             executes all tests. It stops the build afterwards if
-            <literal>stopAtFailuresOrErrors</literal>
-            is true and there are failing tests or tests that have thrown an uncaught exception.
+            <literal>ignoreFailures</literal>
+            is false and there are failing tests or tests that have thrown an uncaught exception. The default
+            value of <literal>ignoreFailures</literal> is false.
         </para>
         <para>Per default the tests are run in a forked JVM and the fork is done per test. You can modify this behavior
             by setting forking to false or set the forkmode to once.

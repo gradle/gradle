@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class AntGroovyc {
                         String sourceCompatibility, String targetCompatibility, GroovyCompileOptions groovyOptions,
                         CompileOptions compileOptions, List groovyClasspath) {
         // Force a particular Ant version. Also add in commons-cli, as the Groovy POM does not.
-        List antBuilderClasspath = classPathRegistry.getClassPathFiles("ANT") + groovyClasspath + classPathRegistry.getClassPathFiles("COMMONS_CLI")
+        Collection antBuilderClasspath = classPathRegistry.getClassPathFiles("ANT") + groovyClasspath + classPathRegistry.getClassPathFiles("COMMONS_CLI")
         ant.execute(antBuilderClasspath) {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
             def task = groovyc([includeAntRuntime: false, destdir: targetDir, classpath: (classpath + antBuilderClasspath).join(File.pathSeparator)]

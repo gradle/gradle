@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,60 +13,62 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.external.junit;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
+import org.gradle.api.Action;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.api.tasks.testing.ForkMode;
-import org.gradle.api.tasks.testing.JunitForkOptions;
-import org.gradle.api.tasks.testing.junit.AntJUnitExecute;
-import org.gradle.api.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
+import org.gradle.api.tasks.util.JavaForkOptions;
+import org.gradle.api.testing.TestClassProcessor;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.util.IdGenerator;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
+import java.io.Serializable;
 
 /**
  * @author Tom Eyckmans
  */
-public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JUnitTestFramework> {
-    private AntJUnitExecute antJUnitExecute = null;
-    private AntJUnitReport antJUnitReport = null;
-    private JUnitOptions options = null;
-    private JUnitDetector detector = null;
+public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
+    private AntJUnitReport antJUnitReport;
+    private JUnitOptions options;
+    private JUnitDetector detector;
 
     protected JUnitTestFrameworkInstance(AbstractTestTask testTask, JUnitTestFramework testFramework) {
         super(testTask, testFramework);
     }
 
-    public void initialize(Project project, AbstractTestTask testTask) {
-        antJUnitExecute = new AntJUnitExecute(testTask.getClassPathRegistry());
+    public void initialize() {
         antJUnitReport = new AntJUnitReport();
-        options = new JUnitOptions(testFramework);
-
-        final JunitForkOptions forkOptions = options.getForkOptions();
-
-        options.setFork(true);
-        forkOptions.setForkMode(ForkMode.ONCE);
-        forkOptions.setDir(project.getProjectDir());
-
+        options = new JUnitOptions();
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 
-    public void execute(Project project, AbstractTestTask testTask, Collection<String> includes,
-                        Collection<String> excludes) {
-        antJUnitExecute.execute(testTask.getTestClassesDir(), new ArrayList<File>(testTask.getClasspath().getFiles()),
-                testTask.getTestResultsDir(), includes, excludes, options, project.getAnt(), testTask.getTestListenerBroadcaster());
+    public WorkerTestClassProcessorFactory getProcessorFactory() {
+        final File testResultsDir = testTask.getTestResultsDir();
+        return new TestClassProcessorFactoryImpl(testResultsDir);
     }
 
-    public void report(Project project, AbstractTestTask testTask) {
-        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), project.getAnt());
+    public Action<WorkerProcessBuilder> getWorkerConfigurationAction() {
+        return new Action<WorkerProcessBuilder>() {
+            public void execute(WorkerProcessBuilder workerProcessBuilder) {
+                workerProcessBuilder.sharedPackages("junit.framework");
+                workerProcessBuilder.sharedPackages("org.junit");
+            }
+        };
+    }
+
+    public void report() {
+        if (!testTask.isTestReport()) {
+            return;
+        }
+        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(),
+                testTask.getProject().getAnt());
     }
 
     public JUnitOptions getOptions() {
@@ -75,14 +77,6 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
 
     void setOptions(JUnitOptions options) {
         this.options = options;
-    }
-
-    AntJUnitExecute getAntJUnitExecute() {
-        return antJUnitExecute;
-    }
-
-    void setAntJUnitExecute(AntJUnitExecute antJUnitExecute) {
-        this.antJUnitExecute = antJUnitExecute;
     }
 
     AntJUnitReport getAntJUnitReport() {
@@ -97,47 +91,24 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance<JU
         return detector;
     }
 
-    public void applyForkArguments(ExecHandleBuilder forkHandleBuilder) {
-        final JunitForkOptions forkOptions = options.getForkOptions();
-
-        if (StringUtils.isNotEmpty(forkOptions.getJvm())) {
-            forkHandleBuilder.execCommand(forkOptions.getJvm());
-        } else {
-            useDefaultJvm(forkHandleBuilder);
-        }
-
-        if (forkOptions.getDir() != null) {
-            forkHandleBuilder.execDirectory(forkOptions.getDir());
-        } else {
-            useDefaultDirectory(forkHandleBuilder);
-        }
-    }
-
-    public void applyForkJvmArguments(ExecHandleBuilder forkHandleBuilder) {
-        final JunitForkOptions forkOptions = options.getForkOptions();
-
-        if (StringUtils.isNotEmpty(forkOptions.getMaxMemory())) {
-            forkHandleBuilder.arguments("-Xmx=" + forkOptions.getMaxMemory());
-        }
-
-        final List<String> jvmArgs = forkOptions.getJvmArgs();
-        if (jvmArgs != null && !jvmArgs.isEmpty()) {
-            forkHandleBuilder.arguments(jvmArgs);
-        }
-
-        if (forkOptions.isNewEnvironment()) {
-            final Map<String, String> environment = forkOptions.getEnvironment();
-            if (environment != null && !environment.isEmpty()) {
-                forkHandleBuilder.environment(environment);
-            }
-        } else {
-            forkHandleBuilder.environment(System.getenv());
-        }
-
+    public void applyForkArguments(JavaForkOptions javaForkOptions) {
+        // TODO - implement
         // TODO clone
         // TODO bootstrapClasspath - not sure which bootstrap classpath option to use:
         // TODO one of: -Xbootclasspath or -Xbootclasspath/a or -Xbootclasspath/p
         // TODO -Xbootclasspath/a seems the correct one - to discuss or improve and make it
         // TODO possible to specify which one to use. -> will break ant task compatibility in options.
+    }
+
+    private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {
+        private final File testResultsDir;
+
+        public TestClassProcessorFactoryImpl(File testResultsDir) {
+            this.testResultsDir = testResultsDir;
+        }
+
+        public TestClassProcessor create(IdGenerator<?> idGenerator) {
+            return new AntJUnitTestClassProcessor(testResultsDir, idGenerator);
+        }
     }
 }

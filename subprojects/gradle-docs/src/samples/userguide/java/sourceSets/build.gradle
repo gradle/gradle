@@ -56,7 +56,7 @@ task intTestJavadoc(type: Javadoc) {
 // END SNIPPET javadoc
 
 // START SNIPPET test
-task intTest(type: AntTest) {
+task intTest(type: Test) {
     testClassesDir = sourceSets.intTest.classesDir
     classpath = sourceSets.intTest.runtimeClasspath
 }

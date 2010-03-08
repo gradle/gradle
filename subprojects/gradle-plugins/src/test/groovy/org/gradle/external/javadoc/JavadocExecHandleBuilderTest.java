@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,14 +16,14 @@
 
 package org.gradle.external.javadoc;
 
-import org.junit.Before;
-import org.junit.Test;
-import static org.junit.Assert.assertTrue;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import org.jmock.Expectations;
+import org.junit.Before;
+import org.junit.Test;
 
 import java.io.File;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Tom Eyckmans
@@ -71,31 +71,6 @@ public class JavadocExecHandleBuilderTest {
     @Test
     public void testSetNotNullOptions() {
         MinimalJavadocOptions options = context.mock(MinimalJavadocOptions.class);
-
-        context.checking(new Expectations() {{}});
-
         javadocExecHandleBuilder.options(options);
-    }
-
-    @Test ( expected = IllegalArgumentException.class )
-    public void testSetNullDestinationDirectory() {
-        javadocExecHandleBuilder.destinationDirectory(null);
-    }
-
-    @Test ( expected = IllegalArgumentException.class )
-    public void testSetNotDestionationDirectory() {
-        javadocExecHandleBuilder.destinationDirectory(new File(".notExistingTestDirectoryX"));
-    }
-
-    @Test
-    public void testSetExistingDestinationDirectory() {
-        File existingDirectory = new File(".existingDirectory");
-        assertTrue(existingDirectory.mkdir());
-        try {
-            javadocExecHandleBuilder.destinationDirectory(existingDirectory);
-        }
-        finally {
-            assertTrue(existingDirectory.delete());
-        }
     }
 }

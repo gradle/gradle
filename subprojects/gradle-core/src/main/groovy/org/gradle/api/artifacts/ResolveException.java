@@ -27,6 +27,9 @@ import org.gradle.util.GUtil;
  */
 @Contextual
 public class ResolveException extends GradleException {
+    public ResolveException() {
+    }
+
     public ResolveException(Configuration configuration, String message) {
         super(buildMessage(configuration, message));
     }

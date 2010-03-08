@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -234,5 +236,21 @@ task a(type: org.gradle.integtests.TransformerTask) {
         inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
 
         inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
+    }
+
+    @Test
+    public void lifecycleTaskIsUpToDateWhenAllDependenciesAreSkipped() {
+        testFile('build.gradle') << '''
+task a(type: org.gradle.integtests.TransformerTask) {
+    inputFile = file('src.txt')
+    outputFile = file('out.txt')
+}
+task b(dependsOn: a)
+'''
+
+        testFile('src.txt').text = 'content'
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
     }
 }

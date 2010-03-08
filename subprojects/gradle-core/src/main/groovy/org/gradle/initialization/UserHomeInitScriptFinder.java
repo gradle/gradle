@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,9 @@ public class UserHomeInitScriptFinder implements InitScriptFinder
 
         File userHomeDir = gradle.getStartParameter().getGradleUserHomeDir();
         File userInitScript = new File(userHomeDir, DEFAULT_INIT_SCRIPT_NAME);
-        scripts.add(new UriScriptSource("initialization script", userInitScript));
+        if (userInitScript.isFile()) {
+            scripts.add(new UriScriptSource("initialization script", userInitScript));
+        }
 
         return scripts;
     }

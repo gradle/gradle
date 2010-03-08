@@ -17,6 +17,7 @@
 package org.gradle.api.execution;
 
 import org.gradle.api.Task;
+import org.gradle.api.tasks.TaskState;
 
 /**
  * <p>A {@code TaskExecutionListener} is notified of the execution of the tasks in a build.</p>
@@ -36,8 +37,8 @@ public interface TaskExecutionListener {
      * task completed successfully, or failed with an exception.
      *
      * @param task The task which was executed. Never null.
-     * @param result The result of the task. If the task failed with an exception, the exception is available in this
-     * result.
+     * @param state The task state. If the task failed with an exception, the exception is available in this
+     * state. Never null.
      */
-    void afterExecute(Task task, TaskExecutionResult result);
+    void afterExecute(Task task, TaskState state);
 }

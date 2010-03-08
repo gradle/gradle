@@ -13,30 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project.taskfactory;
 
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskArtifactState;
 import org.gradle.api.internal.changedetection.TaskArtifactStateRepository;
 import org.gradle.api.internal.tasks.TaskExecuter;
-import org.gradle.api.internal.tasks.TaskState;
+import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
 @RunWith(JMock.class)
 public class ExecutionShortCircuitTaskExecuterTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskExecuter delegate = context.mock(TaskExecuter.class);
     private final TaskInternal task = context.mock(TaskInternal.class);
-    private final TaskState taskState = new TaskState();
-    private final TaskExecutionResult result = context.mock(TaskExecutionResult.class);
+    private final TaskStateInternal taskState = context.mock(TaskStateInternal.class);
     private final TaskArtifactStateRepository repository = context.mock(TaskArtifactStateRepository.class);
     private final TaskArtifactState taskArtifactState = context.mock(TaskArtifactState.class);
     private final ExecutionShortCircuitTaskExecuter executer = new ExecutionShortCircuitTaskExecuter(delegate, repository);
@@ -46,17 +43,14 @@ public class ExecutionShortCircuitTaskExecuterTest {
         context.checking(new Expectations() {{
             one(repository).getStateFor(task);
             will(returnValue(taskArtifactState));
+
             one(taskArtifactState).isUpToDate();
             will(returnValue(true));
-            allowing(task).getPath();
-            will(returnValue(":task"));
+
+            one(taskState).upToDate();
         }});
 
-        TaskExecutionResult result = executer.execute(task, taskState);
-        assertThat(result, notNullValue());
-        assertThat(result.getSkipMessage(), equalTo("UP-TO-DATE"));
-        assertThat(result.getFailure(), nullValue());
-        result.rethrowFailure();
+        executer.execute(task, taskState);
     }
     
     @Test
@@ -71,15 +65,14 @@ public class ExecutionShortCircuitTaskExecuterTest {
             one(taskArtifactState).invalidate();
 
             one(delegate).execute(task, taskState);
-            will(returnValue(result));
 
-            allowing(result).getFailure();
+            allowing(taskState).getFailure();
             will(returnValue(null));
 
             one(taskArtifactState).update();
         }});
 
-        assertThat(executer.execute(task, taskState), sameInstance(result));
+        executer.execute(task, taskState);
     }
 
     @Test
@@ -94,12 +87,11 @@ public class ExecutionShortCircuitTaskExecuterTest {
             one(taskArtifactState).invalidate();
 
             one(delegate).execute(task, taskState);
-            will(returnValue(result));
 
-            allowing(result).getFailure();
+            allowing(taskState).getFailure();
             will(returnValue(new RuntimeException()));
         }});
 
-        assertThat(executer.execute(task, taskState), sameInstance(result));
+        executer.execute(task, taskState);
     }
 }

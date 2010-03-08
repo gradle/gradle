@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,9 +36,9 @@ public class Server<P extends Server.Protocol, O extends Server.ServerObserver>
 {
    private final Logger logger = Logging.getLogger( Server.class );
 
-   private ServerSocket serverSocket = null;
-   private boolean isServerRunning = false;
-   private boolean hasRequestedShutdown = false;
+   private ServerSocket serverSocket;
+   private boolean isServerRunning;
+   private boolean hasRequestedShutdown;
 
    private ObjectSocketWrapper clientSocket;
    protected P protocol;

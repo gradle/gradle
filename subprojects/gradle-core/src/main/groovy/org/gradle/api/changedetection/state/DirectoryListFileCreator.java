@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -34,7 +34,7 @@ class DirectoryListFileCreator {
 
     private final StateFileUtil stateFileUtil;
     private final List<BufferedWriter> dirListLevelWriters;
-    private int lowestLevel = 0;
+    private int lowestLevel;
 
     DirectoryListFileCreator(StateFileUtil stateFileUtil) {
         this.stateFileUtil = stateFileUtil;
@@ -42,7 +42,7 @@ class DirectoryListFileCreator {
     }
 
     BufferedWriter getDirListLevelWriter(int levelIndex) throws IOException {
-        BufferedWriter dirListLevelWriter = null;
+        BufferedWriter dirListLevelWriter;
 
         if (dirListLevelWriters.size() > levelIndex) {
             dirListLevelWriter = dirListLevelWriters.get(levelIndex);

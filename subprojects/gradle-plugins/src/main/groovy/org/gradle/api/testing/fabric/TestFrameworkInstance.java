@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,32 +13,32 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.fabric;
 
-import org.gradle.api.Project;
-import org.gradle.api.tasks.testing.AbstractTestFrameworkOptions;
-import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.util.exec.ExecHandleBuilder;
-
-import java.util.Collection;
+import org.gradle.api.Action;
+import org.gradle.api.tasks.testing.TestFrameworkOptions;
+import org.gradle.api.tasks.util.JavaForkOptions;
+import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
+import org.gradle.process.WorkerProcessBuilder;
 
 /**
  * @author Tom Eyckmans
  */
-public interface TestFrameworkInstance<T extends TestFramework> {
-    T getTestFramework();
+public interface TestFrameworkInstance {
+    TestFramework getTestFramework();
 
     TestFrameworkDetector getDetector();
 
-    void initialize(Project project, AbstractTestTask testTask);
+    void initialize();
 
-    void execute(Project project, AbstractTestTask testTask, Collection<String> includes, Collection<String> excludes);
+    void report();
 
-    void report(Project project, AbstractTestTask testTask);
+    TestFrameworkOptions getOptions();
 
-    AbstractTestFrameworkOptions getOptions();
+    void applyForkArguments(JavaForkOptions forkOptions);
 
-    void applyForkArguments(ExecHandleBuilder forkHandleBuilder);
+    WorkerTestClassProcessorFactory getProcessorFactory();
 
-    void applyForkJvmArguments(ExecHandleBuilder forkHandleBuilder);
+    Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 }

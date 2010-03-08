@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ import static org.gradle.util.Matchers.*
 import static org.gradle.util.WrapUtil.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.plugins.EmbedableJavaProject
+import org.gradle.api.internal.plugins.EmbeddableJavaProject
 
 /**
  * @author Hans Dockter
@@ -50,7 +50,7 @@ class JavaPluginTest {
 
         assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
 
-        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbedableJavaProject))
+        assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
         assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaPlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, sameInstance(project.sourceSets.main.runtimeClasspath))
     }
@@ -184,10 +184,11 @@ class JavaPluginTest {
         assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.PROCESS_TEST_RESOURCES_TASK_NAME))
 
         task = project.tasks[JavaPlugin.TEST_TASK_NAME]
-        assertThat(task, instanceOf(org.gradle.api.tasks.testing.AntTest))
+        assertThat(task, instanceOf(org.gradle.api.tasks.testing.Test))
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
+        assertThat(task.workingDir, equalTo(project.projectDir))
 
         task = project.tasks[JavaPlugin.JAR_TASK_NAME]
         assertThat(task, instanceOf(Jar))
@@ -237,10 +238,11 @@ class JavaPluginTest {
         assertThat(task.classpath, sameInstance(project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)))
         assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
 
-        task = project.createTask('customTest', type: org.gradle.api.tasks.testing.AntTest)
+        task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
         assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
         assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
+        assertThat(task.workingDir, equalTo(project.projectDir))
 
         task = project.createTask('customJavadoc', type: Javadoc)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))

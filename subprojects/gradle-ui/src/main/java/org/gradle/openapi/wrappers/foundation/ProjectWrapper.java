@@ -143,4 +143,9 @@ public class ProjectWrapper implements ProjectVersion1 {
         ProjectWrapper otherProjectWrapper = (ProjectWrapper) obj;
         return otherProjectWrapper.projectView.equals( projectView );
     }
+
+    @Override
+    public int hashCode() {
+        return projectView.hashCode();
+    }
 }

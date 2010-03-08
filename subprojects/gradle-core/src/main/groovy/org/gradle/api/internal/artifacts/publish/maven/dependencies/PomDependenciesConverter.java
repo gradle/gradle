@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 
 import java.util.List;
 import java.util.Set;
@@ -25,5 +25,5 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface PomDependenciesConverter {
-    public List<MavenDependency> convert(MavenPom pom, Set<Configuration> configurations);
+    public List<org.apache.maven.model.Dependency> convert(Conf2ScopeMappingContainer conf2ScopeMappingContainer, Set<Configuration> configurations);
 }

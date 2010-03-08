@@ -21,8 +21,8 @@ import org.gradle.api.internal.project.TestPlugin2;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.util.GUtil;
-import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -34,10 +34,10 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.IOException;
-import java.util.Map;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.Properties;
 
-import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -57,22 +57,21 @@ public class DefaultPluginRegistryTest {
 
     @Before
     public void setup() throws Exception {
-        classLoader = createClassLoader(toMap(pluginId, TestPlugin1.class.getName()), "parent");
-
+        classLoader = createClassLoader(pluginId, TestPlugin1.class.getName(), "parent");
         pluginRegistry = new DefaultPluginRegistry(classLoader);
     }
 
-    private ClassLoader createClassLoader(Map<String, String> properties, String name) throws IOException {
+    private ClassLoader createClassLoader(final String id, String implClass, String name) throws IOException {
         TestFile classPath = testDir.createDir(name);
         Properties props = new Properties();
-        props.putAll(properties);
-        final TestFile propertiesFile = classPath.file("META-INF/gradle-plugins.properties");
+        props.setProperty("implementation-class", implClass);
+        final TestFile propertiesFile = classPath.file(id + ".properties");
         propertiesFile.getParentFile().mkdirs();
         GUtil.saveProperties(props, propertiesFile);
         final ClassLoader classLoader = context.mock(ClassLoader.class, name);
         context.checking(new Expectations() {{
-            allowing(classLoader).getResources("META-INF/gradle-plugins.properties");
-            will(returnEnumeration(propertiesFile.toURI().toURL()));
+            allowing(classLoader).getResource("META-INF/gradle-plugins/" + id + ".properties");
+            will(returnValue(propertiesFile.toURI().toURL()));
         }});
         return classLoader;
     }
@@ -104,11 +103,33 @@ public class DefaultPluginRegistryTest {
 
     @Test
     public void failsForUnknownId() {
+        expectResourceNotFound(classLoader, "unknownId");
+
         try {
             pluginRegistry.loadPlugin("unknownId");
             fail();
         } catch (UnknownPluginException e) {
             assertThat(e.getMessage(), equalTo("Plugin with id 'unknownId' not found."));
+        }
+    }
+
+    @Test
+    public void failsWhenNoImplementationClassSpecifiedInPropertiesFile() throws MalformedURLException {
+        Properties properties = new Properties();
+        final TestFile propertiesFile = testDir.file("prop");
+        GUtil.saveProperties(properties, propertiesFile);
+        final URL url = propertiesFile.toURI().toURL();
+
+        context.checking(new Expectations() {{
+            allowing(classLoader).getResource("META-INF/gradle-plugins/noImpl.properties");
+            will(returnValue(url));
+        }});
+
+        try {
+            pluginRegistry.loadPlugin("noImpl");
+            fail();
+        } catch (PluginInstantiationException e) {
+            assertThat(e.getMessage(), equalTo("No implementation class specified for plugin 'noImpl' in " + url + "."));
         }
     }
 
@@ -127,7 +148,7 @@ public class DefaultPluginRegistryTest {
     public void childDelegatesToParentRegistryToLoadPlugin() throws Exception {
         expectClassLoaded(classLoader, TestPlugin1.class);
 
-        ClassLoader childClassLoader = createClassLoader(toMap("other", TestPlugin1.class.getName()), "child");
+        ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
         assertThat(child.loadPlugin(pluginId), sameInstance(pluginRegistry.loadPlugin(pluginId)));
@@ -135,7 +156,9 @@ public class DefaultPluginRegistryTest {
 
     @Test
     public void childClasspathCanContainAdditionalMappingsForPlugins() throws Exception {
-        ClassLoader childClassLoader = createClassLoader(toMap("other", TestPlugin1.class.getName()), "child");
+        expectResourceNotFound(classLoader, "other");
+
+        ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
         expectClassLoaded(childClassLoader, TestPlugin1.class);
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
@@ -145,7 +168,7 @@ public class DefaultPluginRegistryTest {
     @Test
     public void parentIdMappingHasPrecedenceOverChildIdMapping() throws Exception {
         expectClassLoaded(classLoader, TestPlugin1.class);
-        ClassLoader childClassLoader = createClassLoader(toMap(pluginId, "no-such-class"), "child");
+        ClassLoader childClassLoader = createClassLoader(pluginId, "no-such-class", "child");
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
         assertThat(child.loadPlugin(pluginId), sameInstance(pluginRegistry.loadPlugin(pluginId)));
@@ -154,12 +177,20 @@ public class DefaultPluginRegistryTest {
     @Test
     public void childClasspathCanContainAdditionalPlugins() throws Exception {
         expectClassesNotFound(classLoader);
+        expectResourceNotFound(classLoader, "other");
 
-        ClassLoader childClassLoader = createClassLoader(toMap("other", TestPlugin2.class.getName()), "child");
+        ClassLoader childClassLoader = createClassLoader("other", TestPlugin2.class.getName(), "child");
         expectClassLoaded(childClassLoader, TestPlugin2.class);
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
         assertThat(child.loadPlugin("other"), instanceOf(TestPlugin2.class));
+    }
+
+    private void expectResourceNotFound(final ClassLoader classLoader, final String id) {
+        context.checking(new Expectations(){{
+            allowing(classLoader).getResource("META-INF/gradle-plugins/" + id + ".properties");
+            will(returnValue(null));
+        }});
     }
 
     private void expectClassesNotFound(final ClassLoader classLoader) throws ClassNotFoundException {

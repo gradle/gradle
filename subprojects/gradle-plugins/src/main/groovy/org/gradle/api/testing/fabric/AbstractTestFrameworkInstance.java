@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.fabric;
 
 import org.gradle.api.tasks.testing.AbstractTestTask;
-import org.gradle.util.exec.ExecHandleBuilder;
 
 /**
  * @author Tom Eyckmans
  */
-public abstract class AbstractTestFrameworkInstance<T extends TestFramework> implements TestFrameworkInstance<T> {
+public abstract class AbstractTestFrameworkInstance implements TestFrameworkInstance {
     protected final AbstractTestTask testTask;
-    protected final T testFramework;
+    protected final TestFramework testFramework;
 
-    protected AbstractTestFrameworkInstance(AbstractTestTask testTask, T testFramework) {
+    protected AbstractTestFrameworkInstance(AbstractTestTask testTask, TestFramework testFramework) {
         if (testTask == null) {
-            throw new IllegalArgumentException("testTaks == null!");
+            throw new IllegalArgumentException("testTask == null!");
         }
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework == null!");
@@ -37,15 +37,7 @@ public abstract class AbstractTestFrameworkInstance<T extends TestFramework> imp
         this.testFramework = testFramework;
     }
 
-    public T getTestFramework() {
+    public TestFramework getTestFramework() {
         return testFramework;
-    }
-
-    protected void useDefaultJvm(ExecHandleBuilder forkHandleBuilder) {
-        forkHandleBuilder.execCommand("java");
-    }
-
-    protected void useDefaultDirectory(ExecHandleBuilder forkHandleBuilder) {
-        forkHandleBuilder.execDirectory(testTask.getProject().getRootDir());
     }
 }

@@ -15,13 +15,13 @@
  */
 package org.gradle.listener;
 
-import org.gradle.api.GradleException;
-import org.gradle.listener.dispatch.*;
+import org.gradle.messaging.dispatch.AsyncDispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.ProxyDispatchAdapter;
+import org.gradle.messaging.dispatch.ReflectionDispatch;
 
-import java.lang.reflect.InvocationTargetException;
 import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * Creates a proxy object which dispatches method calls to a target object asynchronously.
@@ -53,7 +53,7 @@ public class AsyncProxy<T> {
     public AsyncProxy(Class<T> type, T target, Executor executor) {
         asyncDispatch = new AsyncDispatch<MethodInvocation>(executor);
         if (target != null) {
-            asyncDispatch.add(new ReflectionDispatch(type, target));
+            asyncDispatch.dispatchTo(new ReflectionDispatch(target));
         }
         adapter = new ProxyDispatchAdapter<T>(type, asyncDispatch);
     }
@@ -66,7 +66,7 @@ public class AsyncProxy<T> {
      * Starts this proxy. All method calls are dispatched to the given target object.
      */
     public void start(T target) {
-        asyncDispatch.add(new ReflectionDispatch(adapter.getType(), target));
+        asyncDispatch.dispatchTo(new ReflectionDispatch(target));
     }
 
     /**
@@ -74,29 +74,5 @@ public class AsyncProxy<T> {
      */
     public void stop() {
         asyncDispatch.stop();
-    }
-
-    private static class ReflectionDispatch implements Dispatch<MethodInvocation> {
-        private final Class<?> type;
-        private final AtomicReference<Object> target;
-
-        public ReflectionDispatch(Class<?> type, Object target) {
-            this.type = type;
-            this.target = new AtomicReference<Object>(target);
-        }
-
-        public void dispatch(MethodInvocation message) {
-            try {
-                message.getMethod(type).invoke(target.get(), message.getArguments());
-            } catch (InvocationTargetException e) {
-                throw new GradleException(e.getCause());
-            } catch (Exception e) {
-                throw new GradleException(e);
-            }
-        }
-
-        public void setTarget(Object target) {
-            this.target.set(target);
-        }
     }
 }

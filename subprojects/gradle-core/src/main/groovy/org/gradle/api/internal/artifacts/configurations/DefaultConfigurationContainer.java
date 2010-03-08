@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.AutoCreateDomainObjectContainer;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.IvyService;
 
 /**
@@ -30,18 +31,20 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
     
     private final IvyService ivyService;
     private final ClassGenerator classGenerator;
+    private final DomainObjectContext context;
 
     private int detachedConfigurationDefaultNameCounter = 1;
 
-    public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator) {
+    public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator, DomainObjectContext context) {
         super(Configuration.class);
         this.ivyService = ivyService;
         this.classGenerator = classGenerator;
+        this.context = context;
     }
 
     @Override
     protected Configuration create(String name) {
-        return classGenerator.newInstance(DefaultConfiguration.class, name, this, ivyService);
+        return classGenerator.newInstance(DefaultConfiguration.class, context.absolutePath(name), name, this, ivyService);
     }
 
     @Override
@@ -60,7 +63,8 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
 
     public Configuration detachedConfiguration(Dependency... dependencies) {
         DetachedConfigurationsProvider detachedConfigurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++,
+        String name = DETACHED_CONFIGURATION_DEFAULT_NAME + detachedConfigurationDefaultNameCounter++;
+        DefaultConfiguration detachedConfiguration = new DefaultConfiguration(name, name,
                 detachedConfigurationsProvider, ivyService);
         for (Dependency dependency : dependencies) {
             detachedConfiguration.addDependency(dependency.copy());

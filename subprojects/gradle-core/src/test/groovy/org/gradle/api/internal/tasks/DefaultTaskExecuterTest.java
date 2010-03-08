@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,6 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
-import org.gradle.api.execution.TaskExecutionResult;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.logging.StandardOutputCapture;
@@ -26,24 +25,27 @@ import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;
 import org.gradle.groovy.scripts.ScriptSource;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 @RunWith(JMock.class)
 public class DefaultTaskExecuterTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final TaskInternal task = context.mock(TaskInternal.class, "<task>");
     private final Action<Task> action1 = context.mock(Action.class, "action1");
     private final Action<Task> action2 = context.mock(Action.class, "action2");
-    private final TaskState state = new TaskState();
+    private final TaskStateInternal state = context.mock(TaskStateInternal.class);
     private final ScriptSource scriptSource = context.mock(ScriptSource.class);
     private final StandardOutputCapture standardOutputCapture = context.mock(StandardOutputCapture.class);
     private final Sequence sequence = context.sequence("seq");
@@ -77,16 +79,20 @@ public class DefaultTaskExecuterTest {
             one(listener).beforeActions(task);
             inSequence(sequence);
 
+            one(state).setExecuting(true);
+            inSequence(sequence);
+
+            one(state).executed(null);
+            inSequence(sequence);
+
+            one(state).setExecuting(false);
+            inSequence(sequence);
+
             one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), nullValue());
-        assertFalse(state.isExecuting());
-        assertFalse(state.isDidWork());
+        executer.execute(task, state);
     }
 
     @Test
@@ -98,6 +104,12 @@ public class DefaultTaskExecuterTest {
             one(listener).beforeActions(task);
             inSequence(sequence);
 
+            one(state).setExecuting(true);
+            inSequence(sequence);
+
+            one(state).setDidWork(true);
+            inSequence(sequence);
+
             one(standardOutputCapture).start();
             inSequence(sequence);
 
@@ -105,6 +117,9 @@ public class DefaultTaskExecuterTest {
             inSequence(sequence);
 
             one(standardOutputCapture).stop();
+            inSequence(sequence);
+
+            one(state).setDidWork(true);
             inSequence(sequence);
 
             one(standardOutputCapture).start();
@@ -116,26 +131,34 @@ public class DefaultTaskExecuterTest {
             one(standardOutputCapture).stop();
             inSequence(sequence);
 
+            one(state).executed(null);
+            inSequence(sequence);
+            
+            one(state).setExecuting(false);
+            inSequence(sequence);
+
             one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), nullValue());
-        assertFalse(state.isExecuting());
-        assertTrue(state.isDidWork());
+        executer.execute(task, state);
     }
 
     @Test
     public void stopsAtFirstActionWhichThrowsException() {
         final Throwable failure = new RuntimeException("failure");
+        final Collector<Throwable> wrappedFailure = collector();
         context.checking(new Expectations() {{
             allowing(task).getActions();
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
+            inSequence(sequence);
+
+            one(state).setExecuting(true);
+            inSequence(sequence);
+
+            one(state).setDidWork(true);
             inSequence(sequence);
 
             one(standardOutputCapture).start();
@@ -147,47 +170,25 @@ public class DefaultTaskExecuterTest {
 
             one(standardOutputCapture).stop();
             inSequence(sequence);
-            
+
+            one(state).executed(with(notNullValue(Throwable.class)));
+            will(collectTo(wrappedFailure));
+            inSequence(sequence);
+
+            one(state).setExecuting(false);
+            inSequence(sequence);
+
             one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
+        executer.execute(task, state);
 
-        assertThat(result.getFailure(), instanceOf(TaskExecutionException.class));
-        TaskExecutionException exception = (TaskExecutionException) result.getFailure();
+        assertThat(wrappedFailure.get(), instanceOf(TaskExecutionException.class));
+        TaskExecutionException exception = (TaskExecutionException) wrappedFailure.get();
         assertThat(exception.getTask(), equalTo((Task) task));
         assertThat(exception.getMessage(), equalTo("Execution failed for <task>."));
         assertThat(exception.getCause(), sameInstance(failure));
-
-        assertThat(result.getSkipMessage(), nullValue());
-        assertFalse(state.isExecuting());
-        assertTrue(state.isDidWork());
-    }
-
-    @Test
-    public void rethrowsWrappedException() {
-        final Throwable failure = new RuntimeException("failure");
-        context.checking(new Expectations() {{
-            allowing(task).getActions();
-            will(returnValue(toList(action1, action2)));
-
-            ignoring(standardOutputCapture);
-            ignoring(listener);
-
-            one(action1).execute(task);
-            will(throwException(failure));
-            inSequence(sequence);
-        }});
-
-        TaskExecutionResult result = executer.execute(task, state);
-
-        try {
-            result.rethrowFailure();
-            fail();
-        } catch (TaskExecutionException e) {
-            assertThat(e, sameInstance(result.getFailure()));
-        }
     }
 
     @Test
@@ -197,6 +198,12 @@ public class DefaultTaskExecuterTest {
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
+            inSequence(sequence);
+
+            one(state).setExecuting(true);
+            inSequence(sequence);
+
+            one(state).setDidWork(true);
             inSequence(sequence);
 
             one(standardOutputCapture).start();
@@ -209,16 +216,17 @@ public class DefaultTaskExecuterTest {
             one(standardOutputCapture).stop();
             inSequence(sequence);
 
+            one(state).executed(null);
+            inSequence(sequence);
+
+            one(state).setExecuting(false);
+            inSequence(sequence);
+
             one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), nullValue());
-        assertFalse(state.isExecuting());
-        assertTrue(state.isDidWork());
+        executer.execute(task, state);
     }
 
     @Test
@@ -228,6 +236,12 @@ public class DefaultTaskExecuterTest {
             will(returnValue(toList(action1, action2)));
 
             one(listener).beforeActions(task);
+            inSequence(sequence);
+
+            one(state).setExecuting(true);
+            inSequence(sequence);
+
+            one(state).setDidWork(true);
             inSequence(sequence);
 
             one(standardOutputCapture).start();
@@ -240,6 +254,9 @@ public class DefaultTaskExecuterTest {
             one(standardOutputCapture).stop();
             inSequence(sequence);
 
+            one(state).setDidWork(true);
+            inSequence(sequence);
+
             one(standardOutputCapture).start();
             inSequence(sequence);
 
@@ -249,53 +266,16 @@ public class DefaultTaskExecuterTest {
             one(standardOutputCapture).stop();
             inSequence(sequence);
 
+            one(state).executed(null);
+            inSequence(sequence);
+
+            one(state).setExecuting(false);
+            inSequence(sequence);
+
             one(listener).afterActions(task);
             inSequence(sequence);
         }});
 
-        TaskExecutionResult result = executer.execute(task, state);
-
-        assertThat(result.getFailure(), nullValue());
-        assertThat(result.getSkipMessage(), nullValue());
-        assertFalse(state.isExecuting());
-        assertTrue(state.isDidWork());
-    }
-
-    @Test
-    public void setsDidWorkFlagOnceFirstActionIsStarted() {
-        final Action<Task> action = new Action<Task>() {
-            public void execute(Task task) {
-                assertTrue(state.isDidWork());
-            }
-        };
-
-        context.checking(new Expectations() {{
-            allowing(task).getActions();
-            will(returnValue(toList(action)));
-
-            ignoring(standardOutputCapture);
-            ignoring(listener);
-        }});
-
-        executer.execute(task, state).rethrowFailure();
-    }
-
-    @Test
-    public void setsExecutingFlagWhileTaskIsExecuting() {
-        final Action<Task> action = new Action<Task>() {
-            public void execute(Task task) {
-                assertTrue(state.isExecuting());
-            }
-        };
-
-        context.checking(new Expectations() {{
-            allowing(task).getActions();
-            will(returnValue(toList(action)));
-
-            ignoring(standardOutputCapture);
-            ignoring(listener);
-        }});
-
-        executer.execute(task, state).rethrowFailure();
+        executer.execute(task, state);
     }
 }

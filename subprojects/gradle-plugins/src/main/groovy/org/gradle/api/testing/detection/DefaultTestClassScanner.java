@@ -19,6 +19,7 @@ package org.gradle.api.testing.detection;
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.FileSet;
+import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.api.testing.fabric.TestFrameworkDetector;
@@ -32,7 +33,7 @@ import java.util.Collection;
  *
  * @author Tom Eyckmans
  */
-public class DefaultTestClassScanner implements TestClassScanner {
+public class DefaultTestClassScanner implements Runnable {
     private final File testClassDirectory;
     private final Collection<String> includePatterns;
     private final Collection<String> excludePatterns;

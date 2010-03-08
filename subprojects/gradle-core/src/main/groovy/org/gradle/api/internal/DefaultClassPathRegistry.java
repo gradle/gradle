@@ -48,8 +48,9 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
             runtimeLibDir = new ClassPathScanner(codeSource);
             pluginLibDir = new ClassPathScanner(codeSource);
         }
-        
+
         List<Pattern> groovyPatterns = toPatterns("groovy-all");
+
         classPaths.put("LOCAL_GROOVY", groovyPatterns);
         List<Pattern> gradleApiPatterns = toPatterns("gradle-\\w+", "ivy", "slf4j");
         gradleApiPatterns.addAll(groovyPatterns);
@@ -57,8 +58,8 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         classPaths.put("GRADLE_CORE", toPatterns("gradle-core"));
         classPaths.put("ANT", toPatterns("ant", "ant-launcher"));
         classPaths.put("ANT_JUNIT", toPatterns("ant", "ant-launcher", "ant-junit"));
-        classPaths.put("TEST_LISTENER", toPatterns("gradle-core", "gradle-plugins"));
         classPaths.put("COMMONS_CLI", toPatterns("commons-cli"));
+        classPaths.put("WORKER_PROCESS", toPatterns("gradle-core", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j"));
     }
 
     private static List<Pattern> toPatterns(String... patternStrings) {
@@ -73,8 +74,8 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         return toURIs(getClassPathFiles(name));
     }
 
-    public List<File> getClassPathFiles(String name) {
-        List<File> matches = new ArrayList<File>();
+    public Set<File> getClassPathFiles(String name) {
+        Set<File> matches = new LinkedHashSet<File>();
         if (name.equals("GRADLE_PLUGINS")) {
             pluginLibDir.find(all, matches);
             return matches;
@@ -92,17 +93,16 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         throw new IllegalArgumentException(String.format("unknown classpath '%s' requested.", name));
     }
 
-    private URL[] toURIs(List<File> files) {
-        URL[] urls = new URL[files.size()];
-        for (int i = 0; i < files.size(); i++) {
-            File file = files.get(i);
+    private URL[] toURIs(Collection<File> files) {
+        List<URL> urls = new ArrayList<URL>(files.size());
+        for (File file : files) {
             try {
-                urls[i] = file.toURI().toURL();
+                urls.add(file.toURI().toURL());
             } catch (MalformedURLException e) {
                 throw new UncheckedIOException(e);
             }
         }
-        return urls;
+        return urls.toArray(new URL[urls.size()]);
     }
 
     private static boolean matches(List<Pattern> patterns, String name) {

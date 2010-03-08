@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -101,7 +101,7 @@ public class DefaultStandardOutputCapture implements StandardOutputCapture {
 
     public int hashCode() {
         int result;
-        result = (enabled ? 1 : 0);
+        result = enabled ? 1 : 0;
         result = 31 * result + (level != null ? level.hashCode() : 0);
         result = 31 * result + (globalState != null ? globalState.hashCode() : 0);
         return result;

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -510,7 +510,7 @@ public class FavoritesTest extends TestCase {
      * cancel on the second call to editFavorite.
      */
     private class ValidationErrorTestEditFavoriteInteraction implements FavoritesEditor.EditFavoriteInteraction {
-        boolean receivedErrorMessage = false;
+        boolean receivedErrorMessage;
 
         private String newDisplayName;
         private String newFullCommandLine;

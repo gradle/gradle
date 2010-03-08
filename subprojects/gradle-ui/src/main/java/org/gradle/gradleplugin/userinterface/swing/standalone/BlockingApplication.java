@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
@@ -76,7 +77,7 @@ public class BlockingApplication {
      * Lock so the calling thread can wait on the Application to exit.
      */
     private static class WaitingLock {
-        private boolean isLocked = false;
+        private boolean isLocked;
 
         public synchronized void lock() {
             isLocked = true;
@@ -98,6 +99,7 @@ public class BlockingApplication {
                 try {
                     wait();
                 } catch (InterruptedException e) {
+                    throw new GradleException(e);
                 }
             }
         }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -104,7 +104,7 @@ class BuildLoaderTest {
 
         buildLoader.load(rootDescriptor, build, [:])
 
-        assertThat(build.rootProject.childProjects['child'], sameInstance(childProject))
+        assertThat(rootProject.childProjects['child'], sameInstance(childProject))
     }
 
     @Test public void setsExternalPropertiesOnEachProject() {
@@ -112,11 +112,11 @@ class BuildLoaderTest {
 
         buildLoader.load(rootDescriptor, build, [buildDirName: 'target', prop: 'value'])
 
-        assertThat(build.rootProject.buildDirName, equalTo('target'))
-        assertThat(build.rootProject.prop, equalTo('value'))
+        assertThat(rootProject.buildDirName, equalTo('target'))
+        assertThat(rootProject.prop, equalTo('value'))
 
-        assertThat(build.rootProject.project('child').buildDirName, equalTo('target'))
-        assertThat(build.rootProject.project('child').prop, equalTo('value'))
+        assertThat(rootProject.project('child').buildDirName, equalTo('target'))
+        assertThat(rootProject.project('child').prop, equalTo('value'))
     }
 
     @Test public void setsProjectSpecificProperties() {
@@ -127,11 +127,11 @@ class BuildLoaderTest {
 
         buildLoader.load(rootDescriptor, build, [:])
 
-        assertThat(build.rootProject.buildDirName, equalTo('target/root'))
-        assertThat(build.rootProject.prop, equalTo('rootValue'))
+        assertThat(rootProject.buildDirName, equalTo('target/root'))
+        assertThat(rootProject.prop, equalTo('rootValue'))
 
-        assertThat(build.rootProject.project('child').buildDirName, equalTo('target/child'))
-        assertThat(build.rootProject.project('child').prop, equalTo('childValue'))
+        assertThat(rootProject.project('child').buildDirName, equalTo('target/child'))
+        assertThat(rootProject.project('child').prop, equalTo('childValue'))
     }
 
     @Test public void selectsDefaultProject() {

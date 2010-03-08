@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 
 package org.gradle.integtests
 
@@ -73,8 +75,8 @@ class SamplesJavaMultiProjectIntegrationTest {
         TestFile buildSrcDir = javaprojectDir.file('buildSrc')
 
         buildSrcDir.file('build/libs/buildSrc.jar').assertIsFile()
-        buildSrcDir.file('build/test-results/TEST-org.gradle.buildsrc.BuildSrcClassTest.xml').assertIsFile()
-        buildSrcDir.file('build/reports/tests/index.html').assertIsFile()
+        JUnitTestResult result = new JUnitTestResult(buildSrcDir)
+        result.assertTestClassesExecuted('org.gradle.buildsrc.BuildSrcClassTest')
     }
 
     private void assertEverythingBuilt() {
@@ -92,12 +94,11 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
         // Check test results and report
-        assertExists(javaprojectDir, SHARED_NAME, 'build/test-results/TEST-org.gradle.shared.PersonTest.xml')
-        assertExists(javaprojectDir, SHARED_NAME, 'build/test-results/TESTS-TestSuites.xml')
-        assertExists(javaprojectDir, SHARED_NAME, 'build/reports/tests/index.html')
-        assertExists(javaprojectDir, WEBAPP_PATH, 'build/test-results/TEST-org.gradle.webservice.TestTestTest.xml')
-        assertExists(javaprojectDir, WEBAPP_PATH, 'build/test-results/TESTS-TestSuites.xml')
-        assertExists(javaprojectDir, WEBAPP_PATH, 'build/reports/tests/index.html')
+        JUnitTestResult result = new JUnitTestResult(javaprojectDir.file(SHARED_NAME))
+        result.assertTestClassesExecuted('org.gradle.shared.PersonTest')
+
+        result = new JUnitTestResult(javaprojectDir.file(WEBAPP_PATH))
+        result.assertTestClassesExecuted('org.gradle.webservice.TestTestTest')
 
         // Check contents of shared jar
         TestFile tmpDir = dist.testDir.file("$SHARED_NAME-1.0.jar")
@@ -105,6 +106,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         tmpDir.assertHasDescendants(
                 'META-INF/MANIFEST.MF',
                 'org/gradle/shared/Person.class',
+                'org/gradle/shared/package-info.class',
                 'org/gradle/shared/main.properties'
         )
 

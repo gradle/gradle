@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+
+
+
+
+
+
 repositories {
     mavenRepo urls: 'http://www.aQute.biz/repo'
 }
@@ -27,20 +35,21 @@ dependencies {
             libraries.commons_io,
             libraries.ivy,
             libraries.asm_all,
-            "biz.aQute:bndlib:0.0.384@jar",
-            "org.apache.mina:mina-core:2.0.0-RC1",
+            'biz.aQute:bndlib:0.0.384@jar',
             libraries.junit,
-            "dom4j:dom4j:1.6.1@jar",
-            "jaxen:jaxen:1.1@jar"
+            libraries.ant_junit,
+            libraries.ant,
+            'org.testng:testng:5.11:jdk15',
+            'dom4j:dom4j:1.6.1@jar',
+            'jaxen:jaxen:1.1@jar'
 
-    testCompile "xmlunit:xmlunit:1.2"
-
-    runtime libraries.ant_junit
+    testCompile libraries.xmlunit
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
 
 test {
-    options.fork(jvmArgs: ["-ea", "-Xms128m", "-Xmx256m", '-XX:+HeapDumpOnOutOfMemoryError'])
+    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
+    jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }

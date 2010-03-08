@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ package org.gradle.api.internal.plugins;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
-import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
+import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 
-public class DefaultPluginCollection<T extends Plugin> extends DefaultNamedDomainObjectContainer<T>
+public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectContainer<T>
         implements PluginCollection<T> {
     public DefaultPluginCollection(Class<T> type) {
         super(type);
     }
 
-    protected DefaultPluginCollection(Class<T> type, NamedObjectStore<T> store) {
+    protected DefaultPluginCollection(Class<T> type, ObjectStore<T> store) {
         super(type, store);
     }
 

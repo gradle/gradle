@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -57,7 +58,8 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
     }
 
     public ConfigurationContainer createConfigurationContainer(ResolverProvider resolverProvider,
-                                                             DependencyMetaDataProvider dependencyMetaDataProvider) {
+                                                               DependencyMetaDataProvider dependencyMetaDataProvider,
+                                                               DomainObjectContext domainObjectContext) {
         IvyService ivyService = new ErrorHandlingIvyService(
                 new ShortcircuitEmptyConfigsIvyService(
                         new DefaultIvyService(
@@ -71,6 +73,6 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
                                 dependencyResolver,
                                 dependencyPublisher,
                                 clientModuleRegistry)));
-        return new DefaultConfigurationContainer(ivyService, classGenerator);
+        return new DefaultConfigurationContainer(ivyService, classGenerator, domainObjectContext);
     }
 }

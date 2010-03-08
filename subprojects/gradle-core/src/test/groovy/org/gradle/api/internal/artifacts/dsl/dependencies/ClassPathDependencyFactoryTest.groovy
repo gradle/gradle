@@ -43,7 +43,7 @@ public class ClassPathDependencyFactoryTest {
         Dependency dependency = context.mock(Dependency.class)
 
         context.checking {
-            List files = []
+            Set files = []
             FileCollection fileCollection = context.mock(FileCollection.class)
 
             one(classPathRegistry).getClassPathFiles('GRADLE_API')

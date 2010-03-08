@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -35,18 +35,17 @@ public class DynamicObjectHelper extends CompositeDynamicObject {
     private MapBackedDynamicObject additionalProperties;
 
     public DynamicObjectHelper(Object delegateObject) {
-        this(new BeanDynamicObject(delegateObject));
+        this(new BeanDynamicObject(delegateObject), null);
     }
 
     public DynamicObjectHelper(Object delegateObject, Convention convention) {
-        this(new BeanDynamicObject(delegateObject));
-        setConvention(convention);
+        this(new BeanDynamicObject(delegateObject), convention);
     }
 
-    DynamicObjectHelper(AbstractDynamicObject delegateObject) {
+    public DynamicObjectHelper(AbstractDynamicObject delegateObject, Convention convention) {
         this.delegateObject = delegateObject;
         additionalProperties = new MapBackedDynamicObject(delegateObject);
-        updateDelegates();
+        setConvention(convention);
     }
 
     private void updateDelegates() {

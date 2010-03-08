@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,22 +15,21 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.util.GFileUtils;
-import org.gradle.util.WrapUtil;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.Matchers;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
 
 import java.io.File;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -60,7 +59,7 @@ public class DefaultSettingsFinderTest {
         }});
         SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
-        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getSourceFile());
+        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getResource().getFile());
     }
 
     @Test
@@ -73,7 +72,7 @@ public class DefaultSettingsFinderTest {
         }});
         SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_SETTINGSFILE.getParentFile(), settingsLocation.getSettingsDir());
-        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getSourceFile());
+        assertEquals(GFileUtils.canonicalise(TEST_SETTINGSFILE), settingsLocation.getSettingsScriptSource().getResource().getFile());
     }
 
     @Test
@@ -86,8 +85,7 @@ public class DefaultSettingsFinderTest {
         }});
         SettingsLocation settingsLocation = defaultSettingsFinder.find(TEST_START_PARAMETER);
         assertEquals(TEST_START_PARAMETER.getCurrentDir(), settingsLocation.getSettingsDir());
-        ScriptSource expectedSettingsSource = new StringScriptSource("empty settings file", "");
-        assertThat(settingsLocation.getSettingsScriptSource(), Matchers.reflectionEquals(
-                expectedSettingsSource));
+        assertThat(settingsLocation.getSettingsScriptSource(), instanceOf(StringScriptSource.class));
+        assertThat(settingsLocation.getSettingsScriptSource().getResource().getText(), equalTo(""));
     }
 }

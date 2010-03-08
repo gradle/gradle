@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,18 @@
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.util.HelperUtil;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
-import static org.hamcrest.Matchers.*;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static java.util.Arrays.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -78,38 +80,44 @@ public class DefaultConf2ScopeMappingContainerTest {
     @Test
     public void addGetMapping() {
         assertEquals(new Conf2ScopeMapping(TEST_PRIORITY_1, TEST_CONF_1, TEST_SCOPE_1),
-                conf2ScopeMappingContainer.getMapping(TEST_CONF_1));
+                conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_1)));
     }
 
     @Test
-    public void singleMapping() {
-        assertThat(conf2ScopeMappingContainer.getMapping(TEST_CONF_1), equalTo(
+    public void singleMappedConfiguration() {
+        assertThat(conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_1)), equalTo(
                 new Conf2ScopeMapping(TEST_PRIORITY_1, TEST_CONF_1, TEST_SCOPE_1)));
     }
 
     @Test
     public void unmappedConfiguration() {
-        assertThat(conf2ScopeMappingContainer.getMapping(TEST_CONF_2), equalTo(
+        assertThat(conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_2)), equalTo(
                 new Conf2ScopeMapping(null, TEST_CONF_2, null)));
+    }
+
+    @Test
+    public void mappedConfigurationAndUnmappedConfiguration() {
+        assertThat(conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_1, TEST_CONF_2)), equalTo(
+                new Conf2ScopeMapping(TEST_PRIORITY_1, TEST_CONF_1, TEST_SCOPE_1)));
     }
 
     @Test
     public void mappingWithDifferentPrioritiesDifferentConfsDifferentScopes() {
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_2, TEST_CONF_2, TEST_SCOPE_2);
-        assertThat(conf2ScopeMappingContainer.getMapping(TEST_CONF_1, TEST_CONF_2), equalTo(
+        assertThat(conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_1, TEST_CONF_2)), equalTo(
                 new Conf2ScopeMapping(TEST_PRIORITY_2, TEST_CONF_2, TEST_SCOPE_2)));
     }
     
     @Test(expected = InvalidUserDataException.class)
     public void mappingWithSamePrioritiesDifferentConfsSameScope() {
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, TEST_CONF_2, TEST_SCOPE_1);
-        conf2ScopeMappingContainer.getMapping(TEST_CONF_1, TEST_CONF_2);
+        conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_1, TEST_CONF_2));
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void mappingWithSamePrioritiesDifferentConfsDifferentScopes() {
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, TEST_CONF_2, TEST_SCOPE_1);
         conf2ScopeMappingContainer.addMapping(TEST_PRIORITY_1, TEST_CONF_3, TEST_SCOPE_2);
-        conf2ScopeMappingContainer.getMapping(TEST_CONF_1, TEST_CONF_2, TEST_CONF_3);
+        conf2ScopeMappingContainer.getMapping(asList(TEST_CONF_1, TEST_CONF_2, TEST_CONF_3));
     }
 }

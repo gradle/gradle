@@ -15,8 +15,8 @@
  */
 package org.gradle.openapi.external.ui;
 
-import java.awt.*;
 import java.util.List;
+import java.awt.Font;
 
 /**
  Provides access to aspects of gradle's output

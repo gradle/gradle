@@ -1,3 +1,18 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 import org.apache.maven.settings.Settings
 
 apply id: 'war'
@@ -58,11 +73,14 @@ uploadArchives {
 
 installer = install.repositories.mavenInstaller
 
-[installer, deployer]*.pom*.licenseHeader = '<!-- mylicenseheader -->'
 if (hasProperty('customVersion')) {
     [installer, deployer]*.pom*.version = customVersion
     installer.pom.groupId = 'installGroup'
     deployer.pom.groupId = 'deployGroup'
+}
+
+[installer, deployer]*.pom*.whenConfigured { pom ->
+   pom.dependencies.find { dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
 }
 
 // For our integration tests
@@ -72,7 +90,7 @@ install.doLast {
     new File(buildDir, "localRepoPath.txt").write(settings.localRepository)
 }
 
-clean.doFirst {
-    ant.delete(dir: 'pomRepo')
-    ant.delete(dir: 'snapshotRepo')
+clean {
+    from 'pomRepo'
+    from 'snapshotRepo'
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ import java.io.File;
 import java.util.*;
 
 public class DefaultConfiguration extends AbstractFileCollection implements Configuration {
+    private final String path;
     private final String name;
 
     private Visibility visibility = Visibility.PUBLIC;
@@ -58,9 +59,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private State state = State.UNRESOLVED;
 
-    private ResolvedConfiguration cachedResolvedConfiguration = null;
+    private ResolvedConfiguration cachedResolvedConfiguration;
 
-    public DefaultConfiguration(String name, ConfigurationsProvider configurationsProvider, IvyService ivyService) {
+    public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider, IvyService ivyService) {
+        this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
         this.ivyService = ivyService;
@@ -85,7 +87,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Configuration> getExtendsFrom() {
-        return extendsFrom;
+        return Collections.unmodifiableSet(extendsFrom);
     }
 
     public Configuration setExtendsFrom(Set<Configuration> extendsFrom) {
@@ -288,7 +290,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Dependency> getDependencies() {
-        return dependencies;
+        return Collections.unmodifiableSet(dependencies);
     }
 
     public Set<Dependency> getAllDependencies() {
@@ -331,7 +333,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<PublishArtifact> getArtifacts() {
-        return artifacts;
+        return Collections.unmodifiableSet(artifacts);
     }
 
     public Set<PublishArtifact> getAllArtifacts() {
@@ -343,7 +345,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<ExcludeRule> getExcludeRules() {
-        return excludeRules;
+        return Collections.unmodifiableSet(excludeRules);
     }
 
     public void setExcludeRules(Set<ExcludeRule> excludeRules) {
@@ -379,21 +381,16 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         DefaultConfiguration that = (DefaultConfiguration) o;
-
-        if (name != null ? !name.equals(that.name) : that.name != null) {
-            return false;
-        }
-
-        return true;
+        return path.equals(that.path);
     }
 
     @Override
     public int hashCode() {
-        return name != null ? name.hashCode() : 0;
+        return path.hashCode();
     }
 
     public String getDisplayName() {
-        return String.format("configuration '%s'", name);
+        return String.format("configuration '%s'", path);
     }
 
     public Configuration getConfiguration(Dependency dependency) {
@@ -423,7 +420,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private DefaultConfiguration createCopy(Set<Dependency> dependencies) {
         DetachedConfigurationsProvider configurationsProvider = new DetachedConfigurationsProvider();
-        DefaultConfiguration copiedConfiguration = new DefaultConfiguration("copyOf" + getName(),
+        DefaultConfiguration copiedConfiguration = new DefaultConfiguration(path + "Copy", name + "Copy",
                 configurationsProvider, ivyService);
         configurationsProvider.setTheOnlyConfiguration(copiedConfiguration);
         // state, cachedResolvedConfiguration, and extendsFrom intentionally not copied - must re-resolve copy
@@ -441,7 +438,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         // should (we expose the Map). We should provide a better API for ExcludeRule (I don't want to use unmodifiable Map).
         // As soon as DefaultExcludeRule is truly immutable, we don't need to create a new instance of DefaultExcludeRule. 
         for (ExcludeRule excludeRule : getExcludeRules()) {
-            copiedConfiguration.getExcludeRules().add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
+            copiedConfiguration.excludeRules.add(new DefaultExcludeRule(excludeRule.getExcludeArgs()));
         }
 
         for (Dependency dependency : dependencies) {

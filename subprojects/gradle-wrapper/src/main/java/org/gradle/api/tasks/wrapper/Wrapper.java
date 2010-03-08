@@ -96,7 +96,7 @@ public class Wrapper extends DefaultTask {
         if (scriptDestinationPath == null) {
             throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");
         }
-        String wrapperDir = (GUtil.isTrue(jarPath) ? jarPath + "/" : "");
+        String wrapperDir = GUtil.isTrue(jarPath) ? jarPath + "/" : "";
         new File(getProject().getProjectDir(), wrapperDir).mkdirs();
         String wrapperJar = wrapperDir + WRAPPER_JAR;
         String wrapperPropertiesPath = wrapperDir + WRAPPER_PROPERTIES;

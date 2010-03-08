@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,34 +15,31 @@
  */
 package org.gradle.configuration;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectStateInternal;
 
 public class DefaultProjectEvaluator implements ProjectEvaluator {
-    private final ProjectEvaluator[] evaluators;
+    private final ProjectEvaluator evaluator;
 
-    public DefaultProjectEvaluator(ProjectEvaluator... evaluators) {
-        this.evaluators = evaluators;
+    public DefaultProjectEvaluator(ProjectEvaluator evaluator) {
+        this.evaluator = evaluator;
     }
 
-    public void evaluate(ProjectInternal project) {
-        ProjectEvaluationListener listener = project.getGradle().getProjectEvaluationBroadcaster();
-        listener.beforeEvaluate(project);
-        Throwable failure = null;
-        try {
-            for (ProjectEvaluator evaluator : evaluators) {
-                evaluator.evaluate(project);
-            }
-        } catch (GradleException t) {
-            failure = t;
+    public void evaluate(ProjectInternal project, ProjectStateInternal state) {
+        if (state.getExecuted()) {
+            return;
         }
-        listener.afterEvaluate(project, failure);
-        if (failure != null) {
-            if (failure instanceof RuntimeException) {
-                throw (RuntimeException) failure;
-            }
-            throw new GradleException(failure);
+
+        ProjectEvaluationListener listener = project.getProjectEvaluationBroadcaster();
+        listener.beforeEvaluate(project);
+        state.setExecuting(true);
+        try {
+            evaluator.evaluate(project, state);
+        } finally {
+            state.setExecuting(false);
+            state.executed();
+            listener.afterEvaluate(project, state);
         }
     }
 }

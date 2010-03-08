@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,22 +16,24 @@
 package org.gradle.api.internal;
 
 import groovy.lang.Closure;
+import groovy.lang.GroovyObject;
 import groovy.lang.GroovyRuntimeException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.util.*;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.HelperUtil.*;
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public abstract class AbstractClassGeneratorTest {
     private ClassGenerator generator;
@@ -52,7 +54,7 @@ public abstract class AbstractClassGeneratorTest {
 
         IConventionAware conventionAware = (IConventionAware) bean;
         assertThat(conventionAware.getConventionMapping(), instanceOf(ConventionAwareHelper.class));
-        conventionAware.getConventionMapping().map("property", HelperUtil.TEST_CLOSURE);
+        conventionAware.getConventionMapping().map("prop", TEST_CLOSURE);
         ConventionMapping mapping = new ConventionAwareBean();
         conventionAware.setConventionMapping(mapping);
         assertThat(conventionAware.getConventionMapping(), sameInstance(mapping));
@@ -63,8 +65,23 @@ public abstract class AbstractClassGeneratorTest {
         Class<? extends Bean> generatedClass = generator.generate(Bean.class);
         assertTrue(DynamicObjectAware.class.isAssignableFrom(generatedClass));
         Bean bean = generatedClass.newInstance();
-        ((DynamicObjectAware) bean).getAsDynamicObject().setProperty("property", "value");
-        assertThat(bean.getProperty(), equalTo("value"));
+        ((DynamicObjectAware) bean).getAsDynamicObject().setProperty("prop", "value");
+        assertThat(bean.getProp(), equalTo("value"));
+        assertThat(bean.doStuff("some value"), equalTo("{some value}"));
+    }
+
+    @Test
+    public void mixesInGroovyObjectInterface() throws Exception {
+        Class<? extends Bean> generatedClass = generator.generate(Bean.class);
+        assertTrue(GroovyObject.class.isAssignableFrom(generatedClass));
+        Bean bean = generatedClass.newInstance();
+        GroovyObject groovyObject = (GroovyObject) bean;
+        assertThat(groovyObject.getMetaClass(), notNullValue());
+
+        groovyObject.setProperty("prop", "value");
+        assertThat(bean.getProp(), equalTo("value"));
+        assertThat(groovyObject.getProperty("prop"), equalTo((Object) "value"));
+        assertThat(groovyObject.invokeMethod("doStuff", new Object[]{"some value"}), equalTo((Object) "{some value}"));
     }
 
     @Test
@@ -76,20 +93,20 @@ public abstract class AbstractClassGeneratorTest {
     public void overridesPublicConstructors() throws Exception {
         Class<? extends Bean> generatedClass = generator.generate(BeanWithConstructor.class);
         Bean bean = generatedClass.getConstructor(String.class).newInstance("value");
-        assertThat(bean.getProperty(), equalTo("value"));
+        assertThat(bean.getProp(), equalTo("value"));
 
         bean = generatedClass.getConstructor().newInstance();
-        assertThat(bean.getProperty(), equalTo("default value"));
+        assertThat(bean.getProp(), equalTo("default value"));
     }
 
     @Test
     public void canConstructInstance() throws Exception {
         Bean bean = generator.newInstance(BeanWithConstructor.class, "value");
         assertThat(bean.getClass(), sameInstance((Object) generator.generate(BeanWithConstructor.class)));
-        assertThat(bean.getProperty(), equalTo("value"));
+        assertThat(bean.getProp(), equalTo("value"));
 
         bean = generator.newInstance(BeanWithConstructor.class);
-        assertThat(bean.getProperty(), equalTo("default value"));
+        assertThat(bean.getProp(), equalTo("default value"));
     }
 
     @Test
@@ -130,21 +147,21 @@ public abstract class AbstractClassGeneratorTest {
         Bean bean = generatedClass.newInstance();
         IConventionAware conventionAware = (IConventionAware) bean;
 
-        assertThat(bean.getProperty(), nullValue());
+        assertThat(bean.getProp(), nullValue());
 
-        conventionAware.getConventionMapping().map("property", new ConventionValue() {
+        conventionAware.getConventionMapping().map("prop", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return "conventionValue";
             }
         });
 
-        assertThat(bean.getProperty(), equalTo("conventionValue"));
+        assertThat(bean.getProp(), equalTo("conventionValue"));
 
-        bean.setProperty("value");
-        assertThat(bean.getProperty(), equalTo("value"));
+        bean.setProp("value");
+        assertThat(bean.getProp(), equalTo("value"));
 
-        bean.setProperty(null);
-        assertThat(bean.getProperty(), nullValue());
+        bean.setProp(null);
+        assertThat(bean.getProp(), nullValue());
     }
 
     @Test
@@ -154,24 +171,24 @@ public abstract class AbstractClassGeneratorTest {
         IConventionAware conventionAware = (IConventionAware) bean;
         final List<String> conventionValue = toList("value");
 
-        assertThat(bean.getProperty(), isEmpty());
+        assertThat(bean.getProp(), isEmpty());
 
-        conventionAware.getConventionMapping().map("property", new ConventionValue() {
+        conventionAware.getConventionMapping().map("prop", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return conventionValue;
             }
         });
 
-        assertThat(bean.getProperty(), sameInstance(conventionValue));
+        assertThat(bean.getProp(), sameInstance(conventionValue));
 
-        bean.setProperty(toList("other"));
-        assertThat(bean.getProperty(), equalTo(toList("other")));
+        bean.setProp(toList("other"));
+        assertThat(bean.getProp(), equalTo(toList("other")));
 
-        bean.setProperty(Collections.EMPTY_LIST);
-        assertThat(bean.getProperty(), equalTo(Collections.EMPTY_LIST));
+        bean.setProp(Collections.EMPTY_LIST);
+        assertThat(bean.getProp(), equalTo(Collections.EMPTY_LIST));
 
-        bean.setProperty(null);
-        assertThat(bean.getProperty(), nullValue());
+        bean.setProp(null);
+        assertThat(bean.getProp(), nullValue());
     }
 
     @Test
@@ -191,8 +208,8 @@ public abstract class AbstractClassGeneratorTest {
         ConventionAwareBean bean = generatedClass.newInstance();
         assertSame(bean, bean.getConventionMapping());
 
-        bean.setProperty("value");
-        assertEquals("[value]", bean.getProperty());
+        bean.setProp("value");
+        assertEquals("[value]", bean.getProp());
     }
 
     @Test
@@ -256,9 +273,9 @@ public abstract class AbstractClassGeneratorTest {
         NoDynamicBean bean = generatedType.newInstance();
 
         // Check MOP methods not overridden
-        bean.setProperty("value");
-        assertThat(HelperUtil.call("{ it.property }", bean), equalTo((Object) "value"));
-        assertThat(HelperUtil.call("{ it.dynamicProp }", bean), equalTo((Object) "[dynamicProp]"));
+        bean.setProp("value");
+        assertThat(call("{ it.prop }", bean), equalTo((Object) "value"));
+        assertThat(call("{ it.dynamicProp }", bean), equalTo((Object) "[dynamicProp]"));
     }
 
     @Test
@@ -281,33 +298,82 @@ public abstract class AbstractClassGeneratorTest {
         ConventionObject conventionObject = new ConventionObject();
         dynamicObjectAware.getConvention().getPlugins().put("plugin", conventionObject);
 
-        HelperUtil.call("{ it.conventionProperty = 'value' }", bean);
+        call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
-        assertThat(HelperUtil.call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
-        assertThat(HelperUtil.call("{ it.doStuff('value') }", bean), equalTo((Object) "[value]"));
+        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
+        assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
+    }
+
+    @Test
+    public void canAddDynamicPropertiesAndMethodsToGroovyObject() throws Exception {
+        TestDecoratedGroovyBean bean = generator.generate(TestDecoratedGroovyBean.class).newInstance();
+        DynamicObjectAware dynamicObjectAware = (DynamicObjectAware) bean;
+        ConventionObject conventionObject = new ConventionObject();
+        dynamicObjectAware.getConvention().getPlugins().put("plugin", conventionObject);
+
+        call("{ it.conventionProperty = 'value' }", bean);
+        assertThat(conventionObject.getConventionProperty(), equalTo("value"));
+        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
+        assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
+    }
+
+    @Test
+    public void respectsPropertiesAddedToMetaClassOfJavaObject() throws Exception {
+        Bean bean = generator.generate(Bean.class).newInstance();
+
+        call("{ it.metaClass.getConventionProperty = { -> 'value'} }", bean);
+        assertThat(call("{ it.getConventionProperty() }", bean), equalTo((Object) "value"));
+        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
+    }
+
+    @Test
+    public void respectsPropertiesAddedToMetaClassOfGroovyObject() throws Exception {
+        TestDecoratedGroovyBean bean = generator.generate(TestDecoratedGroovyBean.class).newInstance();
+
+        call("{ it.metaClass.getConventionProperty = { -> 'value'} }", bean);
+        assertThat(call("{ it.getConventionProperty() }", bean), equalTo((Object) "value"));
+        assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
+    }
+
+    @Test
+    public void usesExistingDynamicObject() throws Exception {
+        DynamicObjectBean bean = generator.generate(DynamicObjectBean.class).newInstance();
+
+        call("{ it.prop = 'value' }", bean);
+        assertThat(call("{ it.prop }", bean), equalTo((Object) "value"));
+
+        bean.getAsDynamicObject().setProperty("prop", "value2");
+        assertThat(call("{ it.prop }", bean), equalTo((Object) "value2"));
+
+        bean.getAsDynamicObject().setProperty("dynamicProp", "value");
+        assertThat(call("{ it.dynamicProp }", bean), equalTo((Object) "value"));
     }
 
     public static class Bean {
-        private String property;
+        private String prop;
 
-        public String getProperty() {
-            return property;
+        public String getProp() {
+            return prop;
         }
 
-        public void setProperty(String property) {
-            this.property = property;
+        public void setProp(String prop) {
+            this.prop = prop;
+        }
+
+        public String doStuff(String value) {
+            return "{" + value + "}";
         }
     }
 
     public static class CollectionBean {
-        private List<String> property = new ArrayList<String>();
+        private List<String> prop = new ArrayList<String>();
 
-        public List<String> getProperty() {
-            return property;
+        public List<String> getProp() {
+            return prop;
         }
 
-        public void setProperty(List<String> property) {
-            this.property = property;
+        public void setProp(List<String> prop) {
+            this.prop = prop;
         }
     }
 
@@ -317,7 +383,7 @@ public abstract class AbstractClassGeneratorTest {
         }
 
         public BeanWithConstructor(String value) {
-            setProperty(value);
+            setProp(value);
         }
     }
 
@@ -396,7 +462,7 @@ public abstract class AbstractClassGeneratorTest {
             this.conventionProperty = conventionProperty;
         }
 
-        public Object doStuff(String value) {
+        public Object conventionMethod(String value) {
             return "[" + value + "]";
         }
     }
@@ -446,6 +512,14 @@ public abstract class AbstractClassGeneratorTest {
     public static class NoDynamicBean extends Bean {
         Object propertyMissing(String name) {
             return "[" + name + "]";
+        }
+    }
+
+    public static class DynamicObjectBean {
+        private final BeanDynamicObject dynamicObject = new BeanDynamicObject(new Bean());
+
+        public DynamicObject getAsDynamicObject() {
+            return dynamicObject;
         }
     }
 

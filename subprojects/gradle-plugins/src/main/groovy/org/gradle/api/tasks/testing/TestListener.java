@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.testing;
 
 // todo: consider multithreading/multiprocess issues
@@ -25,28 +26,29 @@ package org.gradle.api.tasks.testing;
  * from JUnit and TestNG tests.
  */
 public interface TestListener {
-
     /**
      * Called before a test suite is started.
      * @param suite The suite whose tests are about to be executed.
      */
-    void beforeSuite(TestSuite suite);
+    void beforeSuite(TestDescriptor suite);
 
     /**
      * Called after a test suite is finished.
      * @param suite The suite whose tests have finished being executed.
+     * @param result The aggregate result for the suite.
      */
-    void afterSuite(TestSuite suite);
+    void afterSuite(TestDescriptor suite, TestResult result);
 
     /**
      * Called before a test is started.
-     * @param test The test which is about to be executed.
+     * @param testDescriptor The test which is about to be executed.
      */
-    void beforeTest(Test test);
+    void beforeTest(TestDescriptor testDescriptor);
 
     /**
      * Called after a test is finished.
-     * @param test The test which has finished executing.
+     * @param testDescriptor The test which has finished executing.
+     * @param result The test result.
      */
-    void afterTest(Test test, TestResult result);
+    void afterTest(TestDescriptor testDescriptor, TestResult result);
 }

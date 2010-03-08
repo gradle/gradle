@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -112,9 +112,14 @@ public class DefaultExceptionAnalyserTest {
     }
 
     @Test
-    public void usesOriginalExceptionWhenLocationCannotBeDetermined() {
+    public void wrapsOriginalExceptionWhenLocationCannotBeDetermined() {
         Throwable failure = new ContextualException();
-        assertThat(analyser().transform(failure), sameInstance(failure));
+        Throwable transformedFailure = analyser().transform(failure);
+        assertThat(transformedFailure, instanceOf(LocationAwareException.class));
+
+        LocationAwareException gse = (LocationAwareException) transformedFailure;
+        assertThat(gse.getScriptSource(), nullValue());
+        assertThat(gse.getLineNumber(), nullValue());
     }
 
     @Test
