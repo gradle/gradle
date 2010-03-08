@@ -39,7 +39,7 @@ public class ExecutionShortCircuitTaskExecuter implements TaskExecuter {
         TaskArtifactState taskArtifactState = repository.getStateFor(task);
         if (taskArtifactState.isUpToDate()) {
             LOGGER.debug("{} is up-to-date", task);
-            state.skipped("UP-TO-DATE");
+            state.upToDate();
             return;
 
         }

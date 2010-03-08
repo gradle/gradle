@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,12 +27,13 @@ import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
+
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class LoggingTest {
@@ -73,9 +74,6 @@ public class LoggingTest {
         expectLogMessage(Level.INFO, Logging.LIFECYCLE, "lifecycle");
         logger.lifecycle("lifecycle");
 
-        expectLogMessage(Level.INFO, Logging.PROGRESS, "progress");
-        logger.progress("progress");
-
         expectLogMessage(Level.ERROR, null, "error");
         logger.error("error");
 
@@ -94,7 +92,6 @@ public class LoggingTest {
         assertTrue(logger.isErrorEnabled());
         assertTrue(logger.isWarnEnabled());
         assertFalse(logger.isQuietEnabled());
-        assertFalse(logger.isProgressEnabled());
         assertFalse(logger.isLifecycleEnabled());
         assertFalse(logger.isInfoEnabled());
         assertFalse(logger.isDebugEnabled());
@@ -102,6 +99,20 @@ public class LoggingTest {
 
         assertTrue(logger.isEnabled(LogLevel.ERROR));
         assertFalse(logger.isEnabled(LogLevel.INFO));
+    }
+
+    @Test
+    public void logsProgress() {
+        ProgressLogger logger = Logging.getLogger(LoggingTest.class).createProgressLogger();
+
+        expectLogMessage(Level.INFO, Logging.PROGRESS_STARTED, "start");
+        logger.started("start");
+
+        expectLogMessage(Level.INFO, Logging.PROGRESS, "tick");
+        logger.tick("tick");
+
+        expectLogMessage(Level.INFO, Logging.PROGRESS_COMPLETE, "complete");
+        logger.completed("complete");
     }
 
     private void expectLogMessage(final Level level, final Marker marker, final String text) {

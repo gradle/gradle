@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 println 'buildSrc quiet'
 logger.info 'buildSrc info'
 
-task classes
+task classes << {}
 
 convention.plugins.java = new ProjectInfo(project: project);
 

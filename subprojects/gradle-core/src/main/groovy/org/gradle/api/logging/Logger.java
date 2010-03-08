@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,8 @@ package org.gradle.api.logging;
  *
  * <p>You can obtain a {@code Logger} instance using {@link Logging#getLogger(Class)} or {@link
  * Logging#getLogger(String)}. A {@code Logger} instance is also available through {@link
- * org.gradle.api.Project#getLogger()} and {@link org.gradle.api.Task#getLogger()}.</p>
+ * org.gradle.api.Project#getLogger()}, {@link org.gradle.api.Task#getLogger()} and {@link
+ * org.gradle.api.Script#getLogger()}.</p>
  */
 public interface Logger extends org.slf4j.Logger {
     /**
@@ -51,34 +52,6 @@ public interface Logger extends org.slf4j.Logger {
      * @param throwable the exception to log.
      */
     void lifecycle(String message, Throwable throwable);
-
-    /**
-     * Returns true if progress log level is enabled for this logger.
-     */
-    boolean isProgressEnabled();
-
-    /**
-     * Logs the given message at progress log level.
-     *
-     * @param message the log message.
-     */
-    void progress(String message);
-
-    /**
-     * Logs the given message at progress log level.
-     *
-     * @param message the log message.
-     * @param objects the log message parameters.
-     */
-    void progress(String message, Object... objects);
-
-    /**
-     * Logs the given message at progress log level.
-     *
-     * @param message the log message.
-     * @param throwable the exception to log.
-     */
-    void progress(String message, Throwable throwable);
 
     /**
      * Returns true if quiet log level is enabled for this logger.
@@ -138,4 +111,11 @@ public interface Logger extends org.slf4j.Logger {
      * @param throwable the exception to log.
      */
     void log(LogLevel level, String message, Throwable throwable);
+
+    /**
+     * Creates a new progress logger which logs to this logger.
+     *
+     * @return A progress logger.
+     */
+    ProgressLogger createProgressLogger();
 }

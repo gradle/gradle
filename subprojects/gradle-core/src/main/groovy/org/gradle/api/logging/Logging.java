@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,8 +32,15 @@ import java.util.Map;
 public class Logging {
     public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
     public static final Marker PROGRESS = MarkerFactory.getDetachedMarker("PROGRESS");
+    public static final Marker PROGRESS_STARTED = MarkerFactory.getDetachedMarker("PROGRESS_START");
+    public static final Marker PROGRESS_COMPLETE = MarkerFactory.getDetachedMarker("PROGRESS_COMPLETE");
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 
+    static {
+        PROGRESS_STARTED.add(PROGRESS);
+        PROGRESS_COMPLETE.add(PROGRESS);
+    }
+    
     /**
      * Returns the logger for the given class.
      *
@@ -70,6 +77,10 @@ public class Logging {
             this.logger = logger;
         }
 
+        public ProgressLogger createProgressLogger() {
+            return new ProgressLoggerImpl(this);
+        }
+
         public boolean isEnabled(LogLevel level) {
             return level.isEnabled(this);
         }
@@ -84,22 +95,6 @@ public class Logging {
 
         public void log(LogLevel level, String message, Throwable throwable) {
             level.log(this, message, throwable);
-        }
-
-        public boolean isProgressEnabled() {
-            return logger.isInfoEnabled(PROGRESS);
-        }
-
-        public void progress(String message) {
-            info(PROGRESS, message);
-        }
-
-        public void progress(String message, Object... objects) {
-            info(PROGRESS, message, objects);
-        }
-
-        public void progress(String message, Throwable throwable) {
-            info(PROGRESS, message, throwable);
         }
 
         public boolean isLifecycleEnabled() {
@@ -376,6 +371,34 @@ public class Logging {
 
         public void warn(String s, Throwable throwable) {
             logger.warn(s, throwable);
+        }
+    }
+
+    private static class ProgressLoggerImpl implements ProgressLogger {
+        private final Logger logger;
+
+        public ProgressLoggerImpl(Logger logger) {
+            this.logger = logger;
+        }
+
+        public void started(String message) {
+            logger.info(PROGRESS_STARTED, message);
+        }
+
+        public void tick() {
+            tick(".");
+        }
+
+        public void tick(String message) {
+            logger.info(PROGRESS, message);
+        }
+
+        public void completed() {
+            completed("");
+        }
+
+        public void completed(String message) {
+            logger.info(PROGRESS_COMPLETE, message);
         }
     }
 }
