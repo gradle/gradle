@@ -24,9 +24,11 @@ import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.Upload
 import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.Dependency
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
+ * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
  */
 class BasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean"
@@ -38,7 +40,8 @@ class BasePlugin implements Plugin<Project> {
         configureBuildConfigurationRule(project)
         configureUploadRules(project)
         configureArchiveDefaults(project, project.convention.plugins.base)
-
+        configureConfigurations(project)
+        
         addClean(project)
         addAssemble(project);
     }
@@ -50,7 +53,7 @@ class BasePlugin implements Plugin<Project> {
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {
-        project.tasks.withType(AbstractArchiveTask).allTasks { AbstractArchiveTask task ->
+        project.tasks.withType(AbstractArchiveTask).allTasks {AbstractArchiveTask task ->
             if (task instanceof Jar) {
                 task.conventionMapping.destinationDir = { pluginConvention.libsDir }
             } else {
@@ -120,5 +123,17 @@ class BasePlugin implements Plugin<Project> {
         upload.description = String.format("Uploads all artifacts belonging to %s.", configuration)
         return upload
     }
-    
+
+    private void configureConfigurations(final Project project) {
+        ConfigurationContainer configurations = project.getConfigurations();
+        project.setProperty("status", "integration");
+
+        Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
+                setDescription("Configuration for the default artifacts.");
+
+        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(archivesConfiguration).
+                setDescription("Configuration the default artifacts and its dependencies.");
+    }
+
+
 }

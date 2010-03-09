@@ -202,11 +202,7 @@ public class JavaPlugin implements Plugin<Project> {
                 compileTestsConfiguration).
                 setDescription("Classpath for running the test sources.");
 
-        Configuration archivesConfiguration = configurations.add(Dependency.ARCHIVES_CONFIGURATION).
-                setDescription("Configuration for the default artifacts.");
-
-        configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration, archivesConfiguration).
-                setDescription("Configuration the default artifacts and its dependencies.");
+        configurations.getByName(Dependency.DEFAULT_CONFIGURATION).extendsFrom(runtimeConfiguration);
     }
 
     /**

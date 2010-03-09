@@ -51,7 +51,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         JavaPluginConvention javaConvention = new JavaPluginConvention(project);
         project.getConvention().getPlugins().put("java", javaConvention);
 
-        configureConfigurations(project);
         configureCompileDefaults(project, javaConvention);
         configureSourceSetDefaults(javaConvention);
 
@@ -229,9 +228,5 @@ public class JavaBasePlugin implements Plugin<Project> {
                 test.workingDir(project.getProjectDir());
             }
         });
-    }
-
-    void configureConfigurations(final Project project) {
-        project.setProperty("status", "integration");
     }
 }

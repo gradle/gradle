@@ -76,13 +76,6 @@ class JavaPluginTest {
 
         configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(Dependency.ARCHIVES_CONFIGURATION, JavaPlugin.RUNTIME_CONFIGURATION_NAME)))
-        assertTrue(configuration.visible)
-        assertTrue(configuration.transitive)
-
-        configuration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
-        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
-        assertTrue(configuration.visible)
-        assertTrue(configuration.transitive)
     }
 
     @Test public void createsStandardSourceSetsAndAppliesMappings() {

@@ -15,8 +15,7 @@
  */
 
 configurations {
-    archives
-    add('default').extendsFrom(archives, compile)
+    getByName('default').extendsFrom(compile)
 }
 
 dependencies {
