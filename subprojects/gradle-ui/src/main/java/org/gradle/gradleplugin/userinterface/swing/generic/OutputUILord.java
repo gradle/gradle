@@ -85,4 +85,10 @@ public interface OutputUILord
      * @return the object this is used to handle parsing of files in the output.
      */
    public FileLinkDefinitionLord getFileLinkDefinitionLord();
+
+    /*
+    This re-executes the last execution command (ignores refresh commands).
+    This is potentially useful for IDEs to hook into (hotkey to execute last command).
+     */
+    public void reExecuteLastCommand();
 }

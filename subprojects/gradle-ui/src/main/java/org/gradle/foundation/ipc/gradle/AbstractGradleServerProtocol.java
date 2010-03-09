@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -194,15 +195,53 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
    */
    protected abstract void addStatus(String status );
 
+            public class MyExecutionInfo implements ExecutionInfo {
+                public String[] commandLineArguments;
+                public File workingDirectory;
+                public HashMap<String, String> environmentVariables = new HashMap<String, String>();
+                public File initStriptPath;
+
+                public String[] getCommandLineArguments() {
+                    return commandLineArguments;
+                }
+
+                public File getWorkingDirectory() {
+                    return workingDirectory;
+                }
+
+                public HashMap<String, String> getEnvironmentVariables() {
+                    return environmentVariables;
+                }
+
+                public void setCommandLineArguments(String[] commandLineArguments) {
+                    this.commandLineArguments = commandLineArguments;
+                }
+
+                public void setWorkingDirectory(File workingDirectory) {
+                    this.workingDirectory = workingDirectory;
+                }
+
+                public void addEnvironmentVariable(String name, String value) {
+                    this.environmentVariables.put(name, value);
+                }
+
+                public void processExecutionComplete() {
+                    if( initStriptPath != null ) {
+                        initStriptPath.delete();
+                    }
+                }
+            }
+
+
    /**
-     * Fill in the information needed to execute the other process. We build up the command line based on the user's
-     * options.
-     *
-     * @param serverPort the port the server is listening on. The client should send messages here
-     * @param executionInfo an object continain information about what we execute.
+     * Fill in the ExecutionInfo object with information needed to execute the other process.
+         * @param serverPort the port the server is listening on. The client should send messages here
+         * @return an executionInfo object containing information about what we execute.
    */
-   public void getExecutionInfo( int serverPort, ExecutionInfo executionInfo )
+   public ExecutionInfo getExecutionInfo( int serverPort )
    {
+      MyExecutionInfo executionInfo = new MyExecutionInfo();
+
       //set some environment variables that need to be passed to the script.
       executionInfo.addEnvironmentVariable( "GRADLE_HOME", getGradleHomeDirectory().getAbsolutePath() );
       executionInfo.addEnvironmentVariable( "JAVA_HOME", System.getProperty( "java.home" ) );
@@ -229,6 +268,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
       {
           executionCommandLine.add( "-" + DefaultCommandLine2StartParameterConverter.INIT_SCRIPT );
           executionCommandLine.add( initStriptPath.getAbsolutePath() );
+          executionInfo.initStriptPath = initStriptPath;
       }
 
       //add the log level if its not present
@@ -250,6 +290,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
         }
 
       executionInfo.setCommandLineArguments( executionCommandLine.toArray( new String[ executionCommandLine.size() ] ) );
+      return executionInfo;
    }
 
    /**
