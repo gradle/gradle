@@ -22,21 +22,21 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
-import org.gradle.util.ConfigureUtil;
-import org.gradle.util.GUtil;
-import org.gradle.util.HelperUtil;
-import static org.gradle.util.HelperUtil.*;
-import org.gradle.util.TestClosure;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Iterator;
+
+import static org.gradle.util.HelperUtil.call;
+import static org.gradle.util.HelperUtil.toClosure;
+import static org.gradle.util.WrapUtil.toLinkedSet;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultNamedDomainObjectContainerTest {
@@ -338,6 +338,42 @@ public class DefaultNamedDomainObjectContainerTest {
         addRuleFor(bean);
 
         assertThat(container.findByName("bean"), sameInstance(bean));
+    }
+
+    @Test
+    public void findDomainObjectByNameInvokesNestedRulesOnlyOnceForUnknownDomainObject() {
+        final Bean bean1 = new Bean();
+        final Bean bean2 = new Bean();
+        container.addRule(new Rule() {
+            public String getDescription() {
+                return "rule1";
+            }
+
+            public void apply(String domainObjectName) {
+                if (domainObjectName.equals("bean1")) {
+                    container.addObject("bean1", bean1);
+                }
+            }
+        });
+        container.addRule(new Rule() {
+            private boolean applyHasBeenCalled;
+
+            public String getDescription() {
+                return "rule2";
+            }
+
+            public void apply(String domainObjectName) {
+                if (domainObjectName.equals("bean2")) {
+                    assertThat(applyHasBeenCalled, equalTo(false));
+                    container.findByName("bean1");
+                    container.findByName("bean2");
+                    container.addObject("bean2", bean2);
+                    applyHasBeenCalled = true;
+                }
+            }
+        });
+        container.findByName("bean2");
+        assertThat(container.getAll(), equalTo(WrapUtil.toSet(bean1, bean2)));
     }
 
     @Test

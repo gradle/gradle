@@ -32,12 +32,12 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     private final List<Rule> rules = new ArrayList<Rule>();
     private final NamedObjectStore<T> store;
     private final Class<T> type;
-    private String applyingRulesFor;
+    private Set<String> applyingRulesFor = new HashSet<String>();
 
     public DefaultNamedDomainObjectContainer(Class<T> type) {
         this(type, new MapStore<T>());
     }
-
+                                         
     protected DefaultNamedDomainObjectContainer(Class<T> type, NamedObjectStore<T> store) {
         super(store);
         this.type = type;
@@ -123,16 +123,16 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     }
 
     private void applyRules(String name) {
-        if (name.equals(applyingRulesFor)) {
+        if (applyingRulesFor.contains(name)) {
             return;
         }
-        applyingRulesFor = name;
+        applyingRulesFor.add(name);
         try {
             for (Rule rule : rules) {
                 rule.apply(name);
             }
         } finally {
-            applyingRulesFor = null;
+            applyingRulesFor.remove(name);
         }
     }
 
