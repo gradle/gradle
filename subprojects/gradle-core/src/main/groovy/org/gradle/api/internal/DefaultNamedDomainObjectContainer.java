@@ -150,6 +150,11 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
             public void apply(String taskName) {
                 ruleAction.call(taskName);
             }
+
+            @Override
+            public String toString() {
+                return "Rule: " + description;
+            }
         };
         rules.add(rule);
         return rule;

@@ -72,9 +72,10 @@ class BasePlugin implements Plugin<Project> {
 
     private void configureBuildConfigurationRule(final Project project) {
         final String prefix = "build";
+        String description = String.format("Pattern: %s<ConfigurationName>: Builds the artifacts belonging to the configuration.", prefix)
         Rule rule = [
                 getDescription: {
-                    String.format("Pattern: %s<ConfigurationName>: Builds the artifacts belonging to the configuration.", prefix)
+                    description
                 },
                 apply: {String taskName ->
                     if (taskName.startsWith(prefix)) {
@@ -83,7 +84,8 @@ class BasePlugin implements Plugin<Project> {
                             project.tasks.add(taskName).dependsOn(configuration.getBuildArtifacts()).setDescription(String.format("Builds the artifacts belonging to %s.", configuration))
                         }
                     }
-                }
+                },
+                toString: { "Rule: " + description }
         ] as Rule
 
         project.configurations.allObjects {
@@ -94,9 +96,10 @@ class BasePlugin implements Plugin<Project> {
     }
 
     private void configureUploadRules(final Project project) {
+        String description = "Pattern: upload<ConfigurationName>: Uploads the project artifacts of a configuration to a public Gradle repository."
         Rule rule = [
                 getDescription: {
-                    "Pattern: upload<ConfigurationName>: Uploads the project artifacts of a configuration to a public Gradle repository."
+                    description
                 },
                 apply: {String taskName ->
                     Set<Configuration> configurations = project.configurations.all
@@ -105,9 +108,9 @@ class BasePlugin implements Plugin<Project> {
                             createUploadTask(configuration.uploadTaskName, configuration, project)
                         }
                     }
-                }
+                },
+                toString: { "Rule: " + description }
         ] as Rule
-
         project.configurations.allObjects {
             if (!project.tasks.rules.contains(rule)) {
                 project.tasks.addRule(rule)
