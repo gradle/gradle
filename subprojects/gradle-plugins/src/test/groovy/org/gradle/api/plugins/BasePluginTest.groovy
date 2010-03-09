@@ -31,6 +31,9 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.artifacts.Dependency
+import org.gradle.util.WrapUtil
+import org.gradle.api.internal.artifacts.configurations.Configurations
 
 /**
  * @author Hans Dockter
@@ -130,20 +133,19 @@ class BasePluginTest {
         assertThat(task.version, equalTo('1.0'))
     }
 
-//    @Test public void addsConfigurationsToTheProject() {
-//        plugin.use(project)
-//
-//        assertThat(project.status, equalTo("integration"))
-//
-//        def configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
-//        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet(Dependency.ARCHIVES_CONFIGURATION)))
-//        assertTrue(configuration.visible)
-//        assertTrue(configuration.transitive)
-//
-//        configuration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
-//        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet()))
-//        assertTrue(configuration.visible)
-//        assertTrue(configuration.transitive)
-//    }
+    @Test public void addsConfigurationsToTheProject() {
+        plugin.use(project)
 
+        assertThat(project.status, equalTo("integration"))
+
+        def configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet(Dependency.ARCHIVES_CONFIGURATION)))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet()))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
+    }
 }
