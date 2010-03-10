@@ -20,6 +20,8 @@
 <h2>Gradle is free</h2>
 <p>Gradle is licensed under the <a href="license.html">Apache License</a>.</p>
 
+<div class="more"><a href="overview.html">read more</a></div>
+
 </div>
 
 <div id="rightcolumn">
@@ -36,7 +38,7 @@
 <div id="news">
     <h2>Recent News</h2>
     <ul>${php.indexNews}</ul>
-    <a class="more" href="news.php">more</a>
+    <div class="more"><a href="news.php">more news</a></div>
 </div>
 </div>
 </div>

@@ -216,7 +216,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
 
 task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
     standalone = true
-    sourceFile = new File(userguideSrcDir, 'website.xml')
+    sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
     doFirst {task ->
         task.javadocUrl = remoteLocations.javadocUrl

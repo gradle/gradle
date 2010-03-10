@@ -45,6 +45,8 @@ p {
 #bottom {
     width: 100%;
     background: #5b7e52;
+    background-image: -moz-linear-gradient(#7b9d72, #5b7e52);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#7b9d72), to(#5b7e52));
 }
 
 #middle {
@@ -57,6 +59,8 @@ p {
 #header, .content, #footer {
     width: 990px;
     margin: auto;
+    padding-left: 50px;
+    padding-right: 50px;
 }
 
 #header {
@@ -66,7 +70,7 @@ p {
 
 #header #logo {
     position: absolute;
-    left: 0;
+    left: 50px;
     bottom: 10px;
     font-family: Helvetica, sans-serif;
 }
@@ -99,7 +103,7 @@ p {
 
 #navbar {
     position: absolute;
-    right: 0;
+    right: 50px;
     bottom: 10px;
 }
 
@@ -138,8 +142,6 @@ p {
     background: white;
     padding-top: 20px;
     padding-bottom: 35px;
-    padding-left: 50px;
-    padding-right: 50px;
 }
 
 .content a {
@@ -164,7 +166,7 @@ p {
 }
 
 #about {
-    width: 620px;
+    width: 610px;
 }
 
 #about h2 {
@@ -191,6 +193,8 @@ p {
 
 #gettingstarted h2 {
     background: #4a9935;
+    background-image: -moz-linear-gradient(#7bc966, #4a9935);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#7bc966), to(#4a9935));
     color: white;
     margin: 0;
     padding-left: 25px;
@@ -233,7 +237,7 @@ p {
     margin: 0;
     margin-top: 1em;
     padding: 0;
-    line-height: 1.5em;
+    line-height: 1.4em;
 }
 
 #news li {
@@ -243,9 +247,8 @@ p {
     list-style: none;
 }
 
-a.more {
+.more {
     text-align: right;
-    display: block;
     width: 100%;
 }
 
@@ -254,7 +257,7 @@ a.more {
     padding-top: 20px;
     padding-bottom: 20px;
     font-size: 90%;
-    line-height: 1.5em;
+    line-height: 1.4em;
 }
 
 #footer div {

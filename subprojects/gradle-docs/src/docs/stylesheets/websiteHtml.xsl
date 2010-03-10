@@ -13,8 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<xsl:stylesheet
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
     <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
@@ -26,7 +25,7 @@
     <xsl:param name="chunk.quietly">1</xsl:param>
     <xsl:param name="use.id.as.filename">1</xsl:param>
 
-    <!-- Custom page -->
+    <!-- Override this to remove all the html decorations from each page -->
     <xsl:template name="chunk-element-content">
         <xsl:param name="prev"/>
         <xsl:param name="next"/>
@@ -38,7 +37,8 @@
         <xsl:copy-of select="$content"/>
     </xsl:template>
 
-    <xsl:template match="chapter|section" mode="object.xref.markup">
+    <!-- Override this to remove markup from xref links -->
+    <xsl:template match="chapter|appendix|section" mode="object.xref.markup">
         <xsl:value-of select="title"/>
     </xsl:template>
 </xsl:stylesheet>

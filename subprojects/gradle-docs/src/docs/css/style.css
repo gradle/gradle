@@ -136,6 +136,7 @@ h3 {
 .titlepage h1.title {
     font-size: 260%;
     margin-bottom: 0;
+    color: #4a9935;
 }
 
 .titlepage h2.subtitle {
@@ -143,6 +144,7 @@ h3 {
     font-style: italic;
     margin-top: 0;
     margin-bottom: 0;
+    color: #666666;
 }
 
 .titlepage .releaseinfo {

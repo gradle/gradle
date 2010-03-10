@@ -45,18 +45,36 @@
         procedure before
     </xsl:param>
 
-    <xsl:template name="body.attributes">
-        <!-- Overridden to remove standard body attributes -->
+    <xsl:template name="customXref">
+        <xsl:param name="target"/>
+        <xsl:param name="content">
+            <xsl:apply-templates select="$target" mode="object.title.markup"/>
+        </xsl:param>
+        <a>
+            <xsl:attribute name="href">
+                <xsl:call-template name="href.target">
+                    <xsl:with-param name="object" select="$target"/>
+                </xsl:call-template>
+            </xsl:attribute>
+            <xsl:attribute name="title">
+                <xsl:apply-templates select="$target" mode="object.title.markup.textonly"/>
+            </xsl:attribute>
+            <xsl:value-of select="$content"/>
+        </a>
     </xsl:template>
 
+    <!-- Overridden to remove standard body attributes -->
+    <xsl:template name="body.attributes">
+    </xsl:template>
+
+    <!-- Overridden to remove title attribute from structural divs -->
     <xsl:template match="book|chapter|appendix|section|tip|note" mode="html.title.attribute">
-        <!-- Overridden to remove title attribute from structural divs -->
     </xsl:template>
 
     <!-- ADMONITIONS -->
 
+    <!-- Overridden to remove style from admonitions -->
     <xsl:param name="admon.style">
-        <!-- Overridden to remove style from admonitions -->
     </xsl:param>
 
     <xsl:template match="tip[@role='exampleLocation']" mode="class.value"><xsl:value-of select="@role"/></xsl:template>
@@ -85,7 +103,7 @@
 
     <!-- CHAPTER/APPENDIX TITLES -->
 
-    <!-- Use an <h1> instead of <h2> -->
+    <!-- Use an <h1> instead of <h2> for chapter titles -->
     <xsl:template name="component.title">
         <h1>
             <xsl:call-template name="anchor">

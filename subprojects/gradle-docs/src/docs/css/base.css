@@ -27,8 +27,6 @@ html {
 body {
     margin: 0;
     padding: 0;
-    height: 100%;
-    min-height: 100%;
     background-color: white;
     line-height: 150%;
 }
@@ -56,6 +54,11 @@ h1, h2, h3, h4, h5 {
     color: #444444;
     line-height: 150%;
     font-weight: bold;
+    font-family: 'DejaVu Sans', 'Lucida Grande', helvetica, sans-serif;
+}
+
+.heading {
+    font-family: 'DejaVu Sans', 'Lucida Grande', helvetica, sans-serif;
 }
 
 code, pre {
@@ -188,7 +191,6 @@ pre {
     padding-bottom: 0;
     padding-left: 1.2em;
     padding-right: 1.2em;
-
     margin-bottom: 1em;
 }
 
@@ -205,6 +207,7 @@ pre {
     background: #FAF7F5;
     border: solid #e2d2c9 1px;
     float: right;
+    clear: right;
     margin-left: 2em;
     margin-top: 1em;
     margin-bottom: 1em;
