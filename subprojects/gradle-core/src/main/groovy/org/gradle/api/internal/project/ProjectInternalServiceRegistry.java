@@ -150,12 +150,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
                 return project.getGradle().getGradleUserHomeDir();
             }
 
-            public Module getModuleForPublicDescriptor() {
+            public Module getModule() {
                 return new DefaultModule(project.getGroup().toString(), project.getName(), project.getVersion().toString(), project.getStatus().toString());
-            }
-
-            public Module getModuleForResolve() {
-                return new DefaultModule(project.getGroup().toString(), project.getPath().replace(":", "_"), project.getVersion().toString(), project.getStatus().toString());
             }
         };
     }

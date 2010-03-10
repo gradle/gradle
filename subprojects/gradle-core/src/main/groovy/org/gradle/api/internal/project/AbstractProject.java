@@ -815,12 +815,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return services;
     }
 
-    public Module getModuleForResolve() {
-        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForResolve();
-    }
-
-    public Module getModuleForPublicDescriptor() {
-        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForPublicDescriptor();
+    public Module getModule() {
+        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModule();
     }
 
     public void apply(Closure closure) {

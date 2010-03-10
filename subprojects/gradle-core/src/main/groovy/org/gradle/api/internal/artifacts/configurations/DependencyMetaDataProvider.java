@@ -28,7 +28,5 @@ public interface DependencyMetaDataProvider {
 
     InternalRepository getInternalRepository();
 
-    Module getModuleForPublicDescriptor();
-
-    Module getModuleForResolve();
+    Module getModule();
 }

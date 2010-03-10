@@ -51,7 +51,5 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     ServiceRegistryFactory getServiceRegistryFactory();
 
-    Module getModuleForResolve();
-
-    Module getModuleForPublicDescriptor();
+    Module getModule();
 }

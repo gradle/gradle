@@ -811,8 +811,7 @@ def scriptMethod(Closure closure) {
 
     @Test void testProperties() {
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModuleForResolve(); will(returnValue([:] as Module))
-            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor(); will(returnValue([:] as Module))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue([:] as Module))
         }
         project.additional = 'additional'
 
@@ -1018,13 +1017,10 @@ def scriptMethod(Closure closure) {
 
     @Test void testGetModule() {
         Module moduleDummyResolve = [:] as Module
-        Module moduleDummyPublicDescriptor = [:] as Module
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModuleForResolve(); will(returnValue(moduleDummyResolve))
-            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor(); will(returnValue(moduleDummyPublicDescriptor))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue(moduleDummyResolve))
         }
-        assertThat(project.getModuleForResolve(), equalTo(moduleDummyResolve))
-        assertThat(project.getModuleForPublicDescriptor(), equalTo(moduleDummyPublicDescriptor))
+        assertThat(project.getModule(), equalTo(moduleDummyResolve))
     }
 }
 

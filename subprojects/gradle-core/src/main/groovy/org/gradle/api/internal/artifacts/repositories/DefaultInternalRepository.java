@@ -89,7 +89,7 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
         Project project = gradle.getRootProject().project(projectPathValue);
         DependencyMetaDataProvider dependencyMetaDataProvider = ((ProjectInternal) project).getServiceRegistryFactory().get(DependencyMetaDataProvider.class);
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations().getAll(),
-                dependencyMetaDataProvider.getModuleForResolve(), IvyContext.getContext().getIvy().getSettings());
+                dependencyMetaDataProvider.getModule(), IvyContext.getContext().getIvy().getSettings());
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {

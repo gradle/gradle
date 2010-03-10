@@ -315,11 +315,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
             return startParameter.getGradleUserHomeDir();
         }
 
-        public Module getModuleForPublicDescriptor() {
-            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
-        }
-
-        public Module getModuleForResolve() {
+        public Module getModule() {
             return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }
