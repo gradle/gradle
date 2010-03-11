@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
 import groovy.lang.*;
@@ -126,7 +127,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             subclass = builder.generate();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new GradleException(String.format("Could not generate a proxy class for class %s.", type.getName()), e);
         }
 

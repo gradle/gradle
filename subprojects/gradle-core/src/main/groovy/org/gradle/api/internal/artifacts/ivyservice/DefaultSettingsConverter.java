@@ -183,17 +183,17 @@ public class DefaultSettingsConverter implements SettingsConverter {
                 return;
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                logger = DefaultSettingsConverter.logger.createProgressLogger();
                 total = 0;
-                logger.started(String.format("downloading (%s) %s", getLengthText(evt), evt.getResource().getName()));
+                logger = DefaultSettingsConverter.logger.createProgressLogger();
+                logger.started(evt.getResource().getName());
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                 total += evt.getLength();
-                logger.tick(String.format("%s downloaded", getLengthText(total)));
+                logger.progress(String.format("%s/%s downloaded", getLengthText(total), getLengthText(evt)));
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED
                     || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
-                logger.completed();
+                logger.completed(String.format("downloaded (%s)", getLengthText(total)));
             }
         }
     }

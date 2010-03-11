@@ -15,8 +15,6 @@
  */
 
 
-
-
 import java.text.DateFormat
 
 apply id: 'groovy'
@@ -67,7 +65,11 @@ dependencies {
             "commons-collections:commons-collections:3.2.1@jar",
             "slide:webdavlib:2.0@jar",
             "org.apache.maven:maven-ant-tasks:2.1.0@jar",
-            libraries.asm_all
+            libraries.asm_all,
+            'org.fusesource.jansi:jansi:1.2',
+            'org.jruby.ext.posix:jna-posix:1.0.3'
+
+    runtime 'net.java.dev.jna:jna:3.2.2'
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 

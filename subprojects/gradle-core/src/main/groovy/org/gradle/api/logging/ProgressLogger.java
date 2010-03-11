@@ -17,27 +17,22 @@
 package org.gradle.api.logging;
 
 /**
- * Used to log the progress of some potentially long running operation.
+ * Used to log the progress of a potentially long running operation.
  */
 public interface ProgressLogger {
     /**
-     * Log the start of the operation
+     * Logs the start of the operation.
      *
-     * @param message The start message
+     * @param description A short description of the long running operation.
      */
-    void started(String message);
-
-    /**
-     * Logs some progress.
-     */
-    void tick();
+    void started(String description);
 
     /**
      * Logs some progress.
      *
-     * @param message The progress message 
+     * @param progressMessage The new status message
      */
-    void tick(String message);
+    void progress(String progressMessage);
 
     /**
      * Logs the completion of the operation
@@ -47,7 +42,7 @@ public interface ProgressLogger {
     /**
      * Logs the completion of the operation
      *
-     * @param message The completion message
+     * @param status The final status message
      */
-    void completed(String message);
+    void completed(String status);
 }

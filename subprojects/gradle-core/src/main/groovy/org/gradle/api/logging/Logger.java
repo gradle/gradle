@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.logging;
 
 /**
@@ -113,7 +114,7 @@ public interface Logger extends org.slf4j.Logger {
     void log(LogLevel level, String message, Throwable throwable);
 
     /**
-     * Creates a new progress logger which logs to this logger.
+     * Creates a new progress logger backed by this logger.
      *
      * @return A progress logger.
      */

@@ -22,26 +22,33 @@ import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.filter.LevelFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.AppenderBase;
+import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
+import org.fusesource.jansi.AnsiConsole;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.logging.MarkerFilter;
+import org.gradle.logging.*;
+import org.jruby.ext.posix.POSIX;
+import org.jruby.ext.posix.POSIXFactory;
+import org.jruby.ext.posix.POSIXHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import java.io.PrintStream;
+import java.io.*;
 import java.util.logging.LogManager;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultLoggingConfigurer implements LoggingConfigurer {
-    private final Appender stderrConsoleAppender = new Appender(System.err);
-    private final Appender stdoutConsoleAppender = new Appender(System.out);
+    private final Appender stderrConsoleAppender = new Appender();
+    private final Appender stdoutConsoleAppender = new Appender();
     private boolean applied;
+    private boolean isTerminal;
 
     public void addStandardErrorListener(StandardOutputListener listener) {
         stderrConsoleAppender.addListener(listener);
@@ -66,6 +73,10 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             lc.reset();
             LogManager.getLogManager().reset();
             SLF4JBridgeHandler.install();
+
+            isTerminal = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true).isatty(FileDescriptor.out);
+            stderrConsoleAppender.setTarget(isTerminal ? AnsiConsole.err() : System.err);
+            stdoutConsoleAppender.setTarget(isTerminal ? AnsiConsole.out() : System.out);
             stderrConsoleAppender.setContext(lc);
             stdoutConsoleAppender.setContext(lc);
             rootLogger = lc.getLogger("ROOT");
@@ -113,8 +124,8 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     }
 
     private void setLayouts(LogLevel logLevel, Appender errorAppender, Appender nonErrorAppender, LoggerContext lc) {
-        nonErrorAppender.setLayout(createPatternLayout(lc, logLevel));
-        errorAppender.setLayout(createPatternLayout(lc, logLevel));
+        nonErrorAppender.setFormatter(createFormatter(lc, logLevel));
+        errorAppender.setFormatter(createFormatter(lc, logLevel));
     }
 
     private Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
@@ -127,16 +138,17 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         return levelFilter;
     }
 
-    private PatternLayout createPatternLayout(LoggerContext loggerContext, LogLevel logLevel) {
-        PatternLayout patternLayout;
+    private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel) {
         if (logLevel == LogLevel.DEBUG) {
-            patternLayout = new DebugLayout();
+            Layout<ILoggingEvent> layout = new DebugLayout();
+            layout.setContext(loggerContext);
+            layout.start();
+            return new LayoutBasedFormatter(layout);
+        } else if (isTerminal) {
+            return new ConsoleBackedFormatter(loggerContext);
         } else {
-            patternLayout = new InfoLayout();
+            return new BasicProgressLoggingAwareFormatter(loggerContext);
         }
-        patternLayout.setContext(loggerContext);
-        patternLayout.start();
-        return patternLayout;
     }
 
     private static class DebugLayout extends PatternLayout {
@@ -145,68 +157,19 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         }
     }
 
-    private static class InfoLayout extends PatternLayout {
-        private static final String EOL = System.getProperty("line.separator");
-        private boolean atEndOfLine;
-        private boolean needTrailingSpace;
-
-        private InfoLayout() {
-            setPattern("%msg%n%ex");
-        }
-
-        @Override
-        public String doLayout(ILoggingEvent loggingEvent) {
-            StringBuilder message = new StringBuilder();
-            if (loggingEvent.getMarker() == Logging.PROGRESS_STARTED) {
-                if (atEndOfLine) {
-                    message.append(EOL);
-                }
-                message.append(loggingEvent.getFormattedMessage());
-                atEndOfLine = true;
-                needTrailingSpace = true;
-            }
-            else if (loggingEvent.getMarker() == Logging.PROGRESS) {
-                if (atEndOfLine && needTrailingSpace) {
-                    message.append(" ");
-                }
-                message.append(".");
-                atEndOfLine = true;
-                needTrailingSpace = false;
-            }
-            else if (loggingEvent.getMarker() == Logging.PROGRESS_COMPLETE) {
-                message.append(loggingEvent.getFormattedMessage());
-                if (!atEndOfLine && message.length() == 0) {
-                    return null;
-                }
-                if (message.length() > 0) {
-                    message.insert(0, " ");
-                }
-                message.append(EOL);
-                atEndOfLine = false;
-                needTrailingSpace = false;
-            }
-            else {
-                if (atEndOfLine) {
-                    message.append(EOL);
-                }
-                message.append(super.doLayout(loggingEvent));
-                atEndOfLine = false;
-                needTrailingSpace = false;
-            }
-            return message.toString();
-        }
-    }
-
     private static class Appender extends AppenderBase<ILoggingEvent> {
-        private final ListenerBroadcast<StandardOutputListener> listeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+        private final ListenerBroadcast<StandardOutputListener> listeners
+                = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+        private LogEventFormatter formatter;
+        private PrintStream target;
 
-        private Appender(final PrintStream target) {
-            listeners.setLogger(new StandardOutputListener() {
-                public void onOutput(CharSequence output) {
-                    target.print(output);
-                    target.flush();
-                }
-            });
+        private void setTarget(final PrintStream target) {
+            this.target = target;
+        }
+
+        public void setFormatter(LogEventFormatter formatter) {
+            this.formatter = formatter;
+            formatter.setTarget(new ListenerAdapter(listeners.getSource(), target));
         }
 
         public void removeListener(StandardOutputListener listener) {
@@ -219,10 +182,90 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
 
         @Override
         protected void append(ILoggingEvent event) {
-            String output = layout.doLayout(event);
-            if (output != null) {
-                listeners.getSource().onOutput(output);
+            try {
+                formatter.format(event);
+                target.flush();
+            } catch (Throwable t) {
+                // Give up and try stdout
+                t.printStackTrace(StandardOutputLogging.DEFAULT_ERR);
             }
+        }
+    }
+
+    private static class ListenerAdapter implements Appendable {
+        private final StandardOutputListener listener;
+        private final Appendable next;
+
+        private ListenerAdapter(StandardOutputListener listener, Appendable next) {
+            this.listener = listener;
+            this.next = next;
+        }
+
+        public Appendable append(char c) throws IOException {
+            next.append(c);
+            listener.onOutput(String.valueOf(c));
+            return this;
+        }
+
+        public Appendable append(CharSequence sequence) throws IOException {
+            next.append(sequence);
+            if (sequence != null) {
+                listener.onOutput(sequence);
+            } else {
+                listener.onOutput("null"); // This is the contract of Appendable.append()
+            }
+            return this;
+        }
+
+        public Appendable append(CharSequence sequence, int start, int end) throws IOException {
+            next.append(sequence, start, end);
+            if (sequence != null) {
+                listener.onOutput(sequence.subSequence(start, end));
+            } else {
+                listener.onOutput("null"); // This is the contract of Appendable.append() 
+            }
+            return this;
+        }
+    }
+
+    private class POSIXHandlerImpl implements POSIXHandler {
+        public void error(POSIX.ERRORS errors, String message) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void unimplementedError(String message) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void warn(WARNING_ID warningId, String message, Object... objects) {
+        }
+
+        public boolean isVerbose() {
+            return false;
+        }
+
+        public File getCurrentWorkingDirectory() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String[] getEnv() {
+            throw new UnsupportedOperationException();
+        }
+
+        public InputStream getInputStream() {
+            return System.in;
+        }
+
+        public PrintStream getOutputStream() {
+            return System.out;
+        }
+
+        public int getPID() {
+            throw new UnsupportedOperationException();
+        }
+
+        public PrintStream getErrorStream() {
+            return System.err;
         }
     }
 }

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.logging;
 
 import org.apache.ivy.util.Message;
@@ -381,24 +382,20 @@ public class Logging {
             this.logger = logger;
         }
 
-        public void started(String message) {
-            logger.info(PROGRESS_STARTED, message);
+        public void started(String description) {
+            logger.info(PROGRESS_STARTED, description);
         }
 
-        public void tick() {
-            tick(".");
-        }
-
-        public void tick(String message) {
-            logger.info(PROGRESS, message);
+        public void progress(String progressMessage) {
+            logger.info(PROGRESS, progressMessage);
         }
 
         public void completed() {
             completed("");
         }
 
-        public void completed(String message) {
-            logger.info(PROGRESS_COMPLETE, message);
+        public void completed(String status) {
+            logger.info(PROGRESS_COMPLETE, status);
         }
     }
 }
