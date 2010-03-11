@@ -92,7 +92,7 @@ public class TestNGListenerAdapter implements ITestListener, IConfigurationListe
             testId = tests.remove(iTestResult.getName());
         }
         resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType,
-                iTestResult.getThrowable()));
+                resultType == TestResult.ResultType.FAILURE ? iTestResult.getThrowable() : null));
     }
 
     public void onConfigurationSuccess(ITestResult testResult) {

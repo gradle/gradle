@@ -15,8 +15,6 @@
  */
 
 
-
-
 package org.gradle.integtests.testng
 
 import org.gradle.api.Project
@@ -71,7 +69,9 @@ public class TestNGIntegrationTest {
     })
     static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
+        result.assertTestsExecuted('org.gradle.OkTest', 'passingTest', 'expectedFailTest')
         result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        result.assertTestPassed('org.gradle.OkTest', 'expectedFailTest')
         result.assertTestsExecuted('org.gradle.ConcreteTest', 'ok', 'alsoOk')
         result.assertTestPassed('org.gradle.ConcreteTest', 'ok')
         result.assertTestPassed('org.gradle.ConcreteTest', 'alsoOk')

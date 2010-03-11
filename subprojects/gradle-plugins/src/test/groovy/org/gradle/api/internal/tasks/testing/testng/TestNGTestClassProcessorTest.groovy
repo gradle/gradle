@@ -15,10 +15,6 @@
  */
 
 
-
-
-
-
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
@@ -112,6 +108,33 @@ class TestNGTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGFactoryClass.class));
+        processor.endProcessing();
+    }
+
+    @Test
+    public void executesATestWithExpectedException() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('ok'))
+                assertThat(test.className, equalTo(ATestNGClassWithExpectedException.class.name))
+            }
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(event.failure, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithExpectedException.class));
         processor.endProcessing();
     }
 
@@ -244,6 +267,13 @@ public class ATestNGClass {
 
     @org.testng.annotations.Test
     public void ok() {
+    }
+}
+
+public class ATestNGClassWithExpectedException {
+    @org.testng.annotations.Test(expectedExceptions = RuntimeException.class)
+    public void ok() {
+        throw new RuntimeException()
     }
 }
 
