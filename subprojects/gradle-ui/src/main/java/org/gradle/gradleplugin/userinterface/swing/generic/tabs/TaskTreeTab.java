@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
 import org.gradle.api.logging.Logger;
@@ -563,7 +564,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     private void copySelectedTaskNames() {
 
         String names = getSelectedTaskNames();
-        if( names.isEmpty() ) {
+        if (names.length() == 0) {
             return;
         }
 
