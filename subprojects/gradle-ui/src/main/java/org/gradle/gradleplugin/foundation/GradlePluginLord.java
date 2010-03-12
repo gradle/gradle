@@ -455,7 +455,21 @@ public class GradlePluginLord {
        return nextRequestID++;
     }
 
+    /**
+     * This will refresh the project/task tree.
+     * @return the Request that was created. Null if no request created.
+     */
     public Request addRefreshRequestToQueue() {
+        return addRefreshRequestToQueue( null );
+    }
+
+    /**
+     * This will refresh the project/task tree. This version allows you to specify additional
+     * arguments to be passed to gradle during the refresh (such as -b to specify a build file)
+     * @param additionalCommandLineArguments the arguments to add, or null if none.
+     * @return the Request that was created. Null if no request created.
+     */
+    public Request addRefreshRequestToQueue( String additionalCommandLineArguments ) {
         if (!isStarted){
            return null;
         }
@@ -469,6 +483,11 @@ public class GradlePluginLord {
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
         String fullCommandLine = '-' + DefaultCommandLine2StartParameterConverter.TASKS;
+
+        if( additionalCommandLineArguments != null )
+        {
+            fullCommandLine += ' ' + additionalCommandLineArguments;
+        }
 
         //here we'll give the UI a chance to add things to the command line.
         fullCommandLine = alterCommandLine(fullCommandLine);
