@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -28,7 +30,7 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*
 import org.gradle.api.Project
 import org.slf4j.Logger
-import org.gradle.process.child.SystemClassLoaderBootstrapWorker;
+import org.gradle.process.child.SystemApplicationClassLoaderWorker;
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class JUnitIntegrationTest {
@@ -66,7 +68,7 @@ public class JUnitIntegrationTest {
                     // check Gradle and impl classes not visible
                     try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
                     try { getClass().getClassLoader().loadClass("${Logger.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
-                    try { getClass().getClassLoader().loadClass("${SystemClassLoaderBootstrapWorker.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                    try { getClass().getClassLoader().loadClass("${SystemApplicationClassLoaderWorker.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
                     // check sys properties
                     assertEquals("value", System.getProperty("testSysProperty"));
                     // check env vars

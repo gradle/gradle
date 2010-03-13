@@ -31,14 +31,14 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
-public class WorkerMainTest {
+public class ActionExecutionWorkerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Action<WorkerProcessContext> action = context.mock(Action.class);
     private final MessagingClient client = context.mock(MessagingClient.class);
-    private final WorkerActionContext workerActionContext = context.mock(WorkerActionContext.class);
+    private final WorkerContext workerContext = context.mock(WorkerContext.class);
     private final ClassLoader appClassLoader = new ClassLoader() {
     };
-    private final WorkerMain main = new WorkerMain(action, 12, "<display name>", null) {
+    private final ActionExecutionWorker main = new ActionExecutionWorker(action, 12, "<display name>", null) {
         @Override
         MessagingClient createClient() {
             return client;
@@ -57,10 +57,10 @@ public class WorkerMainTest {
             one(client).stop();
         }});
 
-        main.execute(workerActionContext);
+        main.execute(workerContext);
 
         context.checking(new Expectations() {{
-            allowing(workerActionContext).getApplicationClassLoader();
+            allowing(workerContext).getApplicationClassLoader();
             will(returnValue(appClassLoader));
             allowing(client).getConnection();
             will(returnValue(connection));
@@ -85,7 +85,7 @@ public class WorkerMainTest {
         }});
 
         try {
-            main.execute(workerActionContext);
+            main.execute(workerContext);
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure));

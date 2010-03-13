@@ -22,7 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
-import org.gradle.process.child.IsolatedClassLoaderWorker;
+import org.gradle.process.child.IsolatedApplicationClassLoaderWorker;
 import org.gradle.process.launcher.GradleWorkerMain;
 import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
@@ -88,7 +88,7 @@ public class DefaultWorkerProcessFactoryTest {
         assertThat(process, instanceOf(DefaultWorkerProcess.class));
 
         ObjectInputStream instr = new ObjectInputStream(builder.getJavaCommand().getStandardInput());
-        assertThat(instr.readObject(), instanceOf(IsolatedClassLoaderWorker.class));
+        assertThat(instr.readObject(), instanceOf(IsolatedApplicationClassLoaderWorker.class));
     }
 
     private static class TestAction implements Action<WorkerProcessContext>, Serializable {

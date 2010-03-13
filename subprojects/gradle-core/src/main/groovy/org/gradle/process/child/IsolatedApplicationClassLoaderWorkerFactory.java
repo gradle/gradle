@@ -26,7 +26,7 @@ import java.util.Collection;
 import java.util.Set;
 import java.util.concurrent.Callable;
 
-public class IsolatedClassLoaderWorkerFactory implements WorkerFactory {
+public class IsolatedApplicationClassLoaderWorkerFactory implements WorkerFactory {
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -34,7 +34,7 @@ public class IsolatedClassLoaderWorkerFactory implements WorkerFactory {
     private final URI serverAddress;
     private final ClassPathRegistry classPathRegistry;
 
-    public IsolatedClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
+    public IsolatedApplicationClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
                                             Collection<URL> implementationClassPath, URI serverAddress,
                                             ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;
@@ -51,9 +51,9 @@ public class IsolatedClassLoaderWorkerFactory implements WorkerFactory {
 
     public Callable<?> create() {
         Set<URL> applicationClassPath = processBuilder.getApplicationClasspath();
-        WorkerMain injectedWorker = new WorkerMain(processBuilder.getWorker(), workerId, displayName, serverAddress);
-        BootstrapWorker worker = new BootstrapWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
+        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
+        ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
                 implementationClassPath, injectedWorker);
-        return new IsolatedClassLoaderWorker(applicationClassPath, worker);
+        return new IsolatedApplicationClassLoaderWorker(applicationClassPath, worker);
     }
 }

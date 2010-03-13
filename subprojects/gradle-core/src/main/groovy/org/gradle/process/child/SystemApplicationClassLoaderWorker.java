@@ -26,11 +26,11 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
-public class SystemClassLoaderBootstrapWorker implements Callable<Void> {
+public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private final byte[] serializedWorker;
     private final Collection<URL> applicationClassPath;
 
-    public SystemClassLoaderBootstrapWorker(Collection<URL> applicationClassPath, byte[] serializedWorker) {
+    public SystemApplicationClassLoaderWorker(Collection<URL> applicationClassPath, byte[] serializedWorker) {
         this.applicationClassPath = applicationClassPath;
         this.serializedWorker = serializedWorker;
     }
@@ -41,8 +41,8 @@ public class SystemClassLoaderBootstrapWorker implements Callable<Void> {
 
         ClassLoaderObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(
                 serializedWorker), getClass().getClassLoader());
-        Action<WorkerActionContext> action = (Action<WorkerActionContext>) instr.readObject();
-        action.execute(new WorkerActionContext() {
+        Action<WorkerContext> action = (Action<WorkerContext>) instr.readObject();
+        action.execute(new WorkerContext() {
             public ClassLoader getApplicationClassLoader() {
                 return applicationClassLoader;
             }

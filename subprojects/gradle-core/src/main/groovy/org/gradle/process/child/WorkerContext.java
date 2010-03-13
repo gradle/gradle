@@ -16,6 +16,6 @@
 
 package org.gradle.process.child;
 
-public interface WorkerActionContext {
+public interface WorkerContext {
     ClassLoader getApplicationClassLoader();
 }

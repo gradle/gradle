@@ -31,21 +31,21 @@ import java.net.URI;
  * This is the other half of {@link org.gradle.process.launcher.GradleWorkerMain}. It is instantiated inside the implementation
  * ClassLoader.
  */
-public class WorkerMain implements Action<WorkerActionContext>, Serializable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerMain.class);
+public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);
     private final Action<WorkerProcessContext> action;
     private final Object workerId;
     private final String displayName;
     private final URI serverAddress;
 
-    public WorkerMain(Action<WorkerProcessContext> action, Object workerId, String displayName, URI serverAddress) {
+    public ActionExecutionWorker(Action<WorkerProcessContext> action, Object workerId, String displayName, URI serverAddress) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
         this.serverAddress = serverAddress;
     }
 
-    public void execute(final WorkerActionContext workerActionContext) {
+    public void execute(final WorkerContext workerContext) {
         final MessagingClient client = createClient();
         try {
             LOGGER.debug("Starting {}.", displayName);
@@ -55,7 +55,7 @@ public class WorkerMain implements Action<WorkerActionContext>, Serializable {
                 }
 
                 public ClassLoader getApplicationClassLoader() {
-                    return workerActionContext.getApplicationClassLoader();
+                    return workerContext.getApplicationClassLoader();
                 }
 
                 public Object getWorkerId() {

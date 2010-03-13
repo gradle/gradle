@@ -17,7 +17,6 @@
 package org.gradle.api.testing.execution.control.client;
 
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.util.BootstrapUtil;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -52,9 +51,9 @@ public class ForkConfigWriter {
         }
 
         // TODO only needed Gradle fork classpath
-        for (File controlCpElement : BootstrapUtil.getGradleClasspath()) {
-            config.control(controlCpElement);
-        }
+//        for (File controlCpElement : BootstrapUtil.getGradleClasspath()) {
+//            config.control(controlCpElement);
+//        }
 
         // TODO testRuntime classpath without test framework spec
         for (File sandboxCpElement : testTask.getClasspath()) {

@@ -40,15 +40,15 @@ import java.util.concurrent.Callable;
  *            +---------------+--------------+
  *                            |
  *                       implementation
- *             (WorkerMain + action implementation)
+ *             (ActionExecutionWorker + action implementation)
  * </pre>
  */
-public class SystemClassLoaderWorker implements Callable<Void>, Serializable {
+public class BootstrapClassLoaderWorker implements Callable<Void>, Serializable {
     private final Collection<URL> bootstrapClasspath;
     private final Collection<URL> applicationClasspath;
     private final byte[] serializedWorker;
 
-    public SystemClassLoaderWorker(Collection<URL> bootstrapClasspath, Collection<URL> applicationClasspath, byte[] serializedWorker) {
+    public BootstrapClassLoaderWorker(Collection<URL> bootstrapClasspath, Collection<URL> applicationClasspath, byte[] serializedWorker) {
         this.bootstrapClasspath = bootstrapClasspath;
         this.applicationClasspath = applicationClasspath;
         this.serializedWorker = serializedWorker;
@@ -58,7 +58,7 @@ public class SystemClassLoaderWorker implements Callable<Void>, Serializable {
         URL[] bootstrapUrls = bootstrapClasspath.toArray(new URL[bootstrapClasspath.size()]);
         URLClassLoader classLoader = new URLClassLoader(bootstrapUrls, ClassLoader.getSystemClassLoader().getParent());
         Class<? extends Callable> workerClass = classLoader.loadClass(
-                "org.gradle.process.child.SystemClassLoaderBootstrapWorker").asSubclass(Callable.class);
+                "org.gradle.process.child.SystemApplicationClassLoaderWorker").asSubclass(Callable.class);
         Callable<Void> main = workerClass.getConstructor(Collection.class, byte[].class).newInstance(applicationClasspath, serializedWorker);
         return main.call();
     }

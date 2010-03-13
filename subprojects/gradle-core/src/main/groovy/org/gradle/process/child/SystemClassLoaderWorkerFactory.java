@@ -18,7 +18,7 @@ package org.gradle.process.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.process.WorkerProcessBuilder;
-import org.gradle.process.launcher.SystemClassLoaderWorker;
+import org.gradle.process.launcher.BootstrapClassLoaderWorker;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -53,11 +53,11 @@ public class SystemClassLoaderWorkerFactory implements WorkerFactory {
 
     public Callable<?> create() {
         // Serialize the bootstrap worker, so it can be transported through the system ClassLoader
-        WorkerMain injectedWorker = new WorkerMain(processBuilder.getWorker(), workerId, displayName, serverAddress);
-        BootstrapWorker worker = new BootstrapWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
+        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
+        ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
                 implementationClassPath, injectedWorker);
         byte[] serializedWorker = GUtil.serialize(worker);
 
-        return new SystemClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS"), processBuilder.getApplicationClasspath(), serializedWorker);
+        return new BootstrapClassLoaderWorker(classPathRegistry.getClassPath("WORKER_PROCESS"), processBuilder.getApplicationClasspath(), serializedWorker);
     }
 }

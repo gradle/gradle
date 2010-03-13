@@ -42,14 +42,14 @@ import java.util.concurrent.Callable;
  *              +-------------+-----------+
  *                            |
  *                     implementation
- *           (WorkerMain + action implementation)
+ *           (ActionExecutionWorker + action implementation)
  * </pre>
  */
-public class IsolatedClassLoaderWorker implements Callable<Void>, Serializable {
-    private final Action<WorkerActionContext> worker;
+public class IsolatedApplicationClassLoaderWorker implements Callable<Void>, Serializable {
+    private final Action<WorkerContext> worker;
     private final Collection<URL> applicationClassPath;
 
-    public IsolatedClassLoaderWorker(Collection<URL> applicationClassPath, Action<WorkerActionContext> worker) {
+    public IsolatedApplicationClassLoaderWorker(Collection<URL> applicationClassPath, Action<WorkerContext> worker) {
         this.applicationClassPath = applicationClassPath;
         this.worker = worker;
     }
@@ -57,7 +57,7 @@ public class IsolatedClassLoaderWorker implements Callable<Void>, Serializable {
     public Void call() throws Exception {
         final ObservableUrlClassLoader applicationClassLoader = createApplicationClassLoader();
 
-        WorkerActionContext context = new WorkerActionContext() {
+        WorkerContext context = new WorkerContext() {
             public ClassLoader getApplicationClassLoader() {
                 return applicationClassLoader;
             }

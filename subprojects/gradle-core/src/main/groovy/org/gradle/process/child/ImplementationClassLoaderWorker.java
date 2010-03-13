@@ -29,30 +29,30 @@ import java.io.Serializable;
 import java.net.URL;
 import java.util.Collection;
 
-public class BootstrapWorker implements Action<WorkerActionContext>, Serializable {
+public class ImplementationClassLoaderWorker implements Action<WorkerContext>, Serializable {
     private final LogLevel logLevel;
     private final Collection<String> sharedPackages;
     private final Collection<URL> implementationClassPath;
     private final byte[] serializedWorkerAction;
 
-    protected BootstrapWorker(LogLevel logLevel, Collection<String> sharedPackages,
-                              Collection<URL> implementationClassPath, Action<WorkerActionContext> workerAction) {
+    protected ImplementationClassLoaderWorker(LogLevel logLevel, Collection<String> sharedPackages,
+                              Collection<URL> implementationClassPath, Action<WorkerContext> workerAction) {
         this.logLevel = logLevel;
         this.sharedPackages = sharedPackages;
         this.implementationClassPath = implementationClassPath;
         serializedWorkerAction = GUtil.serialize(workerAction);
     }
 
-    public void execute(WorkerActionContext workerActionContext) {
+    public void execute(WorkerContext workerContext) {
         LoggingConfigurer configurer = createLoggingConfigurer();
         configurer.configure(logLevel);
 
         FilteringClassLoader filteredWorkerClassLoader = new FilteringClassLoader(getClass().getClassLoader());
         filteredWorkerClassLoader.allowPackage("org.slf4j");
         filteredWorkerClassLoader.allowClass(Action.class);
-        filteredWorkerClassLoader.allowClass(WorkerActionContext.class);
+        filteredWorkerClassLoader.allowClass(WorkerContext.class);
 
-        ClassLoader applicationClassLoader = workerActionContext.getApplicationClassLoader();
+        ClassLoader applicationClassLoader = workerContext.getApplicationClassLoader();
         FilteringClassLoader filteredApplication = new FilteringClassLoader(applicationClassLoader);
         ObservableUrlClassLoader implementationClassLoader = createImplementationClassLoader(filteredWorkerClassLoader,
                 filteredApplication);
@@ -64,15 +64,15 @@ public class BootstrapWorker implements Action<WorkerActionContext>, Serializabl
         implementationClassLoader.addURLs(implementationClassPath);
 
         // Deserialize the worker action
-        Action<WorkerActionContext> action;
+        Action<WorkerContext> action;
         try {
             ObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedWorkerAction),
                     implementationClassLoader);
-            action = (Action<WorkerActionContext>) instr.readObject();
+            action = (Action<WorkerContext>) instr.readObject();
         } catch (Exception e) {
             throw new GradleException(e);
         }
-        action.execute(workerActionContext);
+        action.execute(workerContext);
     }
 
     LoggingConfigurer createLoggingConfigurer() {

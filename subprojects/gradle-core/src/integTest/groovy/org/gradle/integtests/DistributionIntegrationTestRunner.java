@@ -13,10 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests;
 
 import org.gradle.process.launcher.GradleWorkerMain;
-import org.gradle.process.launcher.SystemClassLoaderWorker;
+import org.gradle.process.launcher.BootstrapClassLoaderWorker;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.runner.Description;
@@ -40,7 +41,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         userHomeDir = file("integTest.gradleUserHomeDir", "intTestHomeDir");
 
         TestFile workerJar = userHomeDir.file("worker-main-jar-exploded");
-        for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, SystemClassLoaderWorker.class)) {
+        for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
             String fileName = aClass.getName().replace('.', '/') + ".class";
             workerJar.file(fileName).copyFrom(DistributionIntegrationTestRunner.class.getClassLoader().getResource(fileName));
         }

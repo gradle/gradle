@@ -35,21 +35,21 @@ import java.util.List;
 import static org.gradle.util.WrapUtil.*;
 
 @RunWith(JMock.class)
-public class BootstrapWorkerTest {
+public class ImplementationClassLoaderWorkerTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ClassLoader applicationClassLoader = getClass().getClassLoader();
     private final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
     private final ObservableUrlClassLoader implementationClassLoader = new ObservableUrlClassLoader(applicationClassLoader);
-    private final WorkerActionContext workerContext = context.mock(WorkerActionContext.class);
+    private final WorkerContext workerContext = context.mock(WorkerContext.class);
     private final SerializableMockHelper helper = new SerializableMockHelper();
 
     @Test
     public void createsClassLoaderAndInstantiatesAndExecutesWorker() throws Exception {
-        final Action<WorkerActionContext> action = context.mock(Action.class);
+        final Action<WorkerContext> action = context.mock(Action.class);
         final List<URL> implementationClassPath = toList(new File(".").toURL());
 
-        Action<WorkerActionContext> serializableAction = helper.serializable(action, implementationClassLoader);
-        BootstrapWorker worker = new TestBootstrapWorker(LogLevel.DEBUG, toList("a", "b"), implementationClassPath, serializableAction);
+        Action<WorkerContext> serializableAction = helper.serializable(action, implementationClassLoader);
+        ImplementationClassLoaderWorker worker = new TestImplementationClassLoaderWorker(LogLevel.DEBUG, toList("a", "b"), implementationClassPath, serializableAction);
 
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(LogLevel.DEBUG);
@@ -62,9 +62,9 @@ public class BootstrapWorkerTest {
         worker.execute(workerContext);
     }
 
-    private class TestBootstrapWorker extends BootstrapWorker {
-        private TestBootstrapWorker(LogLevel logLevel, Collection<String> sharedPackages,
-                                    Collection<URL> implementationClassPath, Action<WorkerActionContext> workerAction) {
+    private class TestImplementationClassLoaderWorker extends ImplementationClassLoaderWorker {
+        private TestImplementationClassLoaderWorker(LogLevel logLevel, Collection<String> sharedPackages,
+                                    Collection<URL> implementationClassPath, Action<WorkerContext> workerAction) {
             super(logLevel, sharedPackages, implementationClassPath, workerAction);
         }
 
