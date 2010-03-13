@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests;
 
+import org.gradle.process.launcher.GradleWorkerMain;
+import org.gradle.process.launcher.SystemClassLoaderWorker;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.runner.Description;
@@ -27,10 +29,24 @@ import org.junit.runners.model.Statement;
 import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Field;
+import java.util.Arrays;
 
 public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     private static final String NOFORK_SYS_PROP = "org.gradle.integtest.nofork";
     private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
+    private static TestFile userHomeDir;
+
+    static {
+        userHomeDir = file("integTest.gradleUserHomeDir", "intTestHomeDir");
+
+        TestFile workerJar = userHomeDir.file("worker-main-jar-exploded");
+        for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, SystemClassLoaderWorker.class)) {
+            String fileName = aClass.getName().replace('.', '/') + ".class";
+            workerJar.file(fileName).copyFrom(DistributionIntegrationTestRunner.class.getClassLoader().getResource(fileName));
+        }
+
+        System.setProperty("gradle.core.worker.jar", workerJar.getAbsolutePath());
+    }
 
     public DistributionIntegrationTestRunner(Class<?> testClass) throws InitializationError {
         super(testClass);
@@ -79,7 +95,6 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
     }
 
     private GradleDistribution getDist(TemporaryFolder temporaryFolder) throws IOException {
-        final TestFile userHomeDir = file("integTest.gradleUserHomeDir", "intTestHomeDir");
         final TestFile gradleHomeDir = file("integTest.gradleHomeDir", null);
         final TestFile samplesDir = file("integTest.samplesdir", new File(gradleHomeDir, "samples").getAbsolutePath());
         final TestFile userGuideOutputDir = file("integTest.userGuideOutputDir", "subprojects/gradle-docs/src/samples/userguideOutput");

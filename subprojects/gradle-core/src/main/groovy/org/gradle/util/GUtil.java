@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import org.gradle.api.UncheckedIOException;
@@ -256,5 +257,17 @@ public class GUtil {
         }
 
         return builder.toString();
+    }
+
+    public static byte[] serialize(Object object) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        try {
+            ObjectOutputStream objectOutputStream = new ObjectOutputStream(outputStream);
+            objectOutputStream.writeObject(object);
+            objectOutputStream.close();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return outputStream.toByteArray();
     }
 }

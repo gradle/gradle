@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.util.ClasspathUtil;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.MultiParentClassLoader;
 
 import java.io.File;
@@ -32,7 +34,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
         ClassLoader parent = getClass().getClassLoader();
         File toolsJar = ClasspathUtil.getToolsJar();
         if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) parent, Collections.singleton(toolsJar));
+            ClasspathUtil.addUrl((URLClassLoader) parent, GFileUtils.toURLs(Collections.singleton(toolsJar)));
         }
 
         // Add in libs for plugins

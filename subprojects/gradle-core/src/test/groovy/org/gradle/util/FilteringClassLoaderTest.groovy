@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,7 @@ import org.junit.runner.RunWith
 import org.junit.runners.BlockJUnit4ClassRunner
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.junit.Before
 
 @RunWith(JMock.class)
 class FilteringClassLoaderTest {
@@ -91,6 +92,18 @@ class FilteringClassLoaderTest {
         assertThat(classLoader.loadClass(Test.class.name), sameInstance(Test.class))
         assertThat(classLoader.loadClass(Test.class.name, false), sameInstance(Test.class))
         assertThat(classLoader.loadClass(BlockJUnit4ClassRunner.class.name), sameInstance(BlockJUnit4ClassRunner.class))
+    }
+
+    @Test
+    public void passesThroughSpecifiedClasses() {
+        classLoader.allowClass(Test.class)
+        assertThat(classLoader.loadClass(Test.class.name), sameInstance(Test.class))
+        try {
+            classLoader.loadClass(Before.class.name)
+            fail()
+        } catch (ClassNotFoundException e) {
+            // expected
+        }
     }
 
     @Test

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import groovy.lang.Closure;
@@ -143,6 +144,14 @@ public class TestFile extends File {
             FileUtils.copyFile(this, target);
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not copy test file '%s' to '%s'", this, target), e);
+        }
+    }
+
+    public void copyFrom(URL resource) {
+        try {
+            FileUtils.copyURLToFile(resource, this);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 

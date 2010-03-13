@@ -14,11 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.process.child;
 
 import org.gradle.api.Action;
 import org.gradle.messaging.MessagingClient;
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.process.WorkerProcessContext;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -34,9 +35,15 @@ public class WorkerMainTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final Action<WorkerProcessContext> action = context.mock(Action.class);
     private final MessagingClient client = context.mock(MessagingClient.class);
+    private final WorkerActionContext workerActionContext = context.mock(WorkerActionContext.class);
     private final ClassLoader appClassLoader = new ClassLoader() {
     };
-    private final WorkerMain main = new WorkerMain(action, 12, "<display name>", client, appClassLoader);
+    private final WorkerMain main = new WorkerMain(action, 12, "<display name>", null) {
+        @Override
+        MessagingClient createClient() {
+            return client;
+        }
+    };
 
     @Test
     public void createsConnectionAndExecutesAction() throws Exception {
@@ -50,9 +57,11 @@ public class WorkerMainTest {
             one(client).stop();
         }});
 
-        main.run();
+        main.execute(workerActionContext);
 
         context.checking(new Expectations() {{
+            allowing(workerActionContext).getApplicationClassLoader();
+            will(returnValue(appClassLoader));
             allowing(client).getConnection();
             will(returnValue(connection));
         }});
@@ -76,7 +85,7 @@ public class WorkerMainTest {
         }});
 
         try {
-            main.run();
+            main.execute(workerActionContext);
             fail();
         } catch (RuntimeException e) {
             assertThat(e, sameInstance(failure));
