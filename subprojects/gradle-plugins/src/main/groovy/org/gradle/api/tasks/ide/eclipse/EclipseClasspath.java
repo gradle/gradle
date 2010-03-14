@@ -135,12 +135,14 @@ public class EclipseClasspath extends ConventionTask {
     }
 
     private List<String> existingRelativePaths(List<Object> allPaths) {
-        List<String> existingRelativePaths = new ArrayList<String>();
+        Set<String> existingRelativePathSet = new HashSet<String>();
         for (Object path : allPaths) {
             if (getProject().file(path).exists()) {
-                existingRelativePaths.add(relativePath(path));
+                existingRelativePathSet.add(relativePath(path));
             }
         }
+        List<String> existingRelativePaths = new ArrayList<String>();
+        existingRelativePaths.addAll(existingRelativePathSet);
         Collections.sort(existingRelativePaths);
         return existingRelativePaths;
     }
@@ -168,30 +170,12 @@ public class EclipseClasspath extends ConventionTask {
      * @param srcDirs An list with objects which toString value is interpreted as a path
      */
     public void setSrcDirs(List<Object> srcDirs) {
-
-        this.srcDirs = filterDuplicateSrcDirs(srcDirs);
-    }
-
-    /**
-     * Since e.g. resources and source directory could be the same, this
-     * method filters duplicate entries from the source directory lists.
-     * @return filtered source directory list with no duplicate entries.
-     * */
-    private List<Object> filterDuplicateSrcDirs(List<Object> srcDirs) {
-        Set<Object> srcDirsSet = new HashSet<Object>();
-        List<Object> filteredSrcDirs = new ArrayList<Object>();
-        for(Object entry : srcDirs){
-            if(!srcDirsSet.contains(entry)){
-                filteredSrcDirs.add(entry);
-                srcDirsSet.add(entry);            
-            }
-        }
-        return filteredSrcDirs;
+        this.srcDirs = srcDirs;
     }
 
     /**
      * Returns a list of paths to be transformed into eclipse test source dirs.
-     * 
+     *
      * @see #getTestSrcDirs() (java.util.List)
      */
     public List getTestSrcDirs() {
@@ -208,13 +192,13 @@ public class EclipseClasspath extends ConventionTask {
      * @param testSrcDirs An list with objects which toString value is interpreted as a path
      */
     public void setTestSrcDirs(List testSrcDirs) {
-        this.testSrcDirs = filterDuplicateSrcDirs(testSrcDirs);
+        this.testSrcDirs = testSrcDirs;
     }
 
     /**
      * Returns the eclipse output directory for compiled sources
      *
-     * @see #setOutputDirectory(Object) 
+     * @see #setOutputDirectory(Object)
      */
     public Object getOutputDirectory() {
         return outputDirectory;
@@ -235,7 +219,7 @@ public class EclipseClasspath extends ConventionTask {
     /**
      * Returns the eclipse output directory for compiled test sources
      *
-     * @see #setTestOutputDirectory(Object) 
+     * @see #setTestOutputDirectory(Object)
      */
     public Object getTestOutputDirectory() {
         return testOutputDirectory;
@@ -264,7 +248,7 @@ public class EclipseClasspath extends ConventionTask {
 
     /**
      * Sets the project dependencies to be transformed into eclipse project dependencies.
-     * 
+     *
      * @param projectDependencies
      */
     public void setProjectDependencies(List<DefaultProjectDependency> projectDependencies) {
