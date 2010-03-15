@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
 import groovy.lang.*;
@@ -64,6 +65,9 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
 
             if (isDynamicAware && !DynamicObjectAware.class.isAssignableFrom(type)) {
                 builder.mixInDynamicAware();
+            }
+            if (isDynamicAware && !GroovyObject.class.isAssignableFrom(type)) {
+                builder.mixInGroovyObject();
             }
             if (isDynamicAware) {
                 builder.addDynamicMethods();
@@ -123,7 +127,7 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             subclass = builder.generate();
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new GradleException(String.format("Could not generate a proxy class for class %s.", type.getName()), e);
         }
 
@@ -141,6 +145,8 @@ public abstract class AbstractClassGenerator implements ClassGenerator {
         void mixInDynamicAware() throws Exception;
 
         void mixInConventionAware() throws Exception;
+
+        void mixInGroovyObject() throws Exception;
 
         void addDynamicMethods() throws Exception;
 

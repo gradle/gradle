@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,19 +31,6 @@ public enum LogLevel {
         }
         void log(Logger logger, String message, Throwable throwable) {
             logger.quiet(message, throwable);
-        }},
-    PROGRESS {
-        boolean isEnabled(Logger logger) {
-            return logger.isProgressEnabled();
-        }
-        void log(Logger logger, String message) {
-            logger.progress(message);
-        }
-        void log(Logger logger, String message, Object... objects) {
-            logger.progress(message, objects);
-        }
-        void log(Logger logger, String message, Throwable throwable) {
-            logger.progress(message, throwable);
         }},
     LIFECYCLE {
         boolean isEnabled(Logger logger) {

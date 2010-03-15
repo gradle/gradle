@@ -46,7 +46,7 @@ public class TestSummaryListener implements TestListener {
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (result.getResultType() == ResultType.FAILURE && result.getException() != null) {
-            reportFailure(suite, toString(suite));
+            reportFailure(suite, toString(suite), result);
         } else {
             logger.debug("Finished {}", suite);
         }
@@ -70,19 +70,19 @@ public class TestSummaryListener implements TestListener {
                 logger.info("{} SKIPPED", testDescription);
                 break;
             case FAILURE:
-                reportFailure(testDescriptor, testDescription);
+                reportFailure(testDescriptor, testDescription, result);
                 break;
             default:
                 throw new IllegalArgumentException();
         }
     }
 
-    private void reportFailure(TestDescriptor testDescriptor, String testDescription) {
+    private void reportFailure(TestDescriptor testDescriptor, String testDescription, TestResult result) {
         String testClass = testDescriptor.getClassName();
         if (testClass == null) {
-            logger.error("{} FAILED", testDescription);
+            logger.error("{} FAILED: {}", testDescription, result.getException());
         } else {
-            logger.info("{} FAILED", testDescription);
+            logger.info("{} FAILED: {}", testDescription, result.getException());
             if (failedClasses.add(testClass)) {
                 logger.error("Test {} FAILED", testClass);
             }

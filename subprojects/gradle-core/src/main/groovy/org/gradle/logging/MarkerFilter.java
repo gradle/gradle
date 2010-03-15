@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,7 +27,7 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class MarkerFilter extends Filter {
-    private List markers;
+    private final List<Marker> markers;
 
     private FilterReply onMismatch = FilterReply.NEUTRAL;
 
@@ -44,11 +44,14 @@ public class MarkerFilter extends Filter {
     public FilterReply decide(Object event) {
         LoggingEvent loggingEvent = (LoggingEvent) event;
         Marker marker = loggingEvent.getMarker();
-        if (markers.contains(marker)) {
-            return FilterReply.ACCEPT;
-        } else {
-            return onMismatch;
+        if (marker != null) {
+            for (Marker candidate : markers) {
+                if (marker.contains(candidate)) {
+                    return FilterReply.ACCEPT;
+                }
+            }
         }
+        return onMismatch;
     }
 
     public FilterReply getOnMismatch() {

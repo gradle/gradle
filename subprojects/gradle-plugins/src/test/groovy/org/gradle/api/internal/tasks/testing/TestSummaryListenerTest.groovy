@@ -15,8 +15,6 @@
  */
 
 
-
-
 package org.gradle.api.internal.tasks.testing
 
 import org.gradle.api.tasks.testing.TestDescriptor
@@ -32,6 +30,7 @@ import org.junit.Before
 public class TestSummaryListenerTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Logger logger = context.mock(Logger.class)
+    private final RuntimeException failure = new RuntimeException()
     private final TestSummaryListener listener = new TestSummaryListener(logger)
 
     @Before
@@ -60,7 +59,7 @@ public class TestSummaryListenerTest {
     @Test
     public void logsFailedTestExecution() {
         context.checking {
-            one(logger).info('{} FAILED', '<test>')
+            one(logger).info('{} FAILED: {}', '<test>', failure)
             one(logger).error('Test {} FAILED', '<class>')
         }
         listener.afterTest(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE))
@@ -69,7 +68,7 @@ public class TestSummaryListenerTest {
     @Test
     public void logsFailedTestExecutionWhenTestHasNoClass() {
         context.checking {
-            one(logger).error('{} FAILED', '<test>')
+            one(logger).error('{} FAILED: {}', '<test>', failure)
         }
         listener.afterTest(test('<test>'), result(TestResult.ResultType.FAILURE))
     }
@@ -77,29 +76,29 @@ public class TestSummaryListenerTest {
     @Test
     public void logsFailedSuiteExecution() {
         context.checking {
-            one(logger).info('{} FAILED', '<test>')
+            one(logger).info('{} FAILED: {}', '<test>', failure)
             one(logger).error('Test {} FAILED', '<class>')
         }
-        listener.afterSuite(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE, new RuntimeException()))
+        listener.afterSuite(test('<test>', '<class>'), result(TestResult.ResultType.FAILURE))
     }
 
     @Test
     public void logsFailedSuiteExecutionWhenSuiteHasNoClass() {
         context.checking {
-            one(logger).error('{} FAILED', '<test>')
+            one(logger).error('{} FAILED: {}', '<test>', failure)
         }
-        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, new RuntimeException()))
+        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE))
     }
 
     @Test
     public void logsFailedSuiteExecutionWhenSuiteHasNoException() {
-        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE))
+        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, null))
     }
 
     @Test
     public void doesNotLogFailedClassMoreThanOnce() {
         context.checking {
-            ignoring(logger).info(withParam(anything()), (Object) withParam(anything()))
+            ignoring(logger).info(withParam(anything()), (Object) withParam(anything()), (Object) withParam(anything()))
             one(logger).error('Test {} FAILED', '<class>')
         }
         listener.afterTest(test('<test1>', '<class>'), result(TestResult.ResultType.FAILURE))
@@ -115,7 +114,7 @@ public class TestSummaryListenerTest {
         listener.afterSuite(test('<test>', null, null), result(TestResult.ResultType.FAILURE, null, 3, 5))
     }
 
-    private TestResult result(TestResult.ResultType type, Throwable failure = null, long failures = 0, long total = 0) {
+    private TestResult result(TestResult.ResultType type, Throwable failure = this.failure, long failures = 0, long total = 0) {
         return [getResultType: {-> type}, getException: {-> failure}, getTestCount: {-> total}, getFailedTestCount: {-> failures}] as TestResult
     }
 

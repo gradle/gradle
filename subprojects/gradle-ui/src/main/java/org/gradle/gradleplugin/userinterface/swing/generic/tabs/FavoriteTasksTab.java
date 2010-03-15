@@ -24,30 +24,11 @@ import org.gradle.gradleplugin.userinterface.swing.generic.SwingExportInteractio
 import org.gradle.gradleplugin.userinterface.swing.generic.SwingImportInteraction;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JMenuItem;
-import javax.swing.JPanel;
-import javax.swing.JPopupMenu;
-import javax.swing.JScrollPane;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Iterator;
@@ -72,6 +53,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     private JMenuItem executeMenuItem;
     private JMenuItem editMenuItem;
     private JMenuItem removeFavoritesMenuItem;
+    private JMenuItem copyFavoritesMenuItem;
 
     private JButton executeButton;
     private JButton addButton;
@@ -127,7 +109,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         executeButton = Utility.createButton(getClass(), "execute.png", "Execute the selected command", new AbstractAction("Execute") {
             public void actionPerformed(ActionEvent e) {
-                executeSelectedTask();
+                executeSelectedTasks();
             }
         });
 
@@ -201,7 +183,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         list.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                   executeSelectedTask();
+                   executeSelectedTasks();
                 }
                 else
                    if( e.getButton() == MouseEvent.BUTTON3 ) {
@@ -221,7 +203,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
        //hook 'enter' so it runs the selected tasks.
        list.registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                executeSelectedTask();
+                executeSelectedTasks();
             }
         }, KeyStroke.getKeyStroke(KeyEvent.VK_ENTER, 0), JComponent.WHEN_IN_FOCUSED_WINDOW);
 
@@ -321,7 +303,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         executeMenuItem = Utility.createMenuItem( this.getClass(),"Execute", "execute.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
-                executeSelectedTask();
+                executeSelectedTasks();
             }
         });
 
@@ -335,6 +317,14 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         popupMenu.add(editMenuItem);
 
+        copyFavoritesMenuItem = Utility.createMenuItem( this.getClass(),"Duplicate ", "blank.png", new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                duplicateTasks();
+            }
+        });
+
+        popupMenu.add(copyFavoritesMenuItem);
+
         removeFavoritesMenuItem = Utility.createMenuItem( this.getClass(), "Remove", "remove.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 removeSelectedFavorites();
@@ -344,11 +334,13 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         popupMenu.add(removeFavoritesMenuItem);
     }
 
-    private void executeSelectedTask() {
-        FavoriteTask favoriteTask = (FavoriteTask) list.getSelectedValue();
-        if (favoriteTask != null) {
-           gradlePluginLord.addExecutionRequestToQueue(favoriteTask.getFullCommandLine(), favoriteTask.getDisplayName(), favoriteTask.alwaysShowOutput() );
-        }
+    /**
+     * Executes the selected tasks. If only one is selected, we execute it as normal. If
+     * however, multiples are selected, we'll execute that all at once.
+     */
+    private void executeSelectedTasks() {
+        List<FavoriteTask> favorites = getSelectedFavoriteTasks();
+        gradlePluginLord.addExecutionRequestToQueue( favorites );
     }
 
     private void removeSelectedFavorites() {
@@ -389,6 +381,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         removeButton.setEnabled(hasSelection);
         moveUpButton.setEnabled(hasSelection);
         moveDownButton.setEnabled(hasSelection);
+        copyFavoritesMenuItem.setEnabled(hasSelection);
 
         editButton.setEnabled(hasSingleSelection);  //only can edit if a single task is selected
     }
@@ -419,5 +412,12 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
        //if the user has kept these two in synch, we'll continue to keep them in synch.
         boolean synchronizeDisplayNameWithCommand = selectedFavoriteTask.getDisplayName().equals( selectedFavoriteTask.getFullCommandLine() );
         favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", synchronizeDisplayNameWithCommand ));
+    }
+
+    /**
+     * This duplicates all the selected tasks
+     */
+    private void duplicateTasks() {
+        favoritesEditor.duplicateFavorites( getSelectedFavoriteTasks() );
     }
 }

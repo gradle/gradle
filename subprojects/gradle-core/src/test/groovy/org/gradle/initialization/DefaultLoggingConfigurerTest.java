@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,15 +19,17 @@ import ch.qos.logback.classic.LoggerContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
-import static org.hamcrest.Matchers.*;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.StringWriter;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class DefaultLoggingConfigurerTest {
     private final DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer();
@@ -48,7 +50,6 @@ public class DefaultLoggingConfigurerTest {
 
     @Test
     public void canListenOnStdOutput() {
-        System.setProperty("keykey", "value");
         configurer.configure(LogLevel.INFO);
 
         logger.debug("debug message");
@@ -61,7 +62,6 @@ public class DefaultLoggingConfigurerTest {
 
     @Test
     public void canListenOnStdError() {
-        System.out.println("System.getProperty(\"keykey\"); = " + System.getProperty("keykey"));
         configurer.configure(LogLevel.INFO);
 
         logger.debug("debug message");
@@ -77,7 +77,9 @@ public class DefaultLoggingConfigurerTest {
         configurer.configure(LogLevel.QUIET);
 
         logger.info(Logging.QUIET, "quiet message");
-        logger.info(Logging.PROGRESS, "<progress message>");
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS, "<progress>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
         logger.info(Logging.LIFECYCLE, "lifecycle message");
         logger.info("info message");
         logger.debug("debug message");
@@ -90,12 +92,11 @@ public class DefaultLoggingConfigurerTest {
         configurer.configure(LogLevel.LIFECYCLE);
 
         logger.info(Logging.QUIET, "quiet message");
-        logger.info(Logging.PROGRESS, "<progress message>");
         logger.info(Logging.LIFECYCLE, "lifecycle message");
         logger.info("info message");
         logger.debug("debug message");
 
-        assertThat(outputListener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("quiet message%nlifecycle message%n")));
     }
 
     @Test
@@ -103,12 +104,110 @@ public class DefaultLoggingConfigurerTest {
         configurer.configure(LogLevel.INFO);
 
         logger.info(Logging.QUIET, "quiet message");
-        logger.info(Logging.PROGRESS, "<progress message>");
         logger.info(Logging.LIFECYCLE, "lifecycle message");
         logger.info("info message");
         logger.debug("debug message");
 
-        assertThat(outputListener.toString(), equalTo(String.format("quiet message%n<progress message>lifecycle message%ninfo message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("quiet message%nlifecycle message%ninfo message%n")));
+    }
+
+    @Test
+    public void formatsProgressLogMessages() {
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS, "<tick>");
+        logger.info(Logging.PROGRESS, "<tick>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start> .. <complete>%n")));
+    }
+
+    @Test
+    public void formatsProgressLogMessagesForInfoLevel() {
+        configurer.configure(LogLevel.INFO);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS, "<tick>");
+        logger.info(Logging.PROGRESS, "<tick>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start> .. <complete>%n")));
+    }
+
+    @Test
+    public void formatsProgressLogMessagesForDebugLevel() {
+        configurer.configure(LogLevel.DEBUG);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS, "<tick1>");
+        logger.info(Logging.PROGRESS, "<tick2>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
+
+        assertThat(outputListener.toString(), containsLine(endsWith(String.format("<start>"))));
+        assertThat(outputListener.toString(), containsLine(endsWith(String.format("<tick1>"))));
+        assertThat(outputListener.toString(), containsLine(endsWith(String.format("<tick2>"))));
+        assertThat(outputListener.toString(), containsLine(endsWith(String.format("<complete>"))));
+    }
+
+    @Test
+    public void formatsProgressLogMessagesWithoutIntermediateProgressEvents() {
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start> <complete>%n")));
+    }
+
+    @Test
+    public void formatsProgressLogMessagesWithEmptyCompleteMessage() {
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS_COMPLETE, "");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start>%n")));
+    }
+
+    @Test
+    public void addsMissingEndOfLineWhenProgressAndOtherLogMessagesAreInterleaved() {
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.PROGRESS, "<tick>");
+        logger.info(Logging.LIFECYCLE, "<message1>");
+        logger.info(Logging.LIFECYCLE, "<message2>");
+        logger.info(Logging.PROGRESS, "<tick>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
+        logger.info(Logging.LIFECYCLE, "<message>");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start> .%n<message1>%n<message2>%n. <complete>%n<message>%n")));
+    }
+
+    @Test
+    public void addsMissingEndOfLineWhenProgressAndOtherLogMessagesAreInterleavedAndCompleteMessageIsEmpty() {
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start>");
+        logger.info(Logging.LIFECYCLE, "<message>");
+        logger.info(Logging.PROGRESS_COMPLETE, "");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start>%n<message>%n")));
+    }
+
+    @Test
+    public void addsMissingEndOfLineWhenProgressMessagesAreInterleaved() {
+        configurer.configure(LogLevel.LIFECYCLE);
+
+        logger.info(Logging.PROGRESS_STARTED, "<start1>");
+        logger.info(Logging.PROGRESS_STARTED, "<start2>");
+        logger.info(Logging.PROGRESS, "<tick2>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete2>");
+        logger.info(Logging.PROGRESS, "<tick1>");
+        logger.info(Logging.PROGRESS_COMPLETE, "<complete1>");
+
+        assertThat(outputListener.toString(), equalTo(String.format("<start1>%n<start2> . <complete2>%n. <complete1>%n")));
     }
 
     private static class ListenerImpl implements StandardOutputListener {

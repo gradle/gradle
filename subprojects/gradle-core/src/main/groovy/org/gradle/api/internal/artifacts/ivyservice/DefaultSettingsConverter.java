@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,6 +29,7 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.ProgressLogger;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
@@ -43,34 +44,22 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     private RepositoryCacheManager repositoryCacheManager;
 
-    private static final TransferListener TRANSFER_LISTENER = new TransferListener() {
-        public void transferProgress(TransferEvent evt) {
-            if (evt.getResource().isLocal()) {
-                return;
-            }
-            if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
-                logger.progress(String.format("downloading (%s) %s%n", getLengthText(evt), evt.getResource().getName()));
-            }
-            if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
-                logger.progress(".");
-            }
-            if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
-                logger.progress(String.format("%n"));
-            }
-        }
-    };
+    private static final TransferListener TRANSFER_LISTENER = new ProgressLoggingTransferListener();
 
     private static String getLengthText(TransferEvent evt) {
-        if (!evt.isTotalLengthSet()) {
+        return getLengthText(evt.isTotalLengthSet() ? evt.getTotalLength() : null);
+    }
+
+    private static String getLengthText(Long bytes) {
+        if (bytes == null) {
             return "unknown size";
         }
-        long lengthInByte = evt.getTotalLength();
-        if (lengthInByte < 1000) {
-            return lengthInByte + " B";
-        } else if (lengthInByte < 1000000) {
-            return (lengthInByte / 1000) + " KB";
+        if (bytes < 1024) {
+            return bytes + " B";
+        } else if (bytes < 1048576) {
+            return (bytes / 1024) + " KB";
         } else {
-            return String.format("%.2f MB", lengthInByte / 1000000.0);
+            return String.format("%.2f MB", bytes / 1048576.0);
         }
     }
 
@@ -183,5 +172,29 @@ public class DefaultSettingsConverter implements SettingsConverter {
 
     public void setIvySettings(IvySettings ivySettings) {
         this.ivySettings = ivySettings;
+    }
+
+    private static class ProgressLoggingTransferListener implements TransferListener {
+        private ProgressLogger logger;
+        private long total;
+
+        public void transferProgress(TransferEvent evt) {
+            if (evt.getResource().isLocal()) {
+                return;
+            }
+            if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
+                total = 0;
+                logger = DefaultSettingsConverter.logger.createProgressLogger();
+                logger.started(evt.getResource().getName());
+            }
+            if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
+                total += evt.getLength();
+                logger.progress(String.format("%s/%s downloaded", getLengthText(total), getLengthText(evt)));
+            }
+            if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED
+                    || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
+                logger.completed(String.format("downloaded (%s)", getLengthText(total)));
+            }
+        }
     }
 }

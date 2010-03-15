@@ -19,8 +19,17 @@ ant {
     buildDir = owner.buildDir.toString()
 }
 
+String ivyPattern = '/[module]/[revision]/ivy.xml'
+String artifactPattern = '/[module]/[revision]/[artifact](.[ext])'
+File localPublicationsDir = file("$buildDir/repo")
+
 repositories {
-    flatDir(dirs: "$buildDir/repo", name: 'repo')
+    add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+        name = 'repo'
+        validate = false
+        addIvyPattern(localPublicationsDir.absolutePath + ivyPattern)
+        addArtifactPattern(localPublicationsDir.absolutePath + artifactPattern)
+    }
 }
 
 task sourceJar(type: Jar) {
@@ -33,15 +42,16 @@ artifacts {
 }
 
 uploadArchives {
+    uploadDescriptor = true
     repositories {
         add project.repositories.repo
     }
     doLast {
-        File repoDir = new File("$buildDir/repo")
-        Assert.assertEquals(["ivypublish-1.0.jar", "ivy-1.0.xml", "ivypublishSource-1.0.jar"] as Set,
-            repoDir.listFiles().collect { it.name } as Set)
-        Assert.assertEquals(jar.archivePath.size(), new File(repoDir, 'ivypublish-1.0.jar').size())
-        Assert.assertEquals(sourceJar.archivePath.size(), new File(repoDir, 'ivypublishSource-1.0.jar').size())
+        File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
+        Assert.assertEquals(["ivypublish.jar", "ivy.xml", "ivypublishSource.jar"] as Set,
+                repoDir.listFiles().collect { it.name } as Set)
+        Assert.assertEquals(jar.archivePath.size(), new File(repoDir, 'ivypublish.jar').size())
+        Assert.assertEquals(sourceJar.archivePath.size(), new File(repoDir, 'ivypublishSource.jar').size())
     }
 }
 

@@ -61,7 +61,9 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
 
     private FileLinkDefinitionLord fileLinkDefinitionLord;
 
-   public OutputPanelLord( GradlePluginLord gradlePluginLord, AlternateUIInteraction alternateUIInteraction ) {
+    private ExecutionRequest lastExecutionRequest;
+
+    public OutputPanelLord( GradlePluginLord gradlePluginLord, AlternateUIInteraction alternateUIInteraction ) {
       this.gradlePluginLord = gradlePluginLord;
       this.alternateUIInteraction = alternateUIInteraction;
 
@@ -249,7 +251,9 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
          return displayName;   //its fine
       }
 
-      return displayName.substring( 0, 17 ) + "...";
+       //I'm going 6 characters less because it looks stupid to replace 3 characters with 3 characters.
+       //There's no absolute amount here, this just seems to look better.
+      return displayName.substring( 0, 14 ) + "...";
    }
 
    /**
@@ -331,8 +335,8 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
    public void executeAgain( Request request, OutputPanel outputPanel )
    {
       //this needs to work better. It needs to do the execute again in the same
-      //OutputPanel. However, because this only listens for requests, it complicates
-      //things.
+      //OutputPanel. However, because this generically listens for requests and
+      //adds them to this panel, things are more complicated.
       request.executeAgain( gradlePluginLord );
    }
 
@@ -362,6 +366,8 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
 
    public void executionRequestAdded( final ExecutionRequest request )
    {
+       lastExecutionRequest = request;
+
       String displayName = reformatDisplayName( request.getDisplayName() );
       requestAdded( request, "Execute '" + displayName + "'" );
       observerLord.notifyObservers( new ObserverLord.ObserverNotification<OutputObserver>()
@@ -448,5 +454,17 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
 
     public FileLinkDefinitionLord getFileLinkDefinitionLord() {
         return fileLinkDefinitionLord;
+    }
+
+    /*
+    This re-executes the last execution command (ignores refresh commands).
+    This is potentially useful for IDEs to hook into (hotkey to execute last command).
+     */
+    public void reExecuteLastCommand()
+    {
+        ExecutionRequest executionRequest = lastExecutionRequest;
+        if( executionRequest != null ) {
+            gradlePluginLord.addExecutionRequestToQueue( executionRequest.getFullCommandLine(), executionRequest.getDisplayName(), executionRequest.forceOutputToBeShown() );
+        }
     }
 }

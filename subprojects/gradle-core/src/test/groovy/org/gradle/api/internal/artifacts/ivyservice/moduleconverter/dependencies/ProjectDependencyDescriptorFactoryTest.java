@@ -102,7 +102,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     @Test
     public void ivyFileModuleRevisionIdShouldBeDeterminedByModuleForPublicDescriptorWithoutExtraAttributes() {
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
-        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModuleForPublicDescriptor();
+        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModule();
         ModuleRevisionId moduleRevisionId =
                 ProjectDependencyDescriptorFactory.IVY_FILE_MODULE_REVISION_ID_STRATEGY.createModuleRevisionId(projectDependency);
         assertThat(moduleRevisionId.getOrganisation(), equalTo(module.getGroup()));
@@ -114,7 +114,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     @Test
     public void resolveModuleRevisionIdShouldBeDeterminedByModuleForResolvePlusExtraAttributes() {
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
-        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModuleForResolve();
+        Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModule();
         ModuleRevisionId moduleRevisionId =
                 ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY.createModuleRevisionId(projectDependency);
         assertThat(moduleRevisionId.getOrganisation(), equalTo(module.getGroup()));

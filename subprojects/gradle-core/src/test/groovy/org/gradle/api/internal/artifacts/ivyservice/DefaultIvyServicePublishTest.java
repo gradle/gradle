@@ -61,17 +61,16 @@ public class DefaultIvyServicePublishTest {
         final Set<Configuration> configurations = createConfigurations();
         final File someDescriptorDestination = new File("somePath");
         final List<DependencyResolver> publishResolversDummy = createPublishResolversDummy();
-        final Module moduleForResolveDummy = context.mock(Module.class, "moduleForResolve");
-        final Module moduleForPublicDescriptorDummy = context.mock(Module.class, "moduleForPublicDescriptor");
+        final Module moduleDummy = context.mock(Module.class, "moduleForResolve");
         File cacheParentDirDummy = createCacheParentDirDummy();
         final DefaultIvyService ivyService = createIvyService();
 
-        setUpForPublish(configurations, publishResolversDummy, moduleForResolveDummy, moduleForPublicDescriptorDummy, cacheParentDirDummy,
+        setUpForPublish(configurations, publishResolversDummy, moduleDummy, cacheParentDirDummy,
                 ivyService, ivySettingsDummy);
 
         final Set<String> expectedConfigurations = Configurations.getNames(configurations, true);
         context.checking(new Expectations() {{
-            one(ivyService.getIvyFileConverter()).convert(configurations, moduleForPublicDescriptorDummy, ivySettingsDummy);
+            one(ivyService.getIvyFileConverter()).convert(configurations, moduleDummy, ivySettingsDummy);
             will(returnValue(moduleDescriptorMock));
             one(moduleDescriptorMock).toIvyFile(someDescriptorDestination);
             one(ivyService.getDependencyPublisher()).publish(expectedConfigurations,
@@ -125,7 +124,7 @@ public class DefaultIvyServicePublishTest {
     }
 
     private void setUpForPublish(final Set<Configuration> configurations,
-                                 final List<DependencyResolver> publishResolversDummy, final Module moduleForResolveDummy, final Module moduleForPublicDescriptorDummy,
+                                 final List<DependencyResolver> publishResolversDummy, final Module moduleDummy,
                                  final File cacheParentDirDummy, final DefaultIvyService ivyService, final IvySettings ivySettingsDummy) {
         context.checking(new Expectations() {{
             allowing(dependencyMetaDataProviderMock).getInternalRepository();
@@ -134,11 +133,8 @@ public class DefaultIvyServicePublishTest {
             allowing(dependencyMetaDataProviderMock).getGradleUserHomeDir();
             will(returnValue(cacheParentDirDummy));
 
-            allowing(dependencyMetaDataProviderMock).getModuleForResolve();
-            will(returnValue(moduleForResolveDummy));
-
-            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor();
-            will(returnValue(moduleForPublicDescriptorDummy));
+            allowing(dependencyMetaDataProviderMock).getModule();
+            will(returnValue(moduleDummy));
 
             allowing(ivyService.getSettingsConverter()).convertForPublish(publishResolversDummy, cacheParentDirDummy,
                     internalRepositoryDummy);
@@ -148,7 +144,7 @@ public class DefaultIvyServicePublishTest {
             will(returnValue(publishEngineDummy));
 
             allowing(ivyService.getPublishModuleDescriptorConverter()).convert(configurations,
-                    moduleForResolveDummy, ivySettingsDummy);
+                    moduleDummy, ivySettingsDummy);
             will(returnValue(moduleDescriptorMock));
         }});
     }

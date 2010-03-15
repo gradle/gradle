@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
@@ -31,6 +31,9 @@ import org.gradle.api.Task
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
 import org.gradle.api.tasks.bundling.Tar
+import org.gradle.api.artifacts.Dependency
+import org.gradle.util.WrapUtil
+import org.gradle.api.internal.artifacts.configurations.Configurations
 
 /**
  * @author Hans Dockter
@@ -60,25 +63,28 @@ class BasePluginTest {
     @Test public void addsRulesWhenAConfigurationIsAdded() {
         plugin.use(project)
 
-        assertThat(project.tasks.rules, isEmpty())
-
-        project.configurations.add('config')
-
-        assertThat(project.tasks.rules.size(), equalTo(2))
-
-        project.configurations.add('other-config')
-
         assertThat(project.tasks.rules.size(), equalTo(2))
     }
-    
+
     @Test public void addsImplicitTasksForConfiguration() {
         plugin.use(project)
 
         Task producer = [getName: {-> 'producer'}] as Task
         PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
+
+        project.configurations.getByName('archives').addArtifact(artifactStub)
+
+        def task = project.tasks['buildArchives']
+        assertThat(task, instanceOf(DefaultTask))
+        assertThat(task, dependsOn('producer'))
+
+        task = project.tasks['uploadArchives']
+        assertThat(task, instanceOf(Upload))
+        assertThat(task, dependsOn('producer'))
+
         project.configurations.add('conf').addArtifact(artifactStub)
 
-        def task = project.tasks['buildConf']
+        task = project.tasks['buildConf']
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn('producer'))
 
@@ -87,7 +93,7 @@ class BasePluginTest {
         assertThat(task, dependsOn('producer'))
         assertThat(task.configuration, sameInstance(project.configurations.conf))
     }
-    
+
     @Test public void appliesMappingsForArchiveTasks() {
         plugin.use(project)
 
@@ -111,7 +117,7 @@ class BasePluginTest {
         assertThat(task.destinationDir, equalTo(project.distsDir))
         assertThat(task.version, equalTo(project.version))
         assertThat(task.baseName, equalTo(project.archivesBaseName))
-        
+
         assertThat(project.tasks[BasePlugin.ASSEMBLE_TASK_NAME], dependsOn('someJar', 'someZip', 'someTar'))
     }
 
@@ -125,5 +131,21 @@ class BasePluginTest {
 
         task = project.tasks.add('someOtherJar', Jar)
         assertThat(task.version, equalTo('1.0'))
+    }
+
+    @Test public void addsConfigurationsToTheProject() {
+        plugin.use(project)
+
+        assertThat(project.status, equalTo("integration"))
+
+        def configuration = project.configurations.getByName(Dependency.DEFAULT_CONFIGURATION)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet(Dependency.ARCHIVES_CONFIGURATION)))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
+
+        configuration = project.configurations.getByName(Dependency.ARCHIVES_CONFIGURATION)
+        assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(WrapUtil.toSet()))
+        assertTrue(configuration.visible)
+        assertTrue(configuration.transitive)
     }
 }

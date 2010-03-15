@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
 import org.gradle.api.logging.Logger;
@@ -51,9 +52,8 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.TreeSelectionEvent;
 import javax.swing.event.TreeSelectionListener;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.*;
+import java.awt.datatransfer.StringSelection;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -84,6 +84,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     private JMenuItem executeOnlyThisMenuItem;
     private JMenuItem filterOutMenuItem;
     private JMenuItem editFileMenuItem;
+    private JMenuItem copyTaskNameMenuItem;
 
     private JButton refreshButton;
     private JButton executeButton;
@@ -438,6 +439,15 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             }
         });
         popupMenu.add(editFileMenuItem);
+
+        copyTaskNameMenuItem = Utility.createMenuItem( this.getClass(), "Copy Task Name", BLANK_PNG, new AbstractAction() {
+            public void actionPerformed(ActionEvent e) {
+                copySelectedTaskNames();
+            }
+        });
+
+        popupMenu.addSeparator();
+        popupMenu.add(copyTaskNameMenuItem);
     }
 
     /**
@@ -445,6 +455,7 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
     */
     private void enableThingsAppropriately() {
         boolean hasSelection = treeComponent.getTree().getSelectionPath() != null;
+        boolean hasTaskSelection = treeComponent.hasTasksSelected();
         boolean canDoThings = !isRefreshing && treeComponent.isPopulated() && hasSelection; //can't be refreshing, is populated, and  hasSelections
 
         refreshButton.setEnabled(!isRefreshing);
@@ -463,6 +474,8 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
         } else {
            editFileMenuItem.setVisible(false);  //just hide it if we don't support this
         }
+
+        copyTaskNameMenuItem.setVisible( !isRefreshing && hasTaskSelection );
     }
 
     /**
@@ -542,5 +555,44 @@ public class TaskTreeTab implements GradleTab, GradlePluginLord.GeneralPluginObs
             TaskView task = iterator.next();
             gradlePluginLord.addExecutionRequestToQueue(task, false);
         }
+    }
+
+
+    /**
+     * Copies the selected tasks names to the clipboard
+     */
+    private void copySelectedTaskNames() {
+
+        String names = getSelectedTaskNames();
+        if (names.length() == 0) {
+            return;
+        }
+
+        Toolkit.getDefaultToolkit().getSystemClipboard().setContents( new StringSelection( names ), null );
+    }
+
+    /**
+     * This puts all the selected task names in a space-delimited String
+     * @return a string of all the tasks
+     */
+    private String getSelectedTaskNames() {
+        List<TaskView> tasks = treeComponent.getSelectedTasks();
+        if( tasks.isEmpty() ) {
+            return null;
+        }
+
+        StringBuilder taskString = new StringBuilder();
+        Iterator<TaskView> iterator = tasks.iterator();
+        while( iterator.hasNext() )
+        {
+           TaskView taskView = iterator.next();
+
+            taskString.append( taskView.getFullTaskName() );
+            if( iterator.hasNext() ) {
+                taskString.append( ' ' );
+            }
+        }
+
+        return taskString.toString();
     }
 }

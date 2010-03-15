@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
 import org.gradle.api.GradleException;
@@ -59,7 +60,7 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         classPaths.put("ANT", toPatterns("ant", "ant-launcher"));
         classPaths.put("ANT_JUNIT", toPatterns("ant", "ant-launcher", "ant-junit"));
         classPaths.put("COMMONS_CLI", toPatterns("commons-cli"));
-        classPaths.put("WORKER_PROCESS", toPatterns("gradle-core", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j"));
+        classPaths.put("WORKER_PROCESS", toPatterns("gradle-core", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j", "jansi", "jna", "jna-posix"));
     }
 
     private static List<Pattern> toPatterns(String... patternStrings) {

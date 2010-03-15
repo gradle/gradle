@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.gradle.initialization;
 
 import org.gradle.*;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.internal.project.ProjectFactory;
@@ -88,7 +89,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
                         new ProjectFactory(
-                                startParameter.getBuildScriptSource())),
+                                startParameter.getBuildScriptSource(),
+                                serviceRegistry.get(ClassGenerator.class))),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
                 loggingConfigurer,
                 gradle.getBuildListenerBroadcaster(),

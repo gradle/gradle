@@ -34,7 +34,7 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
     public final static ProjectDependencyModuleRevisionIdStrategy IVY_FILE_MODULE_REVISION_ID_STRATEGY =
             new ProjectDependencyModuleRevisionIdStrategy() {
                 public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
-                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModuleForPublicDescriptor();
+                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModule();
                     return IvyUtil.createModuleRevisionId(module);
                 }
             };
@@ -42,7 +42,7 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
     public final static ProjectDependencyModuleRevisionIdStrategy RESOLVE_MODULE_REVISION_ID_STRATEGY =
             new ProjectDependencyModuleRevisionIdStrategy() {
                 public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
-                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModuleForResolve();
+                    Module module = ((ProjectInternal) dependency.getDependencyProject()).getModule();
                     return IvyUtil.createModuleRevisionId(module, WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY,
                             dependency.getDependencyProject().getPath()));
                 }

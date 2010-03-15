@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import groovy.lang.*;
+import groovy.lang.MissingMethodException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 
 import java.util.Collections;
@@ -153,18 +154,15 @@ public class BeanDynamicObject extends AbstractDynamicObject {
 
     @Override
     public Object invokeMethod(String name, Object... arguments) throws MissingMethodException {
-        MetaMethod method = getMetaClass().getMetaMethod(name, arguments);
-        if (method == null) {
-            throw methodMissingException(name, arguments);
-        }
-
         try {
-            return method.invoke(bean, arguments);
+            return getMetaClass().invokeMethod(bean, name, arguments);
         } catch (InvokerInvocationException e) {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();
             }
             throw e;
+        } catch (MissingMethodException e) {
+            throw methodMissingException(name, arguments);
         }
     }
 }

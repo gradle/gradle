@@ -90,6 +90,7 @@ public class OutputTextPane
       Color background = Color.white;
       textPane.setBackground( background );  //its not editable, but it looks better with a white background. (I tried using UI.Manager.getColor( "TextArea.background" ) (and others) but it was showing up as gray when using inside Idea. I think the L&F remapped some things and we want it white.
       scroll.setBackground( background );    //the scroll pane was showing up as grey in the Idea plugin. Not sure why. This should fix it.
+      scroll.getViewport().setBackground( background );    //this makes the non-text area of the scroll pane appear white on Windows (if you have short text).
       resetFontStyles();
 
       textPane.addMouseListener( new MouseAdapter()

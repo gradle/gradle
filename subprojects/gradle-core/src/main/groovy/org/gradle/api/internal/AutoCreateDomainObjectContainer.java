@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,11 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 
-public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectContainer<T> {
+public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectContainer<T> implements
+        Configurable<AutoCreateDomainObjectContainer<T>> {
     protected AutoCreateDomainObjectContainer(Class<T> type) {
         super(type);
     }
@@ -41,7 +43,9 @@ public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDom
         return object;
     }
 
-    public void configure(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(configureClosure.getOwner(), this));
+    public AutoCreateDomainObjectContainer<T> configure(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, new AutoCreateDomainObjectContainerDelegate(
+                configureClosure.getOwner(), this));
+        return this;
     }
 }

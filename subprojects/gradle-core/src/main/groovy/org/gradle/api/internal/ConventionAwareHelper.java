@@ -83,7 +83,7 @@ public class ConventionAwareHelper implements ConventionMapping {
             String propertyName = entry.getKey();
             if (!ReflectionUtil.hasProperty(source, propertyName)) {
                 throw new InvalidUserDataException(
-                        "You can't map a property that does not exist: propertyName= " + propertyName);
+                        "You can't map a property that does not exist: propertyName=" + propertyName);
             }
             if (entry.getValue() == null) {
                 throw new IllegalArgumentException("No convention value provided: propertyName= " + propertyName);

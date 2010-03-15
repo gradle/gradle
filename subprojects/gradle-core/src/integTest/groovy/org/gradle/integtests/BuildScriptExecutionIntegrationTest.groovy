@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests
 
 import org.junit.Test
@@ -30,7 +32,7 @@ class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
             captureStandardOutput(LogLevel.ERROR)
             println 'error message'
             assertNotNull(project)
-            assertEquals("$buildScript.absolutePath", buildscript.sourceFile as String)
+            assertEquals("${buildScript.absolutePath.replace("\\", "\\\\")}", buildscript.sourceFile as String)
             assertEquals("${buildScript.toURI()}", buildscript.sourceURI as String)
             assertSame(buildscript.classLoader, getClass().classLoader.parent)
             assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)

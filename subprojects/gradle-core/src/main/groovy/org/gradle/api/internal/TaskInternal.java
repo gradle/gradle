@@ -20,8 +20,9 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.Configurable;
 
-public interface TaskInternal extends Task {
+public interface TaskInternal extends Task, Configurable<Task> {
     Spec<? super TaskInternal> getOnlyIf();
 
     /**

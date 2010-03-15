@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
 import org.apache.commons.lang.StringUtils;
@@ -60,10 +61,20 @@ public class TaskStateInternal implements TaskState {
         this.failure = failure;
     }
 
+    /**
+     * Marks this task as skipped.
+     */
     public void skipped(String skipMessage) {
         this.executed = true;
         skipped = true;
         this.skippedMessage = skipMessage;
+    }
+
+    /**
+     * Marks this task as up-to-date.
+     */
+    public void upToDate() {
+        skipped("UP-TO-DATE");
     }
     
     public boolean getExecuting() {

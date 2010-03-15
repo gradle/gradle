@@ -56,11 +56,13 @@ import org.gradle.util.*;
 import java.io.File;
 import java.util.*;
 
+import static java.util.Collections.*;
+import static org.gradle.util.GUtil.*;
+
 /**
  * @author Hans Dockter
  */
-public abstract class AbstractProject implements ProjectInternal {
-    private static Logger logger = Logging.getLogger(AbstractProject.class);
+public abstract class AbstractProject implements ProjectInternal, DynamicObjectAware {
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
 
@@ -265,7 +267,7 @@ public abstract class AbstractProject implements ProjectInternal {
         return parent;
     }
 
-    public DynamicObjectHelper getDynamicObjectHelper() {
+    public DynamicObject getAsDynamicObject() {
         return dynamicObjectHelper;
     }
 
@@ -442,7 +444,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project findProject(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (!isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
         return projectRegistry.getProject(isAbsolutePath(path) ? path : absolutePath(path));
@@ -583,7 +585,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public void dependsOn(String path, boolean evaluateDependsOnProject) {
-        if (!GUtil.isTrue(path)) {
+        if (!isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         dependsOnProjects.add(project(path));
@@ -593,7 +595,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Project evaluationDependsOn(String path) {
-        if (!GUtil.isTrue(path)) {
+        if (!isTrue(path)) {
             throw new InvalidUserDataException("You must specify a project!");
         }
         DefaultProject projectToEvaluate = (DefaultProject) project(path);
@@ -646,7 +648,7 @@ public abstract class AbstractProject implements ProjectInternal {
     }
 
     public Set<Task> getTasksByName(final String name, boolean recursive) {
-        if (!GUtil.isTrue(name)) {
+        if (!isTrue(name)) {
             throw new InvalidUserDataException("Name is not specified!");
         }
         final Set<Task> foundTasks = new HashSet<Task>();
@@ -789,6 +791,10 @@ public abstract class AbstractProject implements ProjectInternal {
         return dynamicObjectHelper.getProperty(propertyName);
     }
 
+    public void setProperty(String name, Object value) {
+        dynamicObjectHelper.setProperty(name, value);
+    }
+
     public boolean hasProperty(String propertyName) {
         return dynamicObjectHelper.hasProperty(propertyName);
     }
@@ -809,12 +815,8 @@ public abstract class AbstractProject implements ProjectInternal {
         return services;
     }
 
-    public Module getModuleForResolve() {
-        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForResolve();
-    }
-
-    public Module getModuleForPublicDescriptor() {
-        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModuleForPublicDescriptor();
+    public Module getModule() {
+        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModule();
     }
 
     public void apply(Closure closure) {
@@ -830,4 +832,91 @@ public abstract class AbstractProject implements ProjectInternal {
         ConfigureUtil.configure(options, action);
         action.execute();
     }
+
+    public AntBuilder ant(Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, getAnt());
+    }
+
+    public void subprojects(Closure configureClosure) {
+        configure(getSubprojects(), configureClosure);
+    }
+
+    public void allprojects(Closure configureClosure) {
+        configure(getAllprojects(), configureClosure);
+    }
+
+    public Project project(String path, Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, project(path));
+    }
+
+    public Object configure(Object object, Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, object);
+    }
+
+    public Iterable<?> configure(Iterable<?> objects, Closure configureClosure) {
+        for (Object object : objects) {
+            configure(object, configureClosure);
+        }
+        return objects;
+    }
+
+    public void configurations(Closure configureClosure) {
+        ((Configurable<?>) getConfigurations()).configure(configureClosure);
+    }
+
+    public void repositories(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getRepositories());
+    }
+
+    public void dependencies(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getDependencies());
+    }
+
+    public void artifacts(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getArtifacts());
+    }
+
+    public void buildscript(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getBuildscript());
+    }
+
+    public Task task(String task) {
+        return taskContainer.add(task);
+    }
+
+    public Task task(Object task) {
+        return taskContainer.add(task.toString());
+    }
+
+    public Task task(String task, Closure configureClosure) {
+        return taskContainer.add(task).configure(configureClosure);
+    }
+
+    public Task task(Object task, Closure configureClosure) {
+        return task(task.toString(), configureClosure);
+    }
+
+    public Task task(Map options, String task) {
+        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task)));
+    }
+
+    public Task task(Map options, Object task) {
+        return task(options, task.toString());
+    }
+
+    public Task task(Map options, String task, Closure configureClosure) {
+        return taskContainer.add(addMaps(options, singletonMap(Task.TASK_NAME, task))).configure(configureClosure);
+    }
+
+    public Task task(Map options, Object task, Closure configureClosure) {
+        return task(options, task.toString(), configureClosure);
+    }
+
+    /**
+     * This is called by the task creation DSL. Need to find a cleaner way to do this...
+     */
+    public Object passThrough(Object object) {
+        return object;
+    }
+
 }

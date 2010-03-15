@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -179,7 +179,7 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     public FavoriteTask addFavorite(String fullCommandLine, boolean alwaysShowOutput) {
-        FavoriteTask favorite = addFavoriteInternal(fullCommandLine, alwaysShowOutput);
+        FavoriteTask favorite = addFavorite(fullCommandLine, fullCommandLine, alwaysShowOutput);
         if (favorite != null) {
             notifyFavoritesChanged();
         }
@@ -187,13 +187,14 @@ public class FavoritesEditor implements SettingsSerializable {
         return favorite;
     }
 
-    private FavoriteTask addFavoriteInternal(String fullCommandLine, boolean alwaysShowOutput) {
-        FavoriteTask existingFavorite = getFavorite(fullCommandLine);
-        if (existingFavorite != null) {
-            return existingFavorite;
-        }  //already have it.
+    public FavoriteTask addFavorite(String fullCommandLine, String displayName, boolean alwaysShowOutput) {
+        if( ( fullCommandLine == null || fullCommandLine.trim().equals( "" ) ) &&
+            ( displayName == null || displayName.trim().equals( "" ) ) )    //don't allow someone to add a blank favorite.
+        {
+            return null;
+        }
 
-        FavoriteTask favoriteTask = new FavoriteTask(fullCommandLine, fullCommandLine, alwaysShowOutput);
+        FavoriteTask favoriteTask = new FavoriteTask(fullCommandLine, displayName, alwaysShowOutput);
         favoriteTasks.add(favoriteTask);
         return favoriteTask;
     }
@@ -210,7 +211,7 @@ public class FavoritesEditor implements SettingsSerializable {
         while (iterator.hasNext()) {
             TaskView task = iterator.next();
             String fullTaskName = task.getFullTaskName();
-            if (addFavoriteInternal(fullTaskName, alwaysShowOutput) != null) {
+            if (this.addFavorite(fullTaskName, alwaysShowOutput) != null) {
                 addedFavorite = true;
             }
         }
@@ -231,18 +232,18 @@ public class FavoritesEditor implements SettingsSerializable {
      * that isn't really a task.
      *
      * @param addFavoriteInteraction allows us to interact with the user
-     * @return true if we added it, false if not
+     * @return the favorite that was added, or null if the user canceled
      */
-    public boolean addFavorite(EditFavoriteInteraction addFavoriteInteraction) {
+    public FavoriteTask addFavorite(EditFavoriteInteraction addFavoriteInteraction) {
         FavoriteTask newFavorite = new FavoriteTask("", "", false);
         if (!editInternal(newFavorite, addFavoriteInteraction)) {
-            return false;
+            return null;
         }
 
         favoriteTasks.add(newFavorite);
 
         notifyFavoritesChanged();
-        return true;
+        return newFavorite;
     }
 
     /**
@@ -327,11 +328,11 @@ public class FavoritesEditor implements SettingsSerializable {
     }
 
     /**
-     * This validates the editble favorite task. It makes sure the task name is specified and that it's not a
+     * This validates the editable favorite task. It makes sure the task name is specified and that it's not a
      * duplicate.
      *
-     * @param editibleFavoriteTask the task your editing.
-     * @param originalFavoriteTaskObject the original object. This is used to test for duplicateion. If its new and not
+     * @param editableFavoriteTask the task your editing.
+     * @param originalFavoriteTaskObject the original object. This is used to test for duplication. If its new and not
      * in the favorites, that's OK.
      * @param validationInteraction how we report errors to the user.
      * @return true if the task is valid, false if not.
@@ -347,29 +348,6 @@ public class FavoritesEditor implements SettingsSerializable {
         if (editibleFavoriteTask.displayName == null || editibleFavoriteTask.displayName.trim().equals("")) {
             validationInteraction.reportError("Display name must be specified");
             return false;
-        }
-
-        //now make sure it doesn't already exist
-        FavoriteTask favorite = getFavorite(editibleFavoriteTask.fullCommandLine);
-        if (favorite != null) {
-            if (favorite
-                    != originalFavoriteTaskObject) //ignore ourselves (happens if the user is editing something else
-            {
-                validationInteraction.reportError(
-                        "A Favorite Task with full name '" + editibleFavoriteTask.fullCommandLine
-                                + "' already exists.");
-                return false;
-            }
-        }
-
-        favorite = getFavoriteByDisplayName(editibleFavoriteTask.displayName);
-        if (favorite != null) {
-            if (favorite != originalFavoriteTaskObject) //ignore ourselves
-            {
-                validationInteraction.reportError(
-                        "A Favorite Task with display name '" + editibleFavoriteTask.displayName + "' already exists.");
-                return false;
-            }
         }
 
         return true;
@@ -459,5 +437,68 @@ public class FavoritesEditor implements SettingsSerializable {
      */
     public void serializeIn(SettingsNode settings) {
         FavoritesSerializable.serializeIn(settings, favoriteTasks);
+    }
+
+    /**
+     * This makes a copy of all the selected tasks.
+     * @param tasksToCopy the tasks to copy
+     */
+    public void duplicateFavorites(List<FavoriteTask> tasksToCopy) {
+        if( tasksToCopy == null || tasksToCopy.isEmpty() ) {
+            return;
+        }
+
+        Iterator<FavoriteTask> iterator = tasksToCopy.iterator();
+        while( iterator.hasNext() )
+        {
+           FavoriteTask taskToCopy = iterator.next();
+           FavoriteTask newFavoriteTask = new FavoriteTask( taskToCopy.getFullCommandLine(), taskToCopy.getDisplayName(), taskToCopy.alwaysShowOutput() );
+           favoriteTasks.add( newFavoriteTask );
+        }
+
+        notifyFavoritesChanged();
+    }
+
+    /**
+     * This makes a copy of the selected task.
+     * @param taskToCopy the task to copy
+     */
+    public FavoriteTask duplicateFavorite(FavoriteTask taskToCopy) {
+
+        if( taskToCopy == null ) {
+            return null;
+        }
+
+        FavoriteTask newFavoriteTask = new FavoriteTask( taskToCopy.getFullCommandLine(), taskToCopy.getDisplayName(), taskToCopy.alwaysShowOutput() );
+        favoriteTasks.add( newFavoriteTask );
+        notifyFavoritesChanged();
+        return newFavoriteTask;
+    }
+
+    /**
+     * This combines all the command lines of the favorites list into a single command line.
+     * This is useful for allowing a user to execute multiple favorites at once.
+     * Note: this doesn't do anything intelligent by trying to weed out duplicates.
+     * Gradle handles that nicely already.
+     * @param favoriteTasks the favorite tasks to combine
+     * @return a single String of all the command combined.
+     */
+    public static String combineFavoriteCommandLines( List<FavoriteTask> favoriteTasks )
+    {
+        StringBuilder builder = new StringBuilder();
+
+        Iterator<FavoriteTask> iterator = favoriteTasks.iterator();
+        while( iterator.hasNext() )
+        {
+           FavoriteTask favoriteTask = iterator.next();
+
+           builder.append( favoriteTask.getFullCommandLine() );
+           if( iterator.hasNext() )
+           {
+               builder.append( ' ' );
+           }
+        }
+
+        return builder.toString();
     }
 }

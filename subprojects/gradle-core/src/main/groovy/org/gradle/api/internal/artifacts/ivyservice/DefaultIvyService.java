@@ -132,7 +132,7 @@ public class DefaultIvyService implements IvyService {
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
                 clientModuleRegistry);
         ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configuration.getHierarchy(),
-                metaDataProvider.getModuleForResolve(), ivy.getSettings());
+                metaDataProvider.getModule(), ivy.getSettings());
         return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
     }
 
@@ -144,7 +144,7 @@ public class DefaultIvyService implements IvyService {
         dependencyPublisher.publish(
                 confs,
                 publishResolvers,
-                publishModuleDescriptorConverter.convert(configurationsToPublish, metaDataProvider.getModuleForResolve(), ivy.getSettings()),
+                publishModuleDescriptorConverter.convert(configurationsToPublish, metaDataProvider.getModule(), ivy.getSettings()),
                 descriptorDestination,
                 ivy.getPublishEngine());
     }
@@ -153,7 +153,7 @@ public class DefaultIvyService implements IvyService {
         if (descriptorDestination == null) {
             return;
         }
-        ModuleDescriptor moduleDescriptor = ivyFileConverter.convert(configurationsToPublish, metaDataProvider.getModuleForPublicDescriptor(), ivySettings);
+        ModuleDescriptor moduleDescriptor = ivyFileConverter.convert(configurationsToPublish, metaDataProvider.getModule(), ivySettings);
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {

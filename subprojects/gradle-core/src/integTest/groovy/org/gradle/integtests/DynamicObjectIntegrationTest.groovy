@@ -1,5 +1,5 @@
 /*
- * Copyright 2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
 
-import org.gradle.util.TestFile;
-import org.junit.Test;
-import org.junit.runner.RunWith;
+
+
+package org.gradle.integtests
+
+import org.junit.runner.RunWith
+import org.gradle.util.TestFile
+import org.junit.Test
 
 @RunWith(DistributionIntegrationTestRunner.class)
-public class DynamicObjectIntegrationTest {
+class DynamicObjectIntegrationTest {
     // Injected by test runner
     private GradleDistribution dist;
     private GradleExecuter executer;
@@ -96,33 +99,68 @@ public class DynamicObjectIntegrationTest {
     @Test
     public void canAddDynamicPropertiesToCoreDomainObjects() {
         TestFile testDir = dist.getTestDir();
-        testDir.file("build.gradle").writelns(
-                "task defaultTask {",
-                "    custom = 'value'",
-                "}",
-                "task javaTask(type: Copy) {",
-                "    custom = 'value'",
-                "}",
-                "task groovyTask(type: Jar) {",
-                "    custom = 'value'",
-                "}",
-                "configurations {",
-                "    test { custom = 'value' }",
-                "}",
-                "dependencies {",
-                "    test('::name:') { custom = 'value' } ",
-                "    test(module('::other')) { custom = 'value' } ",
-                "    test(project(':')) { custom = 'value' } ",
-                "    test(files('src')) { custom = 'value' } ",
-                "}",
-                "defaultTask.custom = 'another value'",
-                "javaTask.custom = 'another value'",
-                "groovyTask.custom = 'another value'",
-                "assert !project.hasProperty('custom')",
-                "assert defaultTask.custom == 'another value'",
-                "assert configurations.test.custom == 'value'",
-                "configurations.test.dependencies.each { assert it.custom == 'value' }"
-        );
+        testDir.file('build.gradle') << '''
+            class Extension { def doStuff() { 'method' } }
+            class GroovyTask extends DefaultTask { }
+
+            task defaultTask {
+                custom = 'value'
+                convention.plugins.custom = new Extension()
+            }
+            task javaTask(type: Copy) {
+                custom = 'value'
+                convention.plugins.custom = new Extension()
+            }
+            task groovyTask(type: GroovyTask) {
+                custom = 'value'
+                convention.plugins.custom = new Extension()
+            }
+            configurations {
+                test {
+                    custom = 'value'
+                    convention.plugins.custom = new Extension()
+                }
+            }
+            dependencies {
+                test('::name:') {
+                    custom = 'value';
+                    convention.plugins.custom = new Extension()
+                }
+                test(module('::other')) {
+                    custom = 'value';
+                    convention.plugins.custom = new Extension()
+                }
+                test(project(':')) {
+                    custom = 'value';
+                    convention.plugins.custom = new Extension()
+                }
+                test(files('src')) {
+                    custom = 'value';
+                    convention.plugins.custom = new Extension()
+                }
+            }
+            repositories {
+                custom = 'repository'
+                convention.plugins.custom = new Extension()
+            }
+            defaultTask.custom = 'another value'
+            javaTask.custom = 'another value'
+            groovyTask.custom = 'another value'
+            assert !project.hasProperty('custom')
+            assert defaultTask.custom == 'another value'
+            assert defaultTask.doStuff() == 'method'
+            assert javaTask.doStuff() == 'method'
+            assert groovyTask.doStuff() == 'method'
+            assert configurations.test.custom == 'value'
+            assert configurations.test.doStuff() == 'method'
+            configurations.test.dependencies.each { assert it.custom == 'value' }
+            assert repositories.custom == 'repository'
+            assert repositories.doStuff() == 'method'
+            repositories {
+                assert custom == 'repository'
+                assert doStuff() == 'method'
+            }
+'''
 
         executer.inDirectory(testDir).withTasks("defaultTask").run();
     }

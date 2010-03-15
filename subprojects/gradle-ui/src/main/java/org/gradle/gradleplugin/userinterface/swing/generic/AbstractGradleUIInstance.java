@@ -19,7 +19,6 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.generic.tabs.GradleTab;
-
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import java.awt.BorderLayout;

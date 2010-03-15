@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import ch.qos.logback.classic.Level;
@@ -20,18 +21,24 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.filter.LevelFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.ConsoleAppender;
+import ch.qos.logback.core.AppenderBase;
+import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
+import org.fusesource.jansi.AnsiConsole;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.logging.MarkerFilter;
+import org.gradle.logging.*;
+import org.jruby.ext.posix.POSIX;
+import org.jruby.ext.posix.POSIXFactory;
+import org.jruby.ext.posix.POSIXHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.io.*;
 import java.util.logging.LogManager;
 
 /**
@@ -41,6 +48,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     private final Appender stderrConsoleAppender = new Appender();
     private final Appender stdoutConsoleAppender = new Appender();
     private boolean applied;
+    private boolean isTerminal;
 
     public void addStandardErrorListener(StandardOutputListener listener) {
         stderrConsoleAppender.addListener(listener);
@@ -65,8 +73,11 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             lc.reset();
             LogManager.getLogManager().reset();
             SLF4JBridgeHandler.install();
+
+            isTerminal = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true).isatty(FileDescriptor.out);
+            stderrConsoleAppender.setTarget(isTerminal ? AnsiConsole.err() : System.err);
+            stdoutConsoleAppender.setTarget(isTerminal ? AnsiConsole.out() : System.out);
             stderrConsoleAppender.setContext(lc);
-            stderrConsoleAppender.setTarget("System.err");
             stdoutConsoleAppender.setContext(lc);
             rootLogger = lc.getLogger("ROOT");
             rootLogger.addAppender(stdoutConsoleAppender);
@@ -112,17 +123,9 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         stderrConsoleAppender.start();
     }
 
-    private void setLayouts(LogLevel logLevel, ConsoleAppender errorConsoleAppender,
-                            ConsoleAppender nonErrorConsoleAppender, LoggerContext lc) {
-        String debugLayout = "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%ex";
-        String infoLayout = "%msg%n%ex";
-        if (logLevel == LogLevel.DEBUG) {
-            nonErrorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
-            errorConsoleAppender.setLayout(createPatternLayout(lc, debugLayout));
-        } else {
-            nonErrorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
-            errorConsoleAppender.setLayout(createPatternLayout(lc, infoLayout));
-        }
+    private void setLayouts(LogLevel logLevel, Appender errorAppender, Appender nonErrorAppender, LoggerContext lc) {
+        nonErrorAppender.setFormatter(createFormatter(lc, logLevel));
+        errorAppender.setFormatter(createFormatter(lc, logLevel));
     }
 
     private Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
@@ -135,26 +138,39 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         return levelFilter;
     }
 
-    private PatternLayout createPatternLayout(LoggerContext loggerContext, String pattern) {
-        PatternLayout patternLayout = new Layout();
-        patternLayout.setPattern(pattern);
-        patternLayout.setContext(loggerContext);
-        patternLayout.start();
-        return patternLayout;
-    }
-
-    private static class Layout extends PatternLayout {
-        @Override
-        public String doLayout(ILoggingEvent loggingEvent) {
-            if (loggingEvent.getMarker() == Logging.PROGRESS) {
-                return loggingEvent.getFormattedMessage();
-            }
-            return super.doLayout(loggingEvent);
+    private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel) {
+        if (logLevel == LogLevel.DEBUG) {
+            Layout<ILoggingEvent> layout = new DebugLayout();
+            layout.setContext(loggerContext);
+            layout.start();
+            return new LayoutBasedFormatter(layout);
+        } else if (isTerminal) {
+            return new ConsoleBackedFormatter(loggerContext);
+        } else {
+            return new BasicProgressLoggingAwareFormatter(loggerContext);
         }
     }
 
-    private static class Appender extends ConsoleAppender<ILoggingEvent> {
-        private final ListenerBroadcast<StandardOutputListener> listeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+    private static class DebugLayout extends PatternLayout {
+        private DebugLayout() {
+            setPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%ex");
+        }
+    }
+
+    private static class Appender extends AppenderBase<ILoggingEvent> {
+        private final ListenerBroadcast<StandardOutputListener> listeners
+                = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+        private LogEventFormatter formatter;
+        private PrintStream target;
+
+        private void setTarget(final PrintStream target) {
+            this.target = target;
+        }
+
+        public void setFormatter(LogEventFormatter formatter) {
+            this.formatter = formatter;
+            formatter.setTarget(new ListenerAdapter(listeners.getSource(), target));
+        }
 
         public void removeListener(StandardOutputListener listener) {
             listeners.remove(listener);
@@ -166,18 +182,90 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
 
         @Override
         protected void append(ILoggingEvent event) {
-            super.append(event);
-            listeners.getSource().onOutput(layout.doLayout(event));
+            try {
+                formatter.format(event);
+                target.flush();
+            } catch (Throwable t) {
+                // Give up and try stdout
+                t.printStackTrace(StandardOutputLogging.DEFAULT_ERR);
+            }
+        }
+    }
+
+    private static class ListenerAdapter implements Appendable {
+        private final StandardOutputListener listener;
+        private final Appendable next;
+
+        private ListenerAdapter(StandardOutputListener listener, Appendable next) {
+            this.listener = listener;
+            this.next = next;
         }
 
-        @Override
-        public void start() {
-            super.start();
-            if (target.equals(SYSTEM_OUT)) {
-                setWriter(createWriter(StandardOutputLogging.DEFAULT_OUT));
+        public Appendable append(char c) throws IOException {
+            next.append(c);
+            listener.onOutput(String.valueOf(c));
+            return this;
+        }
+
+        public Appendable append(CharSequence sequence) throws IOException {
+            next.append(sequence);
+            if (sequence != null) {
+                listener.onOutput(sequence);
             } else {
-                setWriter(createWriter(StandardOutputLogging.DEFAULT_ERR));
+                listener.onOutput("null"); // This is the contract of Appendable.append()
             }
+            return this;
+        }
+
+        public Appendable append(CharSequence sequence, int start, int end) throws IOException {
+            next.append(sequence, start, end);
+            if (sequence != null) {
+                listener.onOutput(sequence.subSequence(start, end));
+            } else {
+                listener.onOutput("null"); // This is the contract of Appendable.append() 
+            }
+            return this;
+        }
+    }
+
+    private class POSIXHandlerImpl implements POSIXHandler {
+        public void error(POSIX.ERRORS errors, String message) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void unimplementedError(String message) {
+            throw new UnsupportedOperationException();
+        }
+
+        public void warn(WARNING_ID warningId, String message, Object... objects) {
+        }
+
+        public boolean isVerbose() {
+            return false;
+        }
+
+        public File getCurrentWorkingDirectory() {
+            throw new UnsupportedOperationException();
+        }
+
+        public String[] getEnv() {
+            throw new UnsupportedOperationException();
+        }
+
+        public InputStream getInputStream() {
+            return System.in;
+        }
+
+        public PrintStream getOutputStream() {
+            return System.out;
+        }
+
+        public int getPID() {
+            throw new UnsupportedOperationException();
+        }
+
+        public PrintStream getErrorStream() {
+            return System.err;
         }
     }
 }

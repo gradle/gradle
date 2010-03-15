@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.ProgressLogger;
 import org.gradle.api.tasks.TaskState;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -33,8 +34,9 @@ public class TaskExecutionLoggerTest {
     private final Logger logger = context.mock(Logger.class);
     private final Task task = context.mock(Task.class);
     private final TaskState state = context.mock(TaskState.class);
-    private final TaskExecutionLogger executionLogger = new TaskExecutionLogger(logger);
+    private final ProgressLogger progressLogger = context.mock(ProgressLogger.class);
     private final Gradle gradle = context.mock(Gradle.class);
+    private final TaskExecutionLogger executionLogger = new TaskExecutionLogger(logger);
 
     @Before
     public void setUp() {
@@ -44,6 +46,8 @@ public class TaskExecutionLoggerTest {
             will(returnValue(project));
             allowing(project).getGradle();
             will(returnValue(gradle));
+            allowing(task).getPath();
+            will(returnValue(":path"));
         }});
     }
 
@@ -52,20 +56,19 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            allowing(task).getPath();
-            will(returnValue(":path"));
-            allowing(state).getSkipMessage();
-            will(returnValue(null));
+            one(logger).createProgressLogger();
+            will(returnValue(progressLogger));
+            one(progressLogger).started(":path");
         }});
 
         executionLogger.beforeExecute(task);
 
         context.checking(new Expectations() {{
-            one(logger).lifecycle(":path");
+            allowing(state).getSkipMessage();
+            will(returnValue(null));
+            one(progressLogger).completed();
         }});
 
-        executionLogger.beforeActions(task);
-        executionLogger.afterActions(task);
         executionLogger.afterExecute(task, state);
     }
 
@@ -80,20 +83,20 @@ public class TaskExecutionLoggerTest {
             will(returnValue(rootProject));
             allowing(rootProject).getName();
             will(returnValue("build"));
-            allowing(task).getPath();
-            will(returnValue(":path"));
-            allowing(state).getSkipMessage();
-            will(returnValue(null));
+
+            one(logger).createProgressLogger();
+            will(returnValue(progressLogger));
+            one(progressLogger).started(":build:path");
         }});
 
         executionLogger.beforeExecute(task);
 
         context.checking(new Expectations() {{
-            one(logger).lifecycle(":build:path");
+            allowing(state).getSkipMessage();
+            will(returnValue(null));
+            one(progressLogger).completed();
         }});
 
-        executionLogger.beforeActions(task);
-        executionLogger.afterActions(task);
         executionLogger.afterExecute(task, state);
     }
 
@@ -102,16 +105,17 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            allowing(task).getPath();
-            will(returnValue("path"));
-            allowing(state).getSkipMessage();
-            will(returnValue("skipped"));
+            one(logger).createProgressLogger();
+            will(returnValue(progressLogger));
+            one(progressLogger).started(":path");
         }});
 
         executionLogger.beforeExecute(task);
 
         context.checking(new Expectations() {{
-            one(logger).lifecycle("{} {}", "path", "skipped");
+            allowing(state).getSkipMessage();
+            will(returnValue("skipped"));
+            one(progressLogger).completed("skipped");
         }});
 
         executionLogger.afterExecute(task, state);

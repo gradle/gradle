@@ -17,6 +17,7 @@ package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.LocationAwareException;
+import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
@@ -384,6 +385,36 @@ public class GradlePluginLord {
 
       String singleCommandLine = CommandLineAssistant.combineTasks( tasks, additionCommandLineOptions );
       return addExecutionRequestToQueue(singleCommandLine, tasks.get( 0 ).getName() + "...", forceOutputToBeShown );
+    }
+
+    /**
+     * Executes several favorites commands at once as a single command. This has the affect
+     * of simply concatenating all the favorite command lines into a single line.
+     * @param favorites a list of favorites. If just one favorite, it executes it normally.
+     *                  If multiple favorites, it executes them all at once as a single command.
+     */
+    public void addExecutionRequestToQueue(List<FavoriteTask> favorites) {
+        if( favorites.isEmpty() ) {
+            return;
+        }
+
+        FavoriteTask firstFavoriteTask = favorites.get( 0 );
+        String displayName;
+        String fullCommandLine;
+        boolean alwaysShowOutput = firstFavoriteTask.alwaysShowOutput();
+
+        if( favorites.size() == 1 )
+        {
+            displayName = firstFavoriteTask.getDisplayName();
+            fullCommandLine = firstFavoriteTask.getFullCommandLine();
+        }
+        else
+        {
+            displayName = "Multiple (" + firstFavoriteTask.getDisplayName() + ", ... )";
+            fullCommandLine = FavoritesEditor.combineFavoriteCommandLines(favorites);
+        }
+
+        addExecutionRequestToQueue( fullCommandLine, displayName, alwaysShowOutput );
     }
 
    /**

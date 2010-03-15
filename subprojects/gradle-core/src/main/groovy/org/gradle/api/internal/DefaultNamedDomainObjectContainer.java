@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,12 +32,12 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     private final List<Rule> rules = new ArrayList<Rule>();
     private final NamedObjectStore<T> store;
     private final Class<T> type;
-    private String applyingRulesFor;
+    private Set<String> applyingRulesFor = new HashSet<String>();
 
     public DefaultNamedDomainObjectContainer(Class<T> type) {
         this(type, new MapStore<T>());
     }
-
+                                         
     protected DefaultNamedDomainObjectContainer(Class<T> type, NamedObjectStore<T> store) {
         super(store);
         this.type = type;
@@ -57,7 +57,7 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     protected void addObject(String name, T object) {
         assert object != null && name != null;
         store.put(name, object);
-        ReflectionUtil.installGetter(this, name);
+        ReflectionUtil.installGetter(this, name, new ContainerElementsDynamicObject());
         ReflectionUtil.installConfigureMethod(this, name);
     }
 
@@ -123,16 +123,16 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     }
 
     private void applyRules(String name) {
-        if (name.equals(applyingRulesFor)) {
+        if (applyingRulesFor.contains(name)) {
             return;
         }
-        applyingRulesFor = name;
+        applyingRulesFor.add(name);
         try {
             for (Rule rule : rules) {
                 rule.apply(name);
             }
         } finally {
-            applyingRulesFor = null;
+            applyingRulesFor.remove(name);
         }
     }
 
@@ -149,6 +149,11 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
 
             public void apply(String taskName) {
                 ruleAction.call(taskName);
+            }
+
+            @Override
+            public String toString() {
+                return "Rule: " + description;
             }
         };
         rules.add(rule);

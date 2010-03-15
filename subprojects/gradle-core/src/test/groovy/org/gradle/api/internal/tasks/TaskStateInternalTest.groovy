@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks
 
 import org.gradle.api.GradleException
@@ -58,6 +60,14 @@ class TaskStateInternalTest {
         assertTrue(state.executed)
         assertTrue(state.skipped)
         assertThat(state.skipMessage, equalTo('skip-message'))
+    }
+
+    @Test
+    public void canMarkTaskAsUpToDate() {
+        state.upToDate()
+        assertTrue(state.executed)
+        assertTrue(state.skipped)
+        assertThat(state.skipMessage, equalTo('UP-TO-DATE'))
     }
 
     @Test

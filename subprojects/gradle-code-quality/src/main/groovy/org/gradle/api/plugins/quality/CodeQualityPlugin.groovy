@@ -66,7 +66,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
     }
 
     private void configureCheckTask(Project project) {
-        Task task = project.tasks[JavaPlugin.CHECK_TASK_NAME]
+        Task task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
         task.setDescription("Executes all quality checks");
         task.dependsOn { project.tasks.withType(Checkstyle.class).all; }
         task.dependsOn { project.tasks.withType(CodeNarc.class).all; }

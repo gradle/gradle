@@ -18,6 +18,8 @@
 
 
 
+
+
 package org.gradle.api.internal.project
 
 import java.awt.Point
@@ -66,6 +68,8 @@ import org.junit.runner.RunWith
 import org.gradle.api.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.AsmBackedClassGenerator
 
 /**
  * @author Hans Dockter
@@ -188,12 +192,14 @@ class DefaultProjectTest {
             will(returnValue(listener))
         }
 
-        project = new DefaultProject('root', null, rootDir, script, build, projectServiceRegistryFactoryMock);
-        child1 = new DefaultProject("child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock)
+        // TODO - don't decorate the project objects
+        ClassGenerator classGenerator = new AsmBackedClassGenerator()
+        project = classGenerator.newInstance(DefaultProject.class, 'root', null, rootDir, script, build, projectServiceRegistryFactoryMock);
+        child1 = classGenerator.newInstance(DefaultProject.class, "child1", project, new File("child1"), script, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child1)
-        childchild = new DefaultProject("childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock)
+        childchild = classGenerator.newInstance(DefaultProject.class, "childchild", child1, new File("childchild"), script, build, projectServiceRegistryFactoryMock)
         child1.addChildProject(childchild)
-        child2 = new DefaultProject("child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock)
+        child2 = classGenerator.newInstance(DefaultProject.class, "child2", project, new File("child2"), script, build, projectServiceRegistryFactoryMock)
         project.addChildProject(child2)
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
@@ -805,8 +811,7 @@ def scriptMethod(Closure closure) {
 
     @Test void testProperties() {
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModuleForResolve(); will(returnValue([:] as Module))
-            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor(); will(returnValue([:] as Module))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue([:] as Module))
         }
         project.additional = 'additional'
 
@@ -1012,13 +1017,10 @@ def scriptMethod(Closure closure) {
 
     @Test void testGetModule() {
         Module moduleDummyResolve = [:] as Module
-        Module moduleDummyPublicDescriptor = [:] as Module
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModuleForResolve(); will(returnValue(moduleDummyResolve))
-            allowing(dependencyMetaDataProviderMock).getModuleForPublicDescriptor(); will(returnValue(moduleDummyPublicDescriptor))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue(moduleDummyResolve))
         }
-        assertThat(project.getModuleForResolve(), equalTo(moduleDummyResolve))
-        assertThat(project.getModuleForPublicDescriptor(), equalTo(moduleDummyPublicDescriptor))
+        assertThat(project.getModule(), equalTo(moduleDummyResolve))
     }
 }
 

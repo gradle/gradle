@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
@@ -92,9 +93,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new ExecuteAtMostOnceTaskExecuter(
                 new SkipTaskExecuter(
                         new ExecutionShortCircuitTaskExecuter(
-                                new DefaultTaskExecuter(
-                                        get(ListenerManager.class).getBroadcaster(TaskActionListener.class)),
-                                get(TaskArtifactStateRepository.class))));
+                                new PostExecutionAnalysisTaskExecuter(
+                                        new DefaultTaskExecuter(
+                                                get(ListenerManager.class).getBroadcaster(TaskActionListener.class))),
+                                        get(TaskArtifactStateRepository.class))));
     }
 
     protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
@@ -313,11 +315,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
             return startParameter.getGradleUserHomeDir();
         }
 
-        public Module getModuleForPublicDescriptor() {
-            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
-        }
-
-        public Module getModuleForResolve() {
+        public Module getModule() {
             return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }

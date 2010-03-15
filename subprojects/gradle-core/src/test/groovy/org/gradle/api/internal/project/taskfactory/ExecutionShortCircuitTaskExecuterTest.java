@@ -47,7 +47,7 @@ public class ExecutionShortCircuitTaskExecuterTest {
             one(taskArtifactState).isUpToDate();
             will(returnValue(true));
 
-            one(taskState).skipped("UP-TO-DATE");
+            one(taskState).upToDate();
         }});
 
         executer.execute(task, taskState);

@@ -15,9 +15,8 @@
  */
 package org.gradle.openapi.external.ui;
 
-import java.awt.*;
-import java.util.*;
 import java.util.List;
+import java.awt.Font;
 
 /**
  Provides access to aspects of gradle's output
@@ -63,4 +62,10 @@ public interface OutputUILordVersion1 {
 
    public void addOutputObserver( OutputObserverVersion1 outputObserverVersion1 );
    public void removeOutputObserver( OutputObserverVersion1 outputObserverVersion1 );
+
+    /*
+    This re-executes the last execution command (ignores refresh commands).
+    This is potentially useful for IDEs to hook into (hotkey to execute last command).
+     */
+    public void reExecuteLastCommand();
 }
