@@ -75,7 +75,7 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
-    testCompile libraries.xmlunit, "org.spockframework:spock-core:0.4-groovy-1.7-SNAPSHOT"
+    testCompile libraries.xmlunit
 
     runtime libraries.ant_launcher
     // TODO - this should be in the plugins project
