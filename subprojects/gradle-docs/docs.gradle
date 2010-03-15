@@ -214,7 +214,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
+task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
     standalone = true
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')

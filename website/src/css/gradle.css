@@ -44,9 +44,8 @@ p {
 
 #bottom {
     width: 100%;
-    background: #5b7e52;
-    background-image: -moz-linear-gradient(#7b9d72, #5b7e52);
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#7b9d72), to(#5b7e52));
+    background: #5b7e52 url('../img/footer.png') top left repeat;
+    height: 260px;
 }
 
 #middle {
@@ -56,11 +55,17 @@ p {
     padding-bottom: 30px;
 }
 
-#header, .content, #footer {
+#headerContainer, .contentContainer, #footerContainer {
+    width: 1130px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#header, #footer {
     width: 990px;
-    margin: auto;
-    padding-left: 50px;
-    padding-right: 50px;
+    margin-bottom: 10px;
+    margin-left: 70px;
+    margin-right: 70px;
 }
 
 #header {
@@ -70,8 +75,8 @@ p {
 
 #header #logo {
     position: absolute;
-    left: 50px;
-    bottom: 10px;
+    left: 0;
+    bottom: 0;
     font-family: Helvetica, sans-serif;
 }
 
@@ -103,8 +108,8 @@ p {
 
 #navbar {
     position: absolute;
-    right: 50px;
-    bottom: 10px;
+    right: 0;
+    bottom: 0;
 }
 
 #navbar ul {
@@ -134,14 +139,38 @@ p {
     color: #327bad;
 }
 
+.contentTop {
+    background: white url('../img/contentTop.png') 0 0 no-repeat;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1130px;
+    height: 40px;
+}
+
+.contentBottom {
+    background: white url('../img/contentBottom.png') 0 0 no-repeat;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1130px;
+    height: 40px;
+}
+
+.contentContainer {
+    margin-left: auto;
+    margin-right: auto;
+    width: 1130px;
+    background: white url('../img/contentMiddle.png') 0 0;
+}
+
 .content {
-    -webkit-border-radius: 15px;
-    -moz-border-radius: 15px;
-    -webkit-box-shadow: 0 0 20px #c0c0c0;
-    -moz-box-shadow: 0 0 20px #c0c0c0;
-    background: white;
-    padding-top: 20px;
-    padding-bottom: 35px;
+    margin-left: 70px;
+    margin-right: 70px;
+    padding-top: 5px;
+    padding-bottom: 30px;
+}
+
+.content h1 {
+    margin-top: 0.2em;
 }
 
 .content a {
@@ -185,26 +214,20 @@ p {
 
 #gettingstarted {
     /*background-color: #d5e8f5;*/
-    background-color: #e4eef5;
-    -webkit-border-radius: 10px;
-    -moz-border-radius: 10px;
+    background: #e4eef5 url('../img/getStartedBottom.png') bottom left no-repeat;
     margin-right: auto;
+    width: 335px;
 }
 
 #gettingstarted h2 {
-    background: #4a9935;
-    background-image: -moz-linear-gradient(#7bc966, #4a9935);
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#7bc966), to(#4a9935));
+    background: white url('../img/getStarted.png') 0 0 no-repeat;
     color: white;
     margin: 0;
+    height: 31px;
     padding-left: 25px;
     padding-right: 25px;
-    padding-top: 6px;
-    padding-bottom: 4px;
-    -webkit-border-top-left-radius: 10px;
-    -webkit-border-top-right-radius: 10px;
-    -moz-border-radius-topleft: 10px;
-    -moz-border-radius-topright: 10px;
+    padding-bottom: 5px;
+    padding-top: 5px;
 }
 
 #gettingstarted ol {
@@ -252,8 +275,24 @@ p {
     width: 100%;
 }
 
+table.tools {
+    margin-top: 1.5em;
+    width: 70%;
+}
+
+table.tools td {
+    width: 30%;
+    text-align: center;
+    padding-bottom: 1.5em;
+    vertical-align: middle;
+}
+
+table.tools a {
+    display: block;
+    margin-top: 0.6em;
+}
+
 #footer {
-    height: 220px;
     padding-top: 20px;
     padding-bottom: 20px;
     font-size: 90%;
