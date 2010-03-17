@@ -316,7 +316,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         }
 
         public Module getModule() {
-            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
+            return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }
 

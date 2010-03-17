@@ -182,8 +182,6 @@ public interface Project extends Comparable<Project> {
 
     public static final String TMP_DIR_NAME = ".gradle";
 
-    public static final String DEFAULT_GROUP = "unspecified";
-
     public static final String DEFAULT_VERSION = "unspecified";
 
     public static final String DEFAULT_STATUS = "release";
@@ -258,7 +256,7 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns the group of this project. Gradle always uses the toString() value of a group. The group defaults to
-     * {@value #DEFAULT_GROUP}.</p> <p/> <p>You can access this property in your build file using
+     * the path with dots a separators.</p> <p/> <p>You can access this property in your build file using
      * <code>group</code></p>
      *
      * @return The group of this project. Never returns null.

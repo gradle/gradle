@@ -266,7 +266,6 @@ class DefaultProjectTest {
     private void checkProject(DefaultProject project, Project parent, String name, File projectDir) {
         assertSame parent, project.parent
         assertEquals name, project.name
-        assertEquals Project.DEFAULT_GROUP, project.group
         assertEquals Project.DEFAULT_VERSION, project.version
         assertEquals Project.DEFAULT_STATUS, project.status
         assertSame(rootDir, project.rootDir)
@@ -287,19 +286,26 @@ class DefaultProjectTest {
         assertEquals DefaultProject.DEFAULT_BUILD_DIR_NAME, project.buildDirName
     }
 
-    @Test public void testNullGroupVersionAndStatus() {
+    @Test public void testNullVersionAndStatus() {
         project.version = 'version'
-        project.group = 'group'
         project.status = 'status'
         assertEquals('version', project.version)
-        assertEquals('group', project.group)
         assertEquals('status', project.status)
         project.version = null
-        project.group = null
         project.status = null
         assertEquals(Project.DEFAULT_VERSION, project.version)
-        assertEquals(Project.DEFAULT_GROUP, project.group)
         assertEquals(Project.DEFAULT_STATUS, project.status)
+    }
+
+    @Test void testGetGroup() {
+        assertThat(project.getGroup(), equalTo(''))
+        assertThat(childchild.getGroup(), equalTo('root.child1'))
+
+        child1.group = ''
+        assertThat(child1.getGroup(), equalTo(''))
+
+        child1.group = null
+        assertThat(child1.getGroup(), equalTo('root'))
     }
 
     @Test public void testExecutesActionBeforeEvaluation() {

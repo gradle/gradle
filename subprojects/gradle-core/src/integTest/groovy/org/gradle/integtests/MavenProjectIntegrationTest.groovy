@@ -39,6 +39,7 @@ class MavenProjectIntegrationTest {
         dist.testFile("build.gradle") << '''
             apply id: 'java'
             apply id: 'maven'
+            group = 'root'
             repositories { mavenCentral() }
             configurations { custom }
             dependencies {
@@ -58,9 +59,10 @@ class MavenProjectIntegrationTest {
     
     @Test
     public void canDeployAProjectWithNoMainArtifact() {
-        dist.testFile("build.gradle") << '''
+        def file = dist.testFile("build.gradle") << '''
             apply id: 'java'
             apply id: 'maven'
+            group = 'root'
             jar.enabled = false
             task sourceJar(type: Jar) {
                 classifier = 'source'
@@ -76,6 +78,7 @@ class MavenProjectIntegrationTest {
                 }
             }
         '''
+        println file.absolutePath
         executer.withTasks('uploadArchives').run()
     }
 }
