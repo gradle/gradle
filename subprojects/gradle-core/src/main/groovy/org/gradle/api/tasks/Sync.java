@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,17 +16,19 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor;
 import org.gradle.api.internal.project.ProjectInternal;
 
+import java.io.File;
+
 /**
  * Task for synchronizing the contents of a directory.
+ *
  */
 public class Sync extends AbstractCopyTask {
-    private CopyActionImpl action;
+    private FileCopyActionImpl action;
 
     public Sync() {
         FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
@@ -34,7 +36,12 @@ public class Sync extends AbstractCopyTask {
     }
 
     @Override
-    protected CopyActionImpl getCopyAction() {
+    protected FileCopyActionImpl getCopyAction() {
         return action;
+    }
+
+    @OutputDirectory
+    public File getDestinationDir() {
+        return getCopyAction().getDestinationDir();
     }
 }
