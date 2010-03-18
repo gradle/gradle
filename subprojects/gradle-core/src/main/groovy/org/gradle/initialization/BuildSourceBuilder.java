@@ -22,9 +22,11 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentStateCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.util.GFileUtils;
+import org.gradle.util.TimeProvider;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,18 +41,22 @@ import java.util.*;
  * @author Hans Dockter
  */
 public class BuildSourceBuilder {
-    private static Logger logger = LoggerFactory.getLogger(BuildSourceBuilder.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(BuildSourceBuilder.class);
 
-    private GradleLauncherFactory gradleLauncherFactory;
-    private CacheInvalidationStrategy cacheInvalidationStrategy;
+    private final GradleLauncherFactory gradleLauncherFactory;
+    private final CacheInvalidationStrategy cacheInvalidationStrategy;
     private final ClassLoaderFactory classLoaderFactory;
+    private final CacheRepository cacheRepository;
+    private final TimeProvider timeProvider;
 
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, CacheInvalidationStrategy cacheInvalidationStrategy, ClassLoaderFactory classLoaderFactory) {
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, CacheInvalidationStrategy cacheInvalidationStrategy, ClassLoaderFactory classLoaderFactory, CacheRepository cacheRepository, TimeProvider timeProvider) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.cacheInvalidationStrategy = cacheInvalidationStrategy;
         this.classLoaderFactory = classLoaderFactory;
+        this.cacheRepository = cacheRepository;
+        this.timeProvider = timeProvider;
     }
 
     public URLClassLoader buildAndCreateClassLoader(StartParameter startParameter)
@@ -75,24 +81,27 @@ public class BuildSourceBuilder {
     public Set<File> createBuildSourceClasspath(StartParameter startParameter) {
         assert startParameter.getCurrentDir() != null && startParameter.getBuildFile() == null;
 
-        logger.debug("Starting to build the build sources.");
+        LOGGER.debug("Starting to build the build sources.");
         if (!startParameter.getCurrentDir().isDirectory()) {
-            logger.debug("Gradle source dir does not exist. We leave.");
+            LOGGER.debug("Gradle source dir does not exist. We leave.");
             return new HashSet<File>();
         }
-        logger.info("================================================" + " Start building buildSrc");
+        LOGGER.info("================================================" + " Start building buildSrc");
         StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
         boolean executeBuild = true;
 
-        File markerFile = markerFile(startParameter.getCurrentDir());
-        if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(markerFile, startParameter.getCurrentDir())) {
+        PersistentStateCache<Long> stateCache = cacheRepository.cache("buildSrc").forObject(
+                startParameter.getCurrentDir()).invalidateOnVersionChange().open().openStateCache();
+        Long timestamp = stateCache.get();
+
+        if (startParameter.getCacheUsage() == CacheUsage.ON && cacheInvalidationStrategy.isValid(timestamp, startParameter.getCurrentDir())) {
             executeBuild = false;
         }
 
         if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
-            logger.debug("Gradle script file does not exists. Using default one.");
+            LOGGER.debug("Gradle script file does not exist. Using default one.");
             ScriptSource source = new StringScriptSource("default buildSrc build script", getDefaultScript());
             startParameterArg.setBuildScriptSource(source);
         }
@@ -107,12 +116,13 @@ public class BuildSourceBuilder {
             buildResult = gradleLauncher.getBuildAnalysis();
         }
         buildResult.rethrowFailure();
-        GFileUtils.touch(markerFile);
+        stateCache.set(timeProvider.getCurrentTime());
 
         Set<File> buildSourceClasspath = new LinkedHashSet<File>();
         buildSourceClasspath.addAll(listener.getRuntimeClasspath());
-        logger.debug("Gradle source classpath is: {}", buildSourceClasspath);
-        logger.info("================================================" + " Finished building buildSrc");
+        LOGGER.debug("Gradle source classpath is: {}", buildSourceClasspath);
+        LOGGER.info("================================================" + " Finished building buildSrc");
+
         return buildSourceClasspath;
     }
 
@@ -124,16 +134,8 @@ public class BuildSourceBuilder {
         }
     }
 
-    public File markerFile(File buildSrcDir) {
-        return new File(buildSrcDir, "build/COMPLETED");
-    }
-
     public GradleLauncherFactory getGradleLauncherFactory() {
         return gradleLauncherFactory;
-    }
-
-    public void setGradleLauncherFactory(GradleLauncherFactory gradleLauncherFactory) {
-        this.gradleLauncherFactory = gradleLauncherFactory;
     }
 
     private static class BuildSrcBuildListener extends BuildAdapter {

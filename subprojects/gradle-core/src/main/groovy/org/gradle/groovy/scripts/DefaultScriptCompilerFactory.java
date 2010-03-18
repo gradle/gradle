@@ -77,8 +77,7 @@ public class DefaultScriptCompilerFactory implements ScriptCompilerFactory {
             properties.put("source.filename", source.getFileName());
             properties.put("source.hash", HashUtil.createHash(source.getResource().getText()));
 
-            PersistentCache cache = cacheRepository.getGlobalCache(String.format("scripts/%s", source.getClassName()),
-                    properties);
+            PersistentCache cache = cacheRepository.cache(String.format("scripts/%s", source.getClassName())).withProperties(properties).open();
             File classesDir;
             if (transformer != null) {
                 String subdirName = String.format("%s_%s", transformer.getId(), scriptBaseClass.getSimpleName());

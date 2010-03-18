@@ -135,6 +135,20 @@ public class DefaultPersistentDirectoryCacheTest {
         assertFalse(indexedCache.isOpen());
     }
     
+    @Test
+    public void createsAnStateCache() {
+        TestFile dir = tmpDir.getDir().file("dir");
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        assertThat(cache.openStateCache(), instanceOf(SimpleStateCache.class));
+    }
+
+    @Test
+    public void reusesTheStateCache() {
+        TestFile dir = tmpDir.getDir().file("dir");
+        DefaultPersistentDirectoryCache cache = new DefaultPersistentDirectoryCache(dir, CacheUsage.ON, properties);
+        assertThat(cache.openStateCache(), sameInstance(cache.openStateCache()));
+    }
+
     private Map<String, String> loadProperties(TestFile file) {
         Properties properties = GUtil.loadProperties(file);
         Map<String, String> result = new HashMap<String, String>();

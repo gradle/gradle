@@ -52,4 +52,11 @@ public interface PersistentCache {
      * @return The cache.
      */
     <K, V> PersistentIndexedCache<K, V> openIndexedCache();
+
+    /**
+     * Opens a state cache backed by this cache.
+     *
+     * @return The cache.
+     */
+    <T> PersistentStateCache<T> openStateCache();
 }

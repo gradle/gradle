@@ -36,8 +36,8 @@ public class DefaultTaskInputs implements TaskInputs {
         inputFiles = new PathResolvingFileCollection("task input files", resolver, null);
     }
 
-    public boolean getHasInputFiles() {
-        return !inputFiles.getSources().isEmpty();
+    public boolean getHasInputs() {
+        return !inputFiles.getSources().isEmpty() || !properties.isEmpty();
     }
 
     public FileCollection getFiles() {

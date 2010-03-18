@@ -19,6 +19,8 @@ import org.gradle.util.TestFile;
 import org.junit.Ignore;
 import org.junit.Test;
 
+import java.util.Map;
+
 import static org.junit.Assert.*;
 
 public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest {
@@ -49,6 +51,15 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
 
         inTestDirectory().withArguments("-Crebuild").withTasks("test").run();
 
+        buildSrcJar.assertHasChangedSince(snapshot);
+        snapshot = buildSrcJar.snapshot();
+
+        TestFile cacheProps = testFile("buildSrc/.gradle/noVersion/buildSrc/cache.properties");
+        Map<String, String> properties = cacheProps.getProperties();
+        properties.put("gradle.version", "some-other-version");
+        cacheProps.writeProperties(properties);
+
+        inTestDirectory().withTasks("test").run();
         buildSrcJar.assertHasChangedSince(snapshot);
     }
 

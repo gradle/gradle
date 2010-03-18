@@ -15,10 +15,8 @@
  */
 package org.gradle.api.internal.changedetection;
 
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.Serializer;
+import org.gradle.cache.*;
+
 import static org.gradle.util.Matchers.*;
 import org.gradle.util.TemporaryFolder;
 import static org.hamcrest.Matchers.*;
@@ -49,9 +47,15 @@ public class CachingHasherTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
+            CacheBuilder cacheBuilder = context.mock(CacheBuilder.class);
             PersistentCache persistentCache = context.mock(PersistentCache.class);
-            one(cacheRepository).getGlobalCache("fileHashes");
+
+            one(cacheRepository).cache("fileHashes");
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).open();
             will(returnValue(persistentCache));
+
             one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
             will(returnValue(cache));
         }});

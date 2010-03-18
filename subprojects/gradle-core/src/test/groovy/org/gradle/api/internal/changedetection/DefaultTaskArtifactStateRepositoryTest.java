@@ -19,6 +19,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
@@ -408,8 +409,17 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenTaskDoesNotAcceptAnyInputsAndDoesNotProduceAnyOutputs() {
-        TaskInternal task = builder().doesNotAcceptInput().doesNotProduceOutput().task();
+    public void artifactsAreNotUpToDateWhenTaskDoesNotAcceptAnyInputs() {
+        TaskInternal task = builder().doesNotAcceptInput().task();
+        execute(task);
+
+        TaskArtifactState state = repository.getStateFor(task);
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenTaskDoesNotProduceAnyOutputs() {
+        TaskInternal task = builder().doesNotProduceOutput().task();
         execute(task);
 
         TaskArtifactState state = repository.getStateFor(task);
@@ -466,9 +476,18 @@ public class DefaultTaskArtifactStateRepositoryTest {
     
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
+            CacheBuilder builder = context.mock(CacheBuilder.class);
             persistentCache = context.mock(PersistentCache.class);
-            one(cacheRepository).getCacheFor(gradle, "taskArtifacts");
+
+            one(cacheRepository).cache("taskArtifacts");
+            will(returnValue(builder));
+
+            one(builder).forObject(gradle);
+            will(returnValue(builder));
+
+            one(builder).open();
             will(returnValue(persistentCache));
+            
             one(persistentCache).openIndexedCache();
             will(returnValue(new TestIndexedCache()));
         }});
@@ -517,6 +536,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskBuilder doesNotAcceptInput() {
             inputs = null;
+            inputProperties = null;
             return this;
         }
 
@@ -535,7 +555,9 @@ public class DefaultTaskArtifactStateRepositoryTest {
             if (inputs != null) {
                 task.getInputs().files(inputs);
             }
-            task.getInputs().properties(inputProperties);
+            if (inputProperties != null) {
+                task.getInputs().properties(inputProperties);
+            }
             if (outputs != null) {
                 task.getOutputs().files(outputs);
             }

@@ -30,6 +30,7 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
     private final Properties properties = new Properties();
     private boolean valid;
     private BTreePersistentIndexedCache indexedCache;
+    private SimpleStateCache stateCache;
 
     public DefaultPersistentDirectoryCache(File dir, CacheUsage cacheUsage, Map<String, ?> properties) {
         this.dir = dir;
@@ -82,6 +83,13 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
 
     public <K, V> BTreePersistentIndexedCache<K, V> openIndexedCache() {
         return openIndexedCache(new DefaultSerializer<V>());
+    }
+
+    public <T> SimpleStateCache<T> openStateCache() {
+        if (stateCache == null) {
+            stateCache = new SimpleStateCache<T>(this, new DefaultSerializer<T>());
+        }
+        return stateCache;
     }
 
     public Properties getProperties() {

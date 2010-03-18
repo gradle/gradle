@@ -136,11 +136,11 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         LOG.info("ERROR: " + error);
 
         if (failed != expectFailure) {
-            System.out.format("Gradle execution %s in %s with: %s %s", expectFailure ? "did not fail" : "failed",
-                    builder.getWorkingDir(), builder.getExecutable(), builder.getArguments());
-            System.out.format(String.format("Process Output:%n%s", output));
-            System.out.format(String.format("Process Error:%n%s", error));
-            throw new RuntimeException(String.format("Integrationtests failed with: %s %s", output, error));
+            String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%nError:%n%s%n-----%n",
+                    expectFailure ? "did not fail" : "failed", builder.getWorkingDir(), builder.getExecutable(),
+                    builder.getArguments(), output, error);
+            System.out.println(message);
+            throw new RuntimeException(message);
         }
         return GUtil.map("output", output, "error", error);
     }

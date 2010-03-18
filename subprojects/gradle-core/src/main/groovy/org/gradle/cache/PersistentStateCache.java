@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-println 'nestedBuild/buildSrc quiet'
-logger.info 'nestedBuild/buildSrc info'
 
-task classes << { }
+package org.gradle.cache;
 
-convention.plugins.java = new ProjectInfo(project: project);
+/**
+ * A persistent store containing an object of type T.
+ */
+public interface PersistentStateCache<T> {
+    T get();
 
-class ProjectInfo implements org.gradle.api.internal.plugins.EmbeddableJavaProject {
-    def Project project
-
-    Collection<String> getRebuildTasks() {
-        return ['classes']
-    }
-
-    FileCollection getRuntimeClasspath() {
-        return project.files()
-    }
+    void set(T newValue);
 }

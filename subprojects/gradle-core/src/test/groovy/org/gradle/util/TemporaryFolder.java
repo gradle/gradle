@@ -66,11 +66,9 @@ public class TemporaryFolder implements MethodRule {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                try {
-                    base.evaluate();
-                } finally {
-                    getDir().deleteDir();
-                }
+                base.evaluate();
+                getDir().deleteDir();
+                // Don't delete on failure
             }
         };
     }

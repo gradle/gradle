@@ -137,17 +137,29 @@ class LoggingIntegrationTest {
     )
 
     @Test
-    public void loggingSamples() {
+    public void quietLogging() {
         checkOutput(quiet)
+    }
+
+    @Test
+    public void lifecycleLogging() {
         checkOutput(lifecycle)
+    }
+
+    @Test
+    public void infoLogging() {
         checkOutput(info)
+    }
+
+    @Test
+    public void debugLogging() {
         checkOutput(debug)
     }
 
     void checkOutput(LogLevel level) {
         TestFile loggingDir = dist.samplesDir.file('logging')
-        loggingDir.file("buildSrc/build").deleteDir()
-        loggingDir.file("nestedBuild/buildSrc/build").deleteDir()
+        loggingDir.file("buildSrc/build/.gradle").deleteDir()
+        loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]

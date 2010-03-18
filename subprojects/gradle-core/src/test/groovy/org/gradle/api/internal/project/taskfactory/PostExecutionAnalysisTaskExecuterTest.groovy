@@ -84,11 +84,27 @@ class PostExecutionAnalysisTaskExecuterTest {
     }
 
     @Test
-    public void doesNotMarkTaskUpToDateWhenItHasAnyActions() {
+    public void marksTaskUpToDateWhenItHasActionsAndItDidNotDoWork() {
         context.checking {
             one(target).execute(task, state)
             allowing(task).getActions();
             will(returnValue([{} as Action]))
+            allowing(state).getDidWork()
+            will(returnValue(false))
+            one(state).upToDate()
+        }
+
+        executer.execute(task, state)
+    }
+
+    @Test
+    public void doesNotMarkTaskUpToDateWhenItHasActionsAndDidWork() {
+        context.checking {
+            one(target).execute(task, state)
+            allowing(task).getActions();
+            will(returnValue([{} as Action]))
+            allowing(state).getDidWork()
+            will(returnValue(true))
         }
 
         executer.execute(task, state)

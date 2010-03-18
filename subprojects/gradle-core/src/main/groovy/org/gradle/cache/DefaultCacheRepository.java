@@ -22,6 +22,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultCacheRepository implements CacheRepository {
@@ -32,29 +33,60 @@ public class DefaultCacheRepository implements CacheRepository {
 
     public DefaultCacheRepository(File userHomeDir, CacheUsage cacheUsage, CacheFactory factory) {
         this.factory = factory;
-        this.globalCacheDir = new File(userHomeDir, String.format("caches/%s", version.getVersion()));
+        this.globalCacheDir = new File(userHomeDir, "caches");
         this.cacheUsage = cacheUsage;
     }
 
-    public PersistentCache getCacheFor(Object target, String key, Map<String, ?> properties) {
-        if (target instanceof Gradle) {
-            Gradle gradle = (Gradle) target;
-            File buildTmpDir = new File(gradle.getRootProject().getProjectDir(), Project.TMP_DIR_NAME);
-            File cacheDir = new File(buildTmpDir, String.format("%s/%s", version.getVersion(), key));
-            return factory.open(cacheDir, cacheUsage, properties);
+    public CacheBuilder cache(String key) {
+        return new PersistentCacheBuilder(key);
+    }
+
+    private class PersistentCacheBuilder implements CacheBuilder {
+        private final String key;
+        private Map<String, ?> properties = Collections.emptyMap();
+        private Object target;
+        private boolean invalidateOnVersionChange;
+
+        private PersistentCacheBuilder(String key) {
+            this.key = key;
         }
-        throw new IllegalArgumentException(String.format("Cannot create cache for domain object %s.", target));
-    }
 
-    public PersistentCache getGlobalCache(String key, Map<String, ?> properties) {
-        return factory.open(new File(globalCacheDir, key), cacheUsage, properties);
-    }
+        public CacheBuilder withProperties(Map<String, ?> properties) {
+            this.properties = properties;
+            return this;
+        }
 
-    public PersistentCache getGlobalCache(String key) {
-        return getGlobalCache(key, Collections.EMPTY_MAP);
-    }
+        public CacheBuilder forObject(Object target) {
+            this.target = target;
+            return this;
+        }
 
-    public PersistentCache getCacheFor(Object target, String key) {
-        return getCacheFor(target, key, Collections.EMPTY_MAP);
+        public CacheBuilder invalidateOnVersionChange() {
+            invalidateOnVersionChange = true;
+            return this;
+        }
+
+        public PersistentCache open() {
+            File cacheBaseDir;
+            Map<String, Object> properties = new HashMap<String, Object>(this.properties);
+            if (target == null) {
+                cacheBaseDir = globalCacheDir;
+            } else if (target instanceof Gradle) {
+                Gradle gradle = (Gradle) target;
+                cacheBaseDir = new File(gradle.getRootProject().getProjectDir(), Project.TMP_DIR_NAME);
+            } else if (target instanceof File) {
+                File dir = (File) target;
+                cacheBaseDir = new File(dir, Project.TMP_DIR_NAME);
+            } else {
+                throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.", target));
+            }
+            if (invalidateOnVersionChange) {
+                properties.put("gradle.version", version.getVersion());
+                cacheBaseDir = new File(cacheBaseDir, "noVersion");
+            } else {
+                cacheBaseDir = new File(cacheBaseDir, version.getVersion());
+            }
+            return factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
+        }
     }
 }

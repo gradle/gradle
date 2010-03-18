@@ -51,7 +51,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private void loadTasks(TaskInternal task) {
-        cache = repository.getCacheFor(task.getProject().getGradle(), "taskArtifacts").openIndexedCache();
+        cache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache();
     }
 
     private static Set<String> outputFiles(TaskInternal task) {
@@ -84,8 +84,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public List<String> isUpToDate() {
-            return singletonList(String.format("%s has not declared any inputs or outputs.",
-                    StringUtils.capitalize(task.toString())));
+            List<String> messages = new ArrayList<String>();
+            if (!task.getInputs().getHasInputs()) {
+                messages.add(String.format("%s has not declared any inputs.", StringUtils.capitalize(task.toString())));
+            }
+            if (!task.getOutputs().getHasOutputFiles()) {
+                messages.add(String.format("%s has not declared any outputs.", StringUtils.capitalize(task.toString())));
+            }
+            assert !messages.isEmpty();
+            return messages;
         }
 
         public boolean snapshot() {
@@ -306,7 +313,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public TaskExecution getExecution() {
-            if (!task.getInputs().getHasInputFiles() && !task.getOutputs().getHasOutputFiles()) {
+            if (!task.getInputs().getHasInputs() || !task.getOutputs().getHasOutputFiles()) {
                 return new NoDeclaredArtifactsExecution(task);
             }
             Set<String> outputFiles = outputFiles(task);

@@ -23,10 +23,7 @@ import org.apache.tools.ant.taskdefs.Zip;
 import org.gradle.api.UncheckedIOException;
 import org.hamcrest.Matcher;
 
-import java.io.BufferedReader;
-import java.io.File;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -96,6 +93,7 @@ public class TestFile extends File {
     }
 
     public TestFile leftShift(Object content) {
+        getParentFile().mkdirs();
         return write(content);
     }
 
@@ -106,6 +104,25 @@ public class TestFile extends File {
         } catch (IOException e) {
             throw new UncheckedIOException(String.format("Could not read from test file '%s'", this), e);
         }
+    }
+
+    public Map<String, String> getProperties() {
+        Properties properties = new Properties();
+        try {
+            FileInputStream inStream = new FileInputStream(this);
+            try {
+                properties.load(inStream);
+            } finally {
+                inStream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        Map<String, String> map = new HashMap<String, String>();
+        for (Object key : properties.keySet()) {
+            map.put(key.toString(), properties.getProperty(key.toString()));
+        }
+        return map;
     }
 
     public List<String> linesThat(Matcher<? super String> matcher) {
@@ -308,8 +325,23 @@ public class TestFile extends File {
 
     public void assertHasNotChangedSince(Snapshot snapshot) {
         Snapshot now = snapshot();
-        assertEquals(now.modTime, snapshot.modTime);
-        assertArrayEquals(now.hash, snapshot.hash);
+        assertEquals(String.format("last modified time of %s has changed", this), snapshot.modTime, now.modTime);
+        assertArrayEquals(String.format("contents of %s has changed", this), snapshot.hash, now.hash);
+    }
+
+    public void writeProperties(Map<?, ?> properties) {
+        Properties props = new Properties();
+        props.putAll(properties);
+        try {
+            FileOutputStream stream = new FileOutputStream(this);
+            try {
+                props.store(stream, "comment");
+            } finally {
+                stream.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public class Snapshot {
