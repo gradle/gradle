@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
@@ -31,7 +32,6 @@ import java.util.Properties;
 
 public class DefaultPluginRegistry implements PluginRegistry {
     private final Map<String, Class<? extends Plugin>> idMappings = new HashMap<String, Class<? extends Plugin>>();
-    private final Map<Class<? extends Plugin>, Plugin<?>> plugins = new HashMap<Class<? extends Plugin>, Plugin<?>>();
     private final DefaultPluginRegistry parent;
     private final ClassLoader classLoader;
 
@@ -48,29 +48,20 @@ public class DefaultPluginRegistry implements PluginRegistry {
         return new DefaultPluginRegistry(this, childClassPath);
     }
 
-    public Plugin loadPlugin(String pluginId) {
-        return loadPlugin(getTypeForId(pluginId));
-    }
-
     public <T extends Plugin> T loadPlugin(Class<T> pluginClass) {
         if (parent != null) {
             return parent.loadPlugin(pluginClass);
         }
-        
-        T plugin = pluginClass.cast(plugins.get(pluginClass));
-        if (plugin == null) {
-            try {
-                plugin = pluginClass.newInstance();
-            } catch (InstantiationException e) {
-                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
-                        pluginClass.getSimpleName()), e.getCause());
-            } catch (Exception e) {
-                throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
-                        pluginClass.getSimpleName()), e);
-            }
-            plugins.put(pluginClass, plugin);
+
+        try {
+            return pluginClass.newInstance();
+        } catch (InstantiationException e) {
+            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
+                    pluginClass.getSimpleName()), e.getCause());
+        } catch (Exception e) {
+            throw new PluginInstantiationException(String.format("Could not create plugin of type '%s'.",
+                    pluginClass.getSimpleName()), e);
         }
-        return plugin;
     }
 
     public Class<? extends Plugin> getTypeForId(String pluginId) {
@@ -95,13 +86,16 @@ public class DefaultPluginRegistry implements PluginRegistry {
         Properties properties = GUtil.loadProperties(resource);
         String implClassName = properties.getProperty("implementation-class");
         if (!GUtil.isTrue(implClassName)) {
-            throw new PluginInstantiationException(String.format("No implementation class specified for plugin '%s' in %s.", pluginId, resource));
+            throw new PluginInstantiationException(String.format(
+                    "No implementation class specified for plugin '%s' in %s.", pluginId, resource));
         }
 
         try {
-            implClass= classLoader.loadClass(implClassName).asSubclass(Plugin.class);
+            implClass = classLoader.loadClass(implClassName).asSubclass(Plugin.class);
         } catch (ClassNotFoundException e) {
-            throw new PluginInstantiationException(String.format("Could not find implementation class '%s' for plugin '%s' specified in %s.", implClass, pluginId, resource), e);
+            throw new PluginInstantiationException(String.format(
+                    "Could not find implementation class '%s' for plugin '%s' specified in %s.", implClass, pluginId,
+                    resource), e);
         }
 
         idMappings.put(pluginId, implClass);
