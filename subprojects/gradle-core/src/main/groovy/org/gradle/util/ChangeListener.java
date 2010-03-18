@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.util;
 
-/**
- * Encapsulates the state of the task when its outputs were last generated.
- */
-public interface TaskArtifactState {
-    /**
-     * Returns true if the task outputs were generated using the given task inputs.
-     */
-    boolean isUpToDate();
+public interface ChangeListener<T> {
+    void added(T element);
 
-    /**
-     * Marks current state as valid.
-     */
-    void update();
+    void removed(T element);
+
+    void changed(T element);
 }

@@ -19,6 +19,13 @@ import org.gradle.api.file.FileCollection;
 
 public interface FileSnapshotter {
     /**
+     * Creates an empty snapshot.
+     *
+     * @return The snapshot.
+     */
+    FileCollectionSnapshot snapshot();
+
+    /**
      * Creates a snapshot of the contents of the given collection
      *
      * @param files The files to snapshot

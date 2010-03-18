@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.InputFiles;
 
@@ -26,6 +27,10 @@ public class ScalaDefine extends ConventionTask {
 
     private FileCollection classpath;
     private AntScalaDefine antScalaDefine;
+
+    public ScalaDefine() {
+        getOutputs().upToDateWhen(Specs.satisfyNone());
+    }
 
     public AntScalaDefine getAntScalaDefine() {
         if (antScalaDefine == null) {

@@ -16,8 +16,11 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.util.ChangeListener;
 
 import java.io.File;
+import java.io.Serializable;
+import java.math.BigInteger;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
@@ -27,6 +30,10 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
 
     public DefaultFileSnapshotter(Hasher hasher) {
         this.hasher = hasher;
+    }
+
+    public FileCollectionSnapshot snapshot() {
+        return new FileCollectionSnapshotImpl(new HashMap<String, FileSnapshot>());
     }
 
     public FileCollectionSnapshot snapshot(FileCollection sourceFiles) {
@@ -43,6 +50,10 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
         return new FileCollectionSnapshotImpl(snapshots);
     }
 
+    private interface FileSnapshot extends Serializable {
+        boolean isUpToDate(FileSnapshot snapshot);
+    }
+
     private static class FileHashSnapshot implements FileSnapshot {
         private final byte[] hash;
 
@@ -57,6 +68,11 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
 
             FileHashSnapshot other = (FileHashSnapshot) snapshot;
             return Arrays.equals(hash, other.hash);
+        }
+
+        @Override
+        public String toString() {
+            return new BigInteger(1, hash).toString(16);
         }
     }
 
@@ -79,19 +95,93 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             this.snapshots = snapshots;
         }
 
-        public void changesSince(FileCollectionSnapshot snapshot, ChangeListener listener) {
-            FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) snapshot;
-            Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(other.snapshots);
+        public void changesSince(FileCollectionSnapshot oldSnapshot, final ChangeListener<File> listener) {
+            FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
+            diff(snapshots, other.snapshots, new ChangeListener<Map.Entry<String, FileSnapshot>>() {
+                public void added(Map.Entry<String, FileSnapshot> element) {
+                    listener.added(new File(element.getKey()));
+                }
+
+                public void removed(Map.Entry<String, FileSnapshot> element) {
+                    listener.removed(new File(element.getKey()));
+                }
+
+                public void changed(Map.Entry<String, FileSnapshot> element) {
+                    listener.changed(new File(element.getKey()));
+                }
+            });
+        }
+
+        private void diff(Map<String, FileSnapshot> snapshots, Map<String, FileSnapshot> oldSnapshots,
+                          ChangeListener<Map.Entry<String, FileSnapshot>> listener) {
+            Map<String, FileSnapshot> otherSnapshots = new HashMap<String, FileSnapshot>(oldSnapshots);
             for (Map.Entry<String, FileSnapshot> entry : snapshots.entrySet()) {
                 FileSnapshot otherFile = otherSnapshots.remove(entry.getKey());
                 if (otherFile == null) {
-                    listener.added(new File(entry.getKey()));
+                    listener.added(entry);
                 } else if (!entry.getValue().isUpToDate(otherFile)) {
-                    listener.changed(new File(entry.getKey()));
+                    listener.changed(entry);
                 }
             }
-            for (String file : otherSnapshots.keySet()) {
-                listener.removed(new File(file));
+            for (Map.Entry<String, FileSnapshot> entry : otherSnapshots.entrySet()) {
+                listener.removed(entry);
+            }
+        }
+
+        public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
+            final FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
+            return new Diff() {
+                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
+                    return applyTo(snapshot, new ChangeListener<Merge>() {
+                        public void added(Merge element) {
+                        }
+
+                        public void removed(Merge element) {
+                        }
+
+                        public void changed(Merge element) {
+                        }
+                    });
+                }
+
+                public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, final ChangeListener<Merge> listener) {
+                    FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
+                    final Map<String, FileSnapshot> newSnapshots = new HashMap<String, FileSnapshot>(target.snapshots);
+                    diff(snapshots, other.snapshots, new ChangeListener<Map.Entry<String, FileSnapshot>>() {
+                        public void added(Map.Entry<String, FileSnapshot> element) {
+                            DefaultMerge merge = new DefaultMerge();
+                            listener.added(merge);
+                            if (!merge.ignore) {
+                                newSnapshots.put(element.getKey(), element.getValue());
+                            }
+                        }
+
+                        public void removed(Map.Entry<String, FileSnapshot> element) {
+                            DefaultMerge merge = new DefaultMerge();
+                            listener.removed(merge);
+                            if (!merge.ignore) {
+                                newSnapshots.remove(element.getKey());
+                            }
+                        }
+
+                        public void changed(Map.Entry<String, FileSnapshot> element) {
+                            DefaultMerge merge = new DefaultMerge();
+                            listener.changed(merge);
+                            if (!merge.ignore) {
+                                newSnapshots.put(element.getKey(), element.getValue());
+                            }
+                        }
+                    });
+                    return new FileCollectionSnapshotImpl(newSnapshots);
+                }
+            };
+        }
+
+        private static class DefaultMerge implements Merge {
+            private boolean ignore;
+
+            public void ignore() {
+                ignore = true;
             }
         }
     }

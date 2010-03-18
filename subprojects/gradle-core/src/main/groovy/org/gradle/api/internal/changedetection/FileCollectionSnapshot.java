@@ -15,17 +15,40 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.util.ChangeListener;
+
 import java.io.File;
 import java.io.Serializable;
 
+/**
+ * An immutable snapshot of the contents of a collection of files.
+ */
 public interface FileCollectionSnapshot extends Serializable {
-    void changesSince(FileCollectionSnapshot snapshot, ChangeListener listener);
+    void changesSince(FileCollectionSnapshot oldSnapshot, ChangeListener<File> listener);
 
-    interface ChangeListener {
-        void added(File file);
+    Diff changesSince(FileCollectionSnapshot oldSnapshot);
 
-        void removed(File file);
+    public interface Diff {
+        /**
+         * Applies this diff to the given snapshot. Adds any added or changed files in this diff to the given snapshot.
+         * Removes any removed files in this diff from the given snapshot.
+         *
+         * @param snapshot the snapshot to apply the changes to.
+         * @return an updated copy of the provided snapshot
+         */
+        FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, ChangeListener<Merge> listener);
 
-        void changed(File file);
+        /**
+         * Applies this diff to the given snapshot. Adds any added or changed files in this diff to the given snapshot.
+         * Removes any removed files in this diff from the given snapshot.
+         *
+         * @param snapshot the snapshot to apply the changes to.
+         * @return an updated copy of the provided snapshot
+         */
+        FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot);
+    }
+
+    public interface Merge {
+        void ignore();
     }
 }
