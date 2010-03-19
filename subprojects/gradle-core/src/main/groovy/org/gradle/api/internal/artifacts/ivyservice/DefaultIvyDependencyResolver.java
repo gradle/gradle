@@ -33,6 +33,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.util.Formatter;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -69,23 +70,31 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
     }
 
     class ResolvedConfigurationImpl implements ResolvedConfiguration {
-        private final ResolveReport resolveReport;
         private final Configuration configuration;
+        private boolean hasError;
+        private List<String> problemMessages;
         private IvyConversionResult conversionResult;
 
         public ResolvedConfigurationImpl(ResolveReport resolveReport, Configuration configuration) {
-            this.resolveReport = resolveReport;
+            this.hasError = resolveReport.hasError();
+            if (this.hasError) {
+                this.problemMessages = resolveReport.getAllProblemMessages();
+            } else {
+                 this.conversionResult = ivyReportTranslator.convertReport(
+                    resolveReport,
+                    configuration);
+            }
             this.configuration = configuration;
         }
 
         public boolean hasError() {
-            return resolveReport.hasError();
+            return hasError;
         }
 
         public void rethrowFailure() throws ResolveException {
-            if (resolveReport.hasError()) {
+            if (hasError) {
                 Formatter formatter = new Formatter();
-                for (Object msg : resolveReport.getAllProblemMessages()) {
+                for (String msg : problemMessages) {
                     formatter.format("    - %s%n", msg);
                 }
                 throw new ResolveException(configuration, formatter.toString());
@@ -93,7 +102,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
-            buildResolvedDependencies();
+            rethrowFailure();
             Set<ModuleDependency> allModuleDependencies = Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec);
             Set<File> files = new LinkedHashSet<File>();
             for (ModuleDependency moduleDependency : allModuleDependencies) {
@@ -113,7 +122,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
-            buildResolvedDependencies();
+            rethrowFailure();
             Set<ResolvedDependency> resolvedDependencies = new LinkedHashSet<ResolvedDependency>();
             for (Dependency dependency : conversionResult.getFirstLevelResolvedDependencies().keySet()) {
                 Set<ResolvedDependency> dependencySet = conversionResult.getFirstLevelResolvedDependencies().get(dependency);
@@ -125,18 +134,8 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         public Set<ResolvedArtifact> getResolvedArtifacts() {
-            buildResolvedDependencies();
-            return conversionResult.getResolvedArtifacts();
-        }
-
-        private void buildResolvedDependencies() {
             rethrowFailure();
-            if (conversionResult != null) {
-                return;
-            }
-            conversionResult = ivyReportTranslator.convertReport(
-                    resolveReport,
-                    configuration);
+            return conversionResult.getResolvedArtifacts();
         }
     }
 }

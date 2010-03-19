@@ -46,10 +46,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -200,6 +197,9 @@ public class DefaultIvyDependencyResolverTest {
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         prepareResolveReport();
+        context.checking(new Expectations() {{
+            allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
+        }});
         ResolvedConfiguration configuration = ivyDependencyResolver.resolve(configurationStub, ivyStub,
                 moduleDescriptor);
 
@@ -210,6 +210,9 @@ public class DefaultIvyDependencyResolverTest {
     @Test
     public void testResolveAndGetReport() throws IOException, ParseException {
         prepareResolveReport();
+        context.checking(new Expectations() {{
+            allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
+        }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
         assertEquals(false, ivyDependencyResolver.resolve(configurationStub, ivyStub, moduleDescriptor).hasError());
