@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.gradle.integtests
 
 import org.junit.runner.RunWith
 import org.junit.Test
+import org.gradle.util.OperatingSystem
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class CommandLineIntegrationTest {
@@ -31,7 +32,20 @@ public class CommandLineIntegrationTest {
         ExecutionFailure failure = executer.inDirectory(javaprojectDir).withTasks('unknown').runWithFailure()
         failure.assertHasDescription("Task 'unknown' not found in root project 'quickstart'.")
     }
-    
+
+    @Test
+    public void canonicalisesWorkingDirectory() {
+        File javaprojectDir;
+        if (OperatingSystem.current().isWindows()) {
+            javaprojectDir = new File(dist.samplesDir, 'java/QUICKS~1')
+        } else if (!OperatingSystem.current().isCaseSensitiveFileSystem()) {
+            javaprojectDir = new File(dist.samplesDir, 'JAVA/QuickStart')
+        } else {
+            javaprojectDir = new File(dist.samplesDir, 'java/multiproject/../quickstart')
+        }
+        executer.inDirectory(javaprojectDir).withTasks('classes').run()
+    }
+
     @Test
     public void canUseVersionCommandLineOption() {
         executer.withArguments('-v').run()

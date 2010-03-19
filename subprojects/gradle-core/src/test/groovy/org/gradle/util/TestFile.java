@@ -238,7 +238,7 @@ public class TestFile extends File {
     }
 
     public TestFile assertPermissions(Matcher<String> matcher) {
-        if (!System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (OperatingSystem.current().isUnix()) {
             assertThat(String.format("mismatched permissions for '%s'", this), getPermissions(), matcher);
         }
         return this;

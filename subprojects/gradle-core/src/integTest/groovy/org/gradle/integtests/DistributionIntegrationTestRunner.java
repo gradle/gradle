@@ -79,7 +79,7 @@ public class DistributionIntegrationTestRunner extends BlockJUnit4ClassRunner {
         TemporaryFolder temporaryFolder = TemporaryFolder.newInstance(method, target);
         GradleDistribution distribution = getDist(temporaryFolder);
         injectValue(target, distribution, GradleDistribution.class);
-        boolean fork = System.getProperty(NOFORK_SYS_PROP) == null;
+        boolean fork = System.getProperty(NOFORK_SYS_PROP, "false").equalsIgnoreCase("false");
         GradleExecuter executer = new QuickGradleExecuter(distribution, fork);
         injectValue(target, executer, GradleExecuter.class);
     }

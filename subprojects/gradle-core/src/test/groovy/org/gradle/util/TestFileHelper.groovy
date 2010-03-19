@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -48,7 +48,7 @@ class TestFileHelper {
             }
         }
 
-        if (nativeTools && !System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (nativeTools && OperatingSystem.current().isUnix()) {
             Process process = ['unzip', '-o', file.absolutePath, '-d', target.absolutePath].execute()
             process.consumeProcessOutput(System.out, System.err)
             assertThat(process.waitFor(), equalTo(0))
@@ -62,7 +62,7 @@ class TestFileHelper {
     }
 
     public void untarTo(File target, boolean nativeTools) {
-        if (nativeTools && !System.getProperty("os.name").toLowerCase().contains("windows")) {
+        if (nativeTools && OperatingSystem.current().isUnix()) {
             target.mkdirs()
             ProcessBuilder builder = new ProcessBuilder(['tar', '-xf', file.absolutePath])
             builder.directory(target)

@@ -15,22 +15,26 @@
  */
 package org.gradle.integtests;
 
+import org.apache.tools.ant.taskdefs.condition.Os;
 import org.gradle.util.GUtil;
-import org.gradle.util.exec.ExecHandleBuilder;
 import org.gradle.util.exec.ExecHandle;
-import static org.gradle.util.Matchers.*;
+import org.gradle.util.exec.ExecHandleBuilder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import org.apache.tools.ant.taskdefs.condition.Os;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.ByteArrayOutputStream;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 // todo: implement more of the unsupported methods
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
@@ -101,7 +105,14 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         ByteArrayOutputStream errStream = new ByteArrayOutputStream();
         String gradleHome = distribution.getGradleHomeDir().toString();
 
-        ExecHandleBuilder builder = new ExecHandleBuilder();
+        ExecHandleBuilder builder = new ExecHandleBuilder() {
+            @Override
+            public File getWorkingDir() {
+                // Override this, so that the working directory is not canonicalised. Some int tests require that
+                // the working directory is not canonicalised
+                return ForkingGradleExecuter.this.getWorkingDir();
+            }
+        };
         builder.standardOutput(outStream);
         builder.errorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
