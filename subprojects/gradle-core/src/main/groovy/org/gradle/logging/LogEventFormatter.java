@@ -19,7 +19,5 @@ package org.gradle.logging;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 
 public interface LogEventFormatter {
-    void setTarget(Appendable target);
-
     void format(ILoggingEvent event);
 }

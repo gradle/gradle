@@ -75,13 +75,10 @@ public class BasicProgressLoggingAwareFormatter extends AbstractProgressLoggingA
     }
 
     private State state = State.StartOfLine;
-    private Appendable target;
+    private final Appendable target;
 
-    public BasicProgressLoggingAwareFormatter(Context context) {
+    public BasicProgressLoggingAwareFormatter(Context context, Appendable target) {
         super(context);
-    }
-
-    public void setTarget(Appendable target) {
         this.target = target;
     }
 

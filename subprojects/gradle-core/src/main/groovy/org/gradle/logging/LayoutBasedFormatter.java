@@ -24,13 +24,10 @@ import java.io.IOException;
 
 public class LayoutBasedFormatter implements LogEventFormatter {
     private final Layout<ILoggingEvent> layout;
-    private Appendable target;
+    private final Appendable target;
 
-    public LayoutBasedFormatter(Layout<ILoggingEvent> layout) {
+    public LayoutBasedFormatter(Layout<ILoggingEvent> layout, Appendable target) {
         this.layout = layout;
-    }
-
-    public void setTarget(Appendable target) {
         this.target = target;
     }
 

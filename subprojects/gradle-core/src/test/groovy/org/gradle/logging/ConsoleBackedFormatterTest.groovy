@@ -38,11 +38,7 @@ class ConsoleBackedFormatterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Console console = context.mock(Console.class)
     private final TextArea mainArea = context.mock(TextArea.class)
-    private final ConsoleBackedFormatter formatter = new ConsoleBackedFormatter((LoggerContext) LoggerFactory.getILoggerFactory()) {
-        def Console createConsole(Appendable target) {
-            console
-        }
-    }
+    private final ConsoleBackedFormatter formatter = new ConsoleBackedFormatter((LoggerContext) LoggerFactory.getILoggerFactory(), console)
 
     @Before
     public void setup() {
@@ -50,9 +46,6 @@ class ConsoleBackedFormatterTest {
             allowing(console).getMainArea()
             will(returnValue(mainArea))
         }
-
-
-        formatter.setTarget(new StringBuilder())
     }
 
     @Test

@@ -15,7 +15,7 @@
  */
 package org.gradle.logging;
 
-import ch.qos.logback.classic.spi.LoggingEvent;
+import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
 import org.slf4j.Marker;
@@ -26,7 +26,7 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class MarkerFilter extends Filter {
+public class MarkerFilter extends Filter<ILoggingEvent> {
     private final List<Marker> markers;
 
     private FilterReply onMismatch = FilterReply.NEUTRAL;
@@ -41,8 +41,7 @@ public class MarkerFilter extends Filter {
     }
 
     @Override
-    public FilterReply decide(Object event) {
-        LoggingEvent loggingEvent = (LoggingEvent) event;
+    public FilterReply decide(ILoggingEvent loggingEvent) {
         Marker marker = loggingEvent.getMarker();
         if (marker != null) {
             for (Marker candidate : markers) {
