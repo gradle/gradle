@@ -74,7 +74,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         DefaultGradle gradle = new DefaultGradle(
                 tracker.getCurrentBuild(),
                 startParameter, serviceRegistry);
-        return new GradleLauncher(
+        return new DefaultGradleLauncher(
                 gradle,
                 serviceRegistry.get(InitScriptHandler.class),
                 new SettingsHandler(
