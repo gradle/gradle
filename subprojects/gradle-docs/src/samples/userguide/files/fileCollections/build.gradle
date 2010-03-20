@@ -1,7 +1,7 @@
 import java.util.concurrent.Callable
 
 // START SNIPPET simple-params
-FileCollection collection = files('src/file1.txt', file('src/file2.txt'), ['src/file3.txt', 'src/file4.txt'])
+FileCollection collection = files('src/file1.txt', new File('src/file2.txt'), ['src/file3.txt', 'src/file4.txt'])
 // END SNIPPET simple-params
 
 file('src').mkdirs()
@@ -18,10 +18,6 @@ task list << {
     // Create a file collection using a closure
     collection = files { srcDir.listFiles() }
 
-    // Create a file collection using a Callable
-    Callable callable = { srcDir.listFiles() } as Callable
-    collection = files(callable)
-
     srcDir = file('src')
     println "Contents of $srcDir.name"
     collection.collect { relativePath(it) }.sort().each { println it }
@@ -37,7 +33,7 @@ collection = files('src/file1.txt')
 //START SNIPPET usage
 // Iterate over the files in the collection
 collection.each {File file ->
-    file.name
+    println file.name
 }
 
 // Convert the collection to various types
@@ -48,7 +44,8 @@ String path = collection.asPath
 File file = collection.singleFile
 File file2 = collection as File
 
-// Add collections together
-def collection2 = collection + files('src/file3.txt')
+// Add and subtract collections
+def union = collection + files('src/file3.txt')
+def different = collection - files('src/file3.txt')
 
 //END SNIPPET usage

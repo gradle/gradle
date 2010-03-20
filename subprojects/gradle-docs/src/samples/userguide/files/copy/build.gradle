@@ -11,7 +11,7 @@ task copyTaskWithPatterns(type: Copy) {
     into 'build/explodedWar'
     include '**/*.html'
     include '**/*.jsp'
-    exclude { details -> details.file.name.endsWith('.xml') && details.file.text.contains('staging') }
+    exclude { details -> details.file.name.endsWith('.html') && details.file.text.contains('staging') }
 }
 // END SNIPPET copy-task-with-patterns
 

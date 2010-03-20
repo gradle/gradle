@@ -516,7 +516,7 @@
                     <classname>String</classname>
                 </td>
                 <td>
-                    <literal>dists</literal>
+                    <literal>distributions</literal>
                 </td>
                 <td>
                     The name of the directory to generate distributions into, relative to the build directory.

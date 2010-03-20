@@ -15,12 +15,8 @@
   -->
 <chapter id="working_with_files">
     <title>Working With Files</title>
-    <note>
-        <para>This chapter is a work in progress.</para>
-    </note>
-
     <para>
-        Most builds do lots of work with files. Gradle adds some concepts and APIs to help you achieve this.
+        Most builds work with files. Gradle adds some concepts and APIs to help you achieve this.
     </para>
 
     <section id="sec:locating_files">
@@ -31,16 +27,18 @@
         <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>You can pass any object to the <literal>file()</literal> method, though usually you would pass it a
-            <classname>String</classname> or <classname>File</classname>. The supplied object's <literal>toString()</literal>
-            value is treated as a file path. If this path is an absolute path, it is used to construct a
-            <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is constructed by
-            prepending the project directory path to the supplied path.
+        <para>You can pass any object to the <literal>file()</literal> method, and it will attempt to convert the value
+            to an absolute <classname>File</classname> object. Usually, you would pass it a
+            <classname>String</classname> or <classname>File</classname> instance. The supplied object's
+            <literal>toString()</literal> value is used as the file path. If this path is an absolute path, it is used
+            to construct a <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is
+            constructed by prepending the project directory path to the supplied path. The <literal>file()</literal>
+            method also understands URLs, such as <literal>file:/some/path.xml</literal>.
         </para>
         <para>Using this method is a useful way to convert some user provided value into an absolute <classname>File</classname>.
             It is preferable to using <literal>new File(somePath)</literal>, as <literal>file()</literal> always evaluates
             the supplied path relative to the project directory, which is fixed, rather than the current working
-            directory, which may change depending on how the user runs Gradle.
+            directory, which can change depending on how the user runs Gradle.
         </para>
     </section>
 
@@ -55,10 +53,11 @@
         </para>
 
         <para>
-            One way to obtain a <literal>FileCollection</literal> instance is to use the <apilink class="org.gradle.api.Project" method="files"/>
-            method. You can pass this method any number of objects, which are then converted into a set of <classname>File</classname>
-            objects. The <literal>files()</literal> method accepts <classname>File</classname> and <classname>String</classname>
-            arguments. These are evaluated relative to the project directory, as described in <xref linkend="sec:locating_files"/>.
+            One way to obtain a <literal>FileCollection</literal> instance is to use the
+            <apilink class="org.gradle.api.Project" method="files"/> method. You can pass this method any number of
+            objects, which are then converted into a set of <classname>File</classname> objects. The
+            <literal>files()</literal> method accepts any type of object as its parameters. These are evaluated relative
+            to the project directory, as for the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
             You can also pass collections, maps and arrays to the <literal>files()</literal> method. These are flattened
             and the contents converted to <classname>File</classname> instances.
         </para>
@@ -68,7 +67,9 @@
         </sample>
 
         <para>A file collection is iterable, and can be converted to a number of other types using the <literal>as</literal>
-            operator. You can also add 2 file collections together using the <literal>+</literal> operator. Here are some examples.
+            operator. You can also add 2 file collections together using the <literal>+</literal> operator, or subtract one
+            file collection from another using the <literal>-</literal> operator.
+            Here are some examples of what you can do with a file collection.
         </para>
         <sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
             <sourcefile file="build.gradle" snippet="usage"/>
@@ -87,7 +88,7 @@
 
         <para>It is important to note that the content of a file collection is evaluated lazily, when it is needed.
             This means you can, for example, create a <literal>FileCollection</literal> that represents files which
-            will be created in the future, say, by some task. 
+            will be created in the future by, say, some task.
         </para>
 
         <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.
@@ -99,7 +100,8 @@
         <title>File trees</title>
 
         <para>
-            A <firstterm>file tree</firstterm> is a hierarchy of files, such as a directory tree. It is represented
+            A <firstterm>file tree</firstterm> is a collection of files arranged in a hierarchy. For example, a file tree
+            might represent a directory tree or the contents of a ZIP file. It is represented
             by the <apilink class="org.gradle.api.file.FileTree"/> interface. The <literal>FileTree</literal> interface
             extends <literal>FileCollection</literal>, so you can treat a file tree exactly the same way as you would a
             file collection. Several objects in Gradle implement the <literal>FileTree</literal> interface, such as
@@ -118,7 +120,7 @@
         </sample>
 
         <para>You use a file tree in the same way you use a file collection. You can also visit the contents of the
-            tree, and select a subtree using Ant-style patterns:
+            tree, and select a sub-tree using Ant-style patterns:
         </para>
         <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
             <sourcefile file="build.gradle" snippet="use"/>
@@ -140,12 +142,13 @@
     </section>
 
     <section id="sec:specifying_multiple_files">
-        <title>Specifying a set of files</title>
-        <para>Many objects in Gradle have properties which accept a logical set of files. For example, the
+        <title>Specifying a set of input files</title>
+        <para>Many objects in Gradle have properties which accept a set of input files. For example, the
             <apilink class="org.gradle.api.tasks.compile.Compile"/> task has a <literal>source</literal> property,
             which defines the source files to compile. You can set the value of this property using any of the types
-            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen above. This
-            means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
+            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen in
+            <xref linkend="sec:file_collections"/> above.
+            This means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
             collection, <classname>FileCollection</classname> or even a closure.
             Here are some examples:
         </para>
@@ -196,10 +199,46 @@
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
+        <para>TBD - you can nest CopySpecs</para>
+        <para>TBD - you can rename files</para>
+        <para>TBD - you can filter files</para>
+    </section>
+
+    <section>
+        <title>Using the <literal>Sync</literal> task</title>
+        <para>The <apilink class="org.gradle.api.tasks.Sync"/> task extends the <literal>Copy</literal> task. When it
+            executes, it copies the source files into the destination directory, and then removes any files from the
+            destination directory which it did not copy.
+        </para>
     </section>
 
     <section id="sec:archives">
         <title>Creating ZIP and TAR archives</title>
-        <para>TBD</para>
+        <para>You create ZIP and TAR archives using the <apilink class="org.gradle.api.tasks.bundling.Zip"/> and
+            <apilink class="org.gradle.api.tasks.bundling.Tar"/> tasks. They work in a very similar way to the
+            <literal>Copy</literal> task. You specify the input files using the <literal>from()</literal> method, and
+            can optionally specify where they end up in the archive using the <literal>into()</literal> method. You can
+            filter the contents of file, rename files, and all the other things you can do with the
+            <literal>Copy</literal> task.
+        </para>
+        <sample id="createZip" dir="userguide/files/archives" title="Creating a ZIP archive">
+            <sourcefile file="build.gradle" snippet="zip"/>
+        </sample>
+        <tip>
+            <title>Why are you using the Java plugin?</title>
+            <para>The Java plugin adds a number of default values for the archive tasks. You can use the archive
+                tasks without using the Java plugin, if you like. You will need to provide values for some additional
+                properties.
+            </para>
+        </tip>
+        <sample id="createTar" dir="userguide/files/archives" title="Creating a TAR archive">
+            <sourcefile file="build.gradle" snippet="tar"/>
+        </sample>
+
+        <section>
+            <title>Sharing content between multiple archives</title>
+            <para>Using the <apilink class="org.gradle.api.Project" method="files"/> to share content between archives.</para>
+        </section>
+
     </section>
 </chapter>
