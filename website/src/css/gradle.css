@@ -80,10 +80,13 @@ p {
     font-family: Helvetica, sans-serif;
 }
 
+#header #logo a:hover {
+    text-decoration: none;
+}
+
 #header #title {
     font-size: 41pt;
     font-weight: bolder;
-    padding-right: 0.5em;
     color: #4a9935;
     line-height: 36pt;
     font-family: inherit;
@@ -185,7 +188,9 @@ p {
 
 #homeTitle {
     font-size: 300%;
-    margin-top: 0.5em;
+    margin-top: 0;
+    padding-top: 0.2em;
+    margin-bottom: 0.5em;
     font-family: Helvetica, sans-serif;
 }
 
@@ -195,7 +200,8 @@ p {
 }
 
 #about {
-    width: 610px;
+    width: 570px;
+    margin-bottom: 2.6em;
 }
 
 #about h2 {
@@ -206,16 +212,32 @@ p {
     margin-top: 0.2em;
 }
 
+#about .more {
+    padding-top: 1.8em;
+    padding-right: 2.2em;
+}
+
+#about .more a {
+    font-family: Helvetica, sans-serif;
+    font-size: 160%;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    background-color: #ff952b;
+    border: solid #ffa953 3px;
+    padding: 0.2em 0.8em;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+}
+
 #rightcolumn {
     position: absolute;
-    top: 0;
+    top: 26px;
     right: 0;
 }
 
 #gettingstarted {
-    /*background-color: #d5e8f5;*/
     background: #e4eef5 url('../img/getStartedBottom.png') bottom left no-repeat;
-    margin-right: auto;
     width: 335px;
 }
 
@@ -250,20 +272,38 @@ p {
     list-style-position: inside;
 }
 
+#homeColumns {
+    position: relative;
+}
+
+#training {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 300px;
+}
+
+#who_uses {
+    position: absolute;
+    top: 0;
+    left: 325px;
+    width: 300px;
+}
+
 #news {
     margin-top: 40px;
     width: 310px;
     padding-left: 25px;
 }
 
-#news ul {
+.homeList ul {
     margin: 0;
     margin-top: 1em;
     padding: 0;
     line-height: 1.4em;
 }
 
-#news li {
+.homeList li {
     margin-left: 0;
     margin-top: 0.8em;
     margin-bottom: 0.8em;

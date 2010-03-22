@@ -1,17 +1,19 @@
 <h1>Downloads</h1>
 
-<h2>Current Release (${currentRelease})</h2>
+<%
+    releases.each { release ->
+%>
+<h2>${release.title} (${release.version})</h2>
 
 <ul>
-    <li><a href="http://dist.codehaus.org/gradle/gradle-${currentRelease}-all.zip">gradle-${currentRelease}-all.zip</a>.
+    <li><a href="http://dist.codehaus.org/gradle/gradle-${release.version}-all.zip">gradle-${release.version}-all.zip</a>.
         Complete distribution, including documentation, samples, and source.</li>
-    <li><a href="http://dist.codehaus.org/gradle/gradle-${currentRelease}-bin.zip">gradle-${currentRelease}-bin.zip</a>.
+    <li><a href="http://dist.codehaus.org/gradle/gradle-${release.version}-bin.zip">gradle-${release.version}-bin.zip</a>.
         Minimal distribution.</li>
-    <li><a href="http://dist.codehaus.org/gradle/gradle-${currentRelease}-all-jdk14.zip">gradle-${currentRelease}-all-jdk14.zip</a>.
-        JDK 1.4 compatible complete distribution.</li>
-    <li><a href="http://dist.codehaus.org/gradle/gradle-${currentRelease}-src.zip">gradle-${currentRelease}-src.zip</a>.
+    <li><a href="http://dist.codehaus.org/gradle/gradle-${release.version}-src.zip">gradle-${release.version}-src.zip</a>.
         Source only distribution</li>
 </ul>
+<% } %>
 
 <p>You can also <a href="build.html">build from source</a>.</p>
 
@@ -21,6 +23,10 @@
 
 <h2>Gradle Snapshots</h2>
 
+<h3>Snapshot repository</h3>
+<p>For special snapshots (for example created from a working copy) we use our codehaus snapshot repository:
+<a href="http://snapshots.dist.codehaus.org/gradle">http://snapshots.dist.codehaus.org/gradle</a></p>
+
 <h3>CI builds</h3>
 <p>Snapshots are regularly built via our <a href="ci-server.html">Continuous Integration machines</a>.
 They store the Gradle distributions for a couple of the last successful builds.</p>
@@ -28,7 +34,3 @@ They store the Gradle distributions for a couple of the last successful builds.<
 <h4>Teamcity</h4>
 <p>Click <a href="http://teamcity.jetbrains.com/viewLog.html?buildId=lastSuccessful&amp;buildTypeId=bt41&amp;tab=artifacts">here</a> to
 get the artifact list of the last successful build. (choose the link 'Login as a Guest').</p>
-
-<h3>Snapshot repository</h3>
-<p>For special snapshots (for example created from a working copy) we use our codehaus snapshot repository:
-<a href="http://snapshots.dist.codehaus.org/gradle">http://snapshots.dist.codehaus.org/gradle</a></p>
