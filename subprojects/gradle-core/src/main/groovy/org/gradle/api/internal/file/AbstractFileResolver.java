@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import org.gradle.api.PathValidation;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 import java.net.URI;
@@ -87,7 +88,12 @@ public abstract class AbstractFileResolver implements FileResolver {
         
         for (File file : File.listRoots()) {
             String rootPath = file.getAbsolutePath();
-            if (str.startsWith(rootPath) || str.startsWith(rootPath.replace(File.separatorChar, '/'))) {
+            String normalisedStr = str;
+            if (!OperatingSystem.current().isCaseSensitiveFileSystem()) {
+                rootPath = rootPath.toLowerCase();
+                normalisedStr = normalisedStr.toLowerCase();
+            }
+            if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
                 return new File(str);
             }
         }

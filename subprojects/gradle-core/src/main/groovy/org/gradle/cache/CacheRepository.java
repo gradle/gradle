@@ -15,44 +15,13 @@
  */
 package org.gradle.cache;
 
-import java.util.Map;
-
 public interface CacheRepository {
     /**
-     * Returns the cache with the given key shared by all builds.
+     * Returns a builder for the cache with the given key. Default is a Gradle version-specific cache shared by all
+     * builds, though this can be changed using the given builder.
      *
-     * @param key the cache key. Uniquely identifies the cache
-     * @param properties additional properties for the cache. The cache is treated as invalid if any of the properties
-     * do not match the properties used to create the cache.
-     * @return The cache.
+     * @param key The cache key.
+     * @return The builder.
      */
-    PersistentCache getGlobalCache(String key, Map<String, ?> properties);
-
-    /**
-     * Returns the cache with the given key shared by all builds.
-     *
-     * @param key the cache key. Uniquely identifies the cache
-     * @return The cache.
-     */
-    PersistentCache getGlobalCache(String key);
-
-    /**
-     * Returns the cache with the given key private to the current build.
-     *
-     * @param target The target domain object which the cache is for. This might be a task, project, or similar.
-     * @param key the cache key. Uniquely identifies the cache
-     * @param properties additional properties for the cache. The cache is treated as invalid if any of the properties
-     * do not match the properties used to create the cache.
-     * @return The cache.
-     */
-    PersistentCache getCacheFor(Object target, String key, Map<String, ?> properties);
-
-    /**
-     * Returns the cache with the given key private to the current build.
-     *
-     * @param target The target domain object which the cache is for. This might be a task, project, or similar.
-     * @param key the cache key. Uniquely identifies the cache
-     * @return The cache.
-     */
-    PersistentCache getCacheFor(Object target, String key);
+    CacheBuilder cache(String key);
 }

@@ -25,10 +25,12 @@ import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.cache.CacheRepository;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -72,7 +74,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         DefaultGradle gradle = new DefaultGradle(
                 tracker.getCurrentBuild(),
                 startParameter, serviceRegistry);
-        return new GradleLauncher(
+        return new DefaultGradleLauncher(
                 gradle,
                 serviceRegistry.get(InitScriptHandler.class),
                 new SettingsHandler(
@@ -84,7 +86,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         new BuildSourceBuilder(
                                 this,
                                 new DefaultCacheInvalidationStrategy(),
-                                serviceRegistry.get(ClassLoaderFactory.class)
+                                serviceRegistry.get(ClassLoaderFactory.class),
+                                serviceRegistry.get(CacheRepository.class),
+                                serviceRegistry.get(TimeProvider.class)
                         )),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(

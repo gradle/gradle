@@ -34,10 +34,6 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
                 return !startParameter.isNoOpt() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
             }
 
-            public void invalidate() {
-                state.invalidate();
-            }
-
             public void update() {
                 state.update();
             }

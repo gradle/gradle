@@ -16,24 +16,26 @@
 
 package org.gradle.process;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.process.child.IsolatedApplicationClassLoaderWorkerFactory;
+import org.gradle.process.child.SystemClassLoaderWorkerFactory;
+import org.gradle.process.child.WorkerFactory;
+import org.gradle.process.launcher.GradleWorkerMain;
 import org.gradle.util.ClasspathUtil;
+import org.gradle.util.GUtil;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.exec.ExecHandle;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.concurrent.Callable;
 
 public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
@@ -61,7 +63,6 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             super(resolver);
             setLogLevel(workerLogLevel);
             getJavaCommand().mainClass(GradleWorkerMain.class.getName());
-            getJavaCommand().classpath(classPathRegistry.getClassPathFiles("WORKER_PROCESS"));
         }
 
         @Override
@@ -76,28 +77,23 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             Object id = idGenerator.generateId();
             String displayName = String.format("Gradle Worker %s", id);
 
-            // Build configuration for GradleWorkerMain
-            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-            try {
-                ObjectOutputStream objectStream = new ObjectOutputStream(outputStream);
-                objectStream.writeObject(id);
-                objectStream.writeObject(displayName);
-                objectStream.writeObject(getLogLevel());
-                objectStream.writeObject(getApplicationClasspath());
-                objectStream.writeObject(getSharedPackages());
-                objectStream.writeObject(implementationClassPath);
-                objectStream.writeObject(getWorker());
-                objectStream.writeObject(connection.getLocalAddress());
-                objectStream.close();
-            } catch (IOException e) {
-                throw new UncheckedIOException(e);
+            WorkerFactory workerFactory;
+            if (isLoadApplicationInSystemClassLoader()) {
+                workerFactory = new SystemClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
+            } else {
+                workerFactory = new IsolatedApplicationClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
             }
+            Callable<?> workerMain = workerFactory.create();
+            getJavaCommand().classpath(workerFactory.getSystemClasspath());
+
+            // Build configuration for GradleWorkerMain
+            byte[] config = GUtil.serialize(workerMain);
 
             LOGGER.debug("Creating {}", displayName);
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
-            getJavaCommand().standardInput(new ByteArrayInputStream(outputStream.toByteArray()));
+            getJavaCommand().standardInput(new ByteArrayInputStream(config));
             ExecHandle execHandle = getJavaCommand().build();
 
             return new DefaultWorkerProcess(connection, execHandle);

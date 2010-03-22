@@ -42,5 +42,8 @@ public class PostExecutionAnalysisTaskExecuter implements TaskExecuter {
                 state.upToDate();
             }
         }
+        else if (!state.getDidWork()) {
+            state.upToDate();
+        }
     }
 }

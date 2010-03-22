@@ -32,6 +32,7 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.*;
+import org.gradle.logging.Console;
 import org.jruby.ext.posix.POSIX;
 import org.jruby.ext.posix.POSIXFactory;
 import org.jruby.ext.posix.POSIXHandler;
@@ -45,38 +46,50 @@ import java.util.logging.LogManager;
  * @author Hans Dockter
  */
 public class DefaultLoggingConfigurer implements LoggingConfigurer {
+    private final LoggingDestination stdout = new LoggingDestination();
+    private final LoggingDestination stderr = new LoggingDestination();
     private final Appender stderrConsoleAppender = new Appender();
     private final Appender stdoutConsoleAppender = new Appender();
-    private boolean applied;
-    private boolean isTerminal;
+    private LogLevel currentLevel;
 
     public void addStandardErrorListener(StandardOutputListener listener) {
-        stderrConsoleAppender.addListener(listener);
+        stderr.addListener(listener);
     }
 
     public void removeStandardErrorListener(StandardOutputListener listener) {
-        stderrConsoleAppender.removeListener(listener);
+        stderr.removeListener(listener);
     }
 
     public void addStandardOutputListener(StandardOutputListener listener) {
-        stdoutConsoleAppender.addListener(listener);
+        stdout.addListener(listener);
     }
 
     public void removeStandardOutputListener(StandardOutputListener listener) {
-        stdoutConsoleAppender.removeListener(listener);
+        stdout.removeListener(listener);
     }
 
     public void configure(LogLevel logLevel) {
+        if (currentLevel == logLevel) {
+            return;
+        }
+
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
         ch.qos.logback.classic.Logger rootLogger;
-        if (!applied) {
+        if (currentLevel == null) {
             lc.reset();
             LogManager.getLogManager().reset();
             SLF4JBridgeHandler.install();
 
-            isTerminal = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true).isatty(FileDescriptor.out);
-            stderrConsoleAppender.setTarget(isTerminal ? AnsiConsole.err() : System.err);
-            stdoutConsoleAppender.setTarget(isTerminal ? AnsiConsole.out() : System.out);
+            boolean isTerminal = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true).isatty(FileDescriptor.out);
+            stderr.setTarget(System.err);
+            if (isTerminal) {
+                stdout.setTarget(AnsiConsole.out());
+                stdout.console = new org.gradle.logging.AnsiConsole(stdout.target);
+            } else {
+                stdout.setTarget(System.out);
+            }
+            stderrConsoleAppender.setTarget(stderr);
+            stdoutConsoleAppender.setTarget(stdout);
             stderrConsoleAppender.setContext(lc);
             stdoutConsoleAppender.setContext(lc);
             rootLogger = lc.getLogger("ROOT");
@@ -86,7 +99,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             rootLogger = lc.getLogger("ROOT");
         }
 
-        applied = true;
+        currentLevel = logLevel;
         stderrConsoleAppender.stop();
         stdoutConsoleAppender.stop();
         stderrConsoleAppender.clearAllFilters();
@@ -124,11 +137,11 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     }
 
     private void setLayouts(LogLevel logLevel, Appender errorAppender, Appender nonErrorAppender, LoggerContext lc) {
-        nonErrorAppender.setFormatter(createFormatter(lc, logLevel));
-        errorAppender.setFormatter(createFormatter(lc, logLevel));
+        nonErrorAppender.setFormatter(createFormatter(lc, logLevel, stdout));
+        errorAppender.setFormatter(createFormatter(lc, logLevel, stderr));
     }
 
-    private Filter createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
+    private Filter<ILoggingEvent> createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
         LevelFilter levelFilter = new LevelFilter();
         levelFilter.setContext(lc);
         levelFilter.setOnMatch(onMatch);
@@ -138,16 +151,16 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         return levelFilter;
     }
 
-    private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel) {
+    private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel, LoggingDestination target) {
         if (logLevel == LogLevel.DEBUG) {
             Layout<ILoggingEvent> layout = new DebugLayout();
             layout.setContext(loggerContext);
             layout.start();
-            return new LayoutBasedFormatter(layout);
-        } else if (isTerminal) {
-            return new ConsoleBackedFormatter(loggerContext);
+            return new LayoutBasedFormatter(layout, target.target);
+        } else if (target.console != null) {
+            return new ConsoleBackedFormatter(loggerContext, target.console);
         } else {
-            return new BasicProgressLoggingAwareFormatter(loggerContext);
+            return new BasicProgressLoggingAwareFormatter(loggerContext, target.target);
         }
     }
 
@@ -157,19 +170,16 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         }
     }
 
-    private static class Appender extends AppenderBase<ILoggingEvent> {
+    private static class LoggingDestination {
         private final ListenerBroadcast<StandardOutputListener> listeners
                 = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-        private LogEventFormatter formatter;
-        private PrintStream target;
+        private Appendable target;
+        private Flushable flushable;
+        private Console console;
 
         private void setTarget(final PrintStream target) {
-            this.target = target;
-        }
-
-        public void setFormatter(LogEventFormatter formatter) {
-            this.formatter = formatter;
-            formatter.setTarget(new ListenerAdapter(listeners.getSource(), target));
+            this.target = new ListenerAdapter(listeners.getSource(), target);
+            flushable = target;
         }
 
         public void removeListener(StandardOutputListener listener) {
@@ -179,12 +189,25 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         public void addListener(StandardOutputListener listener) {
             listeners.add(listener);
         }
+    }
+
+    private static class Appender extends AppenderBase<ILoggingEvent> {
+        private LogEventFormatter formatter;
+        private Flushable flushable;
+
+        private void setTarget(LoggingDestination target) {
+            flushable = target.flushable;
+        }
+
+        public void setFormatter(LogEventFormatter formatter) {
+            this.formatter = formatter;
+        }
 
         @Override
         protected void append(ILoggingEvent event) {
             try {
                 formatter.format(event);
-                target.flush();
+                flushable.flush();
             } catch (Throwable t) {
                 // Give up and try stdout
                 t.printStackTrace(StandardOutputLogging.DEFAULT_ERR);

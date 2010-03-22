@@ -35,7 +35,7 @@ class DefaultTaskInputsTest {
     @Test
     public void defaultValues() {
         assertThat(inputs.files.files, isEmpty())
-        assertFalse(inputs.hasInputFiles)
+        assertFalse(inputs.hasInputs)
     }
 
     @Test
@@ -69,14 +69,20 @@ class DefaultTaskInputsTest {
     }
 
     @Test
-    public void hasInputFilesWhenEmptyInputFilesRegistered() {
+    public void hasInputsWhenEmptyInputFilesRegistered() {
         inputs.files([])
-        assertTrue(inputs.hasInputFiles)
+        assertTrue(inputs.hasInputs)
     }
 
     @Test
-    public void hasInputFilesWhenNonEmptyInputFilesRegistered() {
+    public void hasInputsWhenNonEmptyInputFilesRegistered() {
         inputs.files('a')
-        assertTrue(inputs.hasInputFiles)
+        assertTrue(inputs.hasInputs)
+    }
+
+    @Test
+    public void hasInputsWhenInputPropertyRegistered() {
+        inputs.property('a', 'value')
+        assertTrue(inputs.hasInputs)
     }
 }

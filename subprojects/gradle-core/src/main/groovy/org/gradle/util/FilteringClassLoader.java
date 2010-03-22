@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import java.io.IOException;
@@ -20,9 +21,8 @@ import java.net.URL;
 import java.util.*;
 
 /**
- * A ClassLoader which hides all non-system classes, packages and resources from the parent ClassLoader. Allows certain
- * non-system packages to be declared as visible. By default, only the Java system classes, packages and resources are
- * visible.
+ * A ClassLoader which hides all non-system classes, packages and resources. Allows certain non-system packages and
+ * classes to be declared as visible. By default, only the Java system classes, packages and resources are visible.
  */
 public class FilteringClassLoader extends ClassLoader {
     private static final Set<ClassLoader> SYSTEM_CLASS_LOADERS = new HashSet<ClassLoader>();
@@ -31,13 +31,15 @@ public class FilteringClassLoader extends ClassLoader {
     private final Set<String> packageNames = new HashSet<String>();
     private final Set<String> packagePrefixes = new HashSet<String>();
     private final Set<String> resourcePrefixes = new HashSet<String>();
+    private final Set<String> classNames = new HashSet<String>();
 
     static {
         EXT_CLASS_LOADER = ClassLoader.getSystemClassLoader().getParent();
         for (ClassLoader cl = EXT_CLASS_LOADER; cl != null; cl = cl.getParent()) {
             SYSTEM_CLASS_LOADERS.add(cl);
         }
-        JavaMethod<ClassLoader, Package[]> method = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class, Package[].class, "getPackages");
+        JavaMethod<ClassLoader, Package[]> method = new JavaMethod<ClassLoader, Package[]>(ClassLoader.class,
+                Package[].class, "getPackages");
         SYSTEM_PACKAGES.addAll(Arrays.asList((Package[]) method.invoke(EXT_CLASS_LOADER)));
     }
 
@@ -57,7 +59,7 @@ public class FilteringClassLoader extends ClassLoader {
             // The class isn't visible
             throw new ClassNotFoundException(String.format("%s not found.", name));
         }
-        
+
         if (!allowed(cl)) {
             throw new ClassNotFoundException(String.format("%s not found.", cl.getName()));
         }
@@ -138,6 +140,9 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     private boolean classAllowed(String className) {
+        if (classNames.contains(className)) {
+            return true;
+        }
         for (String packagePrefix : packagePrefixes) {
             if (className.startsWith(packagePrefix)) {
                 return true;
@@ -155,5 +160,14 @@ public class FilteringClassLoader extends ClassLoader {
         packageNames.add(packageName);
         packagePrefixes.add(packageName + ".");
         resourcePrefixes.add(packageName.replace('.', '/') + '/');
+    }
+
+    /**
+     * Marks a single class as visible
+     *
+     * @param aClass The class
+     */
+    public void allowClass(Class<?> aClass) {
+        classNames.add(aClass.getName());
     }
 }

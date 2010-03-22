@@ -1,6 +1,6 @@
 // START SNIPPET define
 // Create a file tree with a base directory
-def tree = fileTree(dir: 'src/main')
+FileTree tree = fileTree(dir: 'src/main')
 
 // Add include and exclude patterns to the tree
 tree.include '**/*.java'
@@ -28,16 +28,16 @@ tree.each {File file ->
 }
 
 // Filter a tree
-def filtered = tree.matching {
+FileTree filtered = tree.matching {
     include 'org/gradle/api/**'
 }
 
 // Add trees together
-def sum = tree + fileTree(dir: 'src/test')
+FileTree sum = tree + fileTree(dir: 'src/test')
 
-// Visit the nodes of the tree
-tree.visit {node ->
-    println "$node.relativePath => $node.file"
+// Visit the elements of the tree
+tree.visit {element ->
+    println "$element.relativePath => $element.file"
 }
 // END SNIPPET use
 

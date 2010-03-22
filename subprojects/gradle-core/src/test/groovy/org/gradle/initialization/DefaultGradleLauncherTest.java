@@ -14,8 +14,12 @@
  * limitations under the License.
  */
 
-package org.gradle;
+package org.gradle.initialization;
 
+import org.gradle.BuildListener;
+import org.gradle.BuildResult;
+import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 import org.gradle.api.Task;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.ExceptionAnalyser;
@@ -24,21 +28,17 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskGraphExecuter;
-import org.gradle.initialization.*;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
@@ -47,11 +47,15 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
+
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
-public class GradleLauncherTest {
+public class DefaultGradleLauncherTest {
     private BuildLoader buildLoaderMock;
     private InitScriptHandler initscriptHandlerMock;
     private SettingsHandler settingsHandlerMock;
@@ -73,7 +77,7 @@ public class GradleLauncherTest {
     private TaskGraphExecuter taskExecuterMock;
 
     private ProjectDescriptor expectedRootProjectDescriptor;
-    
+
     private JUnit4Mockery context = new JUnit4Mockery();
 
     private LoggingConfigurer loggingConfigurerMock = context.mock(LoggingConfigurer.class);
@@ -113,10 +117,10 @@ public class GradleLauncherTest {
         expectedStartParams.setSearchUpwards(expectedSearchUpwards);
         expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
-        gradleLauncher = new GradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
+        gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock,
                 buildBroadcaster, exceptionAnalyserMock);
-        
+
         context.checking(new Expectations() {
             {
                 allowing(gradlePropertiesLoaderMock).getGradleProperties();

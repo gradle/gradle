@@ -208,6 +208,11 @@ public class CopySpecImplTest {
         assertThat(spec.allCopyActions.size(), equalTo(1))
     }
 
+    @Test public void testExpand() {
+        spec.expand(version: '1.2', skip: 2)
+        assertThat(spec.allCopyActions.size(), equalTo(1))
+    }
+
     @Test public void testTwoFilters() {
         spec.filter(StripJavaComments)
         spec.filter(HeadFilter, lines: 15, skip: 2)
@@ -215,8 +220,16 @@ public class CopySpecImplTest {
         assertThat(spec.allCopyActions.size(), equalTo(2))
     }
 
-    @Test public void testAddsNameTransformerToActions() {
+    @Test public void testAddsStringNameTransformerToActions() {
         spec.rename("regexp", "replacement")
+
+        assertThat(spec.allCopyActions.size(), equalTo(1))
+        assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))
+        assertThat(spec.allCopyActions[0].transformer, instanceOf(RegExpNameMapper))
+    }
+    
+    @Test public void testAddsPatternNameTransformerToActions() {
+        spec.rename(/regexp/, "replacement")
 
         assertThat(spec.allCopyActions.size(), equalTo(1))
         assertThat(spec.allCopyActions[0], instanceOf(RenamingCopyAction))

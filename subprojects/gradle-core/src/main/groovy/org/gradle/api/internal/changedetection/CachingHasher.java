@@ -28,7 +28,7 @@ public class CachingHasher implements Hasher {
 
     public CachingHasher(Hasher hasher, CacheRepository cacheRepository) {
         this.hasher = hasher;
-        cache = cacheRepository.getGlobalCache("fileHashes").openIndexedCache(new FileInfoSerializer());
+        cache = cacheRepository.cache("fileHashes").open().openIndexedCache(new FileInfoSerializer());
     }
 
     public byte[] hash(File file) {

@@ -17,32 +17,25 @@
 
 package org.gradle.logging
 
-
-import org.gradle.util.JUnit4GroovyMockery;
+import ch.qos.logback.classic.LoggerContext
+import ch.qos.logback.classic.spi.ILoggingEvent
+import ch.qos.logback.classic.spi.IThrowableProxy
+import ch.qos.logback.classic.spi.ThrowableProxy
+import org.gradle.api.logging.Logging
+import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.slf4j.Marker
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.spi.ThrowableProxy
-import ch.qos.logback.classic.spi.IThrowableProxy
 import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.LoggerContext
-import org.gradle.api.logging.Logging
+import org.slf4j.Marker
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class BasicProgressLoggingAwareFormatterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final StringBuilder message = new StringBuilder()
-    private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter((LoggerContext) LoggerFactory.getILoggerFactory())
-
-    @Before
-    public void setup() {
-        formatter.setTarget(message)
-    }
+    private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter((LoggerContext) LoggerFactory.getILoggerFactory(), message)
 
     @Test
     public void logsEventWithMessage() {

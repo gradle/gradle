@@ -22,20 +22,13 @@ import java.io.IOException;
 import java.util.*;
 
 public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatter {
-    private Console console;
+    private final Console console;
     private Map<Operation, Label> currentOperations = new HashMap<Operation, Label>();
     private Set<Operation> noHeader = new LinkedHashSet<Operation>();
 
-    public ConsoleBackedFormatter(Context context) {
+    public ConsoleBackedFormatter(Context context, Console console) {
         super(context);
-    }
-
-    public void setTarget(Appendable target) {
-        this.console = createConsole(target);
-    }
-
-    Console createConsole(Appendable target) {
-        return new AnsiConsole(target);
+        this.console = console;
     }
 
     @Override

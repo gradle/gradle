@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.util.ClasspathUtil;
 
 import java.io.File;
 import java.net.*;
@@ -25,29 +26,22 @@ import java.util.*;
 import java.util.regex.Pattern;
 
 public class DefaultClassPathRegistry implements ClassPathRegistry {
-    private final Scanner pluginLibDir;
-    private final Scanner runtimeLibDir;
+    private final Scanner pluginLibs;
+    private final Scanner runtimeLibs;
     private final List<Pattern> all = Arrays.asList(Pattern.compile(".+"));
     private final Map<String, List<Pattern>> classPaths = new HashMap<String, List<Pattern>>();
 
     public DefaultClassPathRegistry() {
-        URI location;
-        try {
-            location = DefaultClassPathRegistry.class.getProtectionDomain().getCodeSource().getLocation().toURI();
-        } catch (URISyntaxException e) {
-            throw new UncheckedIOException(e);
-        }
-        if (!location.getScheme().equals("file")) {
-            throw new GradleException(String.format("Cannot determine Gradle home using codebase '%s'.", location));
-        }
-        File codeSource = new File(location.getPath());
+        File codeSource = findThisClass();
         if (codeSource.isFile()) {
+            // Loaded from a JAR - assume we're running from the distribution
             File gradleHome = codeSource.getParentFile().getParentFile();
-            runtimeLibDir = new DirScanner(new File(gradleHome + "/lib"));
-            pluginLibDir = new DirScanner(new File(gradleHome + "/lib/plugins"));
+            runtimeLibs = new DirScanner(new File(gradleHome + "/lib"));
+            pluginLibs = new DirScanner(new File(gradleHome + "/lib/plugins"));
         } else {
-            runtimeLibDir = new ClassPathScanner(codeSource);
-            pluginLibDir = new ClassPathScanner(codeSource);
+            // Loaded from a classes dir - assume we're running from the ide or tests
+            runtimeLibs = new ClassPathScanner(codeSource);
+            pluginLibs = runtimeLibs;
         }
 
         List<Pattern> groovyPatterns = toPatterns("groovy-all");
@@ -61,6 +55,21 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         classPaths.put("ANT_JUNIT", toPatterns("ant", "ant-launcher", "ant-junit"));
         classPaths.put("COMMONS_CLI", toPatterns("commons-cli"));
         classPaths.put("WORKER_PROCESS", toPatterns("gradle-core", "slf4j-api", "logback-classic", "logback-core", "jul-to-slf4j", "jansi", "jna", "jna-posix"));
+        classPaths.put("WORKER_MAIN", toPatterns("gradle-core-worker"));
+    }
+
+    private File findThisClass() {
+        URI location;
+        try {
+            location = DefaultClassPathRegistry.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+        } catch (URISyntaxException e) {
+            throw new UncheckedIOException(e);
+        }
+        if (!location.getScheme().equals("file")) {
+            throw new GradleException(String.format("Cannot determine Gradle home using codebase '%s'.", location));
+        }
+        File codeSource = new File(location.getPath());
+        return codeSource;
     }
 
     private static List<Pattern> toPatterns(String... patternStrings) {
@@ -72,29 +81,45 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
     }
 
     public URL[] getClassPathUrls(String name) {
-        return toURIs(getClassPathFiles(name));
+        return toURLArray(getClassPathFiles(name));
+    }
+
+    public Set<URL> getClassPath(String name) {
+        return toUrlSet(getClassPathFiles(name));
     }
 
     public Set<File> getClassPathFiles(String name) {
         Set<File> matches = new LinkedHashSet<File>();
         if (name.equals("GRADLE_PLUGINS")) {
-            pluginLibDir.find(all, matches);
+            pluginLibs.find(all, matches);
             return matches;
         }
         if (name.equals("GRADLE_RUNTIME")) {
-            runtimeLibDir.find(all, matches);
+            runtimeLibs.find(all, matches);
             return matches;
         }
         List<Pattern> classPathPatterns = classPaths.get(name);
         if (classPathPatterns != null) {
-            runtimeLibDir.find(classPathPatterns, matches);
-            pluginLibDir.find(classPathPatterns, matches);
+            runtimeLibs.find(classPathPatterns, matches);
+            pluginLibs.find(classPathPatterns, matches);
             return matches;
         }
         throw new IllegalArgumentException(String.format("unknown classpath '%s' requested.", name));
     }
 
-    private URL[] toURIs(Collection<File> files) {
+    private Set<URL> toUrlSet(Set<File> classPathFiles) {
+        Set<URL> urls = new LinkedHashSet<URL>();
+        for (File file : classPathFiles) {
+            try {
+                urls.add(file.toURI().toURL());
+            } catch (MalformedURLException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+        return urls;
+    }
+
+    private URL[] toURLArray(Collection<File> files) {
         List<URL> urls = new ArrayList<URL>(files.size());
         for (File file : files) {
             try {
@@ -135,32 +160,35 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         }
     }
 
+    // This is used when running from the IDE or junit tests
     private static class ClassPathScanner implements Scanner {
         private final File classesDir;
+        private final Collection<URL> classpath;
 
         private ClassPathScanner(File classesDir) {
             this.classesDir = classesDir;
+            this.classpath = ClasspathUtil.getClasspath(getClass().getClassLoader());
         }
 
         public void find(List<Pattern> patterns, Collection<File> into) {
             if (matches(patterns, "gradle-core-version.jar")) {
                 into.add(classesDir);
             }
-
-            ClassLoader classLoader = getClass().getClassLoader();
-            if (classLoader instanceof URLClassLoader) {
-                URLClassLoader urlClassLoader = (URLClassLoader) classLoader;
-                URL[] urls = urlClassLoader.getURLs();
-                for (URL url : urls) {
-                    if (url.getProtocol().equals("file")) {
-                        try {
-                            File file = new File(url.toURI());
-                            if (matches(patterns, file.getName())) {
-                                into.add(file);
-                            }
-                        } catch (URISyntaxException e) {
-                            throw new UncheckedIOException(e);
+            if (matches(patterns, "gradle-core-worker-version.jar")) {
+                String path = System.getProperty("gradle.core.worker.jar");
+                if (path != null) {
+                    into.add(new File(path));
+                }
+            }
+            for (URL url : classpath) {
+                if (url.getProtocol().equals("file")) {
+                    try {
+                        File file = new File(url.toURI());
+                        if (matches(patterns, file.getName())) {
+                            into.add(file);
                         }
+                    } catch (URISyntaxException e) {
+                        throw new UncheckedIOException(e);
                     }
                 }
             }

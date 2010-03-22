@@ -15,10 +15,12 @@
  */
 package org.gradle.openapi.external;
 
+import org.gradle.foundation.BootstrapLoader;
+
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Constructor;
-import org.gradle.foundation.BootstrapLoader;
+import java.util.regex.Pattern;
 
 /**
 
@@ -28,6 +30,8 @@ import org.gradle.foundation.BootstrapLoader;
   */
 public class ExternalUtility
 {
+    private static final Pattern GRADLE_CORE_PATTERN = Pattern.compile("^gradle-core-\\d.*\\.jar$");
+    
    /*
       Call this to get a classloader that has loaded gradle.
 
@@ -95,11 +99,7 @@ public class ExternalUtility
         //try to get the gradle.jar. It'll be "gradle-[version].jar"
         File[] files = libDirectory.listFiles(new FileFilter() {
             public boolean accept(File file) {
-                String name = file.getName();
-                if (name.startsWith("gradle-core-") && name.endsWith(".jar")) {
-                    return true;
-                }
-                return false;
+                return GRADLE_CORE_PATTERN.matcher(file.getName()).matches();
             }
         });
 

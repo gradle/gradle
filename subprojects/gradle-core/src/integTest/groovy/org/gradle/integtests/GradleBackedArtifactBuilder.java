@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -40,7 +40,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
     public void buildJar(File jarFile) {
         rootDir.file("build.gradle").writelns(
                 "apply id: 'java'",
-                "dependencies.compile files(org.gradle.util.BootstrapUtil.gradleClasspath)",
+                "dependencies { compile gradleApi() }",
                 String.format("jar.destinationDir = file('%s')", GradleUtil.unbackslash(jarFile.getParentFile())),
                 String.format("jar.archiveName = '%s'", jarFile.getName())
         );

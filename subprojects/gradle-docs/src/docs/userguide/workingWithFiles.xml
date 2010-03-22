@@ -15,12 +15,8 @@
   -->
 <chapter id="working_with_files">
     <title>Working With Files</title>
-    <note>
-        <para>This chapter is a work in progress.</para>
-    </note>
-
     <para>
-        Most builds do lots of work with files. Gradle adds some concepts and APIs to help you achieve this.
+        Most builds work with files. Gradle adds some concepts and APIs to help you achieve this.
     </para>
 
     <section id="sec:locating_files">
@@ -31,16 +27,18 @@
         <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
             <sourcefile file="build.gradle"/>
         </sample>
-        <para>You can pass any object to the <literal>file()</literal> method, though usually you would pass it a
-            <classname>String</classname> or <classname>File</classname>. The supplied object's <literal>toString()</literal>
-            value is treated as a file path. If this path is an absolute path, it is used to construct a
-            <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is constructed by
-            prepending the project directory path to the supplied path.
+        <para>You can pass any object to the <literal>file()</literal> method, and it will attempt to convert the value
+            to an absolute <classname>File</classname> object. Usually, you would pass it a
+            <classname>String</classname> or <classname>File</classname> instance. The supplied object's
+            <literal>toString()</literal> value is used as the file path. If this path is an absolute path, it is used
+            to construct a <classname>File</classname> instance. Otherwise, a <classname>File</classname> instance is
+            constructed by prepending the project directory path to the supplied path. The <literal>file()</literal>
+            method also understands URLs, such as <literal>file:/some/path.xml</literal>.
         </para>
         <para>Using this method is a useful way to convert some user provided value into an absolute <classname>File</classname>.
             It is preferable to using <literal>new File(somePath)</literal>, as <literal>file()</literal> always evaluates
             the supplied path relative to the project directory, which is fixed, rather than the current working
-            directory, which may change depending on how the user runs Gradle.
+            directory, which can change depending on how the user runs Gradle.
         </para>
     </section>
 
@@ -55,10 +53,11 @@
         </para>
 
         <para>
-            One way to obtain a <literal>FileCollection</literal> instance is to use the <apilink class="org.gradle.api.Project" method="files"/>
-            method. You can pass this method any number of objects, which are then converted into a set of <classname>File</classname>
-            objects. The <literal>files()</literal> method accepts <classname>File</classname> and <classname>String</classname>
-            arguments. These are evaluated relative to the project directory, as described in <xref linkend="sec:locating_files"/>.
+            One way to obtain a <literal>FileCollection</literal> instance is to use the
+            <apilink class="org.gradle.api.Project" method="files"/> method. You can pass this method any number of
+            objects, which are then converted into a set of <classname>File</classname> objects. The
+            <literal>files()</literal> method accepts any type of object as its parameters. These are evaluated relative
+            to the project directory, as for the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
             You can also pass collections, maps and arrays to the <literal>files()</literal> method. These are flattened
             and the contents converted to <classname>File</classname> instances.
         </para>
@@ -68,7 +67,9 @@
         </sample>
 
         <para>A file collection is iterable, and can be converted to a number of other types using the <literal>as</literal>
-            operator. You can also add 2 file collections together using the <literal>+</literal> operator. Here are some examples.
+            operator. You can also add 2 file collections together using the <literal>+</literal> operator, or subtract one
+            file collection from another using the <literal>-</literal> operator.
+            Here are some examples of what you can do with a file collection.
         </para>
         <sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
             <sourcefile file="build.gradle" snippet="usage"/>
@@ -87,7 +88,7 @@
 
         <para>It is important to note that the content of a file collection is evaluated lazily, when it is needed.
             This means you can, for example, create a <literal>FileCollection</literal> that represents files which
-            will be created in the future, say, by some task. 
+            will be created in the future by, say, some task.
         </para>
 
         <para>The <literal>files()</literal> method also accepts <classname>FileCollection</classname> instances.
@@ -99,7 +100,8 @@
         <title>File trees</title>
 
         <para>
-            A <firstterm>file tree</firstterm> is a hierarchy of files, such as a directory tree. It is represented
+            A <firstterm>file tree</firstterm> is a collection of files arranged in a hierarchy. For example, a file tree
+            might represent a directory tree or the contents of a ZIP file. It is represented
             by the <apilink class="org.gradle.api.file.FileTree"/> interface. The <literal>FileTree</literal> interface
             extends <literal>FileCollection</literal>, so you can treat a file tree exactly the same way as you would a
             file collection. Several objects in Gradle implement the <literal>FileTree</literal> interface, such as
@@ -118,7 +120,7 @@
         </sample>
 
         <para>You use a file tree in the same way you use a file collection. You can also visit the contents of the
-            tree, and select a subtree using Ant-style patterns:
+            tree, and select a sub-tree using Ant-style patterns:
         </para>
         <sample id="fileTrees" dir="userguide/files/fileTrees" title="Using a file tree">
             <sourcefile file="build.gradle" snippet="use"/>
@@ -140,12 +142,12 @@
     </section>
 
     <section id="sec:specifying_multiple_files">
-        <title>Specifying a set of files</title>
-        <para>Many objects in Gradle have properties which accept a logical set of files. For example, the
+        <title>Specifying a set of input files</title>
+        <para>Many objects in Gradle have properties which accept a set of input files. For example, the
             <apilink class="org.gradle.api.tasks.compile.Compile"/> task has a <literal>source</literal> property,
             which defines the source files to compile. You can set the value of this property using any of the types
-            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen above. This
-            means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
+            supported by the <link linkend="sec:file_collections">files()</link> method, which we have seen in above.
+            This means you can set the property using, for example, a <classname>File</classname>, <classname>String</classname>,
             collection, <classname>FileCollection</classname> or even a closure.
             Here are some examples:
         </para>
@@ -163,11 +165,14 @@
 
     <section id="sec:copying_files">
         <title>Copying files</title>
-        <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task allows
-            you to filter the contents of the files as they are copied, and to map the files names.
+        <para>You can use the <apilink class="org.gradle.api.tasks.Copy"/> task to copy files. The copy task is very flexible, and allows
+            you to, for example, filter the contents of the files as they are copied, and to map the files names.
         </para>
-        <para>To use the copy task, you must provide a set of source files to copy, and a destination directory to copy
-            the files to. You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from"/>
+        <para>To use the <literal>Copy</literal> task, you must provide a set of source files to copy, and a destination directory to copy
+            the files to. You may also specify how to transform the files as they are copied. You do all this using a
+            <firstterm>copy spec</firstterm>. A copy spec is represented by the <apilink class="org.gradle.api.file.CopySpec"/> interface. The
+            <literal>Copy</literal> task implements this interface.
+            You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from"/>
             method. To specify the destination directory, you use the <apilink class="org.gradle.api.file.CopySpec" method="into"/>
             method.
         </para>
@@ -196,10 +201,260 @@
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy() method">
             <sourcefile file="build.gradle" snippet="copy-method"/>
         </sample>
+        <section>
+            <title>Renaming files</title>
+            <sample id="renameOnCopy" dir="userguide/files/copy" title="Renaming files as they are copied">
+                <sourcefile file="build.gradle" snippet="rename-files"/>
+            </sample>
+        </section>
+        <section>
+            <title>Filtering files</title>
+            <sample id="filterOnCopy" dir="userguide/files/copy" title="Filtering files as they are copied">
+                <sourcefile file="build.gradle" snippet="filter-files"/>
+            </sample>
+        </section>
+        <section>
+            <title>Using the <classname>CopySpec</classname> class</title>
+            <para>Copy specs form a hierarchy. A copy spec inherits its destination path, include patterns, exclude patterns, copy actions,
+                name mappings, filters.</para>
+            <sample id="nestedCopySpecs" dir="userguide/files/copy" title="Nested copy specs">
+                <sourcefile file="build.gradle" snippet="nested-specs"/>
+            </sample>
+        </section>
+    </section>
+
+    <section>
+        <title>Using the <literal>Sync</literal> task</title>
+        <para>The <apilink class="org.gradle.api.tasks.Sync"/> task extends the <literal>Copy</literal> task. When it
+            executes, it copies the source files into the destination directory, and then removes any files from the
+            destination directory which it did not copy.
+        </para>
     </section>
 
     <section id="sec:archives">
         <title>Creating ZIP and TAR archives</title>
-        <para>TBD</para>
+        <para>You create ZIP and TAR archives using the <apilink class="org.gradle.api.tasks.bundling.Zip"/> and
+            <apilink class="org.gradle.api.tasks.bundling.Tar"/> tasks. They work in a very similar way to the
+            <literal>Copy</literal> task. You specify the input files using the <literal>from()</literal> method, and
+            can optionally specify where they end up in the archive using the <literal>into()</literal> method. You can
+            filter the contents of file, rename files, and all the other things you can do with the
+            <literal>Copy</literal> task.
+        </para>
+        <sample id="createZip" dir="userguide/files/archives" title="Creating a ZIP archive">
+            <sourcefile file="build.gradle" snippet="zip"/>
+        </sample>
+        <tip>
+            <title>Why are you using the Java plugin?</title>
+            <para>The Java plugin adds a number of default values for the archive tasks. You can use the archive
+                tasks without using the Java plugin, if you like. You will need to provide values for some additional
+                properties.
+            </para>
+        </tip>
+        <sample id="createTar" dir="userguide/files/archives" title="Creating a TAR archive">
+            <sourcefile file="build.gradle" snippet="tar"/>
+        </sample>
+
+        <section>
+            <title>Sharing content between multiple archives</title>
+            <para>Using the <apilink class="org.gradle.api.Project" method="copySpec"/> to share content between archives.</para>
+        </section>
     </section>
+
+    <section>
+        <title>Adding archives</title>
+        <para>With Gradle you can have as many as JAR files as you want. You can also add WAR, ZIP and TAR archives to your project. They are all added the same way, so
+            let's look at how you add a ZIP file.
+        </para>
+        <sample id="zip" dir="userguide/tutorial/zipProject" title="Creation of ZIP archive">
+            <sourcefile file="build.gradle"/>
+            <output args="-q myZip"/>
+        </sample>
+        <para>This adds a Zip archive task with the name <literal>myZip</literal> which produces ZIP file
+            <filename>zipProject-1.0.zip</filename>. It is important to distinguish between the name of the archive task
+            and the name of the archive generated by the archive task. The name of the generated archive file is by
+            default the name of the project with the project version appended. The default name for archives can be
+            changed with the <literal>archivesBaseName</literal> project property. The name of the archive can also be
+            changed at any time later on.</para>
+        <para>There are a number of properties which you can set on an archive task. You can, for example, change the
+            name of the archive:
+        </para>
+        <sample id="zipWithCustomName" dir="userguide/tutorial/zipWithCustomName" title="Configuration of archive task - custom archive name">
+            <sourcefile file="build.gradle"/>
+            <output args="-q myZip"/>
+        </sample>
+        <para>You can further customize the archive names:</para>
+        <sample id="zipWithArguments" dir="userguide/tutorial/zipWithArguments" title="Configuration of archive task - appendix &amp; classifier">
+            <sourcefile file="build.gradle"/>
+            <output args="-q myZip"/>
+        </sample>
+        <para>Often you will want to publish an archive, so that it is usable from another project. This process is
+            described in <xref linkend="artifact_management"/>
+        </para>
+
+    <section id='sec:archive_tasks'>
+        <title>Archive tasks</title>
+        <para>An archive task is a task which produces an archive at execution time. The following archive tasks are
+            available:
+        </para>
+        <table>
+            <title>Archive tasks</title>
+            <thead>
+                <tr>
+                    <td>Type</td>
+                    <td>Accepted file container</td>
+                    <td>Extends</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Zip" lang="groovy"/>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet</td>
+                <td>AbstractArchiveTask</td>
+            </tr>
+            <tr>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Tar" lang="groovy"/>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet, tarFileSet</td>
+                <td>Zip</td>
+            </tr>
+            <tr>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet</td>
+                <td>Zip</td>
+            </tr>
+            <tr>
+                <td>
+                    <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>
+                </td>
+                <td>fileSet, fileCollection, zipFileSet</td>
+                <td>Jar</td>
+            </tr>
+
+        </table>
+        <para>The following file containers are available:
+        </para>
+        <table id='filecontainer'>
+            <title>File container for archives</title>
+            <thead>
+                <tr>
+                    <td>Type</td>
+                    <td>Meaning</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <apilink class="org.gradle.api.file.FileTree"/>
+                </td>
+                <td>A set of files defined by a common base directory and include/exclude patterns. See <xref linkend="sec:file_trees"/>.</td>
+            </tr>
+            <tr>
+                <td>
+                    <apilink class="org.gradle.api.file.FileCollection"/>
+                </td>
+                <td>An arbitrary collection of files to include in the archive. In contrast to a
+                    <literal>FileTree</literal> they don't need to have a common base directory. See <xref linkend="sec:file_collections"/>
+                    for more details.
+                </td>
+            </tr>
+        </table>
+        <para>To learn about all the details have a look at the javadoc of the archive task class or the file container
+            class itself.
+        </para>
+        <section id='sub:common_properties'>
+            <title>Common properties</title>
+            <para>The name of the generated archive is assembled from the task properties <literal>baseName</literal>,
+                <literal>appendix</literal>, <literal>version</literal>, <literal>classifier</literal> and
+                <literal>extension</literal> into
+                <literal><replaceable>baseName</replaceable>-<replaceable>appendix</replaceable>-<replaceable>version</replaceable>-<replaceable>classifier</replaceable>.<replaceable>extension</replaceable></literal>.
+                <footnote>
+                    <para>If any of these properties is empty the trailing <literal>-</literal> is not added to the name.
+                    </para>
+                </footnote>
+                The assembled name is accessible via the <literal>archiveName</literal> property. The
+                <literal>name</literal> property denotes the name of the task, not the generated archive. You can
+                set the <literal>archiveName</literal> property directly, in which case, the explicitly set value
+                is used instead of the assembled value above.
+            </para>
+            <para>Archives have a <literal>destinationDir</literal> property to specify where the generated archive
+                should be placed. It has also an <literal>archivePath</literal> property, which returns a File object
+                with the absolute path of the generated archive.
+            </para>
+        </section>
+        <section id='sub:adding_content'>
+            <title>Adding content</title>
+            <para>To add content to an archive you must add file container to an archive (see
+                <xref linkend='filecontainer'/>). You can add as many file containers as you like. They behave pretty much
+                the same as the Ant resources with similar names.
+            </para>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Adding content to archive - include &amp; exclude">
+                <sourcefile file="build.gradle" snippet="file-set"/>
+            </sample>
+            <para>You can add arbitrary files to an archive:
+            </para>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Adding content to archive - arbitrary files">
+                <sourcefile file="build.gradle" snippet="files"/>
+            </sample>
+            <para>Other examples:
+            </para>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Adding content to archive - zipFileSet">
+                <sourcefile file="build.gradle" snippet="zip-file-set"/>
+            </sample>
+            <sample id="archiveContent" dir="userguide/tutorial/archiveContent" title="Creation of TAR archive">
+                <sourcefile file="build.gradle" snippet="tar-file-set"/>
+            </sample>
+            <para>There is also the option to add an arbitrary Ant expression describing an Ant resource.
+            </para>
+            <programlisting><![CDATA[
+myZipTask.antDirective {
+   zipgroupfileset(dir: new File(rootDir, 'lib'))
+}
+]]></programlisting>
+            <para>This is for rather exotic use cases. Usually you should be fine with the file container provided by
+                Gradle.
+            </para>
+        </section>
+        <section id='sub:merging'>
+            <title>Merging</title>
+            <para>If you want to merge the content of other archives into the archive to be generated Gradle offers you
+                two methods. One is <literal>merge</literal>:
+            </para>
+            <programlisting><![CDATA[
+myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz')
+]]></programlisting>
+            <para>This merges the whole content of the archive passed to the merge method into the generated archive. If
+                you need more control which content of the archive should be merged and to what path, you can pass a
+                closure to the merge method:
+            </para>
+            <programlisting><![CDATA[
+myZipTask.merge('path1/otherArchive1.zip', 'path2/otherArchive.tar.gz') {
+	include('**/*.txt')
+	exclude('**/*.gif')
+	prefix = 'myprefix'
+}
+]]></programlisting>
+            <para>Under the hood Gradle scans the extension of the archives to be merged. According to the extension, it
+                creates a
+                <literal>ZipFileSet</literal>
+                or <literal>TarFileSet</literal>. The closure is applied to this newly created file container. There
+                is another method for merging called <literal>mergeGroup</literal>.
+            </para>
+            <programlisting><![CDATA[
+myZipTask.mergeGroup('path_to_dir_with_archives') {
+	include('**/*.zip')
+	exclude('**/*.tar.gz')
+}
+]]></programlisting>
+            <para>With this method you can assign a set of archives to be merged. Those archives have to be located
+                under the directory you pass as an argument. You can define filters what archives should be included.
+                They are always included fully and you can't specify a path. If you need this features, you must use the
+                <literal>merge</literal> method.
+            </para>
+        </section>
+    </section>
+    </section>
+    
 </chapter>

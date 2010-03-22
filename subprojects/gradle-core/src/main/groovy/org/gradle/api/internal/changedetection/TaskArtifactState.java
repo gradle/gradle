@@ -25,11 +25,6 @@ public interface TaskArtifactState {
     boolean isUpToDate();
 
     /**
-     * Marks any state as invalid.
-     */
-    void invalidate();
-
-    /**
      * Marks current state as valid.
      */
     void update();

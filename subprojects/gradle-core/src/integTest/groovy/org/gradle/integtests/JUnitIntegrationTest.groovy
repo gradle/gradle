@@ -15,6 +15,10 @@
  */
 
 
+
+
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -24,7 +28,9 @@ import org.junit.runner.RunWith;
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*
-import org.gradle.api.Project;
+import org.gradle.api.Project
+import org.slf4j.Logger
+import org.gradle.process.child.SystemApplicationClassLoaderWorker;
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class JUnitIntegrationTest {
@@ -56,10 +62,13 @@ public class JUnitIntegrationTest {
                     assertTrue(org.apache.tools.ant.Main.getAntVersion().contains("1.6.1"));
                     // check working dir
                     assertEquals("${testDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')}", System.getProperty("user.dir"));
-                    // check Gradle classes not visible
-                    try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
-                    // check context classloader
+                    // check classloader
+                    assertSame(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
                     assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
+                    // check Gradle and impl classes not visible
+                    try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                    try { getClass().getClassLoader().loadClass("${Logger.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
+                    try { getClass().getClassLoader().loadClass("${SystemApplicationClassLoaderWorker.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
                     // check sys properties
                     assertEquals("value", System.getProperty("testSysProperty"));
                     // check env vars
@@ -70,6 +79,8 @@ public class JUnitIntegrationTest {
                 }
             }
         """
+
+        executer.withArguments('-d')
         executer.withTasks('build').run();
 
         JUnitTestResult result = new JUnitTestResult(testDir)

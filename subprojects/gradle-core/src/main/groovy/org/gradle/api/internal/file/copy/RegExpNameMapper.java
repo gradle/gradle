@@ -28,7 +28,11 @@ public class RegExpNameMapper implements Transformer<String> {
     private String replacement;
 
     public RegExpNameMapper(String sourceRegEx, String replaceWith) {
-        matcher = Pattern.compile(sourceRegEx).matcher("");
+        this(Pattern.compile(sourceRegEx), replaceWith);
+    }
+
+    public RegExpNameMapper(Pattern sourceRegEx, String replaceWith) {
+        matcher = sourceRegEx.matcher("");
         replacement = replaceWith;
     }
 

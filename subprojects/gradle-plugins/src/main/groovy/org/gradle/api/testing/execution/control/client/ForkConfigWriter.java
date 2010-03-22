@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.testing.execution.control.client;
 
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.tasks.testing.NativeTest;
-import org.gradle.util.BootstrapUtil;
+import org.gradle.util.GUtil;
 
-import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
-import java.io.ObjectOutputStream;
 import java.net.URI;
 
 /**
@@ -54,9 +51,9 @@ public class ForkConfigWriter {
         }
 
         // TODO only needed Gradle fork classpath
-        for (File controlCpElement : BootstrapUtil.getGradleClasspath()) {
-            config.control(controlCpElement);
-        }
+//        for (File controlCpElement : BootstrapUtil.getGradleClasspath()) {
+//            config.control(controlCpElement);
+//        }
 
         // TODO testRuntime classpath without test framework spec
         for (File sandboxCpElement : testTask.getClasspath()) {
@@ -70,16 +67,6 @@ public class ForkConfigWriter {
         config.setServerAddress(testServerAddress);
         config.setTestFrameworkId(testTask.getTestFramework().getTestFramework().getId());
 
-        ByteArrayOutputStream outputStream;
-        try {
-            outputStream = new ByteArrayOutputStream();
-            ObjectOutputStream objectStream = new ObjectOutputStream(outputStream);
-            objectStream.writeObject(config);
-            objectStream.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
-        return outputStream.toByteArray();
+        return GUtil.serialize(config);
     }
 }

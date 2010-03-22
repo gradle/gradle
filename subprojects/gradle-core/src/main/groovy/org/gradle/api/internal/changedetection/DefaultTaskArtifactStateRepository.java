@@ -15,24 +15,27 @@
  */
 package org.gradle.api.internal.changedetection;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.util.ChangeListener;
+import org.gradle.util.DiffUtil;
 
 import java.io.File;
 import java.io.Serializable;
 import java.util.*;
 
+import static java.util.Collections.*;
+
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
-    private static Logger logger = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
-    private static final byte FILE = 0;
-    private static final byte DIR = 1;
-    private static final byte MISSING = 3;
+    private static final int MAX_OUT_OF_DATE_MESSAGES = 20;
+    private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final CacheRepository repository;
     private final FileSnapshotter fileSnapshotter;
-    private PersistentIndexedCache<File, OutputGenerators> cache;
+    private PersistentIndexedCache<String, TaskHistory> cache;
 
     public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter fileSnapshotter) {
         this.repository = repository;
@@ -44,299 +47,306 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             loadTasks(task);
         }
 
-        final TaskKey key = new TaskKey(task);
-        final TaskInfo thisExecution = getThisExecution(task);
-        final TaskExecution lastExecution = getLastExecution(key, thisExecution);
-
-        return new TaskArtifactState() {
-            public boolean isUpToDate() {
-                List<String> messages = thisExecution.isSameAs(lastExecution);
-                if (messages == null || messages.isEmpty()) {
-                    logger.info("Skipping {} as it is up-to-date.", task);
-                    return true;
-                }
-                if (logger.isInfoEnabled()) {
-                    Formatter formatter = new Formatter();
-                    formatter.format("Executing %s due to:", task);
-                    for (String message : messages) {
-                        formatter.format("%n%s", message);
-                    }
-                    logger.info(formatter.toString());
-                }
-                return false;
-            }
-
-            public void invalidate() {
-                for (File file : thisExecution.outputFiles.keySet()) {
-                    OutputGenerators generators = cache.get(file);
-                    generators.remove(key);
-                    cache.put(file, generators);
-                }
-            }
-
-            public void update() {
-                thisExecution.snapshotOutputFiles();
-                TaskExecution taskInfo = thisExecution;
-                for (Map.Entry<File, OutputFileInfo> entry : thisExecution.outputFiles.entrySet()) {
-                    OutputGenerators generators = cache.get(entry.getKey());
-                    generators.update(entry.getValue(), key, taskInfo);
-                    cache.put(entry.getKey(), generators);
-                    taskInfo = new TaskInfoToken();
-                }
-            }
-        };
-    }
-
-    private TaskInfo getThisExecution(TaskInternal task) {
-        return new TaskInfo(task, fileSnapshotter);
-    }
-
-    private TaskExecution getLastExecution(TaskKey key, TaskInfo thisExecution) {
-        TaskExecution taskInfo = null;
-        List<String> outOfDateMessages = new ArrayList<String>();
-        for (File outputFile : thisExecution.outputFiles.keySet()) {
-            OutputGenerators generators = cache.get(outputFile);
-            if (generators == null) {
-                cache.put(outputFile, new OutputGenerators());
-                outOfDateMessages.add(String.format("No history is available for %s.", outputFile));
-                continue;
-            }
-            if (generators.invalidate(outputFile)) {
-                cache.put(outputFile, generators);
-            }
-            TaskExecution lastExecution = generators.get(key);
-            if (lastExecution == null) {
-                outOfDateMessages.add(String.format("Task did not produce %s.", outputFile));
-                continue;
-            }
-            if (lastExecution instanceof TaskInfo) {
-                taskInfo = lastExecution;
-            }
-        }
-        if (!outOfDateMessages.isEmpty()) {
-            return new EmptyTaskInfo(outOfDateMessages);
-        }
-        if (taskInfo == null) {
-            return new EmptyTaskInfo();
-        }
-        return taskInfo;
+        return new TaskArtifactStateImpl(task);
     }
 
     private void loadTasks(TaskInternal task) {
-        cache = repository.getCacheFor(task.getProject().getGradle(), "taskArtifacts").openIndexedCache();
+        cache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache();
     }
 
-    private static byte type(File file) {
-        if (file.isFile()) {
-            return FILE;
-        } else if (file.isDirectory()) {
-            return DIR;
-        } else {
-            return MISSING;
+    private static Set<String> outputFiles(TaskInternal task) {
+        Set<String> outputFiles = new HashSet<String>();
+        for (File file : task.getOutputs().getFiles()) {
+            outputFiles.add(file.getAbsolutePath());
+        }
+        return outputFiles;
+    }
+
+    private interface TaskExecution {
+        List<String> isUpToDate();
+
+        boolean snapshot();
+    }
+
+    private static class TaskHistory implements Serializable {
+        private final List<TaskConfiguration> configurations = new ArrayList<TaskConfiguration>();
+
+        public void addConfiguration(TaskConfiguration configuration) {
+            configurations.add(0, configuration);
         }
     }
 
-    private static class OutputGenerators implements Serializable {
-        private final Map<TaskKey, TaskExecution> generators = new HashMap<TaskKey, TaskExecution>();
-        private OutputFileInfo fileInfo;
+    private static class NoDeclaredArtifactsExecution implements TaskExecution {
+        private final TaskInternal task;
 
-        public TaskExecution remove(TaskKey task) {
-            return generators.remove(task);
+        private NoDeclaredArtifactsExecution(TaskInternal task) {
+            this.task = task;
         }
 
-        public void add(TaskKey key, TaskExecution info) {
-            generators.put(key, info);
+        public List<String> isUpToDate() {
+            List<String> messages = new ArrayList<String>();
+            if (!task.getInputs().getHasInputs()) {
+                messages.add(String.format("%s has not declared any inputs.", StringUtils.capitalize(task.toString())));
+            }
+            if (!task.getOutputs().getHasOutputFiles()) {
+                messages.add(String.format("%s has not declared any outputs.", StringUtils.capitalize(task.toString())));
+            }
+            assert !messages.isEmpty();
+            return messages;
         }
 
-        public void replace(TaskKey key, TaskExecution info) {
-            generators.clear();
-            generators.put(key, info);
+        public boolean snapshot() {
+            return false;
+        }
+    }
+
+    private static class HistoricExecution implements TaskExecution {
+        private final TaskHistory history;
+        private final TaskInternal task;
+        private final TaskConfiguration lastExecution;
+        private final FileSnapshotter snapshotter;
+        private boolean upToDate;
+        private TaskConfiguration thisExecution;
+        private FileCollectionSnapshot outputFilesBefore;
+
+        public HistoricExecution(TaskHistory history, TaskInternal task, TaskConfiguration lastExecution, FileSnapshotter snapshotter) {
+            this.history = history;
+            this.task = task;
+            this.lastExecution = lastExecution;
+            this.snapshotter = snapshotter;
         }
 
-        public TaskExecution get(TaskKey key) {
-            return generators.get(key);
+        private void calcCurrentState() {
+            if (thisExecution != null) {
+                return;
+            }
+
+            // Calculate current state - note this is potentially expensive
+            thisExecution = new TaskConfiguration(task, snapshotter);
+            outputFilesBefore = snapshotter.snapshot(task.getOutputs().getCandidateFiles());
         }
 
-        public boolean invalidate(File outputFile) {
-            if (fileInfo != null && !fileInfo.isUpToDate(outputFile)) {
-                generators.clear();
+        public List<String> isUpToDate() {
+            calcCurrentState();
+
+            // Now determine if we're out of date
+            if (lastExecution == null) {
+                return singletonList(String.format("No history is available for %s.", task));
+            }
+
+            if (!task.getClass().getName().equals(lastExecution.taskClass)) {
+                return singletonList(String.format("%s has changed type from '%s' to '%s'.", StringUtils.capitalize(
+                        task.toString()), lastExecution.taskClass, task.getClass().getName()));
+            }
+
+            List<String> messages = new ArrayList<String>();
+            checkOutputFiles(messages);
+            if (!messages.isEmpty()) {
+                return messages;
+            }
+
+            checkInputProperties(messages);
+            if (!messages.isEmpty()) {
+                return messages;
+            }
+
+            checkInputs(messages);
+            if (!messages.isEmpty()) {
+                return messages;
+            }
+
+            checkOutputs(messages);
+            if (!messages.isEmpty()) {
+                return messages;
+            }
+
+            upToDate = true;
+            return emptyList();
+        }
+
+        private void checkOutputs(final Collection<String> messages) {
+            outputFilesBefore.changesSince(lastExecution.outputFilesSnapshot, new ChangeListener<File>() {
+                public void added(File element) {
+                    // Don't care
+                }
+
+                public void removed(File element) {
+                    messages.add(String.format("Output file %s for %s removed.", element.getAbsolutePath(), task));
+                }
+
+                public void changed(File element) {
+                    messages.add(String.format("Output file %s for %s has changed.", element.getAbsolutePath(), task));
+                }
+            });
+        }
+
+        private void checkInputs(final Collection<String> messages) {
+            thisExecution.inputFilesSnapshot.changesSince(lastExecution.inputFilesSnapshot, new ChangeListener<File>() {
+                public void added(File file) {
+                    messages.add(String.format("Input file %s for %s added.", file, task));
+                }
+
+                public void removed(File file) {
+                    messages.add(String.format("Input file %s for %s removed.", file, task));
+                }
+
+                public void changed(File file) {
+                    messages.add(String.format("Input file %s for %s has changed.", file, task));
+                }
+            });
+        }
+
+        private void checkOutputFiles(final Collection<String> messages) {
+            DiffUtil.diff(thisExecution.outputFiles, lastExecution.outputFiles, new ChangeListener<String>() {
+                public void added(String element) {
+                    messages.add(String.format("Output file '%s' has been added for %s", element, task));
+                }
+
+                public void removed(String element) {
+                    messages.add(String.format("Output file '%s' has been removed for %s", element, task));
+                }
+
+                public void changed(String element) {
+                    // should not happen
+                }
+            });
+        }
+
+        private void checkInputProperties(final Collection<String> messages) {
+            DiffUtil.diff(thisExecution.inputProperties, lastExecution.inputProperties, new ChangeListener<Map.Entry<String, Object>>() {
+                public void added(Map.Entry<String, Object> element) {
+                    messages.add(String.format("Input property '%s' has been added for %s", element.getKey(), task));
+                }
+
+                public void removed(Map.Entry<String, Object> element) {
+                    messages.add(String.format("Input property '%s' has been removed for %s", element.getKey(), task));
+                }
+
+                public void changed(Map.Entry<String, Object> element) {
+                    messages.add(String.format("Value of input property '%s' has changed for %s", element.getKey(), task));
+                }
+            });
+        }
+
+        public boolean snapshot() {
+            calcCurrentState();
+            
+            if (upToDate) {
+                return false;
+            }
+
+            FileCollectionSnapshot lastExecutionOutputFiles = lastExecution == null ? snapshotter.snapshot()
+                    : lastExecution.outputFilesSnapshot;
+            FileCollectionSnapshot newOutputFiles = outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(
+                    lastExecutionOutputFiles, new ChangeListener<FileCollectionSnapshot.Merge>() {
+                        public void added(FileCollectionSnapshot.Merge element) {
+                            // Ignore added files
+                            element.ignore();
+                        }
+
+                        public void removed(FileCollectionSnapshot.Merge element) {
+                            // Discard any files removed since the task was last executed
+                        }
+
+                        public void changed(FileCollectionSnapshot.Merge element) {
+                            // Update any files which were change since the task was last executed
+                        }
+                    });
+            FileCollectionSnapshot outputFilesAfter = snapshotter.snapshot(task.getOutputs().getCandidateFiles());
+            thisExecution.outputFilesSnapshot = outputFilesAfter.changesSince(outputFilesBefore).applyTo(
+                    newOutputFiles);
+            history.addConfiguration(thisExecution);
+            return true;
+        }
+    }
+
+    private static class TaskConfiguration implements Serializable {
+        private final String taskClass;
+        private Set<String> outputFiles;
+        private Map<String, Object> inputProperties;
+        private FileCollectionSnapshot inputFilesSnapshot;
+        private FileCollectionSnapshot outputFilesSnapshot;
+
+        private TaskConfiguration(TaskInternal task, FileSnapshotter fileSnapshotter) {
+            this.taskClass = task.getClass().getName();
+            this.outputFiles = outputFiles(task);
+            this.inputProperties = new HashMap<String, Object>(task.getInputs().getProperties());
+            this.inputFilesSnapshot = fileSnapshotter.snapshot(task.getInputs().getFiles());
+        }
+    }
+
+    private class TaskArtifactStateImpl implements TaskArtifactState {
+        private final TaskInternal task;
+        private final TaskHistory history;
+        private final TaskExecution execution;
+
+        public TaskArtifactStateImpl(TaskInternal task) {
+            this.task = task;
+            history = getHistory();
+            execution = getExecution();
+        }
+
+        public boolean isUpToDate() {
+            List<String> messages = execution.isUpToDate();
+            if (messages == null || messages.isEmpty()) {
+                LOGGER.info("Skipping {} as it is up-to-date.", task);
                 return true;
+            }
+            if (LOGGER.isInfoEnabled()) {
+                Formatter formatter = new Formatter();
+                formatter.format("Executing %s due to:", task);
+                for (int i = 0; i < messages.size() && i < MAX_OUT_OF_DATE_MESSAGES; i++) {
+                    String message = messages.get(i);
+                    formatter.format("%n%s", message);
+                }
+                if (messages.size() > MAX_OUT_OF_DATE_MESSAGES) {
+                    formatter.format("%d more ...", messages.size() - MAX_OUT_OF_DATE_MESSAGES);
+                }
+                LOGGER.info(formatter.toString());
             }
             return false;
         }
 
-        public void update(OutputFileInfo outputFile, TaskKey key, TaskExecution thisExecution) {
-            fileInfo = outputFile;
-            if (fileInfo.type == FILE) {
-                replace(key, thisExecution);
+        private TaskHistory getHistory() {
+            TaskHistory history = cache.get(task.getPath());
+            return history == null ? new TaskHistory() : history;
+        }
+
+        public TaskExecution getExecution() {
+            if (!task.getInputs().getHasInputs() || !task.getOutputs().getHasOutputFiles()) {
+                return new NoDeclaredArtifactsExecution(task);
             }
-            else {
-                add(key, thisExecution);
-            }
-        }
-    }
-
-    private static class TaskKey implements Serializable {
-        private final String type;
-        private final String path;
-
-        private TaskKey(TaskInternal task) {
-            path = task.getPath();
-            type = task.getClass().getName();
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (o == this) {
-                return true;
-            }
-            TaskKey other = (TaskKey) o;
-            return other.type.equals(type) && other.path.equals(path);
-        }
-
-        @Override
-        public int hashCode() {
-            return type.hashCode() ^ path.hashCode();
-        }
-    }
-
-    private interface TaskExecution {
-    }
-
-    private static class EmptyTaskInfo implements TaskExecution {
-        private final List<String> outOfDateMessages;
-
-        public EmptyTaskInfo() {
-            outOfDateMessages = Arrays.asList("Task does not produce any output files");
-        }
-
-        public EmptyTaskInfo(List<String> outOfDateMessages) {
-            this.outOfDateMessages = outOfDateMessages;
-        }
-    }
-
-    private static class TaskInfoToken implements Serializable, TaskExecution {
-    }
-
-    private static class TaskInfo implements Serializable, TaskExecution {
-        private final Map<File, OutputFileInfo> outputFiles = new HashMap<File, OutputFileInfo>();
-        private boolean acceptInputs;
-        private final FileCollectionSnapshot inputsSnapshot;
-        private final Map<String, Object> inputProperties;
-        private FileCollectionSnapshot outputsSnapshot;
-
-        // Transient state
-        private transient final FileCollectionSnapshot outputsBefore;
-        private transient final TaskInternal task;
-        private transient final FileSnapshotter fileSnapshotter;
-
-        public TaskInfo(TaskInternal task, FileSnapshotter fileSnapshotter) {
-            this.task = task;
-            this.fileSnapshotter = fileSnapshotter;
-            for (File file : task.getOutputs().getFiles()) {
-                outputFiles.put(file, null);
-            }
-            acceptInputs = task.getInputs().getHasInputFiles();
-            inputsSnapshot = fileSnapshotter.snapshot(task.getInputs().getFiles());
-            outputsBefore = fileSnapshotter.snapshot(task.getOutputs().getCandidateFiles());
-            inputProperties = task.getInputs().getProperties();
-        }
-
-        public void snapshotOutputFiles() {
-            for (File file : outputFiles.keySet()) {
-                outputFiles.put(file, new OutputFileInfo(file));
-            }
-            outputsSnapshot = fileSnapshotter.snapshot(task.getOutputs().getCandidateFiles());
-        }
-
-        public List<String> isSameAs(TaskExecution last) {
-            if (last instanceof EmptyTaskInfo) {
-                EmptyTaskInfo emptyTaskInfo = (EmptyTaskInfo) last;
-                return emptyTaskInfo.outOfDateMessages;
-            }
-            
-            if (!acceptInputs) {
-                return Arrays.asList("Task does not accept any input files.");
-            }
-
-            TaskInfo lastExecution = (TaskInfo) last;
-
-            final List<String> messages = new ArrayList<String>();
-            outputsBefore.changesSince(lastExecution.outputsSnapshot, new FileCollectionSnapshot.ChangeListener() {
-                public void added(File file) {
-                    // Don't care about extra files
+            Set<String> outputFiles = outputFiles(task);
+            TaskConfiguration bestMatch = null;
+            int bestMatchOverlap = 0;
+            for (TaskConfiguration configuration : history.configurations) {
+                if (outputFiles.size() == 0) {
+                    if (configuration.outputFiles.size() == 0) {
+                        bestMatch = configuration;
+                        break;
+                    }
                 }
 
-                public void removed(File file) {
-                    messages.add(String.format("Output file %s removed.", file));
+                Set<String> intersection = new HashSet<String>(outputFiles);
+                intersection.retainAll(configuration.outputFiles);
+                if (intersection.size() > bestMatchOverlap) {
+                    bestMatch = configuration;
+                    bestMatchOverlap = intersection.size();
                 }
-
-                public void changed(File file) {
-                    messages.add(String.format("Output file %s changed.", file));
+                if (bestMatchOverlap == outputFiles.size()) {
+                    break;
                 }
-            });
-            if (!messages.isEmpty()) {
-                return messages;
             }
-
-            inputsSnapshot.changesSince(lastExecution.inputsSnapshot, new FileCollectionSnapshot.ChangeListener() {
-                public void added(File file) {
-                    messages.add(String.format("Input file %s added.", file));
-                }
-
-                public void removed(File file) {
-                    messages.add(String.format("Input file %s removed.", file));
-                }
-
-                public void changed(File file) {
-                    messages.add(String.format("Input file %s changed.", file));
-                }
-            });
-            if (!messages.isEmpty()) {
-                return messages;
+            if (bestMatch == null) {
+                return new HistoricExecution(history, task, null, fileSnapshotter);
             }
-
-            if (!inputProperties.equals(lastExecution.inputProperties)) {
-                messages.add("Input properties have changed.");
-                return messages;
-            }
-            
-            return null;
-        }
-    }
-
-    private static class OutputFileInfo implements Serializable {
-        private final byte type;
-        private final boolean empty;
-
-        private OutputFileInfo(File file) {
-            type = type(file);
-            empty = type == DIR && file.list().length == 0;
+            return new HistoricExecution(history, task, bestMatch, fileSnapshotter);
         }
 
-        public boolean isUpToDate(File file) {
-            if (type == MISSING) {
-                // Was missing, don't care whether it exists or not
-                return true;
+        public void update() {
+            if (execution.snapshot()) {
+                cache.put(task.getPath(), history);
             }
-
-            byte newType = type(file);
-            if (type == FILE) {
-                // Was a file, must still be a file
-                return newType == FILE;
-            }
-            if (newType != DIR) {
-                // Was a dir, must still be a dir
-                return false;
-            }
-
-            if (empty) {
-                // Was empty, don't care if it is now not empty
-                return true;
-            }
-
-            // Was not empty, must still be not empty
-            return file.list().length != 0;
         }
     }
 }

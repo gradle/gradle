@@ -62,8 +62,6 @@ public class ExecutionShortCircuitTaskExecuterTest {
             one(taskArtifactState).isUpToDate();
             will(returnValue(false));
 
-            one(taskArtifactState).invalidate();
-
             one(delegate).execute(task, taskState);
 
             allowing(taskState).getFailure();
@@ -76,15 +74,13 @@ public class ExecutionShortCircuitTaskExecuterTest {
     }
 
     @Test
-    public void invalidatesStateWhenTaskFails() {
+    public void doesNotUpdateStateWhenTaskFails() {
         context.checking(new Expectations() {{
             one(repository).getStateFor(task);
             will(returnValue(taskArtifactState));
 
             one(taskArtifactState).isUpToDate();
             will(returnValue(false));
-
-            one(taskArtifactState).invalidate();
 
             one(delegate).execute(task, taskState);
 

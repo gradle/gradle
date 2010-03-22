@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
-import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.plugins.PluginInstantiationException;
 
 /**
  * @author Hans Dockter
  */
 public interface PluginRegistry {
-    Plugin loadPlugin(String pluginName) throws UnknownPluginException, PluginInstantiationException;
-
     <T extends Plugin> T loadPlugin(Class<T> pluginClass) throws PluginInstantiationException;
 
     Class<? extends Plugin> getTypeForId(String pluginId);

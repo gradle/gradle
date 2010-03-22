@@ -14,43 +14,39 @@
  * limitations under the License.
  */
 
-package org.gradle.process;
+package org.gradle.process.child;
 
 import org.gradle.api.Action;
 import org.gradle.messaging.MessagingClient;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.messaging.TcpMessagingClient;
+import org.gradle.process.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Serializable;
 import java.net.URI;
 
 /**
- * This is the other half of {@link org.gradle.process.GradleWorkerMain}. It is instantiated inside the implementation
+ * This is the other half of {@link org.gradle.process.launcher.GradleWorkerMain}. It is instantiated inside the implementation
  * ClassLoader.
  */
-public class WorkerMain implements Runnable {
-    private static final Logger LOGGER = LoggerFactory.getLogger(WorkerMain.class);
+public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);
     private final Action<WorkerProcessContext> action;
     private final Object workerId;
     private final String displayName;
-    private final MessagingClient client;
-    private final ClassLoader applicationClassLoader;
+    private final URI serverAddress;
 
-    public WorkerMain(Action<WorkerProcessContext> action, Object workerId, String displayName, URI serverAddress,
-                      ClassLoader applicationClassLoader) {
-        this(action, workerId, displayName, new TcpMessagingClient(WorkerMain.class.getClassLoader(), serverAddress), applicationClassLoader);
-    }
-
-    WorkerMain(Action<WorkerProcessContext> action, Object workerId, String displayName, MessagingClient client, ClassLoader applicationClassLoader) {
+    public ActionExecutionWorker(Action<WorkerProcessContext> action, Object workerId, String displayName, URI serverAddress) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
-        this.client = client;
-        this.applicationClassLoader = applicationClassLoader;
+        this.serverAddress = serverAddress;
     }
 
-    public void run() {
+    public void execute(final WorkerContext workerContext) {
+        final MessagingClient client = createClient();
         try {
             LOGGER.debug("Starting {}.", displayName);
             WorkerProcessContext context = new WorkerProcessContext() {
@@ -59,13 +55,13 @@ public class WorkerMain implements Runnable {
                 }
 
                 public ClassLoader getApplicationClassLoader() {
-                    return applicationClassLoader;
+                    return workerContext.getApplicationClassLoader();
                 }
 
                 public Object getWorkerId() {
                     return workerId;
                 }
-                
+
                 public String getDisplayName() {
                     return displayName;
                 }
@@ -79,10 +75,13 @@ public class WorkerMain implements Runnable {
                 Thread.currentThread().setContextClassLoader(contextClassLoader);
             }
             LOGGER.debug("Completed {}.", displayName);
-            
         } finally {
             LOGGER.debug("Stopping client connection.");
             client.stop();
         }
+    }
+
+    MessagingClient createClient() {
+        return new TcpMessagingClient(getClass().getClassLoader(), serverAddress);
     }
 }

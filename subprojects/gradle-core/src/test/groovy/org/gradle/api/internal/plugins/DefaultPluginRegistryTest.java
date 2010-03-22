@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
@@ -78,27 +79,14 @@ public class DefaultPluginRegistryTest {
 
     @Test
     public void canLoadPluginByType() {
-        DefaultPluginRegistry pluginRegistry = this.pluginRegistry;
         assertThat(pluginRegistry.loadPlugin(TestPlugin2.class), instanceOf(TestPlugin2.class));
     }
 
     @Test
-    public void canLoadPluginById() throws ClassNotFoundException {
+    public void canLookupPluginTypeById() throws ClassNotFoundException {
         expectClassLoaded(classLoader, TestPlugin1.class);
 
-        DefaultPluginRegistry pluginRegistry = this.pluginRegistry;
-        assertThat(pluginRegistry.loadPlugin(pluginId), instanceOf(TestPlugin1.class));
-    }
-
-    @Test
-    public void cachesPluginsByType() throws ClassNotFoundException {
-        expectClassLoaded(classLoader, TestPlugin1.class);
-
-        DefaultPluginRegistry pluginRegistry = this.pluginRegistry;
-        assertThat(pluginRegistry.loadPlugin(pluginId), sameInstance((Plugin) pluginRegistry.loadPlugin(
-                TestPlugin1.class)));
-        assertThat(pluginRegistry.loadPlugin(TestPlugin2.class), sameInstance(pluginRegistry.loadPlugin(
-                TestPlugin2.class)));
+        assertThat(pluginRegistry.getTypeForId(pluginId), equalTo((Class) TestPlugin1.class));
     }
 
     @Test
@@ -106,7 +94,7 @@ public class DefaultPluginRegistryTest {
         expectResourceNotFound(classLoader, "unknownId");
 
         try {
-            pluginRegistry.loadPlugin("unknownId");
+            pluginRegistry.getTypeForId("unknownId");
             fail();
         } catch (UnknownPluginException e) {
             assertThat(e.getMessage(), equalTo("Plugin with id 'unknownId' not found."));
@@ -126,7 +114,7 @@ public class DefaultPluginRegistryTest {
         }});
 
         try {
-            pluginRegistry.loadPlugin("noImpl");
+            pluginRegistry.getTypeForId("noImpl");
             fail();
         } catch (PluginInstantiationException e) {
             assertThat(e.getMessage(), equalTo("No implementation class specified for plugin 'noImpl' in " + url + "."));
@@ -146,12 +134,20 @@ public class DefaultPluginRegistryTest {
 
     @Test
     public void childDelegatesToParentRegistryToLoadPlugin() throws Exception {
+        ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
+
+        PluginRegistry child = pluginRegistry.createChild(childClassLoader);
+        assertThat(child.loadPlugin(TestPlugin1.class), instanceOf(TestPlugin1.class));
+    }
+
+    @Test
+    public void childDelegatesToParentRegistryToLookupPluginType() throws Exception {
         expectClassLoaded(classLoader, TestPlugin1.class);
 
         ClassLoader childClassLoader = createClassLoader("other", TestPlugin1.class.getName(), "child");
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
-        assertThat(child.loadPlugin(pluginId), sameInstance(pluginRegistry.loadPlugin(pluginId)));
+        assertThat(child.getTypeForId(pluginId), equalTo((Class) pluginRegistry.getTypeForId(pluginId)));
     }
 
     @Test
@@ -162,7 +158,7 @@ public class DefaultPluginRegistryTest {
         expectClassLoaded(childClassLoader, TestPlugin1.class);
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
-        assertThat(child.loadPlugin("other"), sameInstance((Plugin) pluginRegistry.loadPlugin(TestPlugin1.class)));
+        assertThat(child.getTypeForId("other"), equalTo((Class) TestPlugin1.class));
     }
 
     @Test
@@ -171,7 +167,7 @@ public class DefaultPluginRegistryTest {
         ClassLoader childClassLoader = createClassLoader(pluginId, "no-such-class", "child");
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
-        assertThat(child.loadPlugin(pluginId), sameInstance(pluginRegistry.loadPlugin(pluginId)));
+        assertThat(child.getTypeForId(pluginId), equalTo((Class) pluginRegistry.getTypeForId(pluginId)));
     }
 
     @Test
@@ -183,7 +179,7 @@ public class DefaultPluginRegistryTest {
         expectClassLoaded(childClassLoader, TestPlugin2.class);
 
         PluginRegistry child = pluginRegistry.createChild(childClassLoader);
-        assertThat(child.loadPlugin("other"), instanceOf(TestPlugin2.class));
+        assertThat(child.getTypeForId("other"), equalTo((Class) TestPlugin2.class));
     }
 
     private void expectResourceNotFound(final ClassLoader classLoader, final String id) {

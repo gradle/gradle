@@ -27,14 +27,14 @@ import org.junit.Rule
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.gradle.api.file.FileCollection
-import org.gradle.api.internal.changedetection.FileCollectionSnapshot.ChangeListener
+import org.gradle.util.ChangeListener
 
 @RunWith(JMock.class)
 public class DefaultFileSnapshotterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Hasher hasher = new DefaultHasher()
     private int counter
-    private FileCollectionSnapshot.ChangeListener listener = context.mock(FileCollectionSnapshot.ChangeListener.class)
+    private ChangeListener listener = context.mock(ChangeListener.class)
     private final DefaultFileSnapshotter snapshotter = new DefaultFileSnapshotter(hasher)
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -159,6 +159,149 @@ public class DefaultFileSnapshotterTest {
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file1, file2))
 
         snapshotter.snapshot(files(file1)).changesSince(snapshot, listener)
+    }
+
+    @Test
+    public void canCreateEmptySnapshot() {
+        TestFile file = tmpDir.createFile('file')
+        FileCollectionSnapshot snapshot = snapshotter.snapshot()
+
+        FileCollectionSnapshot newSnapshot = snapshotter.snapshot(files(file))
+
+        context.checking {
+            one(listener).added(file)
+        }
+
+        newSnapshot.changesSince(snapshot, listener)
+    }
+
+    @Test
+    public void diffAddsAddedFilesToSnapshot() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot()
+        FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
+
+        context.checking {
+            one(mergeListener).added(withParam(notNullValue()))
+        }
+
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+
+        context.checking {
+            one(listener).added(file)
+        }
+        target.changesSince(original, listener)
+    }
+
+    @Test
+    public void canIgnoreAddedFileInDiff() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot()
+        FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
+
+        context.checking {
+            one(mergeListener).added(withParam(notNullValue()))
+            will {merge -> merge.ignore()}
+        }
+
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+
+        target.changesSince(original, listener)
+    }
+
+    @Test
+    public void diffAddsChangedFilesToSnapshot() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files(file))
+        file.write('new content')
+        FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
+
+        context.checking {
+            one(mergeListener).changed(withParam(notNullValue()))
+        }
+
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+
+        context.checking {
+            one(listener).changed(file)
+        }
+        target.changesSince(original, listener)
+    }
+
+    @Test
+    public void canIgnoreChangedFileInDiff() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot target = snapshotter.snapshot(files(file))
+        file.write('new content')
+        FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
+
+        context.checking {
+            one(mergeListener).changed(withParam(notNullValue()))
+            will {merge -> merge.ignore()}
+        }
+
+        target = modified.changesSince(original).applyTo(target, mergeListener)
+
+        target.changesSince(original, listener)
+    }
+
+    @Test
+    public void diffRemovesDeletedFilesFromSnapshot() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot modified = snapshotter.snapshot()
+
+        context.checking {
+            one(mergeListener).removed(withParam(notNullValue()))
+        }
+
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(files(file)), mergeListener)
+
+        context.checking {
+            one(listener).removed(file)
+        }
+        target.changesSince(original, listener)
+    }
+
+    @Test
+    public void canIgnoreRemovedFileInDiff() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot modified = snapshotter.snapshot()
+
+        context.checking {
+            one(mergeListener).removed(withParam(notNullValue()))
+            will{merge -> merge.ignore()}
+        }
+
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(files(file)), mergeListener)
+
+        target.changesSince(original, listener)
+    }
+
+    @Test
+    public void diffIgnoresUnchangedFilesInSnapshot() {
+        TestFile file = tmpDir.createFile('file')
+        ChangeListener<FileCollectionSnapshot.Merge> mergeListener = context.mock(ChangeListener.class)
+
+        FileCollectionSnapshot original = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot modified = snapshotter.snapshot(files(file))
+        FileCollectionSnapshot target = modified.changesSince(original).applyTo(snapshotter.snapshot(), mergeListener)
+
+        target.changesSince(snapshotter.snapshot(), listener)
     }
 
     private FileCollection files(File... files) {

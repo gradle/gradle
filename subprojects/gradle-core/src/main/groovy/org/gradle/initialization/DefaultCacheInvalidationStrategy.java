@@ -31,14 +31,12 @@ public class DefaultCacheInvalidationStrategy implements CacheInvalidationStrate
     private static final List<String> IGNORE_DIR_FLOATING_LOCATION_NAMES = WrapUtil.toList(".svn");
     private static final List<String> IGNORE_DIR_FIXED_LOCATION_NAMES = WrapUtil.toList("build", ".gradle");
 
-    public boolean isValid(File artifactFile, File rootDir) {
-        if (!artifactFile.isFile()) {
+    public boolean isValid(Long timestamp, File rootDir) {
+        if (timestamp == null) {
             return false;
         }
-        long timestamp = artifactFile.lastModified();
         return projectFilesAreOlderThanArtifact(rootDir, timestamp);
     }
-
 
     private boolean projectFilesAreOlderThanArtifact(File rootDir, final long timestamp) {
         final DirFilter dirFilter = new DirFilter(rootDir);

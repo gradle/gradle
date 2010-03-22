@@ -15,10 +15,13 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.apache.commons.io.IOUtils;
 import org.gradle.util.HelperUtil;
+import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
 import java.io.FilterReader;
+import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 
@@ -59,6 +62,13 @@ public class FilterChainTest {
         filterChain.add(HelperUtil.TEST_CLOSURE);
         Reader transformedReader = filterChain.transform(originalReader);
         assertThat(transformedReader, instanceOf(LineFilter.class));
+    }
+
+    @Test
+    public void canAddExpandFilterToEndOfChain() throws IOException {
+        filterChain.expand(WrapUtil.toMap("prop", 1));
+        Reader transformedReader = filterChain.transform(new StringReader("[$prop][${prop+1}][<%= prop+2 %>]"));
+        assertThat(IOUtils.toString(transformedReader), equalTo("[1][2][3]"));
     }
 
     public static class TestFilterReader extends FilterReader {

@@ -22,24 +22,30 @@ import java.util.Map;
 
 public interface ContentFilterable {
     /**
-     * Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the filter
-     * chain.  Each filter should implement java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
-     * all the standard ANT filters. <p> Filter parameters may be specified using groovy map syntax. <p> Examples:
+     * <p>Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the
+     * filter chain.  Each filter should implement {@code java.io.FilterReader}. Include {@code
+     * org.apache.tools.ant.filters.*} for access to all the standard Ant filters.</p>
+     *
+     * <p>Filter properties may be specified using groovy map syntax.</p>
+     *
+     * <p> Examples:
      * <pre>
      *    filter(HeadFilter, lines:25, skip:2)
      *    filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
      * </pre>
      *
-     * @param map map of filter parameters
+     * @param properties map of filter properties
      * @param filterType Class of filter to add
      * @return this
      */
-    ContentFilterable filter(Map<String, ?> map, Class<? extends FilterReader> filterType);
+    ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType);
 
     /**
-     * Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the filter
-     * chain.  Each filter should implement java.io.FilterReader. Include org.apache.tools.ant.filters.* for access to
-     * all the standard ANT filters. <p> Examples:
+     * <p>Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the
+     * filter chain.  Each filter should implement {@code java.io.FilterReader}. Include {@code
+     * org.apache.tools.ant.filters.*} for access to all the standard Ant filters.</p>
+     *
+     * <p> Examples:
      * <pre>
      *    filter(StripJavaComments)
      *    filter(com.mycompany.project.CustomFilter)
@@ -58,4 +64,15 @@ public interface ContentFilterable {
      * @return this
      */
     ContentFilterable filter(Closure closure);
+
+    /**
+     * <p>Expands property references in each file as it is copied. More specifically, each file is transformed using
+     * Groovy's {@link groovy.text.SimpleTemplateEngine}. This means you can use simple property references, such as
+     * <code>$property</code> or <code>${property}</code> in the file. You can also include arbitrary Groovy code in the
+     * file, such as <code>${version ?: 'unknown'}</code> or <code>${classpath*.name.join(' ')}</code>
+     *
+     * @param properties to implement line based filtering
+     * @return this
+     */
+    ContentFilterable expand(Map<String, ?> properties);
 }

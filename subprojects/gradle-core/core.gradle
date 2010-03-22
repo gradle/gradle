@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 import java.text.DateFormat
 
 apply id: 'groovy'
@@ -73,7 +71,7 @@ dependencies {
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
-    testCompile libraries.xmlunit, "org.spockframework:spock-core:0.4-groovy-1.7-SNAPSHOT"
+    testCompile libraries.xmlunit
 
     runtime libraries.ant_launcher
     // TODO - this should be in the plugins project
@@ -101,6 +99,16 @@ ide.dependsOn ideVersionProperties
 
 test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
+}
+
+task workerJar(type: Jar) {
+    from sourceSets.main.classes
+    include 'org/gradle/process/launcher/**'
+    baseName = "$jar.baseName-worker"
+}
+
+artifacts {
+    archives workerJar
 }
 
 class WriteVersionProperties extends DefaultTask {

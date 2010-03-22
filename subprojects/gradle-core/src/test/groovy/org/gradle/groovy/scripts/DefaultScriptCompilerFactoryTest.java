@@ -19,6 +19,7 @@ package org.gradle.groovy.scripts;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.internal.resource.Resource;
+import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.util.GUtil;
@@ -74,6 +75,8 @@ public class DefaultScriptCompilerFactoryTest {
     ScriptSource source;
     ScriptSource expectedSource;
     ScriptRunner expectedScriptRunner;
+    CacheBuilder cacheBuilder;
+
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -91,6 +94,7 @@ public class DefaultScriptCompilerFactoryTest {
         expectedScriptRunner = context.mock(ScriptRunner.class);
         scriptProcessor = new DefaultScriptCompilerFactory(scriptCompilationHandlerMock, scriptRunnerFactoryMock, cacheRepositoryMock);
         source = context.mock(ScriptSource.class);
+        cacheBuilder = context.mock(CacheBuilder.class);
 
         context.checking(new Expectations() {{
             Resource resource = context.mock(Resource.class);
@@ -128,7 +132,13 @@ public class DefaultScriptCompilerFactoryTest {
         final Collector<TestScript> collector = collector();
 
         context.checking(new Expectations() {{
-            one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
+            one(cacheRepositoryMock).cache("scripts/class-name");
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).withProperties(expectedCacheProperties);
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).open();
             will(returnValue(cacheMock));
 
             allowing(cacheMock).isValid();
@@ -157,7 +167,13 @@ public class DefaultScriptCompilerFactoryTest {
         final Collector<TestScript> collector = collector();
 
         context.checking(new Expectations() {{
-            one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
+            one(cacheRepositoryMock).cache("scripts/class-name");
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).withProperties(expectedCacheProperties);
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).open();
             will(returnValue(cacheMock));
 
             allowing(cacheMock).isValid();
@@ -182,16 +198,19 @@ public class DefaultScriptCompilerFactoryTest {
         };
 
         context.checking(new Expectations(){{
-            one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
+            one(cacheRepositoryMock).cache("scripts/class-name");
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).withProperties(expectedCacheProperties);
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).open();
             will(returnValue(cacheMock));
 
             allowing(cacheMock).isValid();
             will(returnValue(true));
 
-            one(scriptCompilationHandlerMock).loadFromDir(
-                    expectedSource,
-                    classLoader,
-                    expectedScriptCacheDir, 
+            one(scriptCompilationHandlerMock).loadFromDir(expectedSource, classLoader, expectedScriptCacheDir,
                     expectedScriptBaseClass);
             will(returnValue(TestScript.class));
 
@@ -212,7 +231,13 @@ public class DefaultScriptCompilerFactoryTest {
             allowing(transformer).getId();
             will(returnValue("transformer"));
 
-            one(cacheRepositoryMock).getGlobalCache("scripts/class-name", expectedCacheProperties);
+            one(cacheRepositoryMock).cache("scripts/class-name");
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).withProperties(expectedCacheProperties);
+            will(returnValue(cacheBuilder));
+
+            one(cacheBuilder).open();
             will(returnValue(cacheMock));
 
             allowing(cacheMock).isValid();

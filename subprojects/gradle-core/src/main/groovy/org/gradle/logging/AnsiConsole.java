@@ -21,8 +21,8 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
 import java.io.IOException;
+import java.util.Iterator;
 import java.util.LinkedList;
-import java.util.StringTokenizer;
 
 public class AnsiConsole implements Console {
     private final static String EOL = System.getProperty("line.separator");
@@ -204,9 +204,9 @@ public class AnsiConsole implements Console {
                         extraEol = false;
                     }
 
-                    StringTokenizer tokenizer = new StringTokenizer(text.toString(), EOL, true);
-                    while (tokenizer.hasMoreTokens()) {
-                        String token = tokenizer.nextToken();
+                    Iterator<String> tokenizer = new LineSplitter(text);
+                    while (tokenizer.hasNext()) {
+                        String token = tokenizer.next();
                         if (token.equals(EOL)) {
                             width = 0;
                             extraEol = false;
@@ -217,6 +217,67 @@ public class AnsiConsole implements Console {
                     }
                 }
             });
+        }
+    }
+
+    private static class LineSplitter implements Iterator<String> {
+        private final CharSequence text;
+        private int start;
+        private int end;
+
+        private LineSplitter(CharSequence text) {
+            this.text = text;
+            findNext();
+        }
+
+        public boolean findNext() {
+            if (end == text.length()) {
+                start = -1;
+                return false;
+            }
+            if (startsWithEol(text, end)) {
+                start = end;
+                end = start + EOL.length();
+                return true;
+            }
+            int pos = end;
+            while (pos < text.length()) {
+                if (startsWithEol(text, pos)) {
+                    start = end;
+                    end = pos;
+                    return true;
+                }
+                pos++;
+            }
+            start = end;
+            end = text.length();
+            return true;
+        }
+
+        private boolean startsWithEol(CharSequence text, int startAt) {
+            if (startAt + EOL.length() > text.length()) {
+                return false;
+            }
+            for (int i = 0; i < EOL.length(); i++) {
+                if (EOL.charAt(i) != text.charAt(startAt + i)) {
+                    return false;
+                }
+            }
+            return true;
+        }
+
+        public boolean hasNext() {
+            return start >= 0;
+        }
+
+        public String next() {
+            CharSequence next = text.subSequence(start, end);
+            findNext();
+            return next.toString();
+        }
+
+        public void remove() {
+            throw new UnsupportedOperationException();
         }
     }
 }

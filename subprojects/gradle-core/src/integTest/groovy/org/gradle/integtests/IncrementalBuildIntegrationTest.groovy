@@ -186,6 +186,22 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
     }
 
     @Test
+    public void skipsTaskWhenInputPropertiesHaveNotChanged() {
+        testFile('build.gradle') << '''
+task a(type: org.gradle.integtests.GeneratorTask) {
+    text = project.text
+    outputFile = file('dest.txt')
+}
+'''
+
+        inTestDirectory().withTasks('a').withArguments('-Ptext=text').run().assertTasksExecuted(':a').assertTasksSkipped()
+
+        inTestDirectory().withTasks('a').withArguments('-Ptext=text', '-i').run().assertTasksExecuted(':a').assertTasksSkipped(':a')
+
+        inTestDirectory().withTasks('a').withArguments('-Ptext=newtext').run().assertTasksExecuted(':a').assertTasksSkipped()
+    }
+
+    @Test
     public void multipleTasksCanGenerateIntoOverlappingOutputDirectories() {
         testFile('build.gradle') << '''
 task a(type: org.gradle.integtests.DirTransformerTask) {
@@ -198,10 +214,8 @@ task b(type: org.gradle.integtests.DirTransformerTask) {
 }
 '''
 
-        testFile('src/a').mkdirs()
-        testFile('src/b').mkdirs()
-        testFile('src/a/file1.txt').write('content')
-        testFile('src/b/file2.txt').write('content')
+        testFile('src/a/file1.txt') << 'content'
+        testFile('src/b/file2.txt') << 'content'
 
         inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
@@ -217,9 +231,9 @@ task b(type: org.gradle.integtests.DirTransformerTask) {
 
         // Change an output file
 
-        testFile('build/file1.txt').write('something else')
+        testFile('build/file2.txt').write('something else')
 
-        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
+        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
     }
 
     @Test

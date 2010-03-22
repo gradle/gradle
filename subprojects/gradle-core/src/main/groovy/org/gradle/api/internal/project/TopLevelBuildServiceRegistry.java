@@ -58,9 +58,7 @@ import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.process.DefaultWorkerProcessFactory;
 import org.gradle.process.WorkerProcessFactory;
-import org.gradle.util.LongIdGenerator;
-import org.gradle.util.MultiParentClassLoader;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.*;
 
 import java.io.File;
 import java.util.HashMap;
@@ -83,6 +81,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         add(ClassGenerator.class, new AsmBackedClassGenerator());
         add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
         add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
+        add(TimeProvider.class, new TrueTimeProvider());
     }
 
     protected CacheFactory createCacheFactory(CacheFactory parentFactory) {
@@ -316,7 +315,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         }
 
         public Module getModule() {
-            return new DefaultModule(Project.DEFAULT_GROUP, "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
+            return new DefaultModule("unspecified", "unspecified", Project.DEFAULT_VERSION, Project.DEFAULT_STATUS);
         }
     }
 

@@ -22,6 +22,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.process.child.IsolatedApplicationClassLoaderWorker;
+import org.gradle.process.launcher.GradleWorkerMain;
 import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -34,7 +36,6 @@ import java.io.ObjectInputStream;
 import java.io.Serializable;
 import java.net.URI;
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -63,7 +64,6 @@ public class DefaultWorkerProcessFactoryTest {
 
         WorkerProcessBuilder builder = factory.newProcess();
 
-        assertThat(builder.getJavaCommand().getClasspath(), equalTo(processClassPath));
         assertThat(builder.getJavaCommand().getMainClass(), equalTo(GradleWorkerMain.class.getName()));
         assertThat(builder.getLogLevel(), equalTo(LogLevel.LIFECYCLE));
 
@@ -88,14 +88,7 @@ public class DefaultWorkerProcessFactoryTest {
         assertThat(process, instanceOf(DefaultWorkerProcess.class));
 
         ObjectInputStream instr = new ObjectInputStream(builder.getJavaCommand().getStandardInput());
-        assertThat(instr.readObject(), equalTo((Object)"<id>"));
-        assertThat(instr.readObject(), equalTo((Object)"Gradle Worker <id>"));
-        assertThat(instr.readObject(), equalTo((Object) LogLevel.LIFECYCLE));
-        assertThat(instr.readObject(), equalTo((Object) builder.getApplicationClasspath()));
-        assertThat(instr.readObject(), equalTo((Object) builder.getSharedPackages()));
-        assertThat(instr.readObject(), instanceOf(Collection.class));
-        assertThat(instr.readObject(), instanceOf(TestAction.class));
-        assertThat(instr.readObject(), equalTo((Object) serverAddress));
+        assertThat(instr.readObject(), instanceOf(IsolatedApplicationClassLoaderWorker.class));
     }
 
     private static class TestAction implements Action<WorkerProcessContext>, Serializable {

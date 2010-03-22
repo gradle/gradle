@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import org.gradle.api.Action;
@@ -20,12 +21,17 @@ import org.gradle.listener.ListenerBroadcast;
 
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.util.Collection;
 
 public class ObservableUrlClassLoader extends URLClassLoader {
     private final ListenerBroadcast<Action> broadcast = new ListenerBroadcast<Action>(Action.class);
 
     public ObservableUrlClassLoader(ClassLoader parent, URL... urls) {
         super(urls, parent);
+    }
+
+    public ObservableUrlClassLoader(ClassLoader parent, Collection<URL> urls) {
+        super(urls.toArray(new URL[urls.size()]), parent);
     }
 
     public void whenUrlAdded(Action<? super ObservableUrlClassLoader> action) {

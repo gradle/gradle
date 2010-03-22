@@ -29,6 +29,7 @@ import org.gradle.util.ConfigureUtil;
 import java.io.File;
 import java.io.FilterReader;
 import java.util.*;
+import java.util.regex.Pattern;
 
 /**
  * @author Steve Appling
@@ -258,6 +259,11 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return this;
     }
 
+    public CopySpec rename(Pattern sourceRegEx, String replaceWith) {
+        actions.add(new RenamingCopyAction(new RegExpNameMapper(sourceRegEx, replaceWith)));
+        return this;
+    }
+
     public CopySpec filter(final Class<? extends FilterReader> filterType) {
         actions.add(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
@@ -276,10 +282,19 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return this;
     }
 
-    public CopySpec filter(final Map<String, ?> map, final Class<? extends FilterReader> filterType) {
+    public CopySpec filter(final Map<String, ?> properties, final Class<? extends FilterReader> filterType) {
         actions.add(new Action<FileCopyDetails>() {
             public void execute(FileCopyDetails fileCopyDetails) {
-                fileCopyDetails.filter(map, filterType);
+                fileCopyDetails.filter(properties, filterType);
+            }
+        });
+        return this;
+    }
+
+    public CopySpec expand(final Map<String, ?> properties) {
+        actions.add(new Action<FileCopyDetails>() {
+            public void execute(FileCopyDetails fileCopyDetails) {
+                fileCopyDetails.expand(properties);
             }
         });
         return this;

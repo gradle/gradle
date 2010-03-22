@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
 import java.io.File;
@@ -20,6 +21,8 @@ import java.net.URL;
 import java.util.Set;
 
 public interface ClassPathRegistry {
+    Set<URL> getClassPath(String name);
+
     URL[] getClassPathUrls(String name);
 
     Set<File> getClassPathFiles(String name);

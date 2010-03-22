@@ -21,5 +21,5 @@ import java.io.File;
  * @author Hans Dockter
  */
 public interface CacheInvalidationStrategy {
-    boolean isValid(File artifactFile, File currentDir);
+    boolean isValid(Long timeStamp, File currentDir);
 }

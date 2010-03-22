@@ -113,6 +113,8 @@ public class ForkingTestClassProcessorTest {
 
             one(builder).applicationClasspath(appClassPath);
 
+            one(builder).setLoadApplicationInSystemClassLoader(true);
+
             one(action).execute(builder);
             
             allowing(builder).getJavaCommand();

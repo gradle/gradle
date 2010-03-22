@@ -35,7 +35,6 @@ public class DefaultCacheInvalidationStrategyTest {
     private DefaultCacheInvalidationStrategy cacheInvalidationStrategy;
 
     private File projectDir;
-    private File buildResolverDir;
 
     private List<String> projectFiles = WrapUtil.toList("src/main/resources/properties.txt",
             "mystuff/test/resources/org/test.xml",
@@ -53,48 +52,44 @@ public class DefaultCacheInvalidationStrategyTest {
             ".svn",
             ".gradle");
 
-    private File artifactFile;
+    private long timestamp;
+
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
-    public void setUp() {
+    public void setUp() throws IOException {
         cacheInvalidationStrategy = new DefaultCacheInvalidationStrategy();
         projectDir = tmpDir.createDir("buildSrc");
-        buildResolverDir = tmpDir.createDir("buildResolver");
-        artifactFile = new File(projectDir, "build/buildSrc.jar");
+        createTestFile();
     }
 
     @Test
     public void isValidWithNoNewerFiles() throws IOException {
-        createTestFile();
-        assertTrue(cacheInvalidationStrategy.isValid(artifactFile, projectDir));
+        assertTrue(cacheInvalidationStrategy.isValid(timestamp, projectDir));
     }
 
     @Test
-    public void isValidWithNewerFiles() throws IOException, InterruptedException {
-        createTestFile();
+    public void isNotValidWithNewerFiles() throws IOException, InterruptedException {
         for (File projectFile : getFiles(GUtil.addLists(projectFiles, projectDirs))) {
-            projectFile.setLastModified(artifactFile.lastModified() + 1000);
-            assertFalse(cacheInvalidationStrategy.isValid(artifactFile, projectDir));
-            artifactFile.setLastModified(projectFile.lastModified());
+            projectFile.setLastModified(timestamp + 1000);
+            assertFalse(cacheInvalidationStrategy.isValid(timestamp, projectDir));
+            timestamp = projectFile.lastModified();
         }
     }
 
     @Test
     public void isValidWithIgnoreFiles() throws IOException, InterruptedException {
-        createTestFile();
         for (File ignoreFile : getFiles(GUtil.addLists(ignoreFiles, ignoreDirs))) {
-            ignoreFile.setLastModified(artifactFile.lastModified() + 1000);
-            assertTrue(cacheInvalidationStrategy.isValid(artifactFile, projectDir));
-            artifactFile.setLastModified(ignoreFile.lastModified());
+            ignoreFile.setLastModified(timestamp + 1000);
+            assertTrue(cacheInvalidationStrategy.isValid(timestamp, projectDir));
+            timestamp = ignoreFile.lastModified();
         }
     }
 
     private void createTestFile() throws IOException {
         createTestDirs();
         createTestFiles();
-        artifactFile.createNewFile();
     }
 
     private void createTestDirs() {
@@ -108,6 +103,7 @@ public class DefaultCacheInvalidationStrategyTest {
             File file = new File(projectDir, (String) fileName);
             file.getParentFile().mkdirs();
             file.createNewFile();
+            timestamp = Math.max(timestamp, file.lastModified());
         }
     }
 

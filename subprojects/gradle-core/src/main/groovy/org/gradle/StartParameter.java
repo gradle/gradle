@@ -323,7 +323,7 @@ public class StartParameter {
         if (currentDir != null) {
             this.currentDir = GFileUtils.canonicalise(currentDir);
         } else {
-            this.currentDir = new File(System.getProperty("user.dir"));
+            this.currentDir = GFileUtils.canonicalise(new File(System.getProperty("user.dir")));
         }
         defaultProjectSelector = null;
     }

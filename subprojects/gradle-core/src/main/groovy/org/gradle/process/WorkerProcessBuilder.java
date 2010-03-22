@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
 
 import org.gradle.api.Action;
@@ -42,6 +43,7 @@ public abstract class WorkerProcessBuilder {
     private final Set<URL> applicationClasspath = new LinkedHashSet<URL>();
     private Action<WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private boolean loadApplicationInSystemClassLoader;
 
     public WorkerProcessBuilder(FileResolver fileResolver) {
         javaCommand = new JavaExecHandleBuilder(fileResolver);
@@ -89,6 +91,14 @@ public abstract class WorkerProcessBuilder {
 
     public void setLogLevel(LogLevel logLevel) {
         this.logLevel = logLevel;
+    }
+
+    public boolean isLoadApplicationInSystemClassLoader() {
+        return loadApplicationInSystemClassLoader;
+    }
+
+    public void setLoadApplicationInSystemClassLoader(boolean loadApplicationInSystemClassLoader) {
+        this.loadApplicationInSystemClassLoader = loadApplicationInSystemClassLoader;
     }
 
     public abstract WorkerProcess build();

@@ -16,7 +16,7 @@
 println 'nestedBuild/buildSrc quiet'
 logger.info 'nestedBuild/buildSrc info'
 
-task classes
+task classes << { }
 
 convention.plugins.java = new ProjectInfo(project: project);
 

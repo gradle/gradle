@@ -26,6 +26,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import java.util.concurrent.Callable
+import org.gradle.util.OperatingSystem
 
 /**
  * @author Hans Dockter
@@ -140,7 +141,7 @@ class BaseDirConverterTest {
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(relativeFileName))
     }
 
-    @Test public void testResolveAbsoluteFile() {
+    @Test public void testResolveFileWithAbsolutePath() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile))
     }
@@ -149,9 +150,19 @@ class BaseDirConverterTest {
         assertEquals(new File(baseDir, "12"), baseDirConverter.resolve(12))
     }
 
-    @Test public void testResolveRelativeFile() {
+    @Test public void testResolveFileWithRelativePath() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(relativeFile))
+    }
+
+    @Test public void testResolveAbsolutePathOnCaseInsensitiveFileSystemToUri() {
+        if (OperatingSystem.current().isCaseSensitiveFileSystem()) {
+            return
+        }
+
+        File file = new File(File.listRoots()[0], 'someFile');
+        String path = File.listRoots()[0].absolutePath.toLowerCase() + File.separator + 'someFile'
+        assertEquals(file, baseDirConverter.resolve(path))
     }
 
     @Test public void testResolveRelativeFileURIString() {
@@ -213,12 +224,12 @@ class BaseDirConverterTest {
         assertEquals(new File(baseDir, 'relative').toURI(), baseDirConverter.resolveUri('relative'))
     }
 
-    @Test public void testResolveAbsoluteFileToUri() {
+    @Test public void testResolveFileWithAbsolutePathToUri() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile))
     }
 
-    @Test public void testResolveRelativeFileToUri() {
+    @Test public void testResolveFileWithRelativePathToUri() {
         File relativeFile = new File('relative')
         assertEquals(new File(baseDir, 'relative').toURI(), baseDirConverter.resolveUri(relativeFile))
     }
@@ -227,12 +238,12 @@ class BaseDirConverterTest {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri("http://www.gradle.org"))
     }
     
-    @Test public void testResolveUriToUri() {
+    @Test public void testResolveUriObjectToUri() {
         URI uri = new URI("http://www.gradle.org")
         assertEquals(uri, baseDirConverter.resolveUri(uri))
     }
     
-    @Test public void testResolveUrlToUri() {
+    @Test public void testResolveUrlObjectToUri() {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
     }
 

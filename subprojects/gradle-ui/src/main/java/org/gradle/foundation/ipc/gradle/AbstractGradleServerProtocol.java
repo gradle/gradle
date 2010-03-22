@@ -26,6 +26,7 @@ import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.ClientProcess;
+import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -312,11 +313,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
    */
    private String getDefaultGradleExecutableName()
    {
-      String osName = System.getProperty("os.name");
-        if (osName.indexOf("indows") >= 0) {
-            return "gradle.bat";
-        } //windoes uses a batch file
-      return "gradle";        //all others use a shell script
+      return OperatingSystem.current().getScriptName("gradle");
    }
 
    /**

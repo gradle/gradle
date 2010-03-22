@@ -71,7 +71,6 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             actionsForType.put(type, actions);
         }
 
-
         for (Action<Task> action : actions) {
             task.doFirst(action);
             if (action instanceof Validator) {
@@ -84,8 +83,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
     }
 
     private List<Action<Task>> createActionsForType(Class<? extends Task> type) {
-        List<Action<Task>> actions;
-        actions = new ArrayList<Action<Task>>();
+        List<Action<Task>> actions = new ArrayList<Action<Task>>();
         Validator validator = new Validator();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {

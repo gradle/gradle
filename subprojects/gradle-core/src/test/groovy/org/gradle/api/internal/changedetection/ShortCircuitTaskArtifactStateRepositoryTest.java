@@ -58,11 +58,9 @@ public class ShortCircuitTaskArtifactStateRepositoryTest {
         assertNotNull(state);
 
         context.checking(new Expectations() {{
-            one(taskArtifactState).invalidate();
             one(taskArtifactState).update();
         }});
 
-        state.invalidate();
         state.update();
     }
 

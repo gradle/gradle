@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import org.slf4j.Logger;
@@ -28,15 +29,14 @@ import java.net.URL;
  * @author Hans Dockter
  */
 public class ClasspathUtil {
-    private static Logger logger = LoggerFactory.getLogger(ClasspathUtil.class);
+    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathUtil.class);
 
-    public static void addUrl(URLClassLoader classLoader, Iterable<File> classpathElements) {
+    public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
         try {
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
             method.setAccessible(true);
-            for (File classpathElement : classpathElements) {
-                logger.debug("Adding to classpath: " + classpathElement);
-                method.invoke(classLoader, classpathElement.toURI().toURL());
+            for (URL classpathElement : classpathElements) {
+                method.invoke(classLoader, classpathElement);
             }
         }
         catch (Throwable t) {
@@ -60,7 +60,7 @@ public class ClasspathUtil {
         String javaHome = System.getProperty("java.home");
         File toolsJar = new File(javaHome + "/lib/tools.jar");
         if (toolsJar.exists()) {
-            logger.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
+            LOGGER.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
             // Found in java.home as given
             return toolsJar;
         }
@@ -69,11 +69,11 @@ public class ClasspathUtil {
             toolsJar = new File(javaHome + "/lib/tools.jar");
         }
         if (!toolsJar.exists()) {
-            logger.debug("Unable to locate tools.jar. "
+            LOGGER.debug("Unable to locate tools.jar. "
                     + "Expected to find it in " + toolsJar.getPath());
             return null;
         }
-        logger.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
+        LOGGER.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
         return toolsJar;
     }
 }

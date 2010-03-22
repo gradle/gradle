@@ -36,7 +36,6 @@ public class LineFilter extends Reader {
      * @throws NullPointerException if <code>in</code> is <code>null</code>
      */
     public LineFilter(Reader in, Closure closure) {
-        super();
         this.in = in;
         this.bufferedIn = new BufferedReader(in);
         this.closure = closure;

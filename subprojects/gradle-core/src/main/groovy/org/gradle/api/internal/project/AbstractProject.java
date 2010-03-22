@@ -280,7 +280,12 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public Object getGroup() {
-        return group == null ? DEFAULT_GROUP : group;
+        if (group != null) {
+            return group;
+        } else if (this == rootProject) {
+            return "";
+        }
+        return rootProject.getName() + ( getParent() == rootProject ? "" : "." + getParent().getPath().substring(1).replace(':', '.'));
     }
 
     public void setGroup(Object group) {

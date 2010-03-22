@@ -1,0 +1,21 @@
+// START SNIPPET zip
+usePlugin 'java'
+
+task zip(type: Zip) {
+    from 'src/dist'
+    into('libs') {
+        from configurations.runtime
+    }
+}
+// END SNIPPET zip
+
+// START SNIPPET tar
+usePlugin 'java'
+
+task tar(type: Tar) {
+    from 'src/dist'
+    into('libs') {
+        from configurations.runtime
+    }
+}
+// END SNIPPET tar

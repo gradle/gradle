@@ -26,12 +26,11 @@ import java.util.Map;
  */
 public interface TaskInputs {
     /**
-     * Returns true if this task can consume input files. Note that a task may be able to consume input files and still
-     * have an empty set of input files.
+     * Returns true if this task has declared the inputs that it consumes.
      *
-     * @return true if this task consumes input files, otherwise false.
+     * @return true if this task has declared any inputs.
      */
-    boolean getHasInputFiles();
+    boolean getHasInputs();
 
     /**
      * Returns the input files of this task.
