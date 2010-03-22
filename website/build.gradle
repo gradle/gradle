@@ -41,8 +41,13 @@ gradleCorePath = projectDir.parentFile
 gradleCoreProperties = GUtil.loadProperties(new File(gradleCorePath, Project.GRADLE_PROPERTIES))
 
 version = gradleCoreProperties.previousVersion
+stableVersion = '0.8'
+releases = [new Release(title: 'Current Release', version: version)]
+if (stableVersion != version) {
+    releases << new Release(title: 'Current Stable Release', version: stableVersion)
+}
 
-buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
+buildWebsiteDir = new File(System.getProperty('user.home'), 'public_html/gradle')
 
 task userguideContent << {
     def startParams = gradle.startParameter.newBuild()
@@ -58,9 +63,10 @@ task html(dependsOn: userguideContent) << {
     def engine = new SimpleTemplateEngine()
     def binding = [
             php: new PhpIncludes(phpSrcDir: new File(webSrcDir, 'php')),
-            currentRelease: version,
-            sidebar: engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(currentRelease: version).toString()
+            currentRelease: releases[0],
+            releases: releases
     ]
+    binding.sidebar = engine.createTemplate(new File(webSrcDir, 'sidebar.html')).make(binding).toString()
     def skeletonTemplate = engine.createTemplate(new File(webSrcDir, 'skeleton.html'))
 
     List pages = []
@@ -145,7 +151,6 @@ class Page {
     def TemplateEngine engine
 
     def transform() {
-        println "Processing $srcFile.name"
         destFile.text = text
     }
 
@@ -156,13 +161,16 @@ class Page {
             throw new GradleException("Could not find title in $srcFile.name.")
         }
         def title = matcher[0][1].trim()
-        println "$srcFile.name -> $title"
         title
     }
 
     def getContent() {
-        def contentTemplate = engine.createTemplate(srcFile.text)
-        contentTemplate.make(templateBinding).toString()
+        try {
+            def contentTemplate = engine.createTemplate(srcFile.text)
+            contentTemplate.make(templateBinding).toString()
+        } catch (Exception e) {
+            throw new GradleException("Could not generate output file for '${srcFile.name}.", e)
+        }
     }
 
     def getText() {
@@ -203,4 +211,9 @@ class PhpIncludes {
         }
         srcFile.text
     }
+}
+
+class Release {
+    def String title
+    def String version
 }
