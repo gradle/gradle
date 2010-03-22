@@ -171,13 +171,14 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
     }
 
     /*
-     * two.a starts off with "1\n2\n3\n"
+     * two.a starts off with "$one\n${one+1}\n${one+1+1}\n"
      * If these filters are chained in the correct order, you should get 6, 11, and 16
      */
     @Test public void copyMultipleFilterTest() {
         TestFile buildFile = testFile('build.gradle').writelns(
                 """task (copy, type:Copy) {
                    into 'dest'
+                   expand(one: 1)
                    filter { (Integer.parseInt(it) * 10) as String }
                    filter { (Integer.parseInt(it) + 2) as String }
                    from('src/two/two.a') {

@@ -150,13 +150,18 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
             return this;
         }
 
-        public ContentFilterable filter(Map<String, ?> map, Class<? extends FilterReader> filterType) {
-            filterChain.add(filterType, map);
+        public ContentFilterable filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
+            filterChain.add(filterType, properties);
             return this;
         }
 
         public ContentFilterable filter(Class<? extends FilterReader> filterType) {
             filterChain.add(filterType);
+            return this;
+        }
+
+        public ContentFilterable expand(Map<String, ?> properties) {
+            filterChain.expand(properties);
             return this;
         }
     }

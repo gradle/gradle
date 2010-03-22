@@ -22,6 +22,7 @@ import org.gradle.api.specs.Spec;
 
 import java.util.Map;
 import java.io.FilterReader;
+import java.util.regex.Pattern;
 
 /**
  * A set of specifications for copying files.  This includes:
@@ -194,7 +195,12 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     /**
      * {@inheritDoc}
      */
-    CopySpec filter(Map<String, ?> map, Class<? extends FilterReader> filterType);
+    CopyProcessingSpec rename(Pattern sourceRegEx, String replaceWith);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec filter(Map<String, ?> properties, Class<? extends FilterReader> filterType);
 
     /**
      * {@inheritDoc}
@@ -205,6 +211,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * {@inheritDoc}
      */
     CopySpec filter(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     */
+    CopySpec expand(Map<String, ?> properties);
 
     /**
      * {@inheritDoc}

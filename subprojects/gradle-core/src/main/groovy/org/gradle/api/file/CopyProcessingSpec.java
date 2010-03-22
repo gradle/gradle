@@ -18,6 +18,8 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 
+import java.util.regex.Pattern;
+
 public interface CopyProcessingSpec extends ContentFilterable {
     /**
      * Specifies the destination directory for a copy. The destination is evaluated as for {@link
@@ -54,6 +56,15 @@ public interface CopyProcessingSpec extends ContentFilterable {
      * @return this
      */
     CopyProcessingSpec rename(String sourceRegEx, String replaceWith);
+
+    /**
+     * Renames files based on a regular expression. See {@link #rename(String, String)}.
+     *
+     * @param sourceRegEx Source regular expression
+     * @param replaceWith Replacement string (use $ syntax for capture groups)
+     * @return this
+     */
+    CopyProcessingSpec rename(Pattern sourceRegEx, String replaceWith);
 
     /**
      * Returns the Unix permissions to use for the target files. It is dependent on the copy action implementation

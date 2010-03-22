@@ -16,26 +16,32 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import groovy.text.SimpleTemplateEngine;
+import groovy.text.Template;
 import org.apache.tools.ant.util.ReaderInputStream;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Transformer;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ChainingTransformer;
 import org.gradle.util.ConfigureUtil;
 
-import java.io.FilterReader;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.Reader;
+import java.io.*;
 import java.lang.reflect.Constructor;
 import java.util.Map;
 
 public class FilterChain implements Transformer<InputStream> {
     private final ChainingTransformer<Reader> transformers = new ChainingTransformer<Reader>(Reader.class);
 
+    /**
+     * Transforms the given Reader. The original Reader will be closed by the returned Reader.
+     */
     public Reader transform(Reader original) {
         return transformers.transform(original);
     }
 
+    /**
+     * Transforms the given InputStream. The original InputStream will be closed by the returned InputStream.
+     */
     public InputStream transform(InputStream original) {
         return new ReaderInputStream(transform(new InputStreamReader(original)));
     }
@@ -70,6 +76,27 @@ public class FilterChain implements Transformer<InputStream> {
         transformers.add(new Transformer<Reader>() {
             public Reader transform(Reader original) {
                 return new LineFilter(original, closure);
+            }
+        });
+    }
+
+    public void expand(final Map<String, ?> properties) {
+        transformers.add(new Transformer<Reader>() {
+            public Reader transform(Reader original) {
+                try {
+                    Template template;
+                    try {
+                        SimpleTemplateEngine engine = new SimpleTemplateEngine();
+                        template = engine.createTemplate(original);
+                    } finally {
+                        original.close();
+                    }
+                    StringWriter writer = new StringWriter();
+                    template.make(properties).writeTo(writer);
+                    return new StringReader(writer.toString());
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
             }
         });
     }

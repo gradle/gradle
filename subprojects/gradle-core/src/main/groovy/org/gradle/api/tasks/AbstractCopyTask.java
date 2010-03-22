@@ -26,6 +26,7 @@ import org.gradle.api.specs.Spec;
 import java.io.FilterReader;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
@@ -230,8 +231,16 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
-    public AbstractCopyTask filter(Map<String, ?> map, Class<? extends FilterReader> filterType) {
-        getRootSpec().filter(map, filterType);
+    public AbstractCopyTask rename(Pattern sourceRegEx, String replaceWith) {
+        getRootSpec().rename(sourceRegEx, replaceWith);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
+        getRootSpec().filter(properties, filterType);
         return this;
     }
 
@@ -248,6 +257,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
      */
     public AbstractCopyTask filter(Closure closure) {
         getRootSpec().filter(closure);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public AbstractCopyTask expand(Map<String, ?> properties) {
+        getRootSpec().expand(properties);
         return this;
     }
 
