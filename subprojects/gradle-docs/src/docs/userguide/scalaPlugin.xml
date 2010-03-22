@@ -103,7 +103,7 @@
         <figure>
             <title>Scala plugin - tasks</title>
             <imageobject>
-                <imagedata fileref="images/scalaPluginTasks.png"/>
+                <imagedata fileref="img/scalaPluginTasks.png"/>
             </imageobject>
         </figure>
     </section>

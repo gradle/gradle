@@ -131,7 +131,7 @@ task userguideHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
     stylesheetName = 'userGuideHtml.xsl'
     resources = fileTree {
         from userguideSrcDir
-        include 'images/*.png'
+        include 'img/*.png'
     }
     resources += fileTree {
         from cssSrcDir
@@ -145,7 +145,7 @@ task userguideSingleHtml(type: Docbook2Xhtml, dependsOn: userguideDocbook) {
     stylesheetName = 'userGuideSingleHtml.xsl'
     resources = fileTree {
         from userguideSrcDir
-        include 'images/*.png'
+        include 'img/*.png'
     }
     resources += fileTree {
         from cssSrcDir
@@ -159,7 +159,7 @@ task userguideXhtml(type: Docbook2Xhtml, dependsOn: remoteUserguideDocbook) {
     stylesheetName = 'userGuidePdf.xsl'
     resources = fileTree {
         from userguideSrcDir
-        include 'images/*.png'
+        include 'img/*.png'
     }
     resources += fileTree {
         from cssSrcDir
@@ -230,6 +230,10 @@ task websiteDocs(type: Docbook2Xhtml, dependsOn: websiteDocsSrc) {
     destFile = new File(websiteDocs, 'website.html')
     stylesheetName = 'websiteHtml.xsl'
     resources = fileTree {
+        from userguideSrcDir
+        include 'img/*.png'
+    }
+    resources += fileTree {
         from cssSrcDir
         include '*.css'
     }

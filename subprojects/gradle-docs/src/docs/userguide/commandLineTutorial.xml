@@ -33,7 +33,7 @@
         <figure>
             <title>Task dependencies</title>
             <imageobject>
-                <imagedata fileref="images/commandLineTutorialTasks.png"/>
+                <imagedata fileref="img/commandLineTutorialTasks.png"/>
             </imageobject>
         </figure>
         <sample id="multipleTasksFromCommandLine" dir="userguide/tutorial/excludeTasks" title="Executing multiple tasks">

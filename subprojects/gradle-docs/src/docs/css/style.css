@@ -36,6 +36,7 @@ p {
 h1, h2, h3, h4, h5 {
     /* ensure paragraphs remain close to their parent heading */
     margin-bottom: 0.2em;
+    color: #4a9935;
 }
 
 h1 {
@@ -134,7 +135,7 @@ h3 {
 }
 
 .titlepage h1.title {
-    font-size: 260%;
+    font-size: 280%;
     margin-bottom: 0;
     color: #4a9935;
 }
@@ -144,7 +145,7 @@ h3 {
     font-style: italic;
     margin-top: 0;
     margin-bottom: 0;
-    color: #666666;
+    color: #4a9935;
 }
 
 .titlepage .releaseinfo {

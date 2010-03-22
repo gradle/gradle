@@ -121,7 +121,7 @@
         <figure>
             <title>Code quality plugin - tasks</title>
             <imageobject>
-                <imagedata fileref="images/codeQualityPluginTasks.png"/>
+                <imagedata fileref="img/codeQualityPluginTasks.png"/>
             </imageobject>
         </figure>
     </section>

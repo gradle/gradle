@@ -1,15 +1,15 @@
 <div id="homeContent">
-<h1 id="homeTitle">A better way to build</h1>
+<h1 id="homeTitle">a better way to build</h1>
 
 <div id="about">
 
     <p>Project automation is essential to the success of software projects. It should be straight-forward, easy and fun
     to implement.</p>
     <p>There is no one-size-fits-all process for builds. Therefore Gradle does not impose a rigid process over people.
-    Yet we think finding and describing YOUR process is very important. Therefore Gradle has the very best support for
+    Yet we think finding and describing YOUR process is very important. And so, Gradle has the very best support for
     describing it.</p>
     <p>We don't believe in tools that save people from themselves. Gradle gives you all the freedom you need. Gradle
-    enables you to create declarative, highly maintainable, concise and highly-performing builds.
+    enables you to create declarative, maintainable, concise and highly-performing builds.
     </p>
 
 <div class="more"><a href="overview.html">Learn more</a></div>

@@ -1,4 +1,3 @@
-
 /*
  * Copyright 2010 the original author or authors.
  *
@@ -223,11 +222,13 @@ p {
     font-weight: bold;
     text-decoration: none;
     color: white;
-    background-color: #ff952b;
     border: solid #ffa953 3px;
     padding: 0.2em 0.8em;
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
+    background-color: #ff8000;
+    background-image: -moz-linear-gradient(#ff9b37, #ff8000);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#ff9b37), to(#ff8000));
 }
 
 #rightcolumn {

@@ -42,7 +42,7 @@ body {
 /*
  * Override colour -> black and white
  */
-body {
+body, div, td {
     color: black;
 }
 
@@ -61,6 +61,7 @@ a {
 .titlepage h1.title {
     font-size: 360%;
     margin: 0;
+    color: black;
 }
 
 .titlepage h2.subtitle {

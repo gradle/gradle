@@ -47,7 +47,7 @@ if (stableVersion != version) {
     releases << new Release(title: 'Current Stable Release', version: stableVersion)
 }
 
-buildWebsiteDir = new File(System.getProperty('user.home'), 'public_html/gradle')
+buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 
 task userguideContent << {
     def startParams = gradle.startParameter.newBuild()
@@ -96,6 +96,9 @@ task html(dependsOn: userguideContent) << {
         from(generatedDocs) {
             include 'base.css'
             into 'css'
+        }
+        from(generatedDocs) {
+            include 'img/**'
         }
     }
 }

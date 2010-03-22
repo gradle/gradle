@@ -73,7 +73,7 @@
         <figure>
             <title>Jetty plugin - tasks</title>
             <imageobject>
-                <imagedata fileref="images/jettyPluginTasks.png"/>
+                <imagedata fileref="img/jettyPluginTasks.png"/>
             </imageobject>
         </figure>
     </section>

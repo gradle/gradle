@@ -96,7 +96,7 @@
         <figure>
             <title>Groovy plugin - tasks</title>
             <imageobject>
-                <imagedata fileref="images/groovyPluginTasks.png"/>
+                <imagedata fileref="img/groovyPluginTasks.png"/>
             </imageobject>
         </figure>
     </section>
