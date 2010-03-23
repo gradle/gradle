@@ -160,10 +160,8 @@ class BaseDirConverterTest {
             return
         }
 
-        File file = new File(File.listRoots()[0], 'someFile');
-        String path = File.listRoots()[0].absolutePath.toLowerCase() + File.separator + 'someFile'
-        System.out.println(String.format("resolving '%s'", path));
-        assertEquals(file, baseDirConverter.resolve(path))
+        String path = baseDir.absolutePath.toLowerCase()
+        assertEquals(baseDir, baseDirConverter.resolve(path))
     }
 
     @Test public void testResolveRelativeFileURIString() {
