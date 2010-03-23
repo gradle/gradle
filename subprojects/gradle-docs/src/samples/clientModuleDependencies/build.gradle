@@ -7,7 +7,7 @@ subprojects {
             classpath 'junit:junit:4.7'
         }
     }
-    apply id: 'java'
+    apply plugin: 'java'
     repositories {
         mavenCentral()
     }

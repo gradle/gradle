@@ -88,6 +88,10 @@ abstract class DefaultScript extends BasicScript {
         fileOperations.file(path, validation)
     }
 
+    URI uri(Object path) {
+        fileOperations.uri(path)
+    }
+
     ConfigurableFileCollection files(Object ... paths) {
         fileOperations.files(paths)
     }

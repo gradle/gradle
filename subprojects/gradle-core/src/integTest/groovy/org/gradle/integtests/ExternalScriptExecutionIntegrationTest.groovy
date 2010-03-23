@@ -51,7 +51,7 @@ public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationT
             someProp = 'value'
 """
         testFile('build.gradle') << '''
-apply { url 'external.gradle' }
+apply { from 'external.gradle' }
 assertEquals('value', someProp)
 '''
 
@@ -82,7 +82,7 @@ someProp = 'value'
 task doStuff
 apply {
     to doStuff
-    url 'external.gradle'
+    from 'external.gradle'
 }
 assertEquals('value', doStuff.someProp)
 '''
@@ -96,7 +96,7 @@ assertEquals('value', doStuff.someProp)
     
     @Test
     public void canExecuteExternalScriptFromSettingsScript() {
-        testFile('settings.gradle') << ''' apply { url 'other.gradle' } '''
+        testFile('settings.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << ''' include 'child' '''
         testFile('build.gradle') << ''' assertEquals(['child'], subprojects*.name) '''
 
@@ -105,7 +105,7 @@ assertEquals('value', doStuff.someProp)
 
     @Test
     public void canExecuteExternalScriptFromInitScript() {
-        TestFile initScript = testFile('init.gradle') << ''' apply { url 'other.gradle' } '''
+        TestFile initScript = testFile('init.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << '''
 addListener(new ListenerImpl())
 class ListenerImpl extends BuildAdapter {
@@ -119,8 +119,8 @@ class ListenerImpl extends BuildAdapter {
 
     @Test
     public void canExecuteExternalScriptFromExternalScript() {
-        testFile('build.gradle') << ''' apply { url 'other1.gradle' } '''
-        testFile('other1.gradle') << ''' apply { url 'other2.gradle' } '''
+        testFile('build.gradle') << ''' apply { from 'other1.gradle' } '''
+        testFile('other1.gradle') << ''' apply { from 'other2.gradle' } '''
         testFile('other2.gradle') << ''' task doStuff '''
 
         inTestDirectory().withTasks('doStuff').run()
@@ -141,7 +141,7 @@ class ListenerImpl extends BuildAdapter {
 """
 
         testFile('build.gradle') << """
-            apply url: 'http://localhost:$server.port/external.gradle'
+            apply from: 'http://localhost:$server.port/external.gradle'
             defaultTasks 'doStuff'
 """
 

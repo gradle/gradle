@@ -1,6 +1,6 @@
 subprojects {
-    apply id: 'java'
-    apply id: 'eclipse'
+    apply plugin: 'java'
+    apply plugin: 'eclipse'
 
     repositories {
         mavenCentral()

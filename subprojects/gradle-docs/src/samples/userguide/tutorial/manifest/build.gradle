@@ -1,4 +1,4 @@
-apply id: 'java'
+apply plugin: 'java'
 task myZipTask(type: Zip)
 
 // START SNIPPET main-attributes

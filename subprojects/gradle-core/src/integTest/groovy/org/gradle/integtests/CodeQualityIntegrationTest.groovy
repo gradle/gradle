@@ -25,8 +25,8 @@ class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProjects() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 '''
         inTestDirectory().withTasks('check').run()
     }
@@ -34,8 +34,8 @@ apply id: 'code-quality'
     @Test
     public void generatesReportForJavaSource() {
         testFile('build.gradle') << '''
-apply id: 'java'
-apply id: 'code-quality'
+apply plugin: 'java'
+apply plugin: 'code-quality'
 '''
         writeCheckstyleConfig()
 
@@ -51,8 +51,8 @@ apply id: 'code-quality'
     @Test
     public void generatesReportForJavaSourceInGroovySourceDirs() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 dependencies { groovy localGroovy() }
 '''
         writeCheckstyleConfig()
@@ -73,8 +73,8 @@ dependencies { groovy localGroovy() }
     @Test
     public void checkstyleOnlyChecksJavaSource() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 '''
         writeCheckstyleConfig()
 
@@ -91,8 +91,8 @@ apply id: 'code-quality'
     @Test
     public void checkstyleViolationBreaksBuild() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 '''
         writeCheckstyleConfig()
 
@@ -109,8 +109,8 @@ apply id: 'code-quality'
     @Test
     public void generatesReportForGroovySource() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 dependencies { groovy localGroovy() }
 '''
         writeCodeNarcConfigFile()
@@ -127,8 +127,8 @@ dependencies { groovy localGroovy() }
     @Test
     public void codeNarcOnlyChecksGroovySource() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 '''
 
         writeCodeNarcConfigFile()
@@ -144,8 +144,8 @@ apply id: 'code-quality'
     @Test
     public void codeNarcViolationBreaksBuild() {
         testFile('build.gradle') << '''
-apply id: 'groovy'
-apply id: 'code-quality'
+apply plugin: 'groovy'
+apply plugin: 'code-quality'
 dependencies { groovy localGroovy() }
 '''
 

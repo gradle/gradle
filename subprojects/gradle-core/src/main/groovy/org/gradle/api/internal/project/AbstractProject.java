@@ -54,6 +54,7 @@ import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.*;
 
 import java.io.File;
+import java.net.URI;
 import java.util.*;
 
 import static java.util.Collections.*;
@@ -679,6 +680,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public File file(Object path, PathValidation validation) {
         return fileOperations.file(path, validation);
+    }
+
+    public URI uri(Object path) {
+        return fileOperations.uri(path);
     }
 
     public ConfigurableFileCollection files(Object... paths) {

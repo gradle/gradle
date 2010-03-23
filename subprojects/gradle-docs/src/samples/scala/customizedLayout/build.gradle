@@ -1,4 +1,4 @@
-apply id: 'scala'
+apply plugin: 'scala'
 
 repositories {
     mavenRepo urls: 'http://scala-tools.org/repo-releases/'

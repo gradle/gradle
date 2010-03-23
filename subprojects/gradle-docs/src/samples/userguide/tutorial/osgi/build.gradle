@@ -1,4 +1,4 @@
-apply id: 'osgi'
+apply plugin: 'osgi'
 
 // START SNIPPET configure-jar
 configure(jar.osgi) {

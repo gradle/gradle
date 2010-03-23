@@ -18,7 +18,7 @@ package org.gradle.api.internal.file
 
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
+
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.runner.RunWith
@@ -58,6 +58,12 @@ public class DefaultFileOperationsTest {
             will(returnValue(file))
         }
         assertThat(fileOperations.file('path', PathValidation.EXISTS), equalTo(file))
+    }
+
+    @Test
+    public void resolvesURI() {
+        URI uri = expectPathResolvedToUri('path')
+        assertThat(fileOperations.uri('path'), equalTo(uri))
     }
 
     @Test
@@ -142,6 +148,15 @@ public class DefaultFileOperationsTest {
             will(returnValue(file))
         }
         return file
+    }
+
+    private URI expectPathResolvedToUri(String path) {
+        TestFile file = tmpDir.file(path)
+        context.checking {
+            one(resolver).resolveUri(path)
+            will(returnValue(file.toURI()))
+        }
+        return file.toURI()
     }
 
     private TestFile expectTempFileCreated() {

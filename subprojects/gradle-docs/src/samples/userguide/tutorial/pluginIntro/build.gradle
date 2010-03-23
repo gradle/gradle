@@ -1,4 +1,4 @@
-apply id: 'java'
+apply plugin: 'java'
 
 task show << {
     println relativePath(compileJava.destinationDir)

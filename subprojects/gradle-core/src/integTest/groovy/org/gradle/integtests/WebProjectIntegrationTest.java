@@ -23,7 +23,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
     public void handlesEmptyProject() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "apply id: 'war'"
+                "apply plugin: 'war'"
         );
 
         usingBuildFile(buildFile).withTasks("build").run();
@@ -34,7 +34,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "apply id: 'war'"
+                "apply plugin: 'war'"
         );
         testFile("src/main/webapp/index.jsp").write("<p>hi</p>");
 
@@ -47,7 +47,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").writelns("rootProject.name = 'test'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "apply id: 'war'",
+                "apply plugin: 'war'",
                 "jar.enabled = true",
                 "buildDirName = 'output'",
                 "libsDirName = 'archives'",
@@ -66,7 +66,7 @@ public class WebProjectIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").write("rootProject.name = 'empty'");
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "apply id: 'war'",
+                "apply plugin: 'war'",
                 "jar.enabled = true",
                 "version = ''"
         );

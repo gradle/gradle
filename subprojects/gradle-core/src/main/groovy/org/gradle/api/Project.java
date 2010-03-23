@@ -34,6 +34,7 @@ import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
+import java.net.URI;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -677,7 +678,7 @@ public interface Project extends Comparable<Project> {
      * interpreted relative to the project directory.</li>
      *
      * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
-     * 'file' URLs are supported.
+     * 'file:' URLs are supported.
      *
      * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
      *
@@ -704,6 +705,16 @@ public interface Project extends Comparable<Project> {
      * @throws InvalidUserDataException When the file does not meet the given validation constraint.
      */
     File file(Object path, PathValidation validation) throws InvalidUserDataException;
+
+    /**
+     * <p>Resolves a file path to a URI, relative to the project directory of this project. Evaluates the provided path
+     * object as described for {@link #file(Object)}, with the exception that any URI scheme is supported, not just
+     * 'file:' URIs.</p>
+     *
+     * @param path The object to resolve as a URI.
+     * @return The resolved URI. Never returns null.
+     */
+    URI uri(Object path);
 
     /**
      * <p>Returns the relative path from the project directory to the given path. The given path object is (logically)
@@ -1238,11 +1249,9 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Configures this project using plugins or scripts. The following options are available:</p>
      *
-     * <ul><li>{@code url}: The URL for the script to apply to the project.</li>
+     * <ul><li>{@code from}: A script to apply to the project. Accepts any path supported by {@link #uri(Object)}.</li>
      *
-     * <li>{@code id}: The id of the plugin to apply to the project.</li>
-     *
-     * <li>{@code type}: The implementation class of the plugin to apply to the project.</li>
+     * <li>{@code plugin}: The id or implementation class of the plugin to apply to the project.</li>
      *
      * <li>{@code to}: The target delegate object or objects. Use this to configure objects other than the
      * project.</li></ul>

@@ -55,7 +55,7 @@ class BuildAggregationIntegrationTest {
 '''
 
         dist.testFile('buildSrc/build.gradle') << '''
-            apply id: 'java'
+            apply plugin: 'java'
             assert gradle.parent != null
             classes << {
                 assert gradle.parent != null

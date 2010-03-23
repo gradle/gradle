@@ -31,6 +31,7 @@ import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
+import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
@@ -55,6 +56,10 @@ public class DefaultFileOperations implements FileOperations {
         return fileResolver.resolve(path, validation);
     }
 
+    public URI uri(Object path) {
+        return fileResolver.resolveUri(path);
+    }
+    
     public ConfigurableFileCollection files(Object... paths) {
         return new PathResolvingFileCollection(fileResolver, taskResolver, paths);
     }

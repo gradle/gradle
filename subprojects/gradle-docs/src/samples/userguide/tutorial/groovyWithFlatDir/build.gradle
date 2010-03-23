@@ -1,4 +1,4 @@
-apply id: 'groovy'
+apply plugin: 'groovy'
 
 // START SNIPPET groovy-dependency
 repositories {

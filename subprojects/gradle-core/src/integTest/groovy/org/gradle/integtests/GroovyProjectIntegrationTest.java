@@ -21,7 +21,7 @@ public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesEmptyProject() {
         testFile("build.gradle").writelns(
-                "apply id: 'groovy'"
+                "apply plugin: 'groovy'"
         );
         inTestDirectory().withTasks("build").run();
     }
@@ -29,7 +29,7 @@ public class GroovyProjectIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void handlesJavaSourceOnly() {
         testFile("src/main/java/somepackage/SomeClass.java").writelns("public class SomeClass { }");
-        testFile("build.gradle").writelns("apply id: 'groovy'");
+        testFile("build.gradle").writelns("apply plugin: 'groovy'");
         testFile("settings.gradle").write("rootProject.name='javaOnly'");
         inTestDirectory().withTasks("build").run();
         testFile("build/libs/javaOnly.jar").assertExists();

@@ -100,7 +100,7 @@ public class TestNGIntegrationTest {
         TestFile testDir = dist.testDir;
         TestFile buildFile = testDir.file('build.gradle');
         buildFile << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'org.testng:testng:5.8:jdk15' }
             test {
@@ -149,7 +149,7 @@ public class TestNGIntegrationTest {
         );
 
         testDir.file('build.gradle') << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'org.testng:testng:5.8:jdk15' }
             def listener = new TestListenerImpl()

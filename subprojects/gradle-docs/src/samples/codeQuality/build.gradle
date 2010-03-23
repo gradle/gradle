@@ -1,7 +1,7 @@
 // START SNIPPET use-plugin
-apply id: 'code-quality'
+apply plugin: 'code-quality'
 // END SNIPPET use-plugin
-apply id: 'groovy'
+apply plugin: 'groovy'
 
 repositories {
     mavenCentral()

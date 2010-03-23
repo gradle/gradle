@@ -1,6 +1,6 @@
-apply id: 'eclipse'
+apply plugin: 'eclipse'
 // START SNIPPET use-plugin
-apply id: 'scala'
+apply plugin: 'scala'
 // END SNIPPET use-plugin
 
 // START SNIPPET declare-scala-version

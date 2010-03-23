@@ -43,7 +43,7 @@ public class JUnitIntegrationTest {
         TestFile testDir = dist.testDir;
         TestFile buildFile = testDir.file('build.gradle');
         buildFile << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.4', 'ant:ant:1.6.1', 'ant:ant-launcher:1.6.1' }
             test {
@@ -95,7 +95,7 @@ public class JUnitIntegrationTest {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file('build.gradle');
         buildFile << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.7' }
         '''
@@ -123,7 +123,7 @@ public class JUnitIntegrationTest {
         TestFile testDir = dist.getTestDir();
         testDir.file('settings.gradle').write("include 'a', 'b'");
         testDir.file('b/build.gradle') << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { compile 'junit:junit:4.7' }
         '''
@@ -135,7 +135,7 @@ public class JUnitIntegrationTest {
         '''
         TestFile buildFile = testDir.file('a/build.gradle');
         buildFile << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile project(':b') }
         '''
@@ -156,7 +156,7 @@ public class JUnitIntegrationTest {
     public void canHaveTestsOnInnerClasses() {
         TestFile testDir = dist.getTestDir();
         testDir.file('build.gradle').writelns(
-                "apply id: 'java'",
+                "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.7' }"
         );
@@ -179,7 +179,7 @@ public class JUnitIntegrationTest {
     public void canHaveRunWithAnnotationOnSuperClass() {
         TestFile testDir = dist.getTestDir();
         testDir.file('build.gradle').writelns(
-                "apply id: 'java'",
+                "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.7' }"
         );
@@ -210,7 +210,7 @@ public class JUnitIntegrationTest {
     public void runsAllTestsInTheSameForkedJvm() {
         TestFile testDir = dist.getTestDir();
         testDir.file('build.gradle').writelns(
-                "apply id: 'java'",
+                "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.7' }"
         );
@@ -244,7 +244,7 @@ public class JUnitIntegrationTest {
     public void canSpecifyMaximumNumberOfTestClassesToExecuteInAForkedJvm() {
         TestFile testDir = dist.getTestDir();
         testDir.file('build.gradle').writelns(
-                "apply id: 'java'",
+                "apply plugin: 'java'",
                 "repositories { mavenCentral() }",
                 "dependencies { compile 'junit:junit:4.7' }",
                 "test.forkEvery = 1"
@@ -297,7 +297,7 @@ public class JUnitIntegrationTest {
         );
 
         testDir.file('build.gradle') << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:4.7' }
             def listener = new TestListenerImpl()
@@ -345,7 +345,7 @@ public class JUnitIntegrationTest {
         );
 
         testDir.file('build.gradle') << '''
-            apply id: 'java'
+            apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies { testCompile 'junit:junit:3.8' }
             def listener = new TestListenerImpl()

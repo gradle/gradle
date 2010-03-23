@@ -1,9 +1,9 @@
 group = 'gradle_tooling'
 version = '1.0'
 
-apply id: 'groovy'
+apply plugin: 'groovy'
 // START SNIPPET use-plugin
-apply id: 'osgi'
+apply plugin: 'osgi'
 // END SNIPPET use-plugin
 
 repositories {

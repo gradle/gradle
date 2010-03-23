@@ -47,7 +47,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction url(final Object script) {
+    public ObjectConfigurationAction from(final Object script) {
         actions.add(new Runnable() {
             public void run() {
                 applyScript(script);
@@ -56,7 +56,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction type(final Class<? extends Plugin> pluginClass) {
+    public ObjectConfigurationAction plugin(final Class<? extends Plugin> pluginClass) {
         actions.add(new Runnable() {
             public void run() {
                 applyPlugin(pluginClass);
@@ -65,7 +65,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction id(final String pluginName) {
+    public ObjectConfigurationAction plugin(final String pluginName) {
         actions.add(new Runnable() {
             public void run() {
                 applyPlugin(pluginName);

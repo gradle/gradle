@@ -39,7 +39,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
 
     public void buildJar(File jarFile) {
         rootDir.file("build.gradle").writelns(
-                "apply id: 'java'",
+                "apply plugin: 'java'",
                 "dependencies { compile gradleApi() }",
                 String.format("jar.destinationDir = file('%s')", GradleUtil.unbackslash(jarFile.getParentFile())),
                 String.format("jar.archiveName = '%s'", jarFile.getName())

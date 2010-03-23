@@ -1,4 +1,4 @@
-apply type: GreetingPlugin
+apply plugin: GreetingPlugin
 
 class GreetingPlugin implements Plugin<Project> {
     def void use(Project project) {

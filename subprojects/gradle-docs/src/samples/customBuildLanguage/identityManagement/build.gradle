@@ -1,1 +1,1 @@
-apply type: org.gradle.samples.ProductModulePlugin
+apply plugin: org.gradle.samples.ProductModulePlugin

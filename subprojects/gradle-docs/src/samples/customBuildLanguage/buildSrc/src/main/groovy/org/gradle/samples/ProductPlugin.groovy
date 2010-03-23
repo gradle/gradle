@@ -25,7 +25,7 @@ import org.gradle.api.tasks.bundling.Zip
 class ProductPlugin implements Plugin<Project> {
     void use(Project project) {
         project.configure(project) {
-            apply id: 'base'
+            apply plugin: 'base'
 
             def pluginConvention = new ProductPluginConvention()
             convention.plugins.product = pluginConvention

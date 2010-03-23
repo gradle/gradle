@@ -61,7 +61,7 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void compileWithoutDepends() {
-        testFile(testDir, "build.gradle").writelns("apply id: 'java'");
+        testFile(testDir, "build.gradle").writelns("apply plugin: 'java'");
         writeShortInterface();
         writeTestClass();
 
@@ -78,7 +78,7 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void compileWithDepends() {
         testFile(testDir, "build.gradle").writelns(
-                "apply id: 'java'",
+                "apply plugin: 'java'",
                 "compileJava.options.depend()"
         );
         writeShortInterface();

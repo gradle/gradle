@@ -1,1 +1,1 @@
-apply url: 'other.gradle'
+apply from: 'other.gradle'

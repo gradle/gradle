@@ -1,4 +1,4 @@
-apply id: 'scala'
+apply plugin: 'scala'
 
 version = 1.0
 

@@ -1,4 +1,4 @@
-apply type: GreetingPlugin
+apply plugin: GreetingPlugin
 
 greeting = 'Hi from Gradle'
 

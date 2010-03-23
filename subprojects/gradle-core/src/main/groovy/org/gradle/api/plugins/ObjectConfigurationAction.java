@@ -40,7 +40,7 @@ public interface ObjectConfigurationAction {
      * a URL can also be used, allowing the script to be fetched using HTTP, for example.
      * @return this
      */
-    ObjectConfigurationAction url(Object script);
+    ObjectConfigurationAction from(Object script);
 
     /**
      * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
@@ -49,7 +49,7 @@ public interface ObjectConfigurationAction {
      * @param pluginClass The plugin to apply.
      * @return this
      */
-    ObjectConfigurationAction type(Class<? extends Plugin> pluginClass);
+    ObjectConfigurationAction plugin(Class<? extends Plugin> pluginClass);
 
     /**
      * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
@@ -58,5 +58,5 @@ public interface ObjectConfigurationAction {
      * @param pluginName The plugin to apply.
      * @return this
      */
-    ObjectConfigurationAction id(String pluginName);
+    ObjectConfigurationAction plugin(String pluginName);
 }

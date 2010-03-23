@@ -1,8 +1,8 @@
 // START SNIPPET use-war-plugin
-apply id: 'war'
+apply plugin: 'war'
 // END SNIPPET use-war-plugin
 // START SNIPPET use-jetty-plugin
-apply id: 'jetty'
+apply plugin: 'jetty'
 // END SNIPPET use-jetty-plugin
 
 repositories {

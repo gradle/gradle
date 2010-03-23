@@ -15,9 +15,9 @@
  */
 import org.apache.maven.settings.Settings
 
-apply id: 'java'
+apply plugin: 'java'
 // START SNIPPET use-plugin
-apply id: 'maven'
+apply plugin: 'maven'
 // END SNIPPET use-plugin
 
 group = 'gradle'

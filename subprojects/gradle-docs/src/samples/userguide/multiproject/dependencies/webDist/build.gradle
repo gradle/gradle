@@ -1,13 +1,13 @@
 dependsOnChildren()
 
 allprojects {
-    apply id: 'java'
+    apply plugin: 'java'
     group = 'org.gradle.sample'
     version = '1.0'
 }
 
 subprojects {
-    apply id: 'war'
+    apply plugin: 'war'
     repositories {
         mavenCentral()
     }

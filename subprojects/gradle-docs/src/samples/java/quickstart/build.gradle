@@ -15,11 +15,11 @@
  */
 
 // START SNIPPET use-plugin
-apply id: 'java'
+apply plugin: 'java'
 // END SNIPPET use-plugin
 
 // START SNIPPET use-eclipse-plugin
-apply id: 'eclipse'
+apply plugin: 'eclipse'
 // END SNIPPET use-eclipse-plugin
 
 // START SNIPPET customisation

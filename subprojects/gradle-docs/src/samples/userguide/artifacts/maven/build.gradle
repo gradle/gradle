@@ -1,6 +1,6 @@
-apply id: 'java'
+apply plugin: 'java'
 //START SNIPPET upload-file
-apply id: 'maven'
+apply plugin: 'maven'
 
 //START SNIPPET customize-pom
 //START SNIPPET multiple-poms

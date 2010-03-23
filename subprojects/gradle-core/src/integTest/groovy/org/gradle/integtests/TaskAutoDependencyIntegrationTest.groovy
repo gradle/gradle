@@ -38,7 +38,7 @@ class InputTask extends DefaultTask {
 }
 '''
         testFile('b/build.gradle') << '''
-apply id: 'base'
+apply plugin: 'base'
 task jar << {
     file('b.jar').text = 'some jar'
 }

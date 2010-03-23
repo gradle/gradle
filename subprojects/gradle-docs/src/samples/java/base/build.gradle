@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 subprojects {
-    apply id: 'java-base'
+    apply plugin: 'java-base'
 
     sourceCompatibility = 1.5
     version = '1.0'

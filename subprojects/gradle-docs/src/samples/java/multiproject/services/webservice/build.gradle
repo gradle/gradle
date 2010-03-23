@@ -1,4 +1,4 @@
-apply id: 'war'
+apply plugin: 'war'
 
 version = '2.5'
 

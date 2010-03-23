@@ -30,7 +30,7 @@
         <title>Usage</title>
         <para>To use the Project report plugin, include in your build script:</para>
 <programlisting language="java">
-apply id: 'project-report'
+apply plugin: 'project-report'
 </programlisting>
     </section>
 

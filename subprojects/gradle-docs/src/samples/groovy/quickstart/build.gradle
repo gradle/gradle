@@ -1,6 +1,6 @@
-apply id: 'eclipse'
+apply plugin: 'eclipse'
 // START SNIPPET use-plugin
-apply id: 'groovy'
+apply plugin: 'groovy'
 // END SNIPPET use-plugin
 
 // START SNIPPET groovy-dependency

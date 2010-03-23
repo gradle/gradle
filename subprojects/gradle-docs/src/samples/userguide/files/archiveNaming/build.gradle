@@ -1,4 +1,4 @@
-apply id: 'java'
+apply plugin: 'java'
 
 task myZip(type: Zip) {
     from 'somedir'

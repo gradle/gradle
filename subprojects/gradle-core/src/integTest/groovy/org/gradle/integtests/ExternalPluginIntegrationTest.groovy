@@ -31,7 +31,7 @@ implementation-class=CustomPlugin
 '''
 
         testFile('build.gradle') << '''
-apply id: 'custom'
+apply plugin: 'custom'
 assertEquals('value', prop)
 task test
 '''
@@ -58,7 +58,7 @@ buildscript {
         classpath files('external.jar')
     }
 }
-apply id: 'custom'
+apply plugin: 'custom'
 assertEquals('value', prop)
 task test
 '''

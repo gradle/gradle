@@ -17,6 +17,7 @@ package org.gradle.integtests;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.util.TestFile;
 
 import java.io.File;
 import java.util.Map;
@@ -90,7 +91,7 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         }
 
         boolean settingsFound = false;
-        for ( File dir = getWorkingDir();
+        for ( File dir = new TestFile(getWorkingDir());
              dir != null && dist.isFileUnderTest(dir) && !settingsFound;
              dir = dir.getParentFile()) {
             if (new File(dir, "settings.gradle").isFile()) {
