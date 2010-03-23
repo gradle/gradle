@@ -26,7 +26,7 @@ class TestPlugin1 implements Plugin<Project> {
 
     int applyCounter = 0
 
-    void use(Project project) {
+    void apply(Project project) {
         applyCounter++
     }
 }

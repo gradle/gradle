@@ -34,7 +34,7 @@ public class ProjectReportsPluginTest {
 
     @Test
     public void appliesBaseReportingPluginAndAddsConventionObject() {
-        plugin.use(project);
+        plugin.apply(project);
 
         assertTrue(project.getPlugins().hasPlugin(ReportingBasePlugin.class));
         assertThat(project.getConvention().getPlugin(ProjectReportsPluginConvention.class), notNullValue());
@@ -42,7 +42,7 @@ public class ProjectReportsPluginTest {
 
     @Test
     public void addsTasksToProject() {
-        plugin.use(project);
+        plugin.apply(project);
 
         Task task = project.getTasks().getByName(ProjectReportsPlugin.TASK_REPORT);
         assertThat(task, instanceOf(TaskReportTask.class));

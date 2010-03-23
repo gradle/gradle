@@ -29,7 +29,7 @@ public class JettyPluginTest {
 
     @Test
     public void appliesWarPluginAndAddsConventionToProject() {
-        new JettyPlugin().use(project)
+        new JettyPlugin().apply(project)
 
         assertTrue(project.getPlugins().hasPlugin(WarPlugin))
 
@@ -38,7 +38,7 @@ public class JettyPluginTest {
     
     @Test
     public void addsTasksToProject() {
-        new JettyPlugin().use(project)
+        new JettyPlugin().apply(project)
 
         def task = project.tasks[JettyPlugin.JETTY_RUN]
         assertThat(task, instanceOf(JettyRun))
@@ -57,7 +57,7 @@ public class JettyPluginTest {
 
     @Test
     public void addsMappingToNewJettyTasks() {
-        new JettyPlugin().use(project)
+        new JettyPlugin().apply(project)
 
         def task = project.tasks.add('customRun', JettyRun)
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))

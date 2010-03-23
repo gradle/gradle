@@ -34,7 +34,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     // tasks
     public static final String SCALA_DEFINE_TASK_NAME = "defineScalaAnt";
 
-    public void use(Project project) {
+    public void apply(Project project) {
         JavaBasePlugin javaPlugin = project.plugins.usePlugin(JavaBasePlugin.class);
 
         project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME).setVisible(false).setTransitive(true).

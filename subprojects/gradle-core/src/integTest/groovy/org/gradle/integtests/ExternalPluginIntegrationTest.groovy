@@ -23,7 +23,7 @@ public class ExternalPluginIntegrationTest extends AbstractIntegrationTest {
         testFile('buildSrc/src/main/java/CustomPlugin.java') << '''
 import org.gradle.api.*;
 public class CustomPlugin implements Plugin<Project> {
-    public void use(Project p) { p.setProperty("prop", "value"); }
+    public void apply(Project p) { p.setProperty("prop", "value"); }
 }
 '''
         testFile('buildSrc/src/main/resources/META-INF/gradle-plugins/custom.properties') << '''
@@ -44,7 +44,7 @@ task test
         builder.sourceFile('CustomPlugin.java') << '''
 import org.gradle.api.*;
 public class CustomPlugin implements Plugin<Project> {
-    public void use(Project p) { p.setProperty("prop", "value"); }
+    public void apply(Project p) { p.setProperty("prop", "value"); }
 }
 '''
         builder.resourceFile('META-INF/gradle-plugins/custom.properties') << '''

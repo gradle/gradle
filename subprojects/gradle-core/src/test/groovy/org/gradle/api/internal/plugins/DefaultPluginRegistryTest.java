@@ -204,7 +204,7 @@ public class DefaultPluginRegistryTest {
     }
 
     private class BrokenPlugin implements Plugin<String> {
-        public void use(String target) {
+        public void apply(String target) {
         }
     }
 }

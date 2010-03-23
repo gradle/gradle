@@ -42,7 +42,7 @@ public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
 
-    public void use(final Project project) {
+    public void apply(final Project project) {
         project.getPlugins().usePlugin(JavaPlugin.class);
         final WarPluginConvention pluginConvention = new WarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);

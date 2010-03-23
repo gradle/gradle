@@ -35,12 +35,12 @@ public class EclipsePluginTest {
 
     @Test
     public void canApplyToProject() {
-        plugin.use(project)
+        plugin.apply(project)
     }
 
     @Test
     public void addsTasksWhenJavaPluginApplied() {
-        plugin.use(project)
+        plugin.apply(project)
         project.plugins.usePlugin(JavaPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME]
@@ -63,7 +63,7 @@ public class EclipsePluginTest {
 
     @Test
     public void addsTasksWhenGroovyPluginApplied() {
-        plugin.use(project)
+        plugin.apply(project)
         project.plugins.usePlugin(GroovyPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
@@ -75,7 +75,7 @@ public class EclipsePluginTest {
 
     @Test
     public void addsTasksWhenScalaPluginApplied() {
-        plugin.use(project)
+        plugin.apply(project)
         project.plugins.usePlugin(ScalaPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
@@ -87,7 +87,7 @@ public class EclipsePluginTest {
     
     @Test
     public void addsTasksWhenWarPluginApplied() {
-        plugin.use(project)
+        plugin.apply(project)
         project.plugins.usePlugin(WarPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME]

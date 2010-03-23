@@ -39,13 +39,13 @@ class GroovyBasePluginTest {
     private final GroovyBasePlugin groovyBasePlugin = new GroovyBasePlugin()
 
     @Test public void appliesTheJavaBasePluginToTheProject() {
-        groovyBasePlugin.use(project)
+        groovyBasePlugin.apply(project)
 
         assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin));
     }
 
     @Test public void addsGroovyConfigurationToTheProject() {
-        groovyBasePlugin.use(project)
+        groovyBasePlugin.apply(project)
         
         def configuration = project.configurations.getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
@@ -54,7 +54,7 @@ class GroovyBasePluginTest {
     }
 
     @Test public void appliesMappingsToNewSourceSet() {
-        groovyBasePlugin.use(project)
+        groovyBasePlugin.apply(project)
 
         def sourceSet = project.sourceSets.add('custom')
         assertThat(sourceSet.groovy.displayName, equalTo("custom Groovy source"))
@@ -62,7 +62,7 @@ class GroovyBasePluginTest {
     }
 
     @Test public void addsCompileTaskToNewSourceSet() {
-        groovyBasePlugin.use(project)
+        groovyBasePlugin.apply(project)
         
         project.sourceSets.add('custom')
 
@@ -74,7 +74,7 @@ class GroovyBasePluginTest {
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        groovyBasePlugin.use(project)
+        groovyBasePlugin.apply(project)
 
         project.sourceSets.add('custom')
         def task = project.tasks['customClasses']
@@ -82,7 +82,7 @@ class GroovyBasePluginTest {
     }
    
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        groovyBasePlugin.use(project)
+        groovyBasePlugin.apply(project)
 
         def task = project.createTask('otherGroovydoc', type: Groovydoc)
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))

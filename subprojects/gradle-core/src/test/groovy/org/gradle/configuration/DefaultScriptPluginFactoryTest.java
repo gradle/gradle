@@ -111,7 +111,7 @@ public class DefaultScriptPluginFactoryTest {
         }});
 
         ScriptPlugin configurer = factory.create(scriptSourceMock);
-        configurer.use(target);
+        configurer.apply(target);
     }
 
     @Test
@@ -178,6 +178,6 @@ public class DefaultScriptPluginFactoryTest {
         }});
 
         ScriptPlugin configurer = factory.create(scriptSourceMock);
-        configurer.use(target);
+        configurer.apply(target);
     }
 }

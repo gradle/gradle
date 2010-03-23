@@ -43,7 +43,7 @@ import java.io.File;
 public class GroovyBasePlugin implements Plugin<Project> {
     public static final String GROOVY_CONFIGURATION_NAME = "groovy";
 
-    public void use(Project project) {
+    public void apply(Project project) {
         JavaBasePlugin javaBasePlugin = project.getPlugins().usePlugin(JavaBasePlugin.class);
 
         Configuration groovyConfiguration = project.getConfigurations().add(GROOVY_CONFIGURATION_NAME).setVisible(false).setTransitive(false).

@@ -28,5 +28,5 @@ public interface Plugin<T> {
      *
      * @param target The target object
      */
-    void use(T target);
+    void apply(T target);
 }

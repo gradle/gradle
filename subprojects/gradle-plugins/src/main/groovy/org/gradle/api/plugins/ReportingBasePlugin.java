@@ -30,7 +30,7 @@ import org.gradle.api.Project;
  * </ul>
  */
 public class ReportingBasePlugin implements Plugin<Project> {
-    public void use(Project project) {
+    public void apply(Project project) {
         Convention convention = project.getConvention();
         convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project));
     }

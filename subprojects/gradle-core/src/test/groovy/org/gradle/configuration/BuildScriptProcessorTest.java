@@ -51,7 +51,7 @@ public class BuildScriptProcessorTest {
             one(configurerFactory).create(scriptSource);
             will(returnValue(scriptPlugin));
 
-            one(scriptPlugin).use(project);
+            one(scriptPlugin).apply(project);
         }});
 
         evaluator.evaluate(project, state);

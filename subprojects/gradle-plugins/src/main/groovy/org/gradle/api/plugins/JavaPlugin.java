@@ -65,7 +65,7 @@ public class JavaPlugin implements Plugin<Project> {
     public static final String TEST_RUNTIME_CONFIGURATION_NAME = "testRuntime";
     public static final String TEST_COMPILE_CONFIGURATION_NAME = "testCompile";
 
-    public void use(Project project) {
+    public void apply(Project project) {
         project.getPlugins().usePlugin(JavaBasePlugin.class);
 
         JavaPluginConvention javaConvention = (JavaPluginConvention) project.getConvention().getPlugins().get("java");

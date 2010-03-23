@@ -23,6 +23,6 @@ import org.gradle.api.Project
 * @author Hans Dockter
 */
 class TestPlugin2 implements Plugin<Project> {
-    void use(Project project) {
+    void apply(Project project) {
     }
 }

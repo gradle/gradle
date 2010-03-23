@@ -35,12 +35,12 @@ public class ScalaBasePluginTest {
     private final ScalaBasePlugin scalaPlugin = new ScalaBasePlugin()
 
     @Test public void appliesTheJavaPluginToTheProject() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
         assertTrue(project.getPlugins().hasPlugin(JavaBasePlugin))
     }
 
     @Test public void addsScalaToolsConfigurationToTheProject() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
         def configuration = project.configurations.getByName(ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet()))
         assertFalse(configuration.visible)
@@ -48,7 +48,7 @@ public class ScalaBasePluginTest {
     }
 
     @Test public void addsScalaConventionToNewSourceSet() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
 
         def sourceSet = project.sourceSets.add('custom')
         assertThat(sourceSet.scala.displayName, equalTo("custom Scala source"))
@@ -56,7 +56,7 @@ public class ScalaBasePluginTest {
     }
 
     @Test public void addsCompileTaskForNewSourceSet() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
 
         project.sourceSets.add('custom')
         def task = project.tasks['compileCustomScala']
@@ -68,7 +68,7 @@ public class ScalaBasePluginTest {
     }
     
     @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
 
         project.sourceSets.add('custom')
         def task = project.tasks['customClasses']
@@ -76,7 +76,7 @@ public class ScalaBasePluginTest {
     }
 
     @Test public void configuresCompileTasksDefinedByTheBuildScript() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
         assertThat(task.defaultSource, nullValue())
@@ -84,7 +84,7 @@ public class ScalaBasePluginTest {
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
-        scalaPlugin.use(project)
+        scalaPlugin.apply(project)
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))

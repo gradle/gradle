@@ -49,7 +49,7 @@ public class DefaultObjectConfigurationActionTest {
             one(factory).create(withParam(notNullValue()))
             will(returnValue(configurer))
 
-            one(configurer).use(target)
+            one(configurer).apply(target)
         }
 
         action.from('script')
@@ -68,8 +68,8 @@ public class DefaultObjectConfigurationActionTest {
             one(factory).create(withParam(notNullValue()))
             will(returnValue(configurer))
 
-            one(configurer).use(target1)
-            one(configurer).use(target2)
+            one(configurer).apply(target1)
+            one(configurer).apply(target2)
         }
 
         action.from('script')
@@ -90,8 +90,8 @@ public class DefaultObjectConfigurationActionTest {
             one(factory).create(withParam(notNullValue()))
             will(returnValue(configurer))
 
-            one(configurer).use(target1)
-            one(configurer).use(target2)
+            one(configurer).apply(target1)
+            one(configurer).apply(target2)
         }
 
         action.from('script')

@@ -36,13 +36,13 @@ class GroovyPluginTest {
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
 
     @Test public void appliesTheJavaPluginToTheProject() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin));
     }
 
     @Test public void addsGroovyConfigurationToTheProject() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)))
@@ -51,7 +51,7 @@ class GroovyPluginTest {
     }
 
     @Test public void addsGroovyConventionToEachSourceSet() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         def sourceSet = project.sourceSets.main
         assertThat(sourceSet.groovy.displayName, equalTo("main Groovy source"))
@@ -63,7 +63,7 @@ class GroovyPluginTest {
     }
 
     @Test public void addsCompileTaskForEachSourceSet() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         def task = project.tasks['compileGroovy']
         assertThat(task, instanceOf(GroovyCompile.class))
@@ -79,7 +79,7 @@ class GroovyPluginTest {
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeGroovyCompileTasks() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         def task = project.tasks[JavaPlugin.CLASSES_TASK_NAME]
         assertThat(task, dependsOn(hasItem('compileGroovy')))
@@ -89,7 +89,7 @@ class GroovyPluginTest {
     }
     
     @Test public void addsStandardTasksToTheProject() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         def task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
@@ -100,7 +100,7 @@ class GroovyPluginTest {
     }
 
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        groovyPlugin.use(project)
+        groovyPlugin.apply(project)
 
         def task = project.createTask('otherGroovydoc', type: Groovydoc)
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))

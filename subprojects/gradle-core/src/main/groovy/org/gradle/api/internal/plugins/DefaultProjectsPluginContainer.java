@@ -100,7 +100,7 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
 
     private Plugin<Project> providePlugin(Class<? extends Plugin> type) {
         Plugin<Project> plugin = pluginRegistry.loadPlugin(type);
-        plugin.use(project);
+        plugin.apply(project);
         return plugin;
     }
 }

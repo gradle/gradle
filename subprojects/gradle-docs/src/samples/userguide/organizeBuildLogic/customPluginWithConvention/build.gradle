@@ -3,7 +3,7 @@ apply plugin: GreetingPlugin
 greeting = 'Hi from Gradle'
 
 class GreetingPlugin implements Plugin<Project> {
-    def void use(Project project) {
+    def void apply(Project project) {
         project.convention.plugins.greeting = new GreetingPluginConvention()
         project.task('hello') << {
             println project.greeting

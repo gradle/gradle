@@ -78,7 +78,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         URI scriptUri = resolver.resolveUri(script);
         ScriptPlugin configurer = configurerFactory.create(new UriScriptSource("script", scriptUri));
         for (Object target : targets) {
-            configurer.use(target);
+            configurer.apply(target);
         }
     }
 

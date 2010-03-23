@@ -37,7 +37,7 @@ import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
 public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
 
-    public void use(Project project) {
+    public void apply(Project project) {
         project.getPlugins().usePlugin(GroovyBasePlugin.class);
         project.getPlugins().usePlugin(JavaPlugin.class);
 

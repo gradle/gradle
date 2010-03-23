@@ -44,7 +44,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     public static final String BUILD_DEPENDENTS_TASK_NAME = "buildDependents";
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
 
-    public void use(Project project) {
+    public void apply(Project project) {
         project.getPlugins().usePlugin(BasePlugin.class);
         project.getPlugins().usePlugin(ReportingBasePlugin.class);
 

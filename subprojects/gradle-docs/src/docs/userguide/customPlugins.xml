@@ -36,7 +36,7 @@
     </para>
 
     <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
-        Gradle instantiates the plugin and calls the plugin instance's <literal>use()</literal> method when the plugin
+        Gradle instantiates the plugin and calls the plugin instance's <literal>apply()</literal> method when the plugin
         is used with a project. The project
         object is passed as a parameter, which the plugin can use to configure the project however it needs to.
         The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.

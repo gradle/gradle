@@ -31,14 +31,14 @@ public class OsgiPluginTest {
     
     @Test
     public void appliesTheJavaPlugin() {
-        osgiPlugin.use(project);
+        osgiPlugin.apply(project);
 
         assertTrue(project.getPlugins().hasPlugin(JavaPlugin.class));
     }
 
     @Test
     public void addsAnOsgiManifestToEachJar() {
-        osgiPlugin.use(project);
+        osgiPlugin.apply(project);
 
         Task task = project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
         assertThat(task.property("osgi"), is(OsgiManifest.class));

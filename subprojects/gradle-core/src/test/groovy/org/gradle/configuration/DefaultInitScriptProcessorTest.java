@@ -42,7 +42,7 @@ public class DefaultInitScriptProcessorTest {
             one(configurer).setClasspathClosureName("initscript");
             one(configurer).setScriptBaseClass(InitScript.class);
 
-            one(configurer).use(gradleMock);
+            one(configurer).apply(gradleMock);
         }});
 
         DefaultInitScriptProcessor processor = new DefaultInitScriptProcessor(scriptPluginFactory);

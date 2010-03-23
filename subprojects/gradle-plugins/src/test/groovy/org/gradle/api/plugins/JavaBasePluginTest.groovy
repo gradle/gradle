@@ -44,7 +44,7 @@ class JavaBasePluginTest {
     private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin()
 
     @Test public void appliesBasePluginsAndAddsConventionObject() {
-        javaBasePlugin.use(project)
+        javaBasePlugin.apply(project)
 
         assertTrue(project.getPlugins().hasPlugin(ReportingBasePlugin))
         assertTrue(project.getPlugins().hasPlugin(BasePlugin))
@@ -53,7 +53,7 @@ class JavaBasePluginTest {
     }
 
     @Test public void createsTasksAndAppliesMappingsForNewSourceSet() {
-        javaBasePlugin.use(project)
+        javaBasePlugin.apply(project)
 
         project.sourceSets.add('custom')
         def set = project.sourceSets.custom
@@ -84,7 +84,7 @@ class JavaBasePluginTest {
     }
 
     @Test public void appliesMappingsToTasksDefinedByBuildScript() {
-        javaBasePlugin.use(project)
+        javaBasePlugin.apply(project)
 
         def task = project.createTask('customCompile', type: Compile)
         assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
@@ -99,7 +99,7 @@ class JavaBasePluginTest {
     }
 
     @Test public void appliesMappingsToCustomJarTasks() {
-        javaBasePlugin.use(project)
+        javaBasePlugin.apply(project)
 
         def task = project.createTask('customJar', type: Jar)
         assertThat(task, dependsOn())
@@ -108,7 +108,7 @@ class JavaBasePluginTest {
     }
 
     @Test public void createsLifecycleBuildTasks() {
-        javaBasePlugin.use(project)
+        javaBasePlugin.apply(project)
         
         def build = project.tasks[JavaBasePlugin.BUILD_TASK_NAME]
         assertThat(build, dependsOn(JavaBasePlugin.CHECK_TASK_NAME, BasePlugin.ASSEMBLE_TASK_NAME))

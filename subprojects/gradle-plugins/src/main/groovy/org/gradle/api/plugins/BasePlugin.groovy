@@ -34,7 +34,7 @@ class BasePlugin implements Plugin<Project> {
     public static final String CLEAN_TASK_NAME = "clean"
     public static final String ASSEMBLE_TASK_NAME = "assemble"
 
-    public void use(Project project) {
+    public void apply(Project project) {
         project.convention.plugins.base = new BasePluginConvention(project)
 
         configureBuildConfigurationRule(project)

@@ -50,7 +50,7 @@ public class MavenPlugin implements Plugin<Project> {
 
     public static final String INSTALL_TASK_NAME = "install";
 
-    public void use(final Project project) {
+    public void apply(final Project project) {
         setConventionMapping(project);
         addConventionObject(project, new HashMap<String, Object>());
         PluginContainer plugins = project.getPlugins();

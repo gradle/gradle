@@ -38,5 +38,5 @@ public interface ScriptPlugin extends Plugin<Object> {
      *
      * @param target The target object to configure.
      */
-    void use(Object target);
+    void apply(Object target);
 }

@@ -47,7 +47,7 @@ public class EclipsePlugin implements Plugin<Project> {
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseCp";
     public static final String ECLIPSE_WTP_MODULE_TASK_NAME = "eclipseWtpModule";
 
-    public void use(final Project project) {
+    public void apply(final Project project) {
         project.plugins.withType(JavaPlugin.class).allPlugins {
             configureEclipseProjectAndClasspath(project);
             configureEclipseWtpModuleForJavaProjects(project);

@@ -88,7 +88,7 @@ class ScriptEvaluatingSettingsProcessorTest {
 
             one(configurerMock).setClassLoader(urlClassLoader)
             one(configurerMock).setScriptBaseClass(SettingsScript)
-            one(configurerMock).use(expectedSettings)
+            one(configurerMock).apply(expectedSettings)
         }
         
         SettingsLocation settingsLocation = new SettingsLocation(TEST_ROOT_DIR, scriptSourceMock)

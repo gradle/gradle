@@ -38,7 +38,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class OsgiPlugin implements Plugin<Project> {
-    public void use(Project project) {
+    public void apply(Project project) {
         project.getPlugins().usePlugin(JavaPlugin.class);
         Action<Jar> configureAction = createOsgiConfigureAction();
         project.getTasks().withType(Jar.class).allTasks(configureAction);

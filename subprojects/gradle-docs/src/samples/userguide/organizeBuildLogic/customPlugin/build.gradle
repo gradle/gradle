@@ -1,7 +1,7 @@
 apply plugin: GreetingPlugin
 
 class GreetingPlugin implements Plugin<Project> {
-    def void use(Project project) {
+    def void apply(Project project) {
         project.task('hello') << {
             println "Hello from the GreetingPlugin"
         }

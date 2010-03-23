@@ -78,7 +78,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
             return this;
         }
 
-        public void use(Object target) {
+        public void apply(Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
             services.add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());

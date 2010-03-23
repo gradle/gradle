@@ -31,20 +31,20 @@ class CodeQualityPluginTest {
     private final CodeQualityPlugin plugin = new CodeQualityPlugin()
 
     @Test public void appliesReportingBasePlugin() {
-        plugin.use(project)
+        plugin.apply(project)
 
         assertTrue(project.plugins.hasPlugin(ReportingBasePlugin))
     }
 
     @Test public void addsConventionObjectsToProject() {
-        plugin.use(project)
+        plugin.apply(project)
 
         assertThat(project.convention.plugins.javaCodeQuality, instanceOf(JavaCodeQualityPluginConvention))
         assertThat(project.convention.plugins.groovyCodeQuality, instanceOf(GroovyCodeQualityPluginConvention))
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachJavaSourceSet() {
-        plugin.use(project)
+        plugin.apply(project)
 
         project.plugins.usePlugin(JavaPlugin)
         project.checkstyleProperties.someProp = 'someValue'
@@ -79,7 +79,7 @@ class CodeQualityPluginTest {
     }
 
     @Test public void createsTasksAndAppliesMappingsForEachGroovySourceSet() {
-        plugin.use(project)
+        plugin.apply(project)
 
         project.plugins.usePlugin(GroovyPlugin)
 
@@ -112,7 +112,7 @@ class CodeQualityPluginTest {
     }
 
     @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        plugin.use(project)
+        plugin.apply(project)
 
         def task = project.tasks.add('customCheckstyle', Checkstyle)
         assertThat(task.source, nullValue())

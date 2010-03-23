@@ -39,7 +39,7 @@ public class MavenPluginTest {
     @org.junit.Test
     public void applyWithWarPlugin() {
         project.getPlugins().usePlugin(WarPlugin.class);
-        mavenPlugin.use(project);
+        mavenPlugin.apply(project);
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
                 MavenPlugin.PROVIDED_COMPILE_PRIORITY);
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
@@ -61,7 +61,7 @@ public class MavenPluginTest {
     @org.junit.Test
     public void applyWithJavaPlugin() {
         project.getPlugins().usePlugin(JavaPlugin.class);
-        mavenPlugin.use(project);
+        mavenPlugin.apply(project);
         assertHasConfigurationAndMapping(project, JavaPlugin.COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
                 MavenPlugin.COMPILE_PRIORITY);
         assertHasConfigurationAndMapping(project, JavaPlugin.RUNTIME_CONFIGURATION_NAME, Conf2ScopeMappingContainer.RUNTIME,
@@ -78,14 +78,14 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithoutWarPlugin() {
-        mavenPlugin.use(project);
+        mavenPlugin.apply(project);
         assertThat(project.getConfigurations().findByName(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME),
                 nullValue());
     }
 
     @org.junit.Test
     public void applyWithoutJavaPlugin() {
-        mavenPlugin.use(project);
+        mavenPlugin.apply(project);
         assertThat(project.getConfigurations().findByName(JavaPlugin.COMPILE_CONFIGURATION_NAME),
                 nullValue());
     }

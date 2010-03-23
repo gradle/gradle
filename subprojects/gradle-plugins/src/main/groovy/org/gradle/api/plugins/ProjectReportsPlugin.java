@@ -35,7 +35,7 @@ public class ProjectReportsPlugin implements Plugin<Project> {
     public static final String DEPENDENCY_REPORT = "dependencyReport";
     public static final String PROJECT_REPORT = "projectReport";
 
-    public void use(Project project) {
+    public void apply(Project project) {
         project.getPlugins().usePlugin(ReportingBasePlugin.class);
         project.getConvention().getPlugins().put("projectReports", new ProjectReportsPluginConvention(project));
 

@@ -35,7 +35,7 @@ public class BuildScriptProcessor implements ProjectEvaluator {
 
         try {
             ScriptPlugin configurer = configurerFactory.create(project.getBuildScriptSource());
-            configurer.use(project);
+            configurer.apply(project);
         } catch (Exception e) {
             state.executed(e);
         }

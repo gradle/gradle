@@ -34,6 +34,6 @@ public class DefaultInitScriptProcessor implements InitScriptProcessor {
         ScriptPlugin configurer = configurerFactory.create(initScript);
         configurer.setClasspathClosureName("initscript");
         configurer.setScriptBaseClass(InitScript.class);
-        configurer.use(gradle);
+        configurer.apply(gradle);
     }
 }

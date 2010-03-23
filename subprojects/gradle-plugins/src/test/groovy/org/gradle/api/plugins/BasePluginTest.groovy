@@ -43,13 +43,13 @@ class BasePluginTest {
     private final BasePlugin plugin = new BasePlugin()
 
     @Test public void addsConventionObject() {
-        plugin.use(project)
+        plugin.apply(project)
 
         assertThat(project.convention.plugins.base, instanceOf(BasePluginConvention))
     }
 
     @Test public void createsTasksAndAppliesMappings() {
-        plugin.use(project)
+        plugin.apply(project)
 
         def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Delete))
@@ -61,13 +61,13 @@ class BasePluginTest {
     }
 
     @Test public void addsRulesWhenAConfigurationIsAdded() {
-        plugin.use(project)
+        plugin.apply(project)
 
         assertThat(project.tasks.rules.size(), equalTo(2))
     }
 
     @Test public void addsImplicitTasksForConfiguration() {
-        plugin.use(project)
+        plugin.apply(project)
 
         Task producer = [getName: {-> 'producer'}] as Task
         PublishArtifact artifactStub = [getBuildDependencies: {-> new DefaultTaskDependency().add(producer) }] as PublishArtifact
@@ -95,7 +95,7 @@ class BasePluginTest {
     }
 
     @Test public void appliesMappingsForArchiveTasks() {
-        plugin.use(project)
+        plugin.apply(project)
 
         project.version = '1.0'
 
@@ -122,7 +122,7 @@ class BasePluginTest {
     }
 
     @Test public void usesNullVersionWhenProjectVersionNotSpecified() {
-        plugin.use(project)
+        plugin.apply(project)
 
         def task = project.tasks.add('someJar', Jar)
         assertThat(task.version, nullValue())
@@ -134,7 +134,7 @@ class BasePluginTest {
     }
 
     @Test public void addsConfigurationsToTheProject() {
-        plugin.use(project)
+        plugin.apply(project)
 
         assertThat(project.status, equalTo("integration"))
 
