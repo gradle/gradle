@@ -1,0 +1,15 @@
+apply id: 'java'
+
+task myZip(type: Zip) {
+    from 'somedir'
+}
+
+// With no project version specified
+println myZip.archiveName
+println relativePath(myZip.archivePath)
+println relativePath(myZip.destinationDir)
+
+// With a project version specified
+version = 1.0
+println myZip.archiveName
+println relativePath(myZip.archivePath)
