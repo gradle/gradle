@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -99,6 +99,14 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
      */
     public AbstractCopyTask from(Object sourcePath, Closure c) {
         getRootSpec().from(sourcePath, c);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public CopySpec with(CopySpec sourceSpec) {
+        getRootSpec().with(sourceSpec);
         return this;
     }
 

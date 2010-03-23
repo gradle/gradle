@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -445,14 +445,13 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
             }
             task copy(type: Copy) {
                 into 'build/exploded'
-                from distImage
+                with distImage
             }
             task zip(type: Zip) {
                 destinationDir = file('build')
                 archiveName = 'test.zip'
-                into('prefix') {
-                    from distImage
-                }
+                into 'prefix'
+                with distImage
             }
 '''
 

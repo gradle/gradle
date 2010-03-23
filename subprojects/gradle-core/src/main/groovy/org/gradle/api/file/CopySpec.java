@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -80,6 +80,13 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
      * @param caseSensitive true for case-sensitive matching.
      */
     void setCaseSensitive(boolean caseSensitive);
+
+    /**
+     * Adds the given spec as a child of this spec.
+     * @param sourceSpec The spec to add
+     * @return this
+     */
+    CopySpec with(CopySpec sourceSpec);
 
     // CopySourceSpec overrides to broaden return type
 

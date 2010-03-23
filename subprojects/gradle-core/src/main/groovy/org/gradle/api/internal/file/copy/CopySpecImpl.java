@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,6 @@ import java.util.regex.Pattern;
  */
 public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private final FileResolver resolver;
-    private final boolean root;
     private final Set<Object> sourcePaths;
     private Object destDir;
     private final PatternSet patternSet;
@@ -47,30 +46,30 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     private Integer fileMode;
     private Boolean caseSensitive;
 
-    private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec, boolean root) {
+    private CopySpecImpl(FileResolver resolver, CopySpecImpl parentSpec) {
         this.parentSpec = parentSpec;
         this.resolver = resolver;
-        this.root = root;
         sourcePaths = new LinkedHashSet<Object>();
         childSpecs = new ArrayList<ReadableCopySpec>();
         patternSet = new PatternSet();
     }
 
     public CopySpecImpl(FileResolver resolver) {
-        this(resolver, null, true);
+        this(resolver, null);
     }
 
     protected FileResolver getResolver() {
         return resolver;
     }
 
+    public CopySpec with(CopySpec copySpec) {
+        childSpecs.add(new WrapperCopySpec(this, (ReadableCopySpec) copySpec));
+        return this;
+    }
+
     public CopySpec from(Object... sourcePaths) {
         for (Object sourcePath : sourcePaths) {
-            if (sourcePath instanceof ReadableCopySpec) {
-                childSpecs.add(new WrapperCopySpec(this, (ReadableCopySpec) sourcePath));
-            } else {
-                this.sourcePaths.add(sourcePath);
-            }
+            this.sourcePaths.add(sourcePath);
         }
         return this;
     }
@@ -88,13 +87,13 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     private CopySpecImpl addChild() {
-        CopySpecImpl child = new CopySpecImpl(resolver, this, false);
+        CopySpecImpl child = new CopySpecImpl(resolver, this);
         childSpecs.add(child);
         return child;
     }
 
     public CopySpecImpl addNoInheritChild() {
-        CopySpecImpl child = new CopySpecImpl(resolver, null, false);
+        CopySpecImpl child = new CopySpecImpl(resolver, null);
         childSpecs.add(child);
         return child;
     }
@@ -134,9 +133,6 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
     }
 
     public RelativePath getDestPath() {
-        if (root) {
-            return new RelativePath(false);
-        }
         RelativePath parentPath;
         if (parentSpec == null) {
             parentPath = new RelativePath(false);

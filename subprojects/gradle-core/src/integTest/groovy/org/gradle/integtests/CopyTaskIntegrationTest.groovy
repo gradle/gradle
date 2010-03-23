@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -290,6 +290,27 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                 'two/two.a',
                 'three/three.a',
                 'a.jar'
+        )
+    }
+
+    @Test public void testCopyWithCopyspec() {
+        TestFile buildFile = testFile("build.gradle").writelns(
+                """
+                def spec = copySpec {
+                    from 'src'
+                    exclude '**/ignore/**'
+                    include '*/*.a'
+                    into 'subdir'
+                }
+                task copy(type: Copy) {
+                    into 'dest'
+                    with spec
+                }"""
+        )
+        usingBuildFile(buildFile).withTasks("copy").run()
+        testFile('dest').assertHasDescendants(
+                'subdir/one/one.a',
+                'subdir/two/two.a'
         )
     }
 }
