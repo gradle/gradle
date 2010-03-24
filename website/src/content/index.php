@@ -39,7 +39,9 @@
     <h2>Upcoming training</h2>
     <ul>
         <li><a href="http://gradle.biz/training.html">April 29, London</a></li>
+        <li><a href="http://gradle.biz/training.html">May 25, Paris</a></li>
         <li><a href="http://gradle.biz/training.html">July 22, London</a></li>
+        <li><a href="http://gradle.biz/training.html">August 2, Paris</a></li>
         <li><a href="http://gradle.biz/training.html">October 25, London</a></li>
     </ul>
     <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
@@ -48,8 +50,14 @@
 <div id="who_uses" class="homeList">
     <h2>Who uses Gradle?</h2>
     <ul>
-        <li><a href="#">Grails</a></li>
-        <li><a href="#">other project</a></li>
+        <li><a href="http://www.grails.org">Grails</a></li>
+        <li><a href="http://gpars.codehaus.org/">GPars</a></li>
+        <li><a href="http://code.google.com/p/spock/">Spock</a></li>
+        <li><a href="http://gant.codehaus.org/">Gant</a></li>
+        <li><a href="http://code.google.com/p/gmock/">GMock</a></li>
+        <li><a href="http://www.corp.carrier.com">Carrier</a></li>
+        <li><a href="http://www.fcc-fac.ca/">Farm Credit Canada</a></li>
+        <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
     </ul>
 </div>
 
