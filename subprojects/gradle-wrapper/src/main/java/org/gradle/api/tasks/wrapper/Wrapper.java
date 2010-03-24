@@ -20,6 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.gradle.api.*;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GUtil;
 
@@ -59,24 +60,34 @@ public class Wrapper extends DefaultTask {
 
     public enum PathBase { PROJECT, GRADLE_USER_HOME }
 
+    @Input
     private String scriptDestinationPath;
 
+    @Input
     private String jarPath;
 
+    @Input
     private String distributionPath;
 
+    @Input
     private String archiveName;
 
+    @Input
     private String archiveClassifier;
 
+    @Input
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
 
+    @Input
     private String gradleVersion;
 
+    @Input
     private String urlRoot;
 
+    @Input
     private String archivePath;
 
+    @Input
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
 
     private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
@@ -93,9 +104,6 @@ public class Wrapper extends DefaultTask {
 
     @TaskAction
     void generate() {
-        if (scriptDestinationPath == null) {
-            throw new InvalidUserDataException("The scriptDestinationPath property must be specified!");
-        }
         String wrapperDir = GUtil.isTrue(jarPath) ? jarPath + "/" : "";
         new File(getProject().getProjectDir(), wrapperDir).mkdirs();
         String wrapperJar = wrapperDir + WRAPPER_JAR;

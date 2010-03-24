@@ -21,11 +21,9 @@ import org.apache.tools.ant.taskdefs.Jar;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.util.*;
-import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -34,6 +32,9 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -113,6 +114,13 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testExecuteWithNonExistingWrapperJarParentDir() throws IOException {
         checkExecute();
+    }
+
+    @Test
+    public void testCheckInputs() throws IOException {
+        assertThat(wrapper.getInputs().getProperties().keySet(),
+                equalTo(WrapUtil.toSet("jarPath", "archiveClassifier", "distributionBase", "archiveBase",
+                        "distributionPath", "archiveName", "urlRoot", "scriptDestinationPath", "gradleVersion", "archivePath")));
     }
 
     @Test
