@@ -227,8 +227,8 @@ p {
     -moz-border-radius: 10px;
     -webkit-border-radius: 10px;
     background-color: #ff8000;
-    background-image: -moz-linear-gradient(#ff9b37, #ff8000);
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#ff9b37), to(#ff8000));
+    background-image: -moz-linear-gradient(#ffa953, #ff8000);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#ffa953), to(#ff8000));
 }
 
 #rightcolumn {
@@ -275,20 +275,19 @@ p {
 
 #homeColumns {
     position: relative;
+    width: 660px;
 }
 
 #training {
     position: absolute;
     top: 0;
     left: 0;
-    width: 300px;
 }
 
 #who_uses {
     position: absolute;
     top: 0;
-    left: 325px;
-    width: 300px;
+    left: 330px;
 }
 
 #news {
@@ -331,6 +330,10 @@ table.tools td {
 table.tools a {
     display: block;
     margin-top: 0.6em;
+}
+
+.figure-contents {
+    overflow-x: auto;
 }
 
 #footer {

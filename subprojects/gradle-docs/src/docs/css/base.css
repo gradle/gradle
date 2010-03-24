@@ -77,6 +77,10 @@ code, pre {
     font-weight: bold;
 }
 
+.variablelist dt a {
+    font-weight: normal;
+}
+
 /*
  * Examples, Figures
  */

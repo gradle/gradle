@@ -20,14 +20,14 @@
 <div id="gettingstarted">
     <h2>Get started</h2>
     <ol>
-        <li>Download <a href="http://dist.codehaus.org/gradle/gradle-${currentRelease.version}-all.zip" title="gradle-${currentRelease.version}-all.zip">Gradle</a></li>
+        <li>Download <a href="http://dist.codehaus.org/gradle/gradle-${currentRelease.version}-all.zip" title="gradle-${currentRelease.version}-all.zip">${currentRelease.version}</a></li>
         <li>Try the <a href="tutorials.html">tutorials</a></li>
         <li>Read the <a href="documentation.html">documentation</a></li>
         <li>Join the <a href="community.html">community</a></li>
     </ol>
 </div>
 <div id="news" class="homeList">
-    <h2>Recent News</h2>
+    <h2>Recent news</h2>
     <ul>${php.indexNews}</ul>
     <div class="more"><a href="news.php">more news</a></div>
 </div>
@@ -36,12 +36,13 @@
 <div id="homeColumns">
 
 <div id="training" class="homeList">
-    <h2>Upcoming Training</h2>
+    <h2>Upcoming training</h2>
     <ul>
         <li><a href="http://gradle.biz/training.html">April 29, London</a></li>
         <li><a href="http://gradle.biz/training.html">July 22, London</a></li>
         <li><a href="http://gradle.biz/training.html">October 25, London</a></li>
     </ul>
+    <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
 </div>
 
 <div id="who_uses" class="homeList">
