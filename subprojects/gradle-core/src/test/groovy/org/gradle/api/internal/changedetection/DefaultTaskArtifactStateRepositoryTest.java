@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.DefaultTask;
@@ -409,12 +410,12 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenTaskDoesNotAcceptAnyInputs() {
+    public void artifactsAreUpToDateWhenTaskDoesNotAcceptAnyInputs() {
         TaskInternal task = builder().doesNotAcceptInput().task();
         execute(task);
 
         TaskArtifactState state = repository.getStateFor(task);
-        assertFalse(state.isUpToDate());
+        assertTrue(state.isUpToDate());
     }
 
     @Test

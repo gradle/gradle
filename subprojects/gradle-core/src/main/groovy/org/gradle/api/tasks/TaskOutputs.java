@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks;
 
 import groovy.lang.Closure;
@@ -51,12 +52,12 @@ public interface TaskOutputs {
     void upToDateWhen(Spec<? super Task> upToDateSpec);
 
     /**
-     * Returns true if this task can produce output files. Note that a task may be able to produce output files and
+     * Returns true if this task has declared any outputs. Note that a task may be able to produce output files and
      * still have an empty set of output files.
      *
-     * @return true if this task produces output files, otherwise false.
+     * @return true if this task has declared any outputs, otherwise false.
      */
-    boolean getHasOutputFiles();
+    boolean getHasOutput();
 
     /**
      * Returns the output files of this task.
@@ -68,8 +69,16 @@ public interface TaskOutputs {
     /**
      * Registers some output files/directories for this task.
      *
-     * @param paths The output files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object[])}.
+     * @param paths The output files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskOutputs files(Object... paths);
+
+    /**
+     * Registers an output directory for this task.
+     *
+     * @param path The output directory. The given path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @return this
+     */
+    TaskOutputs dir(Object path);
 }

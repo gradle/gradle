@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.tasks
 
 import org.junit.Test
@@ -28,7 +30,7 @@ class DefaultTaskOutputsTest {
     @Test
     public void defaultValues() {
         assertThat(outputs.files.files, isEmpty())
-        assertFalse(outputs.hasOutputFiles)
+        assertFalse(outputs.hasOutput)
     }
 
     @Test
@@ -38,15 +40,21 @@ class DefaultTaskOutputsTest {
     }
 
     @Test
-    public void hasInputFilesWhenEmptyInputFilesRegistered() {
+    public void hasOutputsWhenEmptyOutputFilesRegistered() {
         outputs.files([])
-        assertTrue(outputs.hasOutputFiles)
+        assertTrue(outputs.hasOutput)
     }
     
     @Test
-    public void hasInputFilesWhenNonEmptyInputFilesRegistered() {
+    public void hasOutputsWhenNonEmptyOutputFilesRegistered() {
         outputs.files('a')
-        assertTrue(outputs.hasOutputFiles)
+        assertTrue(outputs.hasOutput)
+    }
+
+    @Test
+    public void hasOutputsWhenUpToDatePredicateRegistered() {
+        outputs.upToDateWhen { false }
+        assertTrue(outputs.hasOutput)
     }
     
     @Test

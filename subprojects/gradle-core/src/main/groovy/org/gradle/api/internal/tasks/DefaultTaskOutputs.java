@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
@@ -46,8 +47,8 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         this.upToDateSpec = this.upToDateSpec.and(upToDateSpec);
     }
 
-    public boolean getHasOutputFiles() {
-        return !outputFiles.getSources().isEmpty();
+    public boolean getHasOutput() {
+        return !outputFiles.getSources().isEmpty() || !upToDateSpec.getSpecs().isEmpty();
     }
 
     public FileCollection getFiles() {
@@ -60,6 +61,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
 
     public TaskOutputs files(Object... paths) {
         outputFiles.from(paths);
+        return this;
+    }
+
+    public TaskOutputs dir(Object path) {
+        files(path);
         return this;
     }
 }

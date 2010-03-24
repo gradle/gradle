@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection;
 
 import org.apache.commons.lang.StringUtils;
@@ -85,13 +86,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public List<String> isUpToDate() {
             List<String> messages = new ArrayList<String>();
-            if (!task.getInputs().getHasInputs()) {
-                messages.add(String.format("%s has not declared any inputs.", StringUtils.capitalize(task.toString())));
-            }
-            if (!task.getOutputs().getHasOutputFiles()) {
+            if (!task.getOutputs().getHasOutput()) {
                 messages.add(String.format("%s has not declared any outputs.", StringUtils.capitalize(task.toString())));
             }
-            assert !messages.isEmpty();
             return messages;
         }
 
@@ -313,7 +310,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public TaskExecution getExecution() {
-            if (!task.getInputs().getHasInputs() || !task.getOutputs().getHasOutputFiles()) {
+            if (!task.getInputs().getHasInputs() || !task.getOutputs().getHasOutput()) {
                 return new NoDeclaredArtifactsExecution(task);
             }
             Set<String> outputFiles = outputFiles(task);

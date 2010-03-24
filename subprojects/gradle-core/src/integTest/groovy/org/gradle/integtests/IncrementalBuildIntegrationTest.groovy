@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -239,17 +241,61 @@ task b(type: org.gradle.integtests.DirTransformerTask) {
     @Test
     public void canUseUpToDatePredicateToForceTaskToExecute() {
         testFile('build.gradle') << '''
-task a(type: org.gradle.integtests.TransformerTask) {
-    inputFile = file('src.txt')
-    outputFile = file('src.a.txt')
-    outputs.upToDateWhen { false }
+task inputsAndOutputs {
+    inputs.files 'src.txt'
+    outputs.files 'src.a.txt'
+    outputs.upToDateWhen { project.hasProperty('uptodate') }
+    doFirst {
+        outputs.files.singleFile.text = "[${inputs.files.singleFile.text}]"
+    }
+}
+task noOutputs {
+    inputs.files 'src.txt'
+    outputs.upToDateWhen { project.hasProperty('uptodate') }
+    doFirst { }
+}
+task nothing {
+    outputs.upToDateWhen { project.hasProperty('uptodate') }
+    doFirst { }
 }
 '''
-        testFile('src.txt').text = 'content'
+        TestFile srcFile = testFile('src.txt')
+        srcFile.text = 'content'
 
-        inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
+        // Task with input files, output files and a predicate
+        inTestDirectory().withTasks('inputsAndOutputs').run().assertTasksExecuted(':inputsAndOutputs').assertTasksSkipped()
 
-        inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
+        // Is up to date
+        inTestDirectory().withArguments('-Puptodate').withTasks('inputsAndOutputs').run().assertTasksExecuted(':inputsAndOutputs').assertTasksSkipped(':inputsAndOutputs')
+
+        // Changed input file
+        srcFile.text = 'different'
+        inTestDirectory().withArguments('-Puptodate').withTasks('inputsAndOutputs').run().assertTasksExecuted(':inputsAndOutputs').assertTasksSkipped()
+
+        // Predicate is false
+        inTestDirectory().withTasks('inputsAndOutputs').run().assertTasksExecuted(':inputsAndOutputs').assertTasksSkipped()
+
+        // Task with input files and a predicate
+        inTestDirectory().withTasks('noOutputs').run().assertTasksExecuted(':noOutputs').assertTasksSkipped()
+
+        // Is up to date
+        inTestDirectory().withArguments('-Puptodate').withTasks('noOutputs').run().assertTasksExecuted(':noOutputs').assertTasksSkipped(':noOutputs')
+
+        // Changed input file
+        srcFile.text = 'different again'
+        inTestDirectory().withArguments('-Puptodate').withTasks('noOutputs').run().assertTasksExecuted(':noOutputs').assertTasksSkipped()
+
+        // Predicate is false
+        inTestDirectory().withTasks('noOutputs').run().assertTasksExecuted(':noOutputs').assertTasksSkipped()
+
+        // Task a predicate only
+        inTestDirectory().withTasks('nothing').run().assertTasksExecuted(':nothing').assertTasksSkipped()
+
+        // Is up to date
+        inTestDirectory().withArguments('-Puptodate').withTasks('nothing').run().assertTasksExecuted(':nothing').assertTasksSkipped(':nothing')
+
+        // Predicate is false
+        inTestDirectory().withTasks('nothing').run().assertTasksExecuted(':nothing').assertTasksSkipped()
     }
 
     @Test
