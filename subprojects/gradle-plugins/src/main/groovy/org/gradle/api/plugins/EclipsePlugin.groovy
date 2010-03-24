@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
@@ -65,9 +67,9 @@ public class EclipsePlugin implements Plugin<Project> {
 
         Delete clean = project.tasks.add(ECLIPSE_CLEAN_TASK_NAME, Delete.class)
         clean.description = "Deletes the Eclipse .project and .classpath files.";
-        clean.from EclipseProject.PROJECT_FILE_NAME
-        clean.from EclipseClasspath.CLASSPATH_FILE_NAME
-        clean.from new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)
+        clean.delete EclipseProject.PROJECT_FILE_NAME
+        clean.delete EclipseClasspath.CLASSPATH_FILE_NAME
+        clean.delete new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)
     }
 
     private EclipseProject configureEclipseProject(Project project) {

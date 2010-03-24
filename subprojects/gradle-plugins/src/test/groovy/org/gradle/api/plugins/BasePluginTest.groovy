@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
@@ -54,7 +56,7 @@ class BasePluginTest {
         def task = project.tasks[BasePlugin.CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Delete))
         assertThat(task, dependsOn())
-        assertThat(task.targets.files, equalTo([project.buildDir] as Set))
+        assertThat(task.targetFiles.files, equalTo([project.buildDir] as Set))
 
         task = project.tasks[BasePlugin.ASSEMBLE_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))

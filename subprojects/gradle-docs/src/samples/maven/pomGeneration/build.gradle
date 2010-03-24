@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 import org.apache.maven.settings.Settings
 
 apply plugin: 'war'
@@ -91,6 +93,6 @@ install.doLast {
 }
 
 clean {
-    from 'pomRepo'
-    from 'snapshotRepo'
+    delete 'pomRepo'
+    delete 'snapshotRepo'
 }

@@ -34,17 +34,17 @@ import java.util.Set;
 public class Delete extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(Delete.class);
 
-    private Set<Object> targets = new LinkedHashSet<Object>();
+    private Set<Object> delete = new LinkedHashSet<Object>();
 
     @TaskAction
     protected void clean() {
         setDidWork(false);
 
-        for (File file : getTargets()) {
+        for (File file : getTargetFiles()) {
             if (!file.exists()) {
                 continue;
             }
-            logger.debug("Deleting dir: {}", file);
+            logger.debug("Deleting {}", file);
             setDidWork(true);
             if (file.isFile()) {
                 GFileUtils.deleteQuietly(file);
@@ -59,8 +59,8 @@ public class Delete extends ConventionTask {
      *
      * @return The files. Never returns null.
      */
-    public FileCollection getTargets() {
-        return getProject().files(getFrom());
+    public FileCollection getTargetFiles() {
+        return getProject().files(getDelete());
     }
 
     /**
@@ -68,8 +68,8 @@ public class Delete extends ConventionTask {
      *
      * @return The files. Never returns null.
      */
-    public Set<Object> getFrom() {
-        return targets;
+    public Set<Object> getDelete() {
+        return delete;
     }
 
     /**
@@ -77,9 +77,9 @@ public class Delete extends ConventionTask {
      *
      * @param target Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      */
-    public void setFrom(Object target) {
-        targets.clear();
-        this.targets.add(target);
+    public void setDelete(Object target) {
+        delete.clear();
+        this.delete.add(target);
     }
 
     /**
@@ -87,9 +87,9 @@ public class Delete extends ConventionTask {
      *
      * @param targets Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      */
-    public Delete from(Object... targets) {
+    public Delete delete(Object... targets) {
         for (Object target : targets) {
-            this.targets.add(target);
+            this.delete.add(target);
         }
         return this;
     }

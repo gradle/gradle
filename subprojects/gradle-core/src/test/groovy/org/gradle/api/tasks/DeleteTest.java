@@ -43,7 +43,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
 
     @Test
     public void defaultValues() {
-        assertTrue(delete.getFrom().isEmpty());
+        assertTrue(delete.getDelete().isEmpty());
     }
 
     @Test
@@ -51,7 +51,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         TestFile dir = tmpDir.getDir();
         dir.file("somefile").createFile();
 
-        delete.from(dir);
+        delete.delete(dir);
         delete.execute();
 
         dir.assertDoesNotExist();
@@ -64,7 +64,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         TestFile file = dir.file("somefile");
         file.createFile();
 
-        delete.from(file);
+        delete.delete(file);
         delete.execute();
 
         file.assertDoesNotExist();
@@ -77,8 +77,8 @@ public class DeleteTest extends AbstractConventionTaskTest {
         TestFile dir = tmpDir.getDir().file("somedir").createDir();
         dir.file("sub/child").createFile();
 
-        delete.from(file);
-        delete.from(dir);
+        delete.delete(file);
+        delete.delete(dir);
         delete.execute();
 
         file.assertDoesNotExist();
@@ -91,7 +91,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         TestFile dir = tmpDir.file("unknown");
         dir.assertDoesNotExist();
 
-        delete.from(dir);
+        delete.delete(dir);
         delete.execute();
 
         assertFalse(delete.getDidWork());

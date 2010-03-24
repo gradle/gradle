@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.plugins
 
 
@@ -58,7 +60,7 @@ public class EclipsePluginTest {
         task = project.tasks[EclipsePlugin.ECLIPSE_CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Delete.class))
         assertThat(task, dependsOn())
-        assertThat(task.from, equalTo([EclipseProject.PROJECT_FILE_NAME, EclipseClasspath.CLASSPATH_FILE_NAME, new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)] as Set))
+        assertThat(task.delete, equalTo([EclipseProject.PROJECT_FILE_NAME, EclipseClasspath.CLASSPATH_FILE_NAME, new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)] as Set))
     }
 
     @Test

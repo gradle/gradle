@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
@@ -67,7 +69,7 @@ class BasePlugin implements Plugin<Project> {
     private void addClean(final Project project) {
         Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete.class)
         clean.description = "Deletes the build directory.";
-        clean.from { project.buildDir }
+        clean.delete { project.buildDir }
     }
 
     private void configureBuildConfigurationRule(final Project project) {
