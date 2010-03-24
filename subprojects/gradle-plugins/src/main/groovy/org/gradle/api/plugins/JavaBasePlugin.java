@@ -45,8 +45,8 @@ public class JavaBasePlugin implements Plugin<Project> {
     public static final String BUILD_NEEDED_TASK_NAME = "buildNeeded";
 
     public void apply(Project project) {
-        project.getPlugins().usePlugin(BasePlugin.class);
-        project.getPlugins().usePlugin(ReportingBasePlugin.class);
+        project.getPlugins().apply(BasePlugin.class);
+        project.getPlugins().apply(ReportingBasePlugin.class);
 
         JavaPluginConvention javaConvention = new JavaPluginConvention(project);
         project.getConvention().getPlugins().put("java", javaConvention);

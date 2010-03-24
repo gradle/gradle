@@ -35,7 +35,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     public static final String SCALA_DEFINE_TASK_NAME = "defineScalaAnt";
 
     public void apply(Project project) {
-        JavaBasePlugin javaPlugin = project.plugins.usePlugin(JavaBasePlugin.class);
+        JavaBasePlugin javaPlugin = project.plugins.apply(JavaBasePlugin.class);
 
         project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME).setVisible(false).setTransitive(true).
                 setDescription("The Scala tools libraries to be used for this Scala project.");

@@ -38,8 +38,8 @@ public class GroovyPlugin implements Plugin<Project> {
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
 
     public void apply(Project project) {
-        project.getPlugins().usePlugin(GroovyBasePlugin.class);
-        project.getPlugins().usePlugin(JavaPlugin.class);
+        project.getPlugins().apply(GroovyBasePlugin.class);
+        project.getPlugins().apply(JavaPlugin.class);
 
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(
                 project.getConfigurations().getByName(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)

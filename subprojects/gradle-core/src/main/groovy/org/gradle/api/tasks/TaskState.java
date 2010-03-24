@@ -59,7 +59,7 @@ public interface TaskState {
     /**
      * Returns a message describing why the task was skipped.
      *
-     * @return the mesages. returns null if the task was not skipped.
+     * @return the message. returns null if the task was not skipped.
      */
     String getSkipMessage();
 }

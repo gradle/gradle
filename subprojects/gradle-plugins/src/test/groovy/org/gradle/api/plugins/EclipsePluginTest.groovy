@@ -43,7 +43,7 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenJavaPluginApplied() {
         plugin.apply(project)
-        project.plugins.usePlugin(JavaPlugin)
+        project.plugins.apply(JavaPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME]
         assertThat(task, dependsOn(EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, EclipsePlugin.ECLIPSE_CP_TASK_NAME))
@@ -66,7 +66,7 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenGroovyPluginApplied() {
         plugin.apply(project)
-        project.plugins.usePlugin(GroovyPlugin)
+        project.plugins.apply(GroovyPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
         assertThat(task, dependsOn())
@@ -78,7 +78,7 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenScalaPluginApplied() {
         plugin.apply(project)
-        project.plugins.usePlugin(ScalaPlugin)
+        project.plugins.apply(ScalaPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
         assertThat(task, dependsOn())
@@ -90,7 +90,7 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenWarPluginApplied() {
         plugin.apply(project)
-        project.plugins.usePlugin(WarPlugin)
+        project.plugins.apply(WarPlugin)
 
         def task = project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME]
         assertThat(task, dependsOn(EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, EclipsePlugin.ECLIPSE_CP_TASK_NAME, EclipsePlugin.ECLIPSE_WTP_TASK_NAME))

@@ -28,13 +28,13 @@ import org.gradle.api.Plugin;
  */
 public interface PluginContainer extends PluginCollection<Plugin> {
     /**
-     * Has the same behavior as {@link #usePlugin(Class)} except that the the plugin is specified via its id. Not all
+     * Has the same behavior as {@link #apply(Class)} except that the the plugin is specified via its id. Not all
      * plugins have an id.
      *
      * @param id The id of the plugin to be used
      * @return The plugin which has been used against the project.
      */
-    Plugin usePlugin(String id);
+    Plugin apply(String id);
 
     /**
      * Uses a plugin against the project. This usually means that the plugin uses the project API to add and modify the
@@ -44,7 +44,7 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * @param type The type of the plugin to be used
      * @return The plugin which has been used against the project.
      */
-    <T extends Plugin> T usePlugin(Class<T> type);
+    <T extends Plugin> T apply(Class<T> type);
 
     /**
      * Returns true if the container has a plugin with the given id, false otherwise.

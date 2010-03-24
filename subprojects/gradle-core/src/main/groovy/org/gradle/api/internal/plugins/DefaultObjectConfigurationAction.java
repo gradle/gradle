@@ -86,7 +86,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof Project) {
                 Project project = (Project) target;
-                project.getPlugins().usePlugin(pluginClass);
+                project.getPlugins().apply(pluginClass);
             } else {
                 throw new UnsupportedOperationException();
             }
@@ -97,7 +97,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         for (Object target : targets) {
             if (target instanceof Project) {
                 Project project = (Project) target;
-                project.getPlugins().usePlugin(pluginName);
+                project.getPlugins().apply(pluginName);
             } else {
                 throw new UnsupportedOperationException();
             }

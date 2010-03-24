@@ -1,5 +1,5 @@
 // START SNIPPET zip
-usePlugin 'java'
+apply plugin: 'java'
 
 task zip(type: Zip) {
     from 'src/dist'
@@ -10,7 +10,7 @@ task zip(type: Zip) {
 // END SNIPPET zip
 
 // START SNIPPET tar
-usePlugin 'java'
+apply plugin: 'java'
 
 task tar(type: Tar) {
     from 'src/dist'

@@ -38,7 +38,7 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithWarPlugin() {
-        project.getPlugins().usePlugin(WarPlugin.class);
+        project.getPlugins().apply(WarPlugin.class);
         mavenPlugin.apply(project);
         assertHasConfigurationAndMapping(project, WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.PROVIDED,
                 MavenPlugin.PROVIDED_COMPILE_PRIORITY);
@@ -60,7 +60,7 @@ public class MavenPluginTest {
 
     @org.junit.Test
     public void applyWithJavaPlugin() {
-        project.getPlugins().usePlugin(JavaPlugin.class);
+        project.getPlugins().apply(JavaPlugin.class);
         mavenPlugin.apply(project);
         assertHasConfigurationAndMapping(project, JavaPlugin.COMPILE_CONFIGURATION_NAME, Conf2ScopeMappingContainer.COMPILE,
                 MavenPlugin.COMPILE_PRIORITY);

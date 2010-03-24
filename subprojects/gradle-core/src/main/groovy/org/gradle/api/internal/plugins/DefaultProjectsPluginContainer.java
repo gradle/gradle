@@ -33,11 +33,11 @@ public class DefaultProjectsPluginContainer extends DefaultPluginCollection<Plug
         this.project = project;
     }
 
-    public Plugin usePlugin(String id) {
+    public Plugin apply(String id) {
         return addPluginInternal(getTypeForId(id));
     }
 
-    public <T extends Plugin> T usePlugin(Class<T> type) {
+    public <T extends Plugin> T apply(Class<T> type) {
         return addPluginInternal(type);
     }
 

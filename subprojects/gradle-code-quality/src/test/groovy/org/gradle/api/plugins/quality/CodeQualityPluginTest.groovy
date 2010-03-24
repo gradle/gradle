@@ -46,7 +46,7 @@ class CodeQualityPluginTest {
     @Test public void createsTasksAndAppliesMappingsForEachJavaSourceSet() {
         plugin.apply(project)
 
-        project.plugins.usePlugin(JavaPlugin)
+        project.plugins.apply(JavaPlugin)
         project.checkstyleProperties.someProp = 'someValue'
 
         def task = project.tasks[CodeQualityPlugin.CHECKSTYLE_MAIN_TASK]
@@ -81,7 +81,7 @@ class CodeQualityPluginTest {
     @Test public void createsTasksAndAppliesMappingsForEachGroovySourceSet() {
         plugin.apply(project)
 
-        project.plugins.usePlugin(GroovyPlugin)
+        project.plugins.apply(GroovyPlugin)
 
         def task = project.tasks[CodeQualityPlugin.CODE_NARC_MAIN_TASK]
         assertThat(task, instanceOf(CodeNarc))

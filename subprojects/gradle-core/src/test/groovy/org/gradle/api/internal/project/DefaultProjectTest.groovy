@@ -13,13 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
-
-
 package org.gradle.api.internal.project
 
 import java.awt.Point
@@ -70,6 +63,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.AsmBackedClassGenerator
+import org.gradle.configuration.ScriptPluginFactory
 
 /**
  * @author Hans Dockter
@@ -186,6 +180,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
             allowing(serviceRegistryMock).get(FileOperations); will(returnValue([:] as FileOperations))
+            allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([:] as ScriptPluginFactory))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
             allowing(build).getProjectEvaluationBroadcaster();
@@ -354,18 +349,17 @@ class DefaultProjectTest {
     }
 
     @Test void testUsePluginWithString() {
-        checkUsePlugin('someplugin')
+        context.checking {
+            one(pluginContainerMock).apply('someplugin'); will(returnValue([:] as Plugin))
+        }
+        project.apply(plugin: 'someplugin')
     }
 
     @Test void testUsePluginWithClass() {
-        checkUsePlugin(Plugin)
-    }
-
-    private void checkUsePlugin(def usePluginArgument) {
         context.checking {
-            one(pluginContainerMock).usePlugin(usePluginArgument); will(returnValue([:] as Plugin))
+            one(pluginContainerMock).apply(Plugin); will(returnValue([:] as Plugin))
         }
-        assertThat(project.usePlugin(usePluginArgument), sameInstance(project))
+        project.apply(plugin: Plugin)
     }
 
     @Test void testEvaluationDependsOn() {

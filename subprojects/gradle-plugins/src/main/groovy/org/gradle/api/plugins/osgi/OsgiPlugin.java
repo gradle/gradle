@@ -39,7 +39,7 @@ import java.util.Set;
  */
 public class OsgiPlugin implements Plugin<Project> {
     public void apply(Project project) {
-        project.getPlugins().usePlugin(JavaPlugin.class);
+        project.getPlugins().apply(JavaPlugin.class);
         Action<Jar> configureAction = createOsgiConfigureAction();
         project.getTasks().withType(Jar.class).allTasks(configureAction);
     }
