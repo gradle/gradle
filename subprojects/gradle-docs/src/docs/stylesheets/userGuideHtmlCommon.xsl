@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -19,13 +19,19 @@
     <xsl:import href="highlighting/common.xsl"/>
     <xsl:import href="html/highlight.xsl"/>
 
-    <xsl:param name="html.stylesheet">style.css</xsl:param>
     <xsl:param name="use.extensions">1</xsl:param>
     <xsl:param name="toc.section.depth">1</xsl:param>
     <xsl:param name="section.autolabel">1</xsl:param>
     <xsl:param name="section.label.includes.component.label">1</xsl:param>
     <xsl:param name="css.decoration">0</xsl:param>
     <xsl:param name="highlight.source" select="1"/>
+
+    <!-- Use custom style sheet content -->
+    <xsl:param name="html.stylesheet">DUMMY</xsl:param>
+    <xsl:template name="output.html.stylesheets">
+        <link href="base.css" rel="stylesheet" type="text/css"/>
+        <link href="style.css" rel="stylesheet" type="text/css"/>
+    </xsl:template>
 
     <xsl:param name="generate.toc">
         book toc,title,example
@@ -39,18 +45,36 @@
         procedure before
     </xsl:param>
 
-    <xsl:template name="body.attributes">
-        <!-- Overridden to remove standard body attributes -->
+    <xsl:template name="customXref">
+        <xsl:param name="target"/>
+        <xsl:param name="content">
+            <xsl:apply-templates select="$target" mode="object.title.markup"/>
+        </xsl:param>
+        <a>
+            <xsl:attribute name="href">
+                <xsl:call-template name="href.target">
+                    <xsl:with-param name="object" select="$target"/>
+                </xsl:call-template>
+            </xsl:attribute>
+            <xsl:attribute name="title">
+                <xsl:apply-templates select="$target" mode="object.title.markup.textonly"/>
+            </xsl:attribute>
+            <xsl:value-of select="$content"/>
+        </a>
     </xsl:template>
 
+    <!-- Overridden to remove standard body attributes -->
+    <xsl:template name="body.attributes">
+    </xsl:template>
+
+    <!-- Overridden to remove title attribute from structural divs -->
     <xsl:template match="book|chapter|appendix|section|tip|note" mode="html.title.attribute">
-        <!-- Overridden to remove title attribute from structural divs -->
     </xsl:template>
 
     <!-- ADMONITIONS -->
 
+    <!-- Overridden to remove style from admonitions -->
     <xsl:param name="admon.style">
-        <!-- Overridden to remove style from admonitions -->
     </xsl:param>
 
     <xsl:template match="tip[@role='exampleLocation']" mode="class.value"><xsl:value-of select="@role"/></xsl:template>
@@ -79,7 +103,7 @@
 
     <!-- CHAPTER/APPENDIX TITLES -->
 
-    <!-- Use an <h1> instead of <h2> -->
+    <!-- Use an <h1> instead of <h2> for chapter titles -->
     <xsl:template name="component.title">
         <h1>
             <xsl:call-template name="anchor">

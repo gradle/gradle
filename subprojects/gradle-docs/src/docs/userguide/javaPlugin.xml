@@ -304,7 +304,7 @@
         <figure>
             <title>Java plugin - tasks</title>
             <imageobject>
-                <imagedata fileref="images/javaPluginTasks.png"/>
+                <imagedata fileref="img/javaPluginTasks.png"/>
             </imageobject>
         </figure>
     </section>
@@ -400,7 +400,7 @@
         <figure>
             <title>Java plugin - dependency configurations</title>
             <imageobject>
-                <imagedata fileref="images/javaPluginConfigurations.png"/>
+                <imagedata fileref="img/javaPluginConfigurations.png"/>
             </imageobject>
         </figure>
     </section>

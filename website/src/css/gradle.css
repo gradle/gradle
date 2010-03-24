@@ -1,154 +1,371 @@
-html {
-    height: 100%;
-    min-height: 100%
-}
-
-body {
-    margin: 0;
-    padding: 0;
-    height: 100%;
-    min-height: 100%
-}
-
-body, td, div {
-    font-family: Arial, Helvetica, sans-serif;
-    font-size: 14px;
-    color: #666666
-}
-
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 h1 {
-    font-size: 26px;
-    font-weight: bold;
-    color: #7aa76d
+    font-size: 200%;
+    margin-top: 1em;
+    margin-bottom: 0.6em;
 }
 
 h2 {
-    font-size: 18px;
-    font-weight: bold;
-    color: #7aa76d
+    font-size: 140%;
+    margin-top: 1em;
+    margin-bottom: 0.2em;
 }
 
 h3 {
-    font-size: 14px;
-    font-weight: bold;
-    color: #7aa76d
+    font-size: 120%;
+    margin-top: 1em;
+    margin-bottom: 0.2em;
 }
 
-a {
-    color: #000000
+p {
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
 }
 
-a:hover {
-    color: #7aa76d;
-    text-decoration: none
+#top {
+    width: 100%;
+    background: white;
 }
 
-#sidebar {
-    position: absolute;
-    top: 80px;
-    left: 0px;
-    width: 180px;
-    background: #7aa76d;
-    min-height: 100%;
-    padding-top: 20px;
-    padding-left: 10px;
-    padding-right: 10px;
-    float: left;
+#bottom {
+    width: 100%;
+    background: #5b7e52 url('../img/footer.png') top left repeat;
+    height: 260px;
+}
+
+#middle {
+    width: 100%;
+    background: #e0e0e0;
+    padding-top: 30px;
+    padding-bottom: 30px;
+}
+
+#headerContainer, .contentContainer, #footerContainer {
+    width: 1130px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+#header, #footer {
+    width: 990px;
+    margin-bottom: 10px;
+    margin-left: 70px;
+    margin-right: 70px;
 }
 
 #header {
-    background: #7aa76d;
-    height: 80px;
-    padding-left: 10px;
-    color: #FFFFFF;
-    clear: both;
     position: relative;
-    white-space: nowrap;
+    height: 100px;
 }
 
-#header table {
-    border-collapse: collapse;
+#header #logo {
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    font-family: Helvetica, sans-serif;
 }
 
-#header td {
-    line-height: 80px;
-    height: 80px;
-    vertical-align: baseline;
-    padding: 0;
-}
-
-#header #quote {
-    color: #a8cc9e;
-    font-size: 32px;
-    font-weight: bold;
-    font-style: italic;
+#header #logo a:hover {
+    text-decoration: none;
 }
 
 #header #title {
-    color: #a8cc9e;
-    font-size: 58px;
-    font-weight: bold;
-    width: 210px;
+    font-size: 41pt;
+    font-weight: bolder;
+    color: #4a9935;
+    line-height: 36pt;
+    font-family: inherit;
 }
 
-#header #title a {
-    color: inherit;
+#header #quote {
+    font-size: 14pt;
+    padding-left: 6px;
+    color: #808080;
+    font-family: inherit;
+}
+
+#header a {
+    color: #4a9935;
     text-decoration: none;
 }
 
-#header #title .a:hover {
-    color: inherit;
+#header a:hover {
+    color: #4a9935;
+    text-decoration: underline;
 }
 
-#content {
-    margin-left: 200px;
-    background-image: url('../img/roundedCorner.gif');
-    background-repeat: no-repeat;
-    padding-left: 20px;
-    padding-right: 20px;
+#navbar {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+}
+
+#navbar ul {
+    padding: 0;
+    margin: 0;
+    white-space: nowrap;
+}
+
+#navbar li {
+    list-style: none;
+    display: inline;
+}
+
+#navbar a {
+    font-weight: bold;
+    color: #444444;
+    text-decoration: none;
+    margin-left: 50px;
+}
+
+#navbar a:hover {
+    color: #444444;
+    text-decoration: underline;
+}
+
+#navbar .selected {
+    color: #327bad;
+}
+
+.contentTop {
+    background: white url('../img/contentTop.png') 0 0 no-repeat;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1130px;
+    height: 40px;
+}
+
+.contentBottom {
+    background: white url('../img/contentBottom.png') 0 0 no-repeat;
+    margin-left: auto;
+    margin-right: auto;
+    width: 1130px;
+    height: 40px;
+}
+
+.contentContainer {
+    margin-left: auto;
+    margin-right: auto;
+    width: 1130px;
+    background: white url('../img/contentMiddle.png') 0 0;
+}
+
+.content {
+    margin-left: 70px;
+    margin-right: 70px;
+    padding-top: 5px;
+    padding-bottom: 30px;
+}
+
+.content h1 {
+    margin-top: 0.2em;
+}
+
+.content a {
+    color: #4a9935;
+    text-decoration: underline;
+}
+
+.content a:hover {
+    color: #4a9935;
+    text-decoration: underline;
+}
+
+#homeTitle {
+    font-size: 300%;
+    margin-top: 0;
+    padding-top: 0.2em;
+    margin-bottom: 0.5em;
+    font-family: Helvetica, sans-serif;
+}
+
+#homeContent {
+    position: relative;
+    width: 100%;
+}
+
+#about {
+    width: 570px;
+    margin-bottom: 2.6em;
+}
+
+#about h2 {
+    margin-top: 1.4em;
+}
+
+#about p {
+    margin-top: 0.2em;
+}
+
+#about .more {
+    padding-top: 1.8em;
+    padding-right: 2.2em;
+}
+
+#about .more a {
+    font-family: Helvetica, sans-serif;
+    font-size: 160%;
+    font-weight: bold;
+    text-decoration: none;
+    color: white;
+    border: solid #ffa953 3px;
+    padding: 0.2em 0.8em;
+    -moz-border-radius: 10px;
+    -webkit-border-radius: 10px;
+    background-color: #ff8000;
+    background-image: -moz-linear-gradient(#ffa953, #ff8000);
+    background-image: -webkit-gradient(linear, left top, left bottom, from(#ffa953), to(#ff8000));
+}
+
+#rightcolumn {
+    position: absolute;
+    top: 26px;
+    right: 0;
+}
+
+#gettingstarted {
+    background: #e4eef5 url('../img/getStartedBottom.png') bottom left no-repeat;
+    width: 335px;
+}
+
+#gettingstarted h2 {
+    background: white url('../img/getStarted.png') 0 0 no-repeat;
+    color: white;
+    margin: 0;
+    height: 31px;
+    padding-left: 25px;
+    padding-right: 25px;
+    padding-bottom: 5px;
+    padding-top: 5px;
+}
+
+#gettingstarted ol {
+    margin: 0;
+    padding: 0;
+    margin-left: 25px;
+    margin-right: 25px;
+    padding-bottom: 1px;
+}
+
+#gettingstarted li {
+    font-size: 120%;
+    font-weight: bold;
+    color: #444444;
+    white-space: nowrap;
+    margin: 0;
+    padding: 0;
+    margin-top: 25px;
+    margin-bottom: 25px;
+    list-style-position: inside;
+}
+
+#homeColumns {
+    position: relative;
+    width: 660px;
+}
+
+#training {
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+#who_uses {
+    position: absolute;
+    top: 0;
+    left: 330px;
+}
+
+#news {
+    margin-top: 40px;
+    width: 310px;
+    padding-left: 25px;
+}
+
+.homeList ul {
+    margin: 0;
+    margin-top: 1em;
+    padding: 0;
+    line-height: 1.4em;
+}
+
+.homeList li {
+    margin-left: 0;
+    margin-top: 0.8em;
+    margin-bottom: 0.8em;
+    list-style: none;
+}
+
+.more {
+    text-align: right;
+    width: 100%;
+}
+
+table.tools {
+    margin-top: 1.5em;
+    width: 70%;
+}
+
+table.tools td {
+    width: 30%;
+    text-align: center;
+    padding-bottom: 1.5em;
+    vertical-align: middle;
+}
+
+table.tools a {
+    display: block;
+    margin-top: 0.6em;
+}
+
+.figure-contents {
+    overflow-x: auto;
+}
+
+#footer {
     padding-top: 20px;
     padding-bottom: 20px;
+    font-size: 90%;
+    line-height: 1.4em;
 }
 
-#sidebar .container {
-    margin-bottom: 30px;
+#footer div {
+    font-size: inherit;
 }
 
-#sidebar .container .headline {
-    border: 1px solid #a4cd98;
-    color: #FFFFFF;
-    font-weight: bold;
-    padding: 5px;
-}
-
-#sidebar .container .entry {
-    margin-top: 8px;
-}
-
-#sidebar .container .entry a {
-    color: #FFFFFF;
-    margin-left: 25px;
+#footer a {
+    color: white;
     text-decoration: none;
 }
 
-#sidebar .container .entry a:hover {
-    color: #000000;
+#footer a:hover {
+    color: white;
+    text-decoration: underline;
 }
 
-.styledTable {
-    border: 1px solid #7aa76d
+#footer .container {
+    width: 165px;
+    float: left;
 }
 
-.styledTable .header td {
-    background: #959595;
-    height: 25px;
-    padding: 0px 10px 0px 10px;
-    color: #FFFFFF;
-    text-align: center
+#footer .container .headline {
+    font-weight: bold;
 }
 
-.styledTable .row td {
-    background: #F4F4F4;
-    height: 25px;
-    padding: 0px 10px 0px 10px;
+#footer .container .entry {
+    padding-top: 5px;
 }

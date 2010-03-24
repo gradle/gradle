@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -57,41 +57,29 @@
         <div>
             <div class="navbar">
                 <xsl:if test="count($prev)>0">
-                    <a>
-                        <xsl:attribute name="href">
-                            <xsl:call-template name="href.target">
-                                <xsl:with-param name="object" select="$prev"/>
-                            </xsl:call-template>
-                        </xsl:attribute>
-                        <xsl:attribute name="title">
-                            <xsl:apply-templates select="$prev" mode="object.title.markup.textonly"/>
-                        </xsl:attribute>
-                        <xsl:text>Previous</xsl:text>
-                    </a>
+                    <xsl:call-template name="customXref">
+                        <xsl:with-param name="target" select="$prev"/>
+                        <xsl:with-param name="content">
+                            <xsl:text>Previous</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
                     <span>|</span>
                 </xsl:if>
+                <xsl:call-template name="customXref">
+                    <xsl:with-param name="target" select="/book"/>
+                    <xsl:with-param name="content">
+                        <xsl:text>Contents</xsl:text>
+                    </xsl:with-param>
+                </xsl:call-template>
                 <xsl:if test="count($next)>0">
-                    <a>
-                        <xsl:attribute name="href">
-                            <xsl:call-template name="href.target">
-                                <xsl:with-param name="object" select="$next"/>
-                            </xsl:call-template>
-                        </xsl:attribute>
-                        <xsl:attribute name="title">
-                            <xsl:apply-templates select="$next" mode="object.title.markup.textonly"/>
-                        </xsl:attribute>
-                        <xsl:text>Next</xsl:text>
-                    </a>
                     <span>|</span>
+                    <xsl:call-template name="customXref">
+                        <xsl:with-param name="target" select="$next"/>
+                        <xsl:with-param name="content">
+                            <xsl:text>Next</xsl:text>
+                        </xsl:with-param>
+                    </xsl:call-template>
                 </xsl:if>
-                <a>
-                    <xsl:attribute name="href">
-                        <xsl:call-template name="href.target">
-                            <xsl:with-param name="object" select="/book"/>
-                        </xsl:call-template>
-                    </xsl:attribute>
-                    <xsl:text>Contents</xsl:text>
-                </a>
             </div>
         </div>
     </xsl:template>

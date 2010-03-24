@@ -4,40 +4,54 @@
 <head>
     <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
     <title>Gradle - ${title}</title>
+    <link href="css/base.css" rel="stylesheet" type="text/css"/>
     <link href="css/gradle.css" rel="stylesheet" type="text/css"/>
 </head>
 
 <body>
 
-${sidebar}
-
-<div id="header">
-    <table>
-        <tr>
-            <td id="title"><span><a href="index.php">Gradle</a></span></td>
-            <td id="quote"><span>A better way to build</span></td>
-        </tr>
-    </table>
+<div id="top">
+    <div id="headerContainer">
+        <div id="header">
+            <div id="logo">
+                <a href="index.php">
+                    <div id="title">Gradle</div>
+                    <div id="quote"><span>a better way to build</span></div>
+                </a>
+            </div>
+            <div id="navbar">
+                <ul>
+<%
+Map urls = new LinkedHashMap()
+urls.HOME = 'index.php'
+urls.DOWNLOADS = 'downloads.html'
+urls.DOCUMENTATION = 'documentation.html'
+urls.COMMUNITY = 'community.html'
+urls.'GRADLE INC.' = 'http://www.gradle.biz'
+for (entry in urls.entrySet() ) {
+%>
+    <li><a href="${entry.value}" class="${fileName == entry.value ? 'selected' : ''}">${entry.key}</a></li>
+<% } %>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="middle">
+    <div class="contentTop"></div>
+    <div class="contentContainer">
+        <div class="content">${content}</div>
+    </div>
+    <div class="contentBottom"></div>
+</div>
+<div id="bottom">
+    <div id="footerContainer">
+        <div id="footer">
+            ${sidebar}
+        </div>
+    </div>
 </div>
 
-<div id="content">
-    ${content}
-</div>
-
-<script type="text/javascript">
-function adjustHeight() {
-    var sidebar = document.getElementById('sidebar');
-    var content = document.getElementById('content');
-    if (sidebar && content) {
-        var sidebarBottom = sidebar.offsetHeight + sidebar.offsetTop;
-        var contentBottom = content.offsetHeight + content.offsetTop;
-        if (sidebarBottom < contentBottom) {
-            sidebar.style.height = String(sidebar.offsetHeight + contentBottom - sidebarBottom) + 'px';
-        }
-    }
-}
-window.onload=adjustHeight;
-</script>
 <script type="text/javascript">
 var gaJsHost = (("https:" == document.location.protocol) ? "https://ssl." : "http://www.");
 document.write(unescape("%3Cscript src='" + gaJsHost + "google-analytics.com/ga.js' type='text/javascript'%3E%3C/script%3E"));

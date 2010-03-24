@@ -30,7 +30,7 @@ gradle --gui
     <figure>
         <title>GUI Task Tree</title>
         <imageobject>
-            <imagedata fileref="images/guiTaskTree.png" width="586px" depth="597px"/>
+            <imagedata fileref="img/guiTaskTree.png" width="586px" depth="597px"/>
         </imageobject>
     </figure>
     <para>It is preferable to run this command from your gradle project directory so that the settings of the UI will be
@@ -88,7 +88,7 @@ gradle --gui
         <figure>
             <title>GUI Setup</title>
             <imageobject>
-                <imagedata fileref="images/guiSetup.png" width="586px" depth="597px"/>
+                <imagedata fileref="img/guiSetup.png" width="586px" depth="597px"/>
             </imageobject>
         </figure>
 

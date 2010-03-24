@@ -5,12 +5,14 @@ For the Groovy parts of Gradle you have to look directly into the <a href="sourc
 information you want. The source code is also part of the Gradle distribution. With our next release we will provide
 complete API documentation.
 
-<h2>Current Release (${currentRelease})</h2>
+<% releases.each { release -> %>
+<h2>${release.title} (${release.version})</h2>
 <ul>
-    <li><a href="${currentRelease}/docs/javadoc">Javadoc API documentation</a></li>
-    <li><a href="${currentRelease}/docs/groovydoc">Groovydoc API documentation</a></li>
+    <li><a href="${release.version}/docs/javadoc">Javadoc API documentation</a></li>
+    <li><a href="${release.version}/docs/groovydoc">Groovydoc API documentation</a></li>
 </ul>
-
+<% } %>
+        
 <h2>Latest (as usually uploaded by the latest successful nightly build)</h2>
 <ul>
     <li><a href="latest/docs/javadoc">Javadoc API documentation</a></li>

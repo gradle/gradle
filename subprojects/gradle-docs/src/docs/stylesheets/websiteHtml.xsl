@@ -13,24 +13,32 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<xsl:stylesheet
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform"
-        xmlns:xi="http://www.w3.org/2001/XInclude"
-        version="1.0">
-    <xsl:import href="html/docbook.xsl"/>
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+    <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
     <xsl:param name="section.autolabel">0</xsl:param>
     <xsl:param name="chapter.autolabel">0</xsl:param>
     <xsl:param name="appendix.autolabel">0</xsl:param>
+    <xsl:param name="root.filename">userguide</xsl:param>
+    <xsl:param name="chunk.section.depth">0</xsl:param>
+    <xsl:param name="chunk.quietly">1</xsl:param>
+    <xsl:param name="use.id.as.filename">1</xsl:param>
 
-    <xsl:template name="output.html.stylesheets">
+    <!-- Override this to remove all the html decorations from each page -->
+    <xsl:template name="chunk-element-content">
+        <xsl:param name="prev"/>
+        <xsl:param name="next"/>
+        <xsl:param name="nav.context"/>
+        <xsl:param name="content">
+            <xsl:apply-imports/>
+        </xsl:param>
+
+        <xsl:copy-of select="$content"/>
     </xsl:template>
 
-    <xsl:template name="user.head.content">
-        <style type="text/css">
-            <xi:include href="base.css" parse="text"/>
-            <xi:include href="style.css" parse="text"/>
-        </style>
+    <!-- Override this to remove markup from xref links -->
+    <xsl:template match="chapter|appendix|section" mode="object.xref.markup">
+        <xsl:value-of select="title"/>
     </xsl:template>
 </xsl:stylesheet>
