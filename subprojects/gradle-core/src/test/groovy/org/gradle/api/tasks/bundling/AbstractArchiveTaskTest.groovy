@@ -28,7 +28,7 @@ import static org.junit.Assert.*
 abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
 
     FileResolver resolver = [resolve: {it as File}] as FileResolver
-    
+
     abstract AbstractArchiveTask getArchiveTask()
 
     ConventionTask getTask() {
@@ -52,6 +52,38 @@ abstract class AbstractArchiveTaskTest extends AbstractConventionTaskTest {
         assertTrue(archiveTask.destinationDir.isDirectory())
         assertTrue(archiveTask.archivePath.isFile())
     }
+
+    @Test public void testArchiveNameWithEmptyExtension() {
+        archiveTask.extension = null
+        assertEquals("testbasename-testappendix-1.0-src".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testArchiveNameWithEmptyBasename() {
+        archiveTask.baseName = null
+        assertEquals("testappendix-1.0-src.${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testArchiveNameWithEmptyBasenameAndAppendix() {
+        archiveTask.baseName = null
+        archiveTask.appendix = null
+        assertEquals("1.0-src.${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testArchiveNameWithEmptyBasenameAndAppendixAndVersion() {
+        archiveTask.baseName = null
+        archiveTask.appendix = null
+        archiveTask.version = null
+        assertEquals("src.${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
+    @Test public void testArchiveNameWithEmptyBasenameAndAppendixAndVersionAndClassifier() {
+        archiveTask.baseName = null
+        archiveTask.appendix = null
+        archiveTask.version = null
+        archiveTask.classifier = null
+        assertEquals(".${archiveTask.extension}".toString(), archiveTask.archiveName)
+    }
+
 
     @Test public void testArchiveNameWithEmptyClassifier() {
         archiveTask.classifier = null

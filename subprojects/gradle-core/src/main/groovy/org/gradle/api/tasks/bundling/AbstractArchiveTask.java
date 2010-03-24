@@ -45,8 +45,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         if (customName != null) {
             return customName;
         }
-        return getBaseName() + maybe(getAppendix()) + maybe(getVersion()) + maybe(getClassifier()) + "."
-                + getExtension();
+        String name = GUtil.elvis(getBaseName(), "") + maybe(getBaseName(), getAppendix());
+        name += maybe(name, getVersion());
+        name += maybe(name, getClassifier());
+        name += GUtil.isTrue(getExtension()) ? "." + getExtension() : "";
+        return name;
     }
 
     /**
@@ -58,9 +61,13 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
         customName = name;
     }
 
-    private String maybe(String value) {
+    private String maybe(String prefix, String value) {
         if (GUtil.isTrue(value)) {
-            return String.format("-%s", value);
+            if (GUtil.isTrue(prefix)) {
+                return String.format("-%s", value);
+            } else {
+                return value;
+            }
         }
         return "";
     }
