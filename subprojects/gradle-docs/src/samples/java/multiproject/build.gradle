@@ -12,7 +12,10 @@ subprojects {
     }
 
     version = '1.0'
-    manifest.mainAttributes(provider: 'gradle')
+
+    jar {
+        manifest.attributes provider: 'gradle'
+    }
 }
 
 dependsOnChildren()

@@ -18,10 +18,13 @@ package org.gradle.api.plugins
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.tasks.bundling.GradleManifest
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.java.archives.Manifest
+import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -38,24 +41,28 @@ class JavaPluginConvention {
     final SourceSetContainer sourceSets
     private JavaVersion srcCompat
     private JavaVersion targetCompat
-    GradleManifest manifest
+
+    @Deprecated
     List metaInf
+
+    @Deprecated
+    DefaultManifest manifest
 
     JavaPluginConvention(Project project) {
         this.project = project
         sourceSets = new DefaultSourceSetContainer(project.fileResolver, project.tasks, project.serviceRegistryFactory.get(ClassGenerator))
-        manifest = new GradleManifest()
-        metaInf = []
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'
         testResultsDirName = 'test-results'
         testReportDirName = 'tests'
+        manifest = manifest();
+        metaInf = []
     }
 
     def sourceSets(Closure closure) {
         sourceSets.configure(closure)
     }
-    
+
     File mkdir(File parent = null, String name) {
         if (!name) {throw new InvalidUserDataException('You must specify the name of the directory')}
         File baseDir = parent ?: project.buildDir
@@ -85,7 +92,7 @@ class JavaPluginConvention {
     }
 
     JavaVersion getSourceCompatibility() {
-        srcCompat ?: JavaVersion.VERSION_1_5
+            srcCompat ?: JavaVersion.VERSION_1_5
     }
 
     void setSourceCompatibility(def value) {
@@ -93,10 +100,19 @@ class JavaPluginConvention {
     }
 
     JavaVersion getTargetCompatibility() {
-        targetCompat ?: sourceCompatibility
+            targetCompat ?: sourceCompatibility
     }
 
     void setTargetCompatibility(def value) {
         targetCompat = JavaVersion.toVersion(value)
+    }
+
+    public Manifest manifest() {
+        return manifest(null);
+    }
+
+    public Manifest manifest(Closure closure) {
+        return ConfigureUtil.configure(closure, new DefaultManifest(((ProjectInternal) getProject()).fileResolver),
+                Closure.DELEGATE_FIRST);
     }
 }

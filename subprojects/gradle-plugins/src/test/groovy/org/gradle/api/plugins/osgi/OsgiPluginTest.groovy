@@ -15,35 +15,33 @@
  */
 package org.gradle.api.plugins.osgi;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-import org.junit.Test;
-import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.tasks.bundling.Jar;
-import org.gradle.util.HelperUtil;
 
-// todo Make test stronger
-public class OsgiPluginTest {
+import org.gradle.api.Project
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
+import org.gradle.api.tasks.SourceSet
+
+public class OsgiPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
     private final OsgiPlugin osgiPlugin = new OsgiPlugin();
     
-    @Test
     public void appliesTheJavaPlugin() {
         osgiPlugin.apply(project);
 
-        assertTrue(project.getPlugins().hasPlugin(JavaPlugin.class));
+        expect:
+        project.plugins.hasPlugin('java-base')
+        project.convention.plugins.osgi instanceof OsgiPluginConvention
     }
 
-    @Test
-    public void addsAnOsgiManifestToEachJar() {
+    public void addsAnOsgiManifestToTheDefaultJar() {
+        project.apply(plugin: 'java')
         osgiPlugin.apply(project);
-
-        Task task = project.getTasks().getByName(JavaPlugin.JAR_TASK_NAME);
-        assertThat(task.property("osgi"), is(OsgiManifest.class));
-
-        task = project.getTasks().add("otherJar", Jar.class);
-        assertThat(task.property("osgi"), is(OsgiManifest.class));
+        
+        expect:
+        OsgiManifest osgiManifest = project.jar.manifest
+        osgiManifest.mergeSpecs[0].mergePaths[0] == project.manifest
+        osgiManifest.classpath == project.configurations."$JavaPlugin.RUNTIME_CONFIGURATION_NAME"
+        osgiManifest.classesDir == project.sourceSets."$SourceSet.MAIN_SOURCE_SET_NAME".classesDir
     }
 }

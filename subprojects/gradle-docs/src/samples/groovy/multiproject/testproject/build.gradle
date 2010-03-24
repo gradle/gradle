@@ -24,8 +24,12 @@ compileGroovy {
     groovyOptions.fork(memoryMaximumSize: '128M')
 }
 
-manifest.mainAttributes(myprop: 'myvalue')
-metaInf << fileTree(dir: 'src/metaInfFiles')
+jar {
+    manifest.attributes(myprop: 'myvalue')
+    metaInf {
+        from 'src/metaInfFiles'
+    }
+}
 
 test {
 	systemProperties['org.gradle.integtest.buildDir'] = buildDir.absolutePath

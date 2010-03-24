@@ -15,24 +15,23 @@
  */
 package org.gradle.api.internal.file
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.gradle.api.internal.tasks.TaskResolver
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
-import org.gradle.util.TestFile
 import org.gradle.api.PathValidation
 import org.gradle.api.file.FileTree
+import org.gradle.api.internal.file.archive.TarFileTree
+import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.CopySpecImpl
-import org.gradle.api.internal.file.archive.ZipFileTree
-import org.gradle.api.internal.file.archive.TarFileTree
+import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
+import org.jmock.integration.junit4.JMock
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.assertFalse
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
 public class DefaultFileOperationsTest {
@@ -98,7 +97,7 @@ public class DefaultFileOperationsTest {
     @Test
     public void createsFileTreeFromClosure() {
         TestFile baseDir = expectPathResolved('base')
-        
+
         def fileTree = fileOperations.fileTree { from 'base' }
         assertThat(fileTree, instanceOf(FileTree.class))
         assertThat(fileTree.dir, equalTo(baseDir))
@@ -128,12 +127,12 @@ public class DefaultFileOperationsTest {
             one(resolver).resolve('dir')
             will(returnValue(tmpDir.getDir()))
         }
-        
+
         def result = fileOperations.copy { from 'file'; into 'dir' }
         assertThat(result, instanceOf(CopyActionImpl.class))
         assertFalse(result.didWork)
     }
-    
+
     @Test
     public void createsCopySpec() {
         def spec = fileOperations.copySpec { include 'pattern'}

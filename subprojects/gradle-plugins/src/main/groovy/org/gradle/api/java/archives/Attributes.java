@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,30 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.java.archives;
 
-package org.gradle.api.tasks.bundling
-
-import org.junit.Before
-import static org.junit.Assert.*
-import org.junit.Test
+import java.util.Map;
 
 /**
  * @author Hans Dockter
  */
-class JarTest extends AbstractArchiveTaskTest {
-    Jar jar
-
-    @Before public void setUp()  {
-        super.setUp()
-        jar = createTask(Jar)
-        configure(jar)
-    }
-
-    AbstractArchiveTask getArchiveTask() {
-        jar
-    }
-
-    @Test public void testJar() {
-        assertEquals(Jar.DEFAULT_EXTENSION, jar.extension)
-    }
+public interface Attributes extends Map<String, Object> {
+    
 }

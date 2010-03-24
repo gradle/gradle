@@ -42,6 +42,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Set;
+import java.util.concurrent.Callable;
 
 
 /**
@@ -148,16 +149,22 @@ public class JavaPlugin implements Plugin<Project> {
 
     private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
         project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(TEST_TASK_NAME);
-
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
+        jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Generates a jar archive with all the compiled classes.");
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses());
+        jar.getMetaInf().from(new Callable() {
+            public Object call() throws Exception {
+                return pluginConvention.getMetaInf();
+            }
+        });
+
         project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION).addArtifact(new ArchivePublishArtifact(
                 jar));
     }
 
     private void configureBuild(Project project) {
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), 
+        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME),
                 true, JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
         addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME),
                 false, JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
@@ -210,11 +217,11 @@ public class JavaPlugin implements Plugin<Project> {
      * project lib dependencies using the specified configuration name. These may be projects this project depends on or
      * projects that depend on this project based on the useDependOn argument.
      *
-     * @param task Task to add dependencies to
-     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend
-     * on this one.
+     * @param task                 Task to add dependencies to
+     * @param useDependedOn        if true, add tasks from projects this project depends on, otherwise use projects that depend
+     *                             on this one.
      * @param otherProjectTaskName name of task in other projects
-     * @param configurationName name of configuration to use to find the other projects
+     * @param configurationName    name of configuration to use to find the other projects
      */
     private void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName,
                                                  String configurationName) {

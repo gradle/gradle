@@ -16,8 +16,10 @@
 package org.gradle.api.internal.plugins.osgi;
 
 import aQute.lib.osgi.Analyzer;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.osgi.OsgiManifest;
-import org.gradle.api.tasks.bundling.GradleManifest;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
@@ -30,7 +32,7 @@ import java.util.jar.Manifest;
 /**
  * @author Hans Dockter
  */
-public class DefaultOsgiManifest implements OsgiManifest {
+public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest {
     private String symbolicName;
     private String name;
     private String version;
@@ -45,22 +47,30 @@ public class DefaultOsgiManifest implements OsgiManifest {
 
     private Map<String, List<String>> instructions = new HashMap<String, List<String>>();
 
-    private List<File> classpath = new ArrayList<File>();
+    private FileCollection classpath;
 
-    private List<String> classpathTypes = WrapUtil.toList("zip", "jar");
-
-    public DefaultOsgiManifest() {
-        super();
+    public DefaultOsgiManifest(FileResolver fileResolver) {
+        super(fileResolver);
     }
 
-    public Manifest generateManifest() {
+    public DefaultOsgiManifest(org.apache.tools.ant.taskdefs.Manifest manifest, FileResolver fileResolver) {
+        super(manifest, fileResolver);
+    }
+
+    @Override
+    public DefaultManifest getEffectiveManifest() {
+        DefaultManifest manifest = super.getEffectiveManifest();
         ContainedVersionAnalyzer analyzer = analyzerFactory.createAnalyzer();
         try {
             setAnalyzerProperties(analyzer);
-            return analyzer.calcManifest();
+            Manifest osgiManifest = analyzer.calcManifest();
+            for (Map.Entry<Object, Object> entry : osgiManifest.getMainAttributes().entrySet()) {
+                manifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
+            }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+        return manifest;
     }
 
     private void setAnalyzerProperties(Analyzer analyzer) throws IOException {
@@ -75,7 +85,7 @@ public class DefaultOsgiManifest implements OsgiManifest {
         setProperty(analyzer, Analyzer.BUNDLE_VENDOR, getVendor());
         setProperty(analyzer, Analyzer.BUNDLE_DOCURL, getDocURL());
         analyzer.setJar(getClassesDir());
-        analyzer.setClasspath(getClasspath().toArray(new File[getClasspath().size()]));
+        analyzer.setClasspath(getClasspath().getFiles().toArray(new File[getClasspath().getFiles().size()]));
     }
 
     private void setProperty(Analyzer analyzer, String key, String value) {
@@ -181,17 +191,11 @@ public class DefaultOsgiManifest implements OsgiManifest {
         this.classesDir = classesDir;
     }
 
-    public OsgiManifest overwrite(GradleManifest manifest) {
-        manifest.setBaseManifest(new Manifest());
-        manifest.setManifest(generateManifest());
-        return this;
-    }
-
-    public List<File> getClasspath() {
+    public FileCollection getClasspath() {
         return classpath;
     }
 
-    public void setClasspath(List<File> classpath) {
+    public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
 
@@ -201,13 +205,5 @@ public class DefaultOsgiManifest implements OsgiManifest {
 
     public void setAnalyzerFactory(AnalyzerFactory analyzerFactory) {
         this.analyzerFactory = analyzerFactory;
-    }
-
-    public List<String> getClasspathTypes() {
-        return classpathTypes;
-    }
-
-    public void setClasspathTypes(List<String> classpathTypes) {
-        this.classpathTypes = classpathTypes;
     }
 }

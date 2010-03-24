@@ -104,7 +104,6 @@ class JavaBasePluginTest {
         def task = project.createTask('customJar', type: Jar)
         assertThat(task, dependsOn())
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.manifest, notNullValue())
     }
 
     @Test public void createsLifecycleBuildTasks() {

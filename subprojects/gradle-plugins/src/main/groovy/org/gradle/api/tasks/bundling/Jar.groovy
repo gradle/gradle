@@ -17,39 +17,50 @@
 package org.gradle.api.tasks.bundling
 
 import org.gradle.api.file.CopySpec
-import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.MapFileTree
+import org.gradle.api.java.archives.internal.DefaultManifest
+import org.gradle.util.ConfigureUtil
 
 /**
 * @author Hans Dockter
 */
+
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 
-    private GradleManifest manifest
+    private DefaultManifest manifest
 
     private final CopySpec metaInf
 
     Jar() {
         extension = DEFAULT_EXTENSION
+        manifest = new DefaultManifest(project.fileResolver)
         // Add these as separate specs, so they are not affected by the changes to the root spec
         metaInf = getCopyAction().addNoInheritChild().into('META-INF')
         getCopyAction().addNoInheritChild().into('META-INF').from {
             MapFileTree manifestSource = new MapFileTree(new File(project.buildDir, "tmp/$name"))
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
-                GradleManifest manifest = getManifest() ?: new GradleManifest()
-                manifest.createManifest().write(outstr)
+                DefaultManifest manifest = getManifest() ?: new DefaultManifest(null)
+                manifest.writeTo(new OutputStreamWriter(outstr))
             }
             manifestSource
         }
-    }   
+    }
 
-    public GradleManifest getManifest() {
+    public DefaultManifest getManifest() {
         return manifest;
     }
 
-    public void setManifest(GradleManifest manifest) {
+    public void setManifest(DefaultManifest manifest) {
         this.manifest = manifest;
+    }
+
+    public Jar manifest(Closure configureClosure) {
+        if (getManifest() == null) {
+            manifest = new DefaultManifest(project.fileResolver)
+        }
+        ConfigureUtil.configure(configureClosure, getManifest());
+        return this;
     }
 
     public CopySpec getMetaInf() {

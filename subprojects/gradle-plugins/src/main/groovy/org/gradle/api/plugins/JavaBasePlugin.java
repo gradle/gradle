@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
@@ -22,8 +21,6 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
-import org.gradle.api.tasks.bundling.GradleManifest;
-import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.AbstractTestTask;
@@ -31,7 +28,6 @@ import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * <p>A {@link org.gradle.api.Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -56,7 +52,7 @@ public class JavaBasePlugin implements Plugin<Project> {
 
         configureJavaDoc(project);
         configureTest(project);
-        configureArchives(project, javaConvention);
+        configureCheck(project);
         configureBuild(project);
         configureBuildNeeded(project);
         configureBuildDependents(project);
@@ -170,22 +166,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
     }
 
-    private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Jar.class).allTasks(new Action<Jar>() {
-            public void execute(Jar task) {
-                task.getConventionMapping().map("manifest", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new GradleManifest(pluginConvention.getManifest().getManifest());
-                    }
-                });
-                task.getMetaInf().from(new Callable() {
-                    public Object call() throws Exception {
-                        return pluginConvention.getMetaInf();
-                    }
-                });
-            }
-        });
-
+    private void configureCheck(final Project project) {
         Task checkTask = project.getTasks().add(CHECK_TASK_NAME);
         checkTask.setDescription("Runs all checks.");
     }

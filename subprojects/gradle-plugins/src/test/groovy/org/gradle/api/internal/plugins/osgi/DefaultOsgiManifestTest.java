@@ -16,21 +16,26 @@
 package org.gradle.api.internal.plugins.osgi;
 
 import aQute.lib.osgi.Analyzer;
-import org.gradle.api.tasks.bundling.GradleManifest;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.jar.Manifest;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -44,29 +49,24 @@ public class DefaultOsgiManifestTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private Manifest testManifest;
+    private Map<String, String> testAttributes = WrapUtil.toMap("someName", "someValue");
+    private FileResolver fileResolver = context.mock(FileResolver.class);
 
     @Before
     public void setUp() {
-        osgiManifest = new DefaultOsgiManifest();
+        osgiManifest = new DefaultOsgiManifest(fileResolver);
         analyzerFactoryMock = context.mock(AnalyzerFactory.class);
         analyzerMock = context.mock(ContainedVersionAnalyzer.class);
         context.checking(new Expectations() {{
             allowing(analyzerFactoryMock).createAnalyzer(); will(returnValue(analyzerMock));
         }});
         osgiManifest.setAnalyzerFactory(analyzerFactoryMock);
-        initTestManifest();
     }
 
     @Test
     public void init() {
         assertEquals(0, osgiManifest.getInstructions().size());
         assertNotNull(osgiManifest.getAnalyzerFactory());
-    }
-
-    private void initTestManifest() {
-        testManifest = new Manifest();
-        testManifest.getMainAttributes().putValue("someName", "someValue");
     }
 
     @Test
@@ -124,22 +124,28 @@ public class DefaultOsgiManifestTest {
     }
 
     @Test
-    public void generate() throws Exception {
+    public void getEffectiveManifest() throws Exception {
         setUpOsgiManifest();
         prepareMock();
-        assertEquals(testManifest, osgiManifest.generateManifest());
+
+        DefaultManifest manifest = osgiManifest.getEffectiveManifest();
+        DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(testAttributes);
+        assertThat(manifest.getAttributes(), Matchers.equalTo(expectedManifest.getAttributes()));
+        assertThat(manifest.getSections(), Matchers.equalTo(expectedManifest.getSections()));
     }
 
     @Test
-    public void overwrite() throws Exception {
+    public void merge() throws Exception {
         setUpOsgiManifest();
         prepareMock();
-        GradleManifest gradleManifest = new GradleManifest(new Manifest());
-        gradleManifest.getBaseManifest().getMainAttributes().putValue("somekey", "somevalue");
-        gradleManifest.mainAttributes(WrapUtil.toMap("somekey2", "somevalue2"));
-        osgiManifest.overwrite(gradleManifest);
-        assertEquals(new Manifest(), gradleManifest.getBaseManifest());
-        assertEquals(testManifest, gradleManifest.getManifest());
+        DefaultManifest otherManifest = new DefaultManifest(fileResolver);
+        otherManifest.mainAttributes(WrapUtil.toMap("somekey", "somevalue"));
+        osgiManifest.from(otherManifest);
+        DefaultManifest expectedManifest = new DefaultManifest(fileResolver);
+        expectedManifest.attributes(testAttributes);
+        expectedManifest.attributes(otherManifest.getAttributes());
+
+        assertTrue(osgiManifest.getEffectiveManifest().isEqualsTo(expectedManifest));
     }
 
     @Test
@@ -147,28 +153,26 @@ public class DefaultOsgiManifestTest {
         setUpOsgiManifest();
         prepareMockForNullTest();
         osgiManifest.setVersion(null);
-        osgiManifest.generateManifest();
+        osgiManifest.getEffectiveManifest();
     }
 
     private void setUpOsgiManifest() throws IOException {
-        String testSymbolicName = "symbolic";
-        String testName = "myName";
-        String testVersion = "myVersion";
-        String testDescription = "myDescription";
-        String testLicense = "myLicense";
-        String testVendor = "myVendor";
-        String testDocURL = "myDocUrl";
-        String[] testExportPackages = {"pack1", "pack2"};
-        String[] testImportPackages = {"pack3", "pack4"};
-        osgiManifest.setSymbolicName(testSymbolicName);
-        osgiManifest.setName(testName);
-        osgiManifest.setVersion(testVersion);
-        osgiManifest.setDescription(testDescription);
-        osgiManifest.setLicense(testLicense);
-        osgiManifest.setVendor(testVendor);
-        osgiManifest.setDocURL(testDocURL);
-        osgiManifest.instruction(Analyzer.EXPORT_PACKAGE, testExportPackages);
-        osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, testImportPackages);
+        final FileCollection fileCollection = context.mock(FileCollection.class);
+        context.checking(new Expectations() {{
+            allowing(fileCollection).getFiles();
+            will(returnValue(WrapUtil.toSet(new File("someFile"))));
+        }});
+        osgiManifest.setSymbolicName("symbolic");
+        osgiManifest.setName("myName");
+        osgiManifest.setVersion("myVersion");
+        osgiManifest.setDescription("myDescription");
+        osgiManifest.setLicense("myLicense");
+        osgiManifest.setVendor("myVendor");
+        osgiManifest.setDocURL("myDocUrl");
+        osgiManifest.instruction(Analyzer.EXPORT_PACKAGE, new String[] {"pack1", "pack2"});
+        osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, new String[] {"pack3", "pack4"});
+        osgiManifest.setClasspath(fileCollection);
+        osgiManifest.setClassesDir(new File("someDir"));
     }
 
     private void prepareMock() throws Exception {
@@ -189,7 +193,10 @@ public class DefaultOsgiManifestTest {
             one(analyzerMock).setProperty(Analyzer.EXPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE), ","));
             one(analyzerMock).setProperty(Analyzer.IMPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE), ","));
             one(analyzerMock).setJar(osgiManifest.getClassesDir());
-            one(analyzerMock).setClasspath(osgiManifest.getClasspath().toArray(new File[osgiManifest.getClasspath().size()]));
+            one(analyzerMock).setClasspath(osgiManifest.getClasspath().getFiles().toArray(new File[osgiManifest.getClasspath().getFiles().size()]));
+            Manifest testManifest = new Manifest();
+            testManifest.getMainAttributes().putValue(testAttributes.keySet().iterator().next(),
+                    testAttributes.values().iterator().next());
             allowing(analyzerMock).calcManifest(); will(returnValue(testManifest));
         }});
     }

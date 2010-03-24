@@ -15,25 +15,22 @@
  */
 package org.gradle.api.plugins.osgi;
 
-import org.gradle.api.tasks.bundling.GradleManifest;
+import org.gradle.api.file.FileCollection;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.jar.Manifest;
 
 /**
  * @author Hans Dockter
  */
-public interface OsgiManifest {
-    Manifest generateManifest();
-
+public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     /**
      * Returns the list of arguments for a particular instruction.
      *
      * @param instructionName
      * @return The list of arguments
-     * @see #instruction(String, String[])
+     * @see #instruction(String, String...)
      */
     List<String> instructionValue(String instructionName);
 
@@ -44,7 +41,7 @@ public interface OsgiManifest {
      * @param name
      * @param values
      * @return this
-     * @see #instructionFirst(String, String[])
+     * @see #instructionFirst(String, String...)
      */
     OsgiManifest instruction(String name, String... values);
 
@@ -55,7 +52,7 @@ public interface OsgiManifest {
      * @param name
      * @param values
      * @return this
-     * @see #instructionFirst(String, String[])
+     * @see #instructionFirst(String, String...)
      */
     OsgiManifest instructionFirst(String name, String... values);
 
@@ -177,46 +174,23 @@ public interface OsgiManifest {
      *
      * @param classesDir
      * 
-     * @see #instruction(String, String[])
+     * @see #instruction(String, String...)
      */
     void setClassesDir(File classesDir);
 
     /**
-     * Generated and writes the OSGi manifest information into a GradleManifest. Existing information in the GradleManifest
-     * is removed.
-     *
-     * @param manifest The GradleManifest to write into.
-     * @return this
-     */
-    OsgiManifest overwrite(GradleManifest manifest);
-
-    /**
      * Returns the classpath.
      *
-     * @see #setClasspath(java.util.List) 
+     * @see #setClasspath(org.gradle.api.file.FileCollection) 
      */
-    List<File> getClasspath();
+    FileCollection getClasspath();
 
     /**
-     * A convenient method for setting a Bundle-Classpath instruction. The information of the classpath elements are only used if they are OSGi bundles. In this
-     * case for example the version information provided by the bundle is used in the Import-Package of the generated
+     * A convenient method for setting a Bundle-Classpath instruction. The information of the classpath elements are only
+     * used if they are OSGi bundles. In this case for example the version information provided by the bundle is used in the Import-Package of the generated
      * OSGi bundle.
      *
      * @param classpath The classpath elements
      */
-    void setClasspath(List<File> classpath);
-
-    /**
-     * Returns the classpath types.
-     *
-     * @see #setClasspathTypes(java.util.List)
-     */
-    List<String> getClasspathTypes();
-
-    /**
-     * Set the dependency types to be taken into account when generating the osgi manifest.
-     * Sometimes people add for some reasons archive types like tar.gz to the compile or runtime configuration. OSGi can't cope
-     * with such dependencies and throws and exception. By default classpathTypes include 'zip' and 'jar'.
-     */
-    void setClasspathTypes(List<String> types);
+    void setClasspath(FileCollection classpath);
 }

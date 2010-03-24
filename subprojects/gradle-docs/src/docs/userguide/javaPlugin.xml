@@ -650,7 +650,7 @@
                 <td>
                     <literal>manifest</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/></td>
+                <td><apilink class="org.gradle.api.java.archives.Manifest" lang="java"/></td>
                 <td>an empty manifest</td>
                 <td>The manifest to include in all JAR files.</td>
             </tr>
@@ -1122,25 +1122,32 @@
         </para>
         <section id='sub:manifest'>
             <title>Manifest</title>
-            <para>The convention object of the Java Plugin has a <literal>manifest</literal>
-                property pointing to an instance of <apilink class="org.gradle.api.tasks.bundling.GradleManifest" lang="groovy"/>.
-                With this <classname>GradleManifest</classname> object you can define the content of the
-                <filename>MANIFEST.MF</filename> file for all the jar or a war archives in your project.
+            <para>Each jar or war object has a <literal>manifest</literal>
+                property with a separate instance of <apilink class="org.gradle.api.java.archives.Manifest" lang="java"/>.
+                When the archive is generated, a corresponding <literal>MANIFEST.MF</literal> file is written into the
+                archive.
             </para>
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF">
-                <sourcefile file="build.gradle" snippet="main-attributes"/>
+                <sourcefile file="build.gradle" snippet="add-to-manifest"/>
             </sample>
-            <para>You can also define sections of a manifest file.
+            <para>You can create your instances of a <classname>Manifest</classname>. You can use that for example,
+                to share manifest information between jars.
             </para>
-            <para>If a particular archive needs unique entries in its manifest you have to create your own
-                <classname>GradleManifest</classname> instance for it.
-            </para>
-            <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF for a particular archive">
+            <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
                 <sourcefile file="build.gradle" snippet="custom-manifest"/>
             </sample>
-            <para>Passing the common manifest object to the constructor of <classname>GradleManifest</classname>
-                add the common manifest values to the task specific manifest instance.
+            <para>You can merge other manifests into any <classname>Manifest</classname>
+                object. The other manifests might
+                be either described by a file path or, like in the example above, by a reference to another <classname>Manifest</classname> object.
             </para>
+            <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
+                <sourcefile file="build.gradle" snippet="merge"/>
+            </sample>
+            <para>You can easily write a manifest to disk.
+            </para>
+            <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
+                <sourcefile file="build.gradle" snippet="write"/>
+            </sample>
         </section>
         <section id='sub:metainf'>
             <title>MetaInf</title>

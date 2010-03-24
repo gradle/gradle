@@ -10,10 +10,11 @@ apply plugin: 'eclipse'
 // START SNIPPET customisation
 sourceCompatibility = 1.5
 version = '1.0'
-manifest.mainAttributes(
-    'Implementation-Title': 'Gradle Quickstart',
-    'Implementation-Version': version
-)
+jar {
+    manifest {
+        attributes 'Implementation-Title': 'Gradle Quickstart', 'Implementation-Version': version
+    }
+}
 // END SNIPPET customisation
 
 // START SNIPPET repo

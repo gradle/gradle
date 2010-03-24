@@ -84,7 +84,7 @@ class War extends Jar {
         FileCollection oldClasspath = getClasspath()
         this.classpath = project.files(oldClasspath ?: [], classpath)
     }
-    
+
     @InputFile @Optional
     public File getWebXml() {
         return webXml;

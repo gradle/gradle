@@ -1,10 +1,34 @@
 apply plugin: 'java'
-task myZipTask(type: Zip)
+version = '1.0'
 
-// START SNIPPET main-attributes
+// START SNIPPET add-to-manifest
+jar {
+    manifest {
+        attributes("Implementation-Title": "Gradle", "Implementation-Version": version)
+    }
+}
+// END SNIPPET add-to-manifest
+
 // START SNIPPET custom-manifest
-manifest.mainAttributes("Implementation-Title": "Gradle", "Implementation-Version": version)
-// END SNIPPET main-attributes
-myZipTask.manifest = new GradleManifest(manifest.createManifest())
-myZipTask.manifest.mainAttributes(mykey: "myvalue")
+sharedManifest = manifest {
+    attributes("Implementation-Title": "Gradle", "Implementation-Version": version)
+}
+task fooJar(type: Jar) {
+    manifest = project.manifest {
+        from sharedManifest
+    }
+}
 // END SNIPPET custom-manifest
+
+// START SNIPPET merge
+task barJar(type: Jar) {
+    manifest {
+        attributes key1: 'value1'
+        from sharedManifest, 'src/config/basemanifest.txt'
+    }
+}
+// END SNIPPET merge
+
+// START SNIPPET write
+jar.manifest.writeTo("$buildDir/mymanifest.mf")
+// END SNIPPET write
