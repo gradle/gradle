@@ -186,6 +186,8 @@ public class DefaultScriptCompilationHandlerTest {
             assertThat(e.getScriptSource(), sameInstance(source));
             assertThat(e.getLineNumber(), equalTo(3));
         }
+
+        checkScriptCacheEmpty();
     }
 
     @Test
@@ -223,6 +225,10 @@ public class DefaultScriptCompilationHandlerTest {
     private void checkScriptClassesInCache() {
         assertTrue(scriptCacheDir.isDirectory());
         assertTrue(cachedFile.isFile());
+    }
+
+    private void checkScriptCacheEmpty() {
+        assertFalse(scriptCacheDir.exists());
     }
 
     private void evaluateScript(Script script) {

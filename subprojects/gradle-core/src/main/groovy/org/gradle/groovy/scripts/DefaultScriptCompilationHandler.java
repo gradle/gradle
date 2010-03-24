@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.groovy.scripts;
 
 import groovy.lang.GroovyClassLoader;
@@ -49,7 +50,12 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         scriptCacheDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
         configuration.setTargetDirectory(scriptCacheDir);
-        compileScript(source, classLoader, configuration, transformer);
+        try {
+            compileScript(source, classLoader, configuration, transformer);
+        } catch (GradleException e) {
+            GFileUtils.deleteDirectory(scriptCacheDir);
+            throw e;
+        }
 
         logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
                 clock.getTime());
