@@ -19,6 +19,7 @@ package org.gradle.initialization;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.Jvm;
 import org.gradle.util.MultiParentClassLoader;
 
 import java.io.File;
@@ -32,7 +33,7 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     public DefaultClassLoaderFactory(ClassPathRegistry classPathRegistry) {
         // Add in tools.jar
         ClassLoader parent = getClass().getClassLoader();
-        File toolsJar = ClasspathUtil.getToolsJar();
+        File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
             ClasspathUtil.addUrl((URLClassLoader) parent, GFileUtils.toURLs(Collections.singleton(toolsJar)));
         }

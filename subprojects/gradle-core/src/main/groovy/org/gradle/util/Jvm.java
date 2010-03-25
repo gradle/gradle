@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import org.apache.tools.ant.util.JavaEnvUtils;
@@ -31,4 +32,21 @@ public class Jvm {
     public File getJavadocExecutable() {
         return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
     }
+
+    public File getToolsJar() {
+        File javaHome = new File(System.getProperty("java.home"));
+        File toolsJar = new File(javaHome, "/lib/tools.jar");
+        if (toolsJar.exists()) {
+            return toolsJar;
+        }
+        if (javaHome.getName().equalsIgnoreCase("jre")) {
+            javaHome = javaHome.getParentFile();
+            toolsJar = new File(javaHome + "/lib/tools.jar");
+        }
+        if (!toolsJar.exists()) {
+            return null;
+        }
+        return toolsJar;
+    }
+
 }

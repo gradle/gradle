@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,7 +36,7 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         if (!classloadersForPath) {
             // Need tools.jar for compile tasks
             List<File> fullClasspath = normalisedClasspath
-            File toolsJar = ClasspathUtil.toolsJar
+            File toolsJar = Jvm.current().toolsJar
             if (toolsJar) {
                 fullClasspath += toolsJar
             }

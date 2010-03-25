@@ -16,21 +16,17 @@
 
 package org.gradle.util;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
-import java.io.File;
-import java.util.*;
 import java.lang.reflect.Method;
-import java.net.URLClassLoader;
 import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class ClasspathUtil {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ClasspathUtil.class);
-
     public static void addUrl(URLClassLoader classLoader, Iterable<URL> classpathElements) {
         try {
             Method method = URLClassLoader.class.getDeclaredMethod("addURL", URL.class);
@@ -54,26 +50,5 @@ public class ClasspathUtil {
             }
         }
         return implementationClassPath;
-    }
-
-    public static File getToolsJar() {
-        String javaHome = System.getProperty("java.home");
-        File toolsJar = new File(javaHome + "/lib/tools.jar");
-        if (toolsJar.exists()) {
-            LOGGER.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
-            // Found in java.home as given
-            return toolsJar;
-        }
-        if (javaHome.toLowerCase(Locale.US).endsWith(File.separator + "jre")) {
-            javaHome = javaHome.substring(0, javaHome.length() - 4);
-            toolsJar = new File(javaHome + "/lib/tools.jar");
-        }
-        if (!toolsJar.exists()) {
-            LOGGER.debug("Unable to locate tools.jar. "
-                    + "Expected to find it in " + toolsJar.getPath());
-            return null;
-        }
-        LOGGER.debug("Found tools jar in: {}", toolsJar.getAbsolutePath());
-        return toolsJar;
     }
 }
