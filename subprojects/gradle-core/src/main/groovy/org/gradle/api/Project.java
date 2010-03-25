@@ -857,6 +857,15 @@ public interface Project extends Comparable<Project> {
     FileTree tarTree(Object tarPath);
 
     /**
+     * Creates a directory and returns a file pointing to it.
+     *
+     * @param path The path for the directory to be created. Evaluated as for {@link #file(Object)}.
+     * @return the created directory
+     * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     */
+    File mkdir(Object path);
+
+    /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
      *
      * @param path The path to convert.

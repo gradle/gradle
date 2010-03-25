@@ -49,6 +49,8 @@ public class GUtil {
                 flatten((Collection) element, addTo, flattenMaps);
             } else if ((element instanceof Map) && flattenMaps) {
                 flatten(((Map) element).values(), addTo, flattenMaps);
+            } else if ((element.getClass().isArray()) && flattenMaps) {
+                flatten(Arrays.asList((Object[]) element), addTo, flattenMaps);
             } else {
                 addTo.add(element);
             }

@@ -15,30 +15,47 @@
  */
 package org.gradle.api.plugins
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
 import org.gradle.api.Project
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.tasks.DefaultSourceSetContainer
 import org.gradle.api.java.archives.Manifest
 import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.ConfigureUtil
 
 /**
+ * Is mixed in into the project when applying the   {@org.gradle.api.plugins.JavaBasePlugin}   or the
+ * {@org.gradle.api.plugins.JavaPlugin}    .
+ *
  * @author Hans Dockter
  */
-// todo Think about moving the mkdir method to the project.
-// todo Refactor to Java
 class JavaPluginConvention {
     Project project
 
     String dependencyCacheDirName
+
+    /**
+     * The name of the docs directory. Can be a name or a path relative to the build dir.
+     */
     String docsDirName
+
+    /**
+     * The name of the testresults directory. Can be a name or a path relative to the build dir.
+     */
     String testResultsDirName
+
+    /**
+     * The name of the test reports directory. Can be a name or a path relative to the build dir.
+     */
     String testReportDirName
+
+    /**
+     * The source sets container.
+     */
     final SourceSetContainer sourceSets
+
     private JavaVersion srcCompat
     private JavaVersion targetCompat
 
@@ -63,26 +80,27 @@ class JavaPluginConvention {
         sourceSets.configure(closure)
     }
 
-    File mkdir(File parent = null, String name) {
-        if (!name) {throw new InvalidUserDataException('You must specify the name of the directory')}
-        File baseDir = parent ?: project.buildDir
-        File result = new File(baseDir, name)
-        result.mkdirs()
-        result
-    }
-
     File getDependencyCacheDir() {
         new File(project.buildDir, dependencyCacheDirName)
     }
 
+    /**
+     * Returns a file pointing to the root directory supposed to be used for all docs.
+     */
     File getDocsDir() {
         new File(project.buildDir, docsDirName)
     }
 
+    /**
+     * Returns a file pointing to the root directory of the test results.
+     */
     File getTestResultsDir() {
         new File(project.buildDir, testResultsDirName)
     }
 
+    /**
+     * Returns a file pointing to the root directory to be used for reports.
+     */
     File getTestReportDir() {
         new File(reportsDir, testReportDirName)
     }
@@ -91,26 +109,49 @@ class JavaPluginConvention {
         project.convention.plugins.reportingBase.reportsDir
     }
 
+    /**
+     * Returns the source compatibility used for compiling Java sources.
+     */
     JavaVersion getSourceCompatibility() {
             srcCompat ?: JavaVersion.VERSION_1_5
     }
 
+    /**
+     * Sets the source compatibility used for compiling Java sources.
+     *
+     * @value The value for the source compatibilty as defined by   {@link JavaVersion#toVersion(Object)}
+     */
     void setSourceCompatibility(def value) {
         srcCompat = JavaVersion.toVersion(value)
     }
 
+    /**
+     * Returns the target compatibility used for compiling Java sources.
+     */
     JavaVersion getTargetCompatibility() {
             targetCompat ?: sourceCompatibility
     }
 
+    /**
+     * Sets the target compatibility used for compiling Java sources.
+     *
+     * @value The value for the target compatibilty as defined by   {@link JavaVersion#toVersion(Object)}
+     */
     void setTargetCompatibility(def value) {
         targetCompat = JavaVersion.toVersion(value)
     }
 
+    /**
+     * Returns a new instance of an     {@link Manifest}.
+     */
     public Manifest manifest() {
         return manifest(null);
     }
 
+    /**
+     * Returns a new instance of an     {@link Manifest}. The closure configures
+     * the new manifest instance before it is returned.
+     */
     public Manifest manifest(Closure closure) {
         return ConfigureUtil.configure(closure, new DefaultManifest(((ProjectInternal) getProject()).fileResolver),
                 Closure.DELEGATE_FIRST);

@@ -32,6 +32,7 @@ import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertThat
+import org.gradle.api.InvalidUserDataException
 
 @RunWith(JMock.class)
 public class DefaultFileOperationsTest {
@@ -131,6 +132,29 @@ public class DefaultFileOperationsTest {
         def result = fileOperations.copy { from 'file'; into 'dir' }
         assertThat(result, instanceOf(CopyActionImpl.class))
         assertFalse(result.didWork)
+    }
+
+    @Test
+    public void makesDir() {
+        TestFile dirToBeCreated = tmpDir.file("parentDir", "dir")
+        context.checking {
+            one(resolver).resolve('parentDir/dir')
+            will(returnValue(dirToBeCreated))
+        }
+        File actualDir = fileOperations.mkdir('parentDir/dir')
+        assertThat(actualDir, equalTo(dirToBeCreated))
+        assertThat(actualDir.isDirectory(), equalTo(true))
+    }
+
+    @Test(expected = InvalidUserDataException)
+    public void makesDirThrowsExceptionIfPathPointsToFile() {
+        TestFile dirToBeCreated = tmpDir.file("parentDir", "dir")
+        dirToBeCreated.touch();
+        context.checking {
+            one(resolver).resolve('parentDir/dir')
+            will(returnValue(dirToBeCreated))
+        }
+        fileOperations.mkdir('parentDir/dir')
     }
 
     @Test

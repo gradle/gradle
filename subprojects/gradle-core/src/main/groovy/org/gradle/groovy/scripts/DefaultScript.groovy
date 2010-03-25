@@ -132,6 +132,10 @@ abstract class DefaultScript extends BasicScript {
         fileOperations.copySpec(closure)
     }
 
+    File mkdir(Object path) {
+        return fileOperations.mkdir(path);
+    }
+
     public void captureStandardOutput(LogLevel level) {
         standardOutputRedirector.on(level);
     }

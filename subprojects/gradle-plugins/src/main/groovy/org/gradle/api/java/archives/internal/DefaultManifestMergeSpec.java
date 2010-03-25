@@ -33,7 +33,7 @@ public class DefaultManifestMergeSpec implements ManifestMergeSpec {
     private final List<Action<? super ManifestMergeDetails>> actions = new ArrayList<Action<? super ManifestMergeDetails>>();
 
     public ManifestMergeSpec from(Object... mergePaths) {
-        this.mergePaths.addAll(Arrays.asList(mergePaths));
+        GUtil.flatten(mergePaths, this.mergePaths);
         return this;
     }
 

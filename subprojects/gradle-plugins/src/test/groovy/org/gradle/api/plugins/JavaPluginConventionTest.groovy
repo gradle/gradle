@@ -16,21 +16,21 @@
 
 package org.gradle.api.plugins
 
-import org.gradle.api.InvalidUserDataException
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.tasks.DefaultSourceSetContainer
+import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.api.java.archives.internal.DefaultManifest
-import org.gradle.util.TestFile
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
-import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.api.internal.file.FileResolver
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
@@ -93,26 +93,6 @@ class JavaPluginConventionTest {
         convention.testReportDirName = 'other-test-dir'
 
         assertEquals(new File(project.buildDir, 'other-reports-dir/other-test-dir'), convention.testReportDir)
-    }
-
-    @Test public void testMkdir() {
-        String expectedDirName = 'somedir'
-        File dir = convention.mkdir(expectedDirName)
-        assertEquals(new File(project.buildDir, expectedDirName), dir)
-    }
-
-    @Test public void testMkdirWithSpecifiedBasedir() {
-        String expectedDirName = 'somedir'
-        File dir = convention.mkdir(testDir, expectedDirName)
-        assertEquals(new File(testDir, expectedDirName), dir)
-    }
-
-    @Test (expected = InvalidUserDataException) public void testMkdirWithNullArgument() {
-        convention.mkdir(null)
-    }
-
-    @Test(expected = InvalidUserDataException) public void testMkdirWithEmptyArguments() {
-        convention.mkdir('')
     }
 
     @Test public void testTargetCompatibilityDefaultsToSourceCompatibilityWhenNotSet() {

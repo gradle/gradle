@@ -23,6 +23,8 @@ import org.gradle.api.plugins.BasePluginConvention
 import org.gradle.util.ConfigureUtil
 
 /**
+ * Is mixed in into the project when applying the {@org.gradle.api.plugins.osgi.OsgiPlugin}. 
+ *
  * @author Hans Dockter
  */
 public class OsgiPluginConvention {
@@ -32,10 +34,17 @@ public class OsgiPluginConvention {
         this.project = project
     }
 
+    /**
+     * Returns a new instance of an {@link org.gradle.api.plugins.osgi.OsgiManifest}. 
+     */
     public OsgiManifest osgiManifest() {
         return osgiManifest(null);
     }
 
+    /**
+     * Returns a new instance of an {@link org.gradle.api.plugins.osgi.OsgiManifest}. The closure configures
+     * the new manifest instance before it is returned.
+     */
     public OsgiManifest osgiManifest(Closure closure) {
         return ConfigureUtil.configure(closure, createDefaultOsgiManifest(project),
                 Closure.DELEGATE_FIRST);

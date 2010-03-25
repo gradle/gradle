@@ -718,6 +718,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.relativePath(path);
     }
 
+    public File mkdir(Object path) {
+        return fileOperations.mkdir(path);
+    }
+
     public Directory dir(String path) {
         String[] pathElements = path.split("/");
         String name = "";

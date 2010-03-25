@@ -55,4 +55,6 @@ public interface FileOperations {
     CopySpec copySpec(Closure closure);
 
     WorkResult copy(Closure closure);
+
+    File mkdir(Object path);
 }

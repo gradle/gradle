@@ -121,8 +121,16 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         }
     }
 
-    public DefaultManifest from(Object mergePaths) {
+    public DefaultManifest from(Object... mergePaths) {
         from(mergePaths, null);
+        return this;
+    }
+
+    public DefaultManifest from(Object mergePaths, Closure closure) {
+        DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
+        mergeSpec.from(mergePaths);
+        manifestMergeSpecs.add(mergeSpec);
+        ConfigureUtil.configure(closure, mergeSpec);
         return this;
     }
 
@@ -155,14 +163,6 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-    }
-
-    public DefaultManifest from(Object mergePaths, Closure closure) {
-        DefaultManifestMergeSpec mergeSpec = new DefaultManifestMergeSpec();
-        mergeSpec.from(mergePaths);
-        manifestMergeSpecs.add(mergeSpec);
-        ConfigureUtil.configure(closure, mergeSpec);
-        return this;
     }
 
     public List<ManifestMergeSpec> getMergeSpecs() {

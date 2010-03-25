@@ -259,6 +259,15 @@ public interface Script {
     CopySpec copySpec(Closure closure);
 
     /**
+     * Creates a directory and returns a file pointing to it.
+     *
+     * @param path The path for the directory to be created. Evaluated as for {@link #file(Object)}.
+     * @return the created directory
+     * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     */
+    File mkdir(Object path);
+
+    /**
      * Disables redirection of standard output during script execution. By default redirection is enabled.
      *
      * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
