@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
@@ -65,10 +66,10 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         return this;
     }
 
-    public ObjectConfigurationAction plugin(final String pluginName) {
+    public ObjectConfigurationAction plugin(final String pluginId) {
         actions.add(new Runnable() {
             public void run() {
-                applyPlugin(pluginName);
+                applyPlugin(pluginId);
             }
         });
         return this;
@@ -93,11 +94,11 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         }
     }
 
-    private void applyPlugin(String pluginName) {
+    private void applyPlugin(String pluginId) {
         for (Object target : targets) {
             if (target instanceof Project) {
                 Project project = (Project) target;
-                project.getPlugins().apply(pluginName);
+                project.getPlugins().apply(pluginId);
             } else {
                 throw new UnsupportedOperationException();
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,8 +55,8 @@ public interface ObjectConfigurationAction {
      * Adds a {@link org.gradle.api.Plugin} to use to configure the target objects. You can call this method multiple
      * times, to use multiple plugins. Scripts and plugins are applied in the order that they are added.
      *
-     * @param pluginName The plugin to apply.
+     * @param pluginId The id of the plugin to apply.
      * @return this
      */
-    ObjectConfigurationAction plugin(String pluginName);
+    ObjectConfigurationAction plugin(String pluginId);
 }

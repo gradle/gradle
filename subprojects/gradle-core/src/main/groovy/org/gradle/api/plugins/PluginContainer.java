@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
@@ -22,7 +23,7 @@ import org.gradle.api.Plugin;
  * particular project.</p>
  *
  * <p>Plugins can be specified using either an id or type. The id of a plugin is specified using a
- * META-INF/gradle-plugins/${id}.properties resource.</p>
+ * META-INF/gradle-plugins/${id}.properties classpath resource.</p>
  *
  * @author Hans Dockter
  */
@@ -31,14 +32,14 @@ public interface PluginContainer extends PluginCollection<Plugin> {
      * Has the same behavior as {@link #apply(Class)} except that the the plugin is specified via its id. Not all
      * plugins have an id.
      *
-     * @param id The id of the plugin to be used
+     * @param id The id of the plugin to be applied.
      * @return The plugin which has been used against the project.
      */
     Plugin apply(String id);
 
     /**
-     * Uses a plugin against the project. This usually means that the plugin uses the project API to add and modify the
-     * state of the project. This method can be called an arbitrary number of time for a particular plugin type. The
+     * Applies a plugin to the project. This usually means that the plugin uses the project API to add and modify the
+     * state of the project. This method can be called an arbitrary number of times for a particular plugin type. The
      * plugin will be actually used only the first time this method is called.
      *
      * @param type The type of the plugin to be used

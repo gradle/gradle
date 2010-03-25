@@ -503,9 +503,9 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return this;
     }
 
-    public Project usePlugin(String pluginName) {
+    public Project usePlugin(String pluginId) {
         warnUsePluginDeprecated();
-        pluginContainer.apply(pluginName);
+        pluginContainer.apply(pluginId);
         return this;
     }
 

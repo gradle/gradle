@@ -341,13 +341,13 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Applies a {@link Plugin} to this project.</p>
      *
-     * @param pluginName The name of the plugin.
+     * @param pluginId The id of the plugin.
      * @return This project.
      * @deprecated You should use the {@link #apply(java.util.Map)} or {@link #apply(groovy.lang.Closure)} method
      *             instead.
      */
     @Deprecated
-    Project usePlugin(String pluginName);
+    Project usePlugin(String pluginId);
 
     /**
      * <p>Applies a {@link Plugin} to this project.</p>
