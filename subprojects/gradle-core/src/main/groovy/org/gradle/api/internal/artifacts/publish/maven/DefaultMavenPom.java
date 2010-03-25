@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.apache.commons.io.IOUtils;
 import org.apache.maven.artifact.Artifact;
 import org.apache.maven.project.MavenProject;
+import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Configuration;
@@ -26,6 +27,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.XmlProvider;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.gradle.api.internal.artifacts.publish.maven.pombuilder.CustomModelBuilder;
 import org.gradle.listener.ListenerBroadcast;
 
 import java.io.IOException;
@@ -111,30 +113,11 @@ public class DefaultMavenPom implements MavenPom {
         mavenProject.setPackaging(packaging);
     }
 
-    public void setInceptionYear(String inceptionYear) {
-        mavenProject.setInceptionYear(inceptionYear);
+    public void project(Closure cl) {
+        CustomModelBuilder pomBuilder = new CustomModelBuilder(getMavenProject().getModel());
+        InvokerHelper.invokeMethod(pomBuilder, "project", cl);
     }
-
-    public String getInceptionYear() {
-        return mavenProject.getInceptionYear();
-    }
-
-    public void setUrl(String url) {
-        mavenProject.setUrl(url);
-    }
-
-    public String getUrl() {
-        return mavenProject.getUrl();
-    }
-
-    public void setDescription(String description) {
-        mavenProject.setDescription(description);
-    }
-
-    public String getDescription() {
-        return mavenProject.getDescription();
-    }
-
+    
     public MavenProject getMavenProject() {
         return mavenProject;
     }

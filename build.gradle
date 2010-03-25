@@ -127,7 +127,7 @@ allprojects {
     ideDir = file('ide')
     task ide(type: Sync) {
         into "$ideDir/lib"
-        from { config.copyRecursive(DependencySpecs.type(Type.EXTERNAL)).files }
+        from { config.copyRecursive {dep -> !(dep instanceof ProjectDependency)}.files }
     }
 }
 

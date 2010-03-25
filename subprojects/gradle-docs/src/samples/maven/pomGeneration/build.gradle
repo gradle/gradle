@@ -60,7 +60,9 @@ installer = install.repositories.mavenInstaller
 
 if (hasProperty('customVersion')) {
     [installer, deployer]*.pom*.version = customVersion
-    installer.pom.groupId = 'installGroup'
+    installer.pom.project {
+        groupId 'installGroup'
+    }
     deployer.pom.groupId = 'deployGroup'
 }
 

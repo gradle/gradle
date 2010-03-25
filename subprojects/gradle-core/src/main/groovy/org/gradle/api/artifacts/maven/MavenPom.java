@@ -37,6 +37,27 @@ public interface MavenPom {
     Conf2ScopeMappingContainer getScopeMappings();
 
     /**
+     * Provides a builder for the Maven pom for adding or modifying properties of the MavenProject.
+     * The syntax is exactly the same as used by polyglot Maven. For example:
+     *
+     * <pre>
+     * pom.project {
+     *    inceptionYear '2008'
+     *    licenses {
+     *       license {
+     *          name 'The Apache Software License, Version 2.0'
+     *          url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+     *          distribution 'repo'
+     *       }
+     *    }
+     * }
+     * </pre>
+     *
+     * @param pom
+     */
+    void project(Closure pom);
+
+    /**
      * @see org.apache.maven.project.MavenProject#setGroupId(String)
      */
     String getGroupId();
@@ -57,7 +78,7 @@ public interface MavenPom {
     void setArtifactId(String artifactId);
 
     /**
-     * @see org.apache.maven.project.MavenProject#getVersion() 
+     * @see org.apache.maven.project.MavenProject#getVersion()
      */
     String getVersion();
 
@@ -72,7 +93,7 @@ public interface MavenPom {
     String getPackaging();
 
     /**
-     * @see org.apache.maven.project.MavenProject#setPackaging(String) 
+     * @see org.apache.maven.project.MavenProject#setPackaging(String)
      */
     void setPackaging(String packaging);
 
@@ -85,46 +106,6 @@ public interface MavenPom {
      * @see org.apache.maven.project.MavenProject#getDependencies()
      */
     List getDependencies();
-
-    /**
-     * @see org.apache.maven.project.MavenProject#setName(String)
-     */
-    void setName(String name);
-
-    /**
-     * @see org.apache.maven.project.MavenProject#getName()
-     */
-    String getName();
-
-    /**
-     * @see org.apache.maven.project.MavenProject#setInceptionYear(String)
-     */
-    void setInceptionYear(String inceptionYear);
-
-    /**
-     * @see org.apache.maven.project.MavenProject#getInceptionYear()
-     */
-    String getInceptionYear();
-
-    /**
-     * @see org.apache.maven.project.MavenProject#setUrl(String)
-     */
-    void setUrl(String url);
-
-    /**
-     * @see org.apache.maven.project.MavenProject#getUrl()
-     */
-    String getUrl();
-
-    /**
-     * @see org.apache.maven.project.MavenProject#setDescription(String)
-     */
-    void setDescription(String description);
-
-    /**
-     * @see org.apache.maven.project.MavenProject#getDescription() 
-     */
-    String getDescription();
 
     /**
      * Returns the underlying native Maven {@link org.apache.maven.project.MavenProject} object. The MavenPom object
@@ -140,7 +121,7 @@ public interface MavenPom {
      * Adds the pom dependency information from the Gradle dependency metadata.
      *
      * @param configurations The configuration from which the dependencies should be added to the pom.
-     * @see #getScopeMappings() 
+     * @see #getScopeMappings()
      */
     void addDependencies(Set<Configuration> configurations);
 

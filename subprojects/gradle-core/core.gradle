@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 import java.text.DateFormat
 
 apply id: 'groovy'
@@ -65,7 +66,9 @@ dependencies {
             "org.apache.maven:maven-ant-tasks:2.1.0@jar",
             libraries.asm_all,
             'org.fusesource.jansi:jansi:1.2',
-            'org.jruby.ext.posix:jna-posix:1.0.3'
+            'org.jruby.ext.posix:jna-posix:1.0.3',
+            'org.sonatype.pmaven:pmaven-common:0.8-20100325@jar',
+            'org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar'
 
     runtime 'net.java.dev.jna:jna:3.2.2'
 

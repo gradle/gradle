@@ -73,6 +73,31 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.getMavenProject().getDependencies() == generatedDependencies
     }
 
+    void projectBuilder() {
+        mavenPom.mavenProject.inceptionYear = '2007'
+        mavenPom.mavenProject.description = 'some description'
+        mavenPom.project {
+            inceptionYear '2008'
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+
+        expect:
+        mavenPom.mavenProject.modelVersion == "4.0.0"
+        mavenPom.version == EXPECTED_VERSION
+        mavenPom.mavenProject.description == 'some description'
+        mavenPom.mavenProject.inceptionYear == '2008'
+        mavenPom.mavenProject.licenses.size() == 1
+        mavenPom.mavenProject.licenses[0].name == 'The Apache Software License, Version 2.0'
+        mavenPom.mavenProject.licenses[0].url == 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+        mavenPom.mavenProject.licenses[0].distribution == 'repo'
+    }
+
     void whenConfiguredWithAction() {
         def called = false
 
@@ -105,18 +130,18 @@ class DefaultMavenPomTest extends Specification {
 
     void writeWithHookManipulations() {
         StringWriter pomWriter = new StringWriter()
-        
+
         when:
-        mavenPom.whenConfigured { mavenPom ->
-            mavenPom.inceptionYear = '1999'
+        mavenPom.whenConfigured {mavenPom ->
+            mavenPom.mavenProject.inceptionYear = '1999'
         }
-        mavenPom.withXml { xmlProvider ->
+        mavenPom.withXml {xmlProvider ->
             xmlProvider.asString().append('someAppendix')
         }
         mavenPom.write(pomWriter);
 
         then:
-        mavenPom.inceptionYear == "1999"
+        mavenPom.mavenProject.inceptionYear == "1999"
         pomWriter.toString().contains("inceptionYear")
         pomWriter.toString().contains("1999")
         pomWriter.toString().endsWith("someAppendix")
