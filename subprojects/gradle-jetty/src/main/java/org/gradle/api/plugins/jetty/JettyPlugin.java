@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -134,11 +134,6 @@ public class JettyPlugin implements Plugin<Project> {
         jettyTask.getConventionMapping().map("contextPath", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return ((War) project.getTasks().getByName(WarPlugin.WAR_TASK_NAME)).getBaseName();
-            }
-        });
-        jettyTask.getConventionMapping().map("tmpDirectory", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return new File(project.getBuildDir(), "jetty");
             }
         });
         jettyTask.getConventionMapping().map("httpPort", new ConventionValue() {

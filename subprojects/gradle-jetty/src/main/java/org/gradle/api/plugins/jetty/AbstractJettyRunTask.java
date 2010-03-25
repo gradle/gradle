@@ -57,11 +57,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private String contextPath;
 
     /**
-     * The temporary directory to use for the webapp.
-     */
-    private File tmpDirectory;
-
-    /**
      * A webdefault.xml file to use instead of the default for the webapp. Optional.
      */
     private File webDefaultXml;
@@ -281,14 +276,14 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * Subclasses should invoke this to setup basic info on the webapp
      */
     public void configureWebApplication() throws Exception {
-        //use EITHER a <webAppConfig> element or the now deprecated <contextPath>, <tmpDirectory>, <webDefaultXml>, <overrideWebXml>
+        //use EITHER a <webAppConfig> element or the now deprecated <contextPath>, <webDefaultXml>, <overrideWebXml>
         //way of doing things
         if (webAppConfig == null) {
             webAppConfig = new JettyPluginWebAppContext();
         }
         webAppConfig.setContextPath(getContextPath().startsWith("/") ? getContextPath() : "/" + getContextPath());
-        if (getTmpDirectory() != null) {
-            webAppConfig.setTempDirectory(getTmpDirectory());
+        if (getTemporaryDir() != null) {
+            webAppConfig.setTempDirectory(getTemporaryDir());
         }
         if (getWebDefaultXml() != null) {
             webAppConfig.setDefaultsDescriptor(getWebDefaultXml().getCanonicalPath());
@@ -385,16 +380,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         }
 
         return null;
-    }
-
-    @OutputDirectory
-    @Optional
-    public File getTmpDirectory() {
-        return tmpDirectory;
-    }
-
-    public void setTmpDirectory(File tmpDirectory) {
-        this.tmpDirectory = tmpDirectory;
     }
 
     @InputFile
