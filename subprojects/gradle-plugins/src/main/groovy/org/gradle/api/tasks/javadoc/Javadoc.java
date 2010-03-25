@@ -44,7 +44,6 @@ public class Javadoc extends SourceTask {
 
     private String maxMemory;
 
-    private File optionsFile;
     private MinimalJavadocOptions options = new StandardJavadocDocletOptions();
 
     private FileCollection classpath;
@@ -217,12 +216,7 @@ public class Javadoc extends SourceTask {
         this.failOnError = failOnError;
     }
 
-    @OutputFile
     public File getOptionsFile() {
-        return optionsFile;
-    }
-
-    public void setOptionsFile(File optionsFile) {
-        this.optionsFile = optionsFile;
+        return new File(getTemporaryDir(), "javadoc.options");
     }
 }

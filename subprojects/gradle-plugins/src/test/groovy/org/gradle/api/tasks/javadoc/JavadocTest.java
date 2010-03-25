@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.javadoc;
 
 import org.apache.tools.ant.BuildException;
@@ -48,7 +49,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final File destDir = new File(testDir, "dest");
     private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
-    private final File optionsFile = new File(destDir, "javadoc.options");
     private JavadocExecHandleBuilder javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);
     private ExecHandle execHandleMock = context.mock(ExecHandle.class);
     private Javadoc task;
@@ -60,7 +60,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task = createTask(Javadoc.class);
         task.setClasspath(configurationMock);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
-        task.setOptionsFile(optionsFile);
         context.checking(new Expectations() {{
             allowing(configurationMock).getFiles(); will(returnValue(classpath));
         }});
@@ -78,7 +77,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).options(task.getOptions());
             will(returnValue(javadocExecHandleBuilderMock));
-            one(javadocExecHandleBuilderMock).optionsFile(optionsFile);
+            one(javadocExecHandleBuilderMock).optionsFile(new File(getProject().getBuildDir(), "tmp/taskname/javadoc.options"));
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).getExecHandle();
             will(returnValue(execHandleMock));

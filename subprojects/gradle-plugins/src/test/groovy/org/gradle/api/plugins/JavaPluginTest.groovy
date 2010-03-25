@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
  
 package org.gradle.api.plugins
 
@@ -183,7 +185,6 @@ class JavaPluginTest {
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/javadoc")))
         assertThat(task.title, equalTo(project.apiDocTitle))
-        assertThat(task.optionsFile, equalTo(project.file('build/tmp/javadoc.options')))
 
         task = project.tasks["buildArchives"]
         assertThat(task, instanceOf(DefaultTask))

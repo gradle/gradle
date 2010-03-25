@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
 import org.gradle.api.*;
+import org.gradle.api.internal.file.TemporaryFileProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistry;
@@ -35,6 +36,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.util.ConfigureUtil;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -392,6 +394,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public Task configure(Closure closure) {
         return ConfigureUtil.configure(closure, this);
+    }
+
+    public File getTemporaryDir() {
+        File dir = getServices().get(TemporaryFileProvider.class).newTemporaryFile(getName());
+        dir.mkdirs();
+        return dir;
     }
 
     private Action<Task> convertClosureToAction(Closure actionClosure) {

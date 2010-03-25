@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.plugins;
 
 import org.gradle.api.*;
@@ -150,11 +151,6 @@ public class JavaBasePlugin implements Plugin<Project> {
                 javadoc.getConventionMapping().map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return new File(convention.getPlugin(JavaPluginConvention.class).getDocsDir(), "javadoc");
-                    }
-                });
-                javadoc.getConventionMapping().map("optionsFile", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return new File(project.getBuildDir(), "tmp/javadoc.options");
                     }
                 });
                 javadoc.getConventionMapping().map("title", new ConventionValue() {

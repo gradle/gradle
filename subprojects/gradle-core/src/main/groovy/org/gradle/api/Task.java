@@ -27,6 +27,7 @@ import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
 
+import java.io.File;
 import java.util.List;
 import java.util.Set;
 
@@ -481,5 +482,11 @@ public interface Task extends Comparable<Task> {
      * @return The outputs. Never returns null.
      */
     TaskOutputs getOutputs();
+
+    /**
+     * Returns a directory which this task can use to write temporary files to.
+     * @return The directory. Never returns null.
+     */
+    File getTemporaryDir();
 }
 

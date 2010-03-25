@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -117,6 +117,15 @@ class DefaultTaskTest extends AbstractTaskTest {
     @Test(expected = MissingPropertyException)
     void accessNonExistingProperty() {
         defaultTask."unknownProp"
+    }
+
+    @Test
+    void canGetTemporaryDirectory() {
+        File tmpDir = new File(project.buildDir, "tmp/taskname")
+        assertFalse(tmpDir.exists())
+
+        assertThat(defaultTask.temporaryDir, equalTo(tmpDir))
+        assertTrue(tmpDir.isDirectory())
     }
 
     @Test
