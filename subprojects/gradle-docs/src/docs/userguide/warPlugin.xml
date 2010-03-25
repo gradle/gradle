@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -185,13 +185,5 @@
         <sample id="customisedWebApplication" dir="webApplication/customised" title="Generation of JAR archive in addition to WAR archive">
             <sourcefile file="build.gradle" snippet="enable-jar"/>
         </sample>
-    </section>
-    <section id='sec:eclipse_wtp'>
-        <title>Eclipse WTP</title>
-        <para>
-            <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtp"/>
-            has a default instance with the name <literal>eclipseWtp</literal>. It generates a
-            <filename>.settings/org.eclipse.wst.common.component</filename> file.
-        </para>
     </section>
 </chapter>

@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <chapter id='java_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Java Plugin</title>
 
@@ -1167,83 +1168,4 @@ metaInf << new FileSet(someDir)
         </para>
     </section>
     
-    <section id='sec:eclipse'>
-        <title>Eclipse</title>
-        <para>Gradle comes with a number of tasks for generating eclipse files for your projects.
-        </para>
-        <section id='sub:eclipse_classpath'>
-            <title>Eclipse classpath</title>
-            <para>
-                <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath"/>
-                has a default instance with the name <literal>eclipseCp</literal>. It generates a
-                <literal>.classpath</literal> file.
-            </para>
-            <table>
-                <title>Java plugin - Eclipse properties</title>
-                <thead>
-                    <tr>
-                        <td>Task Property</td>
-                        <td>Convention Property</td>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>srcDirs</td>
-                    <td>srcDirs + resourcesDirs</td>
-                </tr>
-                <tr>
-                    <td>testSrcDirs</td>
-                    <td>testSrcDirs + testResourcesDirs</td>
-                </tr>
-                <tr>
-                    <td>outputDirectory</td>
-                    <td>classesDir</td>
-                </tr>
-                <tr>
-                    <td>testOutputDirectory</td>
-                    <td>testClassesDir</td>
-                </tr>
-                <tr>
-                    <td>classpathLibs</td>
-                    <td>the resolve result for
-                        <literal>testRuntime</literal>
-                    </td>
-                </tr>
-
-            </table>
-        </section>
-        <section id='sub:eclipse_project'>
-            <title>Eclipse project</title>
-            <para>
-                <apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/>
-                has a default instance with the name <literal>eclipseProject</literal>. It generates a
-                <literal>.project</literal> file.
-            </para>
-            <table>
-                <title>Java plugin - Eclipse project properties</title>
-                <thead>
-                    <tr>
-                        <td>Task Property</td>
-                        <td>Convention Property</td>
-                    </tr>
-                </thead>
-                <tr>
-                    <td>name</td>
-                    <td>project.name</td>
-                </tr>
-                <tr>
-                    <td>projectType</td>
-                    <td>ProjectType.JAVA</td>
-                </tr>
-
-            </table>
-            <para>The java plugin also provides a task called
-                <literal>eclipse</literal>
-                which generates both of the eclipse tasks mentioned above. If you are using the war plugin,
-                <literal>eclipse</literal>
-                also leads to the execution of the
-                <literal>eclipseWtp</literal>
-                task.
-            </para>
-        </section>
-    </section>
 </chapter>

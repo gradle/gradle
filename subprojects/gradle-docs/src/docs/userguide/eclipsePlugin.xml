@@ -13,35 +13,40 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <chapter id="eclipse_plugin">
     <title>The Eclipse Plugin</title>
-    <note>
-        <para>This chapter is a work in progress.</para>
-    </note>
     
-    <para>The Eclipse plugin generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>). Both external and project dependencies are considered.</para>
+    <para>The Eclipse plugin generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus
+        making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
+        Both external and project dependencies are considered.</para>
 
-    <para>The Eclipse plugin will create different files depending on the other plugins used. If used together with the Java Plugin, <filename>.project</filename> and <filename>.classpath</filename> files will be generated. If used with the War plugin, additional wtp files will be generated.</para>
+    <para>The Eclipse plugin will create different files depending on the other plugins used. If used together with
+        the <link linkend="java_plugin">Java plugin</link>, <filename>.project</filename> and <filename>.classpath</filename>
+        files will be generated. If used with the <link linkend="war_plugin">War plugin</link>, additional wtp files
+        will be generated.</para>
 <section>
         <title>Usage</title>
     <para>To use the Eclipse plugin, include in your build script:</para>
     <sample id="useEclipsePlugin" dir="java/quickstart" title="Using the Eclipse plugin">
         <sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
     </sample>
-    <para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides, but you will probably use only <literal>eclipse</literal> task by executing <userinput>gradle eclipse</userinput>.
+    <para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides, but you will probably use only the <literal>eclipse</literal> task by executing <userinput>gradle eclipse</userinput>.
 </para>
     </section>
     <section>
         <title>Tasks</title>
-<para>The Eclipse plugin adds the tasks shown in <xref linkend='eclipsetasks'/> to a project.
-        </para>
+
+        <para>The Eclipse plugin adds the tasks shown below to a project when used with the Java plugin.</para>
+
         <table id='eclipsetasks'>
-            <title>Eclipse plugin - tasks</title>
+            <title>Eclipse plugin - java tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
                     <td>Depends on</td>
                     <td>Type</td>
+                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
@@ -50,6 +55,7 @@
                 </td>
                 <td><literal>eclipseCp</literal>, <literal>eclipseProject</literal>, <literal>eclipseWtp</literal></td>
                 <td><literal>-</literal></td>
+                <td>Generates all the eclipse configuration files</td>
             </tr>
             <tr>
                 <td>
@@ -59,6 +65,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes all eclipse configuration files</td>
             </tr>
             <tr>
                 <td>
@@ -68,6 +75,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath"/></td>
+                <td>Generates the <filename>.classpath</filename> file</td>
             </tr>
             <tr>
                 <td>
@@ -77,7 +85,22 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/></td>
+                <td>Generates the <filename>.project</filename> file</td>
             </tr>
+        </table>
+
+        <para>The Eclipse plugin adds the tasks shown below to a project when used with the War plugin.</para>
+
+        <table>
+            <title>Eclipse plugin - war tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
             <tr>
                 <td>
                     <literal>eclipseWtp</literal>
@@ -86,6 +109,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtp"/></td>
+                <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file</td>
             </tr>
             <tr>
                 <td>
@@ -95,8 +119,8 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtpModule"/></td>
+                <td></td>
             </tr>
         </table>
     </section>
-
 </chapter>
