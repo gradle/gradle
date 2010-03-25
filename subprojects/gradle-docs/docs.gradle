@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
@@ -114,14 +116,16 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
     groovydocUrl = '../groovydoc'
+    websiteUrl = 'http://www.gradle.org'
 }
 
 task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
-    doFirst { task ->
-        task.javadocUrl = remoteLocations.javadocUrl
-        task.groovydocUrl = remoteLocations.groovydocUrl
+    doFirst {
+        javadocUrl = remoteLocations.javadocUrl
+        groovydocUrl = remoteLocations.groovydocUrl
+        websiteUrl = 'http://www.gradle.org'
     }
 }
 
@@ -199,12 +203,13 @@ task groovydoc(type: Groovydoc) {
 }
 
 task userguideFragmentSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples]) {
-    standalone = true
+    tags << 'standalone'
     sourceFile = new File(userguideSrcDir, 'installation.xml')
     destFile = new File(docbookSrc, 'installation.xml')
-    doFirst {task ->
-        task.javadocUrl = remoteLocations.javadocUrl
-        task.groovydocUrl = remoteLocations.groovydocUrl
+    doFirst {
+        javadocUrl = remoteLocations.javadocUrl
+        groovydocUrl = remoteLocations.groovydocUrl
+        websiteUrl = 'http://www.gradle.org'
     }
 }
 
@@ -215,12 +220,12 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
 }
 
 task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
-    standalone = true
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
-    doFirst {task ->
-        task.javadocUrl = remoteLocations.javadocUrl
-        task.groovydocUrl = remoteLocations.groovydocUrl
+    doFirst {
+        javadocUrl = remoteLocations.javadocUrl
+        groovydocUrl = remoteLocations.groovydocUrl
+        websiteUrl = ''
     }
 }
 

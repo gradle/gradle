@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <chapter id="introduction">
     <title>Introduction</title>
     <para>We would like to introduce Gradle to you, a build system that we think is a quantum leap for build technology
@@ -68,8 +69,8 @@
         <para>This user guide, like Gradle itself, is under very active development. Some parts of Gradle aren't
             documented as completely as they need to be. Some of the content presented won't be entirely clear or
             will assume that you know more about Gradle than you do. We need your help to improve this user
-            guide. You can find out more about contributing to the documentation at the Gradle
-            <ulink url="http://www.gradle.org/contributing.html">web site</ulink>.
+            guide. You can find out more about contributing to the documentation at the
+            <ulink url="website:contributing.html">Gradle web site</ulink>.
         </para>
         <para>You can find more examples, and some additions to this user guide, on the
             <ulink url="http://docs.codehaus.org/display/GRADLE/User+guide">wiki</ulink>.

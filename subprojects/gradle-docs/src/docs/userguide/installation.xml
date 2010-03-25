@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -13,6 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <chapter id="installation">
 <title>Installing Gradle</title>
 
@@ -32,7 +33,7 @@
 
 <section>
     <title>Download</title>
-    <para>You can download one of the Gradle distributions from the <ulink url="http://www.gradle.org/downloads.html">Gradle web site</ulink>.</para>
+    <para>You can download one of the Gradle distributions from the <ulink url="website:downloads.html">Gradle web site</ulink>.</para>
 </section>
 
 <section>
@@ -110,17 +111,15 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 
 </section>
 
-<standalonedocument>
-<section>
+<section condition="standalone">
 <title>Getting help</title>
 
 <para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
-It is also available on the <ulink url="http://www.gradle.org/userguide.html">Gradle web site</ulink>.
+It is also available on the <ulink url="website:userguide.html">Gradle web site</ulink>.
 Typing <command>gradle -h</command> prints the command line help. Typing <command>gradle -t</command> shows all the
 tasks of a Gradle build.
 </para>
 
 </section>
-</standalonedocument>
 
 </chapter>

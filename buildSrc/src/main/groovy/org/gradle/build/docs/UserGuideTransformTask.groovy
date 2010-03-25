@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.build.docs
 
 import groovy.xml.MarkupBuilder
@@ -37,6 +39,8 @@ public class UserGuideTransformTask extends DefaultTask {
     String javadocUrl
     @Input
     String groovydocUrl
+    @Input
+    String websiteUrl
     @InputFile
     File sourceFile
     @OutputFile
@@ -44,7 +48,7 @@ public class UserGuideTransformTask extends DefaultTask {
     @InputDirectory
     File snippetsDir
     @Input
-    boolean standalone
+    Set<String> tags = new HashSet()
     @InputFiles
     FileCollection classpath;
 
@@ -86,6 +90,7 @@ public class UserGuideTransformTask extends DefaultTask {
             applyConditionalChunks(doc)
             transformSamples(doc)
             transformApiLinks(doc)
+            transformWebsiteLinks(doc)
             fixProgramListings(doc)
         }
 
@@ -136,6 +141,19 @@ public class UserGuideTransformTask extends DefaultTask {
 
                     xml.link(className: className, lang: lang)
                 }
+            }
+        }
+    }
+
+    def transformWebsiteLinks(Document doc) {
+        doc.documentElement.depthFirst().findAll { it.name() == 'ulink' }.each {Element element ->
+            String url = element.'@url'
+            if (url.startsWith('website:')) {
+                url = url.substring(8)
+                if (websiteUrl) {
+                    url = "${websiteUrl}/${url}"
+                }
+                element.setAttribute('url', url)
             }
         }
     }
@@ -255,13 +273,10 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     void applyConditionalChunks(Document doc) {
-        doc.documentElement.getElementsByTagName('standalonedocument').each {Element element ->
-            if (standalone) {
-                element.children().each {Node child ->
-                    element.parentNode.insertBefore(child, element)
-                }
+        doc.documentElement.depthFirst().findAll { it.'@condition' }.each {Element element ->
+            if (!tags.contains(element.'@condition')) {
+                element.parentNode.removeChild(element)
             }
-            element.parentNode.removeChild(element)
         }
     }
 

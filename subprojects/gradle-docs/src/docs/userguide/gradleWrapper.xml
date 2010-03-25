@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@
         </footnote>
         <footnote>
             <para>Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See
-                <ulink url='http://gradle.org/ci-server.html'/>
+                <ulink url='website:ci-server.html'/>
             </para>
         </footnote>
         You can create such a task in your build script.
