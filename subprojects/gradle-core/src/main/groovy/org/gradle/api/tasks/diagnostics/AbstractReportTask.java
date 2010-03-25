@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,9 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.OutputFile;
@@ -35,7 +37,15 @@ public abstract class AbstractReportTask extends ConventionTask {
 
     // todo annotate as required 
     private Set<Project> projects;
-    
+
+    protected AbstractReportTask() {
+        getOutputs().upToDateWhen(new Spec<Task>() {
+            public boolean isSatisfiedBy(Task element) {
+                return getOutputFile() != null;
+            }
+        });
+    }
+
     @TaskAction
     public void generate() {
         try {
