@@ -82,9 +82,11 @@ task writeNewPom << {
 }
 // END SNIPPET new-pom
 
+// START SNIPPET when-configured
 [installer, deployer]*.pom*.whenConfigured {pom ->
     pom.dependencies.find {dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
 }
+// END SNIPPET when-configured
 
 task writeDeployerPom(dependsOn: uploadArchives) << {
     deployer.pom.writeTo("$buildDir/deployerpom.xml")
