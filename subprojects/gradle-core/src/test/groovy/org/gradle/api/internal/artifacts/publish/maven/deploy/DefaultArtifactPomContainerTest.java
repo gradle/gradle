@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
@@ -28,7 +27,6 @@ import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -36,6 +34,9 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.HashSet;
 import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 /**
  * @author Hans Dockter
@@ -57,7 +58,6 @@ public class DefaultArtifactPomContainerTest {
 
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private Set<Configuration> testConfigurations;
     private File expectedFile;
     private File expectedPomFile;
     private Artifact expectedArtifact;
@@ -65,7 +65,6 @@ public class DefaultArtifactPomContainerTest {
 
     @Before
     public void setUp() {
-        testConfigurations = new HashSet<Configuration>();
         expectedPomFile = new File(TEST_POM_DIR, "pom-" + POMFILTER_NAME + ".xml");
         expectedFile = new File("somePath");
         expectedArtifact = createTestArtifact("someName");
@@ -96,10 +95,10 @@ public class DefaultArtifactPomContainerTest {
             allowing(artifactPomMock).getArtifactFile(); will(returnValue(expectedFile));
             allowing(artifactPomMock).getClassifiers(); will(returnValue(new HashSet<ClassifierArtifact>()));
             allowing(metaInfoProviderMock).getMavenPomDir(); will(returnValue(TEST_POM_DIR));
-            one(artifactPomMock).writePom(with(same(testConfigurations)), with(equal(expectedPomFile)));
+            one(artifactPomMock).writePom(expectedPomFile);
         }});
         artifactPomContainer.addArtifact(expectedArtifact, expectedFile);
-        Set<DeployableFilesInfo> deployableFilesInfos = artifactPomContainer.createDeployableFilesInfos(testConfigurations);
+        Set<DeployableFilesInfo> deployableFilesInfos = artifactPomContainer.createDeployableFilesInfos();
         assertEquals(1, deployableFilesInfos.size());
         assertEquals(expectedFile, deployableFilesInfos.iterator().next().getArtifactFile());
         assertEquals(expectedPomFile, deployableFilesInfos.iterator().next().getPomFile());

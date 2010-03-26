@@ -24,10 +24,11 @@ import org.gradle.api.artifacts.ResolverContainer
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.MavenResolver
+import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.util.HashUtil
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
+import static org.junit.Assert.assertEquals
+import static org.junit.Assert.assertSame
 
 /**
  * @author Hans Dockter

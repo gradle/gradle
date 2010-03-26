@@ -17,15 +17,14 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 
 import java.io.File;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 /**
  * @author Hans Dockter
@@ -57,12 +56,12 @@ public class DefaultArtifactPomContainer implements ArtifactPomContainer {
         }
     }
 
-    public Set<DeployableFilesInfo> createDeployableFilesInfos(Set<Configuration> configurations) {
+    public Set<DeployableFilesInfo> createDeployableFilesInfos() {
         Set<DeployableFilesInfo> deployableFilesInfos = new HashSet<DeployableFilesInfo>();
         for (String activeArtifactPomName : artifactPoms.keySet()) {
             ArtifactPom activeArtifactPom = artifactPoms.get(activeArtifactPomName);
             File pomFile = createPomFile(activeArtifactPomName);
-            activeArtifactPom.writePom(configurations, pomFile);
+            activeArtifactPom.writePom(pomFile);
             deployableFilesInfos.add(new DeployableFilesInfo(pomFile, activeArtifactPom.getArtifactFile(), activeArtifactPom.getClassifiers()));
         }
         return deployableFilesInfos;

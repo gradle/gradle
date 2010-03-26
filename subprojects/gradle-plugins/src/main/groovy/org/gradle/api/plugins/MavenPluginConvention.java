@@ -15,12 +15,18 @@
  */
 package org.gradle.api.plugins;
 
+import groovy.lang.Closure;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
+import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.util.ConfigureUtil;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @author Hans Dockter
@@ -29,8 +35,8 @@ public class MavenPluginConvention {
     private Project project;
     private String pomDirName = "poms";
     private Conf2ScopeMappingContainer conf2ScopeMappings = new DefaultConf2ScopeMappingContainer();
-    
-    public MavenPluginConvention(Project project, Map customValues) {
+
+    public MavenPluginConvention(Project project) {
         this.project = project;
     }
 
@@ -52,5 +58,20 @@ public class MavenPluginConvention {
 
     public File getPomDir() {
         return new File(project.getBuildDir(), pomDirName);
+    }
+
+    public MavenPom pom() {
+        return pom(null);
+    }
+
+    public MavenPom pom(Closure configureClosure) {
+        DefaultMavenPom pom = new DefaultMavenPom(project.getConfigurations(),
+                new DefaultConf2ScopeMappingContainer(conf2ScopeMappings.getMappings()),
+                new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter()),
+                ((ProjectInternal) project).getFileResolver());
+        pom.setGroupId(project.getGroup().toString());
+        pom.setArtifactId(project.getName());
+        pom.setVersion(project.getVersion().toString());
+        return ConfigureUtil.configure(configureClosure, pom);
     }
 }

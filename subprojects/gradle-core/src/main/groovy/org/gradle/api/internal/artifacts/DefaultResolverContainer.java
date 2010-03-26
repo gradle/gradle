@@ -29,6 +29,7 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.GUtil;
 
@@ -46,6 +47,8 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
     private List<String> resolverNames = new ArrayList<String>();
 
     private File mavenPomDir;
+
+    private FileResolver fileResolver;
 
     private Conf2ScopeMappingContainer mavenScopeMappings;
 
@@ -185,6 +188,14 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
         this.resolverNames = resolverNames;
     }
 
+    public FileResolver getFileResolver() {
+        return fileResolver;
+    }
+
+    public void setFileResolver(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+    }
+
     public ConfigurationContainer getConfigurationContainer() {
         return configurationContainer;
     }
@@ -194,11 +205,11 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
     }
 
     public GroovyMavenDeployer createMavenDeployer(String name) {
-        return resolverFactory.createMavenDeployer(name, this, getConfigurationContainer(), getMavenScopeMappings());
+        return resolverFactory.createMavenDeployer(name, this, getConfigurationContainer(), getMavenScopeMappings(), getFileResolver());
     }
 
     public MavenResolver createMavenInstaller(String name) {
-        return resolverFactory.createMavenInstaller(name, this, getConfigurationContainer(), getMavenScopeMappings());
+        return resolverFactory.createMavenInstaller(name, this, getConfigurationContainer(), getMavenScopeMappings(), getFileResolver());
     }
 
     public Conf2ScopeMappingContainer getMavenScopeMappings() {

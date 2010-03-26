@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.File;
@@ -36,5 +35,5 @@ public interface ArtifactPom {
 
     Set<ClassifierArtifact> getClassifiers();
 
-    void writePom(Set<Configuration> configurations, File pomFile);
+    void writePom(File pomFile);
 }

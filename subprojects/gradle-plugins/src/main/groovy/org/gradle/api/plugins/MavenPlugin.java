@@ -25,12 +25,12 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Upload;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
-import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -52,7 +52,7 @@ public class MavenPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         setConventionMapping(project);
-        addConventionObject(project, new HashMap<String, Object>());
+        addConventionObject(project);
         PluginContainer plugins = project.getPlugins();
         plugins.withType(JavaPlugin.class).allPlugins(new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
@@ -79,6 +79,11 @@ public class MavenPlugin implements Plugin<Project> {
                         return project.getConfigurations();
                     }
                 },
+                "fileResolver", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return ((ProjectInternal) project).getFileResolver();
+                    }
+                },
                 "mavenScopeMappings", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return convention.getPlugin(MavenPluginConvention.class).getConf2ScopeMappings();
@@ -87,8 +92,8 @@ public class MavenPlugin implements Plugin<Project> {
         ((IConventionAware) project.getRepositories()).getConventionMapping().map(mapping);
     }
 
-    private void addConventionObject(Project project, Map<String, ?> customValues) {
-        MavenPluginConvention mavenConvention = new MavenPluginConvention(project, customValues);
+    private void addConventionObject(Project project) {
+        MavenPluginConvention mavenConvention = new MavenPluginConvention(project);
         Convention convention = project.getConvention();
         convention.getPlugins().put("maven", mavenConvention);
     }

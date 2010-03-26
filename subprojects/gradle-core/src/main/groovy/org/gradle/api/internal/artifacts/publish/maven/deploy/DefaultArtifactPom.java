@@ -19,7 +19,6 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 
@@ -62,13 +61,12 @@ public class DefaultArtifactPom implements ArtifactPom {
         return Collections.unmodifiableSet(classifiers);
     }
 
-    public void writePom(Set<Configuration> configurations, File pomFile) {
-        getPom().addDependencies(configurations);
+    public void writePom(File pomFile) {
         try {
             pomFile.getParentFile().mkdirs();
             FileWriter writer = new FileWriter(pomFile);
             try {
-                getPom().write(writer);
+                getPom().writeTo(writer);
             } finally {
                 writer.close();
             }

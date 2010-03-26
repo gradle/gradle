@@ -33,6 +33,7 @@ import org.junit.Before
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.file.FileResolver
 
 /**
  * @author Hans Dockter
@@ -193,9 +194,11 @@ class DefaultResolverContainerTest {
         File testPomDir = new File("pomdir");
         ConfigurationContainer configurationContainer = [:] as ConfigurationContainer
         Conf2ScopeMappingContainer conf2ScopeMappingContainer = [:] as Conf2ScopeMappingContainer
+        FileResolver fileResolver = [:] as FileResolver
         resolverContainer.setMavenPomDir(testPomDir)
         resolverContainer.setConfigurationContainer(configurationContainer)
         resolverContainer.setMavenScopeMappings(conf2ScopeMappingContainer)
+        resolverContainer.setFileResolver(fileResolver)
         DependencyResolver expectedResolver = context.mock(resolverType)
         context.checking {
             allowing(expectedResolver).getName(); will(returnValue(DefaultResolverContainerTest.TEST_REPO_NAME))
@@ -203,7 +206,8 @@ class DefaultResolverContainerTest {
                     withParam(any(String)),
                     withParam(same(resolverContainer)),
                     withParam(same(configurationContainer)),
-                    withParam(same(conf2ScopeMappingContainer)));
+                    withParam(same(conf2ScopeMappingContainer)),
+                    withParam(same(fileResolver)));
             will(returnValue(expectedResolver))
             one(resolverFactoryMock).createResolver(expectedResolver);
             will(returnValue(expectedResolver))

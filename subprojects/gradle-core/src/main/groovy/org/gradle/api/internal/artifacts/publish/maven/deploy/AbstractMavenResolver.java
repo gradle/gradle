@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
@@ -32,21 +33,19 @@ import org.apache.ivy.core.search.RevisionEntry;
 import org.apache.ivy.plugins.namespace.Namespace;
 import org.apache.ivy.plugins.resolver.ResolverSettings;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
-import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
-import org.apache.commons.io.FileUtils;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
@@ -67,15 +66,12 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     private PomFilterContainer pomFilterContainer;
 
-    private ConfigurationContainer configurationContainer;
-
     private Settings settings;
 
-    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, ConfigurationContainer configurationContainer) {
+    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer) {
         this.name = name;
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
-        this.configurationContainer = configurationContainer;
     }
 
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
@@ -86,14 +82,6 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public ConfigurationContainer getConfigurationContainer() {
-        return configurationContainer;
-    }
-
-    public void setConfigurationContainer(ConfigurationContainer configurationContainer) {
-        this.configurationContainer = configurationContainer;
     }
     
     public ResolvedModuleRevision getDependency(DependencyDescriptor dd, ResolveData data) throws ParseException {
@@ -178,7 +166,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
-        Set<DeployableFilesInfo> deployableFilesInfos = getArtifactPomContainer().createDeployableFilesInfos(configurationContainer.getAll());
+        Set<DeployableFilesInfo> deployableFilesInfos = getArtifactPomContainer().createDeployableFilesInfos();
         File emptySettingsXml = createEmptyMavenSettingsXml();
         installDeployTaskSupport.setSettingsFile(emptySettingsXml);
         for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {

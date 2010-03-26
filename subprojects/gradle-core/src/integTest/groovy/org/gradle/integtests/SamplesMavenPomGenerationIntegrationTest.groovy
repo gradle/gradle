@@ -96,6 +96,21 @@ class SamplesMavenPomGenerationIntegrationTest {
         pomProjectDir.file('target').assertIsDir()
         checkInstall(start, pomProjectDir, version, 'installGroup')
     }
+
+    @Test
+    public void writeNewPom() {
+        executer.inDirectory(pomProjectDir).withTasks('clean', 'writeNewPom').run()
+        compareXmlWithIgnoringOrder(expectedPom(null, null, 'pomGeneration/expectedNewPom.txt'),
+                pomProjectDir.file("target/newpom.xml").text)
+    }
+
+    @Test
+    public void writeDeployerPom() {
+        String version = '1.0'
+        String groupId = "gradle"
+        executer.inDirectory(pomProjectDir).withTasks('clean', 'writeDeployerPom').run()
+        compareXmlWithIgnoringOrder(expectedPom(version, groupId), pomProjectDir.file("target/deployerpom.xml").text)
+    }
     
     static String repoPath(String group, String version) {
         "$group/mywar/$version"
@@ -120,10 +135,10 @@ class SamplesMavenPomGenerationIntegrationTest {
         Assert.assertTrue(start <= installedJavadocFile.lastModified());
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
-
-    private String expectedPom(String version, String groupId) {
+    
+    private String expectedPom(String version, String groupId, String path = 'pomGeneration/expectedPom.txt') {
         SimpleTemplateEngine templateEngine = new SimpleTemplateEngine();
-        String text = resources.getResource('pomGeneration/expectedPom.txt').text
+        String text = resources.getResource(path).text
         return templateEngine.createTemplate(text).make(version: version, groupId: groupId)
     }
 

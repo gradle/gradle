@@ -18,11 +18,11 @@ package org.gradle.api.artifacts.maven;
 import groovy.lang.Closure;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 
 import java.io.Writer;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Is used for generating a Maven pom file and customizing the generation.
@@ -54,8 +54,9 @@ public interface MavenPom {
      * </pre>
      *
      * @param pom
+     * @return this
      */
-    void project(Closure pom);
+    MavenPom project(Closure pom);
 
     /**
      * @see org.apache.maven.project.MavenProject#setGroupId(String)
@@ -64,8 +65,9 @@ public interface MavenPom {
 
     /**
      * org.apache.maven.project.MavenProject#getGroupId
+     * @return this
      */
-    void setGroupId(String groupId);
+    MavenPom setGroupId(String groupId);
 
     /**
      * @see org.apache.maven.project.MavenProject#getArtifactId()
@@ -74,8 +76,9 @@ public interface MavenPom {
 
     /**
      * @see org.apache.maven.project.MavenProject#setArtifactId(String)
+     * @return this
      */
-    void setArtifactId(String artifactId);
+    MavenPom setArtifactId(String artifactId);
 
     /**
      * @see org.apache.maven.project.MavenProject#getVersion()
@@ -84,8 +87,9 @@ public interface MavenPom {
 
     /**
      * @see org.apache.maven.project.MavenProject#setVersion(String)
+     * @return this
      */
-    void setVersion(String version);
+    MavenPom setVersion(String version);
 
     /**
      * @see org.apache.maven.project.MavenProject#getPackaging()
@@ -94,13 +98,15 @@ public interface MavenPom {
 
     /**
      * @see org.apache.maven.project.MavenProject#setPackaging(String)
+     * @return this
      */
-    void setPackaging(String packaging);
+    MavenPom setPackaging(String packaging);
 
     /**
      * @see org.apache.maven.project.MavenProject#setDependencies(java.util.List)
+     * @return this
      */
-    void setDependencies(List dependencies);
+    MavenPom setDependencies(List dependencies);
 
     /**
      * @see org.apache.maven.project.MavenProject#getDependencies()
@@ -118,49 +124,73 @@ public interface MavenPom {
     MavenProject getMavenProject();
 
     /**
-     * Adds the pom dependency information from the Gradle dependency metadata.
-     *
-     * @param configurations The configuration from which the dependencies should be added to the pom.
-     * @see #getScopeMappings()
-     */
-    void addDependencies(Set<Configuration> configurations);
-
-    /**
-     * Writes the generated pom.xml to a writer.
+     * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions.
      *
      * @param writer The writer to write the pom xml.
+     * @return this
      */
-    void write(Writer writer);
+    MavenPom writeTo(Writer writer);
+
+    /**
+     * Writes the {@link #getEffectivePom()} xml to a file while applying the {@link #withXml(org.gradle.api.Action)} actions.
+     * The path is resolved as defined by {@link org.gradle.api.Project#files(Object...)}
+     *
+     * @param path The path of the file to write the pom xml into.
+     * @return this
+     */
+    MavenPom writeTo(Object path);
 
     /**
      * <p>Adds a closure to be called when the pom has been configured. The pom is passed to the closure as a
      * parameter.</p>
      *
      * @param closure The closure to execute when the pom has been configured.
+     * @return this
      */
-    void whenConfigured(Closure closure);
+    MavenPom whenConfigured(Closure closure);
 
     /**
      * <p>Adds an action to be called when the pom has been configured. The pom is passed to the action as a
      * parameter.</p>
      *
      * @param action The action to execute when the pom has been configured.
+     * @return this
      */
-    void whenConfigured(Action<MavenPom> action);
+    MavenPom whenConfigured(Action<MavenPom> action);
 
     /**
      * <p>Adds a closure to be called when the pom xml has been created. The xml is passed to the closure as a
      * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
      *
      * @param closure The closure to execute when the pom xml has been created.
+     * @return this
      */
-    void withXml(Closure closure);
+    MavenPom withXml(Closure closure);
 
     /**
      * <p>Adds an action to be called when the pom xml has been created. The xml is passed to the action as a
      * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
      *
      * @param action The action to execute when the pom xml has been created.
+     * @return this
      */
-    void withXml(Action<XmlProvider> action);
+    MavenPom withXml(Action<XmlProvider> action);
+
+    /**
+     * Returns the configuration container used for mapping configurations to maven scopes.
+     */
+    ConfigurationContainer getConfigurations();
+
+    /**
+     * Sets the configuration container used for mapping configurations to maven scopes.
+     * @return this
+     */
+    MavenPom setConfigurations(ConfigurationContainer configurations);
+
+    /**
+     * Returns a pom with the generated dependencies and the {@link #whenConfigured(org.gradle.api.Action)} actions applied.
+     *
+     * @return the effective pom
+     */
+    DefaultMavenPom getEffectivePom();
 }

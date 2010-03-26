@@ -38,7 +38,7 @@ class DefaultGroovyMavenDeployerTest extends BaseMavenDeployerTest {
     }
 
     protected BaseMavenDeployer createMavenDeployer() {
-        groovyMavenDeployer = new DefaultGroovyMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, configurationContainerMock)
+        groovyMavenDeployer = new DefaultGroovyMavenDeployer(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock)
     }
 
     @Before

@@ -15,8 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
-import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.AttachedArtifact;
+import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
@@ -35,7 +35,7 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private CustomInstallTask installTaskMock;
 
     protected BaseMavenInstaller createMavenInstaller() {
-        return new BaseMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, configurationContainerMock);
+        return new BaseMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock);
     }
 
     protected PomFilterContainer createPomFilterContainerMock() {

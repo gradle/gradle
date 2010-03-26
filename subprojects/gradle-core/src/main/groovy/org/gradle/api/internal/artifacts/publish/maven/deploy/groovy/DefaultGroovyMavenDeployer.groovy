@@ -19,7 +19,6 @@ import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
 import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.MavenPom
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
 
@@ -32,8 +31,8 @@ class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMave
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, ConfigurationContainer configurationContainer) {
-        super(name, pomFilterContainer, artifactPomContainer, configurationContainer)
+    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer) {
+        super(name, pomFilterContainer, artifactPomContainer)
     }
     
     def methodMissing(String name, args) {

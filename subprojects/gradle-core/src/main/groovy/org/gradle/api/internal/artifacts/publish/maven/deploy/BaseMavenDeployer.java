@@ -21,7 +21,6 @@ import org.apache.maven.artifact.ant.RemoteRepository;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
@@ -48,8 +47,8 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private boolean uniqueVersion = true;
 
-    public BaseMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, ConfigurationContainer configurationContainer) {
-        super(name, pomFilterContainer, artifactPomContainer, configurationContainer);
+    public BaseMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer) {
+        super(name, pomFilterContainer, artifactPomContainer);
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {

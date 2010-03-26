@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
-import org.gradle.api.artifacts.Configuration;
 
 import java.io.File;
 import java.util.Set;
@@ -27,5 +26,5 @@ import java.util.Set;
 public interface ArtifactPomContainer {
     void addArtifact(Artifact artifact, File src);
 
-    Set<DeployableFilesInfo> createDeployableFilesInfos(Set<Configuration> configurations);
+    Set<DeployableFilesInfo> createDeployableFilesInfos();
 }

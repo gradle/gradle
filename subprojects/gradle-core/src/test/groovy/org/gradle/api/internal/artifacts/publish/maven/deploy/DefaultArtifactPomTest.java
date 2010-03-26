@@ -18,14 +18,15 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
@@ -64,7 +65,8 @@ public class DefaultArtifactPomTest {
     public void setUp() {
         expectedFile = new File("somePath");
         expectedArtifact = createTestArtifact("someName");
-        testPom = new DefaultMavenPom(new DefaultConf2ScopeMappingContainer(), context.mock(PomDependenciesConverter.class), new MavenProject());
+        testPom = new DefaultMavenPom(context.mock(ConfigurationContainer.class), new DefaultConf2ScopeMappingContainer(),
+                context.mock(PomDependenciesConverter.class), context.mock(FileResolver.class));
         artifactPom = new DefaultArtifactPom(testPom);
     }
 
@@ -176,10 +178,9 @@ public class DefaultArtifactPomTest {
         final File somePomFile = new File(tmpDir.getDir(), "someDir/somePath");
         final Set<Configuration> configurations = WrapUtil.toSet(context.mock(Configuration.class));
         context.checking(new Expectations() {{
-            one(mavenPomMock).addDependencies(configurations);
-            one(mavenPomMock).write(with(any(FileWriter.class)));       
+            one(mavenPomMock).writeTo(with(any(FileWriter.class)));       
         }});
-        artifactPom.writePom(configurations, somePomFile);
+        artifactPom.writePom(somePomFile);
         assertThat(somePomFile.getParentFile().isDirectory(), equalTo(true));
     }
 }

@@ -15,41 +15,41 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
+import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
-import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
-import org.apache.commons.io.FileUtils;
 import org.codehaus.plexus.PlexusContainerException;
-import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.util.AntUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.AntUtil;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.Collections;
+import java.util.Set;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -62,8 +62,6 @@ public abstract class AbstractMavenResolverTest {
     private static final Artifact TEST_ARTIFACT = new DefaultArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
     protected ArtifactPomContainer artifactPomContainerMock;
     protected PomFilterContainer pomFilterContainerMock;
-    protected ConfigurationContainer configurationContainerMock;
-    private Set<Configuration> testConfigurations;
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
         {
@@ -82,19 +80,10 @@ public abstract class AbstractMavenResolverTest {
 
     @Before
     public void setUp() {
-        testConfigurations = new HashSet<Configuration>();
-        configurationContainerMock = context.mock(ConfigurationContainer.class);
         pomFilterContainerMock = createPomFilterContainerMock();
         artifactPomContainerMock = context.mock(ArtifactPomContainer.class);
         pomMock = context.mock(MavenPom.class);
         mavenSettingsMock = context.mock(Settings.class);
-
-        context.checking(new Expectations() {
-            {
-                allowing(configurationContainerMock).getAll();
-                will(returnValue(testConfigurations));
-            }
-        });
     }
 
     @Test
@@ -115,7 +104,7 @@ public abstract class AbstractMavenResolverTest {
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).createAttach();
                 will(returnValue(attachedArtifact));
                 one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT, TEST_JAR_FILE);
-                allowing(artifactPomContainerMock).createDeployableFilesInfos(testConfigurations);
+                allowing(artifactPomContainerMock).createDeployableFilesInfos();
                 will(returnValue(testDeployableFilesInfos));
             }
         });

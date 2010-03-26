@@ -30,7 +30,6 @@ dependencies {
     testRuntime "group6:testRuntime:1.0"
 }
 
-
 // Include a javadoc zip
 
 task javadocZip(type: Zip, dependsOn: javadoc) {
@@ -66,8 +65,29 @@ if (hasProperty('customVersion')) {
     deployer.pom.groupId = 'deployGroup'
 }
 
-[installer, deployer]*.pom*.whenConfigured { pom ->
-   pom.dependencies.find { dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
+// START SNIPPET new-pom
+task writeNewPom << {
+    pom {
+        project {
+            inceptionYear '2008'
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }.writeTo("$buildDir/newpom.xml")
+}
+// END SNIPPET new-pom
+
+[installer, deployer]*.pom*.whenConfigured {pom ->
+    pom.dependencies.find {dep -> dep.groupId == 'group3' && dep.artifactId == 'runtime' }.optional = true
+}
+
+task writeDeployerPom(dependsOn: uploadArchives) << {
+    deployer.pom.writeTo("$buildDir/deployerpom.xml")
 }
 
 // For our integration tests

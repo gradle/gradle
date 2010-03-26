@@ -15,13 +15,18 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven
 
+import org.apache.commons.lang.builder.EqualsBuilder
 import org.apache.maven.model.Dependency
-import org.apache.maven.project.MavenProject
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
+import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultMavenPomTest extends Specification {
@@ -30,9 +35,15 @@ class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_ARTIFACT_ID = "artifactId";
     static final String EXPECTED_VERSION = "version";
 
-    Conf2ScopeMappingContainer conf2ScopeMappingContainerMock = new DefaultConf2ScopeMappingContainer()
-    PomDependenciesConverter pomDependenciesConverterStub = Mock(PomDependenciesConverter)
-    DefaultMavenPom mavenPom = new DefaultMavenPom(conf2ScopeMappingContainerMock, pomDependenciesConverterStub, new MavenProject())
+    @Rule
+    TemporaryFolder tmpDir = new TemporaryFolder()
+
+    Conf2ScopeMappingContainer conf2ScopeMappingContainer = new DefaultConf2ScopeMappingContainer()
+    PomDependenciesConverter pomDependenciesConverterStub = Mock()
+    ConfigurationContainer configurationContainerStub = Mock()
+    FileResolver fileResolver = Mock()
+    DefaultMavenPom mavenPom = new DefaultMavenPom(configurationContainerStub, conf2ScopeMappingContainer, pomDependenciesConverterStub,
+            fileResolver)
 
     void setup() {
         mavenPom.packaging = EXPECTED_PACKAGING
@@ -43,34 +54,67 @@ class DefaultMavenPomTest extends Specification {
 
     def init() {
         expect:
-        conf2ScopeMappingContainerMock.is(mavenPom.getScopeMappings())
+        mavenPom.scopeMappings.is(conf2ScopeMappingContainer)
+        mavenPom.configurations.is(configurationContainerStub)
+        mavenPom.fileResolver.is(fileResolver)
         mavenPom.mavenProject.modelVersion == "4.0.0"
-        mavenPom.packaging == EXPECTED_PACKAGING
-        mavenPom.groupId == EXPECTED_GROUP_ID
-        mavenPom.artifactId == EXPECTED_ARTIFACT_ID
-        mavenPom.version == EXPECTED_VERSION
     }
 
-    def addDependencies() {
-        setup:
+    def effectivePomShouldHaveGeneratedDependencies() {
         Set configurations = [Mock(Configuration)]
-        List generatedDependencies = [new Dependency()]
+        configurationContainerStub.getAll() >> configurations
+        List generatedDependencies = [new Dependency(groupId: 'someGroup')]
         List manuallyAddedDependencies = [new Dependency()]
-        pomDependenciesConverterStub.convert(conf2ScopeMappingContainerMock, configurations) >> generatedDependencies
+        pomDependenciesConverterStub.convert(conf2ScopeMappingContainer, configurations) >> generatedDependencies
 
         when:
         mavenPom.dependencies = manuallyAddedDependencies.clone()
-        mavenPom.addDependencies(configurations);
 
         then:
-        mavenPom.getMavenProject().getDependencies() == manuallyAddedDependencies + generatedDependencies
+        EqualsBuilder.reflectionEquals(mavenPom.getEffectivePom().getMavenProject().getDependencies(), manuallyAddedDependencies + generatedDependencies)
 
         when:
         mavenPom.dependencies = []
-        mavenPom.addDependencies(configurations);
 
         then:
-        mavenPom.getMavenProject().getDependencies() == generatedDependencies
+        mavenPom.getEffectivePom().getMavenProject().getDependencies() == generatedDependencies
+    }
+
+    def configureActionsShouldBeAppliedAgainstEffectivePom() {
+        mavenPom.configurations = null
+        when:
+        mavenPom.whenConfigured(new Action() {
+            void execute(def mavenPom) {
+                mavenPom.mavenProject.inceptionYear = '1999'
+            }
+        })
+
+        then:
+        mavenPom.effectivePom.mavenProject.inceptionYear == '1999'
+        mavenPom.mavenProject.inceptionYear == null
+    }
+
+
+    def writeShouldUseEffectivePom() {
+        Set configurations = [Mock(Configuration)]
+        configurationContainerStub.getAll() >> configurations
+        List generatedDependencies = [new Dependency(groupId: 'someGroup')]
+        pomDependenciesConverterStub.convert(conf2ScopeMappingContainer, configurations) >> generatedDependencies
+
+        when:
+        StringWriter pomWriter = new StringWriter()
+        mavenPom.writeTo pomWriter
+
+        then:
+        pomWriter.toString().contains('someGroup')
+    }
+
+    def effectivePomWithNullConfigurationsShouldWork() {
+        when:
+        mavenPom.configurations = null
+
+        then:
+        mavenPom.getEffectivePom().getMavenProject().getDependencies() == []
     }
 
     void projectBuilder() {
@@ -98,52 +142,38 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.mavenProject.licenses[0].distribution == 'repo'
     }
 
-    void whenConfiguredWithAction() {
-        def called = false
-
-        when:
-        mavenPom.whenConfigured(new Action() {
-            void execute(def mavenPom) {
-                called = true
-            }
-        })
-        mavenPom.write(new StringWriter());
-
-        then:
-        called
-    }
-
-    void withXmlWithAction() {
-        def called = false
-
-        when:
-        mavenPom.withXml(new Action() {
-            void execute(def mavenPom) {
-                called = true
-            }
-        })
-        mavenPom.write(new StringWriter());
-
-        then:
-        called
-    }
-
-    void writeWithHookManipulations() {
+    void writeToShouldApplyXmlActions() {
+        mavenPom.configurations = null
         StringWriter pomWriter = new StringWriter()
 
         when:
-        mavenPom.whenConfigured {mavenPom ->
-            mavenPom.mavenProject.inceptionYear = '1999'
-        }
         mavenPom.withXml {xmlProvider ->
             xmlProvider.asString().append('someAppendix')
         }
-        mavenPom.write(pomWriter);
+        mavenPom.writeTo(pomWriter);
 
         then:
-        mavenPom.mavenProject.inceptionYear == "1999"
-        pomWriter.toString().contains("inceptionYear")
-        pomWriter.toString().contains("1999")
         pomWriter.toString().endsWith("someAppendix")
+    }
+
+    void writeToWritesCorrectPom() {
+        mavenPom.configurations = null
+        TestFile pomFile = tmpDir.file('someNonexistingDir').file('someFile')
+        fileResolver.resolve('file') >> pomFile
+
+        when:
+        mavenPom.writeTo('file');
+
+        then:
+        pomFile.text == '''<?xml version="1.0" encoding="UTF-8"?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>someGroup</groupId>
+  <artifactId>artifactId</artifactId>
+  <version>version</version>
+  <packaging>something</packaging>
+</project>
+'''
     }
 }

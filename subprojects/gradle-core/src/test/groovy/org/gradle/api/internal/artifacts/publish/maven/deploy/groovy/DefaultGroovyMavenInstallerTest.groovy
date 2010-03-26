@@ -37,7 +37,7 @@ class DefaultGroovyMavenInstallerTest extends BaseMavenInstallerTest {
     }
 
     protected BaseMavenInstaller createMavenInstaller() {
-        groovyMavenInstaller = new DefaultGroovyMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, configurationContainerMock)
+        groovyMavenInstaller = new DefaultGroovyMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock)
     }
 
     @Before

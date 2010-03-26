@@ -153,7 +153,6 @@ class JavaPluginConvention {
      * the new manifest instance before it is returned.
      */
     public Manifest manifest(Closure closure) {
-        return ConfigureUtil.configure(closure, new DefaultManifest(((ProjectInternal) getProject()).fileResolver),
-                Closure.DELEGATE_FIRST);
+        return ConfigureUtil.configure(closure, new DefaultManifest(((ProjectInternal) getProject()).fileResolver));
     }
 }

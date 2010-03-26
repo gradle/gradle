@@ -22,18 +22,21 @@ import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.resolver.*;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.ConfigurationContainer;
+import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.internal.artifacts.publish.maven.*;
+import org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory;
+import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory;
+import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.util.DeleteOnExit;
 
 import java.io.File;
@@ -139,29 +142,29 @@ public class DefaultResolverFactory implements ResolverFactory {
         return dualResolver;
     }
 
+    // todo use MavenPluginConvention pom factory after modularization is done
     public GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
                                                    ConfigurationContainer configurationContainer,
-                                                   Conf2ScopeMappingContainer scopeMapping) {
+                                                   Conf2ScopeMappingContainer scopeMapping,
+                                                   FileResolver fileResolver) {
         DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
-                new DefaultMavenPomFactory(scopeMapping, new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter())));
+                new DefaultMavenPomFactory(configurationContainer, scopeMapping, new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter()), fileResolver));
         return new DefaultGroovyMavenDeployer(name,
                 pomFilterContainer,
                 new DefaultArtifactPomContainer(pomMetaInfoProvider, pomFilterContainer,
-                        new DefaultArtifactPomFactory()),
-                configurationContainer
-        );
+                        new DefaultArtifactPomFactory()));
     }
 
+    // todo use MavenPluginConvention pom factory after modularization is done
     public MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
                                               ConfigurationContainer configurationContainer,
-                                              Conf2ScopeMappingContainer scopeMapping) {
+                                              Conf2ScopeMappingContainer scopeMapping,
+                                              FileResolver fileResolver) {
         DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
-                new DefaultMavenPomFactory(scopeMapping, new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter())));
+                new DefaultMavenPomFactory(configurationContainer, scopeMapping, new DefaultPomDependenciesConverter(new DefaultExcludeRuleConverter()), fileResolver));
         return new BaseMavenInstaller(name,
                 pomFilterContainer,
                 new DefaultArtifactPomContainer(pomMetaInfoProvider, pomFilterContainer,
-                        new DefaultArtifactPomFactory()),
-                configurationContainer
-        );
+                        new DefaultArtifactPomFactory()));
     }
 }
