@@ -47,7 +47,8 @@ if (stableVersion != version) {
     releases << new Release(title: 'Current Stable Release', version: stableVersion)
 }
 
-buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
+//buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
+buildWebsiteDir = new File(buildDir, 'website')
 
 task userguideContent << {
     def startParams = gradle.startParameter.newBuild()

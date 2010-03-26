@@ -1,5 +1,5 @@
 <div id="homeContent">
-<h1 id="homeTitle">a better way to build</h1>
+<h1 id="homeTitle">A better way to build.</h1>
 
 <div id="about">
 
@@ -12,13 +12,13 @@
     enables you to create declarative, maintainable, concise and highly-performing builds.
     </p>
 
-<div class="more"><a href="overview.html">Learn more</a></div>
+    <div class="more"><a href="overview.html" title="Learn more"><img src="img/learnMore.png"/></a></div>
 
 </div>
 
 <div id="rightcolumn">
 <div id="gettingstarted">
-    <h2>Get started</h2>
+    <h2>Getting started</h2>
     <ol>
         <li>Download <a href="http://dist.codehaus.org/gradle/gradle-${currentRelease.version}-all.zip" title="gradle-${currentRelease.version}-all.zip">${currentRelease.version}</a></li>
         <li>Try the <a href="tutorials.html">tutorials</a></li>
@@ -49,16 +49,26 @@
 
 <div id="who_uses" class="homeList">
     <h2>Who uses Gradle?</h2>
-    <ul>
-        <li><a href="http://www.grails.org">Grails</a></li>
-        <li><a href="http://gpars.codehaus.org/">GPars</a></li>
-        <li><a href="http://code.google.com/p/spock/">Spock</a></li>
-        <li><a href="http://gant.codehaus.org/">Gant</a></li>
-        <li><a href="http://code.google.com/p/gmock/">GMock</a></li>
-        <li><a href="http://www.corp.carrier.com">Carrier</a></li>
-        <li><a href="http://www.fcc-fac.ca/">Farm Credit Canada</a></li>
-        <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
-    </ul>
+    <table>
+        <tr>
+            <td>
+                <ul>
+                    <li><a href="http://www.grails.org">Grails</a></li>
+                    <li><a href="http://code.google.com/p/spock/">Spock</a></li>
+                    <li><a href="http://code.google.com/p/gmock/">GMock</a></li>
+                    <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
+                </ul>
+            </td>
+            <td>
+                <ul>
+                    <li><a href="http://gpars.codehaus.org/">GPars</a></li>
+                    <li><a href="http://gant.codehaus.org/">Gant</a></li>
+                    <li><a href="http://www.corp.carrier.com">Carrier</a></li>
+                    <li><a href="http://www.fcc-fac.ca/">Farm Credit Canada</a></li>
+                </ul>
+            </td>
+        </tr>
+    </table>
 </div>
 
 </div>

@@ -177,7 +177,7 @@ p {
 
 .content a {
     color: #4a9935;
-    text-decoration: underline;
+    text-decoration: none;
 }
 
 .content a:hover {
@@ -212,28 +212,34 @@ p {
 }
 
 #about .more {
-    padding-top: 1.8em;
-    padding-right: 2.2em;
+    width: 100%;
+    text-align: right;
+    padding-top: 1.6em;
 }
 
-#about .more a {
-    font-family: Helvetica, sans-serif;
-    font-size: 160%;
-    font-weight: bold;
-    text-decoration: none;
-    color: white;
-    border: solid #ffa953 3px;
-    padding: 0.2em 0.8em;
-    -moz-border-radius: 10px;
-    -webkit-border-radius: 10px;
-    background-color: #ff8000;
-    background-image: -moz-linear-gradient(#ffa953, #ff8000);
-    background-image: -webkit-gradient(linear, left top, left bottom, from(#ffa953), to(#ff8000));
+#about .more a img {
+    border: none;
+    /*font-size: 160%;*/
+    /*text-decoration: none;*/
+    /*color: white;*/
+    /*width: 180px; */
+    /*height: 40px;*/
+    /*display: block;*/
+    /*position: absolute;*/
+    /*top: 30px;*/
+    /*right: 30px;*/
+    /*vertical-align: baseline;*/
+    /*text-align: center;*/
+    /*-moz-border-radius: 10px;*/
+    /*-webkit-border-radius: 10px;*/
+    /*background-color: #DB8C1B;*/
+    /*background-image: -moz-linear-gradient(#f2b42c, #d48008);*/
+    /*background-image: -webkit-gradient(linear, left top, left bottom, from(#f2b42c), to(#d48008));*/
 }
 
 #rightcolumn {
     position: absolute;
-    top: 26px;
+    top: 21px;
     right: 0;
 }
 
@@ -276,6 +282,7 @@ p {
 #homeColumns {
     position: relative;
     width: 660px;
+    height: 240px;
 }
 
 #training {
@@ -290,6 +297,34 @@ p {
     left: 330px;
 }
 
+#who_uses td {
+    padding: 0;
+    margin: 0;
+    padding-right: 3em;
+}
+
+#who_uses table {
+    padding: 0;
+    margin: 0;
+    margin-left: 0.3em;
+    border-collapse: collapse;
+}
+
+#who_uses tr {
+    padding: 0;
+    margin: 0;
+}
+
+#who_uses ul {
+    padding-left: 0.4em;
+}
+
+#who_uses li {
+    list-style: disc;
+    color: #4a9935;
+    margin-left: 0.3em;
+}
+
 #news {
     margin-top: 40px;
     width: 310px;
@@ -298,9 +333,8 @@ p {
 
 .homeList ul {
     margin: 0;
-    margin-top: 1em;
     padding: 0;
-    line-height: 1.4em;
+    line-height: 1.25em;
 }
 
 .homeList li {
@@ -310,9 +344,12 @@ p {
     list-style: none;
 }
 
+.homeList li a {
+    text-decoration: none;
+}
+
 .more {
-    text-align: right;
-    width: 100%;
+    font-weight: bold;
 }
 
 table.tools {
