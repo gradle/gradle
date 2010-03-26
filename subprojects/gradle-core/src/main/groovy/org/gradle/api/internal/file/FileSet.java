@@ -48,7 +48,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
 
     public FileSet(Map<String, ?> args, FileResolver resolver) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
-        ConfigureUtil.configure(args, this);
+        ConfigureUtil.configureByMap(args, this);
     }
 
     public PatternSet getPatternSet() {

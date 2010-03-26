@@ -31,7 +31,7 @@ public class ConfigureUtil {
         return configure(configureClosure, delegate, Closure.DELEGATE_FIRST);
     }
 
-    public static <T> T configure(Map<String, ?> properties, T delegate) {
+    public static <T> T configureByMap(Map<String, ?> properties, T delegate) {
         for (Map.Entry<String, ?> entry : properties.entrySet()) {
             try {
                 ReflectionUtil.setProperty(delegate, entry.getKey(), entry.getValue());

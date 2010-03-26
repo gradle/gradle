@@ -55,7 +55,7 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
         String path = getAndRemove(args, "path");
         String configuration = getAndRemove(args, "configuration");
         ProjectDependency dependency = classGenerator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(path), configuration, instruction);
-        ConfigureUtil.configure(args, dependency);
+        ConfigureUtil.configureByMap(args, dependency);
         return dependency;
     }
 

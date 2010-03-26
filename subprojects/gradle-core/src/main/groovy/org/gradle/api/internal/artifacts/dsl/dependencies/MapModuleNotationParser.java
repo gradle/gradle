@@ -44,7 +44,7 @@ class MapModuleNotationParser implements IDependencyImplementationFactory {
         ExternalDependency dependency = (ExternalDependency) classGenerator.newInstance(type, group, name, version, configuration);
         ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency, getAndRemove(args, "ext"), getAndRemove(args,
                 "classifier"));
-        ConfigureUtil.configure(args, dependency);
+        ConfigureUtil.configureByMap(args, dependency);
         return type.cast(dependency);
     }
 

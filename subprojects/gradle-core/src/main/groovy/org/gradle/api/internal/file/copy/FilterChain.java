@@ -62,7 +62,7 @@ public class FilterChain implements Transformer<InputStream> {
                     FilterReader result = constructor.newInstance(original);
 
                     if (properties != null) {
-                        ConfigureUtil.configure(properties, result);
+                        ConfigureUtil.configureByMap(properties, result);
                     }
                     return result;
                 } catch (Throwable th) {

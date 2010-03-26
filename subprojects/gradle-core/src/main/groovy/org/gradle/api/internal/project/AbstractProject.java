@@ -843,7 +843,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     public void apply(Map<String, ?> options) {
         DefaultObjectConfigurationAction action = new DefaultObjectConfigurationAction(fileResolver, services.get(
                 ScriptPluginFactory.class), this);
-        ConfigureUtil.configure(options, action);
+        ConfigureUtil.configureByMap(options, action);
         action.execute();
     }
 

@@ -53,10 +53,10 @@ class ConfigureUtilTest {
     public void canConfigureObjectPropertyUsingMap() {
         Bean obj = new Bean()
 
-        ConfigureUtil.configure(obj, prop: 'value')
+        ConfigureUtil.configureByMap(obj, prop: 'value')
         assertThat(obj.prop, equalTo('value'))
 
-        ConfigureUtil.configure(obj, method: 'value2')
+        ConfigureUtil.configureByMap(obj, method: 'value2')
         assertThat(obj.prop, equalTo('value2'))
     }
 
@@ -65,7 +65,7 @@ class ConfigureUtilTest {
         Bean obj = new Bean()
 
         try {
-            ConfigureUtil.configure(obj, unknown: 'value')
+            ConfigureUtil.configureByMap(obj, unknown: 'value')
             fail()
         } catch (MissingPropertyException e) {
             assertThat(e.type, equalTo(Bean.class))
