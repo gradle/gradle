@@ -11,7 +11,7 @@ archivesBaseName = 'mywar'
 buildDirName = 'target'
 
 repositories {
-    flatDir(dirs: "$rootDir/lib")
+    flatDir(dirs: "$projectDir/lib")
 }
 
 dependencies {

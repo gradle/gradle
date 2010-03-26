@@ -43,7 +43,7 @@ public interface Manifest {
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
      */
-    Manifest attributes(Map<String, ? extends Object> attributes) throws ManifestException;
+    Manifest attributes(Map<String, ?> attributes) throws ManifestException;
 
     /**
      * 
@@ -55,11 +55,11 @@ public interface Manifest {
      * @return this
      * @throws ManifestException If a key is invalid according to the manifest spec or if a key or value is null.
      */
-    Manifest attributes(Map<String, ? extends Object> attributes, String sectionName) throws ManifestException;
+    Manifest attributes(Map<String, ?> attributes, String sectionName) throws ManifestException;
 
     /**
      * Returns a new manifest instance where all the attribute values are expanded (e.g. there toString method is called).
-     * The returned manifest also contains all the attributes of the to be merged manifests specified in {@link #from(Object)}.
+     * The returned manifest also contains all the attributes of the to be merged manifests specified in {@link #from(Object...)}.
      */
     Manifest getEffectiveManifest();
 

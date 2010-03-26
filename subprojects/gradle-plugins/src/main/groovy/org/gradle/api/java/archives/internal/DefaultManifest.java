@@ -56,16 +56,16 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         getAttributes().put("Manifest-Version", "1.0");
     }
 
-    public DefaultManifest mainAttributes(Map<String, ? extends Object> attributes) {
+    public DefaultManifest mainAttributes(Map<String, ?> attributes) {
         return attributes(attributes);
     }
 
-    public DefaultManifest attributes(Map<String, ? extends Object> attributes) {
+    public DefaultManifest attributes(Map<String, ?> attributes) {
         getAttributes().putAll(attributes);
         return this;
     }
 
-    public DefaultManifest attributes(Map<String, ? extends Object> attributes, String sectionName) {
+    public DefaultManifest attributes(Map<String, ?> attributes, String sectionName) {
         if (!sections.containsKey(sectionName)) {
             sections.put(sectionName, new DefaultAttributes());
         }

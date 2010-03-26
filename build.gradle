@@ -18,7 +18,6 @@ import java.util.jar.Attributes
 import org.gradle.api.artifacts.repositories.WebdavResolver
 
 import org.gradle.build.samples.WrapperProjectCreator
-import org.apache.ivy.plugins.resolver.*
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
