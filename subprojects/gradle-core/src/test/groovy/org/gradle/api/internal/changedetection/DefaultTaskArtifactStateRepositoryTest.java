@@ -416,6 +416,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task);
         assertTrue(state.isUpToDate());
+
+        outputDirFile.delete();
+
+        state = repository.getStateFor(task);
+        assertFalse(state.isUpToDate());
     }
 
     @Test

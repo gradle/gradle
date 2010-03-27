@@ -310,7 +310,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         public TaskExecution getExecution() {
-            if (!task.getInputs().getHasInputs() || !task.getOutputs().getHasOutput()) {
+            if (!task.getOutputs().getHasOutput()) {
                 return new NoDeclaredArtifactsExecution(task);
             }
             Set<String> outputFiles = outputFiles(task);
