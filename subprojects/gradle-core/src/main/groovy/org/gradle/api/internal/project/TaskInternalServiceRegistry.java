@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
@@ -25,10 +26,12 @@ import org.gradle.api.tasks.TaskInputs;
  */
 public class TaskInternalServiceRegistry extends DefaultServiceRegistry implements ServiceRegistryFactory {
     private final ProjectInternal project;
+    private final TaskInternal taskInternal;
 
-    public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project) {
+    public TaskInternalServiceRegistry(ServiceRegistry parent, final ProjectInternal project, TaskInternal taskInternal) {
         super(parent);
         this.project = project;
+        this.taskInternal = taskInternal;
     }
 
     protected TaskInputs createTaskInputs() {
@@ -36,7 +39,7 @@ public class TaskInternalServiceRegistry extends DefaultServiceRegistry implemen
     }
 
     protected TaskOutputsInternal createTaskOutputs() {
-        return new DefaultTaskOutputs(project.getFileResolver());
+        return new DefaultTaskOutputs(project.getFileResolver(), taskInternal);
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

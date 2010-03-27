@@ -13,59 +13,72 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.api.internal.tasks
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
+import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.TaskInternal;
+import spock.lang.Specification
 
-class DefaultTaskOutputsTest {
-    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver)
+class DefaultTaskOutputsTest extends Specification {
+    private final TaskInternal task = [toString: {'task'}] as TaskInternal
+    private final DefaultTaskOutputs outputs = new DefaultTaskOutputs({new File(it)} as FileResolver, task)
 
-    @Test
-    public void defaultValues() {
-        assertThat(outputs.files.files, isEmpty())
-        assertFalse(outputs.hasOutput)
+    public void hasNoOutputsByDefault() {
+        setup:
+        assert outputs.files.files.isEmpty()
+        assert !outputs.hasOutput
     }
 
-    @Test
+    public void outputFileCollectionIsBuiltByTask() {
+        setup:
+        assert outputs.files.buildDependencies.getDependencies(task) == [task] as Set
+    }
+
     public void canRegisterOutputFiles() {
+        when:
         outputs.files('a')
-        assertThat(outputs.files.files, equalTo([new File('a')] as Set))
+
+        then:
+        outputs.files.files == [new File('a')] as Set
     }
 
-    @Test
     public void hasOutputsWhenEmptyOutputFilesRegistered() {
+        when:
         outputs.files([])
-        assertTrue(outputs.hasOutput)
+
+        then:
+        outputs.hasOutput
     }
     
-    @Test
     public void hasOutputsWhenNonEmptyOutputFilesRegistered() {
+        when:
         outputs.files('a')
-        assertTrue(outputs.hasOutput)
+
+        then:
+        outputs.hasOutput
     }
 
-    @Test
     public void hasOutputsWhenUpToDatePredicateRegistered() {
+        when:
         outputs.upToDateWhen { false }
-        assertTrue(outputs.hasOutput)
+
+        then:
+        outputs.hasOutput
     }
     
-    @Test
     public void canSpecifyUpToDatePredicateUsingClosure() {
         boolean upToDate = false
+
+        when:
         outputs.upToDateWhen { upToDate }
 
-        assertFalse(outputs.upToDateSpec.isSatisfiedBy([:] as TaskInternal))
+        then:
+        !outputs.upToDateSpec.isSatisfiedBy(task)
 
+        when:
         upToDate = true
 
-        assertTrue(outputs.upToDateSpec.isSatisfiedBy([:] as TaskInternal))
+        then:
+        outputs.upToDateSpec.isSatisfiedBy(task)
     }
 }

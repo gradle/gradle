@@ -31,8 +31,9 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final PathResolvingFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
 
-    public DefaultTaskOutputs(FileResolver resolver) {
+    public DefaultTaskOutputs(FileResolver resolver, TaskInternal task) {
         outputFiles = new PathResolvingFileCollection("task output files", resolver, null);
+        outputFiles.builtBy(task);
     }
 
     public Spec<? super TaskInternal> getUpToDateSpec() {

@@ -158,7 +158,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof TaskInternal) {
-            return new TaskInternalServiceRegistry(this, project);
+            return new TaskInternalServiceRegistry(this, project, (TaskInternal)domainObject);
         }
         throw new UnsupportedOperationException();
     }

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
@@ -35,7 +36,8 @@ public class TaskInternalServiceRegistryTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final ProjectInternal project = context.mock(ProjectInternal.class);
-    private final TaskInternalServiceRegistry registry = new TaskInternalServiceRegistry(parent, project);
+    private final TaskInternal task = context.mock(TaskInternal.class);
+    private final TaskInternalServiceRegistry registry = new TaskInternalServiceRegistry(parent, project, task);
 
     @Before
     public void setUp() {
