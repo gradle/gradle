@@ -19,7 +19,7 @@ import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 
-apply id: 'base'
+apply plugin: 'base'
 
 configurations {
     ftpAntTask

@@ -18,7 +18,7 @@ import groovy.text.Template
 import groovy.text.TemplateEngine
 
 // to get a clean
-apply id: 'base'
+apply plugin: 'base'
 
 repositories {
     mavenCentral()

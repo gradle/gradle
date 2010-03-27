@@ -33,7 +33,7 @@ version = new Version(project)
 
 defaultTasks "clean", "assemble"
 
-apply id: 'base'
+apply plugin: 'base'
 
 startScriptsDir = new File("$buildDir/startScripts")
 
@@ -88,9 +88,9 @@ allprojects {
 def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.5.1@jar']
 
 configure(groovyProjects()) {
-    apply id: 'groovy'
-    apply id: 'code-quality'
-    apply id: 'eclipse'
+    apply plugin: 'groovy'
+    apply plugin: 'code-quality'
+    apply plugin: 'eclipse'
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
@@ -188,7 +188,7 @@ binDistImage = copySpec {
 }
 
 allDistImage = copySpec {
-    from binDistImage
+    with binDistImage
     into('src') {
         from groovyProjects().collect {project -> project.sourceSets.main.allSource }
     }
@@ -203,14 +203,14 @@ allDistImage = copySpec {
 task allZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:docs', 'docs:samples']) {
     classifier = 'all'
     into(zipRootFolder) {
-        from allDistImage
+        with allDistImage
     }
 }
 
 task binZip(type: Zip, dependsOn: ['launcher:startScripts', 'docs:distDocs']) {
     classifier = 'bin'
     into(zipRootFolder) {
-        from binDistImage
+        with binDistImage
     }
 }
 
@@ -244,7 +244,7 @@ artifacts {
 
 task intTestImage(type: Sync) {
     dependsOn allZip.taskDependencies
-    from allDistImage
+    with allDistImage
     integTestGradleHome = file("$buildDir/integ test")
     into integTestGradleHome
     doLast { task ->
@@ -299,13 +299,13 @@ task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 
 task install(type: Install, description: 'Installs the minimal distribution into directory $gradle_installPath') {
     dependsOn binZip.taskDependencies
-    from binDistImage
+    with binDistImage
     installDirProperyName = 'gradle_installPath'
 }
 
 task installAll(type: Install, description: 'Installs the full distribution into directory $gradle_installPath') {
     dependsOn allZip.taskDependencies
-    from allDistImage
+    with allDistImage
     installDirProperyName = 'gradle_installPath'
 }
 

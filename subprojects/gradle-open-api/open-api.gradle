@@ -1,4 +1,4 @@
-apply id: 'groovy'
+apply plugin: 'groovy'
 
 dependencies {
     groovy libraries.groovy_depends
