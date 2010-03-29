@@ -16,20 +16,23 @@
 <chapter id='writing_build_scripts' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Writing Build Scripts</title>
     <para>This chapter looks at some of the details of writing a build script.</para>
-    
-    <section>
-        <title>Script API</title>
-        <para>When Gradle executes a script, it compiles the script into a class which implements <apilink class="org.gradle.api.Script"/>.</para>
-    </section>
 
     <section id='sec:project_api'>
         <title>Project API</title>
-        <para>In the tutorial in <xref linkend='tutorial_using_tasks'/> we used, for example, the
-            <literal>task()</literal> method. Where does this method come from? We said earlier that the build script
-            defines a project in Gradle. For Gradle, this means that it creates an instance of
+        <para>In the tutorial in <xref linkend='tutorial_java_projects'/> we used, for example, the
+            <literal>apply()</literal> method. Where does this method come from? We said earlier that the build script
+            defines a project in Gradle. For each project in the build creates an instance of type
             <apilink class='org.gradle.api.Project'/> and associates this <classname>Project</classname> object with
-            the build script. As the build script executes, it configures this <classname>Project</classname> object.
+            the build script. As the build script executes, it configures this <classname>Project</classname> object:
         </para>
+        <tip>
+            <title>Getting help writing build scripts</title>
+            <para>Don't forget that your build script is simply Groovy code that drives the Gradle API. And the
+                <apilink class='org.gradle.api.Project'/> interface is your starting point for accessing everything
+                in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can
+                start with the javadocs for the <classname>Project</classname> interface.
+            </para>
+        </tip>
         <itemizedlist>
             <listitem>
                 <para>Any method you call in your build script, which <emphasis>is not defined</emphasis>
@@ -56,8 +59,6 @@
             same name as a member of the <classname>Project</classname> object, you need to use the <literal>project</literal>
             property.
         </para>
-        <para>Have a look at the <apilink class='org.gradle.api.Project'/> API to find out more about project
-            properties and methods.</para>
         <section>
             <title>Standard project properties</title>
             <para>The <classname>Project</classname> object provides some standard properties, which are available in
@@ -136,5 +137,9 @@
             </sample>
         </section>
     </section>
-    
+    <section>
+        <title>Script API</title>
+        <para>When Gradle executes a script, it compiles the script into a class which implements <apilink class="org.gradle.api.Script"/>.</para>
+    </section>
+
 </chapter>

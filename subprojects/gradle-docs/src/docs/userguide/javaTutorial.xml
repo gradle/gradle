@@ -16,30 +16,36 @@
 <chapter id='tutorial_java_projects' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Java Quickstart</title>
 
-    <para>As we have seen, Gradle is a general-purpose build tool. It can build pretty much anything you care to
-        implement in your build script. Out-of-the-box, however, it doesn't build anything unless you write code in your
-        build script. Most Java projects are pretty similar as far as the basics go: you need to compile your Java
-        source files, run some unit tests, and create a JAR file containing your classes. It would be nice if you
-        didn't have to code all this up for every project. Luckily, you don't have to.
-        Gradle solves this problem through the use of <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
-        which configures your project in some way, typically by adding a bunch of pre-configured tasks which together do
-        something useful. Gradle ships with a number of plugins, and you can easily write your own and share them with
-        others. One such plugin is the <firstterm>Java Plugin</firstterm>. This plugin adds some tasks to your
-        project which will compile and test your Java source code, and bundle it into a JAR file.
-    </para>
+    <section>
+        <title>The Java plugin</title>
 
-    <para>The Java plugin is convention based. This means that the plugin defines default values for many aspects of the
-        project, such as where the Java source files are located. If you follow the convention in your project, you
-        generally don't need to do much in your build script to get a useful build. Gradle allows you to customize your
-        project if you don't want to or cannot follow the convention in some way. In fact, because support for Java
-        projects is implemented as a plugin, you don't have to use the plugin at all to build a Java project, if
-        you don't want to.
-    </para>
+        <para>As we have seen, Gradle is a general-purpose build tool. It can build pretty much anything you care to
+            implement in your build script. Out-of-the-box, however, it doesn't build anything unless you add code to
+            your build script to do so.</para>
 
-    <para>We have in-depth coverage with many examples about the Java plugin, dependency management and multi-project
-        builds in later chapters. In this chapter we want to give you an initial idea of how to use the Java plugin to
-        build a Java project.
-    </para>
+        <para>Most Java projects are pretty similar as far as the basics go: you need to compile your Java
+            source files, run some unit tests, and create a JAR file containing your classes. It would be nice if you
+            didn't have to code all this up for every project. Luckily, you don't have to.
+            Gradle solves this problem through the use of <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
+            which configures your project in some way, typically by adding some pre-configured tasks which together do
+            something useful. Gradle ships with a number of plugins, and you can easily write your own and share them with
+            others. One such plugin is the <firstterm>Java Plugin</firstterm>. This plugin adds some tasks to your
+            project which will compile and unit test your Java source code, and bundle it into a JAR file.
+        </para>
+
+        <para>The Java plugin is convention based. This means that the plugin defines default values for many aspects of the
+            project, such as where the Java source files are located. If you follow the convention in your project, you
+            generally don't need to do much in your build script to get a useful build. Gradle allows you to customize your
+            project if you don't want to or cannot follow the convention in some way. In fact, because support for Java
+            projects is implemented as a plugin, you don't have to use the plugin at all to build a Java project, if
+            you don't want to.
+        </para>
+
+        <para>We have in-depth coverage with many examples about the Java plugin, dependency management and multi-project
+            builds in later chapters. In this chapter we want to give you an initial idea of how to use the Java plugin to
+            build a Java project.
+        </para>
+    </section>
 
     <section>
         <title>A basic Java project</title>
@@ -143,7 +149,7 @@
                 dependencies of a task, or replace a task entirely. In our sample, we will configure the
                 <literal>test</literal> task, which is of type <apilink class="org.gradle.api.tasks.testing.Test"/>, to
                 add a system property when the tests are executed: </para>
-            <sample id="javaQuickstart" dir="java/quickstart" title="Adding system property">
+            <sample id="javaQuickstart" dir="java/quickstart" title="Adding a test system property">
                 <sourcefile file="build.gradle" snippet="task-customisation"/>
             </sample>
         </section>
@@ -162,13 +168,13 @@
         </section>
         
 		<section>
-            <title>Creating Eclipse project</title>
+            <title>Creating an Eclipse project</title>
             <para>To import your project into Eclipse, you need to add another plugin to your build file:</para>
         	<sample id="javaQuickstart" dir="java/quickstart" title="Eclipse plugin">
             	<sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
         	</sample>
         	<para>Now execute <userinput>gradle eclipse</userinput> command to generate Eclipse project files. More on Eclipse
-                task can be found in <xref linkend="sec:eclipse"/>.
+                task can be found in <xref linkend="eclipse_plugin"/>.
             </para>
         </section>
 

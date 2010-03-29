@@ -17,6 +17,4 @@ subprojects {
         manifest.attributes provider: 'gradle'
     }
 }
-
-dependsOnChildren()
 // END SNIPPET configuration-injection

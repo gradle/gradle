@@ -1,8 +1,6 @@
-
 // START SNIPPET use-plugin
 apply plugin: 'java'
 // END SNIPPET use-plugin
-
 // START SNIPPET use-eclipse-plugin
 apply plugin: 'eclipse'
 // END SNIPPET use-eclipse-plugin
@@ -32,7 +30,7 @@ dependencies {
 
 // START SNIPPET task-customisation
 test {
-    systemProperties['property'] = 'value'
+    systemProperties 'property': 'value'
 }
 // END SNIPPET task-customisation
 
