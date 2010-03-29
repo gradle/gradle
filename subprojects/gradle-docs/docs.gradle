@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
@@ -222,6 +220,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
 task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
+    tags << 'website'
     doFirst {
         javadocUrl = remoteLocations.javadocUrl
         groovydocUrl = remoteLocations.groovydocUrl

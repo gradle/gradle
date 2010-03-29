@@ -65,8 +65,8 @@
             </varlistentry>
         </variablelist>
     </section>
-    <section>
+    <section condition="website">
         <title>Where to next?</title>
-        <para>There are more tutorials and plenty of reference material in the user guide.</para>
+        <para>There are more tutorials and plenty of reference material in the <ulink url="website:userguide.html">user guide</ulink>.</para>
     </section>
 </chapter>

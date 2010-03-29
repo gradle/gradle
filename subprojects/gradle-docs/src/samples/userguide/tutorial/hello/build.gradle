@@ -1,3 +1,5 @@
-task hello << {
-    println 'Hello world!'
+task hello {
+    doFirst {
+        println 'Hello world!'
+    }
 }

@@ -15,17 +15,32 @@
   -->
 <chapter id='tutorial_using_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Build Script Basics</title>
-    <para>You run a build using the <command>gradle</command> command. When run, <command>gradle</command> looks for a
-        file called <filename>build.gradle</filename> in the current directory.
-        <footnote><para>There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>)</para></footnote>
-        We call this <filename>build.gradle</filename> file a <firstterm>build script</firstterm>, although strictly speaking it is
-        a build configuration script, as we will see later. In Gradle the build script defines a project. The name
-        of the directory containing the build script is used as the name of the project.
+    <section><title>Projects and tasks</title>
+    <para>There are two basic concepts in Gradle: <firstterm>projects</firstterm> and <firstterm>tasks</firstterm>.</para>
+    <para>
+        Every Gradle build is made up of one or more <firstterm>projects</firstterm>. A project represents
+        some component of your software which can be built. What this means exactly depends on what it is that you are
+        building. For example, a project might represent a library JAR or a web application. It might represent a
+        distribution ZIP assembled from the JARs produced by other projects. A project does not necessarily represent
+        a thing to be built. It might represent a thing to be done, such as deploying your application to a staging or
+        production environment. Don't worry if this seems a little vague for now. Gradle's build-by-convention support adds
+        a more concrete definition for what a project is.
     </para>
+    <para>Each project is made up of one or more <firstterm>tasks</firstterm>. A task represents some atomic piece
+        of work which a build performs. This might be compiling some classes, creating a JAR, generating javadoc,
+        or publishing some archives to a repository.</para>
+    <para>For now, we will look at defining some simple tasks in a build with one project. Later chapters will look at
+        working with multiple projects and more about working with projects and tasks.</para>
+    </section>
     <section>
         <title>Hello world</title>
-        <para>In Gradle the most basic building block is the <firstterm>task</firstterm>. The tasks for your build are
-            defined in the build script. To try this out, create the following build script named <filename>build.gradle</filename>.
+        <para>You run a Gradle build using the <command>gradle</command> command. The <command>gradle</command> command
+            looks for a file called <filename>build.gradle</filename> in the current directory.
+            <footnote><para>There are command line switches to change this behavior. See <xref linkend='gradle_command_line'/>)</para></footnote>
+            We call this <filename>build.gradle</filename> file a <firstterm>build script</firstterm>, although strictly speaking it is
+            a build configuration script, as we will see later. The build script defines a project and its tasks.
+        </para>
+        <para>To try this out, create the following build script named <filename>build.gradle</filename>.
         </para>
         <sample id="hello" dir="userguide/tutorial/hello" title="The first build script">
             <sourcefile file="build.gradle"/>
@@ -36,15 +51,15 @@
         <tip>
             <title>What does <option>-q</option> do?</title>
             <para>Most of the examples in this user guide are run with the <option>-q</option> command-line option.
-                This suppresses Gradle's log messages, so that only the output of the tasks is shown. You don't need to
-                use this option if you don't want. See <xref linkend="logging"/> for more details about the command-line
-                options which affect Gradle's output.
+                This suppresses Gradle's log messages, so that only the output of the tasks is shown. This keeps the example
+                output in this user guide a little clearer. You don't need to use this option if you don't want.
+                See <xref linkend="logging"/> for more details about the command-line options which affect Gradle's output.
             </para>
         </tip>
         <sample id="hello" dir="userguide/tutorial/hello" title="Execution of a build script">
             <output args="-q hello"/>
         </sample>
-        <para>What's going on here? This build file defines a single task, called <literal>hello</literal>, and
+        <para>What's going on here? This build script defines a single task, called <literal>hello</literal>, and
             adds an action to it. When you run <userinput>gradle hello</userinput>, Gradle executes the
             <literal>hello</literal> task, which in turn executes the action you've provided. The action is simply a
             closure containing some Groovy code to execute.
@@ -55,8 +70,18 @@
             Unfortunately this introduces a terminology clash with Ant, as Ant calls its commands, such as
             <literal>javac</literal> or <literal>copy</literal>, tasks. So when we talk about tasks,
             we <emphasis>always</emphasis> mean Gradle tasks, which are the equivalent to Ant's targets. If we talk
-            about Ant tasks (Ant commands), we explicitly say <emphasis>ant</emphasis> task.
+            about Ant tasks (Ant commands), we explicitly say <emphasis>ant task</emphasis>.
         </para>
+    </section>
+    <section>
+        <title>A shortcut</title>
+        <para>There is a shorthand way to define a task like our <literal>hello</literal> task above, which is a bit more
+            concise.</para>
+        <sample id="helloShortcut" dir="userguide/tutorial/helloShortcut" title="A task definition shortcut">
+            <sourcefile file="build.gradle"/>
+        </sample>
+        <para>Again, this defines a task called <literal>hello</literal> with a single closure to execute.
+            We will use this task definition style throughout the user guide.</para>
     </section>
     <section>
         <title>Build scripts are code</title>
