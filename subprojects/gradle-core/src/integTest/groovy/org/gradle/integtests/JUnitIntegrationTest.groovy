@@ -13,12 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
-
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -80,7 +74,6 @@ public class JUnitIntegrationTest {
             }
         """
 
-        executer.withArguments('-d')
         executer.withTasks('build').run();
 
         JUnitTestResult result = new JUnitTestResult(testDir)
@@ -148,6 +141,35 @@ public class JUnitIntegrationTest {
         executer.withTasks('a:test').run();
 
         JUnitTestResult result = new JUnitTestResult(testDir.file('a'))
+        result.assertTestClassesExecuted('org.gradle.SomeTest')
+        result.assertTestPassed('org.gradle.SomeTest', 'ok')
+    }
+
+    @Test
+    public void canExcludeSuperClasses() {
+        TestFile testDir = dist.getTestDir();
+        TestFile buildFile = testDir.file('build.gradle');
+        buildFile << '''
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.7' }
+            test { exclude '**/BaseTest.*' }
+        '''
+        testDir.file('src/test/java/org/gradle/BaseTest.java') << '''
+            package org.gradle;
+            public class BaseTest {
+                @org.junit.Test public void ok() { }
+            }
+        '''
+        testDir.file('src/test/java/org/gradle/SomeTest.java') << '''
+            package org.gradle;
+            public class SomeTest extends BaseTest {
+            }
+        '''
+
+        executer.withTasks('test').run();
+
+        JUnitTestResult result = new JUnitTestResult(testDir)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
         result.assertTestPassed('org.gradle.SomeTest', 'ok')
     }
