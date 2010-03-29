@@ -28,6 +28,7 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.apache.maven.model.Model
 
 class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_PACKAGING = "something";
@@ -58,6 +59,16 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.configurations.is(configurationContainerStub)
         mavenPom.fileResolver.is(fileResolver)
         mavenPom.mavenProject.modelVersion == "4.0.0"
+    }
+
+    def setModel() {
+        def newModel = new Model()
+
+        when:
+        mavenPom.model = newModel
+
+        then:
+        mavenPom.model.is(newModel)
     }
 
     def effectivePomShouldHaveGeneratedDependencies() {

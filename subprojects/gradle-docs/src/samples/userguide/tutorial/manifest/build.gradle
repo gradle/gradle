@@ -25,6 +25,16 @@ task barJar(type: Jar) {
     manifest {
         attributes key1: 'value1'
         from sharedManifest, 'src/config/basemanifest.txt'
+        from('src/config/javabasemanifest.txt', 'src/config/libbasemanifest.txt') {
+            eachEntry { details ->
+                if (details.baseValue != details.mergeValue) {
+                    details.value = baseValue
+                }
+                if (details.key == 'foo') {
+                    details.exclude()
+                }
+            }
+        }
     }
 }
 // END SNIPPET merge

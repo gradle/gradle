@@ -1131,10 +1131,10 @@
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Customization of MANIFEST.MF">
                 <sourcefile file="build.gradle" snippet="add-to-manifest"/>
             </sample>
-            <para>You can create your instances of a <classname>Manifest</classname>. You can use that for example,
+            <para>You can create stand alone instances of a <classname>Manifest</classname>. You can use that for example,
                 to share manifest information between jars.
             </para>
-            <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
+            <sample id="manifest" dir="userguide/tutorial/manifest" title="Creating a manifest object.">
                 <sourcefile file="build.gradle" snippet="custom-manifest"/>
             </sample>
             <para>You can merge other manifests into any <classname>Manifest</classname>
@@ -1144,6 +1144,12 @@
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">
                 <sourcefile file="build.gradle" snippet="merge"/>
             </sample>
+            <para>Manifest are merged in the order they are declared by the <literal>from</literal> statement. If
+            the based manifest and the merged manifest both define values for the same key, the merged manifest wins by default.
+            You can fully customize the merge behavior behavior by adding <literal>eachEntry</literal> actions in which
+                you have access to a <apilink class="org.gradle.api.java.archives.ManifestMergeDetails"/> instance for each entry
+                of the resulting manifest. The merge is not immediately triggered by the from statement. It is done lazily,
+                either when generating the jar, or by calling <literal>writeTo</literal> or <literal>effectiveManifest</literal></para>
             <para>You can easily write a manifest to disk.
             </para>
             <sample id="manifest" dir="userguide/tutorial/manifest" title="Separate MANIFEST.MF for a particular archive">

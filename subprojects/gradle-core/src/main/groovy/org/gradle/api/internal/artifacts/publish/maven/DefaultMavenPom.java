@@ -17,8 +17,8 @@ package org.gradle.api.internal.artifacts.publish.maven;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.IOUtils;
-import org.apache.maven.artifact.Artifact;
 import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
@@ -61,20 +61,6 @@ public class DefaultMavenPom implements MavenPom {
         return scopeMappings;
     }
 
-    public Artifact getArtifact() {
-        return mavenProject.getArtifact();
-    }
-
-    public DefaultMavenPom setArtifact(Artifact artifact) {
-        mavenProject.setArtifact(artifact);
-        return this;
-    }
-
-    public DefaultMavenPom setGroupId(String groupId) {
-        mavenProject.setGroupId(groupId);
-        return this;
-    }
-
     public ConfigurationContainer getConfigurations() {
         return configurations;
     }
@@ -83,59 +69,73 @@ public class DefaultMavenPom implements MavenPom {
         this.configurations = configurations;
         return this;
     }
+    
+    public DefaultMavenPom setGroupId(String groupId) {
+        getModel().setGroupId(groupId);
+        return this;
+    }
 
     public String getGroupId() {
-        return mavenProject.getGroupId();
+        return getModel().getGroupId();
     }
 
     public DefaultMavenPom setArtifactId(String artifactId) {
-        mavenProject.setArtifactId(artifactId);
+        getModel().setArtifactId(artifactId);
         return this;
     }
 
     public String getArtifactId() {
-        return mavenProject.getArtifactId();
+        return getModel().getArtifactId();
     }
 
-    public DefaultMavenPom setDependencies(List dependencies) {
-        mavenProject.setDependencies(dependencies);
+    public DefaultMavenPom setDependencies(List<Dependency> dependencies) {
+        getModel().setDependencies(dependencies);
         return this;
     }
 
-    public List getDependencies() {
-        return mavenProject.getDependencies();
+    public List<Dependency> getDependencies() {
+        return getModel().getDependencies();
     }
 
     public DefaultMavenPom setName(String name) {
-        mavenProject.setName(name);
+        getModel().setName(name);
         return this;
     }
 
     public String getName() {
-        return mavenProject.getName();
+        return getModel().getName();
     }
 
     public DefaultMavenPom setVersion(String version) {
-        mavenProject.setVersion(version);
+        getModel().setVersion(version);
         return this;
     }
 
     public String getVersion() {
-        return mavenProject.getVersion();
+        return getModel().getVersion();
     }
 
     public String getPackaging() {
-        return mavenProject.getPackaging();
+        return getModel().getPackaging();
     }
 
     public DefaultMavenPom setPackaging(String packaging) {
-        mavenProject.setPackaging(packaging);
+        getModel().setPackaging(packaging);
         return this;
     }
 
     public DefaultMavenPom project(Closure cl) {
-        CustomModelBuilder pomBuilder = new CustomModelBuilder(getMavenProject().getModel());
+        CustomModelBuilder pomBuilder = new CustomModelBuilder(getModel());
         InvokerHelper.invokeMethod(pomBuilder, "project", cl);
+        return this;
+    }
+
+    public Model getModel() {
+        return mavenProject.getModel();
+    }
+
+    public DefaultMavenPom setModel(Model model) {
+        this.mavenProject = new MavenProject(model);
         return this;
     }
 

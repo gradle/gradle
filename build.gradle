@@ -335,16 +335,15 @@ task ciBuild(dependsOn: [clean, testedDists])
 
 task release(dependsOn: [uploadDists, ':docs:uploadDocs']) << {
     // Update the version properties in gradle.properties
-    Properties props = new Properties()
-    File propsFile = file('gradle.properties')
-    propsFile.withReader { props.load(it) }
-    props.previousVersion = props.nextVersion
-    def nextVersion = props.nextVersion.split('\\.')
-    nextVersion[1] = (nextVersion[1] as Integer) +1
-    props.nextVersion = nextVersion.join('.')
-    propsFile.withWriter { props.store(it, 'properties') }
+//    Properties props = new Properties()
+//    File propsFile = file('gradle.properties')
+//    propsFile.withReader { props.load(it) }
+//    props.previousVersion = props.nextVersion
+//    def nextVersion = props.nextVersion.split('\\.')
+//    nextVersion[1] = (nextVersion[1] as Integer) +1
+//    props.nextVersion = nextVersion.join('.')
+//    propsFile.withWriter { props.store(it, 'properties') }
 // todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
-//    svn.release()
 }
 
 task wrapper(type: Wrapper, dependsOn: binZip)

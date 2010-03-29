@@ -16,10 +16,10 @@
 package org.gradle.api.artifacts.maven;
 
 import groovy.lang.Closure;
-import org.apache.maven.project.MavenProject;
+import org.apache.maven.model.Dependency;
+import org.apache.maven.model.Model;
 import org.gradle.api.Action;
 import org.gradle.api.artifacts.ConfigurationContainer;
-import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 
 import java.io.Writer;
 import java.util.List;
@@ -37,7 +37,7 @@ public interface MavenPom {
     Conf2ScopeMappingContainer getScopeMappings();
 
     /**
-     * Provides a builder for the Maven pom for adding or modifying properties of the MavenProject.
+     * Provides a builder for the Maven pom for adding or modifying properties of the Maven {@link #getModel()}.
      * The syntax is exactly the same as used by polyglot Maven. For example:
      *
      * <pre>
@@ -59,69 +59,78 @@ public interface MavenPom {
     MavenPom project(Closure pom);
 
     /**
-     * @see org.apache.maven.project.MavenProject#setGroupId(String)
+     * @see org.apache.maven.model.Model#setGroupId(String)
      */
     String getGroupId();
 
     /**
-     * org.apache.maven.project.MavenProject#getGroupId
+     * org.apache.maven.model.Model#getGroupId
      * @return this
      */
     MavenPom setGroupId(String groupId);
 
     /**
-     * @see org.apache.maven.project.MavenProject#getArtifactId()
+     * @see org.apache.maven.model.Model#getArtifactId()
      */
     String getArtifactId();
 
     /**
-     * @see org.apache.maven.project.MavenProject#setArtifactId(String)
+     * @see org.apache.maven.model.Model#setArtifactId(String)
      * @return this
      */
     MavenPom setArtifactId(String artifactId);
 
     /**
-     * @see org.apache.maven.project.MavenProject#getVersion()
+     * @see org.apache.maven.model.Model#getVersion()
      */
     String getVersion();
 
     /**
-     * @see org.apache.maven.project.MavenProject#setVersion(String)
+     * @see org.apache.maven.model.Model#setVersion(String)
      * @return this
      */
     MavenPom setVersion(String version);
 
     /**
-     * @see org.apache.maven.project.MavenProject#getPackaging()
+     * @see org.apache.maven.model.Model#getPackaging()
      */
     String getPackaging();
 
     /**
-     * @see org.apache.maven.project.MavenProject#setPackaging(String)
+     * @see org.apache.maven.model.Model#setPackaging(String)
      * @return this
      */
     MavenPom setPackaging(String packaging);
 
     /**
-     * @see org.apache.maven.project.MavenProject#setDependencies(java.util.List)
+     * @see org.apache.maven.model.Model#setDependencies(java.util.List)
      * @return this
      */
-    MavenPom setDependencies(List dependencies);
+    MavenPom setDependencies(List<Dependency> dependencies);
 
     /**
-     * @see org.apache.maven.project.MavenProject#getDependencies()
+     * @see org.apache.maven.model.Model#getDependencies()
      */
-    List getDependencies();
+    List<Dependency> getDependencies();
 
     /**
-     * Returns the underlying native Maven {@link org.apache.maven.project.MavenProject} object. The MavenPom object
-     * delegates all the configuration information to this object. There are delegation methods only for a subset of
-     * options. For configuring aspects of the pom where the MavenPom object does not provide delegation methods,
-     * you can access the native Maven object directly.
+     * Returns the underlying native Maven {@link org.apache.maven.model.Model} object. The MavenPom object
+     * delegates all the configuration information to this object. There Gradle MavenPom objects provides
+     * delegation methods just for setting the groupId, artifactId, version and packaging. For all other
+     * elements, either use the model object or {@link #project(groovy.lang.Closure)}.
      *
      * @return the underlying native Maven object
      */
-    MavenProject getMavenProject();
+    Model getModel();
+
+    /**
+     * Sets the underlying native Maven {@link org.apache.maven.model.Model} object.
+     *
+     * @param model
+     * @return this
+     * @see #getModel() 
+     */
+    MavenPom setModel(Model model);
 
     /**
      * Writes the {@link #getEffectivePom()} xml to a writer while applying the {@link #withXml(org.gradle.api.Action)} actions.
@@ -192,5 +201,5 @@ public interface MavenPom {
      *
      * @return the effective pom
      */
-    DefaultMavenPom getEffectivePom();
+    MavenPom getEffectivePom();
 }

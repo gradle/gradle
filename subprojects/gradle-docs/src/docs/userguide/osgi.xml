@@ -15,9 +15,14 @@
   -->
 <chapter id='osgi_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The OSGi Plugin</title>
-    <para>The Gradle OSGi plugin enables the generation of an OSGi manifest. This OSGi manifest is automatically added
-        to all the JAR files produced by the project.
-        This plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.
+    <para>The Gradle OSGi plugin provides a factory method to create an
+        <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/> object. <literal>OsgiManifest</literal> extends
+        <apilink class="org.gradle.api.java.archives.Manifest"/>. To learn more
+        about generic manifest handling, see <xref linkend="sub:manifest"/>. If the Java plugins is applied, the OSGi plugin
+        replaces the manifest object of the default jar with an <literal>OsgiManifest</literal> object. The replaced manifest
+        is merged into the new one.
+    </para>
+    <para>The OSGi plugin makes heavy use of Peter Kriens <ulink url='http://www.aqute.biz/Code/Bnd'>BND tool</ulink>.
     </para>
 
     <section>
@@ -29,13 +34,13 @@
     </section>
 
     <section>
-        <title>Tasks</title>
-        <para>TBD</para>
+        <title>Implicitly applied plugins</title>
+        <para>Applies the Java base plugin.</para>
     </section>
 
     <section>
-        <title>Project layout</title>
-        <para>TBD</para>
+        <title>Tasks</title>
+        <para>This plugin does not add any tasks.</para>
     </section>
 
     <section>
@@ -44,44 +49,49 @@
     </section>
 
     <section>
-        <title>Convention properties</title>
+        <title>Convention object</title>
 
-        <para>The OSGi plugin adds an <literal>osgi</literal> property to every <emphasis>jar</emphasis> task.
-            This <literal>osgi</literal> property points to an instance of
-            <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/>. Via the OsgiManifest object you can control the
-            generation of the OSGi Manifest of the respective jar. The OSGi plugin assign default values to the
-            OsgiManifest object.
+        <para>The OSGi plugin adds the following convention object: <apilink class="org.gradle.api.plugins.osgi.OsgiPluginConvention"/>
         </para>
-        <table>
-            <title>OSGi properties</title>
-            <thead>
-                <tr>
-                    <td>Task Property</td>
-                    <td>Convention Property</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>classesDir</td>
-                <td>project.classesDir</td>
-            </tr>
-            <tr>
-                <td>version</td>
-                <td>project.version</td>
-            </tr>
-            <tr>
-                <td>name</td>
-                <td>project.archivesBaseName</td>
-            </tr>
-            <tr>
-                <td>symbolicName</td>
-                <td>transformation of the name and the group to produce a valid OSGi symbolic name</td>
-            </tr>
-            <tr>
-                <td>classpath</td>
-                <td>project.dependencies.resolve('runtime')</td>
-            </tr>
-        </table>
+        <section>
+            <title>Convention properties</title>
 
+            <para>The OSGi plugin does not add any convention properties to the project.
+            </para>
+        </section>
+        <section>
+            <title>Convention methods</title>
+
+            <para>The OSGi plugin adds the following methods. For more details, see the javadoc of the convention
+                object.
+            </para>
+            <table>
+                <title>OSGi methods</title>
+                <thead>
+                    <tr>
+                        <td>Method</td>
+                        <td>Return Type</td>
+                        <td>Description</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td>osgiManifest()</td>
+                    <td>
+                        <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/>
+                    </td>
+                    <td>Returns an OsgiManifest object.</td>
+                </tr>
+                <tr>
+                    <td>osgiManifest(Closure cl)</td>
+                    <td>
+                        <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/>
+                    </td>
+                    <td>Returns an OsgiManifest object configured by the closure.</td>
+                </tr>
+            </table>
+        </section>
+    </section>
+    <section>
         <para>The classes in the classes dir are analyzed regarding there package dependencies and the packages they expose.
             Based on this the <emphasis>Import-Package</emphasis> and the <emphasis>Export-Package</emphasis> values of the
             OSGi Manifest are calculated. If the classpath contains jars with an OSGi bundle, the bundle
