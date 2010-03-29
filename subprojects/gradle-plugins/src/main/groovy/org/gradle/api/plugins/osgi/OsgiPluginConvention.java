@@ -24,7 +24,7 @@ import org.gradle.api.plugins.BasePluginConvention;
 import org.gradle.util.ConfigureUtil;
 
 /**
- * Is mixed in into the project when applying the  {@org.gradle.api.plugins.osgi.OsgiPlugin} .
+ * Is mixed in into the project when applying the  {@link org.gradle.api.plugins.osgi.OsgiPlugin} .
  *
  * @author Hans Dockter
  */
