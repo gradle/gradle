@@ -1,10 +1,5 @@
 <h1>API Documentation</h1>
 
-PLEASE NOTE! Gradle is written partly in Groovy. Groovy does not provide a production ready way to generate API documentation.
-For the Groovy parts of Gradle you have to look directly into the <a href="source-repository.html">source code</a> to get the
-information you want. The source code is also part of the Gradle distribution. With our next release we will provide
-complete API documentation.
-
 <% releases.each { release -> %>
 <h2>${release.title} (${release.version})</h2>
 <ul>
@@ -12,8 +7,9 @@ complete API documentation.
     <li><a href="${release.version}/docs/groovydoc">Groovydoc API documentation</a></li>
 </ul>
 <% } %>
-        
-<h2>Latest (as usually uploaded by the latest successful nightly build)</h2>
+
+<h2>Latest Nightly</h2>
+<p>These are uploaded by the latest successful nightly build</p>
 <ul>
     <li><a href="latest/docs/javadoc">Javadoc API documentation</a></li>
     <li><a href="latest/docs/groovydoc">Groovydoc API documentation</a></li>
