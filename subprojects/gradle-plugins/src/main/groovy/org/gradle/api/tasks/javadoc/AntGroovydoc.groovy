@@ -58,9 +58,10 @@ class AntGroovydoc {
 
         ant.execute(classPathRegistry.getClassPathFiles("ANT") + groovyClasspath) {
             taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
-            groovydoc(args)
-            links.each {link ->
-                link(packages: link.packages.join(','), href: link.url)
+            groovydoc(args) {
+                links.each {gradleLink ->
+                    link(packages: gradleLink.packages.join(','), href: gradleLink.url)
+                }
             }
         }
     }
