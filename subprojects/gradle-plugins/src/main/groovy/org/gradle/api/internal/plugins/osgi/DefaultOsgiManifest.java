@@ -59,18 +59,18 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     @Override
     public DefaultManifest getEffectiveManifest() {
-        DefaultManifest manifest = super.getEffectiveManifest();
         ContainedVersionAnalyzer analyzer = analyzerFactory.createAnalyzer();
+        DefaultManifest effectiveManifest = new DefaultManifest(null);
         try {
             setAnalyzerProperties(analyzer);
             Manifest osgiManifest = analyzer.calcManifest();
             for (Map.Entry<Object, Object> entry : osgiManifest.getMainAttributes().entrySet()) {
-                manifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
+                effectiveManifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
             }
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-        return manifest;
+        return getEffectiveManifestInternal(effectiveManifest);
     }
 
     private void setAnalyzerProperties(Analyzer analyzer) throws IOException {

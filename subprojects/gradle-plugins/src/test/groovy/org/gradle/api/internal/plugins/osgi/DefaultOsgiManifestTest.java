@@ -32,7 +32,6 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
@@ -49,7 +48,6 @@ public class DefaultOsgiManifestTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    private Map<String, String> testAttributes = WrapUtil.toMap("someName", "someValue");
     private FileResolver fileResolver = context.mock(FileResolver.class);
 
     @Before
@@ -58,7 +56,8 @@ public class DefaultOsgiManifestTest {
         analyzerFactoryMock = context.mock(AnalyzerFactory.class);
         analyzerMock = context.mock(ContainedVersionAnalyzer.class);
         context.checking(new Expectations() {{
-            allowing(analyzerFactoryMock).createAnalyzer(); will(returnValue(analyzerMock));
+            allowing(analyzerFactoryMock).createAnalyzer();
+            will(returnValue(analyzerMock));
         }});
         osgiManifest.setAnalyzerFactory(analyzerFactoryMock);
     }
@@ -129,7 +128,7 @@ public class DefaultOsgiManifestTest {
         prepareMock();
 
         DefaultManifest manifest = osgiManifest.getEffectiveManifest();
-        DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(testAttributes);
+        DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(getDefaultManifestWithOsgiValues().getAttributes());
         assertThat(manifest.getAttributes(), Matchers.equalTo(expectedManifest.getAttributes()));
         assertThat(manifest.getSections(), Matchers.equalTo(expectedManifest.getSections()));
     }
@@ -140,12 +139,14 @@ public class DefaultOsgiManifestTest {
         prepareMock();
         DefaultManifest otherManifest = new DefaultManifest(fileResolver);
         otherManifest.mainAttributes(WrapUtil.toMap("somekey", "somevalue"));
+        otherManifest.mainAttributes(WrapUtil.toMap(Analyzer.BUNDLE_VENDOR, "mergeVendor"));
         osgiManifest.from(otherManifest);
         DefaultManifest expectedManifest = new DefaultManifest(fileResolver);
-        expectedManifest.attributes(testAttributes);
+        expectedManifest.attributes(getDefaultManifestWithOsgiValues().getAttributes());
         expectedManifest.attributes(otherManifest.getAttributes());
 
-        assertTrue(osgiManifest.getEffectiveManifest().isEqualsTo(expectedManifest));
+        DefaultManifest manifest = osgiManifest.getEffectiveManifest();
+        assertTrue(manifest.isEqualsTo(expectedManifest));
     }
 
     @Test
@@ -169,8 +170,8 @@ public class DefaultOsgiManifestTest {
         osgiManifest.setLicense("myLicense");
         osgiManifest.setVendor("myVendor");
         osgiManifest.setDocURL("myDocUrl");
-        osgiManifest.instruction(Analyzer.EXPORT_PACKAGE, new String[] {"pack1", "pack2"});
-        osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, new String[] {"pack3", "pack4"});
+        osgiManifest.instruction(Analyzer.EXPORT_PACKAGE, new String[]{"pack1", "pack2"});
+        osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, new String[]{"pack3", "pack4"});
         osgiManifest.setClasspath(fileCollection);
         osgiManifest.setClassesDir(new File("someDir"));
     }
@@ -195,9 +196,29 @@ public class DefaultOsgiManifestTest {
             one(analyzerMock).setJar(osgiManifest.getClassesDir());
             one(analyzerMock).setClasspath(osgiManifest.getClasspath().getFiles().toArray(new File[osgiManifest.getClasspath().getFiles().size()]));
             Manifest testManifest = new Manifest();
-            testManifest.getMainAttributes().putValue(testAttributes.keySet().iterator().next(),
-                    testAttributes.values().iterator().next());
-            allowing(analyzerMock).calcManifest(); will(returnValue(testManifest));
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_SYMBOLICNAME, osgiManifest.getSymbolicName());
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_NAME, osgiManifest.getName());
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_DESCRIPTION, osgiManifest.getDescription());
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_LICENSE, osgiManifest.getLicense());
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_VENDOR, osgiManifest.getVendor());
+            testManifest.getMainAttributes().putValue(Analyzer.BUNDLE_DOCURL, osgiManifest.getDocURL());
+            testManifest.getMainAttributes().putValue(Analyzer.EXPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE), ","));
+            testManifest.getMainAttributes().putValue(Analyzer.IMPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE), ","));
+            allowing(analyzerMock).calcManifest();
+            will(returnValue(testManifest));
         }});
+    }
+
+    private DefaultManifest getDefaultManifestWithOsgiValues() {
+        DefaultManifest manifest = new DefaultManifest(fileResolver);
+        manifest.getAttributes().put(Analyzer.BUNDLE_SYMBOLICNAME, osgiManifest.getSymbolicName());
+        manifest.getAttributes().put(Analyzer.BUNDLE_NAME, osgiManifest.getName());
+        manifest.getAttributes().put(Analyzer.BUNDLE_DESCRIPTION, osgiManifest.getDescription());
+        manifest.getAttributes().put(Analyzer.BUNDLE_LICENSE, osgiManifest.getLicense());
+        manifest.getAttributes().put(Analyzer.BUNDLE_VENDOR, osgiManifest.getVendor());
+        manifest.getAttributes().put(Analyzer.BUNDLE_DOCURL, osgiManifest.getDocURL());
+        manifest.getAttributes().put(Analyzer.EXPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE), ","));
+        manifest.getAttributes().put(Analyzer.IMPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE), ","));
+        return manifest;
     }
 }

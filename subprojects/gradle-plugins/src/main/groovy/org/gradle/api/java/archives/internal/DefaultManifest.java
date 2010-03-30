@@ -135,7 +135,11 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     }
 
     public DefaultManifest getEffectiveManifest() {
-        DefaultManifest resultManifest = this;
+        return getEffectiveManifestInternal(this);
+    }
+
+    protected DefaultManifest getEffectiveManifestInternal(DefaultManifest baseManifest) {
+        DefaultManifest resultManifest = baseManifest;
         for (ManifestMergeSpec manifestMergeSpec : manifestMergeSpecs) {
             resultManifest = ((DefaultManifestMergeSpec) manifestMergeSpec).merge(resultManifest, fileResolver);
         }
