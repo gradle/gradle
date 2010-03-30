@@ -1,0 +1,214 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id="standard_plugins">
+    <title>Standard Gradle plugins</title>
+    <para>There are a number of plugins included in the Gradle distribution. These are listed below.
+    </para>
+    <section>
+        <title>Language plugins</title>
+        <para>These plugins add support for various languages which can be compiled and executed in the JVM.</para>
+        <table>
+            <title>Language plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend='java_plugin'><literal>java</literal></link>
+                </td>
+                <td><literal>java-base</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds Java compilation, testing and bundling capabilities to a project. It serves
+                        as the basis for many of the other Gradle plugins. See also <xref linkend="tutorial_java_projects"/>.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='groovy_plugin'><literal>groovy</literal></link>
+                </td>
+                <td><literal>java</literal>, <literal>groovy-base</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for building Groovy projects. See also <xref linkend="tutorial_groovy_projects"/>.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="scala_plugin"><literal>scala</literal></link>
+                </td>
+                <td><literal>java</literal>, <literal>scala-base</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for building Scala projects.</para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Integration plugins</title>
+        <para>These plugins provide some integration with various build and runtime technologies.</para>
+        <table>
+            <title>Integration plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend='jetty_plugin'><literal>jetty</literal></link>
+                </td>
+                <td><literal>war</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Deploys your web application to a Jetty web container embedded in the build. See also <xref linkend="web_project_tutorial"/>.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="maven_plugin"><literal>maven</literal></link>
+                </td>
+                <td>-</td>
+                <td><literal>java</literal>, <literal>war</literal></td>
+                <td>
+                    <para>Adds support for deploying artifacts to Maven repositories.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="osgi_plugin"><literal>osgi</literal></link>
+                </td>
+                <td><literal>java-base</literal></td>
+                <td><literal>java</literal></td>
+                <td><para>Adds support for building OSGi bundles.</para></td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend="war_plugin"><literal>war</literal></link>
+                </td>
+                <td><literal>java</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for assembling web application WAR files. See also <xref linkend="web_project_tutorial"/>.
+                    </para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Software development plugins</title>
+        <para>These plugins provide help with your software development process.</para>
+        <table>
+            <title>Software development plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Automatically applies</td>
+                    <td>Works with</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <link linkend='code_quality_plugin'><literal>code-quality</literal></link>
+                </td>
+                <td><literal>reporting-base</literal></td>
+                <td><literal>java</literal>, <literal>groovy</literal></td>
+                <td>
+                    <para>Performs code quality checks and generate reports from these checks.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='eclipse_plugin'><literal>eclipse</literal></link>
+                </td>
+                <td>-</td>
+                <td><literal>java</literal>, <literal>groovy</literal>, <literal>scala</literal>, <literal>war</literal></td>
+                <td>
+                    <para>Generates files that are used by <ulink url="http://eclipse.org">Eclipse IDE</ulink>, thus making
+                        it possible to import the project into Eclipse. See also <xref linkend="tutorial_java_projects"/>.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <link linkend='project_reports_plugin'><literal>project-report</literal></link>
+                </td>
+                <td><literal>reporting-base</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Generates reports containing useful information about your Gradle build.
+                    </para>
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Base plugins</title>
+        <para>These plugins form the basic building blocks which the other plugins are assembled from. They are
+            available for you to use in your build files, and are listed here for completeness. However, be aware that
+            they are not yet considered part of Gradle's public API. As such, these plugins are not documented in the
+            user guide. You might refer to their Javadoc to learn more about them.
+        </para>
+        <table>
+            <title>Base plugins</title>
+            <thead>
+                <tr>
+                    <td>Plugin Id</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>base</td>
+                <td><para>Adds the standard lifecycle tasks to the project, plus some shared convention properties.</para></td>
+            </tr>
+            <tr>
+                <td>java-base</td>
+                <td><para>Adds the source sets concept to the project. Does not add any particular source sets.</para></td>
+            </tr>
+            <tr>
+                <td>groovy-base</td>
+                <td><para>Adds the Groovy source sets concept to the project.</para></td>
+            </tr>
+            <tr>
+                <td>scala-base</td>
+                <td><para>Adds the Scala source sets concept to the project.</para></td>
+            </tr>
+            <tr>
+                <td>reporting-base</td>
+                <td><para>Adds some shared convention properties to the project, relating to report generation.</para></td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Third party plugins</title>
+        <para>You can find a list of external plugins on the
+            <ulink url="http://gradle.codehaus.org/Plugins">wiki</ulink>.
+        </para>
+    </section>
+</chapter>

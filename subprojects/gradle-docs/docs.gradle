@@ -220,6 +220,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
 }
 
 task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
     tags << 'website'

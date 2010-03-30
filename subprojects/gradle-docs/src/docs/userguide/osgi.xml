@@ -15,7 +15,7 @@
   -->
 <chapter id='osgi_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The OSGi Plugin</title>
-    <para>The Gradle OSGi plugin provides a factory method to create an
+    <para>The OSGi plugin provides a factory method to create an
         <apilink class="org.gradle.api.plugins.osgi.OsgiManifest"/> object. <literal>OsgiManifest</literal> extends
         <apilink class="org.gradle.api.java.archives.Manifest"/>. To learn more
         about generic manifest handling, see <xref linkend="sub:manifest"/>. If the Java plugins is applied, the OSGi plugin

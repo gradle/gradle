@@ -28,7 +28,7 @@
             </listitem>
             <listitem>
                 <para>Gradle works <emphasis>perfectly</emphasis> with your existent dependency management
-                    infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom pom or
+                    infrastructure, be it Maven or Ivy. All the repositories you have set up with your custom POM or
                     ivy files can be used as they are. No changes necessary.
                 </para>
             </listitem>
@@ -431,12 +431,12 @@
             <para>Now Gradle looks for your dependencies in this repository.
             </para>
             <para>Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA),
-                but its poms are.
+                but its POMs are.
             </para>
             <sample id="mavenCentralJarRepo" dir="userguide/artifacts/defineRepository" title="Adding many Maven repositories">
                 <sourcefile file="build.gradle" snippet="maven-central-jar-repo"/>
             </sample>
-            <para>Gradle looks first in the central Maven repository for the pom and the jar. If the jar can't be
+            <para>Gradle looks first in the central Maven repository for the POM and the JAR. If the JAR can't be
                 found there, its looks for it in the other repositories.
             </para>
             <para>For adding a custom Maven repository you can say:
@@ -450,7 +450,7 @@
             <sample id="mavenLikeRepoWithJarRepo" dir="userguide/artifacts/defineRepository" title="Adding additional Maven repositories for JAR files">
                 <sourcefile file="build.gradle" snippet="maven-like-repo-with-jar-repo"/>
             </sample>
-            <para>The first URL is used to look for poms and jars. The subsequent URLs are used to look for jars.
+            <para>The first URL is used to look for POMs and JARs. The subsequent URLs are used to look for JARs.
             </para>
             <section>
             	<title>Accessing password protected Maven repositories</title>
@@ -552,7 +552,7 @@ someroot/[artifact]-[revision].[ext]
                 </para>
             </listitem>
             <listitem>
-                <para>The <literal>pom.xml</literal>'s of many projects have wrong information (as one example, the pom of
+                <para>The <literal>pom.xml</literal>'s of many projects have wrong information (as one example, the POM of
                     <literal>commons-httpclient-3.0</literal> declares JUnit as a runtime dependency).
                 </para>
             </listitem>
@@ -613,8 +613,8 @@ someroot/[artifact]-[revision].[ext]
             <emphasis>jars only</emphasis>
             and still enjoy
             <emphasis>transitive</emphasis>
-            dependency management. Or you can only provide client modules for pom's with bad metadata. For the
-            jars and the correct pom's you still use the remote repository.
+            dependency management. Or you can only provide client modules for POMs with bad metadata. For the
+            jars and the correct POMs you still use the remote repository.
         </para>
         <section id='sub:implicit_transitive_dependencies'>
             <title>Implicit transitive dependencies</title>

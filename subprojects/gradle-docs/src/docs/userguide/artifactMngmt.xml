@@ -86,13 +86,4 @@
             repository, see the section <xref linkend="uploading_to_maven_repositories"/>.
         </para>
     </section>
-    <section id='sub:planned_future_features'>
-        <title>Planned future features</title>
-        <para>We plan support for excludes-per-configuration. We also plan support for the new Ivy
-            <emphasis>override</emphasis>
-            element, which corresponds to the
-            <emphasis>dependencyManagement</emphasis>
-            element of a Maven pom.
-        </para>
-    </section>
 </chapter>

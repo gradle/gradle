@@ -23,7 +23,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.SourceSet
 
 /**
- * <p>A   {@link Plugin}   which extends the   {@link JavaPlugin}   to add OSGi meta-information to the project JARs.</p>
+ * <p>A {@link Plugin} which extends the {@link JavaPlugin} to add OSGi meta-information to the project JARs.</p>
  *
  * @author Hans Dockter
  */

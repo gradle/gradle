@@ -46,7 +46,7 @@ import java.util.concurrent.Callable;
 
 
 /**
- * <p>A  {@link Plugin}  which compiles and tests Java source, and assembles it into a JAR file.</p>
+ * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
  *
  * @author Hans Dockter
  */

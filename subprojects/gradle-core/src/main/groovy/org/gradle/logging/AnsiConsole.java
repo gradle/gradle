@@ -78,7 +78,8 @@ public class AnsiConsole implements Console {
 
     private interface Widget {
         /**
-         * Removes content of this widget from the last line of the screen. Leaves cursor at left edge
+         * Removes content of this widget from the last line of the screen. Leaves cursor at left edge of bottom-most
+         * line.
          */
         void removeFromLastLine(Ansi ansi);
     }

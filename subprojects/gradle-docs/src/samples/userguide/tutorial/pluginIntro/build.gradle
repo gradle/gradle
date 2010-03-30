@@ -1,6 +1,18 @@
+// START SNIPPET apply-by-id
 apply plugin: 'java'
 
 task show << {
     println relativePath(compileJava.destinationDir)
     println relativePath(processResources.destinationDir)
 }
+// END SNIPPET apply-by-id
+// START SNIPPET apply-by-type
+apply plugin: org.gradle.api.plugins.JavaPlugin
+// END SNIPPET apply-by-type
+// START SNIPPET apply-by-type-with-import
+apply plugin: JavaPlugin
+// END SNIPPET apply-by-type-with-import
+// START SNIPPET explicit-apply
+apply plugin: 'java'
+apply plugin: 'groovy'
+// END SNIPPET explicit-apply

@@ -51,25 +51,24 @@
         </itemizedlist>
         <para>Let's check this out:
         </para>
-        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Using plugin">
-            <sourcefile file="build.gradle"/>
+        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by id">
+            <sourcefile file="build.gradle" snippet="apply-by-id"/>
             <output args="-q show"/>
         </sample>
         <para>The Java Plugin adds a <literal>compileJava</literal> task and a <literal>processResources</literal> task
             to the project object which can be accessed by a build script. It has configured the <literal>destinationDir</literal>
             property of both of these tasks.
         </para>
-        <para>The <literal>usePlugin()</literal> method either takes a string or a class as an argument. You can write
-            <footnote>
-                <para>Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you can also write
-                    <literal>usePlugin(JavaPlugin)</literal>
-                    in this case.
-                </para>
-            </footnote>
+        <para>The <literal>apply()</literal> method either takes a string or a class as an argument. You can write
         </para>
-        <programlisting><![CDATA[
-usePlugin(org.gradle.api.plugins.JavaPlugin)
-]]></programlisting>
+        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by type">
+            <sourcefile file="build.gradle" snippet="apply-by-type"/>
+        </sample>
+        <para>Thanks to Gradle's default imports (see <xref linkend='ide_support'/>) you can also write in this case.
+        </para>
+        <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Applying a plugin by type">
+            <sourcefile file="build.gradle" snippet="apply-by-type-with-import"/>
+        </sample>
         <para>Any class, which implements the <apilink class="org.gradle.api.Plugin"/> interface, can be used as a
             plugin. Just pass the class as an argument. You don't need to configure anything else for this.</para>
         <para>If you want to use your own plugins, you must make sure that they are accessible via the build script
@@ -132,24 +131,17 @@ usePlugin(org.gradle.api.plugins.JavaPlugin)
         <section id='sub:declaring_plugins_multiple_times'>
             <title>Declaring plugins multiple times</title>
             <para>A plugin is only called once for a given project, even if you have multiple
-                <literal>usePlugin()</literal>
+                <literal>apply()</literal>
                 statements. An additional call after the first call has no effect but doesn't hurt either. This can be
                 important if you use plugins which extend other plugins. For example
-                <literal>usePlugin('groovy')</literal>
-                calls also the Java Plugin. We say the Groovy plugin extends the Java plugin. But you might as well
+                the Groovy plugin automatically applies the Java Plugin. We say the Groovy plugin extends the Java plugin. But you might as well
                 write:
             </para>
-            <programlisting><![CDATA[
-usePlugin('java')
-usePlugin('groovy')
-]]></programlisting>
+            <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Explicit application of an implied plugin">
+                <sourcefile file="build.gradle" snippet="explicit-apply"/>
+            </sample>
             <para>If you use cross-project configuration in multi-project builds this is a useful feature.
             </para>
         </section>
-    </section>
-    <section>
-        <title>Summary</title>
-        <para>Plugins provide tasks, which are glued together via dependsOn relations and a convention object.
-        </para>
     </section>
 </chapter>

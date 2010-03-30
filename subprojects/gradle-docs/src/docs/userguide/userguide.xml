@@ -54,6 +54,7 @@
     <xi:include href='logging.xml'/>
     <xi:include href='ant.xml'/>
     <xi:include href='plugins.xml'/>
+    <xi:include href='standardPlugins.xml'/>
     <xi:include href='javaPlugin.xml'/>
     <xi:include href='groovyPlugin.xml'/>
     <xi:include href='scalaPlugin.xml'/>
