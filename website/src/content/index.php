@@ -54,17 +54,19 @@
             <td>
                 <ul>
                     <li><a href="http://www.grails.org">Grails</a></li>
-                    <li><a href="http://code.google.com/p/spock/">Spock</a></li>
+                    <li><a href="http://gant.codehaus.org/">Gant</a></li>
                     <li><a href="http://code.google.com/p/gmock/">GMock</a></li>
-                    <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
+                    <li><a href="http://gpars.codehaus.org/">GPars</a></li>
+                    <li><a href="http://code.google.com/p/spock/">Spock</a></li>
                 </ul>
             </td>
             <td>
                 <ul>
-                    <li><a href="http://gpars.codehaus.org/">GPars</a></li>
-                    <li><a href="http://gant.codehaus.org/">Gant</a></li>
+                    <li><a href="http://www.canoo.com">Canoo</a></li>
                     <li><a href="http://www.corp.carrier.com">Carrier</a></li>
                     <li><a href="http://www.fcc-fac.ca/">Farm Credit Canada</a></li>
+                    <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
+                    <li style="color:white"><a href="http://www.gradle.org" style="color:white">Dummy</a></li>
                 </ul>
             </td>
         </tr>
