@@ -32,6 +32,10 @@ import java.util.regex.Pattern;
 public abstract class AbstractFileResolver implements FileResolver {
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
 
+    public FileResolver withBaseDir(Object path) {
+        return new BaseDirConverter(resolve(path));
+    }
+
     public File resolve(Object path) {
         return resolve(path, PathValidation.NONE);
     }

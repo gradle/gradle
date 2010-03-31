@@ -34,4 +34,10 @@ public interface FileResolver {
     URI resolveUri(Object path);
 
     String resolveAsRelativePath(Object path);
+
+    /**
+     * Creates a new resolver with the given base directory.
+     * @param path The path for the base directory. Resolved relative to the current base directory (if any).
+     */
+    FileResolver withBaseDir(Object path);
 }

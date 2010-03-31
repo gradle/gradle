@@ -26,13 +26,13 @@ import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.util.ConfigureUtil
 
 /**
- * Is mixed in into the project when applying the   {@org.gradle.api.plugins.JavaBasePlugin}   or the
- * {@org.gradle.api.plugins.JavaPlugin}    .
+ * Is mixed in into the project when applying the {@org.gradle.api.plugins.JavaBasePlugin} or the
+ * {@org.gradle.api.plugins.JavaPlugin}.
  *
  * @author Hans Dockter
  */
 class JavaPluginConvention {
-    Project project
+    ProjectInternal project
 
     String dependencyCacheDirName
 
@@ -42,7 +42,7 @@ class JavaPluginConvention {
     String docsDirName
 
     /**
-     * The name of the testresults directory. Can be a name or a path relative to the build dir.
+     * The name of the test results directory. Can be a name or a path relative to the build dir.
      */
     String testResultsDirName
 
@@ -81,28 +81,28 @@ class JavaPluginConvention {
     }
 
     File getDependencyCacheDir() {
-        new File(project.buildDir, dependencyCacheDirName)
+        project.fileResolver.withBaseDir(project.buildDir).resolve(dependencyCacheDirName)
     }
 
     /**
      * Returns a file pointing to the root directory supposed to be used for all docs.
      */
     File getDocsDir() {
-        new File(project.buildDir, docsDirName)
+        project.fileResolver.withBaseDir(project.buildDir).resolve(docsDirName)
     }
 
     /**
      * Returns a file pointing to the root directory of the test results.
      */
     File getTestResultsDir() {
-        new File(project.buildDir, testResultsDirName)
+        project.fileResolver.withBaseDir(project.buildDir).resolve(testResultsDirName)
     }
 
     /**
      * Returns a file pointing to the root directory to be used for reports.
      */
     File getTestReportDir() {
-        new File(reportsDir, testReportDirName)
+        project.fileResolver.withBaseDir(reportsDir).resolve(testReportDirName)
     }
 
     private File getReportsDir() {
@@ -135,21 +135,21 @@ class JavaPluginConvention {
     /**
      * Sets the target compatibility used for compiling Java sources.
      *
-     * @value The value for the target compatibilty as defined by   {@link JavaVersion#toVersion(Object)}
+     * @value The value for the target compatibilty as defined by {@link JavaVersion#toVersion(Object)}
      */
     void setTargetCompatibility(def value) {
         targetCompat = JavaVersion.toVersion(value)
     }
 
     /**
-     * Returns a new instance of an     {@link Manifest}.
+     * Returns a new instance of an {@link Manifest}.
      */
     public Manifest manifest() {
         return manifest(null);
     }
 
     /**
-     * Returns a new instance of an     {@link Manifest}. The closure configures
+     * Returns a new instance of an {@link Manifest}. The closure configures
      * the new manifest instance before it is returned.
      */
     public Manifest manifest(Closure closure) {

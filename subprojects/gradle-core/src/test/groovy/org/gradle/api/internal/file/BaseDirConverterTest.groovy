@@ -267,4 +267,9 @@ class BaseDirConverterTest {
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
     }
+    
+    @Test public void testCreateFileResolver() {
+        File newBaseDir = new File(baseDir, 'subdir')
+        assertEquals(new File(newBaseDir, 'file') , baseDirConverter.withBaseDir('subdir').resolve('file'))
+    }
 }
