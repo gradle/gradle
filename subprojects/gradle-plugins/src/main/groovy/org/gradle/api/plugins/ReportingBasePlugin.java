@@ -17,6 +17,7 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 
 /**
  * <p>A {@link Plugin} which provides the basic skeleton for reporting.</p>
@@ -32,6 +33,6 @@ import org.gradle.api.Project;
 public class ReportingBasePlugin implements Plugin<Project> {
     public void apply(Project project) {
         Convention convention = project.getConvention();
-        convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention(project));
+        convention.getPlugins().put("reportingBase", new ReportingBasePluginConvention((ProjectInternal) project));
     }
 }

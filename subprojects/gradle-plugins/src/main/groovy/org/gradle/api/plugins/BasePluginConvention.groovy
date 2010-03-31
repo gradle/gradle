@@ -16,9 +16,10 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
 public class BasePluginConvention {
-    Project project
+    ProjectInternal project
 
     String distsDirName
     String libsDirName
@@ -32,10 +33,10 @@ public class BasePluginConvention {
     }
 
     File getDistsDir() {
-        new File(project.buildDir, distsDirName)
+        project.fileResolver.withBaseDir(project.buildDir).resolve(distsDirName)
     }
 
     File getLibsDir() {
-        new File(project.buildDir, libsDirName)
+        project.fileResolver.withBaseDir(project.buildDir).resolve(libsDirName)
     }
 }

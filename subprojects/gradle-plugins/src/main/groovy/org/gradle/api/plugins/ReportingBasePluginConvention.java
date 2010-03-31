@@ -16,6 +16,7 @@
 package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
+import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
 
@@ -25,9 +26,9 @@ import java.io.File;
  */
 public class ReportingBasePluginConvention {
     private String reportsDirName = "reports";
-    private Project project;
+    private ProjectInternal project;
 
-    public ReportingBasePluginConvention(Project project) {
+    public ReportingBasePluginConvention(ProjectInternal project) {
         this.project = project;
     }
 
@@ -55,7 +56,7 @@ public class ReportingBasePluginConvention {
      * @return The reports directory. Never returns null.
      */
     public File getReportsDir() {
-        return new File(project.getBuildDir(), reportsDirName);
+        return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(reportsDirName);
     }
 
     /**

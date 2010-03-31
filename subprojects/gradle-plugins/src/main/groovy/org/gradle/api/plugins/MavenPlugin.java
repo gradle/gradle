@@ -93,7 +93,7 @@ public class MavenPlugin implements Plugin<Project> {
     }
 
     private void addConventionObject(Project project) {
-        MavenPluginConvention mavenConvention = new MavenPluginConvention(project);
+        MavenPluginConvention mavenConvention = new MavenPluginConvention((ProjectInternal) project);
         Convention convention = project.getConvention();
         convention.getPlugins().put("maven", mavenConvention);
     }

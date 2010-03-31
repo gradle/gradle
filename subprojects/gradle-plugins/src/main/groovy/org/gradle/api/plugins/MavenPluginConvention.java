@@ -16,7 +16,6 @@
 package org.gradle.api.plugins;
 
 import groovy.lang.Closure;
-import org.gradle.api.Project;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
@@ -32,11 +31,11 @@ import java.io.File;
  * @author Hans Dockter
  */
 public class MavenPluginConvention {
-    private Project project;
+    private ProjectInternal project;
     private String pomDirName = "poms";
     private Conf2ScopeMappingContainer conf2ScopeMappings = new DefaultConf2ScopeMappingContainer();
 
-    public MavenPluginConvention(Project project) {
+    public MavenPluginConvention(ProjectInternal project) {
         this.project = project;
     }
 
@@ -57,7 +56,7 @@ public class MavenPluginConvention {
     }
 
     public File getPomDir() {
-        return new File(project.getBuildDir(), pomDirName);
+        return project.getFileResolver().withBaseDir(project.getBuildDir()).resolve(pomDirName);
     }
 
     public MavenPom pom() {

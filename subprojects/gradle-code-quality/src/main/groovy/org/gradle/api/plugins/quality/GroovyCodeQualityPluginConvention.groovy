@@ -16,11 +16,12 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
 class GroovyCodeQualityPluginConvention {
     String codeNarcConfigFileName
     String codeNarcReportsDirName
-    private final Project project
+    private final ProjectInternal project
 
     def GroovyCodeQualityPluginConvention(Project project) {
         this.project = project
@@ -33,6 +34,6 @@ class GroovyCodeQualityPluginConvention {
     }
 
     File getCodeNarcReportsDir() {
-        new File(project.reportsDir, codeNarcReportsDirName)
+        project.fileResolver.withBaseDir(project.reportsDir).resolve(codeNarcReportsDirName)
     }
 }

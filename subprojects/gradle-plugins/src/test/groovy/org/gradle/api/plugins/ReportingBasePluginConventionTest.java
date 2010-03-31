@@ -17,6 +17,9 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Project;
 import static org.hamcrest.Matchers.*;
+
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.Expectations;
@@ -30,7 +33,7 @@ import java.io.File;
 @RunWith(JMock.class)
 public class ReportingBasePluginConventionTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Project project = context.mock(Project.class);
+    private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ReportingBasePluginConvention convention = new ReportingBasePluginConvention(project);
     private final File buildDir = new File("build-dir");
 
@@ -49,6 +52,17 @@ public class ReportingBasePluginConventionTest {
 
     @Test
     public void calculatesReportsDirFromReportsDirName() {
+        context.checking(new Expectations(){{
+            FileResolver fileResolver = context.mock(FileResolver.class);
+            FileResolver buildDirResolver = context.mock(FileResolver.class, "buildDir");
+            allowing(project).getFileResolver();
+            will(returnValue(fileResolver));
+            one(fileResolver).withBaseDir(buildDir);
+            will(returnValue(buildDirResolver));
+            one(buildDirResolver).resolve("new-reports");
+            will(returnValue(new File(buildDir, "new-reports")));
+        }});
+
         convention.setReportsDirName("new-reports");
         assertThat(convention.getReportsDir(), equalTo(new File(buildDir, "new-reports")));
     }

@@ -16,12 +16,13 @@
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Project
+import org.gradle.api.internal.project.ProjectInternal
 
 class JavaCodeQualityPluginConvention {
     String checkstyleConfigFileName
     String checkstyleResultsDirName
     Map<String, Object> checkstyleProperties = [:]
-    private Project project
+    private ProjectInternal project
 
     def JavaCodeQualityPluginConvention(Project project) {
         this.project = project
@@ -34,6 +35,6 @@ class JavaCodeQualityPluginConvention {
     }
 
     File getCheckstyleResultsDir() {
-        new File(project.buildDir, checkstyleResultsDirName)
+        project.fileResolver.withBaseDir(project.buildDir).resolve(checkstyleResultsDirName)
     }
 }
