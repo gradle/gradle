@@ -30,16 +30,14 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.logging.StandardOutputLogging;
+import org.gradle.api.specs.Spec;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.*;
-import org.gradle.logging.Console;
-import org.jruby.ext.posix.POSIX;
-import org.jruby.ext.posix.POSIXFactory;
-import org.jruby.ext.posix.POSIXHandler;
 import org.slf4j.LoggerFactory;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import java.io.*;
+import java.io.FileDescriptor;
+import java.io.PrintStream;
 import java.util.logging.LogManager;
 
 /**
@@ -48,9 +46,31 @@ import java.util.logging.LogManager;
 public class DefaultLoggingConfigurer implements LoggingConfigurer {
     private final LoggingDestination stdout = new LoggingDestination();
     private final LoggingDestination stderr = new LoggingDestination();
-    private final Appender stderrConsoleAppender = new Appender();
-    private final Appender stdoutConsoleAppender = new Appender();
+    private final Appender errorAppender = new Appender();
+    private final Appender infoAppender = new Appender();
+    private final Spec<FileDescriptor> terminalDetector;
+    private Console console;
+    private LogEventFormatter consoleFormatter;
+    private LogEventFormatter nonConsoleFormatter;
     private LogLevel currentLevel;
+
+    public DefaultLoggingConfigurer() {
+        this(new TerminalDetector());
+    }
+
+    DefaultLoggingConfigurer(Spec<FileDescriptor> terminalDetector) {
+        this.terminalDetector = terminalDetector;
+    }
+
+    Console createConsole() {
+        if (stdout.terminal) {
+            return new org.gradle.logging.AnsiConsole(AnsiConsole.out(), AnsiConsole.out());
+        }
+        if (stderr.terminal) {
+            return new org.gradle.logging.AnsiConsole(AnsiConsole.err(), AnsiConsole.err());
+        }
+        return null;
+    }
 
     public void addStandardErrorListener(StandardOutputListener listener) {
         stderr.addListener(listener);
@@ -80,68 +100,65 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             LogManager.getLogManager().reset();
             SLF4JBridgeHandler.install();
 
-            boolean isTerminal = POSIXFactory.getPOSIX(new POSIXHandlerImpl(), true).isatty(FileDescriptor.out);
-            stderr.setTarget(System.err);
-            if (isTerminal) {
-                stdout.setTarget(AnsiConsole.out());
-                stdout.console = new org.gradle.logging.AnsiConsole(stdout.target);
-            } else {
-                stdout.setTarget(System.out);
-            }
-            stderrConsoleAppender.setTarget(stderr);
-            stdoutConsoleAppender.setTarget(stdout);
-            stderrConsoleAppender.setContext(lc);
-            stdoutConsoleAppender.setContext(lc);
+            stdout.init(FileDescriptor.out, System.out);
+            stderr.init(FileDescriptor.err, System.err);
+            this.console = createConsole();
+
+            consoleFormatter = new ConsoleBackedFormatter(lc, console);
+            nonConsoleFormatter = new BasicProgressLoggingAwareFormatter(lc, stdout.getBroadcast(),
+                    stderr.getBroadcast());
+
+            errorAppender.setContext(lc);
+            infoAppender.setContext(lc);
+
             rootLogger = lc.getLogger("ROOT");
-            rootLogger.addAppender(stdoutConsoleAppender);
-            rootLogger.addAppender(stderrConsoleAppender);
+            rootLogger.addAppender(infoAppender);
+            rootLogger.addAppender(errorAppender);
         } else {
             rootLogger = lc.getLogger("ROOT");
         }
 
         currentLevel = logLevel;
-        stderrConsoleAppender.stop();
-        stdoutConsoleAppender.stop();
-        stderrConsoleAppender.clearAllFilters();
-        stdoutConsoleAppender.clearAllFilters();
+        errorAppender.stop();
+        infoAppender.stop();
+        errorAppender.clearAllFilters();
+        infoAppender.clearAllFilters();
 
-        stderrConsoleAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
+        errorAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
         Level level = Level.INFO;
 
-        setLayouts(logLevel, stderrConsoleAppender, stdoutConsoleAppender, lc);
+        setLayouts(logLevel, errorAppender, infoAppender, lc);
 
         MarkerFilter quietFilter = new MarkerFilter(FilterReply.DENY, Logging.QUIET);
-        stdoutConsoleAppender.addFilter(quietFilter);
+        infoAppender.addFilter(quietFilter);
         if (!(logLevel == LogLevel.QUIET)) {
             quietFilter.setOnMismatch(FilterReply.NEUTRAL);
             if (logLevel == LogLevel.DEBUG) {
                 level = Level.DEBUG;
-                stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT,
-                        FilterReply.NEUTRAL));
-                stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT,
-                        FilterReply.NEUTRAL));
+                infoAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
+                infoAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.NEUTRAL));
             } else {
                 if (logLevel == LogLevel.INFO) {
                     level = Level.INFO;
-                    stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT,
-                            FilterReply.NEUTRAL));
+                    infoAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
                 } else {
-                    stdoutConsoleAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE, Logging.PROGRESS));
+                    infoAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE, Logging.PROGRESS));
                 }
             }
-            stdoutConsoleAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
+            infoAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
         }
         rootLogger.setLevel(level);
-        stdoutConsoleAppender.start();
-        stderrConsoleAppender.start();
+        infoAppender.start();
+        errorAppender.start();
     }
 
     private void setLayouts(LogLevel logLevel, Appender errorAppender, Appender nonErrorAppender, LoggerContext lc) {
-        nonErrorAppender.setFormatter(createFormatter(lc, logLevel, stdout));
-        errorAppender.setFormatter(createFormatter(lc, logLevel, stderr));
+        nonErrorAppender.setFormatter(stdout.createFormatter(lc, logLevel));
+        errorAppender.setFormatter(stderr.createFormatter(lc, logLevel));
     }
 
-    private Filter<ILoggingEvent> createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch, FilterReply onMismatch) {
+    private Filter<ILoggingEvent> createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch,
+                                                    FilterReply onMismatch) {
         LevelFilter levelFilter = new LevelFilter();
         levelFilter.setContext(lc);
         levelFilter.setOnMatch(onMatch);
@@ -151,35 +168,40 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         return levelFilter;
     }
 
-    private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel, LoggingDestination target) {
-        if (logLevel == LogLevel.DEBUG) {
-            Layout<ILoggingEvent> layout = new DebugLayout();
-            layout.setContext(loggerContext);
-            layout.start();
-            return new LayoutBasedFormatter(layout, target.target);
-        } else if (target.console != null) {
-            return new ConsoleBackedFormatter(loggerContext, target.console);
-        } else {
-            return new BasicProgressLoggingAwareFormatter(loggerContext, target.target);
-        }
-    }
-
     private static class DebugLayout extends PatternLayout {
         private DebugLayout() {
             setPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%ex");
         }
     }
 
-    private static class LoggingDestination {
+    private class LoggingDestination {
         private final ListenerBroadcast<StandardOutputListener> listeners
                 = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-        private Appendable target;
-        private Flushable flushable;
-        private Console console;
+        private boolean terminal;
+        private PrintStream target;
 
-        private void setTarget(final PrintStream target) {
-            this.target = new ListenerAdapter(listeners.getSource(), target);
-            flushable = target;
+        private void init(FileDescriptor fileDescriptor, PrintStream target) {
+            this.target = target;
+            terminal = terminalDetector.isSatisfiedBy(fileDescriptor);
+        }
+
+        private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel) {
+            if (logLevel == LogLevel.DEBUG) {
+                Layout<ILoggingEvent> layout = new DebugLayout();
+                layout.setContext(loggerContext);
+                layout.start();
+                return new LayoutBasedFormatter(layout, getBroadcastWithTarget());
+            }
+            if (terminal) {
+                return new LogEventFormatter() {
+                    public void format(ILoggingEvent event) {
+                        consoleFormatter.format(event);
+                        nonConsoleFormatter.format(event);
+                    }
+                };
+            } else {
+                return nonConsoleFormatter;
+            }
         }
 
         public void removeListener(StandardOutputListener listener) {
@@ -189,15 +211,28 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         public void addListener(StandardOutputListener listener) {
             listeners.add(listener);
         }
+
+        public StandardOutputListener getBroadcast() {
+            if (terminal) {
+                return listeners.getSource();
+            } else {
+                return getBroadcastWithTarget();
+            }
+        }
+
+        private StandardOutputListener getBroadcastWithTarget() {
+            final StandardOutputListener targetListener = new OutputStreamStandardOutputListenerAdapter(target);
+            return new StandardOutputListener() {
+                public void onOutput(CharSequence output) {
+                    targetListener.onOutput(output);
+                    listeners.getSource().onOutput(output);
+                }
+            };
+        }
     }
 
     private static class Appender extends AppenderBase<ILoggingEvent> {
         private LogEventFormatter formatter;
-        private Flushable flushable;
-
-        private void setTarget(LoggingDestination target) {
-            flushable = target.flushable;
-        }
 
         public void setFormatter(LogEventFormatter formatter) {
             this.formatter = formatter;
@@ -207,88 +242,10 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
         protected void append(ILoggingEvent event) {
             try {
                 formatter.format(event);
-                flushable.flush();
             } catch (Throwable t) {
                 // Give up and try stdout
                 t.printStackTrace(StandardOutputLogging.DEFAULT_ERR);
             }
-        }
-    }
-
-    private static class ListenerAdapter implements Appendable {
-        private final StandardOutputListener listener;
-        private final Appendable next;
-
-        private ListenerAdapter(StandardOutputListener listener, Appendable next) {
-            this.listener = listener;
-            this.next = next;
-        }
-
-        public Appendable append(char c) throws IOException {
-            next.append(c);
-            listener.onOutput(String.valueOf(c));
-            return this;
-        }
-
-        public Appendable append(CharSequence sequence) throws IOException {
-            next.append(sequence);
-            if (sequence != null) {
-                listener.onOutput(sequence);
-            } else {
-                listener.onOutput("null"); // This is the contract of Appendable.append()
-            }
-            return this;
-        }
-
-        public Appendable append(CharSequence sequence, int start, int end) throws IOException {
-            next.append(sequence, start, end);
-            if (sequence != null) {
-                listener.onOutput(sequence.subSequence(start, end));
-            } else {
-                listener.onOutput("null"); // This is the contract of Appendable.append() 
-            }
-            return this;
-        }
-    }
-
-    private class POSIXHandlerImpl implements POSIXHandler {
-        public void error(POSIX.ERRORS errors, String message) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void unimplementedError(String message) {
-            throw new UnsupportedOperationException();
-        }
-
-        public void warn(WARNING_ID warningId, String message, Object... objects) {
-        }
-
-        public boolean isVerbose() {
-            return false;
-        }
-
-        public File getCurrentWorkingDirectory() {
-            throw new UnsupportedOperationException();
-        }
-
-        public String[] getEnv() {
-            throw new UnsupportedOperationException();
-        }
-
-        public InputStream getInputStream() {
-            return System.in;
-        }
-
-        public PrintStream getOutputStream() {
-            return System.out;
-        }
-
-        public int getPID() {
-            throw new UnsupportedOperationException();
-        }
-
-        public PrintStream getErrorStream() {
-            return System.err;
         }
     }
 }

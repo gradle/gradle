@@ -17,6 +17,7 @@
 package org.gradle.logging;
 
 import ch.qos.logback.core.Context;
+import org.gradle.api.logging.StandardOutputListener;
 
 import java.io.IOException;
 
@@ -25,86 +26,97 @@ public class BasicProgressLoggingAwareFormatter extends AbstractProgressLoggingA
     private enum State {
         StartOfLine {
             @Override
-            public void addCompletion(Appendable target, String status) throws IOException {
+            public void startNewLine(StandardOutputListener target) throws IOException {
+            }
+            @Override
+            public void addCompletion(StandardOutputListener target, String status) throws IOException {
                 if (status.length() == 0) {
                     return;
                 }
-                super.addCompletion(target, status);
+                target.onOutput(status);
+                target.onOutput(EOL);
             }},
         Description {
             @Override
-            public void startNewLine(Appendable target) throws IOException {
-                target.append(EOL);
+            public void startNewLine(StandardOutputListener target) throws IOException {
+                target.onOutput(EOL);
             }
             @Override
-            public void addStatus(Appendable target) throws IOException {
-                target.append(" ");
+            public void addStatus(StandardOutputListener target) throws IOException {
+                target.onOutput(" ");
                 super.addStatus(target);
             }
             @Override
-            public void addCompletion(Appendable target, String status) throws IOException {
+            public void addCompletion(StandardOutputListener target, String status) throws IOException {
                 if (status.length() > 0) {
-                    target.append(' ');
+                    target.onOutput(" ");
+                    target.onOutput(status);
                 }
-                super.addCompletion(target, status);
+                target.onOutput(EOL);
             }},
         Status {
             @Override
-            public void startNewLine(Appendable target) throws IOException {
-                target.append(EOL);
+            public void startNewLine(StandardOutputListener target) throws IOException {
+                target.onOutput(EOL);
             }
             @Override
-            public void addCompletion(Appendable target, String status) throws IOException {
+            public void addCompletion(StandardOutputListener target, String status) throws IOException {
                 if (status.length() > 0) {
-                    target.append(' ');
+                    target.onOutput(" ");
+                    target.onOutput(status);
                 }
-                super.addCompletion(target, status);
+                target.onOutput(EOL);
             }};
 
-        public void startNewLine(Appendable target) throws IOException {
+        public abstract void startNewLine(StandardOutputListener target) throws IOException;
+
+        public void addStatus(StandardOutputListener target) throws IOException {
+            target.onOutput(".");
         }
 
-        public void addStatus(Appendable target) throws IOException {
-            target.append('.');
-        }
-
-        public void addCompletion(Appendable target, String status) throws IOException {
-            target.append(status);
-            target.append(EOL);
-        }
+        public abstract void addCompletion(StandardOutputListener target, String status) throws IOException;
     }
 
     private State state = State.StartOfLine;
-    private final Appendable target;
+    private final StandardOutputListener infoTarget;
+    private final StandardOutputListener errorTarget;
 
-    public BasicProgressLoggingAwareFormatter(Context context, Appendable target) {
+    public BasicProgressLoggingAwareFormatter(Context context, StandardOutputListener infoTarget, StandardOutputListener errorTarget) {
         super(context);
-        this.target = target;
+        this.infoTarget = infoTarget;
+        this.errorTarget = errorTarget;
     }
 
     @Override
     protected void onStart(Operation operation) throws IOException {
-        state.startNewLine(target);
-        target.append(operation.getDescription());
+        state.startNewLine(infoTarget);
+        infoTarget.onOutput(operation.getDescription());
         state = State.Description;
     }
 
     @Override
     protected void onStatusChange(Operation operation) throws IOException {
-        state.addStatus(target);
+        state.addStatus(infoTarget);
         state = State.Status;
     }
 
     @Override
     protected void onComplete(Operation operation) throws IOException {
-        state.addCompletion(target, operation.getStatus());
+        state.addCompletion(infoTarget, operation.getStatus());
         state = State.StartOfLine;
     }
 
     @Override
-    protected void onMessage(String message) throws IOException {
-        state.startNewLine(target);
-        target.append(message);
+    protected void onInfoMessage(String message) throws IOException {
+        state.startNewLine(infoTarget);
+        infoTarget.onOutput(message);
+        state = State.StartOfLine;
+    }
+
+    @Override
+    protected void onErrorMessage(String message) throws IOException {
+        state.startNewLine(infoTarget);
+        errorTarget.onOutput(message);
         state = State.StartOfLine;
     }
 }

@@ -32,6 +32,7 @@ import static org.hamcrest.Matchers.*
 import org.slf4j.LoggerFactory
 import ch.qos.logback.classic.LoggerContext
 import org.junit.Before
+import ch.qos.logback.classic.Level
 
 @RunWith(JMock.class)
 class ConsoleBackedFormatterTest {
@@ -68,6 +69,15 @@ class ConsoleBackedFormatterTest {
         }
 
         formatter.format(event('message', new RuntimeException('broken')))
+    }
+
+    @Test
+    public void logsErrorMessage() {
+        context.checking {
+            one(mainArea).append(String.format('message%n'))
+        }
+
+        formatter.format(event('message', Level.ERROR))
     }
 
     @Test
@@ -233,8 +243,12 @@ class ConsoleBackedFormatterTest {
         event(text, null, marker)
     }
 
-    private ILoggingEvent event(String text, Throwable failure = null, marker = null) {
+    private ILoggingEvent event(String text, Level level) {
+        event(text, null, null, level)
+    }
+
+    private ILoggingEvent event(String text, Throwable failure = null, marker = null, Level level = Level.INFO) {
         IThrowableProxy throwableProxy = failure == null ? null : new ThrowableProxy(failure)
-        [getThrowableProxy: {throwableProxy}, getFormattedMessage: {text}, getMarker: {marker}] as ILoggingEvent
+        [getLevel: {level}, getThrowableProxy: {throwableProxy}, getFormattedMessage: {text}, getMarker: {marker}] as ILoggingEvent
     }
 }

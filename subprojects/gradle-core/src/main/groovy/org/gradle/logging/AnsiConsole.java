@@ -20,6 +20,7 @@ import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 
+import java.io.Flushable;
 import java.io.IOException;
 import java.util.Iterator;
 import java.util.LinkedList;
@@ -27,13 +28,15 @@ import java.util.LinkedList;
 public class AnsiConsole implements Console {
     private final static String EOL = System.getProperty("line.separator");
     private final Appendable target;
+    private final Flushable flushable;
     private final LinkedList<LabelImpl> statusBars = new LinkedList<LabelImpl>();
     private final TextAreaImpl textArea;
     private Widget bottomWidget;
     private final Screen container;
 
-    public AnsiConsole(Appendable target) {
+    public AnsiConsole(Appendable target, Flushable flushable) {
         this.target = target;
+        this.flushable = flushable;
         container = new Screen();
         textArea = new TextAreaImpl(container);
         bottomWidget = textArea;
@@ -61,6 +64,7 @@ public class AnsiConsole implements Console {
         action.execute(ansi);
         try {
             target.append(ansi.toString());
+            flushable.flush();
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -16,6 +16,7 @@
 
 package org.gradle.logging;
 
+import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.core.Context;
@@ -54,9 +55,12 @@ public abstract class AbstractProgressLoggingAwareFormatter implements LogEventF
                 Operation operation = pendingOperations.removeFirst();
                 operation.status = event.getFormattedMessage();
                 onComplete(operation);
+            } else if (event.getLevel() == Level.ERROR) {
+                String message = layout.doLayout(event);
+                onErrorMessage(message);
             } else {
                 String message = layout.doLayout(event);
-                onMessage(message);
+                onInfoMessage(message);
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
@@ -69,7 +73,9 @@ public abstract class AbstractProgressLoggingAwareFormatter implements LogEventF
 
     protected abstract void onComplete(Operation operation) throws IOException;
 
-    protected abstract void onMessage(String message) throws IOException;
+    protected abstract void onInfoMessage(String message) throws IOException;
+
+    protected abstract void onErrorMessage(String message) throws IOException;
 
     protected class Operation {
         private String description;

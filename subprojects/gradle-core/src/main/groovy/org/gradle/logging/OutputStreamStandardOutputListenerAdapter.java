@@ -13,23 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.logging;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Layout;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.StandardOutputListener;
 
-public class LayoutBasedFormatter implements LogEventFormatter {
-    private final Layout<ILoggingEvent> layout;
-    private final StandardOutputListener target;
+import java.io.Flushable;
+import java.io.IOException;
+import java.io.PrintStream;
 
-    public LayoutBasedFormatter(Layout<ILoggingEvent> layout, StandardOutputListener target) {
-        this.layout = layout;
-        this.target = target;
+public class OutputStreamStandardOutputListenerAdapter implements StandardOutputListener {
+    private final Appendable appendable;
+    private final Flushable flushable;
+
+    public OutputStreamStandardOutputListenerAdapter(PrintStream printStream) {
+        appendable = printStream;
+        flushable = printStream;
     }
 
-    public void format(ILoggingEvent event) {
-        target.onOutput(layout.doLayout(event));
+    public void onOutput(CharSequence output) {
+        try {
+            appendable.append(output);
+            flushable.flush();
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 }

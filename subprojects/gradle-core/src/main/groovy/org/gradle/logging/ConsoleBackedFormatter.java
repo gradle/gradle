@@ -58,9 +58,14 @@ public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatte
     }
 
     @Override
-    protected void onMessage(String message) throws IOException {
+    protected void onInfoMessage(String message) throws IOException {
         writeHeaders();
         console.getMainArea().append(message);
+    }
+
+    @Override
+    protected void onErrorMessage(String message) throws IOException {
+        onInfoMessage(message);
     }
 
     private void writeHeaders() {

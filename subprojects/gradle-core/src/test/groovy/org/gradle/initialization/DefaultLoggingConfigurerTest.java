@@ -19,12 +19,19 @@ import ch.qos.logback.classic.LoggerContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.specs.Spec;
+import org.gradle.logging.Console;
+import org.gradle.logging.Label;
+import org.gradle.logging.TextArea;
+import org.gradle.util.ReplaceStdOutAndErr;
 import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.FileDescriptor;
 import java.io.StringWriter;
 
 import static org.gradle.util.Matchers.*;
@@ -32,16 +39,26 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class DefaultLoggingConfigurerTest {
-    private final DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer();
+    private final TerminalDetectorStub terminalDetector = new TerminalDetectorStub();
+    private final ConsoleStub console = new ConsoleStub();
+    private final DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer(terminalDetector) {
+        @Override
+        Console createConsole() {
+            return console;
+        }
+    };
     private final StandardOutputListener outputListener = new ListenerImpl();
     private final StandardOutputListener errorListener = new ListenerImpl();
     private final Logger logger = LoggerFactory.getLogger("cat1");
+    @Rule
+    public final ReplaceStdOutAndErr outputs = new ReplaceStdOutAndErr();
 
     @Before
     public void setUp() {
         configurer.addStandardOutputListener(outputListener);
         configurer.addStandardErrorListener(errorListener);
     }
+
     @After
     public void tearDown() {
         LoggerContext lc = (LoggerContext) LoggerFactory.getILoggerFactory();
@@ -86,7 +103,7 @@ public class DefaultLoggingConfigurerTest {
 
         assertThat(outputListener.toString(), equalTo(String.format("quiet message%n")));
     }
-    
+
     @Test
     public void filtersInfoAndLowerWhenConfiguredAtLifecycleLevel() {
         configurer.configure(LogLevel.LIFECYCLE);
@@ -108,7 +125,8 @@ public class DefaultLoggingConfigurerTest {
         logger.info("info message");
         logger.debug("debug message");
 
-        assertThat(outputListener.toString(), equalTo(String.format("quiet message%nlifecycle message%ninfo message%n")));
+        assertThat(outputListener.toString(), equalTo(String.format(
+                "quiet message%nlifecycle message%ninfo message%n")));
     }
 
     @Test
@@ -151,63 +169,81 @@ public class DefaultLoggingConfigurerTest {
     }
 
     @Test
-    public void formatsProgressLogMessagesWithoutIntermediateProgressEvents() {
+    public void routesLoggingMessagesWhenStdOutAndStdErrAreTerminals() {
+        terminalDetector.stderrIsTerminal().stdoutIsTerminal();
+
         configurer.configure(LogLevel.LIFECYCLE);
 
-        logger.info(Logging.PROGRESS_STARTED, "<start>");
-        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
+        logger.info(Logging.LIFECYCLE, "lifecycle");
+        logger.error("error");
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start> <complete>%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("lifecycle%n")));
+        assertThat(errorListener.toString(), equalTo(String.format("error%n")));
+        assertThat(console.toString(), equalTo(String.format("lifecycle%nerror%n")));
+        assertThat(outputs.getStdOut(), equalTo(""));
+        assertThat(outputs.getStdErr(), equalTo(""));
     }
 
     @Test
-    public void formatsProgressLogMessagesWithEmptyCompleteMessage() {
+    public void routesLoggingMessagesWhenStdOutIsTerminal() {
+        terminalDetector.stdoutIsTerminal();
+
         configurer.configure(LogLevel.LIFECYCLE);
 
-        logger.info(Logging.PROGRESS_STARTED, "<start>");
-        logger.info(Logging.PROGRESS_COMPLETE, "");
+        logger.info(Logging.LIFECYCLE, "lifecycle");
+        logger.error("error");
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start>%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("lifecycle%n")));
+        assertThat(errorListener.toString(), equalTo(String.format("error%n")));
+        assertThat(console.toString(), equalTo(String.format("lifecycle%n")));
+        assertThat(outputs.getStdOut(), equalTo(""));
+        assertThat(outputs.getStdErr(), equalTo(String.format("error%n")));
     }
 
     @Test
-    public void addsMissingEndOfLineWhenProgressAndOtherLogMessagesAreInterleaved() {
+    public void routesLoggingMessagesWhenStdErrIsTerminal() {
+        terminalDetector.stderrIsTerminal();
+
         configurer.configure(LogLevel.LIFECYCLE);
 
-        logger.info(Logging.PROGRESS_STARTED, "<start>");
-        logger.info(Logging.PROGRESS, "<tick>");
-        logger.info(Logging.LIFECYCLE, "<message1>");
-        logger.info(Logging.LIFECYCLE, "<message2>");
-        logger.info(Logging.PROGRESS, "<tick>");
-        logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
-        logger.info(Logging.LIFECYCLE, "<message>");
+        logger.info(Logging.LIFECYCLE, "lifecycle");
+        logger.error("error");
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start> .%n<message1>%n<message2>%n. <complete>%n<message>%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("lifecycle%n")));
+        assertThat(errorListener.toString(), equalTo(String.format("error%n")));
+        assertThat(console.toString(), equalTo(String.format("error%n")));
+        assertThat(outputs.getStdOut(), equalTo(String.format("lifecycle%n")));
+        assertThat(outputs.getStdErr(), equalTo(""));
     }
 
     @Test
-    public void addsMissingEndOfLineWhenProgressAndOtherLogMessagesAreInterleavedAndCompleteMessageIsEmpty() {
+    public void routesLoggingMessagesWhenNeitherStdOutAndStdErrAreTerminals() {
         configurer.configure(LogLevel.LIFECYCLE);
 
-        logger.info(Logging.PROGRESS_STARTED, "<start>");
-        logger.info(Logging.LIFECYCLE, "<message>");
-        logger.info(Logging.PROGRESS_COMPLETE, "");
+        logger.info(Logging.LIFECYCLE, "lifecycle");
+        logger.error("error");
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start>%n<message>%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("lifecycle%n")));
+        assertThat(errorListener.toString(), equalTo(String.format("error%n")));
+        assertThat(console.toString(), equalTo(""));
+        assertThat(outputs.getStdOut(), equalTo(String.format("lifecycle%n")));
+        assertThat(outputs.getStdErr(), equalTo(String.format("error%n")));
     }
 
     @Test
-    public void addsMissingEndOfLineWhenProgressMessagesAreInterleaved() {
-        configurer.configure(LogLevel.LIFECYCLE);
+    public void doesNotUseTheConsoleWhenSetToDebugLevel() {
+        terminalDetector.stderrIsTerminal().stdoutIsTerminal();
 
-        logger.info(Logging.PROGRESS_STARTED, "<start1>");
-        logger.info(Logging.PROGRESS_STARTED, "<start2>");
-        logger.info(Logging.PROGRESS, "<tick2>");
-        logger.info(Logging.PROGRESS_COMPLETE, "<complete2>");
-        logger.info(Logging.PROGRESS, "<tick1>");
-        logger.info(Logging.PROGRESS_COMPLETE, "<complete1>");
+        configurer.configure(LogLevel.DEBUG);
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start1>%n<start2> . <complete2>%n. <complete1>%n")));
+        logger.info(Logging.LIFECYCLE, "lifecycle");
+        logger.error("error");
+
+        assertThat(outputListener.toString(), containsLine(endsWith("lifecycle")));
+        assertThat(errorListener.toString(), containsLine(endsWith("error")));
+        assertThat(console.toString(), equalTo(""));
+        assertThat(outputs.getStdOut(), containsLine(endsWith("lifecycle")));
+        assertThat(outputs.getStdErr(), containsLine(endsWith("error")));
     }
 
     private static class ListenerImpl implements StandardOutputListener {
@@ -220,6 +256,52 @@ public class DefaultLoggingConfigurerTest {
 
         public void onOutput(CharSequence output) {
             writer.append(output);
+        }
+    }
+
+    private static class TerminalDetectorStub implements Spec<FileDescriptor> {
+        boolean stdoutIsTerminal;
+        boolean stderrIsTerminal;
+
+        public boolean isSatisfiedBy(FileDescriptor element) {
+            if (element == FileDescriptor.out) {
+                return stdoutIsTerminal;
+            }
+            if (element == FileDescriptor.err) {
+                return stderrIsTerminal;
+            }
+            return false;
+        }
+
+        public TerminalDetectorStub stderrIsTerminal() {
+            stderrIsTerminal = true;
+            return this;
+        }
+
+        public TerminalDetectorStub stdoutIsTerminal() {
+            stdoutIsTerminal = true;
+            return this;
+        }
+    }
+
+    private static class ConsoleStub implements Console, TextArea {
+        private final StringWriter writer = new StringWriter();
+
+        @Override
+        public String toString() {
+            return writer.toString();
+        }
+
+        public Label addStatusBar() {
+            throw new UnsupportedOperationException();
+        }
+
+        public TextArea getMainArea() {
+            return this;
+        }
+
+        public void append(CharSequence text) {
+            writer.append(text);
         }
     }
 }

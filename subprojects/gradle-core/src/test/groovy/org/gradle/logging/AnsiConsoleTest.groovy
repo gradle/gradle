@@ -13,8 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
 package org.gradle.logging
 
 import org.fusesource.jansi.Ansi
@@ -28,7 +26,9 @@ class AnsiConsoleTest {
     private static final String EOL = System.getProperty('line.separator')
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Ansi ansi = context.mock(Ansi.class)
-    private final AnsiConsole console = new AnsiConsole(new StringBuilder()) {
+    private final Appendable target = {} as Appendable
+    private final Flushable flushable = {} as Flushable
+    private final AnsiConsole console = new AnsiConsole(target, flushable) {
         def Ansi createAnsi() {
             return ansi
         }

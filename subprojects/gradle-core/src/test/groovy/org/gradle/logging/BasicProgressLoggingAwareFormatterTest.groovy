@@ -30,92 +30,175 @@ import org.slf4j.LoggerFactory
 import org.slf4j.Marker
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import ch.qos.logback.classic.Level
+import org.gradle.api.logging.StandardOutputListener
 
 @RunWith(JMock.class)
 class BasicProgressLoggingAwareFormatterTest {
+    private static final String EOL = String.format('%n')
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final StringBuilder message = new StringBuilder()
-    private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter((LoggerContext) LoggerFactory.getILoggerFactory(), message)
+    private final StandardOutputListener infoMessage = context.mock(StandardOutputListener.class)
+    private final StandardOutputListener errorMessage = context.mock(StandardOutputListener.class)
+    private final LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory()
+    private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter(loggerContext, infoMessage, errorMessage)
 
     @Test
     public void logsEventWithMessage() {
-        formatter.format(event('message'))
+        context.checking {
+            one(infoMessage).onOutput(String.format('message%n'))
+        }
 
-        assertThat(message.toString(), equalTo(String.format('message%n')))
+        formatter.format(event('message'))
     }
 
     @Test
     public void logsEventWithMessageAndException() {
-        formatter.format(event('message', new RuntimeException('broken')))
+        context.checking {
+            one(infoMessage).onOutput(withParam(allOf(startsWith(String.format('message%n')), containsString('java.lang.RuntimeException: broken'))))
+        }
 
-        assertThat(message.toString(), startsWith(String.format('message%n')))
-        assertThat(message.toString(), containsString('java.lang.RuntimeException: broken'))
+        formatter.format(event('message', new RuntimeException('broken')))
+    }
+
+    @Test
+    public void logsEventWithErrorMessage() {
+        context.checking {
+            one(errorMessage).onOutput(String.format('message%n'))
+        }
+
+        formatter.format(event('message', Level.ERROR))
     }
 
     @Test
     public void logsProgressMessages() {
+        context.checking {
+            one(infoMessage).onOutput('description')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('complete')
+            one(infoMessage).onOutput(EOL)
+        }
+
         formatter.format(event('description', Logging.PROGRESS_STARTED))
         formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
-
-        assertThat(message.toString(), equalTo(String.format('description complete%n')))
     }
 
     @Test
     public void logsProgressStatusMessages() {
+        context.checking {
+            one(infoMessage).onOutput('description')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('.')
+            one(infoMessage).onOutput('.')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('complete')
+            one(infoMessage).onOutput(EOL)
+        }
+
         formatter.format(event('description', Logging.PROGRESS_STARTED))
         formatter.format(event('tick', Logging.PROGRESS))
         formatter.format(event('tick', Logging.PROGRESS))
         formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
-
-        assertThat(message.toString(), equalTo(String.format('description .. complete%n')))
     }
 
     @Test
     public void logsNestedProgressMessages() {
+        context.checking {
+            one(infoMessage).onOutput('description1')
+            one(infoMessage).onOutput(EOL)
+            one(infoMessage).onOutput('description2')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('.')
+            one(infoMessage).onOutput('.')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('complete2')
+            one(infoMessage).onOutput(EOL)
+            one(infoMessage).onOutput('complete1')
+            one(infoMessage).onOutput(EOL)
+        }
+
         formatter.format(event('description1', Logging.PROGRESS_STARTED))
         formatter.format(event('description2', Logging.PROGRESS_STARTED))
         formatter.format(event('tick', Logging.PROGRESS))
         formatter.format(event('tick', Logging.PROGRESS))
         formatter.format(event('complete2', Logging.PROGRESS_COMPLETE))
         formatter.format(event('complete1', Logging.PROGRESS_COMPLETE))
-
-        assertThat(message.toString(), equalTo(String.format('description1%ndescription2 .. complete2%ncomplete1%n')))
     }
 
     @Test
-    public void logsMixOfProgressAndOtherMessages() {
+    public void logsMixOfProgressAndInfoMessages() {
+        context.checking {
+            one(infoMessage).onOutput('description')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('.')
+            one(infoMessage).onOutput(EOL)
+            one(infoMessage).onOutput(String.format('message%n'))
+            one(infoMessage).onOutput('.')
+            one(infoMessage).onOutput(' ')
+            one(infoMessage).onOutput('complete')
+            one(infoMessage).onOutput(EOL)
+        }
+
         formatter.format(event('description', Logging.PROGRESS_STARTED))
         formatter.format(event('tick', Logging.PROGRESS))
         formatter.format(event('message'))
         formatter.format(event('tick', Logging.PROGRESS))
         formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+    }
 
-        assertThat(message.toString(), equalTo(String.format('description .%nmessage%n. complete%n')))
+    @Test
+    public void logsMixOfProgressAndErrorMessages() {
+        context.checking {
+            one(infoMessage).onOutput('description')
+            one(infoMessage).onOutput(EOL)
+            one(errorMessage).onOutput(String.format('message%n'))
+            one(infoMessage).onOutput('complete')
+            one(infoMessage).onOutput(EOL)
+        }
+
+        formatter.format(event('description', Logging.PROGRESS_STARTED))
+        formatter.format(event('message', Level.ERROR))
+        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
     }
 
     @Test
     public void logsProgressMessagesWithNoCompletionStatus() {
+        context.checking {
+            one(infoMessage).onOutput('description')
+            one(infoMessage).onOutput(EOL)
+        }
+
         formatter.format(event('description', Logging.PROGRESS_STARTED))
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
-
-        assertThat(message.toString(), equalTo(String.format('description%n')))
     }
 
     @Test
     public void logsProgressMessagesWithNoCompletionStatusAndOtherMessages() {
+        context.checking {
+            one(infoMessage).onOutput('description')
+            one(infoMessage).onOutput(EOL)
+            one(infoMessage).onOutput(String.format('message%n'))
+        }
+
         formatter.format(event('description', Logging.PROGRESS_STARTED))
         formatter.format(event('message'))
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
-
-        assertThat(message.toString(), equalTo(String.format('description%nmessage%n')))
     }
 
     private ILoggingEvent event(String text, Marker marker) {
         event(text, null, marker)
     }
 
-    private ILoggingEvent event(String text, Throwable failure = null, marker = null) {
+    private ILoggingEvent event(String text, Level level) {
+        event(text, null, null, level)
+    }
+
+    private ILoggingEvent event(String text, Throwable failure = null, marker = null, Level level = Level.INFO) {
         IThrowableProxy throwableProxy = failure == null ? null : new ThrowableProxy(failure)
-        [getThrowableProxy: {throwableProxy}, getFormattedMessage: {text}, getMarker: {marker}] as ILoggingEvent
+        [
+                getLevel: {level},
+                getThrowableProxy: {throwableProxy},
+                getFormattedMessage: {text},
+                getMarker: {marker}
+        ] as ILoggingEvent
     }
 }
