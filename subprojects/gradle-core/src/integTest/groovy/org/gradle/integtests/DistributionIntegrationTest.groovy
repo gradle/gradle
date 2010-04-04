@@ -21,6 +21,8 @@ import org.gradle.util.GradleVersion
 import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.util.TestFile
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
 
 @RunWith(DistributionIntegrationTestRunner)
 class DistributionIntegrationTest {
@@ -83,17 +85,24 @@ class DistributionIntegrationTest {
         contentsDir.file('LICENSE').assertIsFile()
 
         // Libs
-        contentsDir.file("lib/gradle-core-${version}.jar").assertIsFile()
-        contentsDir.file("lib/gradle-ui-${version}.jar").assertIsFile()
-        contentsDir.file("lib/gradle-launcher-${version}.jar").assertIsFile()
-        contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar").assertIsFile()
-        contentsDir.file("lib/plugins/gradle-plugins-${version}.jar").assertIsFile()
-        contentsDir.file("lib/plugins/gradle-jetty-${version}.jar").assertIsFile()
-        contentsDir.file("lib/plugins/gradle-wrapper-${version}.jar").assertIsFile()
-        contentsDir.file("lib/plugins/gradle-wrapper-tasks-${version}.jar").assertIsFile()
+        assertIsGradleJar(contentsDir.file("lib/gradle-core-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-core-worker-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-ui-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-wrapper-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-wrapper-tasks-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
+    }
+
+    private def assertIsGradleJar(TestFile jar) {
+        jar.assertIsFile()
+        assertThat(jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(version))
+        assertThat(jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
     }
 
     @Test

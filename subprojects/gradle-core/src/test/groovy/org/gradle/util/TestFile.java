@@ -28,6 +28,8 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.*;
+import java.util.jar.JarFile;
+import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
 
@@ -107,6 +109,7 @@ public class TestFile extends File {
     }
 
     public Map<String, String> getProperties() {
+        assertIsFile();
         Properties properties = new Properties();
         try {
             FileInputStream inStream = new FileInputStream(this);
@@ -123,6 +126,20 @@ public class TestFile extends File {
             map.put(key.toString(), properties.getProperty(key.toString()));
         }
         return map;
+    }
+
+    public Manifest getManifest() {
+        assertIsFile();
+        try {
+            JarFile jarFile = new JarFile(this);
+            try {
+                return jarFile.getManifest();
+            } finally {
+                jarFile.close();
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     public List<String> linesThat(Matcher<? super String> matcher) {

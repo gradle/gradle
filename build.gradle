@@ -163,10 +163,12 @@ task test(overwrite: true, dependsOn: groovyProjects()*.test)
 
 gradle.taskGraph.whenReady {graph ->
     configure(groovyProjects()) {
-      jar.manifest.mainAttributes([
-              (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-              (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
-      ])
+        tasks.withType(Jar).each { jar ->
+            jar.manifest.mainAttributes([
+                    (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+                    (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
+            ])
+        }
     }
 }
 
