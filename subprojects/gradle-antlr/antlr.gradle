@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-include 'core'
-include 'wrapper'
-include 'launcher'
-include 'plugins'
-include 'jetty'
-include 'codeQuality'
-include 'antlr'
-include 'ui'
-include 'openApi'
-include 'docs'
+apply plugin: 'groovy'
 
-rootProject.name = 'gradle'
-rootProject.children.each {project ->
-    String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
-    project.projectDir = new File(settingsDir, "subprojects/gradle-$fileBaseName")
-    project.buildFileName = "${fileBaseName}.gradle"
-    assert project.projectDir.isDirectory()
-    assert project.buildFile.isFile()
+dependencies {
+    groovy libraries.groovy_depends
+
+    compile project(':core')
+    compile project(':plugins')
+
+    compile libraries.slf4j_api,
+            libraries.ant,
+            libraries.ant_antlr,
+            libraries.antlr
+
+    testCompile project(path: ':core', configuration: 'testFixtures')
+    testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }

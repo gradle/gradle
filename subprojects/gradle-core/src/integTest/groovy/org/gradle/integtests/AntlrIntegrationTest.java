@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-include 'core'
-include 'wrapper'
-include 'launcher'
-include 'plugins'
-include 'jetty'
-include 'codeQuality'
-include 'antlr'
-include 'ui'
-include 'openApi'
-include 'docs'
+package org.gradle.integtests;
 
-rootProject.name = 'gradle'
-rootProject.children.each {project ->
-    String fileBaseName = project.name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" }
-    project.projectDir = new File(settingsDir, "subprojects/gradle-$fileBaseName")
-    project.buildFileName = "${fileBaseName}.gradle"
-    assert project.projectDir.isDirectory()
-    assert project.buildFile.isFile()
+import org.junit.Test;
+
+public class AntlrIntegrationTest extends AbstractIntegrationTest {
+    @Test
+    public void handlesEmptyProject() {
+        testFile("build.gradle").writelns("apply plugin: 'antlr'");
+        inTestDirectory().withTasks("build").run();
+    }
 }
