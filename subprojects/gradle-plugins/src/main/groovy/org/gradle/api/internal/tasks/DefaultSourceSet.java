@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -90,15 +90,25 @@ public class DefaultSourceSet implements SourceSet {
     }
 
     public String getClassesTaskName() {
-        return StringUtils.uncapitalize(String.format("%sClasses", getTaskBaseName()));
+        return getTaskName(null, "classes");
     }
 
     public String getCompileTaskName(String language) {
-        return String.format("compile%s%s", getTaskBaseName(), StringUtils.capitalize(language));
+        return getTaskName("compile", language);
     }
 
     public String getProcessResourcesTaskName() {
-        return String.format("process%sResources", getTaskBaseName());
+        return getTaskName("process", "resources");
+    }
+
+    public String getTaskName(String verb, String target) {
+        if (verb == null) {
+            return StringUtils.uncapitalize(String.format("%s%s", getTaskBaseName(), StringUtils.capitalize(target)));
+        }
+        if (target == null) {
+            return StringUtils.uncapitalize(String.format("%s%s", verb, GUtil.toCamelCase(name)));
+        }
+        return StringUtils.uncapitalize(String.format("%s%s%s", verb, getTaskBaseName(), StringUtils.capitalize(target)));
     }
 
     private String getTaskBaseName() {

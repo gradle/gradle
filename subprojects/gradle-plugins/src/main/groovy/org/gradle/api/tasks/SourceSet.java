@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -169,4 +169,14 @@ public interface SourceSet {
      * @return The task name. Never returns null.
      */
     String getCompileTaskName(String language);
+
+    /**
+     * Returns the name of a task for this source set.
+     *
+     * @param verb The action, may be null.
+     * @param target The target, may be null
+     *
+     * @return The task name, generally of the form ${verb}${name}${noun}
+     */
+    String getTaskName(String verb, String target);
 }

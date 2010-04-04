@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.plugins.quality
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
-import org.gradle.api.plugins.*
-import org.gradle.util.GUtil
-import org.gradle.api.tasks.SourceSet
+import org.gradle.api.plugins.GroovyBasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPluginConvention
+import org.gradle.api.plugins.ReportingBasePlugin
 import org.gradle.api.tasks.GroovySourceSet
+import org.gradle.api.tasks.SourceSet
 
 /**
  * A {@link Plugin} which measures and enforces code quality for Java and Groovy projects.
@@ -76,7 +80,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
         configureCheckTask(project);
 
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet set ->
-            Checkstyle checkstyle = project.tasks.add("checkstyle${GUtil.toCamelCase(set.name)}", Checkstyle.class);
+            Checkstyle checkstyle = project.tasks.add(set.getTaskName("checkstyle", null), Checkstyle.class);
             checkstyle.description = "Runs Checkstyle against the $set.name Java source code."
             checkstyle.conventionMapping.defaultSource = { set.allJava; }
             checkstyle.conventionMapping.configFile = { pluginConvention.checkstyleConfigFile }
@@ -88,7 +92,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
     private void configureForGroovyPlugin(Project project, GroovyCodeQualityPluginConvention pluginConvention) {
         project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet set ->
             GroovySourceSet groovySourceSet = set.convention.getPlugin(GroovySourceSet.class)
-            CodeNarc codeNarc = project.tasks.add("codenarc${GUtil.toCamelCase(set.name)}", CodeNarc.class);
+            CodeNarc codeNarc = project.tasks.add(set.getTaskName("codenarc", null), CodeNarc.class);
             codeNarc.setDescription("Runs CodeNarc against the $set.name Groovy source code.");
             codeNarc.conventionMapping.defaultSource = { groovySourceSet.allGroovy; }
             codeNarc.conventionMapping.configFile = { pluginConvention.codeNarcConfigFile; }

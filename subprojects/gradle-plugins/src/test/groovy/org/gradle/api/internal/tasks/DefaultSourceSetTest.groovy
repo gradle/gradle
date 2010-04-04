@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -76,18 +76,28 @@ class DefaultSourceSetTest {
         assertThat(sourceSet.allSource.displayName, equalTo('set name source'))
         assertThat(sourceSet.allSource.toString(), equalTo('set name source'))
         assertThat(sourceSet.allSource.sourceTrees, not(isEmpty()))
+    }
+
+    @Test public void constructsTaskNamesUsingSourceSetName() {
+        SourceSet sourceSet = new DefaultSourceSet('set-name', fileResolver, taskResolver)
 
         assertThat(sourceSet.classesTaskName, equalTo('setNameClasses'))
         assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileSetNameJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processSetNameResources'))
+        assertThat(sourceSet.getTaskName('build', null), equalTo('buildSetName'))
+        assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('setNameJar'))
+        assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildSetNameJar'))
     }
-    
+
     @Test public void mainSourceSetUsesSpecialCaseTaskNames() {
         SourceSet sourceSet = new DefaultSourceSet('main', fileResolver, taskResolver)
 
         assertThat(sourceSet.classesTaskName, equalTo('classes'))
         assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processResources'))
+        assertThat(sourceSet.getTaskName('build', null), equalTo('buildMain'))
+        assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('jar'))
+        assertThat(sourceSet.getTaskName('build', 'jar'), equalTo('buildJar'))
     }
 
     @Test public void canConfigureResources() {
