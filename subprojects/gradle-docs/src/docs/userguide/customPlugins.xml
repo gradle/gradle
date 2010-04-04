@@ -16,7 +16,7 @@
 <chapter id="custom_plugins" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>Writing Custom Plugins</title>
 
-    <para>A Gradle plugin packages up some reusable piece of build logic, which can be used across many different
+    <para>A Gradle plugin packages up reusable pieces of build logic, which can be used across many different
         projects and builds. Gradle allows you to implement your own custom plugins, so you can reuse your
         build logic, and potentially share it with others.
     </para>
@@ -27,37 +27,78 @@
         Java or Scala instead, if you wanted.
     </para>
 
-    <para>There are several places where you can put the source for the plugin. Two convenient options
-        are to add the task implementation to your build script, or to put the source in the
-        <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
-        take care of compiling the task and making it available on the classpath of the build script.
-        See <xref linkend="organizing_build_logic"/> for more details, and some other options.
-        In our examples, we will put the task implementation in the build script, to keep things simple.
-    </para>
+    <section>
+        <title>Packaging a Plugin</title>
+        <para>There are several places where you can put the source for the plugin. Two convenient options
+            are to add the task implementation to your build script, or to put the source in the
+            <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
+            take care of compiling the task and making it available on the classpath of the build script.
+            See <xref linkend="organizing_build_logic"/> for more details, and some other options.
+            In our examples, we will put the task implementation in the build script, to keep things simple.
+        </para>
+    
+    </section>
 
-    <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
-        Gradle instantiates the plugin and calls the plugin instance's <literal>apply()</literal> method when the plugin
-        is used with a project. The project
-        object is passed as a parameter, which the plugin can use to configure the project however it needs to.
-        The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.
-    </para>
+    <section>
+        <title>Writing a Simple Plugin</title>
+        <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
+            Gradle instantiates the plugin and calls the plugin instance's <literal>apply()</literal> method when the plugin
+            is used with a project. The project
+            object is passed as a parameter, which the plugin can use to configure the project however it needs to.
+            The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.
+        </para>
 
-    <sample id="customPlugin" dir="userguide/organizeBuildLogic/customPlugin" title="A custom plugin">
-        <sourcefile file="build.gradle"/>
-        <output args="-q hello"/>
-    </sample>
+        <sample id="customPlugin" dir="userguide/organizeBuildLogic/customPlugin" title="A custom plugin">
+            <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
 
-    <para>One thing to note is that only one instance of a given plugin is created for a given build. The same plugin
-        instance is used for all projects in the build.
-    </para>
+        <para>One thing to note is that only one instance of a given plugin is created for a given build. The same plugin
+            instance is used for all projects in the build.
+        </para>
+    </section>
 
-    <para>Let's add a convention object to the project. Here we add a <literal>greeting</literal> property to the
-        project, which allows you to configure the greeting.
-    </para>
+    <section>
+        <title>Getting Input from the Build</title>
+        <para>Most plugins need to read user defined input from the build script. Plugins read values using convention objects. 
+             The Gradle <apilink class="org.gradle.api.Project"/> has a <apilink class="org.gradle.api.plugins.Convention"/> object 
+             that helps keep track of all the settings and properties being passed to plugins. You can capture user input by telling
+             the Project Convention about your plugin. To capture input, simply add a Java Bean compliant class into the Convention's list of 
+             plugins. Groovy is a good language choice for a plugin because plain old Groovy objects contain all the getter and setter methods
+             that a Java Bean requires. 
+        </para>
 
-    <sample id="customPluginWithConvention" dir="userguide/organizeBuildLogic/customPluginWithConvention" title="A custom plugin convention">
-        <sourcefile file="build.gradle"/>
-        <output args="-q hello"/>
-    </sample>
+        <para>Let's add a simple convention object to the project. Here we add a <literal>greeting</literal> property to the
+            project, which allows you to configure the greeting.
+        </para>
 
+        <sample id="customPluginWithConvention" dir="userguide/organizeBuildLogic/customPluginWithConvention" title="A custom plugin convention">
+            <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
+
+        <para>In this example, GreetingPluginConvention is a plain old Groovy object with a field called <literal>greeting</literal>. 
+            The convention object is added to the plugin list with the name <literal>greet</literal>. The name of the variable in
+            the build needs to match the name of the field in the convention object.  The name you choose for your plugin 
+            (<literal>greet</literal>) is arbitrary and can be whatever you choose. 
+        </para>
+
+        <para>Oftentimes, you have several related properties you need to specify on a single plugin. With Groovy plugins it is easy
+            to offer a configuration closure block to group settings together. The following example shows you how to do this. 
+        </para>
+
+        <sample id="customPluginWithAdvancedConvention" dir="userguide/organizeBuildLogic/customPluginWithAdvancedConvention" title="A custom plugin with closure convention">
+            <sourcefile file="build.gradle"/>
+            <output args="-q hello"/>
+        </sample>
+
+        <para>In this example, several convention settings can be grouped together within the <literal>greet</literal> closure. 
+            The name of the closure block in the build script (<literal>greet</literal>) needs a matching method on 
+            the convention object, and that method must take a closure as an argument. Then, when the closure is executed, 
+            the fields on the convention object will be mapped to the variables within the closure based on the standard
+            Groovy closure delegate feature. This technique is possible in other JVM languages but may not be as convenient 
+            as in Groovy. 
+        </para>
+
+    </section>
 </chapter>
