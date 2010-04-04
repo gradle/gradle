@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,38 +16,87 @@
 package org.gradle.cache
 
 import org.gradle.CacheUsage
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-public class AutoCloseCacheFactoryTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final CacheFactory backingFactory = context.mock(CacheFactory.class)
+public class AutoCloseCacheFactoryTest extends Specification {
+    private final CacheFactory backingFactory = Mock()
     private final AutoCloseCacheFactory factory = new AutoCloseCacheFactory(backingFactory)
 
-    @Test
-    public void closesEachCacheOnClose() {
-        PersistentCache cache1 = context.mock(PersistentCache, '1')
-        PersistentCache cache2 = context.mock(PersistentCache, '2')
-        context.checking {
-            one(backingFactory).open(new File('dir1'), CacheUsage.ON, [:])
-            will(returnValue(cache1))
-            one(backingFactory).open(new File('dir2'), CacheUsage.ON, [:])
-            will(returnValue(cache2))
-        }
-        assertThat(factory.open(new File('dir1'), CacheUsage.ON, [:]), sameInstance(cache1))
-        assertThat(factory.open(new File('dir2'), CacheUsage.ON, [:]), sameInstance(cache2))
+    public void createsCachesUsingBackingFactory() {
+        PersistentCache cache = Mock()
 
-        context.checking {
-            one(backingFactory).close(cache1)
-            one(backingFactory).close(cache2)
-        }
+        when:
+        def retval = factory.open(new File('dir1'), CacheUsage.ON, [:])
 
+        then:
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+        retval == cache
+    }
+
+    public void cachesCacheInstanceForAGivenDirectory() {
+        PersistentCache cache = Mock()
+
+        when:
+        def cache1 = factory.open(new File('dir1'), CacheUsage.ON, [:])
+        def cache2 = factory.open(new File('dir1').canonicalFile, CacheUsage.ON, [:])
+
+        then:
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+        cache1 == cache2
+    }
+
+    public void closesCacheUsingBackingFactory() {
+        PersistentCache cache = Mock()
+
+        when:
+        factory.open(new File('dir1'), CacheUsage.ON, [:])
+
+        then:
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+
+        when:
+        factory.close(cache)
+
+        then:
+        1 * backingFactory.close(cache)
+    }
+
+    public void closesCacheWhenLastReferenceClosed() {
+        PersistentCache cache = Mock()
+
+        when:
+        factory.open(new File('dir1'), CacheUsage.ON, [:])
+        factory.open(new File('dir1'), CacheUsage.ON, [:])
+
+        then:
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache
+
+        when:
+        factory.close(cache)
+        factory.close(cache)
+
+        then:
+        1 * backingFactory.close(cache)
+    }
+    
+    public void closesEachOpenCacheOnClose() {
+        PersistentCache cache1 = Mock()
+        PersistentCache cache2 = Mock()
+
+        when:
+        factory.open(new File('dir1'), CacheUsage.ON, [:])
+        factory.open(new File('dir2'), CacheUsage.ON, [:])
+
+        then:
+        1 * backingFactory.open(new File('dir1'), CacheUsage.ON, [:]) >> cache1
+        1 * backingFactory.open(new File('dir2'), CacheUsage.ON, [:]) >> cache2
+
+        when:
         factory.close()
+
+        then:
+        1 * backingFactory.close(cache1)
+        1 * backingFactory.close(cache2)
     }
 }
 

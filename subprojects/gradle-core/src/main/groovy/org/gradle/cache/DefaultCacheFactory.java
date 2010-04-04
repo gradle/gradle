@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,31 +19,16 @@ import org.gradle.CacheUsage;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultCacheFactory implements CacheFactory {
-    private final Map<File, DefaultPersistentDirectoryCache> openCaches
-            = new HashMap<File, DefaultPersistentDirectoryCache>();
-    
+
     public PersistentCache open(File cacheDir, CacheUsage usage, Map<String, ?> properties) {
         File canonicalDir = GFileUtils.canonicalise(cacheDir);
-        DefaultPersistentDirectoryCache cache = openCaches.get(canonicalDir);
-        if (cache == null) {
-            cache = new DefaultPersistentDirectoryCache(canonicalDir, usage, properties);
-            openCaches.put(canonicalDir, cache);
-        }
-        else {
-            if (!properties.equals(cache.getProperties())) {
-                throw new UnsupportedOperationException(String.format(
-                        "Cache '%s' is already open with different state.", cacheDir));
-            }
-        }
-        return cache;
+        return new DefaultPersistentDirectoryCache(canonicalDir, usage, properties);
     }
 
     public void close(PersistentCache cache) {
-        openCaches.values().remove(cache);
         ((DefaultPersistentDirectoryCache) cache).close();
     }
 }

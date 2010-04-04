@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.*;
@@ -27,7 +28,7 @@ import org.gradle.initialization.*;
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
         add(CommandLine2StartParameterConverter.class, new DefaultCommandLine2StartParameterConverter());
-        add(CacheFactory.class, new DefaultCacheFactory());
+        add(CacheFactory.class, new AutoCloseCacheFactory(new DefaultCacheFactory()));
         add(ClassPathRegistry.class, new DefaultClassPathRegistry());
         add(ClassLoaderFactory.class, new DefaultClassLoaderFactory(get(ClassPathRegistry.class)));
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,12 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
-import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.*;
+import org.gradle.initialization.ClassLoaderFactory;
+import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultClassLoaderFactory;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
@@ -36,7 +39,7 @@ public class GlobalServicesRegistryTest {
     
     @Test
     public void providesACacheFactory() {
-        assertThat(registry.get(CacheFactory.class), instanceOf(DefaultCacheFactory.class));
+        assertThat(registry.get(CacheFactory.class), instanceOf(AutoCloseCacheFactory.class));
     }
     
     @Test

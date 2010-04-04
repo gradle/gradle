@@ -15,8 +15,6 @@
  */
 
 
-
-
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -125,7 +123,7 @@ b.outputFile = file('new-output.txt')
 
         // Run with --no-opt command-line options
         inTestDirectory().withTasks('b').withArguments('--no-opt').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
-   }
+    }
 
     @Test
     public void skipsTaskWhenInputDirContentsHaveNotChanged() {
@@ -165,7 +163,7 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
         testFile('src/file1.txt').write('new content')
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
-        
+
         outputAFile.assertHasChangedSince(aSnapshot)
         outputBFile.assertHasChangedSince(bSnapshot)
         outputAFile.assertContents(equalTo('[new content]'))
@@ -178,7 +176,7 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
 
         testFile('build/a/file2.txt').assertContents(equalTo('[content2]'))
-        testFile('build/b/file2.txt').assertContents(equalTo('[[content2]]')) 
+        testFile('build/b/file2.txt').assertContents(equalTo('[[content2]]'))
 
         // Remove file
 
@@ -312,5 +310,29 @@ task b(dependsOn: a)
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
+    }
+
+    @Test
+    public void canShareArtifactsBetweenBuilds() {
+        testFile('build.gradle') << '''
+task otherBuild(type: GradleBuild) {
+    buildFile = 'other.gradle'
+    tasks = ['generate']
+}
+task transform(type: org.gradle.integtests.TransformerTask) {
+    dependsOn otherBuild
+    inputFile = file('generated.txt')
+    outputFile = file('out.txt')
+}
+'''
+        testFile('other.gradle') << '''
+task generate(type: org.gradle.integtests.TransformerTask) {
+    inputFile = file('src.txt')
+    outputFile = file('generated.txt')
+}
+'''
+        testFile('src.txt').text = 'content'     
+        inTestDirectory().withTasks('transform').run().assertTasksExecuted(':otherBuild', ':transform').assertTasksSkipped()
+        inTestDirectory().withTasks('transform').run().assertTasksExecuted(':otherBuild', ':transform').assertTasksSkipped(':transform')
     }
 }

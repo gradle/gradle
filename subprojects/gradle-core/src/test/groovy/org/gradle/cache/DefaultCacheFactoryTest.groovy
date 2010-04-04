@@ -13,39 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.cache
 
-import org.junit.Test
 import org.gradle.CacheUsage
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import org.junit.Rule
+import spock.lang.Specification
 
-class DefaultCacheFactoryTest {
+class DefaultCacheFactoryTest extends Specification {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder()
     private final DefaultCacheFactory factory = new DefaultCacheFactory()
 
-    @Test
     public void createsCache() {
+        when:
         PersistentCache cache = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
-        assertThat(cache, instanceOf(DefaultPersistentDirectoryCache))
-        assertThat(cache.baseDir, equalTo(tmpDir.dir))
-    }
 
-    @Test
-    public void cachesCacheInstances() {
-        PersistentCache cache = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
-        assertThat(factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value']), sameInstance(cache))
-        assertThat(factory.open(tmpDir.createDir('some-other-dir'), CacheUsage.ON, [prop: 'value']), not(sameInstance(cache)))
-    }
-
-    @Test
-    public void discardsCacheInstanceWhenClosed() {
-        PersistentCache cache = factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value'])
-        factory.close(cache)
-        assertThat(factory.open(tmpDir.dir, CacheUsage.ON, [prop: 'value']), not(sameInstance(cache)))
+        then:
+        cache instanceof DefaultPersistentDirectoryCache
+        cache.baseDir == tmpDir.dir
     }
 }
 
