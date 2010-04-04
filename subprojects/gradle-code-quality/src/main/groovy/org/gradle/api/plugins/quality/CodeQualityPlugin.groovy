@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,10 +44,10 @@ public class CodeQualityPlugin implements Plugin<Project> {
         configureCheckstyleDefaults(project, javaPluginConvention)
         configureCodeNarcDefaults(project, groovyPluginConvention)
 
-        project.plugins.withType(JavaPlugin.class).allPlugins {
+        project.plugins.withType(JavaBasePlugin.class).allPlugins {
             configureForJavaPlugin(project, javaPluginConvention);
         }
-        project.plugins.withType(GroovyPlugin.class).allPlugins {
+        project.plugins.withType(GroovyBasePlugin.class).allPlugins {
             configureForGroovyPlugin(project, groovyPluginConvention);
         }
     }
