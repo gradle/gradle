@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,11 @@ import org.junit.Test;
 public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canDefineTasksUsingTaskKeywordAndIdentifier() {
-        testFile("build.gradle").writelns("task nothing", "task withAction << { }", "task emptyOptions()", "task task",
+        testFile("build.gradle").writelns(
+                "task nothing",
+                "task withAction << { }",
+                "task emptyOptions()",
+                "task task",
                 "task withOptions(dependsOn: [nothing, withAction, emptyOptions, task])",
                 "task withOptionsAndAction(dependsOn: withOptions) << { }");
         inTestDirectory().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
@@ -30,7 +34,10 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canDefineTasksUsingTaskKeywordAndGString() {
-        testFile("build.gradle").writelns("v = 'Task'", "task \"nothing$v\"", "task \"withAction$v\" << { }",
+        testFile("build.gradle").writelns(
+                "v = 'Task'",
+                "task \"nothing$v\"",
+                "task \"withAction$v\" << { }",
                 "task \"emptyOptions$v\"()",
                 "task \"withOptions$v\"(dependsOn: [nothingTask, withActionTask, emptyOptionsTask])",
                 "task \"withOptionsAndAction$v\"(dependsOn: withOptionsTask) << { }");
@@ -40,7 +47,10 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canDefineTasksUsingTaskKeywordAndString() {
-        testFile("build.gradle").writelns("task 'nothing'", "task 'withAction' << { }", "task 'emptyOptions'()",
+        testFile("build.gradle").writelns(
+                "task 'nothing'",
+                "task 'withAction' << { }",
+                "task 'emptyOptions'()",
                 "task 'withOptions'(dependsOn: [nothing, withAction, emptyOptions])",
                 "task 'withOptionsAndAction'(dependsOn: withOptions) << { }");
         inTestDirectory().withTasks("withOptionsAndAction").run().assertTasksExecuted(":emptyOptions", ":nothing",
@@ -49,8 +59,12 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canDefineTasksInNestedBlocks() {
-        testFile("build.gradle").writelns("2.times { task \"dynamic$it\" << { } }", "if (dynamic0) { task inBlock }",
-                "def task() { task inMethod }", "task()", "def cl = { -> task inClosure }", "cl()",
+        testFile("build.gradle").writelns(
+                "2.times { task \"dynamic$it\" << { } }",
+                "if (dynamic0) { task inBlock }",
+                "def task() { task inMethod }",
+                "task()", "def cl = { -> task inClosure }",
+                "cl()",
                 "task all(dependsOn: [dynamic0, dynamic1, inBlock, inMethod, inClosure])");
         inTestDirectory().withTasks("all").run().assertTasksExecuted(":dynamic0", ":dynamic1", ":inBlock", ":inClosure",
                 ":inMethod", ":all");
@@ -58,9 +72,13 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canDefineTasksUsingTaskMethodExpression() {
-        testFile("build.gradle").writelns("a = 'a' == 'b' ? null: task(withAction) << { }", "a = task(nothing)",
-                "a = task(emptyOptions())", "taskName = 'dynamic'", "a = task(\"$taskName\") << { }",
-                "a = task('string')", "a = task('stringWithAction') << { }",
+        testFile("build.gradle").writelns(
+                "a = 'a' == 'b' ? null: task(withAction) << { }",
+                "a = task(nothing)",
+                "a = task(emptyOptions())", "taskName = 'dynamic'",
+                "a = task(\"$taskName\") << { }",
+                "a = task('string')",
+                "a = task('stringWithAction') << { }",
                 "a = task('stringWithOptions', description: 'description')",
                 "a = task('stringWithOptionsAndAction', description: 'description') << { }",
                 "a = task(withOptions, description: 'description')",
@@ -73,26 +91,45 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canConfigureTasksWhenTheyAreDefined() {
-        testFile("build.gradle").writelns("import org.gradle.integtests.TestTask",
-                "task withDescription { description = 'value' }", "task(asMethod)\n{ description = 'value' }",
+        testFile("build.gradle").writelns(
+                "import org.gradle.integtests.TestTask",
+                "task withDescription { description = 'value' }",
+                "task(asMethod)\n{ description = 'value' }",
                 "task asStatement(type: TestTask) { property = 'value' }",
                 "task \"dynamic\"(type: TestTask) { property = 'value' }",
                 "v = task(asExpression, type: TestTask) { property = 'value' }",
                 "task(postConfigure, type: TestTask).configure { property = 'value' }",
-                "[asStatement, dynamic, asExpression, postConfigure].each { ", "    assertEquals('value', it.property)",
-                "}", "[withDescription, asMethod].each {", "    assertEquals('value', it.description)", "}",
+                "[asStatement, dynamic, asExpression, postConfigure].each { ",
+                "    assertEquals('value', it.property)",
+                "}",
+                "[withDescription, asMethod].each {",
+                "    assertEquals('value', it.description)",
+                "}",
                 "task all(dependsOn: tasks.all)");
         inTestDirectory().withTasks("all").run();
     }
 
     @Test
     public void doesNotHideLocalMethodsAndVariables() {
-        testFile("build.gradle").writelns("String name = 'a'; task name",
+        testFile("build.gradle").writelns(
+                "String name = 'a'; task name",
 //                "taskNameVar = 'b'; task taskNameVar",
                 "def taskNameMethod(String name = 'c') { name } ",
 //                "task taskNameMethod",
-                "task taskNameMethod('d')", "def method(String taskNameParam) { task taskNameParam }", "method('e')",
-                "cl = { taskNameParam -> task taskNameParam }", "cl.call('f')", "task all(dependsOn: tasks.all)");
-        inTestDirectory().withTasks("all").run().assertTasksExecuted(":a", ":d", ":e", ":f", ":all");
+                "task taskNameMethod('d')",
+                "def addTaskMethod(String methodParam) { task methodParam }",
+                "addTaskMethod('e')",
+                "def addTaskWithClosure(String methodParam) { task(methodParam) { property = 'value' } }",
+                "addTaskWithClosure('f')",
+                "def addTaskWithMap(String methodParam) { task(methodParam, description: 'description') }",
+                "addTaskWithMap('g')",
+                "cl = { String taskNameParam -> task taskNameParam }",
+                "cl.call('h')",
+                "cl = { String taskNameParam -> task(taskNameParam) { property = 'value' } }",
+                "cl.call('i')",
+                "assertEquals('value', f.property)",
+                "assertEquals('value', i.property)",
+                "task all(dependsOn: tasks.all)");
+        inTestDirectory().withTasks("all").run().assertTasksExecuted(":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all");
     }
 }

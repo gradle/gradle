@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.dsl;
 
 import org.codehaus.groovy.ast.CodeVisitorSupport;
@@ -61,12 +62,11 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
                 if (args.getExpression(0) instanceof MapExpression && args.getExpression(1) instanceof VariableExpression) {
                     // Matches: task <name-value-pairs>, <identifier>, <arg>?
                     // Map to: task(<name-value-pairs>, '<identifier>', <arg>?)
-                    args.getExpressions().set(1, new ConstantExpression(args.getExpression(1).getText()));
+                    transformVariableExpression(call, 1);
                 }
                 else if (args.getExpression(0) instanceof VariableExpression) {
                     // Matches: task <identifier>, <arg>?
-                    // Map to: task('<identifier>', <arg>?)
-                    args.getExpressions().set(0, new ConstantExpression(args.getExpression(0).getText()));
+                    transformVariableExpression(call, 0);
                 }
                 return;
             }
@@ -76,7 +76,7 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
             Expression arg = args.getExpression(0);
             if (arg instanceof VariableExpression) {
                 // Matches: task <identifier> or task(<identifier>)
-                transformVariableExpression(call, (VariableExpression) arg);
+                transformVariableExpression(call, 0);
             }
             else if (arg instanceof BinaryExpression) {
                 // Matches: task <expression> <operator> <expression>
@@ -88,18 +88,18 @@ public class TaskDefinitionScriptTransformer extends AbstractScriptTransformer {
             }
         }
 
-        private void transformVariableExpression(MethodCallExpression call, VariableExpression arg) {
+        private void transformVariableExpression(MethodCallExpression call, int index) {
+            ArgumentListExpression args = (ArgumentListExpression) call.getArguments();
+            VariableExpression arg = (VariableExpression) args.getExpression(index);
             if (!isDynamicVar(arg)) {
                 return;
             }
             
-            // Matches: task <identifier> or task(<identifier>)
-            // Map to: task('<identifier>')
+            // Matches: task args?, <identifier>, args? or task(args?, <identifier>, args?)
+            // Map to: task(args?, '<identifier>', args?)
             String taskName = arg.getText();
             call.setMethod(new ConstantExpression("task"));
-            ArgumentListExpression args = (ArgumentListExpression) call.getArguments();
-            args.getExpressions().clear();
-            args.addExpression(new ConstantExpression(taskName));
+            args.getExpressions().set(index, new ConstantExpression(taskName));
         }
 
         private void transformBinaryExpression(MethodCallExpression call, BinaryExpression expression) {
