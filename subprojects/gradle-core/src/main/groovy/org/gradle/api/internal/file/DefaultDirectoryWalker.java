@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -88,6 +89,9 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
 
     private void walkDir(File file, RelativePath path, AtomicBoolean stopFlag) {
         File[] children = file.listFiles();
+        if (children == null) {
+            throw new GradleException(String.format("Could not list children of '%s'.", file));
+        }
         List<FileVisitDetailsImpl> dirs = new ArrayList<FileVisitDetailsImpl>();
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {
             File child = children[i];
@@ -109,8 +113,7 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
             if (depthFirst) {
                 walkDir(dir.getFile(), dir.getRelativePath(), stopFlag);
                 visitor.visitDir(dir);
-            }
-            else {
+            } else {
                 visitor.visitDir(dir);
                 walkDir(dir.getFile(), dir.getRelativePath(), stopFlag);
             }
