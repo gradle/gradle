@@ -38,9 +38,8 @@ class SamplesEclipseIntegrationTest {
 
     private TestFile eclipseProjectDir
 
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
 
     @Rule public Resources resources = new Resources();
 

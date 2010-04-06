@@ -23,12 +23,12 @@ import org.apache.tools.ant.taskdefs.Expand
 import org.gradle.util.TestFile
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
+import org.junit.Rule
 
 @RunWith(DistributionIntegrationTestRunner)
 class DistributionIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer;
     private String version = new GradleVersion().version
 
     @Test

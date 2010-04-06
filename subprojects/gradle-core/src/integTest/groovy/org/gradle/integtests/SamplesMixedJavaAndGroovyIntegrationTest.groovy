@@ -20,12 +20,12 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
+import org.junit.Rule
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesMixedJavaAndGroovyIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
 
     @Test
     public void canBuildJar() {

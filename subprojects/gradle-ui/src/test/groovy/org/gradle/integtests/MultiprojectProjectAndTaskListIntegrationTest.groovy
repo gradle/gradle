@@ -25,6 +25,7 @@ import org.junit.Assert;
 import org.gradle.util.GFileUtils
 import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapper
 import org.gradle.openapi.external.foundation.ProjectVersion1
+import org.junit.Rule
 
 /**
  This tests the multiproject sample with the GradleView mechanism.
@@ -43,9 +44,8 @@ class MultiprojectProjectAndTaskListIntegrationTest {
     private File javaprojectDir
     private List projects;
 
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer;
 
     @Before
     void setUp() {

@@ -22,16 +22,16 @@ import java.util.jar.Manifest
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
+import org.junit.Rule
 
 /**
  * @author Hans Dockter
  */
 @RunWith (DistributionIntegrationTestRunner.class)
 class SamplesJavaQuickstartIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
-    
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
+
     @Test
     public void canBuildAndUploadJar() {
         TestFile javaprojectDir = dist.samplesDir.file('java/quickstart')

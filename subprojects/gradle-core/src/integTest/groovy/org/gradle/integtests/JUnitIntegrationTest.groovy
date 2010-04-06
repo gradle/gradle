@@ -24,13 +24,13 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*
 import org.gradle.api.Project
 import org.slf4j.Logger
-import org.gradle.process.child.SystemApplicationClassLoaderWorker;
+import org.gradle.process.child.SystemApplicationClassLoaderWorker
+import org.junit.Rule;
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class JUnitIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer;
 
     @Test
     public void executesTestsInCorrectEnvironment() {

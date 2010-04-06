@@ -22,6 +22,7 @@ import static org.gradle.util.Matchers.*
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.gradle.util.TestFile
+import org.junit.Rule
 
 /**
  * @author Hans Dockter
@@ -29,9 +30,8 @@ import org.gradle.util.TestFile
 // todo To make this test stronger, we should check against the output of a file appender. Right now GradleLauncher does not provided this easily but eventually will.
 @RunWith(DistributionIntegrationTestRunner.class)
 class LoggingIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer;
 
     List quietMessages = [
             'An info log message which is always logged.',

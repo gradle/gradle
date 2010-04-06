@@ -20,6 +20,7 @@ import static org.hamcrest.Matchers.*
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.gradle.util.TestFile
+import org.junit.Rule
 
 /**
  * @author Hans Dockter
@@ -28,9 +29,8 @@ import org.gradle.util.TestFile
 class SamplesGroovyMultiProjectIntegrationTest {
     static final String TEST_PROJECT_NAME = 'testproject'
 
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
 
     private List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
     private List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']

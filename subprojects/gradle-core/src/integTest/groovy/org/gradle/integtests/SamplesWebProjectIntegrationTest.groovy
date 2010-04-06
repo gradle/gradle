@@ -20,6 +20,7 @@ import org.junit.Assert
 import org.junit.runner.RunWith
 import org.junit.Test
 import org.gradle.util.TestFile
+import org.junit.Rule
 
 /**
  * @author Hans Dockter
@@ -28,9 +29,8 @@ import org.gradle.util.TestFile
 class SamplesWebProjectIntegrationTest {
     static final String WEB_PROJECT_NAME = 'customised'
 
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
 
     @Test
     public void webProjectSamples() {

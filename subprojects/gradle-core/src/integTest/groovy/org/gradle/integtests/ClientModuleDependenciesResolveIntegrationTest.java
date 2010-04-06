@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests;
 
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -25,9 +26,9 @@ import java.io.File;
  */
 @RunWith (DistributionIntegrationTestRunner.class)
 public class ClientModuleDependenciesResolveIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule
+    public final GradleDistribution dist = new GradleDistribution();
+    private final GradleExecuter executer = dist.getExecuter();
 
     @Test
     public void testResolve() {

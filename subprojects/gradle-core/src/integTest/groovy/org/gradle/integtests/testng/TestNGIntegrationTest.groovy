@@ -31,6 +31,7 @@ import static org.junit.Assert.*
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.ExecutionResult
+import org.junit.Rule
 
 /**
  * @author Tom Eyckmans
@@ -91,9 +92,8 @@ public class TestNGIntegrationTest {
         result.assertTestPassed('org.gradle.testng.UserImplTest', 'testOkFirstName')
     })
 
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
 
     @Test
     public void executesTestsInCorrectEnvironment() {

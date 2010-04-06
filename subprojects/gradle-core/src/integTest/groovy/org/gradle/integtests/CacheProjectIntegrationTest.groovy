@@ -25,6 +25,7 @@ import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
+import org.junit.Rule
 
 /**
  * @author Hans Dockter
@@ -33,9 +34,8 @@ import org.gradle.util.TestFile
 class CacheProjectIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer;
 
     TestFile projectDir
     TestFile userHomeDir

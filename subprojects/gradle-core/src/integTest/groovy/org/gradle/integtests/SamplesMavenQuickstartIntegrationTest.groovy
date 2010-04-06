@@ -33,9 +33,8 @@ import static org.junit.Assert.*
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesMavenQuickstartIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist
-    private GradleExecuter executer
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
 
     private TestFile pomProjectDir
     private TestFile repoDir

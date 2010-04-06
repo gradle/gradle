@@ -34,10 +34,9 @@ import org.gradle.util.TestFile
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesMavenPomGenerationIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist
-    private GradleExecuter executer
-    
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    private final GradleExecuter executer = dist.executer
+
     private TestFile pomProjectDir
     private TestFile repoDir
     private TestFile snapshotRepoDir

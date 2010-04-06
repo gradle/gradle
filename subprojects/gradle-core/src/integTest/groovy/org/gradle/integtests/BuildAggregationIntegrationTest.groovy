@@ -19,12 +19,11 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
 import org.junit.runner.RunWith
+import org.junit.Rule
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class BuildAggregationIntegrationTest {
-    // Injected by test runner
-    private GradleDistribution dist;
-    private GradleExecuter executer;
+    @Rule public final GradleDistribution dist = new GradleDistribution()
 
     @Test
     public void canExecuteAnotherBuildFromBuild() {
@@ -44,7 +43,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        executer.withTasks('build').run()
+        dist.executer.withTasks('build').run()
     }
 
     @Test
@@ -62,7 +61,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        executer.withTasks('build').run()
+        dist.executer.withTasks('build').run()
     }
 
     @Test
@@ -78,7 +77,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        ExecutionFailure failure = executer.withTasks('build').runWithFailure()
+        ExecutionFailure failure = dist.executer.withTasks('build').runWithFailure()
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription('A problem occurred evaluating root project')
@@ -88,7 +87,7 @@ class BuildAggregationIntegrationTest {
     @Test
     public void reportsBuildSrcFailure() {
         dist.testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
-        ExecutionFailure failure = executer.runWithFailure()
+        ExecutionFailure failure = dist.executer.runWithFailure()
         failure.assertHasFileName('Default buildSrc build script')
         failure.assertHasDescription('Execution failed for task \':compileJava\'')
     }
