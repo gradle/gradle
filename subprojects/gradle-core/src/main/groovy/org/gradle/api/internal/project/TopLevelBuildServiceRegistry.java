@@ -79,7 +79,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         add(ListenerManager.class, new DefaultListenerManager());
         add(ImportsReader.class, new ImportsReader(startParameter.getDefaultImportsFile()));
         add(ClassGenerator.class, new AsmBackedClassGenerator());
-        add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
         add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
         add(TimeProvider.class, new TrueTimeProvider());
     }

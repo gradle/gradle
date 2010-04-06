@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.groovy.scripts
 
 import org.gradle.api.internal.project.ServiceRegistry
-import org.gradle.api.internal.project.StandardOutputRedirector
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.logging.StandardOutputCapture
 
 /**
  * @author Hans Dockter
@@ -26,12 +28,12 @@ import org.gradle.api.internal.file.FileOperations
  * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
 abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations {
-    private StandardOutputRedirector redirector
+    private StandardOutputCapture standardOutputCapture
     private Object target
 
     void init(Object target, ServiceRegistry services) {
         new DefaultScriptMetaData().applyMetaData(this, target)
-        redirector = services.get(StandardOutputRedirector.class)
+        standardOutputCapture = services.get(StandardOutputCapture.class)
         this.target = target
     }
 
@@ -39,8 +41,8 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script implements o
         return target
     }
 
-    def StandardOutputRedirector getStandardOutputRedirector() {
-        return redirector
+    def StandardOutputCapture getStandardOutputCapture() {
+        return standardOutputCapture
     }
 
     void setProperty(String property, newValue) {

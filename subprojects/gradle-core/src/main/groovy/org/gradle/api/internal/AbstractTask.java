@@ -59,7 +59,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private boolean enabled = true;
 
-    private StandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.QUIET);
+    private final StandardOutputCapture standardOutputCapture;
 
     private DefaultTaskDependency dependencies;
 
@@ -78,6 +78,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final ServiceRegistry services;
 
     private final TaskStateInternal state;
+
+    private final LoggingManager loggingManager;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -102,6 +104,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
+        standardOutputCapture = services.get(StandardOutputCapture.class);
+        loggingManager = services.get(LoggingManager.class);
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
@@ -281,23 +285,17 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task disableStandardOutputCapture() {
-        throwExceptionDuringExecutionTime("captureStandardOutput");
-        standardOutputCapture = new DefaultStandardOutputCapture();
+        loggingManager.disableStandardOutputCapture();
         return this;
     }
 
     public Task captureStandardOutput(LogLevel level) {
-        throwExceptionDuringExecutionTime("captureStandardOutput");
-        standardOutputCapture = new DefaultStandardOutputCapture(true, level);
+        loggingManager.captureStandardOutput(level);
         return this;
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
         return standardOutputCapture;
-    }
-
-    public void setStandardOutputCapture(StandardOutputCapture standardOutputCapture) {
-        this.standardOutputCapture = standardOutputCapture;
     }
 
     private void throwExceptionDuringExecutionTime(String operation) {

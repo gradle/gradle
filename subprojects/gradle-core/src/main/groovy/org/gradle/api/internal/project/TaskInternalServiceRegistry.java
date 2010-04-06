@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.tasks.TaskInputs;
 
 /**
@@ -40,6 +42,10 @@ public class TaskInternalServiceRegistry extends DefaultServiceRegistry implemen
 
     protected TaskOutputsInternal createTaskOutputs() {
         return new DefaultTaskOutputs(project.getFileResolver(), taskInternal);
+    }
+
+    protected DefaultStandardOutputCapture createLoggingManager() {
+        return new DefaultStandardOutputCapture();
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

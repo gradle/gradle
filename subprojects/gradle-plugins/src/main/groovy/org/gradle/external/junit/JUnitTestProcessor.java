@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -61,7 +61,7 @@ public class JUnitTestProcessor extends AbstractTestProcessor {
         final DefaultLoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer();
         loggingConfigurer.configure(LogLevel.LIFECYCLE);
 
-        final DefaultStandardOutputCapture stdOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.DEBUG);
+        final StandardOutputCapture stdOutputCapture = new DefaultStandardOutputCapture().captureStandardOutput(LogLevel.DEBUG);
 
         ContextClassLoaderRunnable contextClassLoaderRunnable = new ContextClassLoaderRunnable(testClassRunInfo,
                 loggingConfigurer, stdOutputCapture, testClassHandlerFactory);

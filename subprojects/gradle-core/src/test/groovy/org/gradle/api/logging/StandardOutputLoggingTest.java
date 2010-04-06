@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -92,14 +92,14 @@ public class StandardOutputLoggingTest {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputLogging.offOut();
         assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
-        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
+        assertEquals(StandardOutputLogging.getErr(), System.err);
     }
 
     @Test
     public void offErr() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputLogging.offErr();
-        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
+        assertEquals(StandardOutputLogging.getOut(), System.out);
         assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 
@@ -113,21 +113,21 @@ public class StandardOutputLoggingTest {
     public void testGetAndRestoreState() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputState state = StandardOutputLogging.getStateSnapshot();
-        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), state.getOutStream());
-        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), state.getErrStream());
+        assertEquals(StandardOutputLogging.getOut(), state.getOutStream());
+        assertEquals(StandardOutputLogging.getErr(), state.getErrStream());
         StandardOutputLogging.off();
         StandardOutputLogging.restoreState(state);
-        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
-        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
+        assertEquals(StandardOutputLogging.getOut(), System.out);
+        assertEquals(StandardOutputLogging.getErr(), System.err);
     }
 
     private void checkOut(LogLevel expectedOut) {
-        assertEquals(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
+        assertEquals(StandardOutputLogging.getOut(), System.out);
         assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), expectedOut);
     }
 
     private void checkErr(LogLevel expectedErr) {
-        assertEquals(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
+        assertEquals(StandardOutputLogging.getErr(), System.err);
         assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), expectedErr);
     }
 }

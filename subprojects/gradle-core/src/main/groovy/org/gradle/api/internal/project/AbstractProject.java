@@ -39,9 +39,7 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.*;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.Directory;
@@ -132,7 +130,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
-    private StandardOutputRedirector standardOutputRedirector;
+    private LoggingManager loggingManager;
+
+    private StandardOutputCapture standardOutputCapture;
+
     private DynamicObjectHelper dynamicObjectHelper;
 
     public AbstractProject(String name) {
@@ -185,7 +186,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
         projectRegistry = services.get(IProjectRegistry.class);
-        standardOutputRedirector = services.get(StandardOutputRedirector.class);
+        loggingManager = services.get(LoggingManager.class);
+        standardOutputCapture = services.get(StandardOutputCapture.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(services.get(Convention.class));
@@ -784,21 +786,16 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return buildLogger;
     }
 
-    public StandardOutputRedirector getStandardOutputRedirector() {
-        return standardOutputRedirector;
-    }
-
-    public void setStandardOutputRedirector(StandardOutputRedirector standardOutputRedirector) {
-        this.standardOutputRedirector = standardOutputRedirector;
+    public StandardOutputCapture getStandardOutputCapture() {
+        return standardOutputCapture;
     }
 
     public void disableStandardOutputCapture() {
-        standardOutputRedirector.flush();
-        standardOutputRedirector.off();
+        loggingManager.disableStandardOutputCapture();
     }
 
     public void captureStandardOutput(LogLevel level) {
-        standardOutputRedirector.on(level);
+        loggingManager.captureStandardOutput(level);
     }
 
     public Object property(String propertyName) throws MissingPropertyException {

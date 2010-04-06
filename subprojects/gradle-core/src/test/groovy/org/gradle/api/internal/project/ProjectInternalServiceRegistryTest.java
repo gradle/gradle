@@ -38,6 +38,8 @@ import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
@@ -182,6 +184,12 @@ public class ProjectInternalServiceRegistryTest {
     public void providesATemporaryFileProvider() {
         assertThat(registry.get(TemporaryFileProvider.class), instanceOf(DefaultTemporaryFileProvider.class));
         assertThat(registry.get(TemporaryFileProvider.class), sameInstance(registry.get(TemporaryFileProvider.class)));
+    }
+    
+    @Test
+    public void providesALoggingManager() {
+        assertThat(registry.get(LoggingManager.class), instanceOf(DefaultStandardOutputCapture.class));
+        assertThat(registry.get(LoggingManager.class), sameInstance(registry.get(LoggingManager.class)));
     }
 
     private void expectScriptClassLoaderProviderCreated() {

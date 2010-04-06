@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.TaskInternal;
@@ -20,6 +21,9 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.tasks.TaskInputs;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -57,5 +61,12 @@ public class TaskInternalServiceRegistryTest {
     public void createsATaskOutputsInternalInstance() {
         TaskOutputsInternal outputs = registry.get(TaskOutputsInternal.class);
         assertThat(outputs, instanceOf(DefaultTaskOutputs.class));
+    }
+    
+    @Test
+    public void createsALoggingManagerAndStdOutputCapture() {
+        LoggingManager loggingManager = registry.get(LoggingManager.class);
+        assertThat(loggingManager, instanceOf(DefaultStandardOutputCapture.class));
+        assertThat(loggingManager, sameInstance((Object) registry.get(StandardOutputCapture.class)));
     }
 }

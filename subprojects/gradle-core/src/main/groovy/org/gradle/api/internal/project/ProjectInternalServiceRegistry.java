@@ -46,6 +46,7 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 
@@ -69,6 +70,10 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected FileResolver createFileResolver() {
         return new BaseDirConverter(project.getProjectDir());
+    }
+
+    protected DefaultStandardOutputCapture createLoggingManager() {
+        return new DefaultStandardOutputCapture();
     }
 
     protected FileOperations createFileOperations() {

@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
@@ -165,7 +167,7 @@ public class EclipsePlugin implements Plugin<Project> {
            /*
             * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
             * request the project dependencies not via a resolve. We would have to filter the project dependencies
-            * ourselfes. This is not completely trivial due to configuration inheritance.
+            * ourselves. This is not completely trivial due to configuration inheritance.
             */
             return new ArrayList(Specs.filterIterable(
                     project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),

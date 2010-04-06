@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.configuration;
 
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
@@ -20,7 +21,8 @@ import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.groovy.scripts.*;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -81,7 +83,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         public void apply(Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
-            services.add(StandardOutputRedirector.class, new DefaultStandardOutputRedirector());
+            services.add(DefaultStandardOutputCapture.class, new DefaultStandardOutputCapture());
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {

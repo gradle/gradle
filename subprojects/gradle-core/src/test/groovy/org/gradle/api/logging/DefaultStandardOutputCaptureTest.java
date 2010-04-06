@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,73 +15,180 @@
  */
 package org.gradle.api.logging;
 
-import org.gradle.api.InvalidUserDataException;
-import org.hamcrest.Matchers;
-import org.junit.After;
-import static org.junit.Assert.*;
+import org.gradle.util.RedirectStdOutAndErr;
+import org.junit.Rule;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultStandardOutputCaptureTest {
-    private DefaultStandardOutputCapture standardOutputCapture;
+    @Rule
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
+    private final DefaultStandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture();
 
-    @After
-    public void tearDown() {
-        StandardOutputLogging.off();
+    @Test
+    public void defaultValues() {
+        assertTrue(standardOutputCapture.isEnabled());
+        assertEquals(LogLevel.QUIET, standardOutputCapture.getLevel());
     }
 
     @Test
-    public void initDefault() {
-        assertFalse(new DefaultStandardOutputCapture().isEnabled());
-    }
-
-    @Test
-    public void initWithArgs() {
-        standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.ERROR);
+    public void canChangeLogLevel() {
+        standardOutputCapture.captureStandardOutput(LogLevel.ERROR);
         assertTrue(standardOutputCapture.isEnabled());
         assertEquals(LogLevel.ERROR, standardOutputCapture.getLevel());
     }
 
-    @Test(expected = InvalidUserDataException.class)
-    public void initWithArgsAndNullLevel() {
-        new DefaultStandardOutputCapture(true, null);
-    }
-    
     @Test
-    public void startStopWithDisabled() {
-        StandardOutputLogging.on(LogLevel.ERROR);
-        standardOutputCapture = new DefaultStandardOutputCapture();
+    public void canDisableCapture() {
+        standardOutputCapture.disableStandardOutputCapture();
+        assertFalse(standardOutputCapture.isEnabled());
+        assertNull(standardOutputCapture.getLevel());
+    }
+
+    @Test
+    public void startStopWithCaptureDisabledWhenStdOutNotBeingCaptured() {
         StandardOutputState state = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.disableStandardOutputCapture();
+
         standardOutputCapture.start();
+
         assertSame(StandardOutputLogging.DEFAULT_OUT, System.out);
         assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+
         standardOutputCapture.stop();
+
         assertEquals(state, StandardOutputLogging.getStateSnapshot());
     }
 
     @Test
-    public void startStopWithEnabled() {
-        StandardOutputLogging.onOut(LogLevel.ERROR);
-        StandardOutputLogging.onErr(LogLevel.DEBUG);
-        standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.DEBUG);
-        StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
+    public void startStopWithCaptureDisabledWhenStdOutBeingCaptured() {
+        StandardOutputLogging.on(LogLevel.ERROR);
+        StandardOutputState state = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.disableStandardOutputCapture();
+
         standardOutputCapture.start();
-        assertSame(StandardOutputLogging.OUT_LOGGING_STREAM.get(), System.out);
-        assertSame(StandardOutputLogging.ERR_LOGGING_STREAM.get(), System.err);
+
+        assertSame(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+
+        standardOutputCapture.stop();
+
+        assertEquals(state, StandardOutputLogging.getStateSnapshot());
+    }
+
+    @Test
+    public void startStopWithCaptureEnabledWhenStdOutNotBeingCaptured() {
+        StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+
+        standardOutputCapture.start();
+
+        assertSame(StandardOutputLogging.getOut(), System.out);
+        assertSame(StandardOutputLogging.getErr(), System.err);
         assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.DEBUG);
         assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
+
         standardOutputCapture.stop();
+
         assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
     }
 
     @Test
-    public void equalityAndHashcode() {
-        standardOutputCapture = new DefaultStandardOutputCapture(true, LogLevel.DEBUG);
-        assertEquals(standardOutputCapture, new DefaultStandardOutputCapture(true, LogLevel.DEBUG));
-        assertThat(standardOutputCapture, Matchers.not(Matchers.equalTo(
-                new DefaultStandardOutputCapture(false, LogLevel.DEBUG))));
-        assertEquals(standardOutputCapture.hashCode(), new DefaultStandardOutputCapture(true, LogLevel.DEBUG).hashCode());
+    public void startStopWithCaptureEnabledWhenStdOutBeingCaptured() {
+        StandardOutputLogging.onOut(LogLevel.ERROR);
+        StandardOutputLogging.onErr(LogLevel.DEBUG);
+
+        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+
+        StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.start();
+
+        assertSame(StandardOutputLogging.getOut(), System.out);
+        assertSame(StandardOutputLogging.getErr(), System.err);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.DEBUG);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
+
+        standardOutputCapture.stop();
+
+        assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
+    }
+
+    @Test
+    public void disableCaptureWhileStarted() {
+        StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+
+        standardOutputCapture.start();
+
+        assertSame(StandardOutputLogging.getOut(), System.out);
+        assertSame(StandardOutputLogging.getErr(), System.err);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.DEBUG);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
+
+        standardOutputCapture.disableStandardOutputCapture();
+
+        assertSame(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+
+        standardOutputCapture.stop();
+
+        assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
+    }
+
+    @Test
+    public void enableCaptureWhileStarted() {
+        StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.disableStandardOutputCapture();
+
+        standardOutputCapture.start();
+
+        assertSame(StandardOutputLogging.DEFAULT_OUT, System.out);
+        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+
+        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+
+        assertSame(StandardOutputLogging.getOut(), System.out);
+        assertSame(StandardOutputLogging.getErr(), System.err);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.DEBUG);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
+
+        standardOutputCapture.stop();
+
+        assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
+    }
+    
+    @Test
+    public void changeCaptureLevelWhileStarted() {
+        StandardOutputState oldState = StandardOutputLogging.getStateSnapshot();
+
+        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+
+        standardOutputCapture.start();
+
+        assertSame(StandardOutputLogging.getOut(), System.out);
+        assertSame(StandardOutputLogging.getErr(), System.err);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.DEBUG);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
+
+        standardOutputCapture.captureStandardOutput(LogLevel.WARN);
+
+        assertSame(StandardOutputLogging.getOut(), System.out);
+        assertSame(StandardOutputLogging.getErr(), System.err);
+        assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), LogLevel.WARN);
+        assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), LogLevel.ERROR);
+
+        standardOutputCapture.stop();
+
+        assertEquals(oldState, StandardOutputLogging.getStateSnapshot());
     }
 }

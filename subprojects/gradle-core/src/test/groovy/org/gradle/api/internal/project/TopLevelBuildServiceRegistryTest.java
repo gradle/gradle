@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
@@ -109,13 +110,6 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesAListenerManager() {
         assertThat(factory.get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
         assertThat(factory.get(ListenerManager.class), sameInstance(factory.get(ListenerManager.class)));
-    }
-
-    @Test
-    public void providesAStandardOutputRedirector() {
-        assertThat(factory.get(StandardOutputRedirector.class), instanceOf(DefaultStandardOutputRedirector.class));
-        assertThat(factory.get(StandardOutputRedirector.class), sameInstance(factory.get(
-                StandardOutputRedirector.class)));
     }
 
     @Test

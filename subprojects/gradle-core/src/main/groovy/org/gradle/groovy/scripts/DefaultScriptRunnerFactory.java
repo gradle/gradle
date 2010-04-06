@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.logging.LogLevel;
 
 public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
     private final ScriptExecutionListener listener;
@@ -45,14 +44,13 @@ public class DefaultScriptRunnerFactory implements ScriptRunnerFactory {
             listener.beforeScript(script);
             GradleScriptException failure = null;
             Thread.currentThread().setContextClassLoader(script.getContextClassloader());
-            script.getStandardOutputRedirector().on(LogLevel.QUIET);
+            script.getStandardOutputCapture().start();
             try {
                 script.run();
             } catch (Throwable e) {
                 failure = new GradleScriptException(String.format("A problem occurred evaluating %s.", script), e);
             }
-            script.getStandardOutputRedirector().flush();
-            script.getStandardOutputRedirector().off();
+            script.getStandardOutputCapture().stop();
             Thread.currentThread().setContextClassLoader(originalLoader);
             listener.afterScript(script, failure);
             if (failure != null) {

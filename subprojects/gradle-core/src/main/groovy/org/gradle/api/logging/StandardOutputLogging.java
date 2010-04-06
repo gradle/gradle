@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.logging;
 
 import org.gradle.logging.StandardOutputLoggingAdapter;
@@ -34,21 +35,16 @@ public class StandardOutputLogging {
         public StandardOutputLoggingAdapter getStandardOutputLoggingAdapter() {
             return standardOutputLoggingAdapter;
         }
-
-        void setStandardOutputLoggingAdapter(StandardOutputLoggingAdapter standardOutputLoggingAdapter) {
-            this.standardOutputLoggingAdapter = standardOutputLoggingAdapter;
-        }
     }
 
-    public static final ThreadLocal<LoggingPrintStream> OUT_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
+    private static final ThreadLocal<LoggingPrintStream> OUT_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
         @Override
         protected LoggingPrintStream initialValue() {
             return new LoggingPrintStream(new StandardOutputLoggingAdapter(Logging.getLogger("Console out"), LogLevel.INFO));
         }
-
     };
 
-    public static final ThreadLocal<LoggingPrintStream> ERR_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
+    private static final ThreadLocal<LoggingPrintStream> ERR_LOGGING_STREAM = new ThreadLocal<LoggingPrintStream>() {
         @Override
         protected LoggingPrintStream initialValue() {
             return new LoggingPrintStream(
@@ -56,12 +52,20 @@ public class StandardOutputLogging {
         }
     };
 
+    public static LoggingPrintStream getOut() {
+        return OUT_LOGGING_STREAM.get();
+    }
+
+    public static LoggingPrintStream getErr() {
+        return ERR_LOGGING_STREAM.get();
+    }
+
     static StandardOutputLoggingAdapter getOutAdapter() {
-        return OUT_LOGGING_STREAM.get().getStandardOutputLoggingAdapter();
+        return getOut().getStandardOutputLoggingAdapter();
     }
 
     static StandardOutputLoggingAdapter getErrAdapter() {
-        return ERR_LOGGING_STREAM.get().getStandardOutputLoggingAdapter();
+        return getErr().getStandardOutputLoggingAdapter();
     }
 
     public static final PrintStream DEFAULT_OUT = System.out;
@@ -76,7 +80,7 @@ public class StandardOutputLogging {
     public static void on(LogLevel outLogLevel) {
         getOutAdapter().setLevel(outLogLevel);
         getErrAdapter().setLevel(LogLevel.ERROR);
-        redirect(OUT_LOGGING_STREAM.get(), ERR_LOGGING_STREAM.get());
+        redirect(getOut(), getErr());
     }
 
     /**
@@ -86,7 +90,7 @@ public class StandardOutputLogging {
      */
     public static void onOut(LogLevel outLogLevel) {
         getOutAdapter().setLevel(outLogLevel);
-        System.setOut(OUT_LOGGING_STREAM.get());
+        System.setOut(getOut());
     }
 
     /**
@@ -96,12 +100,12 @@ public class StandardOutputLogging {
      */
     public static void onErr(LogLevel errLogLevel) {
         getErrAdapter().setLevel(errLogLevel);
-        System.setErr(ERR_LOGGING_STREAM.get());
+        System.setErr(getErr());
     }
 
     public static void flush() {
-        OUT_LOGGING_STREAM.get().flush();
-        ERR_LOGGING_STREAM.get().flush();
+        getOut().flush();
+        getErr().flush();
     }
 
     /**

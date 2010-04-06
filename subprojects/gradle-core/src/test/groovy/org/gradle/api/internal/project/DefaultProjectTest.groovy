@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.project
 
 import java.awt.Point
@@ -26,7 +28,9 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
 import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.BeanDynamicObject
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer
@@ -42,11 +46,12 @@ import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.StandardOutputLogging
+import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
 import org.gradle.configuration.ProjectEvaluator
+import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.util.HelperUtil
@@ -61,9 +66,6 @@ import org.junit.runner.RunWith
 import org.gradle.api.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.api.internal.AsmBackedClassGenerator
-import org.gradle.configuration.ScriptPluginFactory
 
 /**
  * @author Hans Dockter
@@ -113,8 +115,7 @@ class DefaultProjectTest {
     Gradle build;
     Convention convention = new DefaultConvention();
 
-    StandardOutputRedirector outputRedirectorMock;
-    StandardOutputRedirector outputRedirectorOtherProjectsMock;
+    LoggingManager loggingManagerMock;
 
     @Before
     void setUp() {
@@ -122,15 +123,11 @@ class DefaultProjectTest {
 
         context.imposteriser = ClassImposteriser.INSTANCE
         dependencyFactoryMock = context.mock(DependencyFactory)
-        outputRedirectorMock = context.mock(StandardOutputRedirector)
-        outputRedirectorOtherProjectsMock = context.mock(StandardOutputRedirector, "otherProjects")
+        loggingManagerMock = context.mock(LoggingManager.class)
         taskContainerMock = context.mock(TaskContainerInternal);
         antBuilderFactoryMock = context.mock(AntBuilderFactory)
         testAntBuilder = new DefaultAntBuilder()
         context.checking {
-            allowing(outputRedirectorOtherProjectsMock).flush();
-            allowing(outputRedirectorOtherProjectsMock).off();
-            allowing(outputRedirectorOtherProjectsMock).on(withParam(any(LogLevel)));
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
         configurationContainerMock = context.mock(DefaultConfigurationContainer)
@@ -175,7 +172,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
-            allowing(serviceRegistryMock).get(StandardOutputRedirector); will(returnValue(outputRedirectorMock))
+            allowing(serviceRegistryMock).get(LoggingManager); will(returnValue(loggingManagerMock))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
@@ -199,9 +196,6 @@ class DefaultProjectTest {
         [project, child1, childchild, child2].each {
             projectRegistry.addProject(it)
         }
-        project.standardOutputRedirector = outputRedirectorMock
-        listWithAllChildProjects*.standardOutputRedirector = outputRedirectorOtherProjectsMock
-        StandardOutputLogging.off()
     }
 
   @Test void testRepositories() {
@@ -253,8 +247,6 @@ class DefaultProjectTest {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
-
-        assertNotNull(new DefaultProject('root', null, rootDir, script, build, projectServiceRegistryFactoryMock).standardOutputRedirector)
         assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
@@ -988,8 +980,7 @@ def scriptMethod(Closure closure) {
     @Test
     void disableStandardOutputCapture() {
         context.checking {
-            one(outputRedirectorMock).off()
-            one(outputRedirectorMock).flush()
+            one(loggingManagerMock).disableStandardOutputCapture()
         }
         project.disableStandardOutputCapture()
     }
@@ -997,7 +988,7 @@ def scriptMethod(Closure closure) {
     @Test
     void captureStandardOutput() {
         context.checking {
-            one(outputRedirectorMock).on(LogLevel.DEBUG)
+            one(loggingManagerMock).captureStandardOutput(LogLevel.DEBUG)
         }
         project.captureStandardOutput(LogLevel.DEBUG)
     }

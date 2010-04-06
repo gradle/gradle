@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import org.junit.rules.MethodRule;
@@ -26,13 +27,13 @@ import java.io.PrintStream;
  * A Junit rule which replaces stdout and stderr with mocks for the duration of the test, and restores them at the end
  * of the test.
  */
-public class ReplaceStdOutAndErr implements MethodRule {
+public class RedirectStdOutAndErr implements MethodRule {
     private PrintStream originalStdOut;
     private PrintStream originalStdErr;
     private ByteArrayOutputStream stdoutContent = new ByteArrayOutputStream();
     private ByteArrayOutputStream stderrContent = new ByteArrayOutputStream();
-    private PrintStream stdout = new PrintStream(stdoutContent);
-    private PrintStream stderr = new PrintStream(stderrContent);
+    private PrintStream stdOutPrintStream = new PrintStream(stdoutContent);
+    private PrintStream stdErrPrintStream = new PrintStream(stderrContent);
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
@@ -41,19 +42,27 @@ public class ReplaceStdOutAndErr implements MethodRule {
                 originalStdOut = System.out;
                 originalStdErr = System.err;
                 try {
-                    System.setOut(stdout);
-                    System.setErr(stderr);
+                    System.setOut(stdOutPrintStream);
+                    System.setErr(stdErrPrintStream);
                     base.evaluate();
                 } finally {
                     System.setOut(originalStdOut);
                     System.setErr(originalStdErr);
-                    stdout = null;
-                    stderr = null;
+                    stdOutPrintStream = null;
+                    stdErrPrintStream = null;
                     stdoutContent = null;
                     stderrContent = null;
                 }
             }
         };
+    }
+
+    public PrintStream getStdOutPrintStream() {
+        return stdOutPrintStream;
+    }
+
+    public PrintStream getStdErrPrintStream() {
+        return stdErrPrintStream;
     }
 
     public String getStdErr() {

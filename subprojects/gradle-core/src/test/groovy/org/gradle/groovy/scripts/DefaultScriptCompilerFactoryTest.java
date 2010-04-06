@@ -17,8 +17,8 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.project.StandardOutputRedirector;
 import org.gradle.api.internal.resource.Resource;
+import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
@@ -256,7 +256,7 @@ public class DefaultScriptCompilerFactoryTest {
 
     public static class TestScript extends Script {
         @Override
-        public StandardOutputRedirector getStandardOutputRedirector() {
+        public StandardOutputCapture getStandardOutputCapture() {
             return null;
         }
 

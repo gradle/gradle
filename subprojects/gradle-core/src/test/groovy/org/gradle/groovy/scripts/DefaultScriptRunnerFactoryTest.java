@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,7 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.internal.project.StandardOutputRedirector;
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputCapture;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -39,7 +38,7 @@ public class DefaultScriptRunnerFactoryTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final Script scriptMock = context.mock(Script.class, "<script-to-string>");
-    private final StandardOutputRedirector standardOutputRedirectorMock = context.mock(StandardOutputRedirector.class);
+    private final StandardOutputCapture standardOutputCaptureMock = context.mock(StandardOutputCapture.class);
     private final ClassLoader classLoaderDummy = context.mock(ClassLoader.class);
     private final ScriptSource scriptSourceDummy = context.mock(ScriptSource.class);
     private final ScriptExecutionListener scriptExecutionListenerMock = context.mock(ScriptExecutionListener.class);
@@ -48,8 +47,8 @@ public class DefaultScriptRunnerFactoryTest {
     @Before
     public void setUp() {
         context.checking(new Expectations() {{
-            allowing(scriptMock).getStandardOutputRedirector();
-            will(returnValue(standardOutputRedirectorMock));
+            allowing(scriptMock).getStandardOutputCapture();
+            will(returnValue(standardOutputCaptureMock));
             allowing(scriptMock).getScriptSource();
             will(returnValue(scriptSourceDummy));
             allowing(scriptMock).getContextClassloader();
@@ -74,7 +73,7 @@ public class DefaultScriptRunnerFactoryTest {
             one(scriptExecutionListenerMock).beforeScript(scriptMock);
             inSequence(sequence);
 
-            one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+            one(standardOutputCaptureMock).start();
             inSequence(sequence);
 
             one(scriptMock).run();
@@ -90,10 +89,7 @@ public class DefaultScriptRunnerFactoryTest {
                 }
             }));
 
-            one(standardOutputRedirectorMock).flush();
-            inSequence(sequence);
-
-            one(standardOutputRedirectorMock).off();
+            one(standardOutputCaptureMock).stop();
             inSequence(sequence);
 
             one(scriptExecutionListenerMock).afterScript(scriptMock, null);
@@ -120,17 +116,14 @@ public class DefaultScriptRunnerFactoryTest {
             one(scriptExecutionListenerMock).beforeScript(scriptMock);
             inSequence(sequence);
 
-            one(standardOutputRedirectorMock).on(LogLevel.QUIET);
+            one(standardOutputCaptureMock).start();
             inSequence(sequence);
 
             one(scriptMock).run();
             inSequence(sequence);
             will(throwException(failure));
 
-            one(standardOutputRedirectorMock).flush();
-            inSequence(sequence);
-
-            one(standardOutputRedirectorMock).off();
+            one(standardOutputCaptureMock).stop();
             inSequence(sequence);
 
             one(scriptExecutionListenerMock).afterScript(with(sameInstance(scriptMock)), with(notNullValue(Throwable.class)));

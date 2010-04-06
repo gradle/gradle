@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.project.StandardOutputRedirector;
+import org.gradle.api.logging.StandardOutputCapture;
 
 /**
  * The base class for all scripts executed by Gradle.
@@ -44,5 +44,5 @@ public abstract class Script extends groovy.lang.Script {
 
     public abstract void init(Object target, ServiceRegistry services);
 
-    public abstract StandardOutputRedirector getStandardOutputRedirector();
+    public abstract StandardOutputCapture getStandardOutputCapture();
 }

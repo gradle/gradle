@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.groovy.scripts
 
 import org.gradle.api.file.ConfigurableFileCollection
@@ -38,15 +40,18 @@ import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.file.FileTree
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.file.CopySpec
+import org.gradle.api.logging.LoggingManager
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
     private ServiceRegistry services
     private FileOperations fileOperations
+    private LoggingManager loggingManager
 
     def void init(Object target, ServiceRegistry services) {
         super.init(target, services);
         this.services = services
+        loggingManager = services.get(LoggingManager.class)
         if (target instanceof FileOperations) {
             fileOperations = target
         } else if (scriptSource.resource.file) {
@@ -137,12 +142,11 @@ abstract class DefaultScript extends BasicScript {
     }
 
     public void captureStandardOutput(LogLevel level) {
-        standardOutputRedirector.on(level);
+        loggingManager.captureStandardOutput(level)
     }
 
     public void disableStandardOutputCapture() {
-        standardOutputRedirector.flush();
-        standardOutputRedirector.off();
+        loggingManager.disableStandardOutputCapture()
     }
 
     public Logger getLogger() {

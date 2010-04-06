@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import ch.qos.logback.classic.LoggerContext;
@@ -23,7 +24,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.logging.Console;
 import org.gradle.logging.Label;
 import org.gradle.logging.TextArea;
-import org.gradle.util.ReplaceStdOutAndErr;
+import org.gradle.util.RedirectStdOutAndErr;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
@@ -51,7 +52,7 @@ public class DefaultLoggingConfigurerTest {
     private final StandardOutputListener errorListener = new ListenerImpl();
     private final Logger logger = LoggerFactory.getLogger("cat1");
     @Rule
-    public final ReplaceStdOutAndErr outputs = new ReplaceStdOutAndErr();
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
 
     @Before
     public void setUp() {

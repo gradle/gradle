@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.integtests
 
 import groovy.io.PlatformLineWriter
@@ -91,19 +93,19 @@ class UserGuideSamplesRunner extends Runner {
             }
             
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
-//            if (run.outputFile) {
-//                String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
-//                try {
-//                    compareStrings(expectedResult, result.output)
-//                } catch (AssertionFailedError e) {
-//                    println 'Expected Result:'
-//                    println expectedResult
-//                    println 'Actual Result:'
-//                    println result.output
-//                    println '---'
-//                    throw e
-//                }
-//            }
+            if (run.outputFile) {
+                String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
+                try {
+                    compareStrings(expectedResult, result.output)
+                } catch (AssertionFailedError e) {
+                    println 'Expected Result:'
+                    println expectedResult
+                    println 'Actual Result:'
+                    println result.output
+                    println '---'
+                    throw e
+                }
+            }
         } catch (Throwable e) {
             throw new AssertionError("Integration test for sample '$run.id' in dir '$run.subDir' with args $run.args failed:${NL}$e.message").initCause(e)
         }
@@ -155,11 +157,11 @@ class UserGuideSamplesRunner extends Runner {
 
     static org.gradle.integtests.QuickGradleExecuter.StartParameterModifier createModifier(File rootProjectDir) {
         {StartParameter parameter ->
-            if (parameter.getBuildFile() != null) {
-                parameter.setBuildFile(normalizedPath(parameter.getBuildFile(), rootProjectDir));
-            }
             if (parameter.getCurrentDir() != null) {
                 parameter.setCurrentDir(normalizedPath(parameter.getCurrentDir(), rootProjectDir));
+            }
+            if (parameter.getBuildFile() != null) {
+                parameter.setBuildFile(normalizedPath(parameter.getBuildFile(), rootProjectDir));
             }
             List<File> initScripts = new ArrayList<File>();
             for (File initScript: parameter.getInitScripts()) {

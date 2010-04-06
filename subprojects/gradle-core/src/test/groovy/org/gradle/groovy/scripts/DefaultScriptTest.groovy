@@ -14,19 +14,22 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.groovy.scripts
 
 import org.codehaus.groovy.control.CompilerConfiguration
-import org.gradle.api.internal.project.DefaultProject
-import static org.junit.Assert.assertEquals
-import org.junit.Test
-import org.gradle.api.internal.project.ServiceRegistry
-import org.junit.runner.RunWith
-import org.jmock.integration.junit4.JMock
-import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.project.StandardOutputRedirector
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.api.logging.LoggingManager
+import org.gradle.api.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -40,8 +43,10 @@ class DefaultScriptTest {
         context.checking {
             allowing(serviceRegistryMock).get(ScriptHandler.class)
             will(returnValue(context.mock(ScriptHandler.class)))
-            allowing(serviceRegistryMock).get(StandardOutputRedirector.class)
-            will(returnValue(context.mock(StandardOutputRedirector.class)))
+            allowing(serviceRegistryMock).get(StandardOutputCapture.class)
+            will(returnValue(context.mock(StandardOutputCapture.class)))
+            allowing(serviceRegistryMock).get(LoggingManager.class)
+            will(returnValue(context.mock(LoggingManager.class)))
         }
 
         DefaultScript script = new GroovyShell(createBaseCompilerConfiguration()).parse(testScriptText)

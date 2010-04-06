@@ -23,13 +23,14 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.project.*;
+import org.gradle.api.internal.project.AbstractProject;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.taskfactory.TaskFactory;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.*;
@@ -91,16 +92,12 @@ public abstract class AbstractTaskTest {
         assertEquals(TEST_TASK_NAME, getTask().getName());
         assertNull(getTask().getDescription());
         assertSame(project, getTask().getProject());
-        assertEquals(getExpectedStandardOutputCapture(), getTask().getStandardOutputCapture());
+        assertNotNull(getTask().getStandardOutputCapture());
         assertEquals(new HashMap(), getTask().getAdditionalProperties());
         assertNotNull(getTask().getInputs());
         assertNotNull(getTask().getOutputs());
         assertNotNull(getTask().getOnlyIf());
         assertTrue(getTask().getOnlyIf().isSatisfiedBy(getTask()));
-    }
-
-    protected DefaultStandardOutputCapture getExpectedStandardOutputCapture() {
-        return new DefaultStandardOutputCapture(true, LogLevel.QUIET);    
     }
 
     @Test
@@ -212,31 +209,14 @@ public abstract class AbstractTaskTest {
     @Test
     public void disableStandardOutCapture() {
         getTask().disableStandardOutputCapture();
-        assertEquals(new DefaultStandardOutputCapture(), getTask().getStandardOutputCapture());
+        assertFalse(getTask().getStandardOutputCapture().isEnabled());
     }
 
     @Test
     public void captureStandardOut() {
         getTask().captureStandardOutput(LogLevel.DEBUG);
-        assertEquals(new DefaultStandardOutputCapture(true, LogLevel.DEBUG), getTask().getStandardOutputCapture());
-    }
-
-    @Test(expected=TaskExecutionException.class)
-    public void disabledStandardOutCaptureDuringExecution() {
-        ((AbstractTask)getTask().doFirst(new Action<Task>() {
-            public void execute(Task task) {
-                task.disableStandardOutputCapture();
-            }
-        })).execute();
-    }
-
-    @Test(expected=TaskExecutionException.class)
-    public void captureStandardOutDuringExecution() {
-        ((AbstractTask)getTask().doFirst(new Action<Task>() {
-            public void execute(Task task) {
-                task.captureStandardOutput(LogLevel.DEBUG);
-            }
-        })).execute();
+        assertTrue(getTask().getStandardOutputCapture().isEnabled());
+        assertEquals(LogLevel.DEBUG, getTask().getStandardOutputCapture().getLevel());
     }
 
     @Test

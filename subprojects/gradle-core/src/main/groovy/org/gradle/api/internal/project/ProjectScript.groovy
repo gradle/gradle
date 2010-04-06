@@ -14,12 +14,15 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.project
 
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.groovy.scripts.DefaultScript
+import org.gradle.api.logging.StandardOutputCapture
 
 abstract class ProjectScript extends DefaultScript {
 
@@ -45,6 +48,10 @@ abstract class ProjectScript extends DefaultScript {
 
     def void captureStandardOutput(LogLevel level) {
         scriptTarget.captureStandardOutput(level)
+    }
+
+    def StandardOutputCapture getStandardOutputCapture() {
+        scriptTarget.standardOutputCapture
     }
 
     def Logger getLogger() {

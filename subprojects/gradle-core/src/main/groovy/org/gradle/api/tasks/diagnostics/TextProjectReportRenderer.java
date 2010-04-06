@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,7 +31,7 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
     private Formatter formatter;
 
     public TextProjectReportRenderer() {
-        this(StandardOutputLogging.OUT_LOGGING_STREAM.get());
+        this(StandardOutputLogging.getOut());
     }
 
     public TextProjectReportRenderer(Appendable writer) {
@@ -58,7 +58,7 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
 
     public void complete() throws IOException {
         cleanupWriter();
-        setWriter(StandardOutputLogging.OUT_LOGGING_STREAM.get(), false);
+        setWriter(StandardOutputLogging.getOut(), false);
     }
 
     private void setWriter(Appendable writer, boolean close) {

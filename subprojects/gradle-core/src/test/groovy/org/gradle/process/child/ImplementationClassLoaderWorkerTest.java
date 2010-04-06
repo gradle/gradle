@@ -46,7 +46,7 @@ public class ImplementationClassLoaderWorkerTest {
     @Test
     public void createsClassLoaderAndInstantiatesAndExecutesWorker() throws Exception {
         final Action<WorkerContext> action = context.mock(Action.class);
-        final List<URL> implementationClassPath = toList(new File(".").toURL());
+        final List<URL> implementationClassPath = toList(new File(".").toURI().toURL());
 
         Action<WorkerContext> serializableAction = helper.serializable(action, implementationClassLoader);
         ImplementationClassLoaderWorker worker = new TestImplementationClassLoaderWorker(LogLevel.DEBUG, toList("a", "b"), implementationClassPath, serializableAction);
