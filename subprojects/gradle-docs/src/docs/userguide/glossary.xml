@@ -1,0 +1,39 @@
+<!DOCTYPE glossary PUBLIC "-//OASIS//DTD DocBook XML V4.1.2//EN"
+        "http://www.oasis-open.org/docbook/xml/4.1.2/docbookx.dtd">
+<glossary>
+    <title>Glossary</title>
+    <glossdiv>
+        <title>D</title>
+        <glossentry>
+            <glossterm>DAG</glossterm>
+            <glosssee otherterm="dag"/>
+        </glossentry>
+        <glossentry id="dag">
+            <glossterm>Directed Acyclic Graph</glossterm>
+            <acronym>DAG</acronym>
+            <glossdef>
+                <para>A directed acyclic graph is a directed graph that contains no cycles. In Gradle each task to
+                execute represents a node in the graph. A dependsOn relation to another task will add this
+                other task as a node (if it is not in the graph already) and create a directed edge between
+                those two nodes. Any dependsOn relation will be validated for cycles. There must be no way
+                to start at certain node, follow a sequence of edges and end up at the original node.</para>
+            </glossdef>
+        </glossentry>
+        <glossentry id="dsl">
+            <glossterm>Domain Specific Language</glossterm>
+            <acronym>DSL</acronym>
+            <glossdef>
+                <para>A domain-specific language is a programming language or specification language dedicated
+                    to a particular problem domain, a particular problem representation technique, and/or a particular
+                    solution technique. The concept isn't new—special-purpose programming languages and all kinds of
+                    modeling/specification languages have always existed, but the term has become more popular due to
+                    the rise of domain-specific modeling.
+                </para>
+            </glossdef>
+        </glossentry>
+        <glossentry>
+            <glossterm>DSL</glossterm>
+            <glosssee otherterm="dsl"/>
+        </glossentry>
+    </glossdiv>
+</glossary>
