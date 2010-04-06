@@ -27,6 +27,7 @@
         <sample id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
+        <para>The Java plugin</para>
     </section>
 
     <section>
@@ -1158,7 +1159,7 @@
         </section>
         <section id='sub:metainf'>
             <title>MetaInf</title>
-            <para>The convention object of the Java Plugin has a <literal>metaInf</literal> property pointing to a list of
+            <para>The convention object of the Java plugin has a <literal>metaInf</literal> property pointing to a list of
                 <classname>FileSet</classname> objects. With these file sets you can define which files should be in the
                 <filename>META-INF</filename> directory of a JAR or a WAR archive.
             </para>

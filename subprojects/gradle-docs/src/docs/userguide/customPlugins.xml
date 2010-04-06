@@ -28,7 +28,7 @@
     </para>
 
     <section>
-        <title>Packaging a Plugin</title>
+        <title>Packaging a plugin</title>
         <para>There are several places where you can put the source for the plugin. Two convenient options
             are to add the task implementation to your build script, or to put the source in the
             <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
@@ -40,7 +40,7 @@
     </section>
 
     <section>
-        <title>Writing a Simple Plugin</title>
+        <title>Writing a simple plugin</title>
         <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
             Gradle instantiates the plugin and calls the plugin instance's <literal>apply()</literal> method when the plugin
             is used with a project. The project
@@ -59,7 +59,7 @@
     </section>
 
     <section>
-        <title>Getting Input from the Build</title>
+        <title>Getting input from the build</title>
         <para>Most plugins need to read user defined input from the build script. Plugins read values using convention objects. 
              The Gradle <apilink class="org.gradle.api.Project"/> has a <apilink class="org.gradle.api.plugins.Convention"/> object 
              that helps keep track of all the settings and properties being passed to plugins. You can capture user input by telling

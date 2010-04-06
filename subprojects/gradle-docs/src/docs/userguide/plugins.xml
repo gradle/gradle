@@ -55,7 +55,7 @@
             <sourcefile file="build.gradle" snippet="apply-by-id"/>
             <output args="-q show"/>
         </sample>
-        <para>The Java Plugin adds a <literal>compileJava</literal> task and a <literal>processResources</literal> task
+        <para>The Java plugin adds a <literal>compileJava</literal> task and a <literal>processResources</literal> task
             to the project object which can be accessed by a build script. It has configured the <literal>destinationDir</literal>
             property of both of these tasks.
         </para>
@@ -78,7 +78,7 @@
     </section>
     <section id='sub:more_about_convention_objects'>
         <title>Using the convention object</title>
-        <para>If you use the Java Plugin
+        <para>If you use the Java plugin
             for example, there are a <literal>compileJava</literal> and a <literal>processResources</literal> task for
             your production code (the same is true for your test
             code). The default location for the output of those tasks is the directory <literal>build/classes/main</literal>.
@@ -101,7 +101,7 @@
             <sourcefile file="build.gradle"/>
             <output args="-q show"/>
         </sample>
-        <para>The Java Plugin has added a convention object with a <literal>sourceSets</literal>
+        <para>The Java plugin has added a convention object with a <literal>sourceSets</literal>
             property, which we use to set the classes directory. Notice that setting this has changed the <literal>destinationDir</literal>
             property of both the <literal>processResources</literal> and
             <literal>compileJava</literal> tasks.</para>
@@ -134,7 +134,7 @@
                 <literal>apply()</literal>
                 statements. An additional call after the first call has no effect but doesn't hurt either. This can be
                 important if you use plugins which extend other plugins. For example
-                the Groovy plugin automatically applies the Java Plugin. We say the Groovy plugin extends the Java plugin. But you might as well
+                the Groovy plugin automatically applies the Java plugin. We say the Groovy plugin extends the Java plugin. But you might as well
                 write:
             </para>
             <sample id="pluginIntro" dir="userguide/tutorial/pluginIntro" title="Explicit application of an implied plugin">

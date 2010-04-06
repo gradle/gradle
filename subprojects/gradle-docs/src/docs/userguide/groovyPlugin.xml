@@ -15,7 +15,7 @@
   -->
 <chapter id='groovy_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Groovy Plugin</title>
-    <para>The Groovy Plugin extends the Java Plugin to add support for Groovy projects. It can deal with Groovy-only projects and
+    <para>The Groovy plugin extends the Java plugin to add support for Groovy projects. It can deal with Groovy-only projects and
         with mixed Java/Groovy projects. It can even deal with Java-only projects.
         <footnote>
             <para>We don't recommend this, as the Groovy plugin uses the <emphasis>Groovyc</emphasis>

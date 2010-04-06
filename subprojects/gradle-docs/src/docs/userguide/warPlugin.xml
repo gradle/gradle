@@ -15,8 +15,8 @@
   -->
 <chapter id='war_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The War Plugin</title>
-    <para>The War plugin extends the Java Plugin to add support for assembling web application WAR files.
-        It disables the default JAR archive generation of the Java Plugin and adds a default WAR archive task.
+    <para>The War plugin extends the Java plugin to add support for assembling web application WAR files.
+        It disables the default JAR archive generation of the Java plugin and adds a default WAR archive task.
     </para>
 
     <section>

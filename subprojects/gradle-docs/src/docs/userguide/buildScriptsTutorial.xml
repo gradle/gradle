@@ -230,7 +230,7 @@
     <section>
         <title>Summary</title>
         <para>This is not the end of the story for tasks. So far we have worked with simple tasks. Tasks will be
-            revisited in <xref linkend='more_about_tasks'/> and when we look at the Java Plugin in
+            revisited in <xref linkend='more_about_tasks'/> and when we look at the Java plugin in
             <xref linkend='java_plugin'/>.
         </para>
     </section>

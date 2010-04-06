@@ -29,7 +29,7 @@
             Gradle solves this problem through the use of <firstterm>plugins</firstterm>. A plugin is an extension to Gradle
             which configures your project in some way, typically by adding some pre-configured tasks which together do
             something useful. Gradle ships with a number of plugins, and you can easily write your own and share them with
-            others. One such plugin is the <firstterm>Java Plugin</firstterm>. This plugin adds some tasks to your
+            others. One such plugin is the <firstterm>Java plugin</firstterm>. This plugin adds some tasks to your
             project which will compile and unit test your Java source code, and bundle it into a JAR file.
         </para>
 

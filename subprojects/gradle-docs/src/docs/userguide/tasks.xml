@@ -69,10 +69,6 @@
         <title>Configuring tasks</title>
         <para>As an example, let's look at the <classname>Copy</classname> task provided by Gradle. To create a
             <classname>Copy</classname> task for your build, you can declare in your build script:
-            <footnote>
-                <para>If you use the Java Plugin, this task is automatically created and added to your project.
-                </para>
-            </footnote>
         </para>
         <sample id="declareTask" dir="userguide/tasks/configureUsingClosure" title="Creating a copy task">
             <sourcefile file="build.gradle" snippet="declare-task"/>
@@ -166,7 +162,7 @@
     </section>
     <section>
         <title>Replacing tasks</title>
-        <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java Plugin
+        <para>Sometimes you want to replace a task. For example if you want to exchange a task added by the Java plugin
             with a custom task of a different type. You can achieve this with:
         </para>
         <sample id="replaceTask" dir="userguide/tutorial/replaceTask" title="Overwriting a task">

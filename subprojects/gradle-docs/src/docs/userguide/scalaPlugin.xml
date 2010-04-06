@@ -16,7 +16,7 @@
 <chapter id="scala_plugin" xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Scala Plugin</title>
 
-    <para>The Scala Plugin extends the Java Plugin to add support for Scala projects. It can deal with Scala-only
+    <para>The Scala plugin extends the Java plugin to add support for Scala projects. It can deal with Scala-only
         projects and with mixed Java/Scala projects. It can even deal with Java-only projects.
         The Scala plugin supports joint compilation of Java and Scala source. This means your project can contain
         Scala classes which use Java classes, and vice versa.

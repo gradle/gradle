@@ -16,7 +16,7 @@
 <chapter id="jetty_plugin">
     <title>The Jetty Plugin</title>
 
-    <para>The Jetty Plugin extends the War Plugin to add tasks which allow you to deploy your web application to a
+    <para>The Jetty plugin extends the War plugin to add tasks which allow you to deploy your web application to a
         Jetty web container embedded in the build.
     </para>
 
