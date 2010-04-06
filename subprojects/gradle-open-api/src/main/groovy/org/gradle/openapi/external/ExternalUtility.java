@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 public class ExternalUtility
 {
     private static final Pattern GRADLE_CORE_PATTERN = Pattern.compile("^gradle-core-\\d.*\\.jar$");
-    
+
    /*
       Call this to get a classloader that has loaded gradle.
 
@@ -110,10 +110,20 @@ public class ExternalUtility
         //if they've given us a directory with multiple gradle jars, tell them. We won't know which one to use.
         if (files.length > 1) {
             throw new RuntimeException(
-                    "Installation has multiple gradle jars. Cannot determine which one to use. Found files: " + files);
+                    "Installation has multiple gradle jars. Cannot determine which one to use. Found files: " + createFileNamesString(files));
         }
 
         return files[0];
+    }
+
+    private static StringBuilder createFileNamesString(File[] files) {
+        StringBuilder fileNames = new StringBuilder();
+        for (File f : files)
+        {
+            fileNames.append(f.getName() + ", ");
+        }
+        fileNames.delete(fileNames.length() - 2, fileNames.length()); // Remove the trailing ', '
+        return fileNames;
     }
 
     //just a function to help debugging. If we can't find the constructor we want, this dumps out what is available.

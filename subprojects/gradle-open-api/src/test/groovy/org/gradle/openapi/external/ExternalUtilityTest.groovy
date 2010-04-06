@@ -50,7 +50,10 @@ public class ExternalUtilityTest extends Specification {
         ExternalUtility.getGradleJar(tmpDir.dir)
 
         then:
-        thrown(RuntimeException)
+        RuntimeException e = thrown()
+        println e.message
+        e.message.contains('gradle-core-0.9.jar')
+        e.message.contains('gradle-core-0.10.jar')
     }
 
     def returnNullWitNonExistingGradleCore() {
