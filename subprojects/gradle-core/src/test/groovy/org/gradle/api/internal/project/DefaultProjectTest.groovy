@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.project
 
 import java.awt.Point
@@ -59,6 +61,7 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
+import org.gradle.api.logging.StandardOutputCapture
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -173,6 +176,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
             allowing(serviceRegistryMock).get(LoggingManager); will(returnValue(loggingManagerMock))
+            allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
