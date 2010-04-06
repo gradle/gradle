@@ -13,11 +13,11 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
+
 <chapter id="antlr_plugin">
     <title>The Antlr Plugin</title>
-    <note>
-        <para>This chapter is a work in progress</para>
-    </note>
+
+    <para>The Antlr plugin extends the Java plugin to add support for generating parsers using <ulink url="http://www.antlr.org/">Antlr</ulink>.</para>
 
     <section>
         <title>Usage</title>
@@ -29,7 +29,63 @@
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
+        <para>The Antlr plugin adds a number of tasks to your project, as shown below.</para>
+
+        <table>
+            <title>Antlr plugin - tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>generateGrammarSource</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.antlr.AntlrTask"/></td>
+                <td>Generates the source files for all production Antlr grammars.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>generateTestGrammarSource</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.antlr.AntlrTask"/></td>
+                <td>Generates the source files for all test Antlr grammars.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>generate<replaceable>SourceSet</replaceable>GrammarSource</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.plugins.antlr.AntlrTask"/></td>
+                <td>Generates the source files for all Antlr grammars for the given source set.</td>
+            </tr>
+        </table>
+        <para>The Antlr plugin adds the following dependencies to tasks added by the Java plugin.</para>
+        <table>
+            <title>Antlr plugin - additional task dependencies</title>
+            <thead>
+                <td>Task name</td>
+                <td>Depends on</td>
+            </thead>
+            <tr>
+                <td>compileJava</td>
+                <td>generateGrammarSource</td>
+            </tr>
+            <tr>
+                <td>compileTestJava</td>
+                <td>generateTestGrammarSource</td>
+            </tr>
+            <tr>
+                <td>compile<replaceable>SourceSet</replaceable>Java</td>
+                <td>generate<replaceable>SourceSet</replaceable>GrammarSource</td>
+            </tr>
+        </table>
     </section>
 
     <section>
@@ -46,7 +102,13 @@
                 <td>
                     <filename>src/main/antlr</filename>
                 </td>
-                <td>Antlr grammar files.</td>
+                <td>Production Antlr grammar files.</td>
+            </tr>
+            <tr>
+                <td>
+                    <filename>src/test/antlr</filename>
+                </td>
+                <td>Test Antlr grammar files.</td>
             </tr>
             <tr>
                 <td>
@@ -59,7 +121,11 @@
 
     <section>
         <title>Dependency management</title>
-        <para>TBD</para>
+        <para>The Antlr plugin adds an <literal>antlr</literal> dependency configuration. You use this to declare the
+            version of Antlr you wish to use.</para>
+        <sample id="declareAntlrVersion" dir="antlr" title="Declare Antlr version">
+            <sourcefile file="build.gradle" snippet="declare-dependency"/>
+        </sample>
     </section>
 
     <section>

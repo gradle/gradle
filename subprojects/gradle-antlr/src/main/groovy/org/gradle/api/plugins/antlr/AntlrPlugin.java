@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.plugins.antlr;
 
 import java.io.File;
@@ -71,8 +72,8 @@ public class AntlrPlugin implements Plugin<Project> {
 						sourceSet.getAllSource().add( antlrDirectoryDelegate.getAntlr() );
 
 						//		2) create an AntlrTask for this sourceSet following the gradle
-						//			naming conventions via call to sourceSet.getCompileTaskName
-						final String taskName = sourceSet.getCompileTaskName( "antlr" );
+						//			naming conventions via call to sourceSet.getTaskName()
+						final String taskName = sourceSet.getTaskName("generate", "GrammarSource");
 						AntlrTask antlrTask = project.getTasks().add( taskName, AntlrTask.class );
 						antlrTask.setDescription(
 								String.format( "Processes the %s Antlr grammars.", sourceSet.getName() )

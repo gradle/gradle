@@ -62,6 +62,16 @@
                     <para>Adds support for building Scala projects.</para>
                 </td>
             </tr>
+            <tr>
+                <td>
+                    <link linkend='antlr_plugin'><literal>antlr</literal></link>
+                </td>
+                <td><literal>java</literal></td>
+                <td>-</td>
+                <td>
+                    <para>Adds support for generating parsers using <ulink url="http://www.antlr.org/">Antlr</ulink>.</para>
+                </td>
+            </tr>
         </table>
     </section>
     <section>

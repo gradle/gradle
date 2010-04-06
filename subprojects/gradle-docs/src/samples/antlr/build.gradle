@@ -2,11 +2,15 @@
 apply plugin: 'antlr'
 // END SNIPPET use-plugin
 
+// START SNIPPET declare-dependency
 repositories {
     mavenCentral()
 }
 
 dependencies {
     antlr 'antlr:antlr:2.7.7'
+// END SNIPPET declare-dependency
     testCompile 'junit:junit:4.7'
+// START SNIPPET declare-dependency
 }
+// END SNIPPET declare-dependency
