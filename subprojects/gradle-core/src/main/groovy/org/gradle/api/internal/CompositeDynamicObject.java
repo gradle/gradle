@@ -98,6 +98,7 @@ public abstract class CompositeDynamicObject extends AbstractDynamicObject {
             Object property = getProperty(name);
             if (property instanceof Closure) {
                 Closure closure = (Closure) property;
+                closure.setResolveStrategy(Closure.DELEGATE_FIRST);
                 return closure.call(arguments);
             }
         }

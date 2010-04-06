@@ -1,6 +1,6 @@
 project path :
   project name = projectCoreProperties
-  project dir = ''
+  project dir = '.'
   build file = 'build.gradle'
   build dir = 'build'
 project path :subProject

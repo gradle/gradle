@@ -623,6 +623,7 @@
             dependencies and not try to re-build the depended on projects.
         </para>
         <sample id="multitestingBuildDashA" dir="userguide/multiproject/dependencies/java" title="Partial Build and Test Single Project">
+            <test args=":shared:assemble"/>
             <output args="-a :api:build"/>
         </sample>
 

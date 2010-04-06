@@ -251,21 +251,27 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveAbsoluteChildPathToRelativePath() {
-        String absoluteFile = new File(baseDir, 'child').absoluteFile
+        def absoluteFile = new File(baseDir, 'child').absoluteFile
         assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile))
+        assertEquals('child', baseDirConverter.resolveAsRelativePath(absoluteFile.absolutePath))
     }
 
     @Test public void testResolveAbsoluteSiblingPathToRelativePath() {
-        String absoluteFile = new File(baseDir, '../sibling').absoluteFile
+        def absoluteFile = new File(baseDir, '../sibling').absoluteFile
         assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile))
+        assertEquals("..${File.separator}sibling".toString(), baseDirConverter.resolveAsRelativePath(absoluteFile.absolutePath))
     }
 
     @Test public void testResolveBaseDirToRelativePath() {
         assertEquals('.', baseDirConverter.resolveAsRelativePath(baseDir))
+        assertEquals('.', baseDirConverter.resolveAsRelativePath(baseDir.absolutePath))
+        assertEquals('.', baseDirConverter.resolveAsRelativePath('.'))
+        assertEquals('.', baseDirConverter.resolveAsRelativePath("../$baseDir.name"))
     }
     
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
+        assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
     }
     
     @Test public void testCreateFileResolver() {

@@ -1,4 +1,5 @@
+println name
+println project.name
+
 task check << {
-    println name
-    println project.name
 }

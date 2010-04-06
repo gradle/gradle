@@ -101,7 +101,7 @@
             this report:
         </para>
         <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
-            <output args="-q --tasks"/>
+            <output args="-q --tasks ?"/>
         </sample>
         <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
             gives you a list of the dependencies of the build, broken down by project. This report shows the
@@ -109,7 +109,7 @@
             configuration are shown. Below is an example of this report:
         </para>
         <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
-            <output args="-q --dependencies"/>
+            <output args="-q --dependencies ?"/>
         </sample>
         <para>Running <userinput>gradle --properties</userinput> gives you a list of the properties of each project in
             the build.

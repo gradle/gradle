@@ -73,6 +73,7 @@
         </para>
         <sample id="fileCollections" dir="userguide/files/fileCollections" title="Using a file collection">
             <sourcefile file="build.gradle" snippet="usage"/>
+            <test args="-q usage"/>
         </sample>
 
         <para>You can also pass the <literal>files()</literal> method a closure or a <classname>Callable</classname>
