@@ -21,12 +21,16 @@ import java.io.PrintStream;
  * @author Hans Dockter
  */
 public class StandardOutputState {
-    private PrintStream outStream;
-    private PrintStream errStream;
+    private final PrintStream outStream;
+    private final LogLevel outLevel;
+    private final PrintStream errStream;
+    private final LogLevel errLevel;
 
-    public StandardOutputState(PrintStream outStream, PrintStream errStream) {
+    public StandardOutputState(PrintStream outStream, LogLevel outLevel, PrintStream errStream, LogLevel errLevel) {
         this.outStream = outStream;
+        this.outLevel = outLevel;
         this.errStream = errStream;
+        this.errLevel = errLevel;
     }
 
     public PrintStream getOutStream() {
@@ -37,30 +41,41 @@ public class StandardOutputState {
         return errStream;
     }
 
+    public LogLevel getOutLevel() {
+        return outLevel;
+    }
+
+    public LogLevel getErrLevel() {
+        return errLevel;
+    }
+
+    @Override
     public boolean equals(Object o) {
-        if (this == o) {
+        if (o == this) {
             return true;
         }
-        if (o == null || getClass() != o.getClass()) {
+        if (o == null || o.getClass() != getClass()) {
             return false;
         }
 
-        StandardOutputState that = (StandardOutputState) o;
-
-        if (errStream != null ? !errStream.equals(that.errStream) : that.errStream != null) {
+        StandardOutputState other = (StandardOutputState) o;
+        if (!outStream.equals(other.outStream)) {
             return false;
         }
-        if (outStream != null ? !outStream.equals(that.outStream) : that.outStream != null) {
+        if (!errStream.equals(other.errStream)) {
             return false;
         }
-
+        if (outLevel != other.outLevel) {
+            return false;
+        }
+        if (errLevel != other.errLevel) {
+            return false;
+        }
         return true;
     }
 
+    @Override
     public int hashCode() {
-        int result;
-        result = outStream != null ? outStream.hashCode() : 0;
-        result = 31 * result + (errStream != null ? errStream.hashCode() : 0);
-        return result;
+        return outStream.hashCode() ^ errStream.hashCode();
     }
 }

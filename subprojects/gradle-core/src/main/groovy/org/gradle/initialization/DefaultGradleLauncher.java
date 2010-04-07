@@ -21,8 +21,9 @@ import org.gradle.GradleLauncher;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
+import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.api.logging.StandardOutputLogging;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.slf4j.Logger;
@@ -105,6 +106,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private BuildResult doBuild(Stage upTo) {
         addOutputListeners();
+        StandardOutputCapture outputCapture = new DefaultStandardOutputCapture().start();
         buildListener.buildStarted(gradle);
 
         Throwable failure = null;
@@ -121,7 +123,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
         // always be closed. But as we expose this functionality to the builds, we can't
         // guarantee this.
-        StandardOutputLogging.off();
+        outputCapture.stop();
         removeOutputListeners();
         return buildResult;
     }

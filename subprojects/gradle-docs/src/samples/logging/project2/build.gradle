@@ -1,10 +1,13 @@
-dependsOn(':project1')
-println('quietProject2Out')
 
 buildscript {
     println('quietProject2ScriptClassPathOut')
+    captureStandardOutput LogLevel.INFO
     logger.info('infoProject2ScriptClassPathOut')
 }
+
+dependsOn(':project1')
+// stdout capture config injected
+println('infoProject2Out')
 
 gradle.taskGraph.whenReady {
     println 'quietProject2CallbackOut'

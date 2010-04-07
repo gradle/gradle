@@ -15,14 +15,14 @@
  */
 package org.gradle.api.logging;
 
-import org.junit.Test;
 import org.junit.Before;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
-import org.hamcrest.Matchers;
+import org.junit.Test;
 
 import java.io.PrintStream;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -39,19 +39,26 @@ public class StandardOutputStateTest {
     
     @Test
     public void testInit() {
-        StandardOutputState state = new StandardOutputState(testPrintStreamOut, testPrintStreamErr);
+        StandardOutputState state = new StandardOutputState(testPrintStreamOut, LogLevel.INFO, testPrintStreamErr, LogLevel.DEBUG);
         assertSame(testPrintStreamOut, state.getOutStream());
+        assertSame(LogLevel.INFO, state.getOutLevel());
         assertSame(testPrintStreamErr, state.getErrStream());
+        assertSame(LogLevel.DEBUG, state.getErrLevel());
     }
-
+    
     @Test
-    public void equalityAndHashcode() {
-        StandardOutputState state = new StandardOutputState(testPrintStreamOut, testPrintStreamErr);
-        assertEquals(state, new StandardOutputState(testPrintStreamOut, testPrintStreamErr));
-        assertThat(state, Matchers.not(Matchers.equalTo(
-                new StandardOutputState(testPrintStreamOut, new PrintStream(System.out)))));
-        assertEquals(state.hashCode(), new StandardOutputState(testPrintStreamOut, testPrintStreamErr).hashCode());
+    public void testEqualsAndHashCode() {
+        StandardOutputState state = new StandardOutputState(testPrintStreamOut, LogLevel.INFO, testPrintStreamErr, LogLevel.DEBUG);
+        StandardOutputState same = new StandardOutputState(testPrintStreamOut, LogLevel.INFO, testPrintStreamErr, LogLevel.DEBUG);
+        StandardOutputState differentOutStr = new StandardOutputState(System.out, LogLevel.INFO, testPrintStreamErr, LogLevel.DEBUG);
+        StandardOutputState differentOutLevel = new StandardOutputState(testPrintStreamOut, LogLevel.ERROR, testPrintStreamErr, LogLevel.DEBUG);
+        StandardOutputState differentErrStr = new StandardOutputState(testPrintStreamOut, LogLevel.INFO, System.err, LogLevel.DEBUG);
+        StandardOutputState differentErrLevel = new StandardOutputState(testPrintStreamOut, LogLevel.INFO, testPrintStreamErr, LogLevel.ERROR);
+
+        assertThat(state, strictlyEqual(same));
+        assertThat(state, not(equalTo(differentOutStr)));
+        assertThat(state, not(equalTo(differentOutLevel)));
+        assertThat(state, not(equalTo(differentErrStr)));
+        assertThat(state, not(equalTo(differentErrLevel)));
     }
-
-
 }

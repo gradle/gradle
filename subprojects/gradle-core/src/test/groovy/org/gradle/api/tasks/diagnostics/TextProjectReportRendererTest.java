@@ -16,14 +16,10 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
-import org.gradle.api.logging.StandardOutputLogging;
-import static org.gradle.util.Matchers.*;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,6 +28,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.StringWriter;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class TextProjectReportRendererTest {
@@ -42,11 +42,11 @@ public class TextProjectReportRendererTest {
     @Test
     public void writesReportToStandardOutByDefault() throws IOException {
         TextProjectReportRenderer renderer = new TextProjectReportRenderer();
-        assertThat(renderer.getWriter(), sameInstance((Appendable) StandardOutputLogging.getOut()));
+        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
 
         renderer.complete();
 
-        assertThat(renderer.getWriter(), sameInstance((Appendable) StandardOutputLogging.getOut()));
+        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
     }
 
     @Test
@@ -59,7 +59,7 @@ public class TextProjectReportRendererTest {
         renderer.complete();
 
         assertTrue(outFile.isFile());
-        assertThat(renderer.getWriter(), sameInstance((Appendable) StandardOutputLogging.getOut()));
+        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
     }
 
     @Test
