@@ -18,11 +18,7 @@ package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.util.GFileUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -32,26 +28,11 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class Delete extends ConventionTask {
-    private static Logger logger = LoggerFactory.getLogger(Delete.class);
-
     private Set<Object> delete = new LinkedHashSet<Object>();
 
     @TaskAction
     protected void clean() {
-        setDidWork(false);
-
-        for (File file : getTargetFiles()) {
-            if (!file.exists()) {
-                continue;
-            }
-            logger.debug("Deleting {}", file);
-            setDidWork(true);
-            if (file.isFile()) {
-                GFileUtils.deleteQuietly(file);
-            } else {
-                GFileUtils.deleteDirectory(file);
-            }
-        }
+        setDidWork(getProject().delete(delete));
     }
 
     /**
@@ -60,7 +41,7 @@ public class Delete extends ConventionTask {
      * @return The files. Never returns null.
      */
     public FileCollection getTargetFiles() {
-        return getProject().files(getDelete());
+        return getProject().files(delete);
     }
 
     /**

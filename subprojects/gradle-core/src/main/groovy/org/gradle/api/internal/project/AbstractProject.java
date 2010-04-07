@@ -724,6 +724,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.mkdir(path);
     }
 
+    public boolean delete(Object... paths) {
+        return fileOperations.delete(paths);
+    }
+
     public Directory dir(String path) {
         String[] pathElements = path.split("/");
         String name = "";

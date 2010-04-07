@@ -33,6 +33,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertFalse
 import static org.junit.Assert.assertThat
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.file.ConfigurableFileCollection
 
 @RunWith(JMock.class)
 public class DefaultFileOperationsTest {
@@ -132,6 +133,22 @@ public class DefaultFileOperationsTest {
         def result = fileOperations.copy { from 'file'; into 'dir' }
         assertThat(result, instanceOf(CopyActionImpl.class))
         assertFalse(result.didWork)
+    }
+
+    @Test
+    public void deletes() {
+        TestFile fileToBeDeleted = tmpDir.file("file")
+        ConfigurableFileCollection fileCollection = new PathResolvingFileCollection(resolver, null, "file")
+
+        context.checking {
+            one(resolver).resolveFiles("file")
+            will(returnValue(fileCollection))
+            one(resolver).resolve("file")
+            will(returnValue(fileToBeDeleted))
+        }
+        fileToBeDeleted.touch();
+        assertThat(fileOperations.delete('file'), equalTo(true))
+        assertThat(fileToBeDeleted.isFile(), equalTo(false))
     }
 
     @Test

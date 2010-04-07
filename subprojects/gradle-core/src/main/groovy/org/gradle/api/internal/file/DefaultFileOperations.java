@@ -18,16 +18,10 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
-import org.gradle.api.file.ConfigurableFileCollection;
-import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.file.CopySpec;
-import org.gradle.api.file.FileTree;
+import org.gradle.api.file.*;
 import org.gradle.api.internal.file.archive.TarFileTree;
 import org.gradle.api.internal.file.archive.ZipFileTree;
-import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.file.copy.CopySpecImpl;
-import org.gradle.api.internal.file.copy.FileCopyActionImpl;
-import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
+import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.WorkResult;
 
@@ -42,11 +36,13 @@ public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
     private final TaskResolver taskResolver;
     private final TemporaryFileProvider temporaryFileProvider;
+    private DeleteAction deleteAction;
 
     public DefaultFileOperations(FileResolver fileResolver, TaskResolver taskResolver, TemporaryFileProvider temporaryFileProvider) {
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.temporaryFileProvider = temporaryFileProvider;
+        this.deleteAction = new DeleteActionImpl(fileResolver);
     }
 
     public File file(Object path) {
@@ -106,6 +102,10 @@ public class DefaultFileOperations implements FileOperations {
         return dir;
     }
 
+    public boolean delete(Object... paths) {
+        return deleteAction.delete(paths);
+    }
+
     public WorkResult copy(Closure closure) {
         CopyActionImpl action = configure(closure, new FileCopyActionImpl(fileResolver, new FileCopySpecVisitor()));
         action.execute();
@@ -118,5 +118,13 @@ public class DefaultFileOperations implements FileOperations {
 
     public FileResolver getFileResolver() {
         return fileResolver;
+    }
+
+    public DeleteAction getDeleteAction() {
+        return deleteAction;
+    }
+
+    public void setDeleteAction(DeleteAction deleteAction) {
+        this.deleteAction = deleteAction;
     }
 }

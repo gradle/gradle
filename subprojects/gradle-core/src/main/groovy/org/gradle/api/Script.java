@@ -268,6 +268,14 @@ public interface Script {
     File mkdir(Object path);
 
     /**
+     * Deletes files and directories.
+     *
+     * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @return true if anything got deleted, false otherwise
+     */
+    boolean delete(Object... paths);
+
+    /**
      * Disables redirection of standard output during script execution. By default redirection is enabled.
      *
      * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)

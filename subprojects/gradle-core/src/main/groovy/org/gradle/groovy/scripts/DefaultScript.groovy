@@ -141,6 +141,10 @@ abstract class DefaultScript extends BasicScript {
         return fileOperations.mkdir(path);
     }
 
+    boolean delete(Object... paths) {
+        return fileOperations.delete(paths);
+    }
+
     public void captureStandardOutput(LogLevel level) {
         loggingManager.captureStandardOutput(level)
     }

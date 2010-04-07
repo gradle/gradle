@@ -866,6 +866,14 @@ public interface Project extends Comparable<Project> {
     File mkdir(Object path);
 
     /**
+     * Deletes files and directories.
+     *
+     * @param paths Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
+     * @return true if anything got deleted, false otherwise
+     */
+    boolean delete(Object... paths);
+
+    /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
      *
      * @param path The path to convert.

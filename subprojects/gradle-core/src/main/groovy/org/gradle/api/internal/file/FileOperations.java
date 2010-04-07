@@ -57,4 +57,6 @@ public interface FileOperations {
     WorkResult copy(Closure closure);
 
     File mkdir(Object path);
+
+    boolean delete(Object... paths);
 }

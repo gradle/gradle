@@ -16,25 +16,41 @@
 
 package org.gradle.api.tasks;
 
+import org.gradle.api.file.DeleteAction;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.util.TestFile;
+import org.gradle.api.internal.file.DefaultFileOperations;
+import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.WrapUtil;
+import org.jmock.Expectations;
+import org.jmock.Mockery;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
+import java.io.File;
 import java.io.IOException;
 
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
+@RunWith(org.jmock.integration.junit4.JMock.class)
 public class DeleteTest extends AbstractConventionTaskTest {
+    private Mockery context = new JUnit4GroovyMockery();
+    private DeleteAction deleteAction = context.mock(DeleteAction.class);
     private Delete delete;
 
     @Before
     public void setUp() {
         super.setUp();
         delete = createTask(Delete.class);
+        DefaultFileOperations fileOperations = (DefaultFileOperations) ((DefaultProject)
+                delete.getProject()).getServiceRegistryFactory().get(FileOperations.class);
+        fileOperations.setDeleteAction(deleteAction);
     }
 
     public ConventionTask getTask() {
@@ -47,53 +63,37 @@ public class DeleteTest extends AbstractConventionTaskTest {
     }
 
     @Test
-    public void deletesDirectory() throws IOException {
-        TestFile dir = tmpDir.getDir();
-        dir.file("somefile").createFile();
+    public void didWorkIsTrueWhenSomethingGetsDeleted() throws IOException {
+        context.checking(new Expectations() {{
+            one(deleteAction).delete(WrapUtil.toSet("someFile"));
+            returnValue(true);
+        }});
 
-        delete.delete(dir);
+        delete.delete("someFile");
         delete.execute();
 
-        dir.assertDoesNotExist();
-        assertTrue(delete.getDidWork());
-    }
-
-    @Test
-    public void deletesFile() throws IOException {
-        TestFile dir = tmpDir.getDir();
-        TestFile file = dir.file("somefile");
-        file.createFile();
-
-        delete.delete(file);
-        delete.execute();
-
-        file.assertDoesNotExist();
-        assertTrue(delete.getDidWork());
-    }
-
-    @Test
-    public void deletesMultipleTargets() throws IOException {
-        TestFile file = tmpDir.getDir().file("somefile").createFile();
-        TestFile dir = tmpDir.getDir().file("somedir").createDir();
-        dir.file("sub/child").createFile();
-
-        delete.delete(file);
-        delete.delete(dir);
-        delete.execute();
-
-        file.assertDoesNotExist();
-        dir.assertDoesNotExist();
-        assertTrue(delete.getDidWork());
+        assertFalse(delete.getDidWork());
     }
 
     @Test
     public void didWorkIsFalseWhenNothingDeleted() throws IOException {
-        TestFile dir = tmpDir.file("unknown");
-        dir.assertDoesNotExist();
+        context.checking(new Expectations() {{
+            one(deleteAction).delete(WrapUtil.toSet("someFile"));
+            returnValue(false);
+        }});
 
-        delete.delete(dir);
+        delete.delete("someFile");
         delete.execute();
 
         assertFalse(delete.getDidWork());
+    }
+
+    @Test
+    public void getTargetFilesAndMultipleTargets() throws IOException {
+        delete.delete("someFile");
+        delete.delete(new File("someOtherFile"));
+        delete.getTargetFiles();
+        assertThat(delete.getDelete(), equalTo(WrapUtil.<Object>toSet("someFile", new File("someOtherFile"))));
+        assertThat(delete.getTargetFiles().getFiles(), equalTo(getProject().files(delete.getDelete()).getFiles()));
     }
 }
