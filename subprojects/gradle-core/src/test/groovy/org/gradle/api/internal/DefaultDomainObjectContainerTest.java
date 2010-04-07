@@ -105,12 +105,18 @@ public class DefaultDomainObjectContainerTest {
                 return !element.equals("b");
             }
         };
+        TestClosure testClosure = new TestClosure() {
+            public Object call(Object param) {
+                return !param.equals("b");    
+            }
+        };
 
         container.addObject("a");
         container.addObject("b");
         container.addObject("c");
 
         assertThat(container.matching(spec).getAll(), equalTo(toLinkedSet((CharSequence) "a", "c")));
+        assertThat(container.matching(HelperUtil.toClosure(testClosure)).getAll(), equalTo(toLinkedSet((CharSequence) "a", "c")));
     }
 
     @Test

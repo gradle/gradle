@@ -17,6 +17,7 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -80,6 +81,11 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
 
     public NamedDomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return new DefaultNamedDomainObjectContainer<T>(type, storeWithSpec(spec));
+    }
+
+    public NamedDomainObjectCollection<T> matching(Closure spec) {
+        return new DefaultNamedDomainObjectContainer<T>(type,
+                storeWithSpec((Spec<? super T>) DefaultGroovyMethods.asType(spec, Spec.class)));
     }
 
     public <S extends T> NamedDomainObjectCollection<S> withType(final Class<S> type) {

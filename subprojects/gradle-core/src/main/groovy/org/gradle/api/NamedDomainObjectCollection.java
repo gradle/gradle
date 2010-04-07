@@ -106,4 +106,9 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * {@inheritDoc}
      */
     NamedDomainObjectCollection<T> matching(Spec<? super T> spec);
+
+    /**
+     * {@inheritDoc}
+     */
+    NamedDomainObjectCollection<T> matching(Closure spec);
 }

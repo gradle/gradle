@@ -66,6 +66,17 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
     DomainObjectCollection<T> matching(Spec<? super T> spec);
 
     /**
+     * Returns a collection which contains the objects in this collection which meet the given closure specification. The
+     * returned collection is live, so that when matching objects are added to this collection, they are also visible in
+     * the filtered collection.
+     *
+     * @param spec The specification to use. The closure gets a collection element as an argument.
+     * @return The collection of matching objects. Returns an empty collection if there are no such objects in this
+     *         collection.
+     */
+    DomainObjectCollection<T> matching(Closure spec);
+
+    /**
      * Adds an {@code Action} to be executed when an object is added to this collection.
      *
      * @param action The action to be executed

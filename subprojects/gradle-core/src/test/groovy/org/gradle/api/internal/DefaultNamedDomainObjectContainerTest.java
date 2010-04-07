@@ -152,11 +152,18 @@ public class DefaultNamedDomainObjectContainerTest {
             }
         };
 
+        TestClosure testClosure = new TestClosure() {
+            public Object call(Object param) {
+                return param != bean1;
+            }
+        };
+
         container.addObject("a", bean1);
         container.addObject("b", bean2);
         container.addObject("c", bean3);
 
         assertThat(container.matching(spec).getAll(), equalTo(toLinkedSet(bean2, bean3)));
+        assertThat(container.matching(HelperUtil.toClosure(testClosure)).getAll(), equalTo(toLinkedSet(bean2, bean3)));
         assertThat(container.matching(spec).findByName("a"), nullValue());
         assertThat(container.matching(spec).findByName("b"), sameInstance(bean2));
     }

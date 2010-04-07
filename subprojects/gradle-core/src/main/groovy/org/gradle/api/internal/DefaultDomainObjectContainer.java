@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
@@ -43,6 +45,11 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
 
     public DomainObjectCollection<T> matching(final Spec<? super T> spec) {
         return new DefaultDomainObjectContainer<T>(type, storeWithSpec(spec));
+    }
+
+    public DomainObjectCollection<T> matching(Closure spec) {
+        return new DefaultDomainObjectContainer<T>(type,
+                storeWithSpec((Spec<? super T>) DefaultGroovyMethods.asType(spec, Spec.class)));
     }
 
     public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {
