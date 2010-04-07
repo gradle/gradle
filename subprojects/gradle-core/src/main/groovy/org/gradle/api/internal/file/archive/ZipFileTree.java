@@ -52,7 +52,7 @@ public class ZipFileTree extends AbstractFileTree {
     @Override
     protected Collection<FileSet> getAsFileSets() {
         visitAll();
-        return zipFile.exists() ? Collections.singleton(new FileSet(tmpDir, null)) : Collections.<FileSet>emptyList();
+        return zipFile.exists() ? Collections.singleton(new FileSet(tmpDir, null, null)) : Collections.<FileSet>emptyList();
     }
 
     public FileTree visit(FileVisitor visitor) {

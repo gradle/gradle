@@ -51,7 +51,7 @@ public class DefaultTestClassScanner implements Runnable {
     }
 
     public void run() {
-        final FileSet testClassFileSet = new FileSet(testClassDirectory, null);
+        final FileSet testClassFileSet = new FileSet(testClassDirectory, null, null);
 
         if (testFrameworkDetector == null) {
             filenameScan(testClassFileSet);

@@ -54,7 +54,7 @@ public class TarFileTree extends AbstractFileTree {
     @Override
     protected Collection<FileSet> getAsFileSets() {
         visitAll();
-        return tarFile.exists() ? Collections.singleton(new FileSet(tmpDir, null)) : Collections.<FileSet>emptyList();
+        return tarFile.exists() ? Collections.singleton(new FileSet(tmpDir, null, null)) : Collections.<FileSet>emptyList();
     }
 
     public FileTree visit(FileVisitor visitor) {

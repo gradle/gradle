@@ -144,8 +144,8 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void getAsFileSetsReturnsUnionOfFileSets() {
-        final FileSet set1 = new FileSet(new File("dir1").getAbsoluteFile(), null);
-        final FileSet set2 = new FileSet(new File("dir2").getAbsoluteFile(), null);
+        final FileSet set1 = new FileSet(new File("dir1").getAbsoluteFile(), null, null);
+        final FileSet set2 = new FileSet(new File("dir2").getAbsoluteFile(), null, null);
 
         context.checking(new Expectations() {{
             one(source1).getAsFileSets();

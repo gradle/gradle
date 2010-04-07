@@ -116,7 +116,7 @@ public class DefaultSourceDirectorySet extends CompositeFileTree implements Sour
     @Override
     protected void addSourceCollections(Collection<FileCollection> sources) {
         for (File sourceDir : getExistingSourceDirs()) {
-            FileSet fileset = new FileSet(sourceDir, resolver);
+            FileSet fileset = new FileSet(sourceDir, resolver, null);
             fileset.getPatternSet().copyFrom(patterns);
             sources.add(fileset.matching(filter));
         }

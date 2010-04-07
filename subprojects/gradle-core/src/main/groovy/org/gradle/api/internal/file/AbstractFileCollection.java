@@ -130,7 +130,7 @@ public abstract class AbstractFileCollection implements FileCollection {
         List<FileSet> fileSets = new ArrayList<FileSet>();
         for (File file : getFiles()) {
             if (file.isFile()) {
-                FileSet fileSet = new FileSet(file.getParentFile(), null);
+                FileSet fileSet = new FileSet(file.getParentFile(), null, null);
                 fileSet.include(new String[]{file.getName()});
                 fileSets.add(fileSet);
             }

@@ -21,7 +21,10 @@ import org.gradle.api.file.*;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
+import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
@@ -41,14 +44,17 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     private PatternSet patternSet = new PatternSet();
     private Object dir;
     private final FileResolver resolver;
+    private final DefaultTaskDependency buildDependency;
+    private TaskResolver taskResolver;
 
-    public FileSet(Object dir, FileResolver resolver) {
-        this(Collections.singletonMap("dir", dir), resolver);
+    public FileSet(Object dir, FileResolver resolver, TaskResolver taskResolver) {
+        this(Collections.singletonMap("dir", dir), resolver, taskResolver);
     }
 
-    public FileSet(Map<String, ?> args, FileResolver resolver) {
+    public FileSet(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
         ConfigureUtil.configureByMap(args, this);
+        buildDependency = new DefaultTaskDependency(taskResolver);
     }
 
     public PatternSet getPatternSet() {
@@ -83,7 +89,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     public FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
         patternSet.copyFrom(patterns);
-        FileSet filtered = new FileSet(getDir(), resolver);
+        FileSet filtered = new FileSet(getDir(), resolver, taskResolver);
         filtered.setPatternSet(patternSet);
         return filtered;
     }
@@ -192,5 +198,24 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     protected Object doAddFileSet(Object builder, File dir, String nodeName) {
         new FileSetHelper().addToAntBuilder(builder, dir, patternSet, nodeName);
         return this;
+    }
+
+    public ConfigurableFileTree builtBy(Object... tasks) {
+        buildDependency.add(tasks);
+        return this;
+    }
+
+    public Set<Object> getBuiltBy() {
+        return buildDependency.getValues();
+    }
+
+    public ConfigurableFileTree setBuiltBy(Iterable<?> tasks) {
+        buildDependency.setValues(tasks);
+        return this;
+    }
+
+    @Override
+    public TaskDependency getBuildDependencies() {
+        return buildDependency;
     }
 }
