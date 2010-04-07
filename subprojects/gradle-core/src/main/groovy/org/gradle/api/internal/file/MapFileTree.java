@@ -43,9 +43,9 @@ public class MapFileTree extends AbstractFileTree {
     }
 
     @Override
-    protected Collection<FileSet> getAsFileSets() {
+    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
         visitAll();
-        return Collections.singleton(new FileSet(tmpDir, null, null));
+        return Collections.singleton(new DefaultConfigurableFileTree(tmpDir, null, null));
     }
 
     public FileTree visit(FileVisitor visitor) {

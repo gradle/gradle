@@ -45,7 +45,7 @@ import static org.junit.Assert.*
 class FileSetTest extends AbstractTestForPatternSet {
     JUnit4Mockery context = new JUnit4GroovyMockery();
     TaskResolver taskResolverStub = context.mock(TaskResolver.class);
-    FileSet fileSet
+    DefaultConfigurableFileTree fileSet
     FileResolver fileResolverStub = [resolve: {it as File}] as FileResolver
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
     File testDir = tmpDir.dir
@@ -55,7 +55,7 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     Class getPatternSetType() {
-        FileSet
+        DefaultConfigurableFileTree
     }
 
     @Before public void setUp() {
@@ -64,23 +64,23 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testFileSetConstructionWithBaseDir() {
-        fileSet = new FileSet(testDir, fileResolverStub, taskResolverStub)
+        fileSet = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub)
         assertEquals(testDir, fileSet.dir)
     }
 
     @Test public void testFileSetConstructionFromMap() {
-        fileSet = new FileSet(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'])
+        fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: testDir, includes: ['include'])
         assertEquals(testDir, fileSet.dir)
         assertEquals(['include'] as Set, fileSet.includes)
     }
 
     @Test(expected = InvalidUserDataException) public void testFileSetConstructionWithNoBaseDirSpecified() {
-        FileSet fileSet = new FileSet([:], fileResolverStub, taskResolverStub)
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree([:], fileResolverStub, taskResolverStub)
         fileSet.matching {}
     }
 
     @Test public void testFileSetConstructionWithBaseDirAsString() {
-        FileSet fileSet = new FileSet(fileResolverStub, taskResolverStub, dir: 'dirname')
+        DefaultConfigurableFileTree fileSet = new DefaultConfigurableFileTree(fileResolverStub, taskResolverStub, dir: 'dirname')
         assertEquals(new File('dirname'), fileSet.dir);
     }
 
@@ -185,7 +185,7 @@ class FileSetTest extends AbstractTestForPatternSet {
             file.text = 'some text'
         }
 
-        FileSet filtered = fileSet.matching {
+        DefaultConfigurableFileTree filtered = fileSet.matching {
             include('*/*included*')
             exclude('**/not*')
         }
@@ -209,7 +209,7 @@ class FileSetTest extends AbstractTestForPatternSet {
         }
 
         PatternSet patternSet = new PatternSet(includes: ['*/*included*'], excludes: ['**/not*'])
-        FileSet filtered = fileSet.matching(patternSet)
+        DefaultConfigurableFileTree filtered = fileSet.matching(patternSet)
 
         assertThat(filtered.files, equalTo([included1, included2] as Set))
         assertSetContainsForAllTypes(filtered, 'subDir/included1', 'subDir2/included2')
@@ -232,7 +232,7 @@ class FileSetTest extends AbstractTestForPatternSet {
 
         fileSet.exclude '**/excluded*'
 
-        FileSet filtered = fileSet.matching {
+        DefaultConfigurableFileTree filtered = fileSet.matching {
             include('*/*included*')
             exclude('**/not*')
         }
@@ -246,7 +246,7 @@ class FileSetTest extends AbstractTestForPatternSet {
     }
 
     @Test public void testCanAddFileSetsTogether() {
-        FileTree other = new FileSet(testDir, fileResolverStub, taskResolverStub)
+        FileTree other = new DefaultConfigurableFileTree(testDir, fileResolverStub, taskResolverStub)
         FileTree sum = fileSet + other
         assertThat(sum, instanceOf(UnionFileTree))
         assertThat(sum.sourceCollections, equalTo([fileSet, other]))

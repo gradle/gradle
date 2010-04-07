@@ -18,7 +18,7 @@ package org.gradle.api.testing.detection;
 
 import org.gradle.api.file.EmptyFileVisitor;
 import org.gradle.api.file.FileVisitDetails;
-import org.gradle.api.internal.file.FileSet;
+import org.gradle.api.internal.file.DefaultConfigurableFileTree;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.DefaultTestClassRunInfo;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
@@ -51,29 +51,29 @@ public class DefaultTestClassScanner implements Runnable {
     }
 
     public void run() {
-        final FileSet testClassFileSet = new FileSet(testClassDirectory, null, null);
+        final DefaultConfigurableFileTree testClassFileTree = new DefaultConfigurableFileTree(testClassDirectory, null, null);
 
         if (testFrameworkDetector == null) {
-            filenameScan(testClassFileSet);
+            filenameScan(testClassFileTree);
         } else {
-            detectionScan(testClassFileSet);
+            detectionScan(testClassFileTree);
         }
     }
 
-    private void detectionScan(final FileSet testClassFileSet) {
-        testClassFileSet.include(includePatterns);
-        testClassFileSet.exclude(excludePatterns);
+    private void detectionScan(final DefaultConfigurableFileTree testClassFileTree) {
+        testClassFileTree.include(includePatterns);
+        testClassFileTree.exclude(excludePatterns);
 
         testFrameworkDetector.startDetection(testClassProcessor);
 
-        testClassFileSet.visit(new ClassFileVisitor() {
+        testClassFileTree.visit(new ClassFileVisitor() {
             public void visitClassFile(FileVisitDetails fileDetails) {
                 testFrameworkDetector.processTestClass(fileDetails.getFile());
             }
         });
     }
 
-    private void filenameScan(final FileSet testClassFileSet) {
+    private void filenameScan(final DefaultConfigurableFileTree testClassFileTree) {
         if (includePatterns.isEmpty()) {
             includePatterns.add("**/*Tests.class");
             includePatterns.add("**/*Test.class");
@@ -81,10 +81,10 @@ public class DefaultTestClassScanner implements Runnable {
         if (excludePatterns.isEmpty()) {
             excludePatterns.add("**/Abstract*.class");
         }
-        testClassFileSet.include(includePatterns);
-        testClassFileSet.exclude(excludePatterns);
+        testClassFileTree.include(includePatterns);
+        testClassFileTree.exclude(excludePatterns);
 
-        testClassFileSet.visit(new ClassFileVisitor() {
+        testClassFileTree.visit(new ClassFileVisitor() {
             public void visitClassFile(FileVisitDetails fileDetails) {
                 String className = fileDetails.getRelativePath().getPathString().replaceAll("\\.class", "").replace('/', '.');
                 TestClassRunInfo testClass = new DefaultTestClassRunInfo(className);

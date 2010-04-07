@@ -110,12 +110,12 @@ public abstract class AbstractFileCollection implements FileCollection {
     }
 
     protected void addAsMatchingTask(Object builder, String nodeName) {
-        new AntFileCollectionMatchingTaskBuilder(getAsFileSets()).addToAntBuilder(builder, nodeName);
+        new AntFileCollectionMatchingTaskBuilder(getAsFileTrees()).addToAntBuilder(builder, nodeName);
     }
 
     protected void addAsFileSet(Object builder, String nodeName) {
-        for (FileSet fileSet : getAsFileSets()) {
-            fileSet.addToAntBuilder(builder, nodeName, AntType.FileSet);
+        for (DefaultConfigurableFileTree fileTree : getAsFileTrees()) {
+            fileTree.addToAntBuilder(builder, nodeName, AntType.FileSet);
         }
     }
 
@@ -124,18 +124,18 @@ public abstract class AbstractFileCollection implements FileCollection {
     }
 
     /**
-     * Returns this collection as a set of {@link FileSet} instances.
+     * Returns this collection as a set of {@link DefaultConfigurableFileTree} instances.
      */
-    protected Collection<FileSet> getAsFileSets() {
-        List<FileSet> fileSets = new ArrayList<FileSet>();
+    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
+        List<DefaultConfigurableFileTree> fileTrees = new ArrayList<DefaultConfigurableFileTree>();
         for (File file : getFiles()) {
             if (file.isFile()) {
-                FileSet fileSet = new FileSet(file.getParentFile(), null, null);
-                fileSet.include(new String[]{file.getName()});
-                fileSets.add(fileSet);
+                DefaultConfigurableFileTree fileTree = new DefaultConfigurableFileTree(file.getParentFile(), null, null);
+                fileTree.include(new String[]{file.getName()});
+                fileTrees.add(fileTree);
             }
         }
-        return fileSets;
+        return fileTrees;
     }
 
     public Object addToAntBuilder(Object node, String childNodeName) {

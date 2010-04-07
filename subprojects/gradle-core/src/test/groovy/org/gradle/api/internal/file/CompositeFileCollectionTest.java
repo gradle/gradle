@@ -144,16 +144,16 @@ public class CompositeFileCollectionTest {
 
     @Test
     public void getAsFileSetsReturnsUnionOfFileSets() {
-        final FileSet set1 = new FileSet(new File("dir1").getAbsoluteFile(), null, null);
-        final FileSet set2 = new FileSet(new File("dir2").getAbsoluteFile(), null, null);
+        final DefaultConfigurableFileTree set1 = new DefaultConfigurableFileTree(new File("dir1").getAbsoluteFile(), null, null);
+        final DefaultConfigurableFileTree set2 = new DefaultConfigurableFileTree(new File("dir2").getAbsoluteFile(), null, null);
 
         context.checking(new Expectations() {{
-            one(source1).getAsFileSets();
+            one(source1).getAsFileTrees();
             will(returnValue(toList((Object) set1)));
-            one(source2).getAsFileSets();
+            one(source2).getAsFileTrees();
             will(returnValue(toList((Object) set2)));
         }});
-        assertThat(collection.getAsFileSets(), equalTo((Collection) toList(set1, set2)));
+        assertThat(collection.getAsFileTrees(), equalTo((Collection) toList(set1, set2)));
     }
     
     @Test

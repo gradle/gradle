@@ -66,15 +66,15 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public ConfigurableFileTree fileTree(Object baseDir) {
-        return new FileSet(baseDir, fileResolver, taskResolver);
+        return new DefaultConfigurableFileTree(baseDir, fileResolver, taskResolver);
     }
 
-    public FileSet fileTree(Map<String, ?> args) {
-        return new FileSet(args, fileResolver, taskResolver);
+    public DefaultConfigurableFileTree fileTree(Map<String, ?> args) {
+        return new DefaultConfigurableFileTree(args, fileResolver, taskResolver);
     }
 
-    public FileSet fileTree(Closure closure) {
-        return configure(closure, new FileSet(Collections.emptyMap(), fileResolver, taskResolver));
+    public DefaultConfigurableFileTree fileTree(Closure closure) {
+        return configure(closure, new DefaultConfigurableFileTree(Collections.emptyMap(), fileResolver, taskResolver));
     }
 
     public FileTree zipTree(Object zipPath) {

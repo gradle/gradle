@@ -18,21 +18,21 @@ package org.gradle.api.internal.file
 import org.gradle.api.tasks.AntBuilderAware
 
 class AntFileCollectionMatchingTaskBuilder implements AntBuilderAware {
-    private final Iterable<FileSet> fileSets
+    private final Iterable<DefaultConfigurableFileTree> fileTrees
 
-    def AntFileCollectionMatchingTaskBuilder(Iterable<FileSet> fileSets) {
-        this.fileSets = fileSets
+    def AntFileCollectionMatchingTaskBuilder(Iterable<DefaultConfigurableFileTree> fileTrees) {
+        this.fileTrees = fileTrees
     }
 
     def addToAntBuilder(Object node, String childNodeName) {
-        fileSets.each {FileSet fileSet ->
-            node."$childNodeName"(location: fileSet.dir)
+        fileTrees.each {DefaultConfigurableFileTree fileTree ->
+            node."$childNodeName"(location: fileTree.dir)
         }
         node.or {
-            fileSets.each {FileSet fileSet ->
+            fileTrees.each {DefaultConfigurableFileTree fileTree ->
                 and {
-                    gradleBaseDirSelector(baseDir: fileSet.dir)
-                    fileSet.patternSet.addToAntBuilder(node, null)
+                    gradleBaseDirSelector(baseDir: fileTree.dir)
+                    fileTree.patternSet.addToAntBuilder(node, null)
                 }
             }
         }

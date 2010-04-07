@@ -66,13 +66,13 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
     }
 
     @Override
-    protected Collection<FileSet> getAsFileSets() {
-        List<FileSet> fileSets = new ArrayList<FileSet>();
+    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
+        List<DefaultConfigurableFileTree> fileTree = new ArrayList<DefaultConfigurableFileTree>();
         for (FileCollection source : getSourceCollections()) {
             AbstractFileCollection collection = (AbstractFileCollection) source;
-            fileSets.addAll(collection.getAsFileSets());
+            fileTree.addAll(collection.getAsFileTrees());
         }
-        return fileSets;
+        return fileTree;
     }
 
     @Override

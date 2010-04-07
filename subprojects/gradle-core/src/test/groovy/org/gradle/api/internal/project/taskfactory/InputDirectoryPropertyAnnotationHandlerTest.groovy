@@ -15,20 +15,19 @@
  */
 package org.gradle.api.internal.project.taskfactory
 
+import java.lang.annotation.Annotation
 import java.lang.reflect.AnnotatedElement
+import java.util.concurrent.Callable
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.ConfigurableFileTree
 import org.gradle.api.internal.project.taskfactory.PropertyAnnotationHandler.PropertyActions
+import org.gradle.api.tasks.SkipWhenEmpty
+import org.gradle.api.tasks.StopExecutionException
+import org.gradle.api.tasks.TaskInputs
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.tasks.StopExecutionException
-import org.gradle.api.tasks.SkipWhenEmpty
-import java.lang.annotation.Annotation
-import org.gradle.util.TestFile
-import org.gradle.api.internal.tasks.DefaultTaskInputs
-import java.util.concurrent.Callable
-import org.gradle.api.tasks.TaskInputs
 
 /**
  * @author Hans Dockter

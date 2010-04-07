@@ -22,7 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.file.AbstractFileTree;
 import org.gradle.api.internal.file.AbstractFileTreeElement;
-import org.gradle.api.internal.file.FileSet;
+import org.gradle.api.internal.file.DefaultConfigurableFileTree;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.FileVisitor;
@@ -50,9 +50,9 @@ public class ZipFileTree extends AbstractFileTree {
     }
 
     @Override
-    protected Collection<FileSet> getAsFileSets() {
+    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
         visitAll();
-        return zipFile.exists() ? Collections.singleton(new FileSet(tmpDir, null, null)) : Collections.<FileSet>emptyList();
+        return zipFile.exists() ? Collections.singleton(new DefaultConfigurableFileTree(tmpDir, null, null)) : Collections.<DefaultConfigurableFileTree>emptyList();
     }
 
     public FileTree visit(FileVisitor visitor) {

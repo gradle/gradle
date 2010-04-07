@@ -40,18 +40,18 @@ import java.util.regex.Pattern;
 /**
  * @author Hans Dockter
  */
-public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
+public class DefaultConfigurableFileTree extends AbstractFileTree implements ConfigurableFileTree {
     private PatternSet patternSet = new PatternSet();
     private Object dir;
     private final FileResolver resolver;
     private final DefaultTaskDependency buildDependency;
     private TaskResolver taskResolver;
 
-    public FileSet(Object dir, FileResolver resolver, TaskResolver taskResolver) {
+    public DefaultConfigurableFileTree(Object dir, FileResolver resolver, TaskResolver taskResolver) {
         this(Collections.singletonMap("dir", dir), resolver, taskResolver);
     }
 
-    public FileSet(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
+    public DefaultConfigurableFileTree(Map<String, ?> args, FileResolver resolver, TaskResolver taskResolver) {
         this.resolver = resolver != null ? resolver : new IdentityFileResolver();
         ConfigureUtil.configureByMap(args, this);
         buildDependency = new DefaultTaskDependency(taskResolver);
@@ -65,7 +65,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         this.patternSet = patternSet;
     }
 
-    public FileSet setDir(Object dir) {
+    public DefaultConfigurableFileTree setDir(Object dir) {
         from(dir);
         return this;
     }
@@ -77,7 +77,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         return resolver.resolve(dir);
     }
 
-    public FileSet from(Object dir) {
+    public DefaultConfigurableFileTree from(Object dir) {
         this.dir = dir;
         return this;
     }
@@ -89,12 +89,12 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
     public FileTree matching(PatternFilterable patterns) {
         PatternSet patternSet = this.patternSet.intersect();
         patternSet.copyFrom(patterns);
-        FileSet filtered = new FileSet(getDir(), resolver, taskResolver);
+        DefaultConfigurableFileTree filtered = new DefaultConfigurableFileTree(getDir(), resolver, taskResolver);
         filtered.setPatternSet(patternSet);
         return filtered;
     }
 
-    public FileSet visit(FileVisitor visitor) {
+    public DefaultConfigurableFileTree visit(FileVisitor visitor) {
         DefaultDirectoryWalker walker = new DefaultDirectoryWalker(visitor);
         walker.match(patternSet).start(getDir());
         return this;
@@ -112,7 +112,7 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         return patternSet.getIncludes();
     }
 
-    public FileSet setIncludes(Iterable<String> includes) {
+    public DefaultConfigurableFileTree setIncludes(Iterable<String> includes) {
         patternSet.setIncludes(includes);
         return this;
     }
@@ -121,47 +121,47 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         return patternSet.getExcludes();
     }
 
-    public FileSet setExcludes(Iterable<String> excludes) {
+    public DefaultConfigurableFileTree setExcludes(Iterable<String> excludes) {
         patternSet.setExcludes(excludes);
         return this;
     }
 
-    public FileSet include(String ... includes) {
+    public DefaultConfigurableFileTree include(String ... includes) {
         patternSet.include(includes);
         return this;
     }
 
-    public FileSet include(Iterable<String> includes) {
+    public DefaultConfigurableFileTree include(Iterable<String> includes) {
         patternSet.include(includes);
         return this;
     }
 
-    public FileSet include(Closure includeSpec) {
+    public DefaultConfigurableFileTree include(Closure includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
 
-    public FileSet include(Spec<FileTreeElement> includeSpec) {
+    public DefaultConfigurableFileTree include(Spec<FileTreeElement> includeSpec) {
         patternSet.include(includeSpec);
         return this;
     }
 
-    public FileSet exclude(String ... excludes) {
+    public DefaultConfigurableFileTree exclude(String ... excludes) {
         patternSet.exclude(excludes);
         return this;
     }
 
-    public FileSet exclude(Iterable<String> excludes) {
+    public DefaultConfigurableFileTree exclude(Iterable<String> excludes) {
         patternSet.exclude(excludes);
         return this;
     }
 
-    public FileSet exclude(Spec<FileTreeElement> excludeSpec) {
+    public DefaultConfigurableFileTree exclude(Spec<FileTreeElement> excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }
 
-    public FileSet exclude(Closure excludeSpec) {
+    public DefaultConfigurableFileTree exclude(Closure excludeSpec) {
         patternSet.exclude(excludeSpec);
         return this;
     }
@@ -191,8 +191,8 @@ public class FileSet extends AbstractFileTree implements ConfigurableFileTree {
         addAsFileSet(builder, nodeName);
     }
 
-    protected Collection<FileSet> getAsFileSets() {
-        return getDir().exists() ? Collections.singletonList(this) : Collections.<FileSet>emptyList();
+    protected Collection<DefaultConfigurableFileTree> getAsFileTrees() {
+        return getDir().exists() ? Collections.singletonList(this) : Collections.<DefaultConfigurableFileTree>emptyList();
     }
 
     protected Object doAddFileSet(Object builder, File dir, String nodeName) {

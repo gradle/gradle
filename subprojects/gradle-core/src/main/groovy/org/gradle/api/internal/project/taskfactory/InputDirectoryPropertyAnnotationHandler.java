@@ -17,7 +17,6 @@ package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.internal.file.FileSet;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
