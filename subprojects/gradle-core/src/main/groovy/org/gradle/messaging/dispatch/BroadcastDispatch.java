@@ -19,8 +19,6 @@ package org.gradle.messaging.dispatch;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.listener.ListenerNotificationException;
 
 import java.lang.reflect.InvocationHandler;
@@ -103,17 +101,9 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
     }
 
     private void dispatch(Method method, Object[] parameters) throws Throwable {
-        DefaultStandardOutputCapture standardOutputCapture = null;
-        if (type != StandardOutputListener.class) {
-            standardOutputCapture = new DefaultStandardOutputCapture();
-            standardOutputCapture.start();
-        }
         logger.invoke(null, method, parameters);
         for (InvocationHandler handler : handlers.values()) {
             handler.invoke(null, method, parameters);
-        }
-        if (standardOutputCapture != null) {
-            standardOutputCapture.stop();
         }
     }
 

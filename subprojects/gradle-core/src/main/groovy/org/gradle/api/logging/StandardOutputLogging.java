@@ -130,17 +130,19 @@ public class StandardOutputLogging {
     }
 
     /**
-     * Returns the current values for System.out and Sytem.err.
+     * Returns the current values for System.out and System.err.
      */
     public static StandardOutputState getStateSnapshot() {
-        return new StandardOutputState(System.out, System.err);
+        return new StandardOutputState(System.out, getOutAdapter().getLevel(), System.err, getErrAdapter().getLevel());
     }
 
     /**
-     * Sets the values for System.out and Sytem.err.
+     * Sets the values for System.out and System.err.
      */
     public static void restoreState(StandardOutputState state) {
         redirect(state.getOutStream(), state.getErrStream());
+        getOutAdapter().setLevel(state.getOutLevel());
+        getErrAdapter().setLevel(state.getErrLevel());
     }
 
     private static void redirect(PrintStream outStream, PrintStream errStream) {

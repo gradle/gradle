@@ -16,23 +16,23 @@
 package org.gradle.api.logging;
 
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class StandardOutputLoggingTest {
+    private void setToNonDefaultValues(boolean out, boolean err) {
+        if (out) { StandardOutputLogging.onOut(LogLevel.DEBUG); }
+        if (err) { StandardOutputLogging.onErr(LogLevel.INFO); }
+    }
 
     @Before
     public void setUp() {
         StandardOutputLogging.off();
-    }
-
-    private void setToNonDefaultValues(boolean out, boolean err) {
-        if (out) { StandardOutputLogging.onOut(LogLevel.DEBUG); }
-        if (err) { StandardOutputLogging.onErr(LogLevel.INFO); }
     }
 
     @After
@@ -44,90 +44,124 @@ public class StandardOutputLoggingTest {
     public void on() {
         setToNonDefaultValues(true, true);
         StandardOutputLogging.on(LogLevel.INFO);
-        checkOut(LogLevel.INFO);
-        checkErr(LogLevel.ERROR);
+        checkOutIsCaptured(LogLevel.INFO);
+        checkErrIsCaptured(LogLevel.ERROR);
     }
 
     @Test
     public void onOut() {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.INFO);
-        checkOut(LogLevel.INFO);
-        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+        checkOutIsCaptured(LogLevel.INFO);
+        checkErrIsStderr();
     }
 
     @Test
     public void onOutWithLifecycle() {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.LIFECYCLE);
-        checkOut(LogLevel.LIFECYCLE);
-        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+        checkOutIsCaptured(LogLevel.LIFECYCLE);
+        checkErrIsStderr();
     }
 
     @Test
     public void onOutWithQuiet() {
         setToNonDefaultValues(true, false);
         StandardOutputLogging.onOut(LogLevel.QUIET);
-        checkOut(LogLevel.QUIET);
-        assertSame(StandardOutputLogging.DEFAULT_ERR, System.err);
+        checkOutIsCaptured(LogLevel.QUIET);
+        checkErrIsStderr();
     }
 
     @Test
     public void onErr() {
         setToNonDefaultValues(false, true);
         StandardOutputLogging.onErr(LogLevel.ERROR);
-        checkErr(LogLevel.ERROR);
-        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
+        checkOutIsStdout();
+        checkErrIsCaptured(LogLevel.ERROR);
     }
 
     @Test
-    public void off() {
+    public void offWhenAlreadyOff() {
         StandardOutputLogging.off();
-        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
-        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
+        checkOutIsStdout();
+        checkErrIsStderr();
     }
 
     @Test
     public void offOut() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputLogging.offOut();
-        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
-        assertEquals(StandardOutputLogging.getErr(), System.err);
+        checkOutIsStdout();
+        checkErrIsCaptured(LogLevel.ERROR);
     }
 
     @Test
     public void offErr() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputLogging.offErr();
-        assertEquals(StandardOutputLogging.getOut(), System.out);
-        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
+        checkOutIsCaptured(LogLevel.INFO);
+        checkErrIsStderr();
     }
 
     @Test
     public void init() {
-        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
-        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
+        checkOutIsStdout();
+        checkErrIsStderr();
     }
 
     @Test
-    public void testGetAndRestoreState() {
+    public void getAndRestoreStateWhenCaptureOff() {
         StandardOutputLogging.on(LogLevel.INFO);
         StandardOutputState state = StandardOutputLogging.getStateSnapshot();
-        assertEquals(StandardOutputLogging.getOut(), state.getOutStream());
-        assertEquals(StandardOutputLogging.getErr(), state.getErrStream());
+        
         StandardOutputLogging.off();
+
         StandardOutputLogging.restoreState(state);
-        assertEquals(StandardOutputLogging.getOut(), System.out);
-        assertEquals(StandardOutputLogging.getErr(), System.err);
+
+        checkOutIsCaptured(LogLevel.INFO);
+        checkErrIsCaptured(LogLevel.ERROR);
     }
 
-    private void checkOut(LogLevel expectedOut) {
+    @Test
+    public void getAndRestoreStateWhenLevelsChange() {
+        StandardOutputLogging.on(LogLevel.INFO);
+        StandardOutputState state = StandardOutputLogging.getStateSnapshot();
+
+        StandardOutputLogging.on(LogLevel.DEBUG);
+
+        StandardOutputLogging.restoreState(state);
+
+        checkOutIsCaptured(LogLevel.INFO);
+        checkErrIsCaptured(LogLevel.ERROR);
+    }
+
+    @Test
+    public void getAndRestoreStateWhenCaptureOn() {
+        StandardOutputState state = StandardOutputLogging.getStateSnapshot();
+
+        StandardOutputLogging.on(LogLevel.INFO);
+
+        StandardOutputLogging.restoreState(state);
+
+        checkOutIsStdout();
+        checkErrIsStderr();
+    }
+
+    private void checkOutIsCaptured(LogLevel expectedOut) {
         assertEquals(StandardOutputLogging.getOut(), System.out);
         assertEquals(StandardOutputLogging.getOutAdapter().getLevel(), expectedOut);
     }
 
-    private void checkErr(LogLevel expectedErr) {
+    private void checkOutIsStdout() {
+        assertEquals(StandardOutputLogging.DEFAULT_OUT, System.out);
+    }
+
+    private void checkErrIsCaptured(LogLevel expectedErr) {
         assertEquals(StandardOutputLogging.getErr(), System.err);
         assertEquals(StandardOutputLogging.getErrAdapter().getLevel(), expectedErr);
+    }
+
+    private void checkErrIsStderr() {
+        assertEquals(StandardOutputLogging.DEFAULT_ERR, System.err);
     }
 }

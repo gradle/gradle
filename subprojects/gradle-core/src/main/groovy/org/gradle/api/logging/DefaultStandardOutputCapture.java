@@ -55,8 +55,12 @@ public class DefaultStandardOutputCapture implements StandardOutputCapture, Logg
     }
 
     public DefaultStandardOutputCapture stop() {
-        StandardOutputLogging.flush();
-        StandardOutputLogging.restoreState(globalState);
+        try {
+            StandardOutputLogging.flush();
+            StandardOutputLogging.restoreState(globalState);
+        } finally {
+            globalState = null;
+        }
         return this;
     }
 
