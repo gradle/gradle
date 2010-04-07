@@ -25,10 +25,13 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.gradle.util.WrapUtil.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import static org.junit.Assert.*
+import static org.gradle.util.Matchers.isEmpty
+import static org.gradle.util.WrapUtil.toList
+import static org.gradle.util.WrapUtil.toSet
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertThat
+import static org.junit.Assert.fail
 
 @RunWith (JMock.class)
 public class DefaultTaskDependencyTest {
@@ -99,6 +102,16 @@ public class DefaultTaskDependencyTest {
             one(otherDependency).getDependencies(task)
             will(returnValue(toSet(otherTask)))
         }
+
+        assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
+    }
+
+    @Test
+    public void canDependOnAnIterable() {
+        List tasks = [otherTask]
+        Iterable iterable = { tasks.iterator() } as Iterable
+
+        dependency.add(iterable)
 
         assertThat(dependency.getDependencies(task), equalTo(toSet(otherTask)));
     }
@@ -181,9 +194,9 @@ public class DefaultTaskDependencyTest {
     }
 
     @Test
-    public void canNestCollectionsAndMapsAndClosuresAndCallables() {
+    public void canNestIterablesAndMapsAndClosuresAndCallables() {
         Map nestedMap = [task: otherTask]
-        List nestedCollection = [nestedMap]
+        Iterable nestedCollection = [nestedMap]
         Callable nestedCallable = {nestedCollection} as Callable
         Closure nestedClosure = {nestedCallable}
         List collection = [nestedClosure]

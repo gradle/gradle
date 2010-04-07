@@ -17,10 +17,11 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
+import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
-import org.gradle.api.GradleException;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.util.GUtil;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -61,9 +62,9 @@ public class DefaultTaskDependency implements TaskDependency {
                 if (closureResult != null) {
                     queue.add(0, closureResult);
                 }
-            } else if (dependency instanceof Collection) {
-                Collection<?> collection = (Collection) dependency;
-                queue.addAll(0, collection);
+            } else if (dependency instanceof Iterable) {
+                Iterable<?> iterable = (Iterable) dependency;
+                queue.addAll(0, GUtil.addToCollection(new ArrayList(), iterable));
             } else if (dependency instanceof Map) {
                 Map<?, ?> map = (Map) dependency;
                 queue.addAll(0, map.values());
