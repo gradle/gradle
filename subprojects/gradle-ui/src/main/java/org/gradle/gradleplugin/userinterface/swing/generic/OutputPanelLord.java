@@ -452,6 +452,10 @@ public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestOb
       }
    }
 
+    public Font getOutputTextFont() {
+        return font;
+    }
+
     public FileLinkDefinitionLord getFileLinkDefinitionLord() {
         return fileLinkDefinitionLord;
     }

@@ -80,6 +80,7 @@ public interface OutputUILord
     @param font the new font
     */
    public void setOutputTextFont( Font font );
+   public Font getOutputTextFont();
 
     /**
      * @return the object this is used to handle parsing of files in the output.

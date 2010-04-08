@@ -23,8 +23,9 @@ import org.junit.Before
 import org.junit.After
 import org.junit.Assert;
 import org.gradle.util.GFileUtils
-import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapper
+import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion1
 import org.gradle.openapi.external.foundation.ProjectVersion1
+import org.gradle.foundation.TaskView
 import org.junit.Rule
 
 /**
@@ -136,7 +137,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
         gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
         gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
-        GradleInterfaceWrapper wrapper = new GradleInterfaceWrapper( gradlePluginLord );
+        GradleInterfaceWrapperVersion1 wrapper = new GradleInterfaceWrapperVersion1( gradlePluginLord );
 
         //the rest of this uses the open API mechanism to access the projects and tasks
 
@@ -178,5 +179,81 @@ class MultiprojectProjectAndTaskListIntegrationTest {
         def tasks = apiProject.getTasks()
         Assert.assertNotNull( tasks );
         Assert.assertFalse( tasks.isEmpty() );
+   }
+
+   /**
+   * This tests ProjectView.getSubProjectFromFullPath. Specifically, the first character
+    * is optionally a colon. So this tests it both ways.
+   */
+   @Test
+   public void testSubProjectFromFullPath()
+   {
+     executer.inDirectory(javaprojectDir).withTasks('assemble').run();
+
+      File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
+      Assert.assertTrue(multiProjectDirectory.exists());
+
+      GradlePluginLord gradlePluginLord = new GradlePluginLord();
+      gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
+      gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
+
+      //refresh the projects and wait. This will throw an exception if it fails.
+      org.gradle.foundation.TestUtility.refreshProjectsBlocking(gradlePluginLord, 20);  //we'll give this 20 seconds to complete
+
+      //get the root project
+      List<ProjectView> projects = gradlePluginLord.getProjects();
+      Assert.assertNotNull(projects);
+      Assert.assertFalse( projects.isEmpty() );
+
+      ProjectView rootProject = projects.get(0)
+
+      //test it using no prefixed colon
+      ProjectView foundProject1 = rootProject.getSubProjectFromFullPath("services:webservice")
+      Assert.assertNotNull( foundProject1 )
+
+      //test it using a prefixed colon
+      ProjectView foundProject2 = rootProject.getSubProjectFromFullPath(":services:webservice")
+      Assert.assertNotNull( foundProject2 )
+
+      //should both the same project
+      Assert.assertEquals( foundProject1, foundProject2 )
+   }
+
+   /**
+   * This tests TaskView.getTaskFromFullPath. Specifically, the first character
+    * is optionally a colon. So this tests it both ways.
+   */
+   @Test
+   public void testGetTaskFromFullPath()
+   {
+     executer.inDirectory(javaprojectDir).withTasks('assemble').run();
+
+      File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
+      Assert.assertTrue(multiProjectDirectory.exists());
+
+      GradlePluginLord gradlePluginLord = new GradlePluginLord();
+      gradlePluginLord.setCurrentDirectory(multiProjectDirectory);
+      gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
+
+      //refresh the projects and wait. This will throw an exception if it fails.
+      org.gradle.foundation.TestUtility.refreshProjectsBlocking(gradlePluginLord, 20);  //we'll give this 20 seconds to complete
+
+      //get the root project
+      List<ProjectView> projects = gradlePluginLord.getProjects();
+      Assert.assertNotNull(projects);
+      Assert.assertFalse( projects.isEmpty() );
+
+      ProjectView rootProject = projects.get(0)
+
+      //test it using no prefixed colon
+      TaskView foundTask1 = rootProject.getTaskFromFullPath("api:build")
+      Assert.assertNotNull( foundTask1 )
+
+      //test it using a prefixed colon
+      TaskView foundTask2 = rootProject.getTaskFromFullPath(":api:build")
+      Assert.assertNotNull( foundTask2 )
+
+      //should both the same project
+      Assert.assertEquals( foundTask1, foundTask2 )      
    }
 }

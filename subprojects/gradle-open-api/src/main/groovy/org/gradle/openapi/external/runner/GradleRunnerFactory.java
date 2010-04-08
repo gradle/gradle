@@ -31,7 +31,7 @@ import java.lang.reflect.Constructor;
 public class GradleRunnerFactory
 {
    /*
-      Call this to instante an object that you can use to execute gradle
+      Call this to instantiate an object that you can use to execute gradle
       commands directly.
 
       Note: this function is meant to be backward and forward compatible. So
@@ -55,6 +55,61 @@ public class GradleRunnerFactory
       @author mhunsicker
    */
    public static GradleRunnerVersion1 createGradleRunner( ClassLoader parentClassLoader, File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception
+   {
+       //much of this function is exception handling so if we can't obtain it via the newer factory method, then
+       //we'll try the old way, but we want to report the original exception if we can't do it either way.
+       Exception viaFactoryException = null;
+       GradleRunnerVersion1 gradleRunner = null;
+
+       //first, try it the new way
+       try {
+           gradleRunner = createGradleRunnerViaFactory(parentClassLoader, gradleHomeDirectory, interaction, showDebugInfo);
+       } catch (Exception e) {
+           //we might ignore this. It means we're probably using an older version of gradle. That case is handled below.
+           //If not, this exception will be thrown at the end.
+           viaFactoryException = e;
+       }
+
+       //try it the old way
+       if( gradleRunner == null ) {
+           gradleRunner = createGradleRunnerOldWay(parentClassLoader, gradleHomeDirectory, interaction, showDebugInfo);
+       }
+
+       //if we still don't have a gradle runner and we have an exception from using the factory, throw it. If we
+       //got an exception using the 'old way', it would have been thrown already and we wouldn't be here.
+       if( gradleRunner == null && viaFactoryException != null ) {
+           throw viaFactoryException;
+       }
+
+       return gradleRunner;
+   }
+
+    /**
+     * This function uses a factory to instantiate a GradleRunner. The factory is located with the version of gradle
+     * pointed to by gradleHomeDirectory and thus allows the version of gradle being loaded to make decisions
+     * about how to instantiate the runner. This is needed as multiple versions of the runner are being used.
+     */
+   private static GradleRunnerVersion1 createGradleRunnerViaFactory( ClassLoader parentClassLoader, File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception
+   {
+      //load the class in gradle that wraps our return interface and handles versioning issues.
+      Class soughtClass = ExternalUtility.loadGradleClass( "org.gradle.openapi.wrappers.RunnerWrapperFactory", parentClassLoader, gradleHomeDirectory, showDebugInfo );
+      if( soughtClass == null )
+      {
+         return null;
+      }
+
+      Class[] argumentClasses = new Class[ ] { File.class, GradleRunnerInteractionVersion1.class, boolean.class };
+
+      Object gradleRunner = ExternalUtility.invokeStaticMethod( soughtClass, "createGradleRunner", argumentClasses, gradleHomeDirectory, interaction, showDebugInfo );
+      return (GradleRunnerVersion1) gradleRunner;
+   }
+
+   /**
+     * This function uses an early way (early 0.9 pre-release and sooner) of instantiating the GradleRunner and
+     * should no longer be used. It unfortunately is tied to a single wrapper class instance (which it tries to
+     * directly instantiate). This doesn't allow the GradleRunner to adaptively determine what to instantiate.
+     */
+   private static GradleRunnerVersion1 createGradleRunnerOldWay( ClassLoader parentClassLoader, File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception
    {
       ClassLoader bootStrapClassLoader = ExternalUtility.getGradleClassloader( parentClassLoader, gradleHomeDirectory, showDebugInfo );
       Thread.currentThread().setContextClassLoader(bootStrapClassLoader);

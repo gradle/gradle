@@ -22,6 +22,8 @@ package org.gradle.openapi.external.foundation.favorites;
  * to aid backward and forward compatibility by shielding you from direct
  * changes within gradle.
  *
+ * You should not implement this yourself. Only use an implementation coming from Gradle.
+ *
  * @author mhunsicker
  */
 public interface FavoriteTaskVersion1

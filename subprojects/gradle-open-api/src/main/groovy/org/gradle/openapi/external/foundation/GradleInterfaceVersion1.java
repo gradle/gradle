@@ -80,7 +80,7 @@ public interface GradleInterfaceVersion1 {
       gradle.bat or gradle shell script to run gradle, use this to specify
       what you do run. Note: we're going to pass it the arguments that we would
       pass to gradle so if you don't like that, see alterCommandLineArguments.
-      Normaly, this should return null.
+      Normally, this should return null.
       @return the Executable to run gradle command or null to use the default
       @author mhunsicker
    */

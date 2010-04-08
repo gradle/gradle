@@ -23,7 +23,6 @@ import org.gradle.gradleplugin.userinterface.swing.generic.BasicGradleUI;
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1;
 import org.gradle.openapi.external.ui.*;
-import org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapper;
 import org.gradle.openapi.wrappers.foundation.favorites.FavoritesEditorWrapper;
 
 import javax.swing.*;
@@ -45,7 +44,7 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
 
     protected SettingsNodeVersionWrapper settingsVersionWrapper;
     protected AlternateUIInteractionVersionWrapper alternateUIInteractionVersionWrapper;
-    protected GradleInterfaceWrapper gradleInterfaceWrapper;
+    protected GradleInterfaceVersion1 gradleInterfaceWrapper;
 
     private OutputUILordWrapper outputUILordWrapper;
 
@@ -56,7 +55,6 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
    }
 
    public void initialize( U basicGradleUI ) {
-
         this.basicGradleUI = basicGradleUI;
         basicGradleUI.getGradlePluginLord().addRequestObserver( new GradlePluginLord.RequestObserver()
         {
@@ -78,10 +76,35 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
         }, false );
 
        outputUILordWrapper = new OutputUILordWrapper( basicGradleUI.getOutputUILord() );
-       gradleInterfaceWrapper = new GradleInterfaceWrapper( basicGradleUI.getGradlePluginLord() );
+       gradleInterfaceWrapper = instantiateGradleInterfaceWrapper();
+
     }
 
-   public U getGradleUI() {
+    /**
+     * This instantiates our GradleInterfaceVersion object. Additions have been made
+     * to it -- making new versions, so we have a choice of which one to load. We'll
+     * try to load the latest one first, if that fails, we'll fall back on older
+     * versions. The latest version would fail to load because it depends on classes
+     * that are part of the Open API project and it can't find those classes. It
+     * might not find them because this is loaded from the Open API and if its an
+     * older version, those classes won't exist.
+     * @return a version of GradleInterfaceVersionX
+     */
+    protected GradleInterfaceVersion1 instantiateGradleInterfaceWrapper()
+    {
+       try
+       {
+           //try to load the latest version. I'm explicitly using the full package name so any NoClassDefFoundErrors will only
+           //occur within this try/catch block.
+           return new org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion2( basicGradleUI.getGradlePluginLord() );
+       }
+       catch( NoClassDefFoundError e )
+       {  //if that's not found, fall back to version 1
+          return new org.gradle.openapi.wrappers.foundation.GradleInterfaceWrapperVersion1( basicGradleUI.getGradlePluginLord() );
+       }
+    }
+
+    public U getGradleUI() {
       return basicGradleUI;
    }
 
@@ -144,7 +167,7 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
     * gradle.bat or gradle shell script to run gradle, use this to specify
     * what you do run. Note: we're going to pass it the arguments that we would
     * pass to gradle so if you don't like that, see alterCommandLineArguments.
-    * Normaly, this should return null.
+    * Normally, this should return null.
     *
     * @return the Executable to run gradle command or null to use the default
     */
@@ -189,6 +212,30 @@ public abstract class AbstractOpenAPIUIWrapper<U extends BasicGradleUI>
     */
     public String getGradleTabName(int index) {
         return basicGradleUI.getGradleTabName(index);
+    }
+
+     /**
+      * Returns the index of the gradle tab with the specified name.
+      * @param name the name of the tab
+      * @return the index of the tab or -1 if not found
+      */
+     public int getGradleTabIndex( String name ) {
+         return basicGradleUI.getGradleTabIndex( name );
+     }
+
+    /**
+     * @return the currently selected tab
+     */
+    public int getCurrentGradleTab() {
+        return basicGradleUI.getCurrentGradleTab();
+    }
+
+    /**
+     * Makes the specified tab the current tab.
+     * @param index the index of the tab.
+     */
+    public void setCurrentGradleTab( int index ) {
+        basicGradleUI.setCurrentGradleTab( index );
     }
 
     /**

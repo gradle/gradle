@@ -85,19 +85,24 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
     private void launchExternalProcess() {
         Thread thread = new Thread(new Runnable() {
             public void run() {
-                ExecutionInfo executionInfo = protocol.getExecutionInfo(getPort() );
 
-                ExecHandleBuilder builder = new ExecHandleBuilder();
-                builder.workingDir(executionInfo.getWorkingDirectory());
-                builder.commandLine(executionInfo.getCommandLineArguments());
-                builder.environment(executionInfo.getEnvironmentVariables());
-                ByteArrayOutputStream output = new ByteArrayOutputStream();
-                builder.standardOutput(output);
-                builder.errorOutput(output);
-                ExecHandle execHandle = builder.build();
-                setExternalProcess(execHandle);
-
+                ExecutionInfo executionInfo = null;
+                ExecHandle execHandle = null;
+                ByteArrayOutputStream output = null;
                 try {
+                    
+                    executionInfo = protocol.getExecutionInfo(getPort() );
+
+                    ExecHandleBuilder builder = new ExecHandleBuilder();
+                    builder.workingDir(executionInfo.getWorkingDirectory());
+                    builder.commandLine(executionInfo.getCommandLineArguments());
+                    builder.environment(executionInfo.getEnvironmentVariables());
+                    output = new ByteArrayOutputStream();
+                    builder.standardOutput(output);
+                    builder.errorOutput(output);
+                    execHandle = builder.build();
+                    setExternalProcess(execHandle);
+
                     execHandle.start();
                 }
                 catch (Throwable e) {

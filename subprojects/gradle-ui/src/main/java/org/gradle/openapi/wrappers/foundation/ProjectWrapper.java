@@ -80,7 +80,7 @@ public class ProjectWrapper implements ProjectVersion1 {
         if( projectFromFullPath == null ) {
             return null;
         }
-        return new ProjectWrapper( projectView );
+        return new ProjectWrapper( projectFromFullPath );
     }
 
     public TaskVersion1 getTask(String name) {
@@ -147,5 +147,10 @@ public class ProjectWrapper implements ProjectVersion1 {
     @Override
     public int hashCode() {
         return projectView.hashCode();
+    }
+
+    @Override
+    public String toString() {
+        return projectView.toString();
     }
 }

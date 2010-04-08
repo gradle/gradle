@@ -141,4 +141,9 @@ public class SettingsNodeVersionWrapper implements SettingsNode {
     public void removeAllChildren() {
         settingsNodeVersion1.removeAllChildren();
     }
+
+    @Override
+    public String toString() {
+        return settingsNodeVersion1.toString();
+    }
 }

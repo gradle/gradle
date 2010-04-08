@@ -45,8 +45,7 @@ public interface GradleTabVersion1
 
    /*
       Notification that this component is about to be shown. Do whatever
-      initialization you choose. This is performed after serializing in your
-      JDOMSerializables, so you can populate yourself now.
+      initialization you choose.
       @author mhunsicker
    */
    public void aboutToShow();

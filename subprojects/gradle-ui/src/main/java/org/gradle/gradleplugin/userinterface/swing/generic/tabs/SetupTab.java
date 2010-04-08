@@ -55,7 +55,7 @@ import java.util.*;
  *
  * @author mhunsicker
   */
-public class SetupTab implements GradleTab {
+public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     private final Logger logger = Logging.getLogger(SetupTab.class);
 
     private static final String STACK_TRACE_LEVEL_CLIENT_PROPERTY = "stack-trace-level-client-property";
@@ -110,7 +110,8 @@ public class SetupTab implements GradleTab {
     * Notification that this component is about to be shown. Do whatever initialization you choose.
     */
     public void aboutToShow() {
-
+        updatePluginLordSettings();
+        gradlePluginLord.addSettingsObserver( this, true );
     }
 
     private void setupUI() {
@@ -154,14 +155,9 @@ public class SetupTab implements GradleTab {
 
         JButton browseButton = new JButton(new AbstractAction("Browse...") {
             public void actionPerformed(ActionEvent e) {
-                File file = browseForDirectory(currentDirectoryTextField);
+                File file = browseForDirectory( gradlePluginLord.getCurrentDirectory() );
                 if (file != null) {
-                    gradlePluginLord.setCurrentDirectory(file);
-
-                    //save our settings
-                    settingsNode.setValueOfChild(CURRENT_DIRECTORY, file.getAbsolutePath());
-
-                    gradlePluginLord.addRefreshRequestToQueue();
+                    setCurrentDirectory( file );
                 }
             }
         });
@@ -175,7 +171,24 @@ public class SetupTab implements GradleTab {
         return panel;
     }
 
-   /**
+    private void setCurrentDirectory(File file) {
+
+        if( file == null ) {
+            currentDirectoryTextField.setText("");
+            settingsNode.setValueOfChild(CURRENT_DIRECTORY, "" );
+        } else {
+            currentDirectoryTextField.setText( file.getAbsolutePath() );
+            settingsNode.setValueOfChild(CURRENT_DIRECTORY, file.getAbsolutePath());
+        }
+
+        if( gradlePluginLord.setCurrentDirectory(file) )
+        {
+            //refresh the tasks only if we actually changed the current directory
+            gradlePluginLord.addRefreshRequestToQueue();
+        }
+    }
+
+    /**
     * this creates a panel where the right component is its preferred size. This is useful for putting on
     * a button on the right and a text field on the left.
     */
@@ -193,20 +206,24 @@ public class SetupTab implements GradleTab {
         return xLayoutPanel;
     }
 
-    private File browseForDirectory(JTextField fileTextField) {
-        String currentDirectory = fileTextField.getText();
-        if (currentDirectory == null || currentDirectory.trim().equals("")) {
-           currentDirectory = System.getProperty("user.dir");
+    /**
+     * Browses for a file using the text value from the text field as the current value.
+     * @param fileTextField where we get the current value
+     * @return
+     */
+    private File browseForDirectory(File initialFile ) {
+
+        if( initialFile == null ) {
+            initialFile = new File( System.getProperty("user.dir") );
         }
 
-       JFileChooser chooser = new JFileChooser(currentDirectory);
+        JFileChooser chooser = new JFileChooser(initialFile);
         chooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         chooser.setMultiSelectionEnabled(false);
 
         File file = null;
         if (chooser.showOpenDialog(mainPanel) == JFileChooser.APPROVE_OPTION) {
             file = chooser.getSelectedFile();
-            fileTextField.setText(file.getAbsolutePath());
         }
 
         return file;
@@ -277,7 +294,7 @@ public class SetupTab implements GradleTab {
         return wrappers;
     }
 
-   /**
+    /**
      * This exists solely for overriding toString to something nicer. We'll captilize the first letter. The rest become
      * lower case. Ultimately, this should probably move into LogLevel. We'll also put the log level shortcut in parenthesis
     */
@@ -553,8 +570,12 @@ public class SetupTab implements GradleTab {
             storagePath = file.getAbsolutePath();
         }
 
-        //set teh executor in the foundation
-        gradlePluginLord.setCustomGradleExecutor(file);
+        //set the executor in the foundation
+        if( gradlePluginLord.setCustomGradleExecutor(file) )
+        {
+            //refresh the tasks only if we actually changed the executor
+            gradlePluginLord.addRefreshRequestToQueue();
+        }
 
         //set the UI values
         useCustomGradleExecutorCheckBox.setSelected(isUsingCustom);
@@ -566,9 +587,6 @@ public class SetupTab implements GradleTab {
 
         //store the settings
         settingsNode.setValueOfChild(CUSTOM_GRADLE_EXECUTOR, storagePath);
-
-        //refresh the tasks.
-        gradlePluginLord.addRefreshRequestToQueue();
     }
 
    /**
@@ -581,5 +599,28 @@ public class SetupTab implements GradleTab {
        customPanelPlaceHolder.add( component, BorderLayout.CENTER );
        customPanelPlaceHolder.invalidate();
        mainPanel.validate();
+    }
+
+    /**
+    * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home
+    * directory, etc. This is useful for UIs that need to update their UIs when this is changed by other means.
+    */
+    public void settingsChanged() {
+        updatePluginLordSettings();
+    }
+
+    /**
+     * Called upon start up and whenever GradlePluginLord settings are changed. We'll update our values.
+     * Note: this actually gets called several times in a row for each settings during initialization. Its
+     * not optimal, but functional and I didn't want to deal with numerous, specific-field notifications.
+     */
+    private void updatePluginLordSettings() {
+        setCustomGradleExecutor( gradlePluginLord.getCustomGradleExecutor() );
+
+        setCurrentDirectory( gradlePluginLord.getCurrentDirectory() );
+
+        setSelectedStackTraceLevel(gradlePluginLord.getStackTraceLevel());
+
+        setLogLevelComboBoxSetting(gradlePluginLord.getLogLevel());
     }
 }

@@ -60,7 +60,9 @@ public class ExtensionFileLinkDefinition implements FileLinkDefinition
 
    protected String generateLineNumberExpression( String lineNumberDelimiter )
    {
-      return PrefixedFileLinkDefinition.quoteLiteral( lineNumberDelimiter ) + "\\d*";
+      //there may be a space before the delimiter so we quote the delimiter, possible space,
+      //followed by numbers
+      return PrefixedFileLinkDefinition.quoteLiteral( lineNumberDelimiter ) + "\\s*\\d*";
    }
 
    public String getSearchExpression()

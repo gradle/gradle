@@ -46,5 +46,12 @@ public interface DualPaneUIVersion1 extends BasicGradleUIVersion1
    */
    public Component getOutputPanel();
 
+    /**
+     * This gets the number of opened output tabs. This is used by the Idea plugin
+     * to determine if it should close the entire output pane when a tab is closed
+     * This doesn't determine whether or not the tabs are busy. See
+     * GradleInterfaceVersion1.isBusy for that 
+     * @return the number of opened output tabs.
+     */
    public int getNumberOfOpenedOutputTabs();
 }

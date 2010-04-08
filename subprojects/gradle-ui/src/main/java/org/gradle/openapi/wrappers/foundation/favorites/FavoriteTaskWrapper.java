@@ -55,7 +55,7 @@ public class FavoriteTaskWrapper implements FavoriteTaskVersion1 {
     }
 
     //Only to be used internally to get the favorite task this represents
-    /*package*/ FavoriteTask getFavoriteTask() {
+    public FavoriteTask getFavoriteTask() {
         return favoriteTask;
     }
 

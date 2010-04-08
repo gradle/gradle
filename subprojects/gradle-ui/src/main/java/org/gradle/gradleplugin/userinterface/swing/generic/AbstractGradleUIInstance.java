@@ -144,7 +144,33 @@ public abstract class AbstractGradleUIInstance implements BasicGradleUI {
         return gradlePluginLord;
     }
 
-   /*
+    /**
+     * Returns the index of the gradle tab with the specified name.
+     *
+     * @param name the name of the tab
+     * @return the index of the tab or -1 if not found
+     */
+    public int getGradleTabIndex(String name) {
+        return gradlePanel.getGradleTabIndex(name);
+    }
+
+    /**
+     * @return the currently selected tab
+     */
+    public int getCurrentGradleTab() {
+        return gradlePanel.getCurrentGradleTab();
+    }
+
+    /**
+     * Makes the specified tab the current tab.
+     *
+     * @param index the index of the tab.
+     */
+    public void setCurrentGradleTab(int index) {
+        gradlePanel.setCurrentGradleTab( index );
+    }
+
+    /*
       This executes the given gradle command.
 
       @param  commandLineArguments the command line arguments to pass to gradle.
@@ -163,6 +189,17 @@ public abstract class AbstractGradleUIInstance implements BasicGradleUI {
    public void refreshTaskTree()
    {
       gradlePluginLord.addRefreshRequestToQueue();
+   }
+
+    /**
+    This refreshes the task tree. Useful if you know you've changed something behind
+    gradle's back or when first displaying this UI.
+    @param additionalCommandLineArguments additional command line arguments to be passed to gradle when
+                                          refreshing the task tree.
+    */
+   public void refreshTaskTree( String additionalCommandLineArguments )
+   {
+      gradlePluginLord.addRefreshRequestToQueue( additionalCommandLineArguments );
    }
 
    /**

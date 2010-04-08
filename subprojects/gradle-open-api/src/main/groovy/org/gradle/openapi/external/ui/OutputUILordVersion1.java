@@ -25,6 +25,7 @@ import java.awt.Font;
 public interface OutputUILordVersion1 {
 
    public void setOutputTextFont( Font font );
+   public Font getOutputTextFont();
 
     /**
      Call this to add file extensions to look for in the output. The files will be highlighted

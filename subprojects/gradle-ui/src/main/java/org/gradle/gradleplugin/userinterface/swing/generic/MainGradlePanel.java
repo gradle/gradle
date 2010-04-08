@@ -80,7 +80,7 @@ public class MainGradlePanel extends JPanel {
         return -1;
     }
 
-    private int getGradleTabIndex(String name) {
+    public int getGradleTabIndex(String name) {
         if (name != null) {
             for (int index = 0; index < gradleTabs.size(); index++) {
                 GradleTab gradleTab = gradleTabs.get(index);
@@ -91,6 +91,21 @@ public class MainGradlePanel extends JPanel {
         }
         return -1;
     }
+
+    /**
+     * @return the currently selected tab
+     */
+    public int getCurrentGradleTab() {
+        return tabbedPane.getSelectedIndex();
+    }
+
+
+    public void setCurrentGradleTab(int index) {
+        if( index >= 0 && index < getGradleTabCount() ) {
+            tabbedPane.setSelectedIndex( index );
+        }
+    }
+
 
     /**
      * Call this to add one of your own tabs to this. You must call this before you call aboutToShow.

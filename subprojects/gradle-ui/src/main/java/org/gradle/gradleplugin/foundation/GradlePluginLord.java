@@ -73,6 +73,7 @@ public class GradlePluginLord {
 
     private ObserverLord<GeneralPluginObserver> generalObserverLord = new ObserverLord<GeneralPluginObserver>();
     private ObserverLord<RequestObserver> requestObserverLord = new ObserverLord<RequestObserver>();
+    private ObserverLord<SettingsObserver> settingsObserverLord = new ObserverLord<SettingsObserver>();
 
     private ObserverLord<CommandLineArgumentAlteringListener> commandLineArgumentObserverLord = new ObserverLord<CommandLineArgumentAlteringListener>();
 
@@ -134,6 +135,16 @@ public class GradlePluginLord {
       public void requestExecutionComplete( Request request, int result, String output );
    }
 
+   public interface SettingsObserver {
+
+       /**
+        * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home
+        * directory, etc. This is useful for UIs that need to update their UIs when this is changed by other means.
+        */
+       public void settingsChanged();
+   }
+
+
 
     public GradlePluginLord() {
         favoritesEditor = new FavoritesEditor();
@@ -164,7 +175,12 @@ public class GradlePluginLord {
     * @param gradleHomeDirectory the new home directory
     */
     public void setGradleHomeDirectory(File gradleHomeDirectory) {
-        this.gradleHomeDirectory = gradleHomeDirectory;
+        if( areEqual( this.gradleHomeDirectory, gradleHomeDirectory ) )    //already set to this. This prevents recursive notifications.
+        {
+            return;
+        }
+       this.gradleHomeDirectory = gradleHomeDirectory;
+        notifySettingsChanged();
     }
 
     /**
@@ -176,17 +192,30 @@ public class GradlePluginLord {
 
     /**
     * @param  currentDirectory the new root directory of your gradle project.
+    * @returns true if we changed the current directory, false if not (it was already set to this)
     */
-    public void setCurrentDirectory(File currentDirectory) {
+    public boolean setCurrentDirectory(File currentDirectory) {
+        if( areEqual( this.currentDirectory, currentDirectory ) )    //already set to this. This prevents recursive notifications.
+        {
+            return false;
+        }
         this.currentDirectory = currentDirectory;
+        notifySettingsChanged();
+        return true;
     }
 
     public File getCustomGradleExecutor() {
         return customGradleExecutor;
     }
 
-    public void setCustomGradleExecutor(File customGradleExecutor) {
+    public boolean setCustomGradleExecutor(File customGradleExecutor) {
+        if( areEqual( this.customGradleExecutor, customGradleExecutor ) )    //already set to this. This prevents recursive notifications.
+        {
+            return false;
+        }
         this.customGradleExecutor = customGradleExecutor;
+        notifySettingsChanged();
+        return true;
     }
 
 
@@ -198,7 +227,12 @@ public class GradlePluginLord {
     * this allows you to change how much information is given when an error occurs.
     */
     public void setStackTraceLevel(StartParameter.ShowStacktrace stackTraceLevel) {
-        this.stackTraceLevel = stackTraceLevel;
+        if( areEqual( this.stackTraceLevel, stackTraceLevel ) )    //already set to this. This prevents recursive notifications.
+        {
+            return;
+        }
+       this.stackTraceLevel = stackTraceLevel;
+        notifySettingsChanged();
     }
 
     public StartParameter.ShowStacktrace getStackTraceLevel() {
@@ -214,7 +248,12 @@ public class GradlePluginLord {
            return;
         }
 
+       if( areEqual( this.logLevel, logLevel ) )    //already set to this. This prevents recursive notifications.
+       {
+           return;
+       }
        this.logLevel = logLevel;
+       notifySettingsChanged();
     }
 
     /**
@@ -330,6 +369,40 @@ public class GradlePluginLord {
        requestObserverLord.removeObserver( observer );
     }
 
+    public void addSettingsObserver( SettingsObserver observer, boolean inEventQueue )
+    {
+       settingsObserverLord.addObserver( observer, inEventQueue );
+    }
+
+    public void removeSettingsObserver( SettingsObserver observer )
+    {
+       settingsObserverLord.removeObserver( observer );
+    }
+
+    private void notifySettingsChanged() {
+        settingsObserverLord.notifyObservers(new ObserverLord.ObserverNotification<SettingsObserver>() {
+            public void notify(SettingsObserver observer) {
+                observer.settingsChanged();
+            }
+        });
+    }
+
+    /**
+     * Determines if two are objects are equal and considers them both being null as equal
+     * @param object1 the first object
+     * @param object2 the second object
+     * @return true if they're both null or both equal.
+     */
+   private boolean areEqual( Object object1, Object object2)
+   {
+      if ( object1 == null || object2 == null )
+      {
+         return object2 == object1; //yes, we're not using '.equals', we're making sure they both equal null because one of them is null!
+      }
+
+      return object1.equals(object2);
+   }
+
     /**
      * Determines if all required setup is complete based on the current settings.
      *
@@ -393,9 +466,9 @@ public class GradlePluginLord {
      * @param favorites a list of favorites. If just one favorite, it executes it normally.
      *                  If multiple favorites, it executes them all at once as a single command.
      */
-    public void addExecutionRequestToQueue(List<FavoriteTask> favorites) {
+    public Request addExecutionRequestToQueue(List<FavoriteTask> favorites) {
         if( favorites.isEmpty() ) {
-            return;
+            return null;
         }
 
         FavoriteTask firstFavoriteTask = favorites.get( 0 );
@@ -414,7 +487,7 @@ public class GradlePluginLord {
             fullCommandLine = FavoritesEditor.combineFavoriteCommandLines(favorites);
         }
 
-        addExecutionRequestToQueue( fullCommandLine, displayName, alwaysShowOutput );
+        return addExecutionRequestToQueue( fullCommandLine, displayName, alwaysShowOutput );
     }
 
    /**

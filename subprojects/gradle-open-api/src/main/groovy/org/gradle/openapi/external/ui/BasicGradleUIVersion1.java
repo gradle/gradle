@@ -93,7 +93,7 @@ public interface BasicGradleUIVersion1
       gradle.bat or gradle shell script to run gradle, use this to specify
       what you do run. Note: we're going to pass it the arguments that we would
       pass to gradle so if you don't like that, see alterCommandLineArguments.
-      Normaly, this should return null.
+      Normally, this should return null.
       @return the Executable to run gradle command or null to use the default
       @author mhunsicker
    */
@@ -128,6 +128,24 @@ public interface BasicGradleUIVersion1
       @author mhunsicker
    */
    public String getGradleTabName( int index );
+
+    /**
+     * Returns the index of the gradle tab with the specified name.
+     * @param name the name of the tab
+     * @return the index of the tab or -1 if not found
+     */
+    public int getGradleTabIndex( String name );
+
+    /**
+     * @return the currently selected tab
+     */
+    public int getCurrentGradleTab();
+
+    /**
+     * Makes the specified tab the current tab.
+     * @param index the index of the tab.
+     */
+    public void setCurrentGradleTab( int index );
 
    /*
       This allows you to add a listener that can add additional command line
@@ -186,8 +204,12 @@ public interface BasicGradleUIVersion1
    public void setCustomPanelToSetupTab( JComponent component );
 
     /**
-     * @return an object that works with lower level gradle and contains the current projects and tasks.
-     * You can also execute tasks from it and perform certain setup.
+     * This returns an object that works with lower level gradle and contains the
+     * current projects and tasks. You can also execute tasks from it and perform
+     * certain setup.
+     * @return a GradleInterfaceVersion1 object. It may also be GradleInterfaceVersion2 or
+     * a future version. You can check its type and then cast it as appropriate.
+     * This allows the caller to be backward compatible.
      */
    public GradleInterfaceVersion1 getGradleInterfaceVersion1();
 

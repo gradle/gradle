@@ -25,12 +25,20 @@ public class PathParserPortion {
     private String remainder;
 
     public PathParserPortion(String path) {
-        int indexOfColon = path.indexOf(':');
-        if (indexOfColon == -1) {
-            firstPart = path;
-        } else {
-            firstPart = path.substring(0, indexOfColon);  //get everyting up to the colon
-            remainder = path.substring(indexOfColon + 1); //everything else
+        if( path != null && !path.isEmpty() )
+        {
+            if( path.startsWith( ":" ) )    //skip the first character, if its a colon. This is optional and makes it absolute, vs relative.
+            {
+                path = path.substring( 1 );
+            }
+
+            int indexOfColon = path.indexOf(':');
+            if (indexOfColon == -1) {
+                firstPart = path;
+            } else {
+                firstPart = path.substring(0, indexOfColon);  //get everyting up to the colon
+                remainder = path.substring(indexOfColon + 1); //everything else
+            }
         }
     }
 

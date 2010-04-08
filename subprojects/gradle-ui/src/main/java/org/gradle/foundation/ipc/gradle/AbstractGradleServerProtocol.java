@@ -26,7 +26,6 @@ import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.ClientProcess;
-import org.gradle.util.OperatingSystem;
 
 import java.io.File;
 import java.io.FileOutputStream;
@@ -253,7 +252,13 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
       //put the file to execute on the command line
       File gradleExecutableFile = getGradleExecutableFile();
-      executionCommandLine.add( gradleExecutableFile.getAbsolutePath() );
+      if( gradleExecutableFile == null ) {
+          throw new RuntimeException( "Gradle executable not specified" );
+      }
+      if( !gradleExecutableFile.exists() ) {
+          throw new RuntimeException( "Missing gradle executable. Expected it at: " + gradleExecutableFile );
+      }
+       executionCommandLine.add( gradleExecutableFile.getAbsolutePath() );
 
       //add the port number we're listenening on
       executionCommandLine.add( "-D" + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + "=" + Integer.toString( serverPort ) );
@@ -313,7 +318,11 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
    */
    private String getDefaultGradleExecutableName()
    {
-      return OperatingSystem.current().getScriptName("gradle");
+      String osName = System.getProperty("os.name");
+        if (osName.indexOf("indows") >= 0) {
+            return "gradle.bat";
+        } //windoes uses a batch file
+      return "gradle";        //all others use a shell script
    }
 
    /**

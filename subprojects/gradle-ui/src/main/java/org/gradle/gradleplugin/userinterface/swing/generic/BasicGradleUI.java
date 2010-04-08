@@ -86,6 +86,24 @@ public interface BasicGradleUI
    */
    public String getGradleTabName( int index );
 
+    /**
+     * Returns the index of the gradle tab with the specified name.
+     * @param name the name of the tab
+     * @return the index of the tab or -1 if not found
+     */
+    public int getGradleTabIndex( String name );
+
+    /**
+     * @return the currently selected tab
+     */
+    public int getCurrentGradleTab();
+
+    /**
+     * Makes the specified tab the current tab.
+     * @param index the index of the tab.
+     */
+    public void setCurrentGradleTab( int index );
+
    /*
       Call this to execute the given gradle command.
 
@@ -100,6 +118,14 @@ public interface BasicGradleUI
     gradle's back or when first displaying this UI.
     */
    public void refreshTaskTree();
+
+    /**
+    This refreshes the task tree. Useful if you know you've changed something behind
+    gradle's back or when first displaying this UI.
+    @param additionalCommandLineArguments additional command line arguments to be passed to gradle when
+                                          refreshing the task tree.
+    */
+   public void refreshTaskTree( String additionalCommandLineArguments );
 
    /**
        Call this to add one of your own tabs to this. You can call this at any

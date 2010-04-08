@@ -18,8 +18,10 @@ package org.gradle.openapi.wrappers.foundation;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion1;
 import org.gradle.openapi.external.foundation.ProjectVersion1;
+import org.gradle.openapi.external.foundation.RequestObserverVersion1;
 import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 import org.gradle.openapi.wrappers.ui.CommandLineArgumentAlteringListenerWrapper;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.util.HashMap;
@@ -30,13 +32,21 @@ import java.util.Map;
  * Implementation of GradleInterfaceVersion1 meant to help shield external users from internal changes.
  * @author mhunsicker
  */
-public class GradleInterfaceWrapper implements GradleInterfaceVersion1 {
+public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
 
-    private GradlePluginLord gradlePluginLord;
+    protected GradlePluginLord gradlePluginLord;
     private Map<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper> commandLineListenerMap = new HashMap<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper>();
+    private Map<RequestObserverVersion1, RequestObserverWrapper> requestObserverMap = new HashMap<RequestObserverVersion1, RequestObserverWrapper>();
 
-    public GradleInterfaceWrapper(GradlePluginLord gradlePluginLord) {
+    public GradleInterfaceWrapperVersion1(GradlePluginLord gradlePluginLord) {
         this.gradlePluginLord = gradlePluginLord;
+    }
+
+    /**
+     * @return the version of gradle being run. This is basically the version from the jar file.
+     */
+    public String getVersion() {
+        return new GradleVersion().getVersion();
     }
 
     /**
@@ -47,12 +57,17 @@ public class GradleInterfaceWrapper implements GradleInterfaceVersion1 {
         return ProjectWrapper.convertProjects( gradlePluginLord.getProjects() );
     }
 
-    public void refreshTaskTree() {
-        gradlePluginLord.addRefreshRequestToQueue();
-    }
-
+    /**
+      Determines if commands are currently being executed or not. Refreshing
+      tasks is not considered busy.
+      @return true if we're busy, false if not.
+   */
     public boolean isBusy() {
         return gradlePluginLord.isBusy();
+    }
+
+    public void refreshTaskTree() {
+        gradlePluginLord.addRefreshRequestToQueue();
     }
 
     public void executeCommand(String commandLineArguments, String displayName) {
@@ -72,7 +87,16 @@ public class GradleInterfaceWrapper implements GradleInterfaceVersion1 {
     }
 
     public File getCustomGradleExecutable() {
-        return getCustomGradleExecutable();
+        return gradlePluginLord.getCustomGradleExecutor();
+    }
+
+    /**
+     * Sets a custom gradle executable. See getCustomGradleExecutable
+     *
+     * @param customGradleExecutor the path to an executable (or script/batch file)
+     */
+    public void setCustomGradleExecutable(File customGradleExecutor) {
+        gradlePluginLord.setCustomGradleExecutor(customGradleExecutor);
     }
 
     /**
@@ -95,6 +119,34 @@ public class GradleInterfaceWrapper implements GradleInterfaceVersion1 {
         CommandLineArgumentAlteringListenerWrapper wrapper = commandLineListenerMap.remove(listener);
         if (wrapper != null) {
            gradlePluginLord.removeCommandLineArgumentAlteringListener(wrapper);
+        }
+    }
+
+    /**
+     * Adds an observer that is notified when Gradle commands are executed and
+     * completed.
+     *
+     * @param observer the observer that is notified
+     */
+    public void addRequestObserver(RequestObserverVersion1 observer) {
+        RequestObserverWrapper wrapper = new RequestObserverWrapper(observer);
+
+        //we have to store our wrapper so you can call remove the listener using your passed-in object
+        requestObserverMap.put(observer, wrapper);
+
+        gradlePluginLord.addRequestObserver(wrapper, false );
+    }
+
+    /**
+     * Removes a request observer when you no longer wish to receive notifications
+     * about Gradle command being executed.
+     *
+     * @param observer the observer to remove
+     */
+    public void removeRequestObserver(RequestObserverVersion1 observer) {
+        RequestObserverWrapper wrapper = requestObserverMap.remove(observer);
+        if (wrapper != null) {
+           gradlePluginLord.removeRequestObserver(wrapper);
         }
     }
 }

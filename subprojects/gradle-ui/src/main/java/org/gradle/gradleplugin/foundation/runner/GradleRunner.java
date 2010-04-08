@@ -58,6 +58,7 @@ public class GradleRunner {
             }
         }, false);
 
+        executionInteraction.reportExecutionStarted();  //go ahead and fire off that the execution has started. Normally, this is done by the request, but we don't have a request in this case.
         server.start();
     }
 

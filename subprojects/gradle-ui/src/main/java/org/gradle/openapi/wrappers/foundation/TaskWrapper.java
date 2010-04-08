@@ -86,4 +86,9 @@ public class TaskWrapper implements TaskVersion1 {
     public int hashCode() {
         return taskView.hashCode();
     }
+
+    @Override
+    public String toString() {
+        return taskView.toString();
+    }
 }

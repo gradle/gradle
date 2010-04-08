@@ -61,9 +61,6 @@ public abstract class AbstractRequest implements Request {
 
    /**
      * Cancels this request.
-     *
-     * @return true if you can cancel or it or if it has already ran. This return
-     *         code is mainly meant to prevent you from
      */
     public synchronized boolean cancel() {
         if (this.server != null) {

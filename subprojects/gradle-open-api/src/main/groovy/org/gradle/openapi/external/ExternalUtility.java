@@ -20,6 +20,7 @@ import org.gradle.foundation.BootstrapLoader;
 import java.io.File;
 import java.io.FileFilter;
 import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.regex.Pattern;
 
 /**
@@ -54,26 +55,6 @@ public class ExternalUtility
         }
 
         System.setProperty("gradle.home", gradleHomeDirectory.getAbsolutePath());
-
-        //the following code was used when BootstrapLoader was in Gradle-core. It was moved out due
-        //a circular dependency. Hopefully that will be solved and then this probably needs to moved
-        //back (due to duplication of code). When it does, this needs to uncommented out (and the code
-        //below it removed)
-
-        ////create a class loader that will load our bootloader.
-        //URLClassLoader contextClassLoader = new URLClassLoader(new URL[] { gradleJarFile.toURI().toURL() }, parentClassLoader );
-        //
-        //Class bootstrapClass = contextClassLoader.loadClass("org.gradle.foundation.BootstrapLoader");
-        //
-        //Object loader = bootstrapClass.newInstance();
-        //Method initializeMethod = bootstrapClass.getDeclaredMethod( "initialize", new Class<?>[]{ClassLoader.class, File.class, boolean.class, boolean.class, boolean.class } );
-        //
-        ////get the bootloader to actually load gradle since it requires some very specific steps
-        //initializeMethod.invoke( loader, parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo );
-        //
-        ////get the bootloader's classloader so we can use that to load a specific class from gradle.
-        //Method getClassLoaderMethod = bootstrapClass.getDeclaredMethod( "getClassLoader" );
-        //ClassLoader bootStrapClassLoader = (ClassLoader) getClassLoaderMethod.invoke( loader );
 
         BootstrapLoader bootstrapLoader = new BootstrapLoader();
         bootstrapLoader.initialize(parentClassLoader, gradleHomeDirectory, true, false, showDebugInfo);
@@ -137,5 +118,77 @@ public class ExternalUtility
         }
 
         return builder.toString();
+    }
+
+
+    public static String dumpMethods(Class classInQuestion) {
+        StringBuilder builder = new StringBuilder();
+
+        Method[] methods = classInQuestion.getMethods();
+        for (int index = 0; index < methods.length; index++) {
+            Method method = methods[index];
+            builder.append(method).append('\n');
+        }
+
+        return builder.toString();
+    }
+
+    /**
+     * This attempts to load the a class from the specified gradle home directory.
+     * @param classToLoad  the full path to the class to load
+     * @param  parentClassLoader    Your classloader. Probably the classloader
+     *                              of whatever class is calling this.
+     * @param  gradleHomeDirectory  the root directory of a gradle installation
+     * @param  showDebugInfo        true to show some additional information that
+     *                              may be helpful diagnosing problems is this
+     *                              fails
+     */
+    public static Class loadGradleClass( String classToLoad, ClassLoader parentClassLoader, File gradleHomeDirectory, boolean showDebugInfo ) throws Exception
+    {
+       ClassLoader bootStrapClassLoader = getGradleClassloader( parentClassLoader, gradleHomeDirectory, showDebugInfo );
+       Thread.currentThread().setContextClassLoader(bootStrapClassLoader);
+
+       //load the class in gradle that wraps our return interface and handles versioning issues.
+      try
+      {
+         return bootStrapClassLoader.loadClass( classToLoad );
+      }
+      catch( NoClassDefFoundError e )
+      {  //might be a version mismatch
+         e.printStackTrace();
+         return null;
+      }
+      catch( Throwable e )
+      {  //might be a version mismatch
+         e.printStackTrace();
+         return null;
+      }
+    }
+
+     /**
+     * This wraps up invoking a static method into a single call.
+     * @param classToInvoke the class that has the method
+     * @param methodName    the name of the method to invoke
+     * @param argumentsClasses the classes of the arguments (we can't determine this from the argumentValues
+     *                          because they can be of class A, but implement class B and B is be the argument
+     *                          type of the method in question
+     * @param argumentValues   the values of the arguments.
+     * @return the return value of invoking the method.
+     * @throws Exception
+     */
+    public static Object invokeStaticMethod( Class classToInvoke, String methodName, Class[] argumentsClasses, Object ... argumentValues) throws Exception
+    {
+      Method method = null;
+      try
+      {
+         method = classToInvoke.getDeclaredMethod( methodName, argumentsClasses );
+      }
+      catch( NoSuchMethodException e )
+      {
+         e.printStackTrace();
+         System.out.println( "Dumping available methods on " + classToInvoke.getName() + "\n" + ExternalUtility.dumpMethods( classToInvoke ) );
+         throw e;
+      }
+      return method.invoke( null, argumentValues);
     }
 }

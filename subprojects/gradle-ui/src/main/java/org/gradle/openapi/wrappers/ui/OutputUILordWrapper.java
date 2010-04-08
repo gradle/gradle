@@ -35,12 +35,14 @@ public class OutputUILordWrapper implements OutputUILordVersion1 {
 
     public OutputUILordWrapper( OutputUILord outputUILord ) {
         this.outputUILord = outputUILord;
-
     }
 
     public void setOutputTextFont(Font font) {
         outputUILord.setOutputTextFont(font);
+    }
 
+    public Font getOutputTextFont() {
+        return outputUILord.getOutputTextFont();
     }
 
     public void addFileExtension(String extension, String lineNumberDelimiter) {
