@@ -17,20 +17,31 @@ import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import groovy.text.TemplateEngine
 
-// to get a clean
-apply plugin: 'base'
+// we only need a test source set
+apply plugin: 'groovy-base'
+apply plugin: 'code-quality'
 
 repositories {
     mavenCentral()
 }
 configurations {
     ftpAntTask
+    integTestCompile { extendsFrom groovy }
 }
 dependencies {
     ftpAntTask module("org.apache.ant:ant-commons-net:1.7.0") {
         module("commons-net:commons-net:1.4.1") {
             dependencies("oro:oro:2.0.8@jar")
         }
+    }
+    groovy localGroovy()
+    integTestCompile 'junit:junit:4.7'
+    integTestCompile 'net.sourceforge.htmlunit:htmlunit:2.7'
+}
+sourceSets {
+    integTest {
+        compileClasspath = configurations.integTestCompile
+        runtimeClasspath = classes + compileClasspath
     }
 }
 
@@ -49,6 +60,16 @@ if (stableVersion != version) {
 
 //buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 buildWebsiteDir = new File(buildDir, 'website')
+
+checkstyleConfigDir = "$gradleCorePath/config/checkstyle"
+checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
+checkstyleConfigFileName = "$checkstyleConfigDir/checkstyle.xml"
+codeNarcConfigFileName = "$gradleCorePath/config/codenarc.xml"
+
+task ide(type: Sync) {
+    into "ide/lib"
+    from { configurations.integTestCompile.copyRecursive {dep -> !(dep instanceof ProjectDependency)}.files }
+}
 
 task userguideContent << {
     def startParams = gradle.startParameter.newBuild()
@@ -80,6 +101,7 @@ task html(dependsOn: userguideContent) << {
     }
     pages << new IndexPage(srcFile: "$webContentSrcDir/index.php" as File)
     pages << new PhpPage(srcFile: "$webContentSrcDir/news.php" as File)
+    pages << new PhpPage(srcFile: "$webContentSrcDir/cookbook.php" as File)
     pages.each { Page page ->
         page.destFile = new File(buildWebsiteDir, page.srcFile.name)
         page.engine = engine
@@ -102,6 +124,13 @@ task html(dependsOn: userguideContent) << {
             include 'img/**'
         }
     }
+}
+
+task integTest(type: Test, dependsOn: html) {
+    testClassesDir = sourceSets.integTest.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
+    systemProperties 'test.base.uri': buildWebsiteDir.toURI()
+    inputs.dir buildWebsiteDir
 }
 
 task uploadWebsite(dependsOn: html) << {

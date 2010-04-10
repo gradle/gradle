@@ -202,6 +202,10 @@ p {
     padding-top: 1.6em;
 }
 
+#about .more a {
+    color: #d48008;
+}
+
 #about .more a img {
     border: none;
     /*font-size: 160%;*/
@@ -280,11 +284,12 @@ p {
     position: absolute;
     top: 0;
     left: 330px;
+    width: 380px;
 }
 
 #who_uses div {
     float: left;
-    padding-right: 55px;
+    margin-right: 55px;
 }
 
 #who_uses ul {

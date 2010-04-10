@@ -13,6 +13,7 @@ subprojects/gradle-ui/build
 subprojects/gradle-wrapper/build
 website/build
 website/.gradle
+website/ide
 *.iml
 *.ipr
 *.iws

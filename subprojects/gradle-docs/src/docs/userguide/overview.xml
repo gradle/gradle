@@ -21,17 +21,19 @@
         </para>
         <variablelist>
             <varlistentry>
-                <term>Declarative Builds and Build-By-Convention</term>
+                <term>Declarative builds and build-by-convention</term>
                 <listitem>
-                    <para>At the heart of Gradle lies a rich extensible DSL based on Groovy. Gradle pushes declarative
-                        builds to the next level by providing declarative language elements that you can assemble as you like.
-                        Those elements also provide build-by-convention support for Java, Groovy, OSGi, Web and Scala projects.
-                        Even more, this declarative language is extensible. Add your own new language elements or enhance
-                        the existing ones. Thus providing concise, maintainable and comprehensible builds.</para>
+                    <para>At the heart of Gradle lies a rich extensible Domain Specific Language (DSL) based on Groovy.
+                        Gradle pushes declarative builds to the next level by providing declarative language elements
+                        that you can assemble as you like. Those elements also provide build-by-convention support for
+                        Java, Groovy, OSGi, Web and Scala projects. Even more, this declarative language is extensible.
+                        Add your own new language elements or enhance the existing ones. Thus providing concise,
+                        maintainable and comprehensible builds.
+                    </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Language for Dependency Based Programming</term>
+                <term>Language for dependency based programming</term>
                 <listitem>
                     <para>The declarative language lies on top of a general purpose task graph, which you can fully
                         leverage in your builds. It provides utmost flexibility to adapt Gradle to your unique needs. 
@@ -42,10 +44,10 @@
                 <term>Structure your build</term>
                 <listitem>
                     <para>The suppleness and richness of Gradle finally allows you to apply common design principles to your build.
-                        For example, making it very easy to compose your build from reusable
+                        For example, it is very easy to compose your build from reusable
                         pieces of build logic. Inline stuff where unnecessary indirections would be inappropriate. Don't be
                         forced to tear apart what belongs together (e.g. in your project hierarchy). Thus avoiding smells
-                        like shotgun changes or divergent change that turn your build into a maintainance nightmare. 
+                        like shotgun changes or divergent change that turn your build into a maintenance nightmare.
                         At last you can create a well structured, easily maintained, comprehensible build.</para>
                 </listitem>
             </varlistentry>
@@ -53,8 +55,8 @@
                 <term>Deep API</term>
                 <listitem>
                     <para>From being a pleasure to be used embedded to its many hooks over the whole lifecycle of build
-                        execution. Gradle allows you to monitor and customize its configuration and execution behavior
-                        to its very guts.
+                        execution, Gradle allows you to monitor and customize its configuration and execution behavior
+                        to its very core.
                     </para>
                 </listitem>
             </varlistentry>
@@ -62,14 +64,14 @@
                 <term>Gradle scales</term>
                 <listitem>
                     <para>Gradle scales very well. It significantly increases your productivity,
-                        from rather simple single project builds up to huge enterprise multi-project builds. This is true
+                        from simple single project builds up to huge enterprise multi-project builds. This is true
                         for structuring the build. With the state-of-art incremental build function, this is also true for
                         tackling the performance pain many large enterprise builds suffer from.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Multiproject Builds</term>
+                <term>Multi-project builds</term>
                 <listitem>
                     <para>Gradle's support for multi-project build is outstanding. Project dependencies are first class
                         citizens. We allow you to model the project relationships in a multi-project build as they really
@@ -103,7 +105,7 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>Ease of Migration</term>
+                <term>Ease of migration</term>
                 <listitem>
                     <para>Gradle can adapt to any structure you have. Therefore you can always develop your Gradle build
                         in the same branch where your production build lives and both can evolve in parallel.
@@ -128,13 +130,20 @@
                 </listitem>
             </varlistentry>
             <varlistentry>
-                <term>The Gradle Wrapper</term>
+                <term>The Gradle wrapper</term>
                 <listitem>
                     <para>The Gradle Wrapper allows you to execute Gradle builds on machines where Gradle is not
                         installed. This is useful for example for some continuous integration servers. It is also
                         useful for an open source project to keep the barrier low for building it. The wrapper is also
                         very interesting for the enterprise. It is a zero administration approach for the client machines.
                         It also enforces the usage of a particular Gradle version thus minimizing support issues. 
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Free and open source</term>
+                <listitem>
+                    <para>Gradle is an open source project, and is licensed under the <ulink url="website:license.html">ASL</ulink>.
                     </para>
                 </listitem>
             </varlistentry>
@@ -160,12 +169,12 @@
                 </para>
             </footnote>
             Languages like Python, Groovy or Ruby do a much better job here. We have chosen Groovy as it offers by far
-            the highest transparency for Java people. Its base syntax is the same as Java's as well as its type system,
+            the greatest transparency for Java people. Its base syntax is the same as Java's as well as its type system,
             its package structure and other things. Groovy builds a lot on top of that. But on a common ground with Java.
         </para>
         <para>For Java teams which share also Python or Ruby knowledge or are happy to learn it, the above arguments
             don't apply. The Gradle design is well-suited for creating another build script engine in JRuby or Jython.
-            It just doesn't has the highest priority for us at the moment. We happily support any community effort
+            It just doesn't have the highest priority for us at the moment. We happily support any community effort
             to create additional build script engines.
         </para>
     </section>
