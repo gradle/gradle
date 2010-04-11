@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.util
 
 import java.util.zip.ZipEntry
@@ -22,6 +24,8 @@ import org.apache.tools.ant.taskdefs.Expand
 import org.apache.tools.ant.taskdefs.Untar
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.jruby.ext.posix.FileStat
+import org.gradle.api.UncheckedIOException
 
 class TestFileHelper {
     TestFile file
@@ -90,6 +94,23 @@ class TestFileHelper {
     }
 
     public String getPermissions() {
-        return ['ls', file.directory ? '-ld' : '-l', file.absolutePath].execute().text.split()[0].substring(0, 10)
+        FileStat stat = PosixUtil.current().stat(file.absolutePath)
+        [6, 3, 0].collect {
+            def m = stat.mode() >> it
+            [m & 4 ? 'r' : '-', m & 2 ? 'w' : '-', m & 1 ? 'x' : '-']
+        }.flatten().join('')
+    }
+
+    def setPermissions(String permissions) {
+        def m = [6, 3, 0].inject(0) { mode, pos ->
+            mode |= permissions[9 - pos - 3] == 'r' ? 4 << pos : 0
+            mode |= permissions[9 - pos - 2] == 'w' ? 2 << pos : 0
+            mode |= permissions[9 - pos - 1] == 'x' ? 1 << pos : 0
+            return mode
+        }
+        int retval = PosixUtil.current().chmod(file.absolutePath, m)
+        if (retval != 0) {
+            throw new UncheckedIOException("Could not set permissions of '${file}' to '${permissions}'.")
+        }
     }
 }

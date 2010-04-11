@@ -189,6 +189,15 @@ public class TestFile extends File {
         }
     }
 
+    public TestFile linkTo(File target) {
+        getParentFile().createDir();
+        int retval = PosixUtil.current().symlink(target.getAbsolutePath(), getAbsolutePath());
+        if (retval != 0) {
+            throw new UncheckedIOException(String.format("Could not create link from '%s' to '%s'", target, this));
+        }
+        return this;
+    }
+
     public TestFile touch() {
         try {
             FileUtils.touch(this);
@@ -214,6 +223,11 @@ public class TestFile extends File {
         assertTrue(isDirectory() || mkdirs());
         new TestDirHelper(this).apply(structure);
         return this;
+    }
+
+    @Override
+    public TestFile getParentFile() {
+        return new TestFile(super.getParentFile());
     }
 
     @Override
@@ -262,7 +276,14 @@ public class TestFile extends File {
     }
 
     private String getPermissions() {
+        assertExists();
         return new TestFileHelper(this).getPermissions();
+    }
+
+    public TestFile setPermissions(String permissions) {
+        assertExists();
+        new TestFileHelper(this).setPermissions(permissions);
+        return this;
     }
 
     /**

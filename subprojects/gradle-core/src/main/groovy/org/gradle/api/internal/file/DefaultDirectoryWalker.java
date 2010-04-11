@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file;
 
 import org.gradle.api.GradleException;
@@ -90,7 +91,11 @@ public class DefaultDirectoryWalker implements DirectoryWalker {
     private void walkDir(File file, RelativePath path, AtomicBoolean stopFlag) {
         File[] children = file.listFiles();
         if (children == null) {
-            throw new GradleException(String.format("Could not list children of '%s'.", file));
+            if (file.isDirectory() && !file.canRead()) {
+                throw new GradleException(String.format("Could not list contents of directory '%s' as it is not readable.", file));
+            }
+            // else, might be a link which points to nothing, or has been removed while we're visiting, or ...
+            throw new GradleException(String.format("Could not list contents of '%s'.", file));
         }
         List<FileVisitDetailsImpl> dirs = new ArrayList<FileVisitDetailsImpl>();
         for (int i = 0; !stopFlag.get() && i < children.length; i++) {

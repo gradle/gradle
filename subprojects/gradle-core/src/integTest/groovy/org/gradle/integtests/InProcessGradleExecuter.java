@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests;
 
 import junit.framework.AssertionFailedError;
@@ -256,6 +257,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 LocationAwareException exception = (LocationAwareException) failure;
                 assertThat(exception.getReportableCauses(), hasItem(hasMessage(matcher)));
             } else {
+                assertThat(failure.getCause(), notNullValue());
                 assertThat(failure.getCause().getMessage(), matcher);
             }
         }
