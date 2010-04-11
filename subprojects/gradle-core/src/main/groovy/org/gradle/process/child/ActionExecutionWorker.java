@@ -26,10 +26,12 @@ import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
 import java.net.URI;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 
 /**
- * This is the other half of {@link org.gradle.process.launcher.GradleWorkerMain}. It is instantiated inside the implementation
- * ClassLoader.
+ * This is the other half of {@link org.gradle.process.launcher.GradleWorkerMain}. It is instantiated inside the
+ * implementation ClassLoader.
  */
 public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);
@@ -38,7 +40,8 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     private final String displayName;
     private final URI serverAddress;
 
-    public ActionExecutionWorker(Action<WorkerProcessContext> action, Object workerId, String displayName, URI serverAddress) {
+    public ActionExecutionWorker(Action<WorkerProcessContext> action, Object workerId, String displayName,
+                                 URI serverAddress) {
         this.action = action;
         this.workerId = workerId;
         this.displayName = displayName;
@@ -46,6 +49,15 @@ public class ActionExecutionWorker implements Action<WorkerContext>, Serializabl
     }
 
     public void execute(final WorkerContext workerContext) {
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                doExecute(workerContext);
+                return null;
+            }
+        });
+    }
+
+    private void doExecute(final WorkerContext workerContext) {
         final MessagingClient client = createClient();
         try {
             LOGGER.debug("Starting {}.", displayName);

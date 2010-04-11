@@ -23,6 +23,8 @@ import org.gradle.util.ClasspathUtil;
 import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.net.URLClassLoader;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
@@ -41,10 +43,16 @@ public class SystemApplicationClassLoaderWorker implements Callable<Void> {
 
         ClassLoaderObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(
                 serializedWorker), getClass().getClassLoader());
-        Action<WorkerContext> action = (Action<WorkerContext>) instr.readObject();
-        action.execute(new WorkerContext() {
-            public ClassLoader getApplicationClassLoader() {
-                return applicationClassLoader;
+        final Action<WorkerContext> action = (Action<WorkerContext>) instr.readObject();
+
+        AccessController.doPrivileged(new PrivilegedAction<Object>() {
+            public Object run() {
+                action.execute(new WorkerContext() {
+                    public ClassLoader getApplicationClassLoader() {
+                        return applicationClassLoader;
+                    }
+                });
+                return null;
             }
         });
         return null;

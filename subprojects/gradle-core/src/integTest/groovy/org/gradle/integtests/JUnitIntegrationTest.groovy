@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile;
@@ -296,6 +298,35 @@ public class JUnitIntegrationTest {
         results2.assertIsFile();
         assertThat(results1.linesThat(containsString('VM START TIME =')).get(0), not(equalTo(results2.linesThat(
                 containsString('VM START TIME =')).get(0))));
+    }
+
+    @Test
+    public void canInstallASecurityManagerDuringTest() {
+        TestFile testDir = dist.getTestDir();
+        testDir.file('src/test/java/SomeTest.java') << '''
+            public class SomeTest {
+                @org.junit.Test public void withSecurityManager() {
+                    System.setSecurityManager(new SecurityManager());
+                    SecurityManager sm = System.getSecurityManager();
+                    try {
+                        sm.checkPermission(new java.lang.RuntimePermission("setIO"));
+                        org.junit.Assert.fail();
+                    } catch (java.security.AccessControlException e) { }
+                }
+            }
+'''
+
+        testDir.file('build.gradle') << '''
+            apply plugin: 'java'
+            repositories { mavenCentral() }
+            dependencies { testCompile 'junit:junit:4.7' }
+        '''
+
+        executer.withTasks("test").run();
+
+        JUnitTestResult result = new JUnitTestResult(testDir)
+        result.assertTestClassesExecuted('SomeTest')
+        result.assertTestPassed('SomeTest', 'withSecurityManager')
     }
 
     @Test
