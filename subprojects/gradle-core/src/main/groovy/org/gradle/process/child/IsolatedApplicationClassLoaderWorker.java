@@ -26,24 +26,6 @@ import java.util.concurrent.Callable;
 
 /**
  * <p>A worker which loads the application classes in an isolated ClassLoader.</p>
- *
- * <p>Class loader hierarchy:</p>
- * <pre>
- *                         bootstrap
- *                            |
- *              +-------------+------------+
- *              |                          |
- *            system                   application
- *  (bootstrap classes, logging)           |
- *              |                          |
- *           filter                     filter
- *         (logging)               (shared packages)
- *              |                         |
- *              +-------------+-----------+
- *                            |
- *                     implementation
- *           (ActionExecutionWorker + action implementation)
- * </pre>
  */
 public class IsolatedApplicationClassLoaderWorker implements Callable<Void>, Serializable {
     private final Action<WorkerContext> worker;

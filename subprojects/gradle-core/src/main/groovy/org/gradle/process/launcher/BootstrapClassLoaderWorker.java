@@ -16,6 +16,7 @@
 
 package org.gradle.process.launcher;
 
+import java.io.File;
 import java.io.Serializable;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -24,31 +25,13 @@ import java.util.concurrent.Callable;
 
 /**
  * <p>A worker which loads the application classes in the system ClassLoader.</p>
- *
- * <p>Class loader hierarchy:</p>
- * <pre>
- *                          bootstrap
- *                             |
- *            +----------------+--------------+
- *            |                               |
- *          system                      worker bootstrap
- *  (this class, application)      (bootstrap classes, logging)
- *            |                               |
- *         filter                          filter
- *    (shared packages)                  (logging)
- *            |                              |
- *            +---------------+--------------+
- *                            |
- *                       implementation
- *             (ActionExecutionWorker + action implementation)
- * </pre>
  */
 public class BootstrapClassLoaderWorker implements Callable<Void>, Serializable {
     private final Collection<URL> bootstrapClasspath;
-    private final Collection<URL> applicationClasspath;
+    private final Collection<File> applicationClasspath;
     private final byte[] serializedWorker;
 
-    public BootstrapClassLoaderWorker(Collection<URL> bootstrapClasspath, Collection<URL> applicationClasspath, byte[] serializedWorker) {
+    public BootstrapClassLoaderWorker(Collection<URL> bootstrapClasspath, Collection<File> applicationClasspath, byte[] serializedWorker) {
         this.bootstrapClasspath = bootstrapClasspath;
         this.applicationClasspath = applicationClasspath;
         this.serializedWorker = serializedWorker;

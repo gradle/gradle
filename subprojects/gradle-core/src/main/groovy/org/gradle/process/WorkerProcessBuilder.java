@@ -19,13 +19,14 @@ package org.gradle.process;
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.exec.JavaExecHandleBuilder;
 
 import java.io.File;
-import java.net.URL;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * <p>A builder which configures and creates a {@link org.gradle.process.WorkerProcess} instance.</p>
@@ -40,7 +41,7 @@ import java.util.*;
 public abstract class WorkerProcessBuilder {
     private final JavaExecHandleBuilder javaCommand;
     private final Set<String> packages = new HashSet<String>();
-    private final Set<URL> applicationClasspath = new LinkedHashSet<URL>();
+    private final Set<File> applicationClasspath = new LinkedHashSet<File>();
     private Action<WorkerProcessContext> action;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
     private boolean loadApplicationInSystemClassLoader;
@@ -50,11 +51,11 @@ public abstract class WorkerProcessBuilder {
     }
 
     public WorkerProcessBuilder applicationClasspath(Iterable<File> files) {
-        applicationClasspath.addAll(GFileUtils.toURLs(files));
+        GUtil.addToCollection(applicationClasspath, files);
         return this;
     }
 
-    public Set<URL> getApplicationClasspath() {
+    public Set<File> getApplicationClasspath() {
         return applicationClasspath;
     }
 

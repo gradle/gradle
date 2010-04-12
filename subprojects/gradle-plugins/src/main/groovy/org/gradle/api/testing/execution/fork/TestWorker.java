@@ -49,9 +49,10 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
     }
 
     public void execute(WorkerProcessContext workerProcessContext) {
+        LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
+
         Policy.setPolicy(new TestPolicy(Policy.getPolicy()));
 
-        LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
         completed = new CountDownLatch(1);
 
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();

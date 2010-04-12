@@ -21,8 +21,8 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.ObjectConnection;
-import org.gradle.process.child.IsolatedApplicationClassLoaderWorkerFactory;
-import org.gradle.process.child.SystemClassLoaderWorkerFactory;
+import org.gradle.process.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
+import org.gradle.process.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.child.WorkerFactory;
 import org.gradle.process.launcher.GradleWorkerMain;
 import org.gradle.util.ClasspathUtil;
@@ -79,9 +79,9 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
-                workerFactory = new SystemClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
+                workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
             } else {
-                workerFactory = new IsolatedApplicationClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
+                workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
             }
             Callable<?> workerMain = workerFactory.create();
             getJavaCommand().classpath(workerFactory.getSystemClasspath());

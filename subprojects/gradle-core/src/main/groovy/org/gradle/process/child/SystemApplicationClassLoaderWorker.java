@@ -19,9 +19,11 @@ package org.gradle.process.child;
 import org.gradle.api.Action;
 import org.gradle.util.ClassLoaderObjectInputStream;
 import org.gradle.util.ClasspathUtil;
+import org.gradle.util.GFileUtils;
+import org.gradle.util.GUtil;
 
 import java.io.ByteArrayInputStream;
-import java.net.URL;
+import java.io.File;
 import java.net.URLClassLoader;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
@@ -30,16 +32,17 @@ import java.util.concurrent.Callable;
 
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private final byte[] serializedWorker;
-    private final Collection<URL> applicationClassPath;
+    private final Collection<File> applicationClassPath;
 
-    public SystemApplicationClassLoaderWorker(Collection<URL> applicationClassPath, byte[] serializedWorker) {
+    public SystemApplicationClassLoaderWorker(Collection<File> applicationClassPath, byte[] serializedWorker) {
         this.applicationClassPath = applicationClassPath;
         this.serializedWorker = serializedWorker;
     }
 
     public Void call() throws Exception {
         final ClassLoader applicationClassLoader = ClassLoader.getSystemClassLoader();
-        ClasspathUtil.addUrl((URLClassLoader) applicationClassLoader, applicationClassPath);
+        ClasspathUtil.addUrl((URLClassLoader) applicationClassLoader, GFileUtils.toURLs(applicationClassPath));
+        System.setProperty("java.class.path", GUtil.join(applicationClassPath, File.pathSeparator));
 
         ClassLoaderObjectInputStream instr = new ClassLoaderObjectInputStream(new ByteArrayInputStream(
                 serializedWorker), getClass().getClassLoader());

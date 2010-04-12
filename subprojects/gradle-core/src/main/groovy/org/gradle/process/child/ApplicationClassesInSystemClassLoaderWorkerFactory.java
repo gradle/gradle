@@ -28,7 +28,29 @@ import java.util.Collection;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class SystemClassLoaderWorkerFactory implements WorkerFactory {
+/**
+ * A factory for a worker process which loads the application classes using the JVM's system ClassLoader.
+ *
+ * <p>Class loader hierarchy:</p>
+ * <pre>
+ *                          bootstrap
+ *                             |
+ *            +----------------+--------------+
+ *            |                               |
+ *          system                      worker bootstrap
+ *  (this class, application)      (bootstrap classes, logging)
+ *            |                               |
+ *         filter                          filter
+ *    (shared packages)                  (logging)
+ *            |                              |
+ *            +---------------+--------------+
+ *                            |
+ *                       implementation
+ *             (ActionExecutionWorker + action implementation)
+ * </pre>
+ *
+ */
+public class ApplicationClassesInSystemClassLoaderWorkerFactory implements WorkerFactory {
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -36,7 +58,7 @@ public class SystemClassLoaderWorkerFactory implements WorkerFactory {
     private final URI serverAddress;
     private final ClassPathRegistry classPathRegistry;
 
-    public SystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
+    public ApplicationClassesInSystemClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
                                           List<URL> implementationClassPath, URI serverAddress,
                                           ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;

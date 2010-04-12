@@ -18,15 +18,38 @@ package org.gradle.process.child;
 
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.net.URI;
 import java.net.URL;
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 import java.util.concurrent.Callable;
 
-public class IsolatedApplicationClassLoaderWorkerFactory implements WorkerFactory {
+/**
+ * A factory for a worker process which loads application classes using an isolated ClassLoader.
+ *
+ * <p>Class loader hierarchy:</p>
+ * <pre>
+ *                         bootstrap
+ *                            |
+ *              +-------------+------------+
+ *              |                          |
+ *            system                   application
+ *  (bootstrap classes, logging)           |
+ *              |                          |
+ *           filter                     filter
+ *         (logging)               (shared packages)
+ *              |                         |
+ *              +-------------+-----------+
+ *                            |
+ *                     implementation
+ *           (ActionExecutionWorker + action implementation)
+ * </pre>
+ *
+ */
+public class ApplicationClassesInIsolatedClassLoaderWorkerFactory implements WorkerFactory {
     private final Object workerId;
     private final String displayName;
     private final WorkerProcessBuilder processBuilder;
@@ -34,7 +57,7 @@ public class IsolatedApplicationClassLoaderWorkerFactory implements WorkerFactor
     private final URI serverAddress;
     private final ClassPathRegistry classPathRegistry;
 
-    public IsolatedApplicationClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
+    public ApplicationClassesInIsolatedClassLoaderWorkerFactory(Object workerId, String displayName, WorkerProcessBuilder processBuilder,
                                             Collection<URL> implementationClassPath, URI serverAddress,
                                             ClassPathRegistry classPathRegistry) {
         this.workerId = workerId;
@@ -50,10 +73,11 @@ public class IsolatedApplicationClassLoaderWorkerFactory implements WorkerFactor
     }
 
     public Callable<?> create() {
-        Set<URL> applicationClassPath = processBuilder.getApplicationClasspath();
-        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId, displayName, serverAddress);
-        ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(), processBuilder.getSharedPackages(),
-                implementationClassPath, injectedWorker);
+        List<URL> applicationClassPath = GFileUtils.toURLs(processBuilder.getApplicationClasspath());
+        ActionExecutionWorker injectedWorker = new ActionExecutionWorker(processBuilder.getWorker(), workerId,
+                displayName, serverAddress);
+        ImplementationClassLoaderWorker worker = new ImplementationClassLoaderWorker(processBuilder.getLogLevel(),
+                processBuilder.getSharedPackages(), implementationClassPath, injectedWorker);
         return new IsolatedApplicationClassLoaderWorker(applicationClassPath, worker);
     }
 }
