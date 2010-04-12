@@ -32,7 +32,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * <p>A <code>Task</code> represents a single atomic piece of work for a build, such as compiling classes or generating javadoc.</p>
+ * <p>A <code>Task</code> represents a single atomic piece of work for a build, such as compiling classes or generating
+ * javadoc.</p>
  *
  * <p>Each task belongs to a {@link Project}. You can use the various methods on {@link
  * org.gradle.api.tasks.TaskContainer} to create and lookup task instances. For example, {@link
@@ -484,8 +485,11 @@ public interface Task extends Comparable<Task> {
     TaskOutputs getOutputs();
 
     /**
-     * Returns a directory which this task can use to write temporary files to.
-     * @return The directory. Never returns null.
+     * <p>Returns a directory which this task can use to write temporary files to. Each task instance is provided with a
+     * separate temporary directory. There are no guarantees that the contents of this directory will be kept beyond the
+     * execution of the task.</p>
+     *
+     * @return The directory. Never returns null. The directory will already exist.
      */
     File getTemporaryDir();
 }
