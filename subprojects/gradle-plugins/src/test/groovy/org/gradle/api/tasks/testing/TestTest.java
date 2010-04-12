@@ -131,24 +131,67 @@ public class TestTest extends AbstractConventionTaskTest {
         test.executeTests();
     }
 
-    @org.junit.Test public void testListenerMethodsDelegateToListenerBroadcast() {
+    @org.junit.Test public void notifiesListenerOfEvents() {
         final TestListener listener = context.mock(TestListener.class);
-        final TestClosure closure = context.mock(TestClosure.class);
         test.addTestListener(listener);
-        test.beforeTest(HelperUtil.toClosure(closure));
-        test.afterTest(HelperUtil.toClosure(closure));
+
+        final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
+
+        context.checking(new Expectations() {{
+            one(listener).beforeSuite(testDescriptor);
+        }});
+
+        test.getTestListenerBroadcaster().getSource().beforeSuite(testDescriptor);
+    }
+
+    @org.junit.Test public void notifiesListenerBeforeSuite() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        test.beforeSuite(HelperUtil.toClosure(closure));
+
+        final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
+
+        context.checking(new Expectations() {{
+            one(closure).call(testDescriptor);
+        }});
+
+        test.getTestListenerBroadcaster().getSource().beforeSuite(testDescriptor);
+    }
+
+    @org.junit.Test public void notifiesListenerAfterSuite() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        test.afterSuite(HelperUtil.toClosure(closure));
 
         final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
         final TestResult result = context.mock(TestResult.class);
+
         context.checking(new Expectations() {{
-            one(listener).beforeTest(testDescriptor);
+            one(closure).call(testDescriptor);
+        }});
+
+        test.getTestListenerBroadcaster().getSource().afterSuite(testDescriptor, result);
+    }
+
+    @org.junit.Test public void notifiesListenerBeforeTest() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        test.beforeTest(HelperUtil.toClosure(closure));
+
+        final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
+
+        context.checking(new Expectations() {{
             one(closure).call(testDescriptor);
         }});
 
         test.getTestListenerBroadcaster().getSource().beforeTest(testDescriptor);
+    }
+
+    @org.junit.Test public void notifiesListenerAfterTest() {
+        final TestClosure closure = context.mock(TestClosure.class);
+        test.afterTest(HelperUtil.toClosure(closure));
+
+        final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
+        final TestResult result = context.mock(TestResult.class);
 
         context.checking(new Expectations() {{
-            one(listener).afterTest(testDescriptor, result);
             one(closure).call(testDescriptor);
         }});
 
@@ -267,18 +310,6 @@ public class TestTest extends AbstractConventionTaskTest {
 
             public void describeTo(Description description) {
                 description.appendText("a forking test processor");
-            }
-        };
-    }
-
-    private Matcher<TestClassProcessor> instanceOf(final Class<? extends TestClassProcessor> type) {
-        return new BaseMatcher<TestClassProcessor>() {
-            public boolean matches(Object object) {
-                return type.isInstance(object);
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("instance of ").appendValue(type.getName());
             }
         };
     }

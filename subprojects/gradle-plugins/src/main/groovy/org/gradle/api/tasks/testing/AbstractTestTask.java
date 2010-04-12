@@ -115,6 +115,32 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
+     * <p>Adds a closure to be notified before a test suite is executed. A {@link TestDescriptor} instance is
+     * passed to the closure as a parameter.</p>
+     *
+     * <p>This method is also called before any test suites are executed. The provided descriptor will have a null
+     * parent suite.</p>
+     *
+     * @param closure The closure to call.
+     */
+    public void beforeSuite(Closure closure) {
+        testListenerBroadcaster.add("beforeSuite", closure);
+    }
+
+    /**
+     * <p>Adds a closure to be notified after a test suite has executed. A {@link TestDescriptor} and {@link
+     * TestResult} instance are passed to the closure as a parameter.</p>
+     *
+     * <p>This method is also called after all test suites are executed. The provided descriptor will have a null
+     * parent suite.</p>
+     *
+     * @param closure The closure to call.
+     */
+    public void afterSuite(Closure closure) {
+        testListenerBroadcaster.add("afterSuite", closure);
+    }
+
+    /**
      * Adds a closure to be notified before a test is executed. A {@link TestDescriptor} instance is
      * passed to the closure as a parameter.
      *
@@ -125,8 +151,8 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
     }
 
     /**
-     * Adds a closure to be notified after a test has executed. A {@link TestDescriptor} and {@link
-     * org.gradle.api.tasks.testing.TestResult} instance are passed to the closure as a parameter.
+     * Adds a closure to be notified after a test has executed. A {@link TestDescriptor} and {@link TestResult}
+     * instance are passed to the closure as a parameter.
      *
      * @param closure The closure to call.
      */
