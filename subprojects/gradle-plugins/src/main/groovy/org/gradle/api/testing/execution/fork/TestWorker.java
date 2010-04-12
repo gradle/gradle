@@ -35,7 +35,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.Serializable;
-import java.security.Policy;
 import java.util.concurrent.CountDownLatch;
 
 public class TestWorker implements Action<WorkerProcessContext>, TestClassProcessor, Serializable {
@@ -50,8 +49,6 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
 
     public void execute(WorkerProcessContext workerProcessContext) {
         LOGGER.info("{} executing tests.", workerProcessContext.getDisplayName());
-
-        Policy.setPolicy(new TestPolicy(Policy.getPolicy()));
 
         completed = new CountDownLatch(1);
 

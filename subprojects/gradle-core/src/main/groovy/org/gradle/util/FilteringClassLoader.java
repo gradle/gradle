@@ -18,8 +18,6 @@ package org.gradle.util;
 
 import java.io.IOException;
 import java.net.URL;
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.*;
 
 /**
@@ -135,15 +133,10 @@ public class FilteringClassLoader extends ClassLoader {
     }
 
     private boolean allowed(final Class<?> cl) {
-        // Use our own credentials to access the class' ClassLoader, and ignore the caller's credentials.  
-        return AccessController.doPrivileged(new PrivilegedAction<Boolean>() {
-            public Boolean run() {
-                if (cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader())) {
-                    return true;
-                }
-                return classAllowed(cl.getName());
-            }
-        });
+        if (cl.getClassLoader() == null || SYSTEM_CLASS_LOADERS.contains(cl.getClassLoader())) {
+            return true;
+        }
+        return classAllowed(cl.getName());
     }
 
     private boolean classAllowed(String className) {
