@@ -15,7 +15,6 @@
  */
 
 
-
 package org.gradle.api.testing.execution.fork
 
 import spock.lang.Specification
