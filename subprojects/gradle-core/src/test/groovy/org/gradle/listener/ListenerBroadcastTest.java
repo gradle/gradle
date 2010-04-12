@@ -19,7 +19,9 @@ package org.gradle.listener;
 import org.gradle.api.Action;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.TestClosure;
+import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
@@ -98,7 +100,7 @@ public class ListenerBroadcastTest {
     }
 
     @Test
-    public void canUseClosureForSingleEventMethod() {
+    public void canUseClosureToReceiveNotificationsForSingleEventMethod() {
         final TestClosure testClosure = context.mock(TestClosure.class);
         context.checking(new Expectations() {{
             one(testClosure).call("param");
@@ -205,6 +207,33 @@ public class ListenerBroadcastTest {
         broadcast.getSource().event1("param");
     }
 
+    @Test
+    public void listenerCanAddAnotherListener() {
+        final TestListener listener1 = context.mock(TestListener.class, "listener1");
+        final TestListener listener2 = context.mock(TestListener.class, "listener2");
+        final TestListener listener3 = context.mock(TestListener.class, "listener3");
+
+        broadcast.add(listener1);
+        broadcast.add(listener2);
+
+        context.checking(new Expectations() {{
+            ignoring(listener2);
+            one(listener1).event1("event");
+            will(new org.jmock.api.Action() {
+                public void describeTo(Description description) {
+                    description.appendText("add listener");
+                }
+
+                public Object invoke(Invocation invocation) throws Throwable {
+                    broadcast.add(listener3);
+                    return null;
+                }
+            });
+        }});
+
+        broadcast.getSource().event1("event");
+    }
+    
     @Test
     public void wrapsExceptionThrownByListener() {
         final TestListener listener = context.mock(TestListener.class);

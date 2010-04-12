@@ -24,6 +24,7 @@ import org.gradle.listener.ListenerNotificationException;
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -102,7 +103,7 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
 
     private void dispatch(Method method, Object[] parameters) throws Throwable {
         logger.invoke(null, method, parameters);
-        for (InvocationHandler handler : handlers.values()) {
+        for (InvocationHandler handler : new ArrayList<InvocationHandler>(handlers.values())) {
             handler.invoke(null, method, parameters);
         }
     }
