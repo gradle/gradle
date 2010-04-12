@@ -15,21 +15,20 @@
  */
 
 
+
+
 package org.gradle.api.internal.project.taskfactory
 
-
-import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.api.Action
+import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.tasks.TaskDependency
+import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.internal.tasks.TaskExecuter
-import org.gradle.api.internal.tasks.TaskStateInternal
-import org.gradle.api.internal.TaskInternal
-import org.gradle.api.Action
-import org.gradle.api.tasks.TaskDependency
 
 @RunWith(JMock.class)
 class PostExecutionAnalysisTaskExecuterTest {

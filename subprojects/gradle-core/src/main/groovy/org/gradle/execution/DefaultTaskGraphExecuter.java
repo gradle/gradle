@@ -22,6 +22,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ListenerBroadcast;
@@ -90,6 +91,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
         Set<Task> visiting = new HashSet<Task>();
         List<Task> queue = new ArrayList<Task>();
         queue.addAll(tasks);
+        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
 
         while (!queue.isEmpty()) {
             Task task = queue.get(0);
@@ -108,7 +110,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 // Have not seen this task before - add its dependencies to the head of the queue and leave this
                 // task in the queue
                 Set<Task> dependsOnTasks = new TreeSet<Task>(Collections.reverseOrder());
-                dependsOnTasks.addAll(task.getTaskDependencies().getDependencies(task));
+                dependsOnTasks.addAll(context.getDependencies(task));
                 for (Task dependsOnTask : dependsOnTasks) {
                     if (visiting.contains(dependsOnTask)) {
                         throw new CircularReferenceException(String.format(

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import org.gradle.util.GUtil;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class DefaultTaskDependency implements TaskDependency {
+public class DefaultTaskDependency implements TaskDependencyInternal {
     private static final TaskResolver FAILING_RESOLVER = new TaskResolver() {
         public Task resolveTask(Object path) {
             throw new UnsupportedOperationException(String.format("Cannot convert %s to a task.", path));
@@ -44,27 +44,30 @@ public class DefaultTaskDependency implements TaskDependency {
     }
 
     public Set<Task> getDependencies(Task task) {
-        Set<Task> result = new HashSet<Task>();
+        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
+        context.add(this);
+        return context.resolve(task);
+    }
+
+    public void resolve(TaskDependencyResolveContext context) {
         LinkedList<Object> queue = new LinkedList<Object>(values);
         while (!queue.isEmpty()) {
             Object dependency = queue.removeFirst();
             if (dependency instanceof Buildable) {
-                Buildable buildable = (Buildable) dependency;
-                result.addAll(buildable.getBuildDependencies().getDependencies(task));
-            }
-            else if (dependency instanceof Task) {
-                result.add((Task) dependency);
+                context.add(dependency);
+            } else if (dependency instanceof Task) {
+                context.add(dependency);
             } else if (dependency instanceof TaskDependency) {
-                result.addAll(((TaskDependency) dependency).getDependencies(task));
+                context.add(dependency);
             } else if (dependency instanceof Closure) {
                 Closure closure = (Closure) dependency;
-                Object closureResult = closure.call(task);
+                Object closureResult = closure.call(context.getTask());
                 if (closureResult != null) {
                     queue.add(0, closureResult);
                 }
             } else if (dependency instanceof Iterable) {
                 Iterable<?> iterable = (Iterable) dependency;
-                queue.addAll(0, GUtil.addToCollection(new ArrayList(), iterable));
+                queue.addAll(0, GUtil.addToCollection(new ArrayList<Object>(), iterable));
             } else if (dependency instanceof Map) {
                 Map<?, ?> map = (Map) dependency;
                 queue.addAll(0, map.values());
@@ -83,10 +86,9 @@ public class DefaultTaskDependency implements TaskDependency {
                     queue.add(0, callableResult);
                 }
             } else {
-                result.add(resolver.resolveTask(dependency));
+                context.add(resolver.resolveTask(dependency));
             }
         }
-        return result;
     }
 
     public Set<Object> getValues() {

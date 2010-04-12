@@ -25,6 +25,7 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
 import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.logging.*;
@@ -155,7 +156,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         this.actions = actions;
     }
 
-    public TaskDependency getTaskDependencies() {
+    public TaskDependencyInternal getTaskDependencies() {
         return dependencies;
     }
 
