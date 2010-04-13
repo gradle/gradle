@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
@@ -20,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
 
 import java.io.File;
@@ -81,9 +83,9 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
     }
 
     @Override
-    protected void addDependencies(DefaultTaskDependency dependency) {
-        super.addDependencies(dependency);
-        dependency.add(buildDependency);
+    protected void addDependencies(TaskDependencyResolveContext context) {
+        super.addDependencies(context);
+        context.add(buildDependency);
     }
 
     @Override

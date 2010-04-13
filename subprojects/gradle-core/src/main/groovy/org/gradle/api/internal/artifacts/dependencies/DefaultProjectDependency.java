@@ -17,11 +17,11 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.artifacts.*;
 
 import java.io.File;
 import java.util.LinkedHashSet;
@@ -35,6 +35,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     private final ProjectDependenciesBuildInstruction instruction;
     private Set<File> transitiveCache;
     private Set<File> nonTransitiveCache;
+    private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
 
     public DefaultProjectDependency(Project dependencyProject, ProjectDependenciesBuildInstruction instruction) {
         this(dependencyProject, null, instruction);
@@ -104,21 +105,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public TaskDependency getBuildDependencies() {
-        if (!instruction.isRebuild()) {
-            return new DefaultTaskDependency();
-        }
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                Configuration configuration = getProjectConfiguration();
-                taskDependency.add(configuration);
-                taskDependency.add(configuration.getBuildArtifacts());
-                for (String taskName : instruction.getTaskNames()) {
-                    taskDependency.add(dependencyProject.getTasks().getByName(taskName));
-                }
-                return taskDependency.getDependencies(task);
-            }
-        };
+        return taskDependency;
     }
 
     public boolean contentEquals(Dependency dependency) {
@@ -168,5 +155,19 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     public String toString() {
         return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration"
                 + getConfiguration() + '\'' + '}';
+    }
+
+    private class TaskDependencyImpl extends AbstractTaskDependency {
+        public void resolve(TaskDependencyResolveContext context) {
+            if (!instruction.isRebuild()) {
+                return;
+            }
+            Configuration configuration = getProjectConfiguration();
+            context.add(configuration);
+            context.add(configuration.getBuildArtifacts());
+            for (String taskName : instruction.getTaskNames()) {
+                context.add(dependencyProject.getTasks().getByName(taskName));
+            }
+        }
     }
 }

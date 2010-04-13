@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file;
 
-import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
@@ -121,22 +122,20 @@ public abstract class CompositeFileCollection extends AbstractFileCollection {
 
     @Override
     public TaskDependency getBuildDependencies() {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                DefaultTaskDependency dependency = new DefaultTaskDependency();
-                addDependencies(dependency);
-                return dependency.getDependencies(task);
+        return new AbstractTaskDependency() {
+            public void resolve(TaskDependencyResolveContext context) {
+                addDependencies(context);
             }
         };
     }
 
     /**
      * Allows subclasses to add additional dependencies
-     * @param dependency The dependency container to add dependencies to.
+     * @param context The context to add dependencies to.
      */
-    protected void addDependencies(DefaultTaskDependency dependency) {
+    protected void addDependencies(TaskDependencyResolveContext context) {
         for (FileCollection collection : getSourceCollections()) {
-            dependency.add(collection);
+            context.add(collection);
         }
     }
 

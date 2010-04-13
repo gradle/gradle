@@ -20,9 +20,7 @@ import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.Set;
+import java.util.*;
 
 /**
  * A {@link TaskDependencyResolveContext} which caches the dependencies for each {@link
@@ -31,7 +29,17 @@ import java.util.Set;
  */
 public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext, TaskDependency {
     private final LinkedList<Object> queue = new LinkedList<Object>();
+    private Map<Object, Set<? extends Task>> cache = new HashMap<Object, Set<? extends Task>>();
     private Task task;
+
+    public CachingTaskDependencyResolveContext() {
+        cache = new HashMap<Object, Set<? extends Task>>();
+    }
+
+    private CachingTaskDependencyResolveContext(Task task, Map<Object, Set<? extends Task>> cache) {
+        this.task = task;
+        this.cache = cache;
+    }
 
     public Set<? extends Task> getDependencies(Task task) {
         add(task.getTaskDependencies());
@@ -45,33 +53,48 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     public Set<Task> resolve(Task task) {
         this.task = task;
         try {
-            Set<Task> tasks = new LinkedHashSet<Task>();
-            doResolve(task, tasks);
-            return tasks;
+            return doResolve();
         } finally {
             queue.clear();
             this.task = null;
         }
     }
 
-    private void doResolve(Task task, Set<Task> tasks) {
+    private Set<Task> doResolve() {
+        Set<Task> tasks = new LinkedHashSet<Task>();
         while (!queue.isEmpty()) {
             Object dependency = queue.remove(0);
-            if (dependency instanceof Task) {
+            Set<? extends Task> resolvedDependencies = cache.get(dependency);
+            if (resolvedDependencies != null) {
+                tasks.addAll(resolvedDependencies);
+            } else if (dependency instanceof Task) {
                 tasks.add((Task) dependency);
-            } else if (dependency instanceof TaskDependencyInternal) {
-                TaskDependencyInternal taskDependency = (TaskDependencyInternal) dependency;
-                taskDependency.resolve(this);
-            } else if (dependency instanceof TaskDependency) {
-                TaskDependency taskDependency = (TaskDependency) dependency;
-                tasks.addAll(taskDependency.getDependencies(task));
-            } else if (dependency instanceof Buildable) {
-                Buildable buildable = (Buildable) dependency;
-                queue.add(0, buildable.getBuildDependencies());
             } else {
-                throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
-                        dependency.getClass().getSimpleName()));
+                Set<Task> dependencies = doResolveComposite(dependency);
+                cache.put(dependency, dependencies);
+                tasks.addAll(dependencies);
             }
+        }
+        return tasks;
+    }
+
+    private Set<Task> doResolveComposite(Object dependency) {
+        if (dependency instanceof TaskDependencyInternal) {
+            TaskDependencyInternal taskDependency = (TaskDependencyInternal) dependency;
+            CachingTaskDependencyResolveContext nestedContext = new CachingTaskDependencyResolveContext(task, cache);
+            taskDependency.resolve(nestedContext);
+            return nestedContext.doResolve();
+        } else if (dependency instanceof TaskDependency) {
+            TaskDependency taskDependency = (TaskDependency) dependency;
+            return new LinkedHashSet<Task>(taskDependency.getDependencies(task));
+        } else if (dependency instanceof Buildable) {
+            Buildable buildable = (Buildable) dependency;
+            CachingTaskDependencyResolveContext nestedContext = new CachingTaskDependencyResolveContext(task, cache);
+            nestedContext.add(buildable.getBuildDependencies());
+            return nestedContext.doResolve();
+        } else {
+            throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
+                    dependency.getClass().getSimpleName()));
         }
     }
 

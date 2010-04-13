@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
@@ -26,7 +27,7 @@ import org.gradle.util.GUtil;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-public class DefaultTaskDependency implements TaskDependencyInternal {
+public class DefaultTaskDependency extends AbstractTaskDependency {
     private static final TaskResolver FAILING_RESOLVER = new TaskResolver() {
         public Task resolveTask(Object path) {
             throw new UnsupportedOperationException(String.format("Cannot convert %s to a task.", path));
@@ -41,12 +42,6 @@ public class DefaultTaskDependency implements TaskDependencyInternal {
 
     public DefaultTaskDependency(TaskResolver resolver) {
         this.resolver = resolver == null ? FAILING_RESOLVER : resolver;
-    }
-
-    public Set<Task> getDependencies(Task task) {
-        CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext();
-        context.add(this);
-        return context.resolve(task);
     }
 
     public void resolve(TaskDependencyResolveContext context) {

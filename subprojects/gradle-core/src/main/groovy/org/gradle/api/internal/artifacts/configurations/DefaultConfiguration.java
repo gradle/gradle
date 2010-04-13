@@ -30,7 +30,9 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.file.AbstractFileCollection;
-import org.gradle.api.internal.tasks.DefaultTaskDependency;
+import org.gradle.api.internal.tasks.AbstractTaskDependency;
+import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskDependency;
@@ -60,8 +62,10 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     private State state = State.UNRESOLVED;
 
     private ResolvedConfiguration cachedResolvedConfiguration;
+    private final ConfigurationTaskDependency taskDependency = new ConfigurationTaskDependency();
 
-    public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider, IvyService ivyService) {
+    public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
+                                IvyService ivyService) {
         this.path = path;
         this.name = name;
         this.configurationsProvider = configurationsProvider;
@@ -201,66 +205,45 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public TaskDependency getBuildDependencies() {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                addBuildDependenciesFromExtendedConfigurations(taskDependency);
-                addSelfResolvingDependencies(taskDependency);
-                return taskDependency.getDependencies(task);
-            }
-        };
-    }
-
-    private void addSelfResolvingDependencies(DefaultTaskDependency taskDependency) {
-        for (SelfResolvingDependency dependency : getDependencies(SelfResolvingDependency.class)) {
-            taskDependency.add(dependency);
-        }
-    }
-
-    private void addBuildDependenciesFromExtendedConfigurations(DefaultTaskDependency taskDependency) {
-        for (Configuration configuration : getExtendsFrom()) {
-            taskDependency.add(configuration.getBuildDependencies());
-        }
+        return taskDependency;
     }
 
     /**
      * {@inheritDoc}
      */
     public TaskDependency getTaskDependencyFromProjectDependency(final boolean useDependedOn, final String taskName) {
-        return new TaskDependency() {
-            public Set<? extends Task> getDependencies(Task task) {
-                DefaultTaskDependency taskDependency = new DefaultTaskDependency();
+        return new AbstractTaskDependency() {
+            public void resolve(TaskDependencyResolveContext context) {
                 if (useDependedOn) {
-                    addTaskDependenciesFromProjectsIDependOn(taskName, taskDependency);
+                    addTaskDependenciesFromProjectsIDependOn(taskName, context);
                 } else {
-                    Project thisProject = task.getProject();
-                    addTaskDependenciesFromProjectsDependingOnMe(thisProject, taskName, taskDependency);
+                    Project thisProject = context.getTask().getProject();
+                    addTaskDependenciesFromProjectsDependingOnMe(thisProject, taskName, context);
                 }
-                return taskDependency.getDependencies(task);
+            }
+
+            private void addTaskDependenciesFromProjectsIDependOn(final String taskName,
+                                                                  final TaskDependencyResolveContext context) {
+                Set<ProjectDependency> projectDependencies = getAllDependencies(ProjectDependency.class);
+                for (ProjectDependency projectDependency : projectDependencies) {
+                    Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
+                    if (nextTask != null) {
+                        context.add(nextTask);
+                    }
+                }
+            }
+
+            private void addTaskDependenciesFromProjectsDependingOnMe(final Project thisProject, final String taskName,
+                                                                      final TaskDependencyResolveContext context) {
+                Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
+                for (Task nextTask : tasksWithName) {
+                    Configuration configuration = nextTask.getProject().getConfigurations().findByName(getName());
+                    if (configuration != null && doesConfigurationDependOnProject(configuration, thisProject)) {
+                        context.add(nextTask);
+                    }
+                }
             }
         };
-    }
-
-    private void addTaskDependenciesFromProjectsIDependOn(final String taskName,
-                                                          final DefaultTaskDependency taskDependency) {
-        Set<ProjectDependency> projectDependencies = getAllDependencies(ProjectDependency.class);
-        for (ProjectDependency projectDependency : projectDependencies) {
-            Task nextTask = projectDependency.getDependencyProject().getTasks().findByName(taskName);
-            if (nextTask != null) {
-                taskDependency.add(nextTask);
-            }
-        }
-    }
-
-    private void addTaskDependenciesFromProjectsDependingOnMe(final Project thisProject, final String taskName,
-                                                              final DefaultTaskDependency taskDependency) {
-        Set<Task> tasksWithName = thisProject.getRootProject().getTasksByName(taskName, true);
-        for (Task nextTask : tasksWithName) {
-            Configuration configuration = nextTask.getProject().getConfigurations().findByName(getName());
-            if (configuration != null && doesConfigurationDependOnProject(configuration, thisProject)) {
-                taskDependency.add(nextTask);
-            }
-        }
     }
 
     private static boolean doesConfigurationDependOnProject(Configuration configuration, Project project) {
@@ -275,18 +258,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public TaskDependency getBuildArtifacts() {
         return getAllArtifactFiles().getBuildDependencies();
-    }
-
-    private void addTasksForBuildingArtifacts(DefaultTaskDependency taskDependency) {
-        for (PublishArtifact publishArtifact : getArtifacts()) {
-            taskDependency.add(publishArtifact);
-        }
-    }
-
-    private void addBuildArtifactsFromExtendedConfigurations(DefaultTaskDependency taskDependency) {
-        for (Configuration configuration : getExtendsFrom()) {
-            taskDependency.add(configuration.getBuildArtifacts());
-        }
     }
 
     public Set<Dependency> getDependencies() {
@@ -462,20 +433,24 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     class ArtifactsFileCollection extends AbstractFileCollection {
+        private final TaskDependencyInternal taskDependency = new AbstractTaskDependency() {
+            public void resolve(TaskDependencyResolveContext context) {
+                for (Configuration configuration : getExtendsFrom()) {
+                    context.add(configuration.getBuildArtifacts());
+                }
+                for (PublishArtifact publishArtifact : getArtifacts()) {
+                    context.add(publishArtifact);
+                }
+            }
+        };
+
         public String getDisplayName() {
             return String.format("%s artifacts", DefaultConfiguration.this);
         }
 
         @Override
         public TaskDependency getBuildDependencies() {
-            return new TaskDependency() {
-                public Set<? extends Task> getDependencies(Task task) {
-                    DefaultTaskDependency taskDependency = new DefaultTaskDependency();
-                    addBuildArtifactsFromExtendedConfigurations(taskDependency);
-                    addTasksForBuildingArtifacts(taskDependency);
-                    return taskDependency.getDependencies(task);
-                }
-            };
+            return taskDependency;
         }
 
         public Set<File> getFiles() {
@@ -520,6 +495,18 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
                 resolvedConfiguration.rethrowFailure();
             }
             return resolvedConfiguration.getFiles(dependencySpec);
+        }
+    }
+
+    private class ConfigurationTaskDependency extends AbstractTaskDependency {
+        public void resolve(TaskDependencyResolveContext context) {
+            for (Configuration configuration : getExtendsFrom()) {
+                context.add(configuration.getBuildDependencies());
+            }
+            for (SelfResolvingDependency dependency : DefaultConfiguration.this.getDependencies(
+                    SelfResolvingDependency.class)) {
+                context.add(dependency);
+            }
         }
     }
 }

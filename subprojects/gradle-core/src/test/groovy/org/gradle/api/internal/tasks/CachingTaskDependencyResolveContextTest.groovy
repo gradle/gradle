@@ -16,6 +16,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks
 
 import spock.lang.Specification
@@ -39,7 +41,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context)
+        1 * dependency.resolve(_)
         tasks.isEmpty()
     }
 
@@ -48,7 +50,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context) >> { context.add(target) }
+        1 * dependency.resolve(_) >> { args -> args[0].add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -59,7 +61,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context) >> { context.add(otherDependency) }
+        1 * dependency.resolve(_) >> { args -> args[0].add(otherDependency) }
         1 * otherDependency.getDependencies(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
     }
@@ -71,8 +73,8 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context) >> { context.add(otherDependency) }
-        1 * otherDependency.resolve(context) >> { context.add(target) }
+        1 * dependency.resolve(_) >> { args -> args[0].add(otherDependency) }
+        1 * otherDependency.resolve(_) >> { args -> args[0].add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -84,7 +86,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context) >> { context.add(buildable) }
+        1 * dependency.resolve(_) >> { args -> args[0].add(buildable) }
         1 * buildable.getBuildDependencies() >> { otherDependency }
         1 * otherDependency.getDependencies(task) >> { [target] as Set }
         tasks == [target] as LinkedHashSet
@@ -98,9 +100,9 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         def tasks = context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context) >> { context.add(buildable) }
+        1 * dependency.resolve(_) >> { args -> args[0].add(buildable) }
         1 * buildable.getBuildDependencies() >> { otherDependency }
-        1 * otherDependency.resolve(context) >> { context.add(target) }
+        1 * otherDependency.resolve(_) >> { args -> args[0].add(target) }
         tasks == [target] as LinkedHashSet
     }
 
@@ -109,25 +111,81 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         context.getDependencies(task)
 
         then:
-        1 * dependency.resolve(context) >> { context.add('unknown') }
+        1 * dependency.resolve(_) >> { args -> args[0].add('unknown') }
         def e = thrown(IllegalArgumentException)
         e.message == "Cannot resolve object of unknown type String to a Task."
     }
 
     def cachesResultForTaskDependency() {
-        throw new UnsupportedOperationException()
-    }
+        TaskDependencyInternal otherDependency = Mock()
+        TaskDependency otherDependency2 = Mock()
 
-    def cachesResultForBuildable() {
-        throw new UnsupportedOperationException()
+        when:
+        def tasks = context.getDependencies(task)
+
+        then:
+        1 * dependency.resolve(_) >> { args ->
+            args[0].add(otherDependency)
+            args[0].add(otherDependency2)
+        }
+        1 * otherDependency.resolve(_) >> { args -> args[0].add(otherDependency2) }
+        1 * otherDependency2.getDependencies(task) >> { [target] as Set }
+        tasks == [target] as LinkedHashSet
     }
 
     def cachesResultForTaskDependencyInternal() {
-        throw new UnsupportedOperationException()
+        TaskDependencyInternal otherDependency = Mock()
+        TaskDependencyInternal otherDependency2 = Mock()
+
+        when:
+        def tasks = context.getDependencies(task)
+
+        then:
+        1 * dependency.resolve(_) >> { args ->
+            args[0].add(otherDependency)
+            args[0].add(otherDependency2)
+        }
+        1 * otherDependency.resolve(_) >> { args -> args[0].add(otherDependency2) }
+        1 * otherDependency2.resolve(_) >> { args -> args[0].add(target) }
+        tasks == [target] as LinkedHashSet
+    }
+
+    def cachesResultForBuildable() {
+        TaskDependencyInternal otherDependency = Mock()
+        Buildable buildable = Mock()
+        TaskDependency otherDependency2 = Mock()
+
+        when:
+        def tasks = context.getDependencies(task)
+
+        then:
+        1 * dependency.resolve(_) >> { args ->
+            args[0].add(otherDependency)
+            args[0].add(buildable)
+        }
+        1 * otherDependency.resolve(_) >> { args -> args[0].add(buildable) }
+        1 * buildable.getBuildDependencies() >> otherDependency2
+        1 * otherDependency2.getDependencies(task) >> { [target] as Set }
+        tasks == [target] as LinkedHashSet
     }
 
     def cachesResultForBuildableInternal() {
-        throw new UnsupportedOperationException()
+        TaskDependencyInternal otherDependency = Mock()
+        BuildableInternal buildable = Mock()
+        TaskDependencyInternal otherDependency2 = Mock()
+
+        when:
+        def tasks = context.getDependencies(task)
+
+        then:
+        1 * dependency.resolve(_) >> { args ->
+            args[0].add(otherDependency)
+            args[0].add(buildable)
+        }
+        1 * otherDependency.resolve(_) >> { args -> args[0].add(buildable) }
+        1 * buildable.getBuildDependencies() >> otherDependency2
+        1 * otherDependency2.resolve(_) >> { args -> args[0].add(target) }
+        tasks == [target] as LinkedHashSet
     }
 
     def failsWhenThereIsACyclicDependency() {
