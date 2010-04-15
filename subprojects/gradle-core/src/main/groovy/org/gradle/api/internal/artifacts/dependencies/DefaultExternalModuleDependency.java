@@ -121,6 +121,6 @@ public class DefaultExternalModuleDependency extends AbstractExternalDependency 
     @Override
     public String toString() {
         return "DefaultExternalModuleDependency{" + "group='" + group + '\'' + ", name='" + name + '\'' + ", version='"
-                + version + '\'' + ", configuration" + getConfiguration() + '\'' + '}';
+                + version + '\'' + ", configuration='" + getConfiguration() + '\'' + '}';
     }
 }

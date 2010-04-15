@@ -20,6 +20,10 @@ import org.gradle.api.specs.Spec;
 import java.io.File;
 import java.util.Set;
 
+/**
+ * A {@code ResolvedConfiguration} represents the result of resolving a {@link Configuration}, and provides access
+ * to both the artifacts and the meta-data of the result.
+ */
 public interface ResolvedConfiguration {
     /**
      * Returns whether all dependencies were successfully retrieved or not.
@@ -31,7 +35,7 @@ public interface ResolvedConfiguration {
      * Such a exception is only thrown if the result of a resolve is accessed. You can force the throwing
      * of such an exception by calling this method.  
      *
-     * @throws ResolveException
+     * @throws ResolveException when the resolve was not successful.
      */
     void rethrowFailure() throws ResolveException;
 
@@ -40,18 +44,25 @@ public interface ResolvedConfiguration {
      * 
      * @param dependencySpec The filter for the configuration dependencies.
      * @return The artifact files of the specified dependencies.
-     * @throws ResolveException in case the resolve was not successful.
+     * @throws ResolveException when the resolve was not successful.
      */
     Set<File> getFiles(Spec<Dependency> dependencySpec) throws ResolveException;
 
     /**
-     * Returns ResolvedDependency instances for every configuration dependency. Via those instances
-     * you have access to all ResolvedDependency instances (i.e. also for the resolved transitive dependencies).  
+     * Returns the {@link ResolvedDependency} instances for each direct dependency of the configuration. Via those
+     * you have access to all {@link ResolvedDependency} instances, including the transitive dependencies of the
+     * configuration.
      *
-     * @return A set with ResolvedDependency instances for every configuration dependency.
-     * @throws ResolveException in case the resolve was not successful.
+     * @return A {@code ResolvedDependency} instance for each direct dependency.
+     * @throws ResolveException when the resolve was not successful.
      */
     Set<ResolvedDependency> getFirstLevelModuleDependencies() throws ResolveException;
 
+    /**
+     * Returns the set of artifact meta-data for this configuration.
+     *
+     * @return The set of artifacts.
+     * @throws ResolveException when the resolve was not successful.
+     */
     Set<ResolvedArtifact> getResolvedArtifacts() throws ResolveException;
 }

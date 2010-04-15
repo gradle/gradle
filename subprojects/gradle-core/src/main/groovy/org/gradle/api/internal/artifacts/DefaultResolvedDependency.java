@@ -135,12 +135,6 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return allArtifactsCache.get(parent);
     }
 
-    private void throwExceptionIfUnknownParent(ResolvedDependency parent) {
-        if (!parents.contains(parent)) {
-            throw new InvalidUserDataException("Unknown Parent");
-        }
-    }
-    
     public Set<ResolvedDependency> getParents() {
         return parents;
     }
