@@ -59,6 +59,7 @@ import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.internal.project.taskfactory.ITaskFactory
 import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
 import org.gradle.api.internal.ClassGenerator
+import org.gradle.initialization.LoggingConfigurer
 
 /**
  * @author Hans Dockter
@@ -89,7 +90,7 @@ class HelperUtil {
     static DefaultProject createRootProject(File rootDir) {
         StartParameter startParameter = new StartParameter()
         startParameter.gradleUserHomeDir = new File(rootDir, 'home')
-        TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameter)
+        TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry({} as LoggingConfigurer), startParameter)
         serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
         IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"), CLASS_GENERATOR)
 

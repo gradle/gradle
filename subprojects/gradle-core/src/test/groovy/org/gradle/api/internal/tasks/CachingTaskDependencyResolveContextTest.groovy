@@ -24,7 +24,6 @@ import spock.lang.Specification
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.Buildable
-import org.gradle.api.internal.BuildableInternal
 
 class CachingTaskDependencyResolveContextTest extends Specification {
     private final CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext()
@@ -93,7 +92,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
     }
 
     def resolvesBuildableInternal() {
-        BuildableInternal buildable = Mock()
+        Buildable buildable = Mock()
         TaskDependencyInternal otherDependency = Mock()
 
         when:
@@ -171,7 +170,7 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
     def cachesResultForBuildableInternal() {
         TaskDependencyInternal otherDependency = Mock()
-        BuildableInternal buildable = Mock()
+        Buildable buildable = Mock()
         TaskDependencyInternal otherDependency2 = Mock()
 
         when:

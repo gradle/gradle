@@ -19,13 +19,14 @@ import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller
+import org.gradle.api.logging.LoggingManager
 
 /**
  * @author Hans Dockter
  */
 public class DefaultGroovyMavenInstaller extends BaseMavenInstaller implements GroovyPomFilterContainer {
-    DefaultGroovyMavenInstaller(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer) {
-        super(name, pomFilterContainer, artifactPomContainer)
+    DefaultGroovyMavenInstaller(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManager loggingManager) {
+        super(name, pomFilterContainer, artifactPomContainer, loggingManager)
     }
 
     void filter(Closure filter) {

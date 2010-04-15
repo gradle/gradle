@@ -21,7 +21,6 @@ import org.gradle.GradleLauncher;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
@@ -48,6 +47,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final InitScriptHandler initScriptHandler;
+    private final StandardOutputCapture outputCapture;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
 
@@ -58,7 +58,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                    IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
                    BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer, BuildListener buildListener,
-                   ExceptionAnalyser exceptionAnalyser) {
+                   ExceptionAnalyser exceptionAnalyser, StandardOutputCapture outputCapture) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
@@ -68,6 +68,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         this.loggingConfigurer = loggingConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
+        this.outputCapture = outputCapture;
     }
 
     /**
@@ -106,7 +107,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
 
     private BuildResult doBuild(Stage upTo) {
         addOutputListeners();
-        StandardOutputCapture outputCapture = new DefaultStandardOutputCapture().start();
+        outputCapture.start();
         buildListener.buildStarted(gradle);
 
         Throwable failure = null;

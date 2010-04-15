@@ -20,30 +20,19 @@ package org.gradle.api.logging;
  */
 public interface StandardOutputCapture {
     /**
-     * If {@link #isEnabled()} is true, it starts output redirection to the Gradle logging system. System.out is
-     * redirected to the INFO level. System.err is always redirected to the ERROR level.
-     *
-     * If the standard output is captured globally already, setting the task output capturing has no effect.
+     * Starts output redirection to the Gradle logging system. System.out is redirected to the INFO level. System.err is
+     * always redirected to the ERROR level.
      *
      * For more fine-grained control see {@link org.gradle.api.logging.StandardOutputLogging}.
+     *
+     * @return this
      */
     StandardOutputCapture start();
 
     /**
-     * If {@link #isEnabled()} is true, it restores System.out and System.err to the values they had before {@link
-     * #start()} has been called.
+     * Restores System.out and System.err to the values they had before {@link #start()} has been called.
+     *
+     * @return this
      */
     StandardOutputCapture stop();
-
-    /**
-     * Whether a call to {@link #start()} will trigger redirection of the output.
-     */
-    boolean isEnabled();
-
-    /**
-     * Returns the log level the output is redirected to.
-     *
-     * @return the log level. May return null.
-     */
-    LogLevel getLevel();
 }

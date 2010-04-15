@@ -70,20 +70,15 @@ public class AntLoggingAdapter implements BuildLogger {
     }
 
     public void messageLogged(BuildEvent event) {
-        String taskName = null;
         final StringBuffer message = new StringBuffer();
         if (event.getTask() != null) {
-            taskName = event.getTask().getTaskName();
+            String taskName = event.getTask().getTaskName();
             message.append("[ant:").append(taskName).append("] ");
         }
         final String messageText = event.getMessage();
         message.append(messageText);
 
         LogLevel level = Logging.ANT_IVY_2_SLF4J_LEVEL_MAPPER.get(event.getPriority());
-        if (taskName != null && level != LogLevel.WARN && "junit".equals(taskName) && messageText.startsWith("TEST")
-                && messageText.endsWith("FAILED")) {
-            level = LogLevel.WARN;
-        }
 
         if (event.getException() != null) {
             logger.log(level, message.toString(), event.getException());

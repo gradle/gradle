@@ -14,11 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal;
+package org.gradle.logging;
 
-import org.gradle.api.Buildable;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.logging.LogLevel;
 
-public interface BuildableInternal extends Buildable {
-    TaskDependencyInternal getBuildDependencies();
+public interface LoggingSystem {
+    Snapshot snapshot();
+
+    Snapshot on(LogLevel level);
+
+    Snapshot off();
+
+    void restore(Snapshot state);
+
+    interface Snapshot {
+    }
 }

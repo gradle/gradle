@@ -18,7 +18,6 @@ package org.gradle.external.junit;
 import junit.framework.AssertionFailedError;
 import junit.framework.TestFailure;
 import junit.framework.TestListener;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.testing.fabric.AbstractTestProcessor;
@@ -61,7 +60,7 @@ public class JUnitTestProcessor extends AbstractTestProcessor {
         final DefaultLoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer();
         loggingConfigurer.configure(LogLevel.LIFECYCLE);
 
-        final StandardOutputCapture stdOutputCapture = new DefaultStandardOutputCapture().captureStandardOutput(LogLevel.DEBUG);
+        final StandardOutputCapture stdOutputCapture = null;
 
         ContextClassLoaderRunnable contextClassLoaderRunnable = new ContextClassLoaderRunnable(testClassRunInfo,
                 loggingConfigurer, stdOutputCapture, testClassHandlerFactory);

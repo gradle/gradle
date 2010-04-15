@@ -60,8 +60,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private boolean enabled = true;
 
-    private final StandardOutputCapture standardOutputCapture;
-
     private DefaultTaskDependency dependencies;
 
     private DynamicObjectHelper dynamicObjectHelper;
@@ -105,7 +103,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
-        standardOutputCapture = services.get(StandardOutputCapture.class);
         loggingManager = services.get(LoggingManager.class);
     }
 
@@ -295,8 +292,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return this;
     }
 
+    public LoggingManager getLoggingManager() {
+        return loggingManager;
+    }
+
     public StandardOutputCapture getStandardOutputCapture() {
-        return standardOutputCapture;
+        return loggingManager;
     }
 
     private void throwExceptionDuringExecutionTime(String operation) {

@@ -26,6 +26,7 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.util.HelperUtil;
@@ -84,6 +85,8 @@ public class DefaultGradleLauncherTest {
 
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
 
+    private LoggingManager loggingManagerMock = context.mock(LoggingManager.class);
+
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -119,7 +122,7 @@ public class DefaultGradleLauncherTest {
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
                 gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock,
-                buildBroadcaster, exceptionAnalyserMock);
+                buildBroadcaster, exceptionAnalyserMock, loggingManagerMock);
 
         context.checking(new Expectations() {
             {
@@ -149,7 +152,8 @@ public class DefaultGradleLauncherTest {
 
     @Test
     public void testRun() {
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
         expectTasksRun();
@@ -161,7 +165,8 @@ public class DefaultGradleLauncherTest {
 
     @Test
     public void testDryRun() {
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
         expectTasksRun();
@@ -178,7 +183,8 @@ public class DefaultGradleLauncherTest {
 
     @Test
     public void testGetBuildAndRunAnalysis() {
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
         expectBuildListenerCallbacks();
@@ -189,7 +195,8 @@ public class DefaultGradleLauncherTest {
 
     @Test
     public void testGetBuildAnalysis() {
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
@@ -205,7 +212,8 @@ public class DefaultGradleLauncherTest {
     public void testGetBuildAnalysisWithFailure() {
         final RuntimeException exception = new RuntimeException();
         final RuntimeException transformedException = new RuntimeException();
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
@@ -222,7 +230,8 @@ public class DefaultGradleLauncherTest {
 
     @Test
     public void testNotifiesListenerOfBuildAnalysisStages() {
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
@@ -235,7 +244,8 @@ public class DefaultGradleLauncherTest {
 
     @Test
     public void testNotifiesListenerOfBuildStages() {
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
         expectTasksRun();
@@ -248,7 +258,8 @@ public class DefaultGradleLauncherTest {
     public void testNotifiesListenerOnSettingsInitWithFailure() {
         final RuntimeException failure = new RuntimeException();
         final RuntimeException transformedException = new RuntimeException();
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         context.checking(new Expectations() {{
             one(buildBroadcaster).buildStarted(gradleMock);
             one(settingsHandlerMock).findAndLoadSettings(gradleMock, gradlePropertiesLoaderMock);
@@ -266,7 +277,8 @@ public class DefaultGradleLauncherTest {
     public void testNotifiesListenerOnBuildCompleteWithFailure() {
         final RuntimeException failure = new RuntimeException();
         final RuntimeException transformedException = new RuntimeException();
-        expectInitScripts();
+        expectLoggingStartedAndStoped();
+        expectInitScriptsExecuted();
         expectSettingsBuilt();
         expectDagBuilt();
         expectTasksRunWithFailure(failure);
@@ -283,11 +295,19 @@ public class DefaultGradleLauncherTest {
         assertThat(buildResult.getFailure(), sameInstance((Throwable) transformedException));
     }
 
-    private void expectInitScripts() {
+    private void expectLoggingStartedAndStoped() {
+        context.checking(new Expectations(){{
+            one(loggingManagerMock).start();
+            one(loggingManagerMock).stop();
+        }});
+    }
+
+    private void expectInitScriptsExecuted() {
         context.checking(new Expectations() {{
             one(initscriptHandlerMock).executeScripts(gradleMock);
         }});
     }
+
     private void expectSettingsBuilt() {
         context.checking(new Expectations() {
             {

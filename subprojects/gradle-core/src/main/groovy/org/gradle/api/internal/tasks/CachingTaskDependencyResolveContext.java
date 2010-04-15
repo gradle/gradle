@@ -23,9 +23,21 @@ import org.gradle.api.tasks.TaskDependency;
 import java.util.*;
 
 /**
- * A {@link TaskDependencyResolveContext} which caches the dependencies for each {@link
+ * <p>A {@link TaskDependencyResolveContext} which caches the dependencies for each {@link
  * org.gradle.api.tasks.TaskDependency} and {@link org.gradle.api.Buildable} instance during traversal of task
- * dependencies.
+ * dependencies.</p>
+ *
+ * <p>Supported types:</p> <ul>
+ *
+ * <li>{@link org.gradle.api.Task}</li>
+ *
+ * <li>{@link org.gradle.api.tasks.TaskDependency}</li>
+ *
+ * <li>{@link org.gradle.api.internal.tasks.TaskDependencyInternal}</li>
+ *
+ * <li>{@link org.gradle.api.Buildable}</li>
+ *
+ * </ul>
  */
 public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext, TaskDependency {
     private final LinkedList<Object> queue = new LinkedList<Object>();

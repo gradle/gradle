@@ -36,6 +36,7 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.process.DefaultWorkerProcessFactory;
 import org.gradle.process.WorkerProcessFactory;
 import org.gradle.util.MultiParentClassLoader;
@@ -65,6 +66,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
+    private final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
 
     @Before
     public void setUp() {
@@ -76,6 +78,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(classPathRegistry));
             allowing(parent).get(ClassLoaderFactory.class);
             will(returnValue(classLoaderFactory));
+            allowing(parent).get(LoggingManagerFactory.class);
+            will(returnValue(loggingManagerFactory));
         }});
     }
     

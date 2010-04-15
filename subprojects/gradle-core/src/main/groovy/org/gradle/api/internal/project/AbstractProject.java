@@ -132,8 +132,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private LoggingManager loggingManager;
 
-    private StandardOutputCapture standardOutputCapture;
-
     private DynamicObjectHelper dynamicObjectHelper;
 
     public AbstractProject(String name) {
@@ -187,7 +185,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
         projectRegistry = services.get(IProjectRegistry.class);
         loggingManager = services.get(LoggingManager.class);
-        standardOutputCapture = services.get(StandardOutputCapture.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(services.get(Convention.class));
@@ -791,7 +788,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public StandardOutputCapture getStandardOutputCapture() {
-        return standardOutputCapture;
+        return loggingManager;
     }
 
     public void disableStandardOutputCapture() {

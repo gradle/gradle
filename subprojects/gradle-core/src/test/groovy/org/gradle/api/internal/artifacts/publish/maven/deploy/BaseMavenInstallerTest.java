@@ -35,7 +35,7 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
     private CustomInstallTask installTaskMock;
 
     protected BaseMavenInstaller createMavenInstaller() {
-        return new BaseMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock);
+        return new BaseMavenInstaller(TEST_NAME, pomFilterContainerMock, artifactPomContainerMock, loggingManagerMock);
     }
 
     protected PomFilterContainer createPomFilterContainerMock() {

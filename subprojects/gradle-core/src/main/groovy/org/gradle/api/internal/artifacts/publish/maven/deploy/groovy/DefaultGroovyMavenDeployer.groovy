@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.MavenPom
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
+import org.gradle.api.logging.LoggingManager
 
 /**
  * @author Hans Dockter
@@ -31,8 +32,8 @@ class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMave
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer) {
-        super(name, pomFilterContainer, artifactPomContainer)
+    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManager loggingManager) {
+        super(name, pomFilterContainer, artifactPomContainer, loggingManager)
     }
     
     def methodMissing(String name, args) {

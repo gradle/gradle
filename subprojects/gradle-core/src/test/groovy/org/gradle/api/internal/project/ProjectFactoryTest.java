@@ -66,7 +66,7 @@ public class ProjectFactoryTest {
     private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
-    private ServiceRegistryFactory serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameterStub);
+    private ServiceRegistryFactory serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(null), startParameterStub);
     private ClassGenerator classGeneratorMock = serviceRegistryFactory.get(ClassGenerator.class);
     private GradleInternal gradle = context.mock(GradleInternal.class);
 

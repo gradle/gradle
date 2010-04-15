@@ -39,6 +39,7 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import java.io.FileDescriptor;
 import java.io.PrintStream;
 import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 /**
  * @author Hans Dockter
@@ -49,7 +50,6 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
     private final Appender errorAppender = new Appender();
     private final Appender infoAppender = new Appender();
     private final Spec<FileDescriptor> terminalDetector;
-    private Console console;
     private LogEventFormatter consoleFormatter;
     private LogEventFormatter nonConsoleFormatter;
     private LogLevel currentLevel;
@@ -99,11 +99,12 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             lc.reset();
             LogManager.getLogManager().reset();
             SLF4JBridgeHandler.install();
+            Logger.getLogger("").setLevel(java.util.logging.Level.FINE);
 
             stdout.init(FileDescriptor.out, System.out);
             stderr.init(FileDescriptor.err, System.err);
-            this.console = createConsole();
 
+            Console console = createConsole();
             consoleFormatter = new ConsoleBackedFormatter(lc, console);
             nonConsoleFormatter = new BasicProgressLoggingAwareFormatter(lc, stdout.getBroadcast(),
                     stderr.getBroadcast());

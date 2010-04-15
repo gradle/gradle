@@ -49,14 +49,17 @@ class LoggingIntegrationTest {
             'external quiet message'
     ]
     List errorMessages = [
-            'An error log message.'
+            'An error log message.',
+            '[ant:echo] An error message logged from Ant',
+            'A severe log message logged using JUL'
     ]
     List warningMessages = [
-            'A warning log message.'
+            'A warning log message.',
+            '[ant:echo] A warn message logged from Ant',
+            'A warning log message logged using JUL'
     ]
     List lifecycleMessages = [
             'A lifecycle info log message.',
-            '[ant:echo] An info message logged from Ant',
             'A task message which is logged at LIFECYCLE level',
             'settings lifecycle log',
             'init lifecycle log',
@@ -75,10 +78,12 @@ class LoggingIntegrationTest {
             'An info log message.',
             'A message which is logged at INFO level',
             'A task message which is logged at INFO level',
+            '[ant:echo] An info message logged from Ant',
             'An info log message logged using SLF4j',
             'An info log message logged using JCL',
             'An info log message logged using Log4j',
             'An info log message logged using JUL',
+            'A config log message logged using JUL',
             'infoProject2Out',
             'infoProject2ScriptClassPathOut',
             'settings info out',
@@ -96,7 +101,9 @@ class LoggingIntegrationTest {
             'external info message'
     ]
     List debugMessages = [
-            'A debug log message.'
+            'A debug log message.',
+            '[ant:echo] A debug message logged from Ant',
+            'A fine log message logged using JUL'
     ]
     List traceMessages = [
             'A trace log message.'

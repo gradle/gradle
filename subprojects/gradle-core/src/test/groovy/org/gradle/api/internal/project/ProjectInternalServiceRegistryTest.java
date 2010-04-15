@@ -38,11 +38,11 @@ import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.logging.LoggingManagerFactory;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -188,7 +188,17 @@ public class ProjectInternalServiceRegistryTest {
     
     @Test
     public void providesALoggingManager() {
-        assertThat(registry.get(LoggingManager.class), instanceOf(DefaultStandardOutputCapture.class));
+        final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
+        final LoggingManager loggingManager = context.mock(LoggingManager.class);
+
+        context.checking(new Expectations(){{
+            allowing(parent).get(LoggingManagerFactory.class);
+            will(returnValue(loggingManagerFactory));
+            one(loggingManagerFactory).create();
+            will(returnValue(loggingManager));
+        }});
+
+        assertThat(registry.get(LoggingManager.class), sameInstance(loggingManager));
         assertThat(registry.get(LoggingManager.class), sameInstance(registry.get(LoggingManager.class)));
     }
 

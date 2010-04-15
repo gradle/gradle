@@ -22,23 +22,27 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.groovy.scripts.*;
+import org.gradle.logging.LoggingManagerFactory;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
     private final ImportsReader importsReader;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoader defaultClassLoader;
+    private final LoggingManagerFactory loggingManagerFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                                 ImportsReader importsReader,
                                                 ScriptHandlerFactory scriptHandlerFactory,
-                                                ClassLoader defaultClassLoader) {
+                                                ClassLoader defaultClassLoader,
+                                                LoggingManagerFactory loggingManagerFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;
         this.defaultClassLoader = defaultClassLoader;
+        this.loggingManagerFactory = loggingManagerFactory;
     }
 
     public ScriptPlugin create(ScriptSource scriptSource) {
@@ -83,7 +87,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         public void apply(Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
-            services.add(DefaultStandardOutputCapture.class, new DefaultStandardOutputCapture());
+            services.add(LoggingManager.class, loggingManagerFactory.create());
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {

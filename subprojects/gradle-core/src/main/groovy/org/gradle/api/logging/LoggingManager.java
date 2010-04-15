@@ -16,8 +16,36 @@
 
 package org.gradle.api.logging;
 
-public interface LoggingManager {
+public interface LoggingManager extends StandardOutputCapture {
+    /**
+     * Requests that output written to System.out and System.err be routed to Gradle's logging system. The default is
+     * that System.out is routed to {@link LogLevel#LIFECYCLE} and System.err is routed to {@link LogLevel#ERROR}.
+     *
+     * @param level The log level to route System.out to.
+     * @return this
+     */
     LoggingManager captureStandardOutput(LogLevel level);
 
+    /**
+     * Disables routing System.out and System.err to Gradle's logging system.
+     *
+     * @return this
+     */
     LoggingManager disableStandardOutputCapture();
+
+    boolean isStandardOutputCaptureEnabled();
+
+    /**
+     * Returns the log level that output written to System.out will be mapped to.
+     *
+     * @return The log level. Returns null when standard output capture is disabled.
+     */
+    LogLevel getStandardOutputCaptureLevel();
+
+    /**
+     * Sets the minimum logging level. All messages at a lower level are discarded.
+     *
+     * @param logLevel The minimum logging level.
+     */
+    void setLevel(LogLevel logLevel);
 }

@@ -54,6 +54,7 @@ import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
+import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.process.DefaultWorkerProcessFactory;
@@ -98,7 +99,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
-        return new DefaultRepositoryHandlerFactory(new DefaultResolverFactory(), get(ClassGenerator.class));
+        return new DefaultRepositoryHandlerFactory(
+                new DefaultResolverFactory(
+                        get(LoggingManagerFactory.class)),
+                get(ClassGenerator.class));
     }
 
     protected CacheRepository createCacheRepository() {
@@ -247,7 +251,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(ScriptCompilerFactory.class),
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
-                get(ClassLoader.class));
+                get(ClassLoader.class),
+                get(LoggingManagerFactory.class));
     }
 
     protected MultiParentClassLoader createRootClassLoader() {

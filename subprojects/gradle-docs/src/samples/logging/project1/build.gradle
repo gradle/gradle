@@ -40,7 +40,11 @@ task log(dependsOn: [logInfo, logLifecycle, nestedBuildLog]) << {
     println('A task message which is logged at QUIET level')
 }
 
-ant.echo('An info message logged from Ant')
+// warn is the default log level for echo
+ant.echo('A warn message logged from Ant')
+ant.echo('An error message logged from Ant', level: org.apache.tools.ant.types.LogLevel.ERR)
+ant.echo('An info message logged from Ant', level: org.apache.tools.ant.types.LogLevel.INFO)
+ant.echo('A debug message logged from Ant', level: org.apache.tools.ant.types.LogLevel.DEBUG)
 
 // START SNIPPET use-slf4j
 org.slf4j.Logger slf4jLogger = org.slf4j.LoggerFactory.getLogger('some-logger')
@@ -54,4 +58,8 @@ org.apache.log4j.Logger log4jLogger = org.apache.log4j.Logger.getLogger('some-lo
 log4jLogger.info('An info log message logged using Log4j')
 
 java.util.logging.Logger julLogger = java.util.logging.Logger.getLogger('some-logger')
+julLogger.severe('A severe log message logged using JUL')
+julLogger.warning('A warning log message logged using JUL')
 julLogger.info('An info log message logged using JUL')
+julLogger.config('A config log message logged using JUL')
+julLogger.fine('A fine log message logged using JUL')

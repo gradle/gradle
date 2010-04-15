@@ -16,84 +16,98 @@
 
 package org.gradle.api.logging;
 
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.logging.LoggingSystem;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultStandardOutputCapture implements StandardOutputCapture, LoggingManager {
-    private boolean enabled;
-
+public class DefaultStandardOutputCapture implements LoggingManager {
+    private LogLevel stdOutCaptureLevel;
     private LogLevel level;
-
-    private StandardOutputState globalState;
+    private LoggingSystem.Snapshot originalStdOutState;
+    private LoggingSystem.Snapshot originalLoggingState;
+    private boolean started;
+    private final LoggingSystem loggingSystem;
+    private final LoggingSystem stdOutLoggingSystem;
 
     /**
      * Creates and instance with enabled set to false and LogLevel set to null.
      */
-    public DefaultStandardOutputCapture() {
-        this.enabled = true;
-        level = LogLevel.QUIET;
-    }
-
-    public DefaultStandardOutputCapture(boolean enabled, LogLevel level) {
-        if (level == null) {
-            throw new InvalidUserDataException("Log level must not be null");
-        }
-        this.level = level;
-        this.enabled = enabled;
+    public DefaultStandardOutputCapture(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem) {
+        this.loggingSystem = loggingSystem;
+        this.stdOutLoggingSystem = stdOutLoggingSystem;
+        stdOutCaptureLevel = LogLevel.QUIET;
     }
 
     public DefaultStandardOutputCapture start() {
-        globalState = StandardOutputLogging.getStateSnapshot();
-        if (enabled) {
-            StandardOutputLogging.on(level);
+        started = true;
+        if (stdOutCaptureLevel != null) {
+            originalStdOutState = stdOutLoggingSystem.on(stdOutCaptureLevel);
         } else {
-            StandardOutputLogging.off();
+            originalStdOutState = stdOutLoggingSystem.off();
         }
+        if (level != null) {
+            originalLoggingState = loggingSystem.on(level);
+        } else {
+            originalLoggingState = loggingSystem.snapshot();
+        }
+
         return this;
     }
 
     public DefaultStandardOutputCapture stop() {
         try {
-            StandardOutputLogging.flush();
-            StandardOutputLogging.restoreState(globalState);
+            if (originalStdOutState != null) {
+                stdOutLoggingSystem.restore(originalStdOutState);
+            }
+            if (originalLoggingState != null) {
+                loggingSystem.restore(originalLoggingState);
+            }
         } finally {
-            globalState = null;
+            originalStdOutState = null;
+            originalLoggingState = null;
+            started = false;
         }
         return this;
     }
 
-    public boolean isEnabled() {
-        return enabled;
+    public void setLevel(LogLevel logLevel) {
+        if (this.level != logLevel) {
+            this.level = logLevel;
+            if (started) {
+                loggingSystem.on(logLevel);
+            }
+        }
     }
 
     public LogLevel getLevel() {
         return level;
     }
 
+    public LogLevel getStandardOutputCaptureLevel() {
+        return stdOutCaptureLevel;
+    }
+
+    public boolean isStandardOutputCaptureEnabled() {
+        return stdOutCaptureLevel != null;
+    }
+
     public DefaultStandardOutputCapture captureStandardOutput(LogLevel level) {
-        if (enabled && this.level == level) {
-            return this;
-        }
-        enabled = true;
-        this.level = level;
-        if (globalState != null) {
-            StandardOutputLogging.flush();
-            StandardOutputLogging.on(level);
+        if (this.stdOutCaptureLevel != level) {
+            this.stdOutCaptureLevel = level;
+            if (started) {
+                stdOutLoggingSystem.on(level);
+            }
         }
         return this;
     }
 
     public DefaultStandardOutputCapture disableStandardOutputCapture() {
-        if (!enabled) {
-            return this;
-        }
-        enabled = false;
-        level = null;
-        if (globalState != null) {
-            StandardOutputLogging.flush();
-            StandardOutputLogging.off();
+        if (stdOutCaptureLevel != null) {
+            stdOutCaptureLevel = null;
+            if (started) {
+                stdOutLoggingSystem.off();
+            }
         }
         return this;
     }

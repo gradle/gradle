@@ -19,36 +19,45 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
-import org.gradle.initialization.ClassLoaderFactory;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultClassLoaderFactory;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.*;
+import org.gradle.logging.DefaultLoggingManagerFactory;
+import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.util.JUnit4GroovyMockery;
+import org.jmock.integration.junit4.JMock;
 import org.junit.Test;
+import org.junit.runner.RunWith;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
+@RunWith(JMock.class)
 public class GlobalServicesRegistryTest {
-    private final GlobalServicesRegistry registry = new GlobalServicesRegistry();
+    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
+    private final GlobalServicesRegistry registry = new GlobalServicesRegistry(context.mock(LoggingConfigurer.class));
 
     @Test
     public void providesCommandLineArgsConverter() {
         assertThat(registry.get(CommandLine2StartParameterConverter.class), instanceOf(
                 DefaultCommandLine2StartParameterConverter.class));
     }
-    
+
     @Test
     public void providesACacheFactory() {
         assertThat(registry.get(CacheFactory.class), instanceOf(AutoCloseCacheFactory.class));
     }
-    
+
     @Test
     public void providesAClassPathRegistry() {
         assertThat(registry.get(ClassPathRegistry.class), instanceOf(DefaultClassPathRegistry.class));
     }
-    
+
     @Test
     public void providesAClassLoaderFactory() {
         assertThat(registry.get(ClassLoaderFactory.class), instanceOf(DefaultClassLoaderFactory.class));
+    }
+
+    @Test
+    public void providesALoggingManagerFactory() {
+        assertThat(registry.get(LoggingManagerFactory.class), instanceOf(DefaultLoggingManagerFactory.class));
     }
 }

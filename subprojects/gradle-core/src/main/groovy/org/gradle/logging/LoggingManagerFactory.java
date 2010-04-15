@@ -14,18 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks;
+package org.gradle.logging;
 
-import org.gradle.api.Task;
+import org.gradle.api.logging.LoggingManager;
 
-public interface TaskDependencyResolveContext {
-    /**
-     * Adds a dependency to the result.
-     */
-    void add(Object dependency);
-
-    /**
-     * Returns the task whose dependencies are being resolved.
-     */
-    Task getTask();
+public interface LoggingManagerFactory {
+    LoggingManager create();
 }

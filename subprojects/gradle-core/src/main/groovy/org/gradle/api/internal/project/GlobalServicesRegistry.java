@@ -21,15 +21,28 @@ import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.*;
+import org.gradle.logging.DefaultLoggingManagerFactory;
+import org.gradle.logging.LoggingManagerFactory;
 
 /**
  * Contains the services shared by all builds in a given process.
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
-    public GlobalServicesRegistry() {
+    public GlobalServicesRegistry(LoggingConfigurer loggingConfigurer) {
         add(CommandLine2StartParameterConverter.class, new DefaultCommandLine2StartParameterConverter());
-        add(CacheFactory.class, new AutoCloseCacheFactory(new DefaultCacheFactory()));
-        add(ClassPathRegistry.class, new DefaultClassPathRegistry());
-        add(ClassLoaderFactory.class, new DefaultClassLoaderFactory(get(ClassPathRegistry.class)));
+        add(LoggingManagerFactory.class, new DefaultLoggingManagerFactory(loggingConfigurer));
     }
+    
+    protected ClassPathRegistry createClassPathRegistry() {
+        return new DefaultClassPathRegistry();
+    }
+
+    protected CacheFactory createCacheFactory() {
+        return new AutoCloseCacheFactory(new DefaultCacheFactory());
+    }
+
+    protected ClassLoaderFactory createClassLoaderFactory() {
+        return new DefaultClassLoaderFactory(get(ClassPathRegistry.class));
+    }
+
 }

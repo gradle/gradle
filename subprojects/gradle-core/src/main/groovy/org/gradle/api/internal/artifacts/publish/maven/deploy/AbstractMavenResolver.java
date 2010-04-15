@@ -43,9 +43,8 @@ import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
@@ -68,10 +67,13 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     private Settings settings;
 
-    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer) {
+    private LoggingManager loggingManager;
+
+    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManager loggingManager) {
         this.name = name;
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;
+        this.loggingManager = loggingManager;
     }
 
     protected abstract InstallDeployTaskSupport createPreConfiguredTask(Project project);
@@ -178,11 +180,11 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     }
 
     private void execute(InstallDeployTaskSupport deployTask) {
-        StandardOutputCapture outputCapture = new DefaultStandardOutputCapture().captureStandardOutput(LogLevel.INFO).start();
+        loggingManager.captureStandardOutput(LogLevel.INFO).start();
         try {
             deployTask.execute();
         } finally {
-            outputCapture.stop();
+            loggingManager.stop();
         }
     }
 
