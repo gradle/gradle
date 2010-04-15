@@ -27,6 +27,9 @@ import org.junit.runners.model.Statement;
 import java.io.File;
 import java.util.Arrays;
 
+/**
+ * Provides access to a Gradle distribution for integration testing.
+ */
 public class GradleDistribution implements MethodRule {
     private static final String NOFORK_SYS_PROP = "org.gradle.integtest.nofork";
     private static final TestFile USER_HOME_DIR;

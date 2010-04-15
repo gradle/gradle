@@ -19,6 +19,10 @@ dependencies {
 
 defaultTasks 'listJars'
 
+file("projectA-1.2.jar").text = ''
+file("projectB-1.5.jar").text = ''
+file("projectC-2.0.jar").text = ''
+
 task listJars << {
     List jars = configurations.compile.collect { it.name }
     Assert.assertTrue(jars.contains('projectA-1.2.jar'))

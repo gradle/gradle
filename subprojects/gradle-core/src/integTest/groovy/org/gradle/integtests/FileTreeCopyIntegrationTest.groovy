@@ -17,8 +17,11 @@ package org.gradle.integtests
 
 import org.junit.Test
 import org.gradle.util.TestFile
+import org.junit.Rule
 
-public class FileTreeCopyIntegrationTest extends AbstactCopyIntegrationTest {
+public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    public final TestResources resources = new TestResources("copyTestResources")
 
     @Test public void testCopyWithClosure() {
         TestFile buildFile = testFile("build.gradle").writelns(

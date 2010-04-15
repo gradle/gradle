@@ -18,10 +18,13 @@ package org.gradle.integtests
 import org.junit.Test
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*
-import org.gradle.util.TestFile;
+import org.gradle.util.TestFile
+import org.junit.Rule;
 
-public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
-    
+public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    public final TestResources resources = new TestResources("copyTestResources")
+
     @Test
     public void testSingleSourceWithIncludeAndExclude() {
         TestFile buildFile = testFile("build.gradle") << '''
@@ -195,7 +198,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
     }
 
     @Test public void chainedTransformations() {
-        testFile('build.gradle') << '''
+        def buildFile = testFile('build.gradle') << '''
             task copy(type: Copy) {
                 into 'dest'
                 rename '(.*).a', '\$1.renamed'
@@ -211,7 +214,7 @@ public class CopyTaskIntegrationTest extends AbstactCopyIntegrationTest {
                 }
             }
 '''
-        inTestDirectory().withTasks('copy').run()
+        usingBuildFile(buildFile).withTasks('copy').run()
         testFile('dest').assertHasDescendants(
                 'root.renamed_twice',
                 'root.b',

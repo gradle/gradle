@@ -1,6 +1,0 @@
-
-task brokenClosure << {
-    throw new RuntimeException('broken closure')
-}
-
-task brokenJavaTask(type: org.gradle.integtests.BrokenTask)

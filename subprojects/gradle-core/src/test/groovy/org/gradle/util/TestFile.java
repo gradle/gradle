@@ -174,10 +174,19 @@ public class TestFile extends File {
     }
 
     public void copyTo(File target) {
-        try {
-            FileUtils.copyFile(this, target);
-        } catch (IOException e) {
-            throw new UncheckedIOException(String.format("Could not copy test file '%s' to '%s'", this, target), e);
+        if (isDirectory()) {
+            try {
+                FileUtils.copyDirectory(this, target);
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Could not copy test directory '%s' to '%s'", this,
+                        target), e);
+            }
+        } else {
+            try {
+                FileUtils.copyFile(this, target);
+            } catch (IOException e) {
+                throw new UncheckedIOException(String.format("Could not copy test file '%s' to '%s'", this, target), e);
+            }
         }
     }
 

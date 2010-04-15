@@ -18,34 +18,34 @@ package org.gradle.integtests
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
+import org.junit.Rule
+import org.junit.Ignore
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
+    @Rule
+    public final TestResources testResources = new TestResources()
+
     @Test
     public void dependencyReportWithConflicts() {
-        File buildFile = getTestBuildFile("projectWithConflicts.gradle");
-        getTestBuildFile("projectA-1.2-ivy.xml");
-        getTestBuildFile("projectB-1.5-ivy.xml");
-        getTestBuildFile("projectB-2.1.5-ivy.xml");
-        testFile("projectA-1.2.jar").touch();
-        testFile("projectB-1.5.jar").touch();
-        testFile("projectB-2.1.5.jar").touch();
-
+        File buildFile = testFile("projectWithConflicts.gradle");
         usingBuildFile(buildFile).withDependencyList().run();
     }
 
     @Test
     public void canNestModules() throws IOException {
-        File buildFile = getTestBuildFile("projectWithNestedModules.gradle");
-        testFile("projectA-1.2.jar").touch();
-        testFile("projectB-1.5.jar").touch();
-        testFile("projectC-2.0.jar").touch();
+        File buildFile = testFile("projectWithNestedModules.gradle");
+        usingBuildFile(buildFile).run();
+    }
 
+    @Test @Ignore
+    public void canHaveCycleInDependencyGraph() throws IOException {
+        File buildFile = testFile("projectWithCyclesInDependencyGraph.gradle");
         usingBuildFile(buildFile).run();
     }
 
     @Test
     public void reportsUnknownDependencyError() {
-        File buildFile = getTestBuildFile("projectWithUnknownDependency.gradle");
+        File buildFile = testFile("projectWithUnknownDependency.gradle");
         ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
         failure.assertHasFileName("Build file '" + buildFile.getPath() + "'");
         failure.assertHasDescription("Execution failed for task ':listJars'");

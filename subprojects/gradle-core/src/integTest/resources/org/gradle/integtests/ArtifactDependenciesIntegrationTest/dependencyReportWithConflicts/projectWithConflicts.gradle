@@ -1,3 +1,4 @@
+
 configurations {
     compile
 }
@@ -12,3 +13,7 @@ dependencies {
     compile 'test:projectA:1.2'
     compile 'test:projectB:2.1.5'
 }
+
+file("projectA-1.2.jar").text = ''
+file("projectB-1.5.jar").text = ''
+file("projectB-2.1.5.jar").text = ''

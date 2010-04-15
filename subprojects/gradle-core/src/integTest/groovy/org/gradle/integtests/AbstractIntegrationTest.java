@@ -40,13 +40,6 @@ public class AbstractIntegrationTest {
         return new TestFile(dir, name);
     }
 
-    protected File getTestBuildFile(String name) {
-        TestFile sourceFile = resources.getResource("testProjects/" + name);
-        TestFile destFile = testFile(sourceFile.getName());
-        sourceFile.copyTo(destFile);
-        return destFile;
-    }
-
     private StartParameter startParameter() {
         StartParameter parameter = new StartParameter();
         parameter.setGradleHomeDir(testFile("gradle-home"));

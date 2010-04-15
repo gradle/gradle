@@ -32,12 +32,25 @@ public class Resources implements MethodRule {
     private Class<?> testClass;
 
     /**
-     * Locates the resource with the given name, relative to the current test class.
+     * Locates the resource with the given name, relative to the current test class. Asserts that the resource exists.
      */
     public TestFile getResource(String name) {
         assertNotNull(testClass);
+        TestFile file = findResource(name);
+        assertNotNull(String.format("Could not locate resource '%s' for test class %s.", name, testClass.getName()), file);
+        return file;
+    }
+
+    /**
+     * Locates the resource with the given name, relative to the current test class.
+     * @return the resource, or null if not found.
+     */
+    public TestFile findResource(String name) {
+        assertNotNull(testClass);
         URL resource = testClass.getResource(name);
-        assertNotNull(String.format("Could not locate resource '%s' for test class %s.", name, testClass.getName()), resource);
+        if (resource == null) {
+            return null;
+        }
         assertEquals("file", resource.getProtocol());
         File file;
         try {
@@ -50,11 +63,6 @@ public class Resources implements MethodRule {
 
     public Statement apply(final Statement statement, FrameworkMethod frameworkMethod, Object o) {
         testClass = frameworkMethod.getMethod().getDeclaringClass();
-        return new Statement() {
-            @Override
-            public void evaluate() throws Throwable {
-                statement.evaluate();
-            }
-        };
+        return statement;
     }
 }
