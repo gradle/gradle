@@ -26,12 +26,18 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultIvyConversionResult implements IvyConversionResult {
-    private Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies;
-    private Set<ResolvedArtifact> resolvedArtifacts;
+    private final ResolvedDependency root;
+    private final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies;
+    private final Set<ResolvedArtifact> resolvedArtifacts;
 
-    public DefaultIvyConversionResult(Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies, Set<ResolvedArtifact> resolvedArtifacts) {
+    public DefaultIvyConversionResult(ResolvedDependency root, Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies, Set<ResolvedArtifact> resolvedArtifacts) {
+        this.root = root;
         this.firstLevelResolvedDependencies = firstLevelResolvedDependencies;
         this.resolvedArtifacts = resolvedArtifacts;
+    }
+
+    public ResolvedDependency getRoot() {
+        return root;
     }
 
     public Map<Dependency, Set<ResolvedDependency>> getFirstLevelResolvedDependencies() {

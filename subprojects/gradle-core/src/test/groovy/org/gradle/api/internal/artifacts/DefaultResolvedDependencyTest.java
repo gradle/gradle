@@ -20,15 +20,17 @@ import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
+import org.junit.Test;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
+
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -54,7 +56,6 @@ public class DefaultResolvedDependencyTest {
         assertThat(resolvedDependency.getModuleVersion(), equalTo(someVersion));
         assertThat(resolvedDependency.getConfiguration(), equalTo(someConfiguration));
         assertThat(resolvedDependency.getModuleArtifacts(), equalTo(someArtifacts));
-        assertThat(resolvedDependency.getConfigurationHierarchy(), equalTo(SOME_CONFIGURATION_HIERARCHY));
         assertThat(resolvedDependency.getChildren(), equalTo(Collections.<ResolvedDependency>emptySet()));
         assertThat(resolvedDependency.getParents(), equalTo(Collections.<ResolvedDependency>emptySet()));
     }
@@ -102,6 +103,7 @@ public class DefaultResolvedDependencyTest {
         assertThat(resolvedDependency.getArtifacts(parentResolvedDependency1), equalTo(GUtil.addSets(someModuleArtifacts, parent1SpecificArtifacts)));
     }
 
+    @Test
     public void getArtifactsWithParentWithoutParentArtifacts() {
         Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
@@ -111,6 +113,7 @@ public class DefaultResolvedDependencyTest {
         assertThat(resolvedDependency.getArtifacts(parent), equalTo(moduleArtifacts));
     }
 
+    @Test
     public void getParentArtifactsWithParentWithoutParentArtifacts() {
         Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
@@ -160,6 +163,23 @@ public class DefaultResolvedDependencyTest {
 
         assertThat(resolvedDependency.getAllArtifacts(parentResolvedDependency1),
                 equalTo(GUtil.addSets(someModuleArtifacts, parent1SpecificArtifacts, someChildModuleArtifacts, childParent1SpecificArtifacts, childParent2SpecificArtifacts)));
+    }
+
+    @Test
+    public void equalsAndHashCode() {
+        DefaultResolvedDependency dependency = new DefaultResolvedDependency("group", "name", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
+        DefaultResolvedDependency same = new DefaultResolvedDependency("group", "name", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
+        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency("other", "name", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
+        DefaultResolvedDependency differentName = new DefaultResolvedDependency("group", "other", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
+        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency("group", "name", "other", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
+        DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency("group", "name", "version",
+                "other", Collections.EMPTY_SET, Collections.EMPTY_SET);
+
+        assertThat(dependency, strictlyEqual(same));
+        assertThat(dependency, not(equalTo(differentGroup)));
+        assertThat(dependency, not(equalTo(differentName)));
+        assertThat(dependency, not(equalTo(differentVersion)));
+        assertThat(dependency, not(equalTo(differentConfiguration)));
     }
 
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {

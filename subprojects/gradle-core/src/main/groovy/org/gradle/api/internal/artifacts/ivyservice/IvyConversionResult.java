@@ -29,4 +29,6 @@ public interface IvyConversionResult {
     Map<Dependency, Set<ResolvedDependency>> getFirstLevelResolvedDependencies();
 
     Set<ResolvedArtifact> getResolvedArtifacts();
+
+    ResolvedDependency getRoot();
 }

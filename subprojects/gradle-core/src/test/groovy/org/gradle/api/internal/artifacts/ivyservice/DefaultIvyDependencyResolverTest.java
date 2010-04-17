@@ -78,6 +78,7 @@ public class DefaultIvyDependencyResolverTest {
         final ModuleDependency moduleDependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
         final ModuleDependency moduleDependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
         final SelfResolvingDependency selfResolvingDependencyDummy = context.mock(SelfResolvingDependency.class);
+        final ResolvedDependency root = context.mock(ResolvedDependency.class, "root");
         final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
         ResolvedDependency resolvedDependency3 = context.mock(ResolvedDependency.class, "resolved3");
@@ -89,9 +90,9 @@ public class DefaultIvyDependencyResolverTest {
                 WrapUtil.toSet(resolvedDependency3));
 
         context.checking(new Expectations() {{
-            allowing(resolvedDependency1).getAllArtifacts(null);
+            allowing(resolvedDependency1).getAllArtifacts(root);
             will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "someName", "someType", "someExtension", new File("file1")))));
-            allowing(resolvedDependency2).getAllArtifacts(null);
+            allowing(resolvedDependency2).getAllArtifacts(root);
             will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "someName2", "someType", "someExtension", new File("file2")))));
             allowing(configurationStub).getAllDependencies();
             will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
@@ -101,6 +102,8 @@ public class DefaultIvyDependencyResolverTest {
             will(returnValue(conversionResultStub));
             allowing(conversionResultStub).getFirstLevelResolvedDependencies();
             will(returnValue(firstLevelResolvedDependencies));
+            allowing(conversionResultStub).getRoot();
+            will(returnValue(root));
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);
@@ -118,19 +121,19 @@ public class DefaultIvyDependencyResolverTest {
     public void testGetModuleDependencies() throws IOException, ParseException {
         prepareResolveReport();
         final ModuleDependency moduleDependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
+        final ResolvedDependency root = context.mock(ResolvedDependency.class, "root");
         final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
         final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
-        Set<ResolvedDependency> resolvedDependenciesSet = WrapUtil.toSet(resolvedDependency1, resolvedDependency2);
-        final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
-                moduleDependencyDummy1,
-                resolvedDependenciesSet);
+        final Set<ResolvedDependency> resolvedDependenciesSet = WrapUtil.toSet(resolvedDependency1, resolvedDependency2);
 
         context.checking(new Expectations() {{
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
             will(returnValue(conversionResultStub));
-            allowing(conversionResultStub).getFirstLevelResolvedDependencies();
-            will(returnValue(firstLevelResolvedDependencies));
+            allowing(conversionResultStub).getRoot();
+            will(returnValue(root));
+            allowing(root).getChildren();
+            will(returnValue(resolvedDependenciesSet));
         }});
         ModuleDescriptor moduleDescriptor = createAnonymousModuleDescriptor();
         prepareTestsThatRetrieveDependencies(moduleDescriptor);

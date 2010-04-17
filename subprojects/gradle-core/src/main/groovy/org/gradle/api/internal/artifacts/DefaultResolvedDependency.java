@@ -81,10 +81,6 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return configuration;
     }
 
-    public Set<String> getConfigurationHierarchy() {
-        return configurationHierarchy;
-    }
-
     public boolean containsConfiguration(String configuration) {
         return configurationHierarchy.contains(configuration);
     }
@@ -158,7 +154,16 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
         DefaultResolvedDependency that = (DefaultResolvedDependency) o;
 
-        if (!name.equals(that.name)) {
+        if (!moduleGroup.equals(that.moduleGroup)) {
+            return false;
+        }
+        if (!moduleName.equals(that.moduleName)) {
+            return false;
+        }
+        if (!moduleVersion.equals(that.moduleVersion)) {
+            return false;
+        }
+        if (!configuration.equals(that.configuration)) {
             return false;
         }
 
@@ -167,6 +172,6 @@ public class DefaultResolvedDependency implements ResolvedDependency {
 
     @Override
     public int hashCode() {
-        return name.hashCode();
+        return moduleGroup.hashCode() ^ moduleName.hashCode() ^ configuration.hashCode();
     }
 }

@@ -109,7 +109,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
                 Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
                 if (resolvedDependencies != null) {
                     for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                        for (File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(null))) {
+                        for (File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(conversionResult.getRoot()))) {
                             if (depFile == null) {
                                 throw new GradleException(String.format("Resolved files for %s contains a null value.", resolvedDependency));
                             }
@@ -123,14 +123,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
         public Set<ResolvedDependency> getFirstLevelModuleDependencies() {
             rethrowFailure();
-            Set<ResolvedDependency> resolvedDependencies = new LinkedHashSet<ResolvedDependency>();
-            for (Dependency dependency : conversionResult.getFirstLevelResolvedDependencies().keySet()) {
-                Set<ResolvedDependency> dependencySet = conversionResult.getFirstLevelResolvedDependencies().get(dependency);
-                if (dependencySet != null) {
-                    resolvedDependencies.addAll(dependencySet);
-                }
-            }
-            return resolvedDependencies;
+            return conversionResult.getRoot().getChildren();
         }
 
         public Set<ResolvedArtifact> getResolvedArtifacts() {

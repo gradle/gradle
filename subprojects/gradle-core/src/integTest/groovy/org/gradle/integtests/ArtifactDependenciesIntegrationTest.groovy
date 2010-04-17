@@ -26,6 +26,12 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
+    public void canHaveConfigurationHierarchy() {
+        File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
+        usingBuildFile(buildFile).withArguments("-g", testFile("home").absolutePath).run();
+    }
+
+    @Test
     public void dependencyReportWithConflicts() {
         File buildFile = testFile("projectWithConflicts.gradle");
         usingBuildFile(buildFile).withDependencyList().run();

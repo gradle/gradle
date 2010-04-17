@@ -19,12 +19,10 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
-import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.ConfigurationResolveReport;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.IvyNode;
 import org.apache.ivy.core.resolve.IvyNodeCallers;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DefaultResolvedArtifact;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
@@ -34,7 +32,6 @@ import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.util.*;
 
 /**
@@ -47,26 +44,6 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
 
     public DefaultIvyReportConverter(DependencyDescriptorFactory dependencyDescriptorFactory) {
         this.dependencyDescriptorFactory = dependencyDescriptorFactory;
-    }
-
-    public Set<File> getClasspath(String configuration, ResolveReport resolveReport) {
-        Clock clock = new Clock();
-        Set<File> classpath = new LinkedHashSet<File>();
-        for (ArtifactDownloadReport artifactDownloadReport : getAllArtifactReports(resolveReport, configuration)) {
-            classpath.add(artifactDownloadReport.getLocalFile());
-        }
-        logger.debug("Timing: Translating report for configuration {} took {}", configuration, clock.getTime());
-        return classpath;
-    }
-
-    private ArtifactDownloadReport[] getAllArtifactReports(ResolveReport report, String conf) {
-        logger.debug("using internal report instance to get artifacts list");
-        ConfigurationResolveReport configurationReport = report.getConfigurationReport(conf);
-        if (configurationReport == null) {
-            throw new GradleException("bad confs provided: " + conf
-                    + " not found among " + Arrays.asList(report.getConfigurations()));
-        }
-        return configurationReport.getArtifactsReports(null, false);
     }
 
     public IvyConversionResult convertReport(ResolveReport resolveReport, Configuration configuration) {
@@ -82,45 +59,55 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
             }
             getResolvedDependenciesForNode(node, context);
         }
+        if (context.root == null) {
+            context.root = new DefaultResolvedDependency(resolveReport.getModuleDescriptor().getModuleRevisionId().getOrganisation(),
+                    resolveReport.getModuleDescriptor().getModuleRevisionId().getName(),
+                    resolveReport.getModuleDescriptor().getModuleRevisionId().getRevision(), configuration.getName(), Collections.singleton(configuration.getName()), Collections.EMPTY_SET);
+        }
+
+        for (ResolvedDependency resolvedDependency : context.root.getChildren()) {
+            DefaultResolvedDependency defaultResolvedDependency = (DefaultResolvedDependency) resolvedDependency;
+            addNodeIfFirstLevelDependency(context.resolvedDependencies2Nodes.get(defaultResolvedDependency),
+                    defaultResolvedDependency, context);
+        }
+
         logger.debug("Timing: Translating report for configuration {} took {}", configuration, clock.getTime());
-        return new DefaultIvyConversionResult(context.firstLevelResolvedDependencies, context.resolvedArtifacts);
+        return new DefaultIvyConversionResult(context.root, context.firstLevelResolvedDependencies, context.resolvedArtifacts);
     }
 
     private boolean isResolvedNode(IvyNode node, Configuration configuration) {
         return node.isLoaded() && !node.isEvicted(configuration.getName());
     }
 
-    private void getResolvedDependenciesForNode(IvyNode ivyNode,
-                                                ReportConversionContext context) {
+    private void getResolvedDependenciesForNode(IvyNode ivyNode, ReportConversionContext context) {
         ModuleRevisionId nodeId = ivyNode.getId();
         if (context.handledNodes.containsKey(nodeId)) {
             return;
         }
         Map<String, DefaultResolvedDependency> resolvedDependencies = new LinkedHashMap<String, DefaultResolvedDependency>();
-        for (IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
-            Set<String> dependencyConfigurationsForNode = getDependencyConfigurationsByCaller(ivyNode, caller);
-            for (String dependencyConfiguration : dependencyConfigurationsForNode) {
-                DefaultResolvedDependency resolvedDependencyForDependencyConfiguration = resolvedDependencies.get(dependencyConfiguration);
-                if (resolvedDependencyForDependencyConfiguration == null) {
-                    resolvedDependencyForDependencyConfiguration = createResolvedDependency(ivyNode, dependencyConfiguration);
-                    context.resolvedArtifacts.addAll(resolvedDependencyForDependencyConfiguration.getModuleArtifacts());
-                    resolvedDependencies.put(dependencyConfiguration, resolvedDependencyForDependencyConfiguration);
-                    context.resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration, ivyNode);
-                    addNodeIfFirstLevelDependency(ivyNode, resolvedDependencyForDependencyConfiguration, context);
+        if (ivyNode == ivyNode.getRoot()) {
+            DefaultResolvedDependency dependency = createResolvedDependency(ivyNode, context.conf);
+            context.root = dependency;
+            resolvedDependencies.put(context.conf, dependency);
+        }
+        else {
+            for (IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
+                Set<String> dependencyConfigurationsForNode = getDependencyConfigurationsByCaller(ivyNode, caller);
+                for (String dependencyConfiguration : dependencyConfigurationsForNode) {
+                    DefaultResolvedDependency resolvedDependencyForDependencyConfiguration = resolvedDependencies.get(dependencyConfiguration);
+                    if (resolvedDependencyForDependencyConfiguration == null) {
+                        resolvedDependencyForDependencyConfiguration = createResolvedDependency(ivyNode, dependencyConfiguration);
+                        context.resolvedArtifacts.addAll(resolvedDependencyForDependencyConfiguration.getModuleArtifacts());
+                        resolvedDependencies.put(dependencyConfiguration, resolvedDependencyForDependencyConfiguration);
+                        context.resolvedDependencies2Nodes.put(resolvedDependencyForDependencyConfiguration, ivyNode);
+                    }
                 }
+                IvyNode parentNode = isRootCaller(context.configurationResolveReport, caller) ? ivyNode.getRoot() : context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
+                getResolvedDependenciesForNode(parentNode, context);
+                Map<String, DefaultResolvedDependency> parentResolvedDependencies = context.handledNodes.get(parentNode.getId());
+                createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode, resolvedDependencies, context.resolvedArtifacts, parentNode, caller,
+                        dependencyConfigurationsForNode, parentResolvedDependencies);
             }
-            if (isRootCaller(context.configurationResolveReport, caller)) {
-                for (DefaultResolvedDependency resolvedDependency : resolvedDependencies.values()) {
-                    resolvedDependency.getParents().add(null);
-                    resolvedDependency.addParentSpecificArtifacts(null, getParentSpecificArtifacts(resolvedDependency, context.conf, ivyNode.getRoot(), caller, ivyNode));
-                }
-                continue;
-            }
-            IvyNode parentNode = context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
-            getResolvedDependenciesForNode(parentNode, context);
-            Map<String, DefaultResolvedDependency> parentResolvedDependencies = context.handledNodes.get(parentNode.getId());
-            createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode, resolvedDependencies, context.resolvedArtifacts, parentNode, caller,
-                    dependencyConfigurationsForNode, parentResolvedDependencies);
         }
         context.handledNodes.put(nodeId, resolvedDependencies);
     }
@@ -309,6 +296,7 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
     }
 
     private static class ReportConversionContext {
+        ResolvedDependency root;
         Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = new LinkedHashMap<Dependency, Set<ResolvedDependency>>();
         Map<ModuleRevisionId, Map<String, DefaultResolvedDependency>> handledNodes = new LinkedHashMap<ModuleRevisionId, Map<String, DefaultResolvedDependency>>();
         Map<DefaultResolvedDependency, IvyNode> resolvedDependencies2Nodes = new HashMap<DefaultResolvedDependency, IvyNode>();
