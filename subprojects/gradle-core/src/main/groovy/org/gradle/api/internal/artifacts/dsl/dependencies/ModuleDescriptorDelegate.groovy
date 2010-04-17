@@ -17,6 +17,7 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
 import org.gradle.api.artifacts.ClientModule
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -46,7 +47,9 @@ class ModuleFactoryDelegate {
   }
 
   void dependency(Object dependencyNotation, Closure configureClosure) {
-    clientModule.addDependency(dependencyFactory.createDependency(dependencyNotation, configureClosure))
+    def dependency = dependencyFactory.createDependency(dependencyNotation)
+    clientModule.addDependency(dependency)
+    ConfigureUtil.configure(configureClosure, dependency)
   }
 
   void dependencies(Object[] dependencyNotations) {

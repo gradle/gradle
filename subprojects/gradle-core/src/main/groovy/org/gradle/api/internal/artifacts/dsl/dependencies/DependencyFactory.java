@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 
+import java.util.Map;
+
 /**
  * @author Hans Dockter
  */
@@ -28,9 +30,7 @@ public interface DependencyFactory {
         GRADLE_API, LOCAL_GROOVY
     }
     
-    Dependency createDependency(Object dependencyNotation, Closure closure);
     Dependency createDependency(Object dependencyNotation);
-
     ClientModule createModule(Object dependencyNotation, Closure configureClosure);
-    ProjectDependency createProject(ProjectFinder projectFinder, Object dependencyNotation, Closure configureClosure);
+    ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map);
 }

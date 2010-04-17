@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.dsl.DependencyHandler
+import org.gradle.util.ConfigureUtil
 import org.gradle.util.GUtil
 
 /**
@@ -47,8 +48,9 @@ class DefaultDependencyHandler implements DependencyHandler {
 
     private Dependency pushDependency(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         Dependency dependency
-        dependency = dependencyFactory.createDependency(notation, configureClosure)
+        dependency = dependencyFactory.createDependency(notation)
         configuration.addDependency(dependency)
+        ConfigureUtil.configure(configureClosure, dependency)
         dependency
     }
 
@@ -56,12 +58,8 @@ class DefaultDependencyHandler implements DependencyHandler {
         module(notation, null)
     }
 
-    public Dependency project(Object notation, Closure configureClosure) {
-        return dependencyFactory.createProject(projectFinder, notation, configureClosure)
-    }
-
-    public Dependency project(Object notation) {
-        project(notation, null)
+    public Dependency project(Map notation) {
+        return dependencyFactory.createProjectDependencyFromMap(projectFinder, notation)
     }
 
     public Dependency module(Object notation, Closure configureClosure) {

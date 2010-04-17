@@ -17,35 +17,36 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.gradle.api.GradleException;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.*;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
+import org.gradle.util.TestClosure;
 import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.*;
+
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.strictlyEqual;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultConfigurationTest {
@@ -820,6 +821,52 @@ public class DefaultConfigurationTest {
                 assertThat(otherDependency, not(sameInstance(dependency)));
             }
         }
+    }
+
+    @Test
+    public void allDependencies() {
+        DefaultExternalModuleDependency dependency1 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group1", "name", "version");
+        configuration.addDependency(dependency1);
+        configuration.allDependencies(new Action<Dependency>() {
+            public void execute(Dependency dependency) {
+             ((DefaultExternalModuleDependency) dependency).setForce(true);
+            }
+        });
+        configuration.allDependencies(HelperUtil.toClosure(new TestClosure() {
+            public Object call(Object param) {
+                return ((DefaultExternalModuleDependency) param).setChanging(true);
+            }
+        }));
+        DefaultExternalModuleDependency dependency2 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group2", "name2", "version2");
+        configuration.addDependency(dependency2);
+        
+        assertThat(dependency1.isForce(), equalTo(true));
+        assertThat(dependency1.isForce(), equalTo(true));
+        assertThat(dependency2.isChanging(), equalTo(true));
+        assertThat(dependency2.isChanging(), equalTo(true));
+    }
+
+    @Test
+    public void whenDependencyAdded() {
+        DefaultExternalModuleDependency dependency1 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group1", "name", "version");
+        configuration.addDependency(dependency1);
+        configuration.whenDependencyAdded(new Action<Dependency>() {
+            public void execute(Dependency dependency) {
+             ((DefaultExternalModuleDependency) dependency).setForce(true);
+            }
+        });
+        configuration.whenDependencyAdded(HelperUtil.toClosure(new TestClosure() {
+            public Object call(Object param) {
+                return ((DefaultExternalModuleDependency) param).setChanging(true);
+            }
+        }));
+        DefaultExternalModuleDependency dependency2 = (DefaultExternalModuleDependency) HelperUtil.createDependency("group2", "name2", "version2");
+        configuration.addDependency(dependency2);
+
+        assertThat(dependency1.isForce(), equalTo(false));
+        assertThat(dependency1.isForce(), equalTo(false));
+        assertThat(dependency2.isChanging(), equalTo(true));
+        assertThat(dependency2.isChanging(), equalTo(true));
     }
 
     @Test

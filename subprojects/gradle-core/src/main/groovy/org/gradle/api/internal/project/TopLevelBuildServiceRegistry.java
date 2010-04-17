@@ -197,6 +197,9 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected DependencyFactory createDependencyFactory() {
         ClassGenerator classGenerator = get(ClassGenerator.class);
+        DefaultProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(
+                startParameter.getProjectDependenciesBuildInstruction(),
+                classGenerator);
         return new DefaultDependencyFactory(
                 WrapUtil.<IDependencyImplementationFactory>toSet(
                         new ModuleDependencyFactory(
@@ -206,12 +209,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         new ClassPathDependencyFactory(
                                 classGenerator,
                                 get(ClassPathRegistry.class),
-                                new IdentityFileResolver())),
+                                new IdentityFileResolver()),
+                        projectDependencyFactory),
                 new DefaultClientModuleFactory(
                         classGenerator),
-                new DefaultProjectDependencyFactory(
-                        startParameter.getProjectDependenciesBuildInstruction(),
-                        classGenerator));
+                projectDependencyFactory);
     }
 
     protected ProjectEvaluator createProjectEvaluator() {

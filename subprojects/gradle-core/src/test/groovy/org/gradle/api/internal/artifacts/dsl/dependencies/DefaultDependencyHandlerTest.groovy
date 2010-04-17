@@ -15,14 +15,17 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies
 
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.util.ConfigureUtil
+import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.api.artifacts.*
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import static org.hamcrest.Matchers.equalTo
+import static org.hamcrest.Matchers.sameInstance
+import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
@@ -54,7 +57,7 @@ class DefaultDependencyHandlerTest {
         Dependency dependencyDummy = context.mock(Dependency)
         context.checking {
             allowing(configurationContainerStub).getAt(TEST_CONF_NAME); will(returnValue(configurationMock))
-            allowing(dependencyFactoryStub).createDependency(someNotation, null); will(returnValue(dependencyDummy))
+            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(dependencyDummy))
             one(configurationMock).addDependency(dependencyDummy);
         }
 
@@ -65,14 +68,17 @@ class DefaultDependencyHandlerTest {
     void addWithClosure() {
         String someNotation = "someNotation"
         def closure = { }
-        Dependency dependencyDummy = context.mock(Dependency)
+        DefaultExternalModuleDependency returnedDependency = HelperUtil.createDependency("group", "name", "1.0")
         context.checking {
             allowing(configurationContainerStub).getAt(TEST_CONF_NAME); will(returnValue(configurationMock))
-            allowing(dependencyFactoryStub).createDependency(someNotation, closure); will(returnValue(dependencyDummy))
-            one(configurationMock).addDependency(dependencyDummy);
+            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(returnedDependency))
+            one(configurationMock).addDependency(returnedDependency);
         }
-
-        assertThat(dependencyHandler.add(TEST_CONF_NAME, someNotation, closure), equalTo(dependencyDummy))
+        def dependency = dependencyHandler.add(TEST_CONF_NAME, someNotation) {
+            force = true    
+        }
+        assertThat(dependency, equalTo(returnedDependency))
+        assertThat(dependency.force, equalTo(true))
     }
 
     @Test
@@ -80,7 +86,7 @@ class DefaultDependencyHandlerTest {
         String someNotation = "someNotation"
         Dependency dependencyDummy = context.mock(Dependency)
         context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation, null); will(returnValue(dependencyDummy))
+            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(dependencyDummy))
             one(configurationMock).addDependency(dependencyDummy);
         }
 
@@ -90,14 +96,17 @@ class DefaultDependencyHandlerTest {
     @Test
     void pushOneDependencyWithClosure() {
         String someNotation = "someNotation"
-        Closure configureClosure = {}
-        Dependency dependencyDummy = context.mock(Dependency)
+        DefaultExternalModuleDependency returnedDependency = HelperUtil.createDependency("group", "name", "1.0")
         context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation, configureClosure); will(returnValue(dependencyDummy))
-            one(configurationMock).addDependency(dependencyDummy);
+            allowing(dependencyFactoryStub).createDependency(someNotation); will(returnValue(returnedDependency))
+            one(configurationMock).addDependency(returnedDependency);
         }
 
-        assertThat(dependencyHandler."$TEST_CONF_NAME"(someNotation, configureClosure), equalTo(dependencyDummy))
+        def dependency = dependencyHandler."$TEST_CONF_NAME"(someNotation) {
+            force = true
+        }
+        assertThat(dependency, equalTo(returnedDependency))
+        assertThat(dependency.force, equalTo(true))
     }
 
     @Test
@@ -107,8 +116,8 @@ class DefaultDependencyHandlerTest {
         Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
         Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
         context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation1, null); will(returnValue(dependencyDummy1))
-            allowing(dependencyFactoryStub).createDependency(someNotation2, null); will(returnValue(dependencyDummy2))
+            allowing(dependencyFactoryStub).createDependency(someNotation1); will(returnValue(dependencyDummy1))
+            allowing(dependencyFactoryStub).createDependency(someNotation2); will(returnValue(dependencyDummy2))
             one(configurationMock).addDependency(dependencyDummy1);
             one(configurationMock).addDependency(dependencyDummy2);
         }
@@ -123,8 +132,8 @@ class DefaultDependencyHandlerTest {
         Dependency dependencyDummy1 = context.mock(Dependency, "dep1")
         Dependency dependencyDummy2 = context.mock(Dependency, "dep2")
         context.checking {
-            allowing(dependencyFactoryStub).createDependency(someNotation1, null); will(returnValue(dependencyDummy1))
-            allowing(dependencyFactoryStub).createDependency(someNotation2, null); will(returnValue(dependencyDummy2))
+            allowing(dependencyFactoryStub).createDependency(someNotation1); will(returnValue(dependencyDummy1))
+            allowing(dependencyFactoryStub).createDependency(someNotation2); will(returnValue(dependencyDummy2))
             one(configurationMock).addDependency(dependencyDummy1);
             one(configurationMock).addDependency(dependencyDummy2);
         }
@@ -133,15 +142,15 @@ class DefaultDependencyHandlerTest {
     }
 
     @Test
-    void pushProject() {
+    void pushProjectByMap() {
         ProjectDependency projectDependency = context.mock(ProjectDependency)
         Map someMapNotation = [:]
         Closure projectDependencyClosure = {
             assertThat("$TEST_CONF_NAME"(project(someMapNotation)), equalTo(projectDependency))
         }
         context.checking {
-            allowing(dependencyFactoryStub).createProject(projectFinderDummy, someMapNotation, null); will(returnValue(projectDependency))
-            allowing(dependencyFactoryStub).createDependency(projectDependency, null); will(returnValue(projectDependency))
+            allowing(dependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, someMapNotation); will(returnValue(projectDependency))
+            allowing(dependencyFactoryStub).createDependency(projectDependency); will(returnValue(projectDependency))
             one(configurationMock).addDependency(projectDependency);
         }
 
@@ -149,17 +158,20 @@ class DefaultDependencyHandlerTest {
     }
 
     @Test
-    void pushProjectWithConfigureClosure() {
+    void pushProjectByMapWithConfigureClosure() {
         ProjectDependency projectDependency = context.mock(ProjectDependency)
         Map someMapNotation = [:]
-        Closure configureClosure = {}
         Closure projectDependencyClosure = {
-            assertThat("$TEST_CONF_NAME"(project(someMapNotation, configureClosure)), equalTo(projectDependency))
+            def dependency = "$TEST_CONF_NAME"(project(someMapNotation)) {
+                copy()    
+            }
+            assertThat(dependency, equalTo(projectDependency))
         }
         context.checking {
-            allowing(dependencyFactoryStub).createProject(projectFinderDummy, someMapNotation, configureClosure); will(returnValue(projectDependency))
-            allowing(dependencyFactoryStub).createDependency(projectDependency, null); will(returnValue(projectDependency))
+            allowing(dependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, someMapNotation); will(returnValue(projectDependency))
+            allowing(dependencyFactoryStub).createDependency(projectDependency); will(returnValue(projectDependency))
             one(configurationMock).addDependency(projectDependency);
+            one(projectDependency).copy();
         }
 
         ConfigureUtil.configure(projectDependencyClosure, dependencyHandler)
@@ -174,7 +186,7 @@ class DefaultDependencyHandlerTest {
         }
         context.checking {
             allowing(dependencyFactoryStub).createModule(someNotation, null); will(returnValue(clientModule))
-            allowing(dependencyFactoryStub).createDependency(clientModule, null); will(returnValue(clientModule))
+            allowing(dependencyFactoryStub).createDependency(clientModule); will(returnValue(clientModule))
             one(configurationMock).addDependency(clientModule);
         }
 
@@ -191,7 +203,7 @@ class DefaultDependencyHandlerTest {
         }
         context.checking {
             allowing(dependencyFactoryStub).createModule(someNotation, configureClosure); will(returnValue(clientModule))
-            allowing(dependencyFactoryStub).createDependency(clientModule, null); will(returnValue(clientModule))
+            allowing(dependencyFactoryStub).createDependency(clientModule); will(returnValue(clientModule))
             one(configurationMock).addDependency(clientModule);
         }
 
@@ -205,7 +217,7 @@ class DefaultDependencyHandlerTest {
             one(dependencyFactoryStub).createDependency(DependencyFactory.ClassPathNotation.GRADLE_API)
             will(returnValue(dependency))
 
-            one(dependencyFactoryStub).createDependency(dependency, null)
+            one(dependencyFactoryStub).createDependency(dependency)
             will(returnValue(dependency))
 
             one(configurationMock).addDependency(dependency)
@@ -224,7 +236,7 @@ class DefaultDependencyHandlerTest {
             one(dependencyFactoryStub).createDependency(DependencyFactory.ClassPathNotation.LOCAL_GROOVY)
             will(returnValue(dependency))
 
-            one(dependencyFactoryStub).createDependency(dependency, null)
+            one(dependencyFactoryStub).createDependency(dependency)
             will(returnValue(dependency))
 
             one(configurationMock).addDependency(dependency)

@@ -17,16 +17,15 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
-
-import static org.apache.ivy.core.module.descriptor.Configuration.*;
-
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.IvyService;
 import org.gradle.api.internal.file.AbstractFileCollection;
@@ -41,6 +40,8 @@ import org.gradle.util.WrapUtil;
 import java.io.File;
 import java.util.*;
 
+import static org.apache.ivy.core.module.descriptor.Configuration.Visibility;
+
 public class DefaultConfiguration extends AbstractFileCollection implements Configuration {
     private final String path;
     private final String name;
@@ -53,7 +54,8 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private IvyService ivyService;
 
-    private Set<Dependency> dependencies = new LinkedHashSet<Dependency>();
+    private DefaultDomainObjectContainer<Dependency> dependencies =
+            new DefaultDomainObjectContainer<Dependency>(Dependency.class);
 
     private Set<PublishArtifact> artifacts = new LinkedHashSet<PublishArtifact>();
 
@@ -261,7 +263,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Set<Dependency> getDependencies() {
-        return Collections.unmodifiableSet(dependencies);
+        return dependencies.getAll();
     }
 
     public Set<Dependency> getAllDependencies() {
@@ -288,7 +290,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     public void addDependency(Dependency dependency) {
         throwExceptionIfNotInUnresolvedState();
-        dependencies.add(dependency);
+        dependencies.addObject(dependency);
     }
 
     public Configuration addArtifact(PublishArtifact artifact) {
@@ -496,6 +498,22 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
             }
             return resolvedConfiguration.getFiles(dependencySpec);
         }
+    }
+
+    public Action<? super Dependency> whenDependencyAdded(Action<? super Dependency> action) {
+        return dependencies.whenObjectAdded(action);
+    }
+
+    public void whenDependencyAdded(Closure closure) {
+        dependencies.whenObjectAdded(closure);
+    }
+
+    public void allDependencies(Action<? super Dependency> action) {
+        dependencies.allObjects(action);
+    }
+
+    public void allDependencies(Closure action) {
+        dependencies.allObjects(action);
     }
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {

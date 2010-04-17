@@ -16,19 +16,23 @@
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
-import static org.junit.Assert.assertThat;
-import org.junit.Test;
-import static org.hamcrest.Matchers.*;
-import org.jmock.integration.junit4.JUnit4Mockery;
+import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;
+import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Test;
 
 import java.awt.*;
 import java.util.Map;
+
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -41,16 +45,11 @@ public class DefaultProjectDependencyFactoryTest {
     private ProjectFinder projectFinder = context.mock(ProjectFinder.class);
 
     @Test
-    public void testCreateProjectDependencyWithStringNotation() {
-        final String somePath = ":path";
-        final ProjectInternal projectDummy = context.mock(ProjectInternal.class);
-        context.checking(new Expectations() {{
-            allowing(projectFinder).getProject(somePath);
-            will(returnValue(projectDummy));
-        }});
+    public void testCreateProjectDependencyWithProject() {
+        Project dependencyProject = HelperUtil.createRootProject();
         DefaultProjectDependency projectDependency = (DefaultProjectDependency)
-                projectDependencyFactory.createProject(projectFinder, somePath);
-        assertThat((ProjectInternal) projectDependency.getDependencyProject(), equalTo(projectDummy));
+                projectDependencyFactory.createDependency(Dependency.class, dependencyProject);
+        assertThat((ProjectInternal) projectDependency.getDependencyProject(), equalTo(dependencyProject));
     }
 
     @Test
@@ -63,7 +62,7 @@ public class DefaultProjectDependencyFactoryTest {
             will(returnValue(projectDummy));
         }});
         DefaultProjectDependency projectDependency = (DefaultProjectDependency)
-                projectDependencyFactory.createProject(projectFinder, mapNotation);
+                projectDependencyFactory.createProjectDependencyFromMap(projectFinder, mapNotation);
         assertThat((ProjectInternal) projectDependency.getDependencyProject(), equalTo(projectDummy));
         assertThat(projectDependency.getConfiguration(), equalTo(mapNotation.get("configuration")));
         assertThat(projectDependency.isTransitive(), equalTo(expectedTransitive));
@@ -71,6 +70,6 @@ public class DefaultProjectDependencyFactoryTest {
 
     @Test (expected = IllegalDependencyNotation.class)
     public void testWithUnknownTypeShouldThrowUnknownDependencyNotationEx() {
-        projectDependencyFactory.createProject(projectFinder, new Point(3, 4));
+        projectDependencyFactory.createDependency(Dependency.class, new Point(3, 4));
     }
 }

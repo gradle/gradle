@@ -15,8 +15,10 @@
  */
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.artifacts.Dependency;
 import groovy.lang.Closure;
+import org.gradle.api.artifacts.Dependency;
+
+import java.util.Map;
 
 /**
  * <p>A {@code DependencyHandler} is used to declare artifact dependencies. Artifact dependencies are grouped into
@@ -134,17 +136,8 @@ public interface DependencyHandler {
      * @param notation The project notation, in one of the notations described above.
      * @return The dependency.
      */
-    Dependency project(Object notation);
-
-    /**
-     * Creates a dependency on a project. The dependency is configured using the given closure before it is returned.
-     *
-     * @param notation The project notation, in one of the notations described above.
-     * @param configureClosure The closure to use to configure the dependency.
-     * @return The dependency.
-     */
-    Dependency project(Object notation, Closure configureClosure);
-
+    Dependency project(Map notation);
+    
     /**
      * Creates a dependency on the API of the current version of Gradle.
      *

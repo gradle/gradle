@@ -25,16 +25,18 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.awt.*;
+import java.util.Map;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -72,8 +74,7 @@ public class DefaultDependencyFactoryTest {
             allowing(testImplPointFactoryStub).createDependency(Dependency.class, point);
             will(returnValue(pointDependencyMock));
         }});
-        Closure configureClosure = HelperUtil.toClosure("{ transitive = true }");
-        assertSame(pointDependencyMock, dependencyFactory.createDependency(point, configureClosure));
+        assertSame(pointDependencyMock, dependencyFactory.createDependency(point));
     }
 
     private Point createAnonymousPoint() {
@@ -102,13 +103,13 @@ public class DefaultDependencyFactoryTest {
         final ProjectDependency projectDependency = context.mock(ProjectDependency.class);
         final ProjectFinder projectFinderDummy = context.mock(ProjectFinder.class);
         DefaultDependencyFactory dependencyFactory = new DefaultDependencyFactory(null, null, projectDependencyFactoryStub);
+        final Map map = WrapUtil.toMap("key", "value");
         context.checking(new Expectations() {{
-            allowing(projectDependencyFactoryStub).createProject(projectFinderDummy, "notation");
+            allowing(projectDependencyFactoryStub).createProjectDependencyFromMap(projectFinderDummy, map);
             will(returnValue(projectDependency));
-            one(projectDependency).setTransitive(false);
         }});
         Closure configureClosure = HelperUtil.toClosure("{ transitive = false }");
-        assertThat(dependencyFactory.createProject(projectFinderDummy, "notation", configureClosure), sameInstance(projectDependency));
+        assertThat(dependencyFactory.createProjectDependencyFromMap(projectFinderDummy, map), sameInstance(projectDependency));
     }
 
     @Test

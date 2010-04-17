@@ -17,10 +17,12 @@ package org.gradle.api.internal.artifacts.dsl.dependencies;
 
 import org.gradle.api.artifacts.ProjectDependency;
 
+import java.util.Map;
+
 /**
  * @author Hans Dockter
  */
-public interface ProjectDependencyFactory {
-    ProjectDependency createProject(ProjectFinder projectFinder, Object notation);
-
+public interface ProjectDependencyFactory extends IDependencyImplementationFactory {
+    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder,
+                                                            Map<? extends String, ? extends Object> map);
 }

@@ -40,7 +40,7 @@ class ProductPlugin implements Plugin<Project> {
             afterEvaluate {
                 ProductDefinition product = pluginConvention.product
                 product.modules.each {p ->
-                    dependencies { runtime delegate.project(p.path) }
+                    dependencies { runtime project.project(p.path) }
                 }
                 archivesBaseName = "some-company-${product.displayName.replaceAll('\\s+', '-').toLowerCase()}"
                 dist {

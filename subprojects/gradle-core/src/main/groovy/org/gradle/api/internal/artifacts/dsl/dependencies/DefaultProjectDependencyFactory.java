@@ -15,8 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.dsl.dependencies;
 
-import groovy.lang.GString;
 import org.gradle.api.IllegalDependencyNotation;
+import org.gradle.api.Project;
+import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.ClassGenerator;
@@ -38,18 +39,14 @@ public class DefaultProjectDependencyFactory implements ProjectDependencyFactory
         this.classGenerator = classGenerator;
     }
 
-    public ProjectDependency createProject(ProjectFinder projectFinder, Object notation) {
-        assert notation != null;
-        if (notation instanceof String || notation instanceof GString) {
-            return classGenerator.newInstance(DefaultProjectDependency.class, projectFinder.getProject(
-                    notation.toString()), instruction);
-        } else if (notation instanceof Map) {
-            return createProjectFromMap(projectFinder, (Map<? extends String, ? extends Object>) notation);
+    public <T extends Dependency> T createDependency(Class<T> type, Object userDependencyDescription) throws IllegalDependencyNotation {
+        if (userDependencyDescription instanceof Project) {
+            return type.cast(classGenerator.newInstance(DefaultProjectDependency.class, userDependencyDescription, instruction));
         }
         throw new IllegalDependencyNotation();
     }
-
-    private ProjectDependency createProjectFromMap(ProjectFinder projectFinder,
+    
+    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder,
                                                    Map<? extends String, ? extends Object> map) {
         Map<String, Object> args = new HashMap<String, Object>(map);
         String path = getAndRemove(args, "path");

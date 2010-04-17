@@ -25,8 +25,9 @@ import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
+
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -43,7 +44,7 @@ public class ModuleFactoryDelegateTest {
     public void dependency() {
         final String dependencyNotation = "someNotation";
         final ModuleDependency dependencyDummy = context.mock(ModuleDependency.class);
-        letFactoryStubReturnDependency(dependencyNotation, dependencyDummy, null, true);
+        letFactoryStubReturnDependency(dependencyNotation, dependencyDummy);
         moduleFactoryDelegate.dependency(dependencyNotation);
         assertThat(clientModule.getDependencies(), Matchers.equalTo(WrapUtil.toSet(dependencyDummy)));
     }
@@ -53,7 +54,7 @@ public class ModuleFactoryDelegateTest {
         final String dependencyNotation = "someNotation";
         final Closure configureClosure = HelperUtil.toClosure("{}");
         final ModuleDependency dependencyDummy = context.mock(ModuleDependency.class);
-        letFactoryStubReturnDependency(dependencyNotation, dependencyDummy, configureClosure, true);
+        letFactoryStubReturnDependency(dependencyNotation, dependencyDummy);
         moduleFactoryDelegate.dependency(dependencyNotation, configureClosure);
         assertThat(clientModule.getDependencies(), Matchers.equalTo(WrapUtil.toSet(dependencyDummy)));
     }
@@ -64,20 +65,15 @@ public class ModuleFactoryDelegateTest {
         final String dependencyNotation2 = "someNotation2";
         final ModuleDependency dependencyDummy1 = context.mock(ModuleDependency.class, "dep1");
         final ModuleDependency dependencyDummy2 = context.mock(ModuleDependency.class, "dep2");
-        letFactoryStubReturnDependency(dependencyNotation1, dependencyDummy1, null, false);
-        letFactoryStubReturnDependency(dependencyNotation2, dependencyDummy2, null, false);
+        letFactoryStubReturnDependency(dependencyNotation1, dependencyDummy1);
+        letFactoryStubReturnDependency(dependencyNotation2, dependencyDummy2);
         moduleFactoryDelegate.dependencies((Object[])WrapUtil.toArray(dependencyNotation1, dependencyNotation2));
         assertThat(clientModule.getDependencies(), Matchers.equalTo(WrapUtil.toSet(dependencyDummy1, dependencyDummy2)));
     }
 
-    private void letFactoryStubReturnDependency(final String dependencyNotation, final Dependency dependencyDummy,
-                                                final Closure configureClosure, final boolean declareClosureIfNull) {
+    private void letFactoryStubReturnDependency(final String dependencyNotation, final Dependency dependencyDummy) {
         context.checking(new Expectations() {{
-            if (configureClosure == null && !declareClosureIfNull) {
-                allowing(dependencyFactoryStub).createDependency(dependencyNotation);
-            } else {
-                allowing(dependencyFactoryStub).createDependency(dependencyNotation, configureClosure);
-            }
+            allowing(dependencyFactoryStub).createDependency(dependencyNotation);
             will(returnValue(dependencyDummy));
         }});
     }

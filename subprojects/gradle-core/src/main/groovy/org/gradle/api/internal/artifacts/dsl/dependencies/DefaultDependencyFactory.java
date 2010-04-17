@@ -23,8 +23,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ClientModule;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
-import org.gradle.util.ConfigureUtil;
 
+import java.util.Map;
 import java.util.Set;
 
 /**
@@ -41,11 +41,6 @@ public class DefaultDependencyFactory implements DependencyFactory {
         this.dependencyFactories = dependencyFactories;
         this.clientModuleFactory = clientModuleFactory;
         this.projectDependencyFactory = projectDependencyFactory;
-    }
-
-    public Dependency createDependency(Object dependencyNotation, Closure configureClosure) {
-        Dependency dependency = createDependency(dependencyNotation);
-        return ConfigureUtil.configure(configureClosure, dependency);
     }
 
     public Dependency createDependency(Object dependencyNotation) {
@@ -84,8 +79,7 @@ public class DefaultDependencyFactory implements DependencyFactory {
         return clientModule;
     }
 
-    public ProjectDependency createProject(ProjectFinder projectFinder, Object dependencyNotation, Closure configureClosure) {
-        ProjectDependency projectDependency = projectDependencyFactory.createProject(projectFinder, dependencyNotation);
-        return ConfigureUtil.configure(configureClosure, projectDependency);
+    public ProjectDependency createProjectDependencyFromMap(ProjectFinder projectFinder, Map<? extends String, ? extends Object> map) {
+        return projectDependencyFactory.createProjectDependencyFromMap(projectFinder, map);
     }
 }

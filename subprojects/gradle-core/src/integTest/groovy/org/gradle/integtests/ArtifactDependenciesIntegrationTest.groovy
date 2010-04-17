@@ -15,11 +15,12 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
-import static org.hamcrest.Matchers.*
 import org.gradle.util.TestFile
-import org.junit.Rule
 import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import static org.hamcrest.Matchers.containsString
+import static org.hamcrest.Matchers.startsWith
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -131,7 +132,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
 '''
         testFile('b/build.gradle') << '''
             configurations { compile }
-            dependencies { compile project(':a') { artifact { name = 'a'; type = 'jar' } } }
+            dependencies { compile(project(':a')) { artifact { name = 'a'; type = 'jar' } } }
             task test {
                 inputs.files configurations.compile
                 doFirst {
