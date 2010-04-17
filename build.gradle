@@ -296,6 +296,14 @@ private def isDevBuild() {
     gradle.taskGraph.hasTask(':developerBuild')
 }
 
+tasks.addRule("Pattern: integTestSingle<Name> will integ test **/<Name>.class") {String taskName ->
+    if (taskName.startsWith("integTestSingle")) {
+        tasks.add(taskName).dependsOn(integTest)
+        integTest.includes = ['**/' + taskName.substring(15) + '.class']
+        integTest.outputs.upToDateWhen { false }
+    }
+}
+
 task testedDists(dependsOn: [assemble, check, integTest])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
