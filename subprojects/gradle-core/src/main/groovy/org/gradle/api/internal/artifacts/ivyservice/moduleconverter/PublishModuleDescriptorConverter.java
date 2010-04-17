@@ -32,6 +32,9 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class PublishModuleDescriptorConverter implements ModuleDescriptorConverter {
+    static final String IVY_MAVEN_NAMESPACE = "http://ant.apache.org/ivy/maven";
+    static final String IVY_MAVEN_NAMESPACE_PREFIX = "m";
+
     private static Logger logger = LoggerFactory.getLogger(PublishModuleDescriptorConverter.class);
     private ModuleDescriptorConverter resolveModuleDescriptorConverter;
     private ArtifactsToModuleDescriptorConverter artifactsToModuleDescriptorConverter;
@@ -44,7 +47,8 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
 
     public ModuleDescriptor convert(Set<Configuration> configurations, Module module, IvySettings settings) {
         Clock clock = new Clock();
-        ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configurations, module, settings);
+        DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter.convert(configurations, module, settings);
+        moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
         artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, configurations);
         logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return moduleDescriptor;

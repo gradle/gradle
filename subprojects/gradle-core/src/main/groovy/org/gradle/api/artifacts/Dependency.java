@@ -24,7 +24,8 @@ package org.gradle.api.artifacts;
 public interface Dependency {
     String DEFAULT_CONFIGURATION = "default";
     String ARCHIVES_CONFIGURATION = "archives";
-    String CLASSIFIER = "classifier";
+    // todo Remove to ivy layer in 1.0
+    String CLASSIFIER = "m:classifier";
 
     /**
      * Returns the group of this dependency. The group is often required to find the artifacts of a dependency in a

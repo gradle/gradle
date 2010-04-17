@@ -59,6 +59,8 @@ public class PublishModuleDescriptorConverterTest {
         context.checking(new Expectations() {{
             allowing(resolveModuleDescriptorConverter).convert(configurationsDummy, moduleDummy, ivySettingsDummy);
             will(returnValue(moduleDescriptorDummy));
+            one(moduleDescriptorDummy).addExtraAttributeNamespace(PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE_PREFIX,
+                    PublishModuleDescriptorConverter.IVY_MAVEN_NAMESPACE);
             one(artifactsToModuleDescriptorConverter).addArtifacts(moduleDescriptorDummy, configurationsDummy);
         }});
 

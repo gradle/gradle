@@ -68,7 +68,6 @@ public class DefaultIvyServiceResolveTest {
         SettingsConverter settingsConverterMock = context.mock(SettingsConverter.class);
         ModuleDescriptorConverter resolveModuleDescriptorConverterStub = context.mock(ModuleDescriptorConverter.class, "resolve");
         ModuleDescriptorConverter publishModuleDescriptorConverterDummy = context.mock(ModuleDescriptorConverter.class, "publish");
-        IvyFileConverter ivyFileConverterDummy = context.mock(IvyFileConverter.class);
         IvyDependencyResolver ivyDependencyResolverMock = context.mock(IvyDependencyResolver.class);
 
         context.checking(new Expectations() {{
@@ -86,7 +85,7 @@ public class DefaultIvyServiceResolveTest {
         }});
 
         ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
-                settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy, ivyFileConverterDummy,
+                settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy,
                 new DefaultIvyFactory(), ivyDependencyResolverMock, 
                 context.mock(IvyDependencyPublisher.class), clientModuleRegistryDummy);
     }

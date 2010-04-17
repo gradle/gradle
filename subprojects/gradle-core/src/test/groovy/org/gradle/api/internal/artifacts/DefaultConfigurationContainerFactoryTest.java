@@ -48,7 +48,6 @@ public class DefaultConfigurationContainerFactoryTest {
         SettingsConverter settingsConverter = context.mock(SettingsConverter.class);
         ModuleDescriptorConverter resolveModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "resolve");
         ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publish");
-        IvyFileConverter ivyFileConverter = context.mock(IvyFileConverter.class);
         IvyFactory ivyFactory = context.mock(IvyFactory.class);
         IvyDependencyResolver ivyDependencyResolver = context.mock(IvyDependencyResolver.class);
         IvyDependencyPublisher ivyDependencyPublisher = context.mock(IvyDependencyPublisher.class);
@@ -56,7 +55,7 @@ public class DefaultConfigurationContainerFactoryTest {
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
                 new DefaultConfigurationContainerFactory(clientModuleRegistry, settingsConverter,
                         resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
-                        ivyFileConverter, ivyFactory,
+                        ivyFactory,
                         ivyDependencyResolver, ivyDependencyPublisher, classGenerator).createConfigurationContainer(resolverProviderDummy,
                         dependencyMetaDataProviderStub, context.mock(DomainObjectContext.class));
 
@@ -74,7 +73,6 @@ public class DefaultConfigurationContainerFactoryTest {
         assertThat(defaultIvyService.getSettingsConverter(), sameInstance(settingsConverter));
         assertThat(defaultIvyService.getResolveModuleDescriptorConverter(), sameInstance(resolveModuleDescriptorConverter));
         assertThat(defaultIvyService.getPublishModuleDescriptorConverter(), sameInstance(publishModuleDescriptorConverter));
-        assertThat(defaultIvyService.getIvyFileConverter(), sameInstance(ivyFileConverter));
         assertThat(defaultIvyService.getIvyFactory(), sameInstance(ivyFactory));
         assertThat(defaultIvyService.getDependencyResolver(), sameInstance(ivyDependencyResolver));
         assertThat(defaultIvyService.getDependencyPublisher(), sameInstance(ivyDependencyPublisher));

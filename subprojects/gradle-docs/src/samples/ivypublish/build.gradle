@@ -35,6 +35,7 @@ repositories {
 task sourceJar(type: Jar) {
     baseName = 'ivypublishSource'
     from sourceSets.main.java
+    classifier = 'src'
 }
 
 artifacts {
@@ -52,6 +53,9 @@ uploadArchives {
                 repoDir.listFiles().collect { it.name } as Set)
         Assert.assertEquals(jar.archivePath.size(), new File(repoDir, 'ivypublish.jar').size())
         Assert.assertEquals(sourceJar.archivePath.size(), new File(repoDir, 'ivypublishSource.jar').size())
+        String descriptor = new File(repoDir, 'ivy.xml').text
+        Assert.assertTrue(descriptor.contains('m:classifier'))
+        Assert.assertTrue(descriptor.contains('xmlns:m="http://ant.apache.org/ivy/maven"'))
     }
 }
 

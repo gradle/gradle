@@ -125,26 +125,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected ConfigurationsToModuleDescriptorConverter createConfigurationsToModuleDescriptorConverter() {
         return new DefaultConfigurationsToModuleDescriptorConverter();
     }
-
-    protected IvyFileConverter createIvyFileConverter() {
-        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
-        DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
-                new ClientModuleDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
-                new ProjectDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class),
-                        ProjectDependencyDescriptorFactory.IVY_FILE_MODULE_REVISION_ID_STRATEGY),
-                get(ExternalModuleDependencyDescriptorFactory.class));
-        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
-        return new DefaultIvyFileConverter(
-                get(ModuleDescriptorFactory.class),
-                get(ConfigurationsToModuleDescriptorConverter.class),
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        dependencyDescriptorFactoryDelegate,
-                        get(ExcludeRuleConverter.class)),
-                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
-    }
-
+    
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
         DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
         DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
@@ -186,7 +167,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new DefaultSettingsConverter(),
                 get(ResolveModuleDescriptorConverter.class),
                 get(PublishModuleDescriptorConverter.class),
-                get(IvyFileConverter.class),
                 new DefaultIvyFactory(),
                 new SelfResolvingDependencyResolver(
                         new DefaultIvyDependencyResolver(
