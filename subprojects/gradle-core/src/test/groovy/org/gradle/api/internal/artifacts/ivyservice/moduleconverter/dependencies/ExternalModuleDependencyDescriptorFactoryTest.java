@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
@@ -53,16 +54,18 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
 
     @Test
     public void testCreateFromModuleDependency() {
-        DefaultExternalModuleDependency moduleDependency = (DefaultExternalModuleDependency)
-                setUpDependency(new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF));
+        DefaultExternalModuleDependency moduleDependency = new DefaultExternalModuleDependency("org.gradle",
+                "gradle-core", "1.0", TEST_DEP_CONF);
+        setUpDependency(moduleDependency);
 
-        externalModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, moduleDependency);
-        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        externalModuleDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor,
+                moduleDependency);
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor
+                .getDependencies()[0];
 
         assertEquals(moduleDependency.isChanging(), dependencyDescriptor.isChanging());
         assertEquals(dependencyDescriptor.isForce(), moduleDependency.isForce());
-        assertEquals(IvyUtil.createModuleRevisionId(moduleDependency),
-                dependencyDescriptor.getDependencyRevisionId());
+        assertEquals(IvyUtil.createModuleRevisionId(moduleDependency), dependencyDescriptor.getDependencyRevisionId());
         assertDependencyDescriptorHasCommonFixtureValues(dependencyDescriptor);
     }
 
