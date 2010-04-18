@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import org.gradle.api.Buildable;
@@ -77,25 +78,7 @@ public class Matchers {
     public static <T> Matcher<T> strictlyEqual(final T other) {
         return new BaseMatcher<T>() {
             public boolean matches(Object o) {
-                if (!o.equals(other)) {
-                    return false;
-                }
-                if (!other.equals(o)) {
-                    return false;
-                }
-                if (!o.equals(o)) {
-                    return false;
-                }
-                if (other.equals(null)) {
-                    return false;
-                }
-                if (other.equals(new Object())) {
-                    return false;
-                }
-                if (o.hashCode() != other.hashCode()) {
-                    return false;
-                }
-                return true;
+                return strictlyEquals(o, other);
             }
 
             public void describeTo(Description description) {
@@ -104,6 +87,28 @@ public class Matchers {
         };
     }
 
+    public static boolean strictlyEquals(Object a, Object b) {
+        if (!a.equals(b)) {
+            return false;
+        }
+        if (!b.equals(a)) {
+            return false;
+        }
+        if (!a.equals(a)) {
+            return false;
+        }
+        if (b.equals(null)) {
+            return false;
+        }
+        if (b.equals(new Object())) {
+            return false;
+        }
+        if (a.hashCode() != b.hashCode()) {
+            return false;
+        }
+        return true;
+
+    }
     @Factory
     public static Matcher<String> containsLine(final String line) {
         return new BaseMatcher<String>() {

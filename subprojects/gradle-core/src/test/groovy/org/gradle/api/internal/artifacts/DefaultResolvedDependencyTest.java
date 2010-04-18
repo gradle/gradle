@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,8 +39,6 @@ public class DefaultResolvedDependencyTest {
     private JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
-    
-    private static final Set<String> SOME_CONFIGURATION_HIERARCHY = WrapUtil.toSet("someConfiguration", "conf1");
 
     @Test
     public void init() {
@@ -49,7 +47,8 @@ public class DefaultResolvedDependencyTest {
         String someVersion = "someVersion";
         String someConfiguration = "someConfiguration";
         Set<ResolvedArtifact> someArtifacts = WrapUtil.toSet(createArtifact("someName"));
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(someGroup, someName, someVersion, someConfiguration, SOME_CONFIGURATION_HIERARCHY, someArtifacts);
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency(someGroup, someName, someVersion, someConfiguration,
+                someArtifacts);
         assertThat(resolvedDependency.getName(), equalTo(someGroup + ":" + someName + ":" + someVersion));
         assertThat(resolvedDependency.getModuleGroup(), equalTo(someGroup));
         assertThat(resolvedDependency.getModuleName(), equalTo(someName));
@@ -64,8 +63,10 @@ public class DefaultResolvedDependencyTest {
     public void getAllModuleArtifacts() {
         Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.<ResolvedArtifact>toSet(createArtifact("moduleArtifact"));
         Set<ResolvedArtifact> someChildModuleArtifacts = WrapUtil.<ResolvedArtifact>toSet(createArtifact("childModuleArtifact"));
-        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, someModuleArtifacts);
-        resolvedDependency.getChildren().add(new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration", SOME_CONFIGURATION_HIERARCHY, someChildModuleArtifacts));
+        DefaultResolvedDependency resolvedDependency = new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration",
+                someModuleArtifacts);
+        resolvedDependency.getChildren().add(new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration",
+                someChildModuleArtifacts));
         assertThat(resolvedDependency.getAllModuleArtifacts(), equalTo(GUtil.addSets(someChildModuleArtifacts, someModuleArtifacts)));
     }
 
@@ -89,7 +90,8 @@ public class DefaultResolvedDependencyTest {
     }
 
     private DefaultResolvedDependency createResolvedDependency(Set<ResolvedArtifact> moduleArtifacts) {
-        return new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, moduleArtifacts);
+        return new DefaultResolvedDependency("someGroup", "someName", "someVersion", "someConfiguration",
+                moduleArtifacts);
     }
 
     @Test
@@ -108,7 +110,8 @@ public class DefaultResolvedDependencyTest {
         Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration",
+                Collections.<ResolvedArtifact>emptySet());
         resolvedDependency.getParents().add(parent);
         assertThat(resolvedDependency.getArtifacts(parent), equalTo(moduleArtifacts));
     }
@@ -118,7 +121,8 @@ public class DefaultResolvedDependencyTest {
         Set<ResolvedArtifact> moduleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency(moduleArtifacts);
 
-        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", "parent", "someVersion", "someConfiguration",
+                Collections.<ResolvedArtifact>emptySet());
         resolvedDependency.getParents().add(parent);
         assertThat(resolvedDependency.getParentArtifacts(parent), equalTo(Collections.<ResolvedArtifact>emptySet()));
     }
@@ -126,7 +130,8 @@ public class DefaultResolvedDependencyTest {
     @Test(expected = InvalidUserDataException.class)
     public void getParentArtifactsWithUnknownParent() {
         DefaultResolvedDependency resolvedDependency = createResolvedDependency(Collections.<ResolvedArtifact>emptySet());
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration",
+                Collections.<ResolvedArtifact>emptySet());
         assertThat(resolvedDependency.getParentArtifacts(unknownParent),
                 equalTo(Collections.<ResolvedArtifact>emptySet()));
     }
@@ -136,7 +141,8 @@ public class DefaultResolvedDependencyTest {
         Set<ResolvedArtifact> someModuleArtifacts = WrapUtil.toSet(createArtifact("someModuleResolvedArtifact"));
         DefaultResolvedDependency resolvedDependency = createResolvedDependency(Collections.<ResolvedArtifact>emptySet());
 
-        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency unknownParent = new DefaultResolvedDependency("someGroup", "parent2", "someVersion", "someConfiguration",
+                Collections.<ResolvedArtifact>emptySet());
         assertThat(resolvedDependency.getParentArtifacts(unknownParent),
                 equalTo(someModuleArtifacts));
     }
@@ -152,7 +158,8 @@ public class DefaultResolvedDependencyTest {
 
         createAndAddParent("parent2", resolvedDependency, WrapUtil.toSet(createArtifact("parent2Specific")));
 
-        DefaultResolvedDependency child = new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration", SOME_CONFIGURATION_HIERARCHY, someChildModuleArtifacts);
+        DefaultResolvedDependency child = new DefaultResolvedDependency("someGroup", "someChild", "someVersion", "someChildConfiguration",
+                someChildModuleArtifacts);
         resolvedDependency.getChildren().add(child);
 
         Set<ResolvedArtifact> childParent1SpecificArtifacts = WrapUtil.toSet(createArtifact("childParent1Specific"));
@@ -167,13 +174,17 @@ public class DefaultResolvedDependencyTest {
 
     @Test
     public void equalsAndHashCode() {
-        DefaultResolvedDependency dependency = new DefaultResolvedDependency("group", "name", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
-        DefaultResolvedDependency same = new DefaultResolvedDependency("group", "name", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
-        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency("other", "name", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
-        DefaultResolvedDependency differentName = new DefaultResolvedDependency("group", "other", "version", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
-        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency("group", "name", "other", "config", Collections.EMPTY_SET, Collections.EMPTY_SET);
+        DefaultResolvedDependency dependency = new DefaultResolvedDependency("group", "name", "version", "config",
+                Collections.EMPTY_SET);
+        DefaultResolvedDependency same = new DefaultResolvedDependency("group", "name", "version", "config", Collections.EMPTY_SET);
+        DefaultResolvedDependency differentGroup = new DefaultResolvedDependency("other", "name", "version", "config",
+                Collections.EMPTY_SET);
+        DefaultResolvedDependency differentName = new DefaultResolvedDependency("group", "other", "version", "config",
+                Collections.EMPTY_SET);
+        DefaultResolvedDependency differentVersion = new DefaultResolvedDependency("group", "name", "other", "config",
+                Collections.EMPTY_SET);
         DefaultResolvedDependency differentConfiguration = new DefaultResolvedDependency("group", "name", "version",
-                "other", Collections.EMPTY_SET, Collections.EMPTY_SET);
+                "other", Collections.EMPTY_SET);
 
         assertThat(dependency, strictlyEqual(same));
         assertThat(dependency, not(equalTo(differentGroup)));
@@ -183,7 +194,8 @@ public class DefaultResolvedDependencyTest {
     }
 
     private DefaultResolvedDependency createAndAddParent(String parentName, DefaultResolvedDependency resolvedDependency, Set<ResolvedArtifact> parentSpecificArtifacts) {
-        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", parentName, "someVersion", "someConfiguration", SOME_CONFIGURATION_HIERARCHY, Collections.<ResolvedArtifact>emptySet());
+        DefaultResolvedDependency parent = new DefaultResolvedDependency("someGroup", parentName, "someVersion", "someConfiguration",
+                Collections.<ResolvedArtifact>emptySet());
         resolvedDependency.getParents().add(parent);
         resolvedDependency.addParentSpecificArtifacts(parent, parentSpecificArtifacts);
         return parent;

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.InvalidUserDataException;
@@ -31,58 +32,49 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     private Map<ResolvedDependency, Set<ResolvedArtifact>> parentArtifacts
             = new LinkedHashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private String name;
-    private String moduleGroup;
-    private String moduleName;
-    private String moduleVersion;
-    private String configuration;
-    private Set<String> configurationHierarchy;
+    private final ResolvedConfigurationIdentifier id;
     private Set<ResolvedArtifact> moduleArtifacts = new LinkedHashSet<ResolvedArtifact>();
     private Map<ResolvedDependency, Set<ResolvedArtifact>> allArtifactsCache = new HashMap<ResolvedDependency, Set<ResolvedArtifact>>();
     private Set<ResolvedArtifact> allModuleArtifactsCache;
 
     public DefaultResolvedDependency(String name, String moduleGroup, String moduleName, String moduleVersion,
-                                     String configuration, Set<String> configurationHierarchy,
-                                     Set<ResolvedArtifact> moduleArtifacts) {
+                                     String configuration, Set<ResolvedArtifact> moduleArtifacts) {
         assert name != null;
         assert moduleArtifacts != null;
 
         this.name = name;
-        this.moduleGroup = moduleGroup;
-        this.moduleName = moduleName;
-        this.moduleVersion = moduleVersion;
-        this.configuration = configuration;
-        this.configurationHierarchy = configurationHierarchy;
+        id = new ResolvedConfigurationIdentifier(moduleGroup, moduleName, moduleVersion, configuration);
         this.moduleArtifacts = moduleArtifacts;
     }
 
     public DefaultResolvedDependency(String moduleGroup, String moduleName, String moduleVersion, String configuration,
-                                     Set<String> configurationHierarchy, Set<ResolvedArtifact> moduleArtifacts) {
+                                     Set<ResolvedArtifact> moduleArtifacts) {
         this(moduleGroup + ":" + moduleName + ":" + moduleVersion, moduleGroup, moduleName, moduleVersion,
-                configuration, configurationHierarchy, moduleArtifacts);
+                configuration, moduleArtifacts);
     }
 
     public String getName() {
         return name;
     }
 
+    public ResolvedConfigurationIdentifier getId() {
+        return id;
+    }
+
     public String getModuleGroup() {
-        return moduleGroup;
+        return id.getModuleGroup();
     }
 
     public String getModuleName() {
-        return moduleName;
+        return id.getModuleName();
     }
 
     public String getModuleVersion() {
-        return moduleVersion;
+        return id.getModuleVersion();
     }
 
     public String getConfiguration() {
-        return configuration;
-    }
-
-    public boolean containsConfiguration(String configuration) {
-        return configurationHierarchy.contains(configuration);
+        return id.getConfiguration();
     }
 
     public Set<ResolvedDependency> getChildren() {
@@ -136,7 +128,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     public String toString() {
-        return name + ";" + configuration;
+        return name + ";" + getConfiguration();
     }
 
     public void addParentSpecificArtifacts(ResolvedDependency parent, Set<ResolvedArtifact> artifacts) {
@@ -153,25 +145,16 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         }
 
         DefaultResolvedDependency that = (DefaultResolvedDependency) o;
-
-        if (!moduleGroup.equals(that.moduleGroup)) {
-            return false;
-        }
-        if (!moduleName.equals(that.moduleName)) {
-            return false;
-        }
-        if (!moduleVersion.equals(that.moduleVersion)) {
-            return false;
-        }
-        if (!configuration.equals(that.configuration)) {
-            return false;
-        }
-
-        return true;
+        return id.equals(that.id);
     }
 
     @Override
     public int hashCode() {
-        return moduleGroup.hashCode() ^ moduleName.hashCode() ^ configuration.hashCode();
+        return id.hashCode();
+    }
+
+    public void addChild(DefaultResolvedDependency child) {
+        children.add(child);
+        child.parents.add(this);
     }
 }
