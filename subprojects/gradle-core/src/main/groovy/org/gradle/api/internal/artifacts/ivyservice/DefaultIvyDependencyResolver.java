@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
@@ -103,17 +104,28 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
         public Set<File> getFiles(Spec<Dependency> dependencySpec) {
             rethrowFailure();
-            Set<ModuleDependency> allModuleDependencies = Specs.filterIterable(configuration.getAllDependencies(ModuleDependency.class), dependencySpec);
+            Set<ModuleDependency> allDependencies = configuration.getAllDependencies(ModuleDependency.class);
+            Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
             Set<File> files = new LinkedHashSet<File>();
-            for (ModuleDependency moduleDependency : allModuleDependencies) {
-                Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
-                if (resolvedDependencies != null) {
-                    for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                        for (File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(conversionResult.getRoot()))) {
-                            if (depFile == null) {
-                                throw new GradleException(String.format("Resolved files for %s contains a null value.", resolvedDependency));
+            if (allDependencies.equals(selectedDependencies)) {
+                for (File depFile : ResolvedDependencies.getFilesFromArtifacts(getResolvedArtifacts())) {
+                    if (depFile == null) {
+                        throw new GradleException(String.format("Resolved files for %s contains a null value.", this));
+                    }
+                    files.add(depFile);
+                }
+            }
+            else {
+                for (ModuleDependency moduleDependency : selectedDependencies) {
+                    Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
+                    if (resolvedDependencies != null) {
+                        for (ResolvedDependency resolvedDependency : resolvedDependencies) {
+                            for (File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(conversionResult.getRoot()))) {
+                                if (depFile == null) {
+                                    throw new GradleException(String.format("Resolved files for %s contains a null value.", resolvedDependency));
+                                }
+                                files.add(depFile);
                             }
-                            files.add(depFile);
                         }
                     }
                 }

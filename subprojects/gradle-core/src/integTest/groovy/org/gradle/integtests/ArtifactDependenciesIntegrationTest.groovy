@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
-import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
-import static org.hamcrest.Matchers.containsString
-import static org.hamcrest.Matchers.startsWith
+import static org.hamcrest.Matchers.*
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -44,7 +44,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
         usingBuildFile(buildFile).run();
     }
 
-    @Test @Ignore
+    @Test
     public void canHaveCycleInDependencyGraph() throws IOException {
         File buildFile = testFile("projectWithCyclesInDependencyGraph.gradle");
         usingBuildFile(buildFile).run();
