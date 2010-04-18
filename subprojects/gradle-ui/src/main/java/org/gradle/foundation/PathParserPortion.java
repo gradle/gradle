@@ -25,7 +25,7 @@ public class PathParserPortion {
     private String remainder;
 
     public PathParserPortion(String path) {
-        if( path != null && !path.isEmpty() )
+        if( path != null && path.length() > 0 )
         {
             if( path.startsWith( ":" ) )    //skip the first character, if its a colon. This is optional and makes it absolute, vs relative.
             {
