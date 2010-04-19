@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
+import org.gradle.util.WrapUtil
 
 public class ProjectReportsPluginConvention {
     String projectReportDirName = 'project'
@@ -27,5 +28,9 @@ public class ProjectReportsPluginConvention {
     
     File getProjectReportDir() {
         new File(project.convention.getPlugin(ReportingBasePluginConvention).reportsDir, projectReportDirName)
+    }
+
+    Set<Project> getProjects() {
+        WrapUtil.toSet(project)
     }
 }

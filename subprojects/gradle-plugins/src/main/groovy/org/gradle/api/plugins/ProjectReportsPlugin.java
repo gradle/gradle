@@ -46,12 +46,22 @@ public class ProjectReportsPlugin implements Plugin<Project> {
                 return new File(convention.getPlugin(ProjectReportsPluginConvention.class).getProjectReportDir(), "tasks.txt");
             }
         });
+        taskReportTask.conventionMapping("projects", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(ProjectReportsPluginConvention.class).getProjects();
+            }
+        });
 
         PropertyReportTask propertyReportTask = project.getTasks().add(PROPERTY_REPORT, PropertyReportTask.class);
         propertyReportTask.setDescription("Generates a report about your properties.");
         propertyReportTask.conventionMapping("outputFile", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return new File(convention.getPlugin(ProjectReportsPluginConvention.class).getProjectReportDir(), "properties.txt");
+            }
+        });
+        propertyReportTask.conventionMapping("projects", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(ProjectReportsPluginConvention.class).getProjects();
             }
         });
 
@@ -63,6 +73,12 @@ public class ProjectReportsPlugin implements Plugin<Project> {
                 return new File(convention.getPlugin(ProjectReportsPluginConvention.class).getProjectReportDir(), "dependencies.txt");
             }
         });
+        dependencyReportTask.conventionMapping("projects", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(ProjectReportsPluginConvention.class).getProjects();
+            }
+        });
+
 
         Task projectReportTask = project.getTasks().add(PROJECT_REPORT);
         projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT);

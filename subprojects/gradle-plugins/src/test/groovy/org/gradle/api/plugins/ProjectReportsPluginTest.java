@@ -21,12 +21,15 @@ import org.gradle.api.tasks.diagnostics.DependencyReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
 import java.io.File;
+
+import static org.gradle.util.Matchers.dependsOn;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 public class ProjectReportsPluginTest {
     private final Project project = HelperUtil.createRootProject();
@@ -47,15 +50,18 @@ public class ProjectReportsPluginTest {
         Task task = project.getTasks().getByName(ProjectReportsPlugin.TASK_REPORT);
         assertThat(task, instanceOf(TaskReportTask.class));
         assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/tasks.txt")));
+        assertThat(task.property("projects"), equalTo((Object) WrapUtil.toSet(project)));
 
         task = project.getTasks().getByName(ProjectReportsPlugin.PROPERTY_REPORT);
         assertThat(task, instanceOf(PropertyReportTask.class));
         assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/properties.txt")));
+        assertThat(task.property("projects"), equalTo((Object) WrapUtil.toSet(project)));
 
         task = project.getTasks().getByName(ProjectReportsPlugin.DEPENDENCY_REPORT);
         assertThat(task, instanceOf(DependencyReportTask.class));
         assertThat(task.property("outputFile"), equalTo((Object) new File(project.getBuildDir(), "reports/project/dependencies.txt")));
-
+        assertThat(task.property("projects"), equalTo((Object) WrapUtil.toSet(project)));
+        
         task = project.getTasks().getByName(ProjectReportsPlugin.PROJECT_REPORT);
         assertThat(task, dependsOn(ProjectReportsPlugin.TASK_REPORT, ProjectReportsPlugin.PROPERTY_REPORT, ProjectReportsPlugin.DEPENDENCY_REPORT));
     }
