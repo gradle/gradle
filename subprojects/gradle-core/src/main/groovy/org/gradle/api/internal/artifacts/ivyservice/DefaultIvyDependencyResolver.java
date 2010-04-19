@@ -112,6 +112,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
 
             for (ModuleDependency moduleDependency : selectedDependencies) {
                 Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
+                // todo figure out why a resolvedDependencies can be null. See Jira: GRADLE-587
                 if (resolvedDependencies != null) {
                     for (ResolvedDependency resolvedDependency : resolvedDependencies) {
                         artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
