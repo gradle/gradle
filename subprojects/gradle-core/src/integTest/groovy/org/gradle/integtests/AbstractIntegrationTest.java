@@ -27,6 +27,7 @@ import java.io.File;
 public class AbstractIntegrationTest {
     @Rule public TemporaryFolder testDir = new TemporaryFolder();
     @Rule public Resources resources = new Resources();
+    private TestFile userHome = getUserHomeDir();
 
     public TestFile getTestDir() {
         return testDir.getDir();
@@ -38,6 +39,10 @@ public class AbstractIntegrationTest {
 
     public TestFile testFile(File dir, String name) {
         return new TestFile(dir, name);
+    }
+
+    public void requireOwnUserHomeDir() {
+        userHome = getTestDir().file("user-home");
     }
 
     private StartParameter startParameter() {
@@ -55,7 +60,7 @@ public class AbstractIntegrationTest {
                 "import org.gradle.api.tasks.*",
                 "import org.gradle.api.tasks.bundling.*");
 
-        parameter.setGradleUserHomeDir(getUserHomeDir());
+        parameter.setGradleUserHomeDir(userHome);
 
         parameter.setSearchUpwards(false);
         parameter.setCacheUsage(CacheUsage.ON);

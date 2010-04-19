@@ -21,15 +21,21 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
+import org.junit.Before
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
+    @Before
+    public void setup() {
+        requireOwnUserHomeDir()
+    }
+    
     @Test
     public void canHaveConfigurationHierarchy() {
         File buildFile = testFile("projectWithConfigurationHierarchy.gradle");
-        usingBuildFile(buildFile).withArguments("-g", testFile("home").absolutePath).run();
+        usingBuildFile(buildFile).run();
     }
 
     @Test
@@ -47,6 +53,12 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canHaveCycleInDependencyGraph() throws IOException {
         File buildFile = testFile("projectWithCyclesInDependencyGraph.gradle");
+        usingBuildFile(buildFile).run();
+    }
+
+    @Test
+    public void canUseDynamicVersions() throws IOException {
+        File buildFile = testFile("projectWithDynamicVersions.gradle");
         usingBuildFile(buildFile).run();
     }
 
