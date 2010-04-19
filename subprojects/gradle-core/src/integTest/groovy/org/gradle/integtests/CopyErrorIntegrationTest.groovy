@@ -13,18 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
-import org.junit.Test
 import org.junit.Assert
+
+import org.junit.Test
+import org.gradle.util.OperatingSystem
 
 class CopyErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsSymLinkWhichPointsToNothing() {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
         TestFile link = testFile('src/file')
         link.linkTo(testFile('missing'))
 
@@ -45,6 +48,10 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsUnreadableSourceDir() {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
         TestFile dir = testFile('src').createDir()
         dir.permissions = '-w-r--r--'
 
