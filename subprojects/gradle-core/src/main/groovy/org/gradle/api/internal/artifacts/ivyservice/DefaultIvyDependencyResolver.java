@@ -23,6 +23,8 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.util.Message;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.CachingDirectedGraphWalker;
+import org.gradle.api.internal.DirectedGraph;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.logging.IvyLoggingAdaper;
@@ -32,10 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.util.Formatter;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -75,6 +74,8 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         private boolean hasError;
         private List<String> problemMessages;
         private IvyConversionResult conversionResult;
+        private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact> walker
+                = new CachingDirectedGraphWalker<ResolvedDependency, ResolvedArtifact>(new ResolvedDependencyArtifactsGraph());
 
         public ResolvedConfigurationImpl(ResolveReport resolveReport, Configuration configuration) {
             this.hasError = resolveReport.hasError();
@@ -106,29 +107,28 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             rethrowFailure();
             Set<ModuleDependency> allDependencies = configuration.getAllDependencies(ModuleDependency.class);
             Set<ModuleDependency> selectedDependencies = Specs.filterIterable(allDependencies, dependencySpec);
-            Set<File> files = new LinkedHashSet<File>();
-            if (allDependencies.equals(selectedDependencies)) {
-                for (File depFile : ResolvedDependencies.getFilesFromArtifacts(getResolvedArtifacts())) {
-                    if (depFile == null) {
-                        throw new GradleException(String.format("Resolved files for %s contains a null value.", this));
+
+            Set<ResolvedArtifact> artifacts = new LinkedHashSet<ResolvedArtifact>();
+
+            for (ModuleDependency moduleDependency : selectedDependencies) {
+                Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
+                if (resolvedDependencies != null) {
+                    for (ResolvedDependency resolvedDependency : resolvedDependencies) {
+                        artifacts.addAll(resolvedDependency.getParentArtifacts(conversionResult.getRoot()));
+                        walker.add(resolvedDependency);
                     }
-                    files.add(depFile);
                 }
             }
-            else {
-                for (ModuleDependency moduleDependency : selectedDependencies) {
-                    Set<ResolvedDependency> resolvedDependencies = conversionResult.getFirstLevelResolvedDependencies().get(moduleDependency);
-                    if (resolvedDependencies != null) {
-                        for (ResolvedDependency resolvedDependency : resolvedDependencies) {
-                            for (File depFile : ResolvedDependencies.getFilesFromArtifacts(resolvedDependency.getAllArtifacts(conversionResult.getRoot()))) {
-                                if (depFile == null) {
-                                    throw new GradleException(String.format("Resolved files for %s contains a null value.", resolvedDependency));
-                                }
-                                files.add(depFile);
-                            }
-                        }
-                    }
+
+            artifacts.addAll(walker.findValues());
+
+            Set<File> files = new LinkedHashSet<File>();
+            for (ResolvedArtifact artifact : artifacts) {
+                File depFile = artifact.getFile();
+                if (depFile == null) {
+                    throw new GradleException(String.format("Resolved artifact %s contains a null value.", artifact));
                 }
+                files.add(depFile);
             }
             return files;
         }
@@ -141,6 +141,21 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         public Set<ResolvedArtifact> getResolvedArtifacts() {
             rethrowFailure();
             return conversionResult.getResolvedArtifacts();
+        }
+
+        private class ResolvedDependencyArtifactsGraph implements DirectedGraph<ResolvedDependency, ResolvedArtifact> {
+            public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values) {
+                values.addAll(node.getModuleArtifacts());
+            }
+
+            public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
+                                      Collection<ResolvedArtifact> values) {
+                values.addAll(to.getParentArtifacts(from));
+            }
+
+            public void getConnectedNodes(ResolvedDependency node, Collection<ResolvedDependency> nodes) {
+                nodes.addAll(node.getChildren());
+            }
         }
     }
 }

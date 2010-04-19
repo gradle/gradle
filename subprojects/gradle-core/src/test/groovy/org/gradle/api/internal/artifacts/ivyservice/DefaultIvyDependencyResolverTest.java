@@ -27,18 +27,13 @@ import org.gradle.api.internal.artifacts.DefaultResolvedArtifactTest;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.util.GUtil;
-import org.gradle.util.WrapUtil;
-import static org.gradle.util.WrapUtil.toList;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.startsWith;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -46,7 +41,14 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
+
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -85,19 +87,27 @@ public class DefaultIvyDependencyResolverTest {
         final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
         final Map<Dependency, Set<ResolvedDependency>> firstLevelResolvedDependencies = GUtil.map(
                 moduleDependencyDummy1,
-                WrapUtil.toSet(resolvedDependency1, resolvedDependency2),
+                toSet(resolvedDependency1, resolvedDependency2),
                 moduleDependencyDummy2,
-                WrapUtil.toSet(resolvedDependency3));
+                toSet(resolvedDependency3));
 
         context.checking(new Expectations() {{
-            allowing(resolvedDependency1).getAllArtifacts(root);
-            will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "someName", "someType", "someExtension", new File("file1")))));
-            allowing(resolvedDependency2).getAllArtifacts(root);
-            will(returnValue(WrapUtil.toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "someName2", "someType", "someExtension", new File("file2")))));
+            allowing(resolvedDependency1).getParentArtifacts(root);
+            will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "dep1parent", "someType", "someExtension", new File("dep1parent")))));
+            allowing(resolvedDependency1).getModuleArtifacts();
+            will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "dep1", "someType", "someExtension", new File("dep1")))));
+            allowing(resolvedDependency1).getChildren();
+            will(returnValue(toSet()));
+            allowing(resolvedDependency2).getParentArtifacts(root);
+            will(returnValue(toSet()));
+            allowing(resolvedDependency2).getModuleArtifacts();
+            will(returnValue(toSet(DefaultResolvedArtifactTest.createResolvedArtifact(context, "dep2", "someType", "someExtension", new File("dep2")))));
+            allowing(resolvedDependency2).getChildren();
+            will(returnValue(toSet()));
             allowing(configurationStub).getAllDependencies();
-            will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
+            will(returnValue(toSet(moduleDependencyDummy1, moduleDependencyDummy2, selfResolvingDependencyDummy)));
             allowing(configurationStub).getAllDependencies(ModuleDependency.class);
-            will(returnValue(WrapUtil.toSet(moduleDependencyDummy1, moduleDependencyDummy2)));
+            will(returnValue(toSet(moduleDependencyDummy1, moduleDependencyDummy2)));
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
             will(returnValue(conversionResultStub));
             allowing(conversionResultStub).getFirstLevelResolvedDependencies();
@@ -114,7 +124,7 @@ public class DefaultIvyDependencyResolverTest {
                         return element == moduleDependencyDummy1 || element == selfResolvingDependencyDummy;
                     }
                 });
-        assertThat(actualFiles, equalTo(WrapUtil.toSet(new File("file1"), new File("file2"))));
+        assertThat(actualFiles, equalTo(toSet(new File("dep1"), new File("dep2"), new File("dep1parent"))));
     }
 
     @Test
@@ -125,7 +135,7 @@ public class DefaultIvyDependencyResolverTest {
         final ResolvedDependency resolvedDependency1 = context.mock(ResolvedDependency.class, "resolved1");
         final ResolvedDependency resolvedDependency2 = context.mock(ResolvedDependency.class, "resolved2");
         final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
-        final Set<ResolvedDependency> resolvedDependenciesSet = WrapUtil.toSet(resolvedDependency1, resolvedDependency2);
+        final Set<ResolvedDependency> resolvedDependenciesSet = toSet(resolvedDependency1, resolvedDependency2);
 
         context.checking(new Expectations() {{
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
@@ -147,7 +157,7 @@ public class DefaultIvyDependencyResolverTest {
         prepareResolveReport();
         final IvyConversionResult conversionResultStub = context.mock(IvyConversionResult.class);
         final ResolvedArtifact resolvedArtifactDummy = context.mock(ResolvedArtifact.class);
-        final Set<ResolvedArtifact> resolvedArtifacts = WrapUtil.toSet(resolvedArtifactDummy);
+        final Set<ResolvedArtifact> resolvedArtifacts = toSet(resolvedArtifactDummy);
         context.checking(new Expectations() {{
             allowing(ivyReportConverterStub).convertReport(resolveReportMock, configurationStub);
             will(returnValue(conversionResultStub));

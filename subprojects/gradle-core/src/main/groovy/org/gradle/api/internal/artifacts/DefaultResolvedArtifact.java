@@ -45,6 +45,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         this.resolvedDependency = resolvedDependency;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s;%s", resolvedDependency, artifact.getName());
+    }
+
     public String getName() {
         return artifact.getName();
     }
