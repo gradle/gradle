@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks;
 
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
+import org.gradle.api.internal.CachingDirectedGraphWalker;
+import org.gradle.api.internal.DirectedGraph;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.util.*;
@@ -41,17 +43,9 @@ import java.util.*;
  */
 public class CachingTaskDependencyResolveContext implements TaskDependencyResolveContext, TaskDependency {
     private final LinkedList<Object> queue = new LinkedList<Object>();
-    private Map<Object, Set<? extends Task>> cache = new HashMap<Object, Set<? extends Task>>();
+    private final CachingDirectedGraphWalker<Object, Task> walker = new CachingDirectedGraphWalker<Object, Task>(
+            new TaskGraphImpl());
     private Task task;
-
-    public CachingTaskDependencyResolveContext() {
-        cache = new HashMap<Object, Set<? extends Task>>();
-    }
-
-    private CachingTaskDependencyResolveContext(Task task, Map<Object, Set<? extends Task>> cache) {
-        this.task = task;
-        this.cache = cache;
-    }
 
     public Set<? extends Task> getDependencies(Task task) {
         add(task.getTaskDependencies());
@@ -73,44 +67,37 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
     }
 
     private Set<Task> doResolve() {
-        Set<Task> tasks = new LinkedHashSet<Task>();
-        while (!queue.isEmpty()) {
-            Object dependency = queue.remove(0);
-            Set<? extends Task> resolvedDependencies = cache.get(dependency);
-            if (resolvedDependencies != null) {
-                tasks.addAll(resolvedDependencies);
-            } else if (dependency instanceof Task) {
-                tasks.add((Task) dependency);
-            } else {
-                Set<Task> dependencies = doResolveComposite(dependency);
-                cache.put(dependency, dependencies);
-                tasks.addAll(dependencies);
-            }
-        }
-        return tasks;
-    }
-
-    private Set<Task> doResolveComposite(Object dependency) {
-        if (dependency instanceof TaskDependencyInternal) {
-            TaskDependencyInternal taskDependency = (TaskDependencyInternal) dependency;
-            CachingTaskDependencyResolveContext nestedContext = new CachingTaskDependencyResolveContext(task, cache);
-            taskDependency.resolve(nestedContext);
-            return nestedContext.doResolve();
-        } else if (dependency instanceof TaskDependency) {
-            TaskDependency taskDependency = (TaskDependency) dependency;
-            return new LinkedHashSet<Task>(taskDependency.getDependencies(task));
-        } else if (dependency instanceof Buildable) {
-            Buildable buildable = (Buildable) dependency;
-            CachingTaskDependencyResolveContext nestedContext = new CachingTaskDependencyResolveContext(task, cache);
-            nestedContext.add(buildable.getBuildDependencies());
-            return nestedContext.doResolve();
-        } else {
-            throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
-                    dependency.getClass().getSimpleName()));
-        }
+        walker.add(queue);
+        return walker.findValues();
     }
 
     public void add(Object dependency) {
         queue.add(dependency);
+    }
+
+    private class TaskGraphImpl implements DirectedGraph<Object, Task> {
+        public void getNodeValues(Object node, Collection<Task> values, Collection<Object> connectedNodes) {
+            if (node instanceof TaskDependencyInternal) {
+                TaskDependencyInternal taskDependency = (TaskDependencyInternal) node;
+                queue.clear();
+                taskDependency.resolve(CachingTaskDependencyResolveContext.this);
+                connectedNodes.addAll(queue);
+            } else if (node instanceof Buildable) {
+                Buildable buildable = (Buildable) node;
+                connectedNodes.add(buildable.getBuildDependencies());
+            } else if (node instanceof TaskDependency) {
+                TaskDependency dependency = (TaskDependency) node;
+                values.addAll(dependency.getDependencies(task));
+            } else if (node instanceof Task) {
+                values.add((Task) node);
+            } else {
+                throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s to a Task.",
+                        node.getClass().getSimpleName()));
+            }
+        }
+
+        public void getEdgeValues(Object from, Object to, Collection<Task> values) {
+            // No edges
+        }
     }
 }

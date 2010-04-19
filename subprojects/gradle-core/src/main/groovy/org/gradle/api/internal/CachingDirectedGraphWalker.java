@@ -24,7 +24,7 @@ import java.util.*;
  * A graph walker which collects the values reachable from a given set of start nodes. Handles cycles in the graph. Can
  * be reused to perform multiple searches, and reuses the results of previous searches.
  *
- * Uses a variation on Tarjan's algorithm: http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
+ * Uses a variation of Tarjan's algorithm: http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
  */
 public class CachingDirectedGraphWalker<N, T> {
     private final DirectedGraph<N, T> graph;
@@ -44,9 +44,16 @@ public class CachingDirectedGraphWalker<N, T> {
     }
 
     public Set<T> findValues() {
+        try {
+            return doSearch();
+        } finally {
+            startNodes.clear();
+        }
+    }
+
+    private Set<T> doSearch() {
         int componentCount = 0;
         Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
-        Map<Integer, NodeDetails<N, T>> componentValues = new HashMap<Integer, NodeDetails<N,T>>();
         LinkedList<N> queue = new LinkedList<N>(startNodes);
 
         while (!queue.isEmpty()) {
@@ -67,10 +74,7 @@ public class CachingDirectedGraphWalker<N, T> {
                     continue;
                 }
 
-                componentValues.put(details.component, details);
-
-                graph.getNodeValues(node, details.values);
-                graph.getConnectedNodes(node, details.successors);
+                graph.getNodeValues(node, details.values, details.successors);
                 for (N connectedNode : details.successors) {
                     if (!seenNodes.containsKey(connectedNode)) {
                         queue.add(0, connectedNode);
@@ -95,7 +99,6 @@ public class CachingDirectedGraphWalker<N, T> {
                     details.values.addAll(connectedNodeDetails.values);
                     graph.getEdgeValues(node, connectedNode, details.values);
                 }
-                componentValues.remove(details.component);
                 cachedNodeValues.put(node, details.values);
             }
         }
@@ -104,7 +107,6 @@ public class CachingDirectedGraphWalker<N, T> {
         for (N startNode : startNodes) {
             values.addAll(cachedNodeValues.get(startNode));
         }
-        startNodes.clear();
         return values;
     }
 

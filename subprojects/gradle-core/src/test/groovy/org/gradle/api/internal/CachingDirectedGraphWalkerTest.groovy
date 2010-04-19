@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal
 
 import spock.lang.Specification
@@ -28,8 +30,7 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getNodeValues(1, _) >> { args -> args[1] << '1' }
-        1 * graph.getConnectedNodes(1, _)
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[1] << '1' }
         0 * _._
         values == ['1'] as Set
     }
@@ -40,12 +41,9 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getNodeValues(1, _) >> { args -> args[1] << '1' }
-        1 * graph.getConnectedNodes(1, _) >> { args -> args[1] << 2; args[1] << 3 }
-        1 * graph.getNodeValues(2, _) >> { args -> args[1] << '2' }
-        1 * graph.getConnectedNodes(2, _) >> { args -> args[1] << 3 }
-        1 * graph.getNodeValues(3, _) >> { args -> args[1] << '3' }
-        1 * graph.getConnectedNodes(3, _)
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[1] << '1'; args[2] << 2; args[2] << 3 }
+        1 * graph.getNodeValues(2, _, _) >> { args -> args[1] << '2'; args[2] << 3 }
+        1 * graph.getNodeValues(3, _, _) >> { args -> args[1] << '3' }
         3 * graph.getEdgeValues(_, _, _)
         0 * _._
         values == ['1', '2', '3'] as Set
@@ -57,13 +55,12 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getConnectedNodes(1, _) >> { args -> args[1] << 2; args[1] << 3 }
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[2] << 2; args[2] << 3 }
         1 * graph.getEdgeValues(1, 2, _) >> { args -> args[2] << '1->2' }
         1 * graph.getEdgeValues(1, 3, _) >> { args -> args[2] << '1->3' }
-        1 * graph.getConnectedNodes(2, _) >> { args -> args[1] << 3 }
+        1 * graph.getNodeValues(2, _, _) >> { args -> args[2] << 3 }
         1 * graph.getEdgeValues(2, 3, _) >> { args -> args[2] << '2->3' }
-        1 * graph.getConnectedNodes(3, _)
-        _ * graph.getNodeValues(_, _)
+        1 * graph.getNodeValues(3, _, _)
         0 * _._
         values == ['1->2', '1->3', '2->3'] as Set
     }
@@ -74,10 +71,9 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getConnectedNodes(1, _) >> { args -> args[1] << 3 }
-        1 * graph.getConnectedNodes(2, _) >> { args -> args[1] << 3 }
-        1 * graph.getConnectedNodes(3, _)
-        3 * graph.getNodeValues(_, _) >> { args -> args[1] << (args[0] as String) }
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[1] << '1'; args[2] << 3 }
+        1 * graph.getNodeValues(2, _, _) >> { args -> args[1] << '2'; args[2] << 3 }
+        1 * graph.getNodeValues(3, _, _) >> { args -> args[1] << '3' }
         2 * graph.getEdgeValues(_, _, _)
         0 * _._
         values == ['1', '2', '3'] as Set
@@ -89,13 +85,12 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getConnectedNodes(1, _) >> { args -> args[1] << 2 }
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[1] << '1'; args[2] << 2 }
         1 * graph.getEdgeValues(1, 2, _) >> { args -> args[2] << '1->2' }
-        1 * graph.getConnectedNodes(2, _) >> { args -> args[1] << 3 }
+        1 * graph.getNodeValues(2, _, _) >> { args -> args[1] << '2'; args[2] << 3 }
         1 * graph.getEdgeValues(2, 3, _) >> { args -> args[2] << '2->3' }
-        1 * graph.getConnectedNodes(3, _) >> { args -> args[1] << 1 }
+        1 * graph.getNodeValues(3, _, _) >> { args -> args[1] << '3'; args[2] << 1 }
         1 * graph.getEdgeValues(3, 1, _) >> { args -> args[2] << '3->1' }
-        3 * graph.getNodeValues(_, _) >> { args -> args[1] << (args[0] as String) }
         0 * _._
         values == ['1', '1->2', '2', '2->3', '3', '3->1'] as Set
     }
@@ -106,10 +101,9 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getConnectedNodes(1, _) >> { args -> args[1] << 2; args[1] << 3 }
-        1 * graph.getConnectedNodes(2, _) >> { args -> args[1] << 3 }
-        1 * graph.getConnectedNodes(3, _)
-        3 * graph.getNodeValues(_, _) >> { args -> args[1] << (args[0] as String) }
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[1] << '1'; args[2] << 2; args[2] << 3 }
+        1 * graph.getNodeValues(2, _, _) >> { args -> args[1] << '2'; args[2] << 3 }
+        1 * graph.getNodeValues(3, _, _) >> { args -> args[1] << '3' }
         3 * graph.getEdgeValues(_, _, _)
         0 * _._
         values == ['1', '2', '3'] as Set
@@ -120,8 +114,7 @@ class CachingDirectedGraphWalkerTest extends Specification {
         values = walker.findValues()
 
         then:
-        1 * graph.getNodeValues(4, _) >> { args -> args[1] << '4' }
-        1 * graph.getConnectedNodes(4, _) >> { args -> args[1] << 1 }
+        1 * graph.getNodeValues(4, _, _) >> { args -> args[1] << '4'; args[2] << 1 }
         1 * graph.getEdgeValues(4, 1, _) >> { args -> args[2] << '4->1' }
         0 * _._
         values == ['4', '4->1', '1', '2', '3'] as Set
@@ -140,10 +133,9 @@ class CachingDirectedGraphWalkerTest extends Specification {
         def values = walker.findValues()
 
         then:
-        1 * graph.getConnectedNodes(1, _) >> { args -> args[1] << 2; args[1] << 3 }
-        1 * graph.getConnectedNodes(2, _) >> { args -> args[1] << 1; args[1] << 3 }
-        1 * graph.getConnectedNodes(3, _) >> { args -> args[1] << 1; args[1] << 2 }
-        3 * graph.getNodeValues(_, _) >> { args -> args[1] << (args[0] as String) }
+        1 * graph.getNodeValues(1, _, _) >> { args -> args[1] << '1'; args[2] << 2; args[2] << 3 }
+        1 * graph.getNodeValues(2, _, _) >> { args -> args[1] << '2'; args[2] << 3; args[2] << 1 }
+        1 * graph.getNodeValues(3, _, _) >> { args -> args[1] << '3'; args[2] << 1; args[2] << 2 }
         6 * graph.getEdgeValues(_, _, _)
         0 * _._
         values == ['1', '2', '3'] as Set

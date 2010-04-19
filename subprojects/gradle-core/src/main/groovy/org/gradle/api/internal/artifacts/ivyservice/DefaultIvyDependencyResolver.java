@@ -144,17 +144,15 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
         }
 
         private class ResolvedDependencyArtifactsGraph implements DirectedGraph<ResolvedDependency, ResolvedArtifact> {
-            public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values) {
+            public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
+                                      Collection<ResolvedDependency> connectedNodes) {
                 values.addAll(node.getModuleArtifacts());
+                connectedNodes.addAll(node.getChildren());
             }
 
             public void getEdgeValues(ResolvedDependency from, ResolvedDependency to,
                                       Collection<ResolvedArtifact> values) {
                 values.addAll(to.getParentArtifacts(from));
-            }
-
-            public void getConnectedNodes(ResolvedDependency node, Collection<ResolvedDependency> nodes) {
-                nodes.addAll(node.getChildren());
             }
         }
     }

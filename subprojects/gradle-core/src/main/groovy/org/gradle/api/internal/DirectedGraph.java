@@ -22,9 +22,7 @@ import java.util.Collection;
  * A directed graph with nodes of type N. Each node and each edge has a collection of values of type T.
  */
 public interface DirectedGraph<N, T> {
-    void getConnectedNodes(N node, Collection<N> nodes);
-
-    void getNodeValues(N node, Collection<T> values);
+    void getNodeValues(N node, Collection<T> values, Collection<N> connectedNodes);
 
     void getEdgeValues(N from, N to, Collection<T> values);
 }
