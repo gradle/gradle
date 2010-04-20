@@ -19,6 +19,8 @@ import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
+import org.gradle.api.internal.artifacts.DependencyInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 
@@ -39,23 +41,19 @@ public class SelfResolvingDependencyResolver implements IvyDependencyResolver {
 
     public ResolvedConfiguration resolve(final Configuration configuration, Ivy ivy, ModuleDescriptor moduleDescriptor) {
         final ResolvedConfiguration resolvedConfiguration = resolver.resolve(configuration, ivy, moduleDescriptor);
-        final Set<SelfResolvingDependency> selfResolvingDependencies = configuration.getAllDependencies(
-                SelfResolvingDependency.class);
+        final Set<DependencyInternal> dependencies = configuration.getAllDependencies(DependencyInternal.class);
 
         return new ResolvedConfiguration() {
+            private final CachingDependencyResolveContext resolveContext = new CachingDependencyResolveContext(configuration.isTransitive());
+
             public Set<File> getFiles(Spec<Dependency> dependencySpec) {
                 Set<File> files = new LinkedHashSet<File>();
-                Set<SelfResolvingDependency> selfResolvingDependenciesSubSet =
-                        Specs.filterIterable(selfResolvingDependencies, dependencySpec);
-                for (SelfResolvingDependency selfResolvingDependency : selfResolvingDependenciesSubSet) {
-                    for (File file : selfResolvingDependency.resolve(configuration.isTransitive())) {
-                        if (file == null) {
-                            throw new GradleException(String.format("Resolved file for %s contains a null value.",
-                                    selfResolvingDependencies));
-                        }
-                        files.add(file);
-                    }
+
+                Set<DependencyInternal> selectedDependencies = Specs.filterIterable(dependencies, dependencySpec);
+                for (DependencyInternal dependency : selectedDependencies) {
+                    resolveContext.add(dependency);
                 }
+                files.addAll(resolveContext.resolve().getFiles());
                 files.addAll(resolvedConfiguration.getFiles(dependencySpec));
                 return files;
             }

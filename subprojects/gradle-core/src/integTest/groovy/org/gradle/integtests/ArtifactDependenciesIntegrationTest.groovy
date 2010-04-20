@@ -154,5 +154,10 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
 '''
         inTestDirectory().withTasks('test').run()
     }
+
+    @Test
+    public void canHaveCycleInProjectDependencies() {
+        inTestDirectory().withTasks('listJars').run();
+    }
 }
 

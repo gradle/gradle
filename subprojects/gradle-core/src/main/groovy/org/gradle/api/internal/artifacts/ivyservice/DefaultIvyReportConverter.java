@@ -104,22 +104,23 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
 
     private void constructConfigurationsForNode(IvyNode ivyNode, ReportConversionContext context) {
         Map<String, ConfigurationDetails> resolvedDependencies = new LinkedHashMap<String, ConfigurationDetails>();
-        if (ivyNode == ivyNode.getRoot()) {
-            ConfigurationDetails configuration = context.addConfiguration(ivyNode, context.conf);
-            context.root = configuration.dependency;
-            resolvedDependencies.put(context.conf, configuration);
-        }
-        else {
-            for (IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
-                Set<String> dependencyConfigurationsForNode = getDependencyConfigurationsByCaller(ivyNode, caller);
-                for (String dependencyConfiguration : dependencyConfigurationsForNode) {
-                    if (!resolvedDependencies.containsKey(dependencyConfiguration)) {
-                        ConfigurationDetails configurationDetails = context.addConfiguration(ivyNode, dependencyConfiguration);
-                        context.resolvedArtifacts.addAll(configurationDetails.dependency.getModuleArtifacts());
-                        resolvedDependencies.put(dependencyConfiguration, configurationDetails);
-                    }
+        for (IvyNodeCallers.Caller caller : ivyNode.getCallers(context.conf)) {
+            Set<String> dependencyConfigurationsForNode = getDependencyConfigurationsByCaller(ivyNode, caller);
+            for (String dependencyConfiguration : dependencyConfigurationsForNode) {
+                if (!resolvedDependencies.containsKey(dependencyConfiguration)) {
+                    ConfigurationDetails configurationDetails = context.addConfiguration(ivyNode, dependencyConfiguration);
+                    context.resolvedArtifacts.addAll(configurationDetails.dependency.getModuleArtifacts());
+                    resolvedDependencies.put(dependencyConfiguration, configurationDetails);
                 }
             }
+        }
+        if (ivyNode == ivyNode.getRoot()) {
+            ConfigurationDetails rootConfiguration = resolvedDependencies.get(context.conf);
+            if (rootConfiguration == null) {
+                rootConfiguration = context.addConfiguration(ivyNode, context.conf);
+                resolvedDependencies.put(context.conf, rootConfiguration);
+            }
+            context.root = rootConfiguration.dependency;
         }
         context.handledNodes.put(ivyNode.getId(), resolvedDependencies);
     }

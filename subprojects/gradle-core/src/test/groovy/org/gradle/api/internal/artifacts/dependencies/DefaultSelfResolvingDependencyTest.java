@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.dependencies;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
@@ -34,7 +35,7 @@ import java.io.File;
 public class DefaultSelfResolvingDependencyTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final FileCollection source = context.mock(FileCollection.class);
-    private final SelfResolvingDependency dependency = new DefaultSelfResolvingDependency(source);
+    private final DefaultSelfResolvingDependency dependency = new DefaultSelfResolvingDependency(source);
 
     @Test
     public void defaultValues() {
@@ -43,6 +44,17 @@ public class DefaultSelfResolvingDependencyTest {
         assertThat(dependency.getVersion(), nullValue());
     }
 
+    @Test
+    public void resolvesToTheSourceFileCollection() {
+        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
+
+        context.checking(new Expectations() {{
+            one(resolveContext).add(source);
+        }});
+
+        dependency.resolve(resolveContext);
+    }
+    
     @Test
     public void usesSourceFileCollectionToResolveFiles() {
         final File file = new File("file");

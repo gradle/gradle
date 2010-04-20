@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.util.GUtil;
 
 import java.util.*;
 
@@ -23,7 +24,11 @@ public class UnionFileCollection extends CompositeFileCollection {
     private final Set<FileCollection> sourceCollections;
 
     public UnionFileCollection(FileCollection... sourceCollections) {
-        this.sourceCollections = new LinkedHashSet<FileCollection>(Arrays.asList(sourceCollections));
+        this(Arrays.asList(sourceCollections));
+    }
+
+    public UnionFileCollection(Iterable<? extends FileCollection> sourceCollections) {
+        this.sourceCollections = GUtil.addToCollection(new LinkedHashSet<FileCollection>(), sourceCollections);
     }
 
     public String getDisplayName() {

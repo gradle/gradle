@@ -54,6 +54,7 @@ public class CachingDirectedGraphWalker<N, T> {
     private Set<T> doSearch() {
         int componentCount = 0;
         Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
+        Map<Integer, NodeDetails<N, T>> components = new HashMap<Integer, NodeDetails<N,T>>();
         LinkedList<N> queue = new LinkedList<N>(startNodes);
 
         while (!queue.isEmpty()) {
@@ -63,8 +64,9 @@ public class CachingDirectedGraphWalker<N, T> {
                 // Have not visited this node yet. Push its successors onto the queue in front of this node and visit
                 // them
 
-                details = new NodeDetails<N, T>(componentCount++);
+                details = new NodeDetails<N, T>(node, componentCount++);
                 seenNodes.put(node, details);
+                components.put(details.component, details);
 
                 Set<T> cacheValues = cachedNodeValues.get(node);
                 if (cacheValues != null) {
@@ -92,14 +94,30 @@ public class CachingDirectedGraphWalker<N, T> {
 
                 for (N connectedNode : details.successors) {
                     NodeDetails<N, T> connectedNodeDetails = seenNodes.get(connectedNode);
-                    if (connectedNodeDetails.component != connectedNodeDetails.minSeen) {
-                        // A cycle
+                    if (!connectedNodeDetails.finished) {
+                        // part of a cycle
                         details.minSeen = Math.min(details.minSeen, connectedNodeDetails.minSeen);
                     }
                     details.values.addAll(connectedNodeDetails.values);
                     graph.getEdgeValues(node, connectedNode, details.values);
                 }
-                cachedNodeValues.put(node, details.values);
+
+                if (details.minSeen != details.component) {
+                    // Part of a strongly connected component (ie cycle) - move values to root of the component
+                    // The root is the first node of the component we encountered
+                    NodeDetails<N, T> rootDetails = components.get(details.minSeen);
+                    rootDetails.values.addAll(details.values);
+                    details.values.clear();
+                    rootDetails.strongComponentMembers.addAll(details.strongComponentMembers);
+                }
+                else {
+                    // Not part of a strongly connected component or the root of a strongly connected component
+                    for (NodeDetails<N, T> componentMember : details.strongComponentMembers) {
+                        cachedNodeValues.put(componentMember.node, details.values);
+                        componentMember.finished = true;
+                        components.remove(componentMember.component);
+                    }
+                }
             }
         }
 
@@ -112,13 +130,18 @@ public class CachingDirectedGraphWalker<N, T> {
 
     private static class NodeDetails<N, T> {
         private final int component;
+        private final N node;
         private Set<T> values = new LinkedHashSet<T>();
         private List<N> successors = new ArrayList<N>();
+        private Set<NodeDetails<N,T>> strongComponentMembers = new LinkedHashSet<NodeDetails<N,T>>();
         private int minSeen;
+        private boolean finished;
 
-        public NodeDetails(int component) {
+        public NodeDetails(N node, int component) {
+            this.node = node;
             this.component = component;
             minSeen = component;
+            strongComponentMembers.add(this);
         }
     }
 }

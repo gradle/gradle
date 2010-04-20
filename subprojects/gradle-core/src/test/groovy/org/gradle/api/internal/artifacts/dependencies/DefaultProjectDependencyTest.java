@@ -18,26 +18,26 @@ package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.specs.Spec;
+import org.gradle.api.artifacts.*;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
+import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.api.artifacts.*;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
 import org.gradle.util.WrapUtil;
-import org.gradle.util.GUtil;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Set;
+
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -111,75 +111,68 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
 
     @Test
     public void resolveDelegatesToAllSelfResolvingDependenciesInTargetConfiguration() {
-        final SelfResolvingDependency projectSelfResolvingDependency = context.mock(SelfResolvingDependency.class);
+        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
+        final Dependency projectSelfResolvingDependency = context.mock(Dependency.class);
         final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
-        final Set<File> selfResolvingProjectFiles = toSet(new File("somePath"));
-        final Set<File> selfResolvingTransitiveProjectDependencyFiles = toSet(new File("someOtherPath"));
         context.checking(new Expectations() {{
             allowing(projectConfigurationsStub).getByName("conf1");
             will(returnValue(projectConfigurationStub));
 
-            allowing(projectConfigurationStub).getAllDependencies(SelfResolvingDependency.class);
+            allowing(projectConfigurationStub).getAllDependencies();
             will(returnValue(toSet(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
 
-            allowing(projectSelfResolvingDependency).resolve();
-            will(returnValue(selfResolvingProjectFiles));
-
-            allowing(transitiveProjectDependencyStub).isTransitive();
+            allowing(resolveContext).isTransitive();
             will(returnValue(true));
-
-            allowing(transitiveProjectDependencyStub).resolve();
-            will(returnValue(selfResolvingTransitiveProjectDependencyFiles));
+            
+            one(resolveContext).add(projectSelfResolvingDependency);
+            
+            one(resolveContext).add(transitiveProjectDependencyStub);
         }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
-        Set<File> expectedResult = GUtil.addSets(selfResolvingProjectFiles, selfResolvingTransitiveProjectDependencyFiles);
-        assertThat(projectDependency.resolve(), equalTo(expectedResult));
-        assertThat(projectDependency.resolve(true), equalTo(expectedResult));
+
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1",
+                instruction);
+        projectDependency.resolve(resolveContext);
     }
 
     @Test
     public void resolveNotDelegatesToProjectDependenciesInTargetConfigurationIfConfigurationIsNonTransitive() {
-        final SelfResolvingDependency projectSelfResolvingDependency = context.mock(SelfResolvingDependency.class);
+        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
+        final Dependency projectSelfResolvingDependency = context.mock(Dependency.class);
         final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
-        final Set<File> selfResolvingProjectFiles = toSet(new File("somePath"));
         context.checking(new Expectations() {{
             allowing(projectConfigurationsStub).getByName("conf1");
             will(returnValue(projectConfigurationStub));
 
-            allowing(projectSelfResolvingDependency).resolve();
-            will(returnValue(selfResolvingProjectFiles));
-
-            allowing(projectConfigurationStub).getAllDependencies(SelfResolvingDependency.class);
+            allowing(projectConfigurationStub).getAllDependencies();
             will(returnValue(toSet(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
 
-            allowing(projectConfigurationStub).files(with(any(Spec.class)));
-            will(returnValue(selfResolvingProjectFiles));
+            allowing(resolveContext).isTransitive();
+            will(returnValue(false));
+
+            one(resolveContext).add(projectSelfResolvingDependency);
         }});
-        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
-        assertThat(projectDependency.resolve(false), equalTo(selfResolvingProjectFiles));
+        DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1",
+                instruction);
+        projectDependency.resolve(resolveContext);
     }
     
     @Test
     public void resolveNotDelegatesToTransitiveProjectDependenciesIfProjectDependencyIsNonTransitive() {
+        final DependencyResolveContext resolveContext = context.mock(DependencyResolveContext.class);
         final SelfResolvingDependency projectSelfResolvingDependency = context.mock(SelfResolvingDependency.class);
         final ProjectDependency transitiveProjectDependencyStub = context.mock(ProjectDependency.class);
-        final Set<File> selfResolvingProjectFiles = toSet(new File("somePath"));
         context.checking(new Expectations() {{
             allowing(projectConfigurationsStub).getByName("conf1");
             will(returnValue(projectConfigurationStub));
 
-            allowing(projectSelfResolvingDependency).resolve();
-            will(returnValue(selfResolvingProjectFiles));
-
-            allowing(projectConfigurationStub).getAllDependencies(SelfResolvingDependency.class);
+            allowing(projectConfigurationStub).getAllDependencies();
             will(returnValue(toSet(projectSelfResolvingDependency, transitiveProjectDependencyStub)));
 
-            allowing(projectConfigurationStub).files(with(any(Spec.class)));
-            will(returnValue(selfResolvingProjectFiles));
+            one(resolveContext).add(projectSelfResolvingDependency);
         }});
         DefaultProjectDependency projectDependency = new DefaultProjectDependency(dependencyProjectStub, "conf1", instruction);
         projectDependency.setTransitive(false);
-        assertThat(projectDependency.resolve(true), equalTo(selfResolvingProjectFiles));
+        projectDependency.resolve(resolveContext);
     }
 
     private Task taskInTargetProject(final String name) {

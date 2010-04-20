@@ -17,21 +17,30 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.Ivy;
 import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ResolvedArtifact;
+import org.gradle.api.artifacts.ResolvedConfiguration;
+import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DependencyInternal;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.specs.Specs;
-import static org.gradle.util.WrapUtil.toLinkedSet;
-import static org.gradle.util.WrapUtil.toSet;
-import static org.hamcrest.Matchers.*;
+import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.assertThat;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
 import java.text.ParseException;
+
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class SelfResolvingDependencyResolverTest {
@@ -49,8 +58,10 @@ public class SelfResolvingDependencyResolverTest {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+            allowing(configuration).getAllDependencies(DependencyInternal.class);
             will(returnValue(toSet()));
+            allowing(configuration).isTransitive();
+            will(returnValue(true));
         }});
 
         ResolvedConfiguration configuration = resolver.resolve(this.configuration, ivy, moduleDescriptor);
@@ -68,13 +79,15 @@ public class SelfResolvingDependencyResolverTest {
     
     @Test
     public void addsFilesFromSelfResolvingDependenciesBeforeFilesFromResolvedConfiguration() {
-        final SelfResolvingDependency dependency = context.mock(SelfResolvingDependency.class);
+        final DependencyInternal dependency = context.mock(DependencyInternal.class);
 
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+            allowing(configuration).getAllDependencies(DependencyInternal.class);
             will(returnValue(toSet(dependency)));
+            allowing(configuration).isTransitive();
+            will(returnValue(true));
         }});
 
         ResolvedConfiguration actualResolvedConfiguration = resolver.resolve(this.configuration, ivy, moduleDescriptor);
@@ -82,6 +95,7 @@ public class SelfResolvingDependencyResolverTest {
 
         final File configFile = new File("from config");
         final File depFile = new File("from dep");
+        final FileCollection depFiles = context.mock(FileCollection.class);
 
         final boolean transitive = true;
         context.checking(new Expectations() {{
@@ -89,7 +103,18 @@ public class SelfResolvingDependencyResolverTest {
             will(returnValue(transitive));
             one(resolvedConfiguration).getFiles(Specs.SATISFIES_ALL);
             will(returnValue(toSet(configFile)));
-            one(dependency).resolve(transitive);
+            one(dependency).resolve(with(notNullValue(DependencyResolveContext.class)));
+            will(new Action() {
+                public void describeTo(Description description) {
+                    description.appendText("add files to context");
+                }
+
+                public Object invoke(Invocation invocation) throws Throwable {
+                    ((DependencyResolveContext) invocation.getParameter(0)).add(depFiles);
+                    return null;
+                }
+            });
+            allowing(depFiles).getFiles();
             will(returnValue(toSet(depFile)));
         }});
 
@@ -101,8 +126,10 @@ public class SelfResolvingDependencyResolverTest {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+            allowing(configuration).getAllDependencies(DependencyInternal.class);
             will(returnValue(toSet()));
+            allowing(configuration).isTransitive();
+            will(returnValue(true));
         }});
 
         final ResolvedDependency resolvedDependency = context.mock(ResolvedDependency.class);
@@ -121,8 +148,10 @@ public class SelfResolvingDependencyResolverTest {
         context.checking(new Expectations() {{
             one(delegate).resolve(configuration, ivy, moduleDescriptor);
             will(returnValue(resolvedConfiguration));
-            allowing(configuration).getAllDependencies(SelfResolvingDependency.class);
+            allowing(configuration).getAllDependencies(DependencyInternal.class);
             will(returnValue(toSet()));
+            allowing(configuration).isTransitive();
+            will(returnValue(true));
         }});
 
         final ResolvedArtifact resolvedArtifact = context.mock(ResolvedArtifact.class);

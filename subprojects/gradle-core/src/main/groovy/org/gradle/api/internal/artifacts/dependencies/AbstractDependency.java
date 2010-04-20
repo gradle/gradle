@@ -16,13 +16,17 @@
 
 package org.gradle.api.internal.artifacts.dependencies;
 
-import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.internal.artifacts.DependencyInternal;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
 
 /**
 * @author Hans Dockter
 */
-public abstract class AbstractDependency implements Dependency {
+public abstract class AbstractDependency implements DependencyInternal {
     protected void copyTo(AbstractDependency target) {
+    }
+
+    public void resolve(DependencyResolveContext context) {
     }
 
     @Override

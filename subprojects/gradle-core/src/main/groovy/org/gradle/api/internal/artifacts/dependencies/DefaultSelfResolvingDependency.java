@@ -19,6 +19,7 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.FileCollectionDependency;
 import org.gradle.api.artifacts.SelfResolvingDependency;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
@@ -58,6 +59,11 @@ public class DefaultSelfResolvingDependency extends AbstractDependency implement
 
     public String getVersion() {
         return null;
+    }
+
+    @Override
+    public void resolve(DependencyResolveContext context) {
+        context.add(source);
     }
 
     public Set<File> resolve() {

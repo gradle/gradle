@@ -17,14 +17,17 @@
 package org.gradle.api.internal.artifacts.dependencies;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.*;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.CachingDependencyResolveContext;
+import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.tasks.AbstractTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
@@ -33,8 +36,6 @@ import java.util.Set;
 public class DefaultProjectDependency extends AbstractModuleDependency implements ProjectDependency {
     private Project dependencyProject;
     private final ProjectDependenciesBuildInstruction instruction;
-    private Set<File> transitiveCache;
-    private Set<File> nonTransitiveCache;
     private final TaskDependencyImpl taskDependency = new TaskDependencyImpl();
 
     public DefaultProjectDependency(Project dependencyProject, ProjectDependenciesBuildInstruction instruction) {
@@ -80,28 +81,22 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
     }
 
     public Set<File> resolve(boolean transitive) {
-        if ((transitiveCache == null && transitive) || (nonTransitiveCache == null && !transitive)) {
-            Set<File> files = new LinkedHashSet<File>();
-            if (!transitive || !isTransitive()) {
-                files.addAll(getProjectConfiguration().files(new Spec<Dependency>() {
-                    public boolean isSatisfiedBy(Dependency dependency) {
-                        return (dependency instanceof SelfResolvingDependency) &&
-                                !(dependency instanceof ProjectDependency);
-                    }
-                }));
-            } else {
-                for (SelfResolvingDependency selfResolvingDependency : getProjectConfiguration().getAllDependencies(
-                        SelfResolvingDependency.class)) {
-                    files.addAll(selfResolvingDependency.resolve());
-                }
+        CachingDependencyResolveContext context = new CachingDependencyResolveContext(transitive);
+        context.add(this);
+        return context.resolve().getFiles();
+    }
+
+    @Override
+    public void resolve(DependencyResolveContext context) {
+        boolean transitive = isTransitive() && context.isTransitive();
+        for (Dependency dependency : getProjectConfiguration().getAllDependencies()) {
+            if (!(dependency instanceof ProjectDependency)) {
+                context.add(dependency);
+            } else if (transitive) {
+                context.add(dependency);
             }
-            if (transitive) {
-                transitiveCache = files;
-            } else {
-                nonTransitiveCache = files;
-            }
+            // else project dep and non-transitive, so skip
         }
-        return transitive ? transitiveCache : nonTransitiveCache;
     }
 
     public TaskDependency getBuildDependencies() {
@@ -153,7 +148,7 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
 
     @Override
     public String toString() {
-        return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration"
+        return "DefaultProjectDependency{" + "dependencyProject='" + dependencyProject + '\'' + ", configuration='"
                 + getConfiguration() + '\'' + '}';
     }
 

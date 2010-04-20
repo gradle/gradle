@@ -114,21 +114,17 @@ public class GUtil {
     }
 
     public static <T> Set<T> addSets(Iterable<? extends T>... sets) {
-        HashSet<T> set = new HashSet<T>();
-        addToCollection(set, sets);
-        return set;
+        return addToCollection(new HashSet<T>(), sets);
     }
 
     public static <T> List<T> addLists(Iterable<? extends T>... lists) {
-        ArrayList<T> newList = new ArrayList<T>();
-        addToCollection(newList, lists);
-        return newList;
+        return addToCollection(new ArrayList<T>(), lists);
     }
 
-    public static <T> Collection<T> addToCollection(Collection<T> dest, Iterable<? extends T>... srcs) {
-        for (Iterable<? extends T> src : srcs) {
-            for (T t : src) {
-                dest.add(t);
+    public static <V, T extends Collection<V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
+        for (Iterable<? extends V> src : srcs) {
+            for (V v : src) {
+                dest.add(v);
             }
         }
         return dest;
