@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
@@ -421,11 +420,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public Configuration copy(Closure dependencySpec) {
-        return copy((Spec<Dependency>) DefaultGroovyMethods.asType(dependencySpec, Spec.class));
+        return copy(Specs.<Dependency>convertClosureToSpec(dependencySpec));
     }
 
     public Configuration copyRecursive(Closure dependencySpec) {
-        return copyRecursive((Spec<Dependency>) DefaultGroovyMethods.asType(dependencySpec, Spec.class));
+        return copyRecursive(Specs.<Dependency>convertClosureToSpec(dependencySpec));
     }
 
     private void throwExceptionIfNotInUnresolvedState() {
@@ -472,7 +471,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ConfigurationFileCollection(Closure dependencySpecClosure) {
-            this.dependencySpec = (Spec<Dependency>) DefaultGroovyMethods.asType(dependencySpecClosure, Spec.class);
+            this.dependencySpec = Specs.<Dependency>convertClosureToSpec(dependencySpecClosure);
         }
 
         public ConfigurationFileCollection(final Set<Dependency> dependencies) {

@@ -16,7 +16,6 @@
 package org.gradle.api.specs;
 
 import groovy.lang.Closure;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.util.GUtil;
 
 import java.util.Arrays;
@@ -47,6 +46,6 @@ public class AndSpec<T> extends CompositeSpec<T> {
     }
 
     public AndSpec<T> and(Closure spec) {
-        return and((Spec<T>) DefaultGroovyMethods.asType(spec, Spec.class));
+        return and(Specs.<T>convertClosureToSpec(spec));
     }
 }

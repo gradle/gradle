@@ -15,9 +15,11 @@
  */
 package org.gradle.api.specs;
 
+import groovy.lang.Closure;
+
 import java.util.LinkedHashSet;
-import java.util.Set;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -41,6 +43,15 @@ public class Specs {
         return new Spec<T>() {
             public boolean isSatisfiedBy(T element) {
                 return false;
+            }
+        };
+    }
+
+    public static <T> Spec<T> convertClosureToSpec(final Closure cl) {
+        return new Spec<T>() {
+            public boolean isSatisfiedBy(T element) {
+                Object value = cl.call(element);
+                return value == null ? false : ((Boolean) value).booleanValue();
             }
         };
     }

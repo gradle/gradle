@@ -17,7 +17,6 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.apache.commons.lang.StringUtils;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
@@ -206,7 +205,7 @@ public abstract class AbstractFileCollection implements FileCollection {
     }
 
     public FileCollection filter(Closure filterClosure) {
-        return filter((Spec) DefaultGroovyMethods.asType(filterClosure, Spec.class));
+        return filter(Specs.convertClosureToSpec(filterClosure));
     }
 
     public FileCollection filter(final Spec<? super File> filterSpec) {
