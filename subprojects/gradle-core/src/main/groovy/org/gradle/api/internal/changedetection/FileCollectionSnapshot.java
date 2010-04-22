@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.util.ChangeListener;
@@ -34,6 +35,7 @@ public interface FileCollectionSnapshot extends Serializable {
          * Removes any removed files in this diff from the given snapshot.
          *
          * @param snapshot the snapshot to apply the changes to.
+         * @param listener the listener to notify of changes. The listener can veto a particular change.
          * @return an updated copy of the provided snapshot
          */
         FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, ChangeListener<Merge> listener);

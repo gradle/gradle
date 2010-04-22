@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,13 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.changedetection.state;
+package org.gradle.util;
 
-import org.gradle.api.changedetection.ChangeProcessor;
+public class NoOpChangeListener<T> implements ChangeListener<T> {
+    public void added(T element) {
+    }
 
-/**
- * @author Tom Eyckmans
- */
-public interface DirectoryStateChangeDetecter {
-    void detectChanges(ChangeProcessor changeProcessor);
+    public void removed(T element) {
+    }
+
+    public void changed(T element) {
+    }
 }

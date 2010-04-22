@@ -114,7 +114,7 @@ public class DefaultTaskGraphExecuter implements TaskGraphExecuter {
                 for (Task dependsOnTask : dependsOnTasks) {
                     if (visiting.contains(dependsOnTask)) {
                         throw new CircularReferenceException(String.format(
-                                "Circular dependency between tasks. Cycle includes %s.", task));
+                                "Circular dependency between tasks. Cycle includes [%s, %s].", task, dependsOnTask));
                     }
                     queue.add(0, dependsOnTask);
                 }

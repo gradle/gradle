@@ -13,17 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskOutputs;
 
 public interface TaskOutputsInternal extends TaskOutputs {
     Spec<? super TaskInternal> getUpToDateSpec();
-
-    /**
-     * Returns the output files + the contents of the output directories
-     */
-    FileCollection getCandidateFiles();
 }

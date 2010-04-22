@@ -61,10 +61,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final Set<TestFile> inputFiles = toSet(inputFile, inputDir, missingInputFile);
     private final Set<TestFile> outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile);
     private final Set<TestFile> createFiles = toSet(outputFile, outputDirFile, outputDirFile2);
-    private final FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
+    private final FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
+    private final FileSnapshotter ouputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter);
     private PersistentCache persistentCache;
-    private final DefaultTaskArtifactStateRepository repository = new DefaultTaskArtifactStateRepository(cacheRepository,
-            fileSnapshotter);
+    private final DefaultTaskArtifactStateRepository repository
+            = new DefaultTaskArtifactStateRepository(cacheRepository, inputFilesSnapshotter, ouputFilesSnapshotter);
 
     @Test
     public void artifactsAreNotUpToDateWhenCacheIsEmpty() {
@@ -290,6 +291,32 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
+    public void artifactsAreNotUpToDateWhenOutputDirWhichUsedToExistHasBeenDeleted() {
+        // Output dir already exists before first execution of task
+        outputDirFile.createFile();
+        expectEmptyCacheLocated();
+
+        TaskInternal task1 = builder().withOutputFiles(outputDir).createsFiles(outputDirFile).task();
+        TaskInternal task2 = builder().withPath("other").withOutputFiles(outputDir).createsFiles(outputDirFile2).task();
+
+        TaskArtifactState state = repository.getStateFor(task1);
+        assertFalse(state.isUpToDate());
+        state.update();
+
+        outputDir.deleteDir();
+
+        // Another task creates dir
+        state = repository.getStateFor(task2);
+        assertFalse(state.isUpToDate());
+        task2.execute();
+        state.update();
+
+        // Task should be out-of-date
+        state = repository.getStateFor(task1);
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
     public void artifactsAreUpToDateWhenNothingHasChangedSinceOutputFilesWereGenerated() {
         execute();
 
@@ -334,7 +361,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void multipleTasksCanProduceFilesTheSameFileWithTheSameContents() {
+    public void multipleTasksCanProduceTheSameFileWithTheSameContents() {
         TaskInternal task1 = builder().withOutputFiles(outputFile).task();
         TaskInternal task2 = builder().withPath("other").withOutputFiles(outputFile).task();
         execute(task1, task2);
@@ -372,7 +399,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void considersUpdatedExistingFileInOutputDirectoryAsProducedByTask() {
+    public void considersExistingFileInOutputDirectoryWhichIsUpdatedByTheTaskAsProducedByTask() {
         expectEmptyCacheLocated();
         
         TestFile otherFile = outputDir.file("other").createFile();

@@ -13,10 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
+import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
 import java.io.Serializable;
@@ -132,57 +134,16 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
             final FileCollectionSnapshotImpl other = (FileCollectionSnapshotImpl) oldSnapshot;
             return new Diff() {
                 public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot) {
-                    return applyTo(snapshot, new ChangeListener<Merge>() {
-                        public void added(Merge element) {
-                        }
-
-                        public void removed(Merge element) {
-                        }
-
-                        public void changed(Merge element) {
-                        }
-                    });
+                    return applyTo(snapshot, new NoOpChangeListener<Merge>());
                 }
 
                 public FileCollectionSnapshot applyTo(FileCollectionSnapshot snapshot, final ChangeListener<Merge> listener) {
                     FileCollectionSnapshotImpl target = (FileCollectionSnapshotImpl) snapshot;
                     final Map<String, FileSnapshot> newSnapshots = new HashMap<String, FileSnapshot>(target.snapshots);
-                    diff(snapshots, other.snapshots, new ChangeListener<Map.Entry<String, FileSnapshot>>() {
-                        public void added(Map.Entry<String, FileSnapshot> element) {
-                            DefaultMerge merge = new DefaultMerge();
-                            listener.added(merge);
-                            if (!merge.ignore) {
-                                newSnapshots.put(element.getKey(), element.getValue());
-                            }
-                        }
-
-                        public void removed(Map.Entry<String, FileSnapshot> element) {
-                            DefaultMerge merge = new DefaultMerge();
-                            listener.removed(merge);
-                            if (!merge.ignore) {
-                                newSnapshots.remove(element.getKey());
-                            }
-                        }
-
-                        public void changed(Map.Entry<String, FileSnapshot> element) {
-                            DefaultMerge merge = new DefaultMerge();
-                            listener.changed(merge);
-                            if (!merge.ignore) {
-                                newSnapshots.put(element.getKey(), element.getValue());
-                            }
-                        }
-                    });
+                    diff(snapshots, other.snapshots, new MapMergeChangeListener<String, FileSnapshot>(listener, newSnapshots));
                     return new FileCollectionSnapshotImpl(newSnapshots);
                 }
             };
-        }
-
-        private static class DefaultMerge implements Merge {
-            private boolean ignore;
-
-            public void ignore() {
-                ignore = true;
-            }
         }
     }
 }

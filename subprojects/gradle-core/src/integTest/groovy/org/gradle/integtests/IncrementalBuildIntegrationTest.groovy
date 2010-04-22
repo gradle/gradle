@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -24,7 +26,7 @@ import static org.junit.Assert.*
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
     @Test
-    public void skipsTaskWhenInputFilesHaveNotChanged() {
+    public void skipsTaskWhenOutputFileIsUpToDate() {
         testFile('build.gradle') << '''
 task a(type: org.gradle.integtests.TransformerTask) {
     inputFile = file('src.txt')
@@ -119,14 +121,26 @@ b.outputFile = file('new-output.txt')
 '''
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
-        testFile('new-output.txt').assertIsFile()
+        outputFileB = testFile('new-output.txt')
+        outputFileB.assertIsFile()
 
         // Run with --no-opt command-line options
         inTestDirectory().withTasks('b').withArguments('--no-opt').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        // Output files already exist before using this version of Gradle
+        // delete .gradle dir to simulate this
+        testFile('.gradle').assertIsDir().deleteDir()
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        outputFileB.delete()
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
     }
 
     @Test
-    public void skipsTaskWhenInputDirContentsHaveNotChanged() {
+    public void skipsTaskWhenOutputDirContentsAreUpToDate() {
         testFile('build.gradle') << '''
 task a(type: org.gradle.integtests.DirTransformerTask) {
     inputDir = file('src')
@@ -183,6 +197,17 @@ task b(type: org.gradle.integtests.DirTransformerTask, dependsOn: a) {
         testFile('src/file1.txt').delete()
 
         inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':b')
+
+        // Output files already exist before using this version of Gradle
+        // delete .gradle dir to simulate this
+        testFile('.gradle').assertIsDir().deleteDir()
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        testFile('build/b').deleteDir()
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
+
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a', ':b')
     }
 
     @Test

@@ -32,19 +32,21 @@ import java.util.*;
 import static java.util.Collections.*;
 
 public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepository {
-    private static final int MAX_OUT_OF_DATE_MESSAGES = 20;
+    private static final int MAX_OUT_OF_DATE_MESSAGES = 10;
     private static final Logger LOGGER = Logging.getLogger(DefaultTaskArtifactStateRepository.class);
     private final CacheRepository repository;
-    private final FileSnapshotter fileSnapshotter;
-    private PersistentIndexedCache<String, TaskHistory> cache;
+    private final FileSnapshotter inputFilesSnapshotter;
+    private final FileSnapshotter outputFilesSnapshotter;
+    private PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
 
-    public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter fileSnapshotter) {
+    public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
         this.repository = repository;
-        this.fileSnapshotter = fileSnapshotter;
+        this.inputFilesSnapshotter = inputFilesSnapshotter;
+        this.outputFilesSnapshotter = outputFilesSnapshotter;
     }
 
     public TaskArtifactState getStateFor(final TaskInternal task) {
-        if (cache == null) {
+        if (taskHistoryCache == null) {
             loadTasks(task);
         }
 
@@ -52,7 +54,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private void loadTasks(TaskInternal task) {
-        cache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache();
+        taskHistoryCache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache();
     }
 
     private static Set<String> outputFiles(TaskInternal task) {
@@ -101,16 +103,19 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private final TaskHistory history;
         private final TaskInternal task;
         private final TaskConfiguration lastExecution;
-        private final FileSnapshotter snapshotter;
+        private final FileSnapshotter inputFilesSnapshotter;
+        private final FileSnapshotter outputFilesSnapshotter;
         private boolean upToDate;
         private TaskConfiguration thisExecution;
         private FileCollectionSnapshot outputFilesBefore;
 
-        public HistoricExecution(TaskHistory history, TaskInternal task, TaskConfiguration lastExecution, FileSnapshotter snapshotter) {
+        public HistoricExecution(TaskHistory history, TaskInternal task, TaskConfiguration lastExecution,
+                                 FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
             this.history = history;
             this.task = task;
             this.lastExecution = lastExecution;
-            this.snapshotter = snapshotter;
+            this.inputFilesSnapshotter = inputFilesSnapshotter;
+            this.outputFilesSnapshotter = outputFilesSnapshotter;
         }
 
         private void calcCurrentState() {
@@ -119,8 +124,9 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
 
             // Calculate current state - note this is potentially expensive
-            thisExecution = new TaskConfiguration(task, snapshotter);
-            outputFilesBefore = snapshotter.snapshot(task.getOutputs().getCandidateFiles());
+            FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
+            thisExecution = new TaskConfiguration(task, inputFilesSnapshot);
+            outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
         }
 
         public List<String> isUpToDate() {
@@ -137,11 +143,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             }
 
             List<String> messages = new ArrayList<String>();
-            checkOutputFiles(messages);
-            if (!messages.isEmpty()) {
-                return messages;
-            }
-
             checkInputProperties(messages);
             if (!messages.isEmpty()) {
                 return messages;
@@ -164,11 +165,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private void checkOutputs(final Collection<String> messages) {
             outputFilesBefore.changesSince(lastExecution.outputFilesSnapshot, new ChangeListener<File>() {
                 public void added(File element) {
-                    // Don't care
+                    messages.add(String.format("Output file '%s' has been added for %s.", element, task));
                 }
 
                 public void removed(File element) {
-                    messages.add(String.format("Output file %s for %s removed.", element.getAbsolutePath(), task));
+                    messages.add(String.format("Output file %s has been removed for %s.", element.getAbsolutePath(), task));
                 }
 
                 public void changed(File element) {
@@ -189,22 +190,6 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
                 public void changed(File file) {
                     messages.add(String.format("Input file %s for %s has changed.", file, task));
-                }
-            });
-        }
-
-        private void checkOutputFiles(final Collection<String> messages) {
-            DiffUtil.diff(thisExecution.outputFiles, lastExecution.outputFiles, new ChangeListener<String>() {
-                public void added(String element) {
-                    messages.add(String.format("Output file '%s' has been added for %s", element, task));
-                }
-
-                public void removed(String element) {
-                    messages.add(String.format("Output file '%s' has been removed for %s", element, task));
-                }
-
-                public void changed(String element) {
-                    // should not happen
                 }
             });
         }
@@ -232,7 +217,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 return false;
             }
 
-            FileCollectionSnapshot lastExecutionOutputFiles = lastExecution == null ? snapshotter.snapshot()
+            FileCollectionSnapshot lastExecutionOutputFiles = lastExecution == null ? outputFilesSnapshotter.snapshot()
                     : lastExecution.outputFilesSnapshot;
             FileCollectionSnapshot newOutputFiles = outputFilesBefore.changesSince(lastExecutionOutputFiles).applyTo(
                     lastExecutionOutputFiles, new ChangeListener<FileCollectionSnapshot.Merge>() {
@@ -249,7 +234,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                             // Update any files which were change since the task was last executed
                         }
                     });
-            FileCollectionSnapshot outputFilesAfter = snapshotter.snapshot(task.getOutputs().getCandidateFiles());
+            FileCollectionSnapshot outputFilesAfter = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
             thisExecution.outputFilesSnapshot = outputFilesAfter.changesSince(outputFilesBefore).applyTo(
                     newOutputFiles);
             history.addConfiguration(thisExecution);
@@ -264,11 +249,11 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         private FileCollectionSnapshot inputFilesSnapshot;
         private FileCollectionSnapshot outputFilesSnapshot;
 
-        private TaskConfiguration(TaskInternal task, FileSnapshotter fileSnapshotter) {
+        private TaskConfiguration(TaskInternal task, FileCollectionSnapshot inputFilesSnapshot) {
             this.taskClass = task.getClass().getName();
             this.outputFiles = outputFiles(task);
             this.inputProperties = new HashMap<String, Object>(task.getInputs().getProperties());
-            this.inputFilesSnapshot = fileSnapshotter.snapshot(task.getInputs().getFiles());
+            this.inputFilesSnapshot = inputFilesSnapshot;
         }
     }
 
@@ -305,7 +290,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private TaskHistory getHistory() {
-            TaskHistory history = cache.get(task.getPath());
+            TaskHistory history = taskHistoryCache.get(task.getPath());
             return history == null ? new TaskHistory() : history;
         }
 
@@ -335,14 +320,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 }
             }
             if (bestMatch == null) {
-                return new HistoricExecution(history, task, null, fileSnapshotter);
+                return new HistoricExecution(history, task, null, inputFilesSnapshotter, outputFilesSnapshotter);
             }
-            return new HistoricExecution(history, task, bestMatch, fileSnapshotter);
+            return new HistoricExecution(history, task, bestMatch, inputFilesSnapshotter, outputFilesSnapshotter);
         }
 
         public void update() {
             if (execution.snapshot()) {
-                cache.put(task.getPath(), history);
+                taskHistoryCache.put(task.getPath(), history);
             }
         }
     }

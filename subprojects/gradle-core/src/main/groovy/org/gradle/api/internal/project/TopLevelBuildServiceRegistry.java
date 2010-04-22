@@ -210,14 +210,17 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected TaskArtifactStateRepository createTaskArtifactStateRepository() {
+        FileSnapshotter fileSnapshotter = new DefaultFileSnapshotter(
+                new CachingHasher(
+                        new DefaultHasher(),
+                        get(CacheRepository.class)));
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(fileSnapshotter);
         return new ShortCircuitTaskArtifactStateRepository(
                 startParameter,
                 new DefaultTaskArtifactStateRepository(
                         get(CacheRepository.class),
-                        new DefaultFileSnapshotter(
-                                new CachingHasher(
-                                    new DefaultHasher(),
-                                    get(CacheRepository.class)))));
+                        fileSnapshotter,
+                        outputFilesSnapshotter));
     }
 
     protected ScriptCompilerFactory createScriptCompileFactory() {
