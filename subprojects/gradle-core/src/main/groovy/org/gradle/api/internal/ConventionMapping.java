@@ -46,6 +46,6 @@ public interface ConventionMapping {
     <T> T getConventionValue(T actualValue, String propertyName, boolean isExplicitValue);
 
     interface MappedProperty {
-        void noCache();
+        void cache();
     }
 }

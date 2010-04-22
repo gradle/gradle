@@ -113,22 +113,21 @@ public class ConventionAwareHelperTest {
         assertSame(expectedList1, conventionAware.getConventionValue("list1"));
     }
 
-    @Test public void cachesPropertyValues() {
+    @Test public void canEnableCachingOfPropertyValue() {
         conventionAware.map("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return toList("a");
             }
-        });
+        }).cache();
         assertSame(conventionAware.getConventionValue("list1"), conventionAware.getConventionValue("list1"));
     }
 
-    @Test public void canDisableCachingOfPropertyValue() {
+    @Test public void notCachesPropertyValuesByDefault() {
         ConventionMapping.MappedProperty property = conventionAware.map("list1", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return toList("a");
             }
         });
-        property.noCache();
 
         Object value1 = conventionAware.getConventionValue("list1");
         Object value2 = conventionAware.getConventionValue("list1");

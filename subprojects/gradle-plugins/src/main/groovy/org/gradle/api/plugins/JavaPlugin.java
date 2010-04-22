@@ -17,7 +17,6 @@
 package org.gradle.api.plugins;
 
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -25,23 +24,16 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.internal.ConventionMapping;
-import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.util.GUtil;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Set;
 import java.util.concurrent.Callable;
 
 
@@ -73,78 +65,39 @@ public class JavaPlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("embeddedJavaProject", new EmbeddableJavaProjectImpl(javaConvention));
 
         configureConfigurations(project);
-        configureSourceSetDefaults(javaConvention);
 
         configureSourceSets(javaConvention);
 
-        configureJavaDoc(project);
-        configureTest(project);
+        configureJavaDoc(javaConvention);
+        configureTest(project, javaConvention);
         configureArchives(project, javaConvention);
         configureBuild(project);
     }
 
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {
-        final Project project = pluginConvention.getProject();
+        Project project = pluginConvention.getProject();
 
-        final SourceSet main = pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
+        SourceSet main = pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
+        main.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+        main.setRuntimeClasspath(main.getClasses().plus(project.getConfigurations().getByName(
+                RUNTIME_CONFIGURATION_NAME)));
 
-        final SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
-        ConventionMapping conventionMapping = ((IConventionAware) test).getConventionMapping();
-        conventionMapping.map("compileClasspath", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return project.files(main.getClasses(), project.getConfigurations().getByName(
-                        TEST_COMPILE_CONFIGURATION_NAME));
-            }
-        });
-        conventionMapping.map("runtimeClasspath", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return project.files(test.getClasses(), main.getClasses(), project.getConfigurations().getByName(
-                        TEST_RUNTIME_CONFIGURATION_NAME));
-            }
-        });
+        SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
+        test.setCompileClasspath(project.files(main.getClasses(), project.getConfigurations().getByName(
+                TEST_COMPILE_CONFIGURATION_NAME)));
+        test.setRuntimeClasspath(project.files(test.getClasses(), main.getClasses(), project.getConfigurations().getByName(
+                TEST_RUNTIME_CONFIGURATION_NAME)));
     }
 
-    private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
-        pluginConvention.getSourceSets().allObjects(new Action<SourceSet>() {
-            public void execute(final SourceSet sourceSet) {
-                final Project project = pluginConvention.getProject();
-                ConventionMapping conventionMapping = ((IConventionAware) sourceSet).getConventionMapping();
+    private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
+        Project project = pluginConvention.getProject();
 
-                conventionMapping.map("compileClasspath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME);
-                    }
-                });
-                conventionMapping.map("runtimeClasspath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return sourceSet.getClasses().plus(project.getConfigurations().getByName(
-                                RUNTIME_CONFIGURATION_NAME));
-                    }
-                });
-            }
-        });
-    }
-
-    private void configureJavaDoc(final Project project) {
-        project.getTasks().withType(Javadoc.class).allTasks(new Action<Javadoc>() {
-            public void execute(Javadoc javadoc) {
-                javadoc.getConventionMapping().map("classpath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        SourceSet mainSourceSet = convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
-                        return mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath());
-                    }
-                });
-                javadoc.getConventionMapping().map("defaultSource", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                                SourceSet.MAIN_SOURCE_SET_NAME).getAllJava();
-                    }
-                });
-                addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
-            }
-        });
-        project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class).setDescription(
-                "Generates the javadoc for the source code.");
+        SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
+        Javadoc javadoc = project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class);
+        javadoc.setDescription("Generates the javadoc for the source code.");
+        javadoc.setClasspath(mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath()));
+        javadoc.setSource(mainSourceSet.getAllJava());
+        addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
     }
 
     private void configureArchives(final Project project, final JavaPluginConvention pluginConvention) {
@@ -170,29 +123,13 @@ public class JavaPlugin implements Plugin<Project> {
                 false, JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
     }
 
-    private void configureTest(final Project project) {
-        project.getTasks().withType(AbstractTestTask.class).allTasks(new Action<AbstractTestTask>() {
-            public void execute(AbstractTestTask test) {
-                test.getConventionMapping().map(GUtil.map("testClassesDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                                SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
-                    }
-                }, "classpath", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                                SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
-                    }
-                }, "testSrcDirs", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        Set<File> srcDirs = convention.getPlugin(JavaPluginConvention.class).getSourceSets().getByName(
-                                SourceSet.TEST_SOURCE_SET_NAME).getJava().getSrcDirs();
-                        return new ArrayList<File>(srcDirs);
-                    }
-                }));
-            }
-        });
-        project.getTasks().add(TEST_TASK_NAME, Test.class).setDescription("Runs the unit tests.");
+    private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
+        Test test = project.getTasks().add(TEST_TASK_NAME, Test.class);
+        test.setDescription("Runs the unit tests.");
+        test.setTestClassesDir(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir());
+        test.setClasspath(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
+        test.setTestSrcDirs(new ArrayList(
+                pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getJava().getSrcDirs()));
     }
 
     void configureConfigurations(final Project project) {

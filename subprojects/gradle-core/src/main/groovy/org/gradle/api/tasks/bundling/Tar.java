@@ -42,7 +42,7 @@ public class Tar extends AbstractArchiveTask {
             public Object call() throws Exception {
                 return getCompression().getExtension();
             }
-        }).noCache();
+        });
     }
 
     protected CopyActionImpl getCopyAction() {

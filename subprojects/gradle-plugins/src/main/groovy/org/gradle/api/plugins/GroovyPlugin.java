@@ -16,12 +16,9 @@
 
 package org.gradle.api.plugins;
 
-import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.DynamicObjectAware;
-import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.GroovySourceSet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.javadoc.Groovydoc;
@@ -48,16 +45,9 @@ public class GroovyPlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc(final Project project) {
-        project.getTasks().withType(Groovydoc.class).allTasks(new Action<Groovydoc>() {
-            public void execute(Groovydoc groovydoc) {
-                groovydoc.getConventionMapping().map("defaultSource", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return mainGroovy(convention).getGroovy();
-                    }
-                });
-            }
-        });
-        project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class).setDescription("Generates the groovydoc for the source code.");
+        Groovydoc groovyDoc = project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class);
+        groovyDoc.setDescription("Generates the groovydoc for the source code.");
+        groovyDoc.setSource(mainGroovy(project.getConvention()).getGroovy());
     }
 
     private JavaPluginConvention java(Convention convention) {

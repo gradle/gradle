@@ -153,7 +153,7 @@ public class ConventionAwareHelper implements ConventionMapping {
     private static class MappedPropertyImpl implements MappedProperty, ConventionValue {
         private final ConventionValue value;
         private boolean haveValue;
-        private boolean nocache;
+        private boolean cache;
         private Object cachedValue;
 
         private MappedPropertyImpl(ConventionValue value) {
@@ -161,7 +161,7 @@ public class ConventionAwareHelper implements ConventionMapping {
         }
 
         public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-            if (nocache) {
+            if (!cache) {
                 return value.getValue(convention, conventionAwareObject);
             }
             if (!haveValue) {
@@ -171,8 +171,8 @@ public class ConventionAwareHelper implements ConventionMapping {
             return cachedValue;
         }
 
-        public void noCache() {
-            nocache = true;
+        public void cache() {
+            cache = true;
             cachedValue = null;
         }
     }

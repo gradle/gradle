@@ -31,6 +31,8 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import org.junit.Test
 import static org.gradle.util.Matchers.builtBy
 import static org.gradle.util.Matchers.dependsOn
@@ -43,6 +45,8 @@ import static org.junit.Assert.*
  * @author Hans Dockter
  */
 class JavaPluginTest {
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder()
     private final Project project = HelperUtil.createRootProject()
     private final JavaPlugin javaPlugin = new JavaPlugin()
 
@@ -103,18 +107,7 @@ class JavaPluginTest {
         assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/main')))
         assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/test')))
     }
-
-    @Test public void createsTasksAndAppliesMappingsForNewSourceSet() {
-        javaPlugin.apply(project)
-
-        project.sourceSets.add('custom')
-        def set = project.sourceSets.custom
-        assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
-        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
-        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/custom')))
-
-    }
-    
+        
     @Test public void createsStandardTasksAndAppliesMappings() {
         javaPlugin.apply(project)
 
@@ -177,10 +170,12 @@ class JavaPluginTest {
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaPlugin.TEST_TASK_NAME))
 
+        project.sourceSets.main.java.srcDirs(tmpDir.getDir())
+        tmpDir.file("SomeFile.java").touch()
         task = project.tasks[JavaPlugin.JAVADOC_TASK_NAME]
         assertThat(task, instanceOf(Javadoc))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.defaultSource, sameInstance(project.sourceSets.main.allJava))
+        assertThat(task.source.files, equalTo(project.sourceSets.main.allJava.files))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.classes))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.compileClasspath))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/javadoc")))
@@ -202,22 +197,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
     }
-
-    @Test public void appliesMappingsToTasksDefinedByBuildScript() {
-        javaPlugin.apply(project)
-
-        def task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
-        assertThat(task, dependsOn(JavaPlugin.TEST_CLASSES_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
-        assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
-
-        task = project.createTask('customJavadoc', type: Javadoc)
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
-        assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.classes))
-        assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.compileClasspath))
-        assertThat(task.defaultSource, sameInstance(project.sourceSets.main.allJava))
-    }
-
+    
     @Test public void buildOtherProjects() {
         DefaultProject commonProject = HelperUtil.createChildProject(project, "common");
         DefaultProject middleProject = HelperUtil.createChildProject(project, "middle");

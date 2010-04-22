@@ -21,6 +21,8 @@ import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.util.HelperUtil
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
 import org.junit.Test
 import static org.gradle.util.Matchers.dependsOn
 import static org.gradle.util.WrapUtil.toLinkedSet
@@ -32,6 +34,8 @@ import static org.junit.Assert.*
  * @author Hans Dockter
  */
 class GroovyPluginTest {
+    @Rule
+    public TemporaryFolder tmpDir = new TemporaryFolder()
     private final Project project = HelperUtil.createRootProject()
     private final GroovyPlugin groovyPlugin = new GroovyPlugin()
 
@@ -91,18 +95,13 @@ class GroovyPluginTest {
     @Test public void addsStandardTasksToTheProject() {
         groovyPlugin.apply(project)
 
+        project.sourceSets.main.groovy.srcDirs(tmpDir.getDir())
+        tmpDir.file("SomeFile.groovy").touch()
         def task = project.tasks[GroovyPlugin.GROOVYDOC_TASK_NAME]
         assertThat(task, instanceOf(Groovydoc.class))
         assertThat(task.destinationDir, equalTo(new File(project.docsDir, 'groovydoc')))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))
+        assertThat(task.source.files, equalTo(project.sourceSets.main.groovy.files))
         assertThat(task.docTitle, equalTo(project.apiDocTitle))
         assertThat(task.windowTitle, equalTo(project.apiDocTitle))
-    }
-
-    @Test public void configuresAdditionalTasksDefinedByTheBuildScript() {
-        groovyPlugin.apply(project)
-
-        def task = project.createTask('otherGroovydoc', type: Groovydoc)
-        assertThat(task.defaultSource, equalTo(project.sourceSets.main.groovy))
     }
 }
