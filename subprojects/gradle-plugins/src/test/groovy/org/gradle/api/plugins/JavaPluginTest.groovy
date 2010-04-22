@@ -63,7 +63,7 @@ class JavaPluginTest {
 
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertFalse(configuration.visible)
-        assertFalse(configuration.transitive)
+        assertTrue(configuration.transitive)
 
         configuration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME)))

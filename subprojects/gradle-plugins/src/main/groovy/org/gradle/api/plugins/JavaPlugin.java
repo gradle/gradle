@@ -134,7 +134,7 @@ public class JavaPlugin implements Plugin<Project> {
 
     void configureConfigurations(final Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
-        Configuration compileConfiguration = configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).setTransitive(false).
+        Configuration compileConfiguration = configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).
                 setDescription("Classpath for compiling the sources.");
         Configuration runtimeConfiguration = configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
                 setDescription("Classpath for running the compiled sources.");

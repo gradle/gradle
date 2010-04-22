@@ -51,7 +51,7 @@ class GroovyPluginTest {
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom, false), equalTo(toSet(GroovyBasePlugin.GROOVY_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
-        assertFalse(configuration.transitive)
+        assertTrue(configuration.transitive)
     }
 
     @Test public void addsGroovyConventionToEachSourceSet() {

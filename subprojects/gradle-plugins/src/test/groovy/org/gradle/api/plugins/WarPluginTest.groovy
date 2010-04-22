@@ -55,7 +55,7 @@ class WarPluginTest {
         def configuration = project.configurations.getByName(JavaPlugin.COMPILE_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(WarPlugin.PROVIDED_COMPILE_CONFIGURATION_NAME)))
         assertFalse(configuration.visible)
-        assertFalse(configuration.transitive)
+        assertTrue(configuration.transitive)
 
         configuration = project.configurations.getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME)
         assertThat(Configurations.getNames(configuration.extendsFrom), equalTo(toSet(JavaPlugin.COMPILE_CONFIGURATION_NAME, WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME)))
