@@ -86,6 +86,7 @@ public class DefaultIvyServiceResolveTest {
 
         ivyService = new DefaultIvyService(dependencyMetaDataProviderMock, resolverProvider,
                 settingsConverterMock, resolveModuleDescriptorConverterStub, publishModuleDescriptorConverterDummy,
+                publishModuleDescriptorConverterDummy,
                 new DefaultIvyFactory(), ivyDependencyResolverMock, 
                 context.mock(IvyDependencyPublisher.class), clientModuleRegistryDummy);
     }

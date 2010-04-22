@@ -41,6 +41,7 @@ public class DefaultIvyService implements IvyService {
     private SettingsConverter settingsConverter;
     private ModuleDescriptorConverter resolveModuleDescriptorConverter;
     private ModuleDescriptorConverter publishModuleDescriptorConverter;
+    private ModuleDescriptorConverter fileModuleDescriptorConverter;
     private IvyFactory ivyFactory;
     private IvyDependencyResolver dependencyResolver;
     private IvyDependencyPublisher dependencyPublisher;
@@ -52,6 +53,7 @@ public class DefaultIvyService implements IvyService {
                              SettingsConverter settingsConverter,
                              ModuleDescriptorConverter resolveModuleDescriptorConverter,
                              ModuleDescriptorConverter publishModuleDescriptorConverter,
+                             ModuleDescriptorConverter fileModuleDescriptorConverter,
                              IvyFactory ivyFactory,
                              IvyDependencyResolver dependencyResolver,
                              IvyDependencyPublisher dependencyPublisher,
@@ -61,6 +63,7 @@ public class DefaultIvyService implements IvyService {
         this.settingsConverter = settingsConverter;
         this.resolveModuleDescriptorConverter = resolveModuleDescriptorConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
+        this.fileModuleDescriptorConverter = fileModuleDescriptorConverter;
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
@@ -99,6 +102,10 @@ public class DefaultIvyService implements IvyService {
 
     public ModuleDescriptorConverter getPublishModuleDescriptorConverter() {
         return publishModuleDescriptorConverter;
+    }
+
+    public ModuleDescriptorConverter getFileModuleDescriptorConverter() {
+        return fileModuleDescriptorConverter;
     }
 
     public IvyFactory getIvyFactory() {
@@ -146,7 +153,7 @@ public class DefaultIvyService implements IvyService {
         if (descriptorDestination == null) {
             return;
         }
-        ModuleDescriptor moduleDescriptor = publishModuleDescriptorConverter.convert(configurationsToPublish, metaDataProvider.getModule(), ivySettings);
+        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(configurationsToPublish, metaDataProvider.getModule(), ivySettings);
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {

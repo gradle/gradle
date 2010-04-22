@@ -44,6 +44,7 @@ public class DefaultIvyServiceTest {
         SettingsConverter settingsConverter = context.mock(SettingsConverter.class);
         ModuleDescriptorConverter resolveModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "resolve");
         ModuleDescriptorConverter publishModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "publish");
+        ModuleDescriptorConverter fileModuleDescriptorConverter = context.mock(ModuleDescriptorConverter.class, "file");
         IvyFactory ivyFactory = context.mock(IvyFactory.class);
         IvyDependencyResolver dependencyResolver = context.mock(IvyDependencyResolver.class);
         IvyDependencyPublisher dependencyPublisher = context.mock(IvyDependencyPublisher.class);
@@ -51,12 +52,14 @@ public class DefaultIvyServiceTest {
 
         DefaultIvyService ivyService = new DefaultIvyService(dependencyMetaDataProvider, resolverProvider,
                 settingsConverter, resolveModuleDescriptorConverter, publishModuleDescriptorConverter,
+                fileModuleDescriptorConverter,
                 ivyFactory, dependencyResolver, dependencyPublisher, clientModuleRegistry);
         
         assertThat(ivyService.getMetaDataProvider(), sameInstance(dependencyMetaDataProvider));
         assertThat(ivyService.getSettingsConverter(), sameInstance(settingsConverter));
         assertThat(ivyService.getResolveModuleDescriptorConverter(), sameInstance(resolveModuleDescriptorConverter));
         assertThat(ivyService.getPublishModuleDescriptorConverter(), sameInstance(publishModuleDescriptorConverter));
+        assertThat(ivyService.getFileModuleDescriptorConverter(), sameInstance(fileModuleDescriptorConverter));
         assertThat(ivyService.getIvyFactory(), sameInstance(ivyFactory));
         assertThat(ivyService.getDependencyResolver(), sameInstance(dependencyResolver));
         assertThat(ivyService.getDependencyPublisher(), sameInstance(dependencyPublisher));

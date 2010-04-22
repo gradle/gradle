@@ -34,6 +34,7 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
     private SettingsConverter settingsConverter;
     private ModuleDescriptorConverter resolveModuleDescriptorConverter;
     private ModuleDescriptorConverter publishModuleDescriptorConverter;
+    private ModuleDescriptorConverter fileModuleDescriptorConverter;
     private IvyFactory ivyFactory;
     private IvyDependencyResolver dependencyResolver;
     private IvyDependencyPublisher dependencyPublisher;
@@ -42,6 +43,7 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
     public DefaultConfigurationContainerFactory(Map clientModuleRegistry, SettingsConverter settingsConverter,
                                                 ModuleDescriptorConverter resolveModuleDescriptorConverter,
                                                 ModuleDescriptorConverter publishModuleDescriptorConverter,
+                                                ModuleDescriptorConverter fileModuleDescriptorConverter,
                                                 IvyFactory ivyFactory,
                                                 IvyDependencyResolver dependencyResolver, IvyDependencyPublisher dependencyPublisher,
                                                 ClassGenerator classGenerator) {
@@ -49,6 +51,7 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
         this.settingsConverter = settingsConverter;
         this.resolveModuleDescriptorConverter = resolveModuleDescriptorConverter;
         this.publishModuleDescriptorConverter = publishModuleDescriptorConverter;
+        this.fileModuleDescriptorConverter = fileModuleDescriptorConverter;
         this.ivyFactory = ivyFactory;
         this.dependencyResolver = dependencyResolver;
         this.dependencyPublisher = dependencyPublisher;
@@ -66,6 +69,7 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
                                 settingsConverter,
                                 resolveModuleDescriptorConverter,
                                 publishModuleDescriptorConverter,
+                                fileModuleDescriptorConverter,
                                 ivyFactory,
                                 dependencyResolver,
                                 dependencyPublisher,

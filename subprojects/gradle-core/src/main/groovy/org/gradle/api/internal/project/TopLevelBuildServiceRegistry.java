@@ -162,11 +162,15 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY),
                 get(ExternalModuleDependencyDescriptorFactory.class));
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
+        PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
+                get(ResolveModuleDescriptorConverter.class),
+                new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
 
         return new DefaultConfigurationContainerFactory(clientModuleRegistry,
                 new DefaultSettingsConverter(),
                 get(ResolveModuleDescriptorConverter.class),
                 get(PublishModuleDescriptorConverter.class),
+                fileModuleDescriptorConverter,
                 new DefaultIvyFactory(),
                 new SelfResolvingDependencyResolver(
                         new DefaultIvyDependencyResolver(
