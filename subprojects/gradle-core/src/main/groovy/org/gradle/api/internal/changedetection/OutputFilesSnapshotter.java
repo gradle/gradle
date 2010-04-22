@@ -17,21 +17,38 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
+import org.gradle.util.IdGenerator;
 import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * Takes a snapshot of the output files of a task. 2 parts to the algorithm:
+ *
+ * <ul>
+ * <li>Collect the unique id for each output file and directory. The unique id is generated when we notice that
+ * a file/directory has been created. The id is regenerated when the file/directory is deleted.</li>
+ *
+ * <li>Collect the hash of each output file and each file in each output directory.</li>
+ * </ul>
+ *
+ */
 public class OutputFilesSnapshotter implements FileSnapshotter {
     private final FileSnapshotter snapshotter;
-    private final Map<File, Long> dirIdentifiers = new HashMap<File, Long>();
-    private long nextCounter; 
+    private final IdGenerator<Long> idGenerator;
+    private final PersistentIndexedCache<String, Long> dirIdentiferCache;
 
-    public OutputFilesSnapshotter(FileSnapshotter snapshotter) {
+    public OutputFilesSnapshotter(FileSnapshotter snapshotter, IdGenerator<Long> idGenerator,
+                                  CacheRepository cacheRepository) {
         this.snapshotter = snapshotter;
+        this.idGenerator = idGenerator;
+        dirIdentiferCache = cacheRepository.cache("outputFileStates").open().openIndexedCache();
     }
 
     public FileCollectionSnapshot snapshot() {
@@ -41,18 +58,18 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
     public FileCollectionSnapshot snapshot(FileCollection files) {
         Map<String, Long> snapshotDirIds = new HashMap<String, Long>();
         for (File file : files) {
-            Long counter;
+            Long dirId;
             if (file.exists()) {
-                counter = dirIdentifiers.get(file);
-                if (counter == null) {
-                    counter = nextCounter++;
-                    dirIdentifiers.put(file, counter);
+                dirId = dirIdentiferCache.get(file.getAbsolutePath());
+                if (dirId == null) {
+                    dirId = idGenerator.generateId();
+                    dirIdentiferCache.put(file.getAbsolutePath(), dirId);
                 }
             } else {
-                dirIdentifiers.remove(file);
-                counter = null;
+                dirIdentiferCache.remove(file.getAbsolutePath());
+                dirId = null;
             }
-            snapshotDirIds.put(file.getAbsolutePath(), counter);
+            snapshotDirIds.put(file.getAbsolutePath(), dirId);
         }
         return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files.getAsFileTree()));
     }
@@ -122,7 +139,8 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
                                               ChangeListener<FileCollectionSnapshot.Merge> listener) {
             OutputFilesSnapshot other = (OutputFilesSnapshot) snapshot;
             Map<String, Long> dirIds = new HashMap<String, Long>(other.rootFileIds);
-            DiffUtil.diff(newFileIds, oldFileIds, new MapMergeChangeListener<String, Long>(new NoOpChangeListener<FileCollectionSnapshot.Merge>(), dirIds));
+            DiffUtil.diff(newFileIds, oldFileIds, new MapMergeChangeListener<String, Long>(
+                    new NoOpChangeListener<FileCollectionSnapshot.Merge>(), dirIds));
             return new OutputFilesSnapshot(newFileIds, filesDiff.applyTo(other.filesSnapshot, listener));
         }
 

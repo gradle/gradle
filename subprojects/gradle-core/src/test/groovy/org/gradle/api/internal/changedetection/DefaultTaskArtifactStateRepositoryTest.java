@@ -24,13 +24,11 @@ import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
-import org.gradle.util.HelperUtil;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
+import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -61,11 +59,28 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final Set<TestFile> inputFiles = toSet(inputFile, inputDir, missingInputFile);
     private final Set<TestFile> outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile);
     private final Set<TestFile> createFiles = toSet(outputFile, outputDirFile, outputDirFile2);
-    private final FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
-    private final FileSnapshotter ouputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter);
-    private PersistentCache persistentCache;
-    private final DefaultTaskArtifactStateRepository repository
-            = new DefaultTaskArtifactStateRepository(cacheRepository, inputFilesSnapshotter, ouputFilesSnapshotter);
+    private final PersistentCache persistentCache = context.mock(PersistentCache.class);
+    private DefaultTaskArtifactStateRepository repository;
+
+    @Before
+    public void setup() {
+        context.checking(new Expectations(){{
+            CacheBuilder builder = context.mock(CacheBuilder.class);
+
+            one(cacheRepository).cache("outputFileStates");
+            will(returnValue(builder));
+
+            one(builder).open();
+            will(returnValue(persistentCache));
+
+            one(persistentCache).openIndexedCache();
+            will(returnValue(new TestIndexedCache()));
+        }});
+
+        FileSnapshotter inputFilesSnapshotter = new DefaultFileSnapshotter(new DefaultHasher());
+        FileSnapshotter outputFilesSnapshotter = new OutputFilesSnapshotter(inputFilesSnapshotter, new RandomLongIdGenerator(), cacheRepository);
+        repository = new DefaultTaskArtifactStateRepository(cacheRepository, inputFilesSnapshotter, outputFilesSnapshotter);
+    }
 
     @Test
     public void artifactsAreNotUpToDateWhenCacheIsEmpty() {
@@ -510,7 +525,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private void expectEmptyCacheLocated() {
         context.checking(new Expectations(){{
             CacheBuilder builder = context.mock(CacheBuilder.class);
-            persistentCache = context.mock(PersistentCache.class);
 
             one(cacheRepository).cache("taskArtifacts");
             will(returnValue(builder));

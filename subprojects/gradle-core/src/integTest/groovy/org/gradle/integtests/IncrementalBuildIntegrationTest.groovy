@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -259,6 +261,17 @@ task b(type: org.gradle.integtests.DirTransformerTask) {
         testFile('build/file2.txt').write('something else')
 
         inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped(':a')
+
+        // Change to new version of Gradle
+        // Simulate this by removing the .gradle dir
+        testFile('.gradle').assertIsDir().deleteDir()
+
+        inTestDirectory().withTasks('a', 'b').run().assertTasksExecuted(':a', ':b').assertTasksSkipped()
+
+        testFile('build').deleteDir()
+
+        inTestDirectory().withTasks('a').run().assertTasksExecuted(':a').assertTasksSkipped()
+        inTestDirectory().withTasks('b').run().assertTasksExecuted(':b').assertTasksSkipped()
     }
 
     @Test

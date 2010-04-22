@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,15 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.changedetection.digest;
+package org.gradle.util;
 
-import java.security.MessageDigest;
+import java.util.Random;
 
-/**
- * @author Tom Eyckmans
- */
-public interface DigesterCache {
-    MessageDigest getDigester(String digesterId);
+public class RandomLongIdGenerator implements IdGenerator<Long> {
+    private final Random random = new Random();
 
-    DigesterFactory getDigesterFactory();
+    public Long generateId() {
+        return random.nextLong();
+    }
 }
