@@ -18,12 +18,15 @@
 
     <note>
         <para>The Project report plugin is currently a work in progress, and at this stage doesn't do particularly
-            much. We plan to add much more to these reports in the next release of Gradle.
+            much. We plan to add much more to these reports in future releases of Gradle.
         </para>
     </note>
 
     <para>The Project report plugin adds some tasks to your project which generate reports containing useful
-        information about your build.
+        information about your build. Those tasks generate exactly the same content as the command line reports triggered
+        by <literal>-t</literal>, <literal>-n</literal>, <literal>-r</literal> (see <xref linkend="sec:obtaining_information_about_your_build"/>).
+        In contrast to the command line reports, the report plugin generates the reports into a file. There is also an
+        aggregating task that depends on all report tasks added by the plugin.
     </para>
 
     <section>
@@ -98,7 +101,7 @@ apply plugin: 'project-report'
         <title>Convention properties</title>
         <para>The project report defines the following convention properties:</para>
         <table>
-            <title>Project report plugin - directory properties</title>
+            <title>Project report plugin - convention properties</title>
             <thead>
                 <tr>
                     <td>Property name</td>
@@ -108,6 +111,20 @@ apply plugin: 'project-report'
                 </tr>
             </thead>
             <xi:include href="reportingBasePluginProperties.xml"/>
+            <tr>
+                <td>
+                    <literal>projects</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;Project&gt;</classname>
+                </td>
+                <td>
+                    <literal>A one element set with the project the plugin was applied to.</literal>
+                </td>
+                <td>
+                    The projects to generate the reports for.
+                </td>
+            </tr>
             <tr>
                 <td>
                     <literal>projectReportDirName</literal>

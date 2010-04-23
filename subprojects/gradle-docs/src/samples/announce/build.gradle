@@ -4,8 +4,8 @@ apply plugin: 'announce'
 
 //START SNIPPET announce-plugin-conf
 announce {  
-  username announce.twitter.username
-  password announce.twitter.password 
+  username = 'myId'
+  password = 'myPassword'
 }
 //END SNIPPET announce-plugin-conf
 

@@ -7,15 +7,3 @@ Default Tasks: dists
 :clean - Deletes the build directory (build)
 :dists 
    -> :api:libs, :webapp:libs
-
-------------------------------------------------------------
-Project :api
-------------------------------------------------------------
-:api:libs 
-rule - build<ConfigurationName>: builds the artifacts of the given configuration
-
-------------------------------------------------------------
-Project :webapp
-------------------------------------------------------------
-:webapp:libs 
-rule - build<ConfigurationName>: builds the artifacts of the given configuration
