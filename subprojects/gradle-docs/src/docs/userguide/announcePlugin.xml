@@ -1,0 +1,126 @@
+<!--
+  ~ Copyright 2009 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+<chapter id='announce_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Announce Plugin</title>
+    <para>The Gradle announce plugin enables you to publish messages on succeded tasks to your favourite plattforms.
+	It supports 
+	<itemizedlist>
+ 		<listitem><ulink url='http://twitter.com'>Twitter,</ulink></listitem>
+ 		<listitem><ulink url='http://ubuntu.com'>Ubuntu Notify</ulink></listitem>
+<listitem><ulink url="http://www.fullphat.net/index.php">Snarl</ulink>,a Windows Notification System</listitem>
+<listitem>....</listitem>
+ 	</itemizedlist>
+	
+	</para>
+
+    <section>
+        <title>Usage</title>
+        <para>To use the announce plugin, include in your build script:</para>
+        <sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+
+	<para>After that, configure you username and password (if required for the service you want to announce to) with:</para>
+	<sample id="useAnnouncePlugin" dir="announce" title="Configure the announce plugin">
+            <sourcefile file="build.gradle" snippet="announce-plugin-conf"/>
+        </sample>
+
+	<para>Finally, you can use announce with any task by attaching it via task.dolast() as shown below</para>
+	<sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
+            <sourcefile file="build.gradle" snippet="announce-usage"/>
+        </sample>
+
+	<para>As you can see, the syntax in <literal>.doLast</literal> is
+
+		 <cmdsynopsis>
+			<command> announce("MESSAGE", "TARGET")</command>
+		 </cmdsynopsis>
+
+		Where MESSAGE is any GString you pass (and might have constructed before). And TARGET might one of the following:
+
+	</para>
+    </section>
+   <table>
+            <title>announce plugin targets</title>
+            <thead>
+                <tr>
+                    <td>target literal</td>
+                    <td>target</td>
+                    <td>configuration parameters</td>
+		    <td>more information</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>twitter</td>
+                <td>Twitter</td>
+           	<td>username , password</td> 
+		<td></td>
+	   </tr>
+            <tr>
+                <td>snarl</td>
+                <td>Snarl Windows Notification Service</td>
+		<td></td>
+		<td></td>
+            </tr>
+            <tr>
+                <td>notify-send</td>
+                <td>Notify Ubuntu Notofication Service</td>
+		<td></td>
+		<td>You need to habe notify-send installed for this. Run 
+
+			<literal> sudo apt-get install libnotify-bin</literal> 
+
+			on Ubuntu to install it.</td>
+            </tr>
+        </table>
+
+
+
+    <section>
+        <title>Tasks</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Project layout</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Dependency management</title>
+        <para>TBD</para>
+    </section>
+
+    <section>
+        <title>Convention properties</title>
+
+        <para>The announce plugin adds an 
+	
+	TBD
+        </para>
+     
+        <para>
+        	
+
+        </para>
+      <!--  <sample id="anouncePlugin" dir="userguide/tutorial/announce" title="example of annunce plugin usage.">
+            <sourcefile file="build.gradle" snippet="full-example"/> 
+        </sample>-->
+        <para>
+	TBD
+	</para>
+    </section>
+</chapter>

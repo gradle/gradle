@@ -1,0 +1,23 @@
+// START SNIPPET use-plugin
+apply plugin: 'announce'
+// END SNIPPET use-plugin
+
+//START SNIPPET announce-plugin-conf
+announce {  
+  username announce.twitter.username
+  password announce.twitter.password 
+}
+//END SNIPPET announce-plugin-conf
+
+
+//START SNIPPET announce-usage
+task helloWorld << {  
+    ant.echo(message: "hello") 
+}  
+
+helloWorld.doLast {  
+    announce("Build complete", "notify-send")
+    announce("Build complete", "twitter")
+}
+//END SNIPPET announce-usage
+
