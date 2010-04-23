@@ -16,20 +16,23 @@
 
 package org.gradle.wrapper;
 
+import java.io.File;
+
 /**
  * @author Hans Dockter
  */
 public class GradleWrapperMain {
-    public static final String WRAPPER_DEBUG_ENV = "GRADLE_WRAPPER_DEBUG_ENV";
     public static final String ALWAYS_UNPACK_ENV = "GRADLE_WRAPPER_ALWAYS_UNPACK";
     public static final String ALWAYS_DOWNLOAD_ENV = "GRADLE_WRAPPER_ALWAYS_DOWNLOAD";
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
-    public static final String DEBUG_PROPERTY_KEY = "gradle.bootstrap.debug";
+    public static final String DEBUG_PROPERTY_KEY = "gradle.wrapper.debug";
 
     public static void main(String[] args) throws Exception {
-        if (System.getenv(WRAPPER_DEBUG_ENV) != null) {
+        addSystemProperties(args);
+        
+        if (isDebug()) {
             System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
             System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
         }
@@ -40,6 +43,12 @@ public class GradleWrapperMain {
                 args,
                 new Install(alwaysDownload, alwaysUnpack, new Download(), new PathAssembler(gradleUserHome())),
                 new BootstrapMainStarter());
+    }
+
+    private static void addSystemProperties(String[] args) {
+        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(args));
+        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File(gradleUserHome(), "gradle.properties")));
+        System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File("gradle.properties")));
     }
 
     private static String gradleUserHome() {
