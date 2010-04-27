@@ -516,9 +516,14 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {
+        @Override
+        public String toString() {
+            return String.format("build dependencies %s", DefaultConfiguration.this);
+        }
+
         public void resolve(TaskDependencyResolveContext context) {
             for (Configuration configuration : getExtendsFrom()) {
-                context.add(configuration.getBuildDependencies());
+                context.add(configuration);
             }
             for (SelfResolvingDependency dependency : DefaultConfiguration.this.getDependencies(
                     SelfResolvingDependency.class)) {
