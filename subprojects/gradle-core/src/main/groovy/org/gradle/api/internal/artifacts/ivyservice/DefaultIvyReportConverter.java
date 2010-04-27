@@ -97,6 +97,10 @@ public class DefaultIvyReportConverter implements IvyReportConverter {
             Set<String> dependencyConfigurationsForNode = getDependencyConfigurationsByCaller(ivyNode, caller);
             IvyNode parentNode = isRootCaller(context.configurationResolveReport, caller) ? ivyNode.getRoot() : context.configurationResolveReport.getDependency(caller.getModuleRevisionId());
             Map<String, ConfigurationDetails> parentResolvedDependencies = context.handledNodes.get(parentNode.getId());
+            if (parentResolvedDependencies == null) {
+                throw new IllegalStateException(String.format("Could not find caller node %s for node %s. Available nodes: %s",
+                        parentNode.getId(), ivyNode.getId(), context.handledNodes.keySet()));
+            }
             createAssociationsBetweenChildAndParentResolvedDependencies(ivyNode, resolvedDependencies, context.resolvedArtifacts, parentNode, caller,
                     dependencyConfigurationsForNode, parentResolvedDependencies.values());
         }
