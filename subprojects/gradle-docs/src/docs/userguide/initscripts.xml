@@ -47,7 +47,7 @@
                     </para>
                 </listitem>
             </itemizedlist>
-            One main limitation of init scripts is that they cannot access classes in the buildSrc special module (see
+            One main limitation of init scripts is that they cannot access classes in the buildSrc project (see
             <xref linkend='sec:build_sources'/> for details of this feature).
         </para>
         <para>There are two ways to use init scripts.  Either put a file called <filename>init.gradle</filename> in
@@ -58,7 +58,16 @@
             executed. This allows for a tool to specify an init script and the user to put home in their home directory
             for defining the environment and both scripts will run when gradle is executed.
         </para>
-        <para>You can find an example init script in <xref linkend="sec:changing_what_gradle_logs"/></para>
+    </section>
+    <section>
+        <title>Writing an init script</title>
+        <para>
+            <para>Similar to a Gradle build script, an init script is a groovy script. Each init script has a
+                <apilink class="org.gradle.api.invocation.Gradle"/> instance associated with it. Any property reference
+                and method call in the init script will delegate to this <classname>Gradle</classname> instance.
+            </para>
+            <para>Each init script also implements the <apilink class="org.gradle.api.Script"/> interface.</para>
+        </para>
     </section>
     <section id='sec:custom_classpath'>
         <title>External dependencies for the init script</title>

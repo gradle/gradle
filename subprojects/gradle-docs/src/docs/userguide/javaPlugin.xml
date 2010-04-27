@@ -347,10 +347,8 @@
         <para>The Java plugin adds a number of dependency configurations to your project, as shown below. It assigns
             those configurations to tasks such as <literal>compileJava</literal> and <literal>test</literal>.
             To learn more about configurations see <xref linkend="sub:configurations"/> and
-            <xref linkend="artifacts_and_configurations"/>. Note also that transitive dependencies
-            are disabled by default for the compile configuration. This can be overridden using:
+            <xref linkend="artifacts_and_configurations"/>.
         </para>
-        <programlisting>configurations.compile.transitive = true</programlisting>
         <table id='tab:configurations'>
             <title>Java plugin - dependency configurations</title>
             <thead>
