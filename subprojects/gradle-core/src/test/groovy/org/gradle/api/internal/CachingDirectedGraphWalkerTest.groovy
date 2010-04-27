@@ -135,16 +135,18 @@ class CachingDirectedGraphWalkerTest extends Specification {
         0 * _._
         values == ['1', '2', '3'] as Set
 
-
+        // Cached node (1) is reachable via 2 separate new paths (4->5->1 and 4->6->1)
         when:
         walker.add(4)
         values = walker.findValues()
 
         then:
-        1 * graph.getNodeValues(4, _, _) >> { args -> args[1] << '4'; args[2] << 1 }
-        1 * graph.getEdgeValues(4, 1, _) >> { args -> args[2] << '4->1' }
+        1 * graph.getNodeValues(4, _, _) >> { args -> args[1] << '4'; args[2] << 5; args[2] << 6 }
+        1 * graph.getNodeValues(5, _, _) >> { args -> args[1] << '5'; args[2] << 1 }
+        1 * graph.getNodeValues(6, _, _) >> { args -> args[1] << '6'; args[2] << 1 }
+        4 * graph.getEdgeValues(_, _, _) >> { args -> args[2] << "${args[0]}->${args[1]}".toString() }
         0 * _._
-        values == ['4', '4->1', '1', '2', '3'] as Set
+        values == ['4', '4->5', '4->6', '5', '5->1', '6', '6->1', '1', '2', '3'] as Set
 
         when:
         walker.add(2)

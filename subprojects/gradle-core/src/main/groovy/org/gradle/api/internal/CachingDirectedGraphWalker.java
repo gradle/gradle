@@ -38,7 +38,7 @@ public class CachingDirectedGraphWalker<N, T> {
     public void add(N... values) {
         add(Arrays.asList(values));
     }
-    
+
     public void add(Iterable<? extends N> values) {
         GUtil.addToCollection(startNodes, values);
     }
@@ -54,7 +54,7 @@ public class CachingDirectedGraphWalker<N, T> {
     private Set<T> doSearch() {
         int componentCount = 0;
         Map<N, NodeDetails<N, T>> seenNodes = new HashMap<N, NodeDetails<N, T>>();
-        Map<Integer, NodeDetails<N, T>> components = new HashMap<Integer, NodeDetails<N,T>>();
+        Map<Integer, NodeDetails<N, T>> components = new HashMap<Integer, NodeDetails<N, T>>();
         LinkedList<N> queue = new LinkedList<N>(startNodes);
 
         while (!queue.isEmpty()) {
@@ -72,6 +72,7 @@ public class CachingDirectedGraphWalker<N, T> {
                 if (cacheValues != null) {
                     // Already visited this node
                     details.values = cacheValues;
+                    details.finished = true;
                     queue.removeFirst();
                     continue;
                 }
@@ -81,10 +82,9 @@ public class CachingDirectedGraphWalker<N, T> {
                     if (!seenNodes.containsKey(connectedNode)) {
                         queue.add(0, connectedNode);
                     }
-                    // Else, already visiting the successor node, don't add it to the queue (we're in a cycle)
+                    // Else, already visiting or have visited the successor node (we're in a cycle)
                 }
-            }
-            else {
+            } else {
                 // Have visited all of this node's successors
                 queue.removeFirst();
 
@@ -109,8 +109,7 @@ public class CachingDirectedGraphWalker<N, T> {
                     rootDetails.values.addAll(details.values);
                     details.values.clear();
                     rootDetails.strongComponentMembers.addAll(details.strongComponentMembers);
-                }
-                else {
+                } else {
                     // Not part of a strongly connected component or the root of a strongly connected component
                     for (NodeDetails<N, T> componentMember : details.strongComponentMembers) {
                         cachedNodeValues.put(componentMember.node, details.values);
@@ -133,7 +132,7 @@ public class CachingDirectedGraphWalker<N, T> {
         private final N node;
         private Set<T> values = new LinkedHashSet<T>();
         private List<N> successors = new ArrayList<N>();
-        private Set<NodeDetails<N,T>> strongComponentMembers = new LinkedHashSet<NodeDetails<N,T>>();
+        private Set<NodeDetails<N, T>> strongComponentMembers = new LinkedHashSet<NodeDetails<N, T>>();
         private int minSeen;
         private boolean finished;
 
