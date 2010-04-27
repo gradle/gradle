@@ -15,9 +15,9 @@
  */
 package org.gradle.wrapper
 
-import spock.lang.Specification
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import spock.lang.Specification
 
 /**
  * @author Hans Dockter
@@ -35,7 +35,7 @@ class SystemPropertiesHandlerTest extends Specification {
         File propFile = tmpDir.file('props')
         Properties props = new Properties()
         props.putAll a: 'b', 'systemProp.c': 'd', 'systemProp.': 'e'
-        props.store(new FileWriter(propFile), "")
+        props.store(new FileOutputStream(propFile), "")
         
         expect:
         [c: 'd'] == SystemPropertiesHandler.getSystemProperties(propFile)
