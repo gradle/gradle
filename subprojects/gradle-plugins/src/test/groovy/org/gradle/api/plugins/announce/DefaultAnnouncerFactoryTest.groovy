@@ -52,6 +52,6 @@ class DefaultAnnouncerFactoryTest extends Specification {
 
     def createWithUnknownType() {
         expect:
-        announcerFactory.createAnnouncer('unknown') instanceof DefaultAnnouncerFactory.DoNothingAnnouncer
+        announcerFactory.createAnnouncer('unknown') instanceof DoNothingAnnouncer
     }
 }

@@ -15,8 +15,6 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.gradle.api.Project
-
 /**
  * @author Hans Dockter
  */
@@ -39,10 +37,10 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
         }
         new DoNothingAnnouncer()
     }
+}
 
-    static class DoNothingAnnouncer implements Announcer {
-        void send(String title, String message) {
-            // do nothing
-        }
+class DoNothingAnnouncer implements Announcer {
+    void send(String title, String message) {
+        // do nothing
     }
 }

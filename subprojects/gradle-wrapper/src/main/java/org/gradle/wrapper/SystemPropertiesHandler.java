@@ -16,12 +16,11 @@
 package org.gradle.wrapper;
 
 import java.io.File;
-import java.io.FileReader;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -52,7 +51,7 @@ public class SystemPropertiesHandler {
         }
         Properties properties = new Properties();
         try {
-            properties.load(new FileReader(propertiesFile));
+            properties.load(new FileInputStream(propertiesFile));
         } catch (IOException e) {
             throw new RuntimeException("Error when loading properties file=" + propertiesFile, e);
         }

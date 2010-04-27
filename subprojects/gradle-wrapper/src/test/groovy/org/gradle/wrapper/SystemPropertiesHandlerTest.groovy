@@ -41,7 +41,7 @@ class SystemPropertiesHandlerTest extends Specification {
         [c: 'd'] == SystemPropertiesHandler.getSystemProperties(propFile)
     }
 
-    def ifNoPropertyFileExist_shouldReturnEmptyMap() {
+    def ifNoPropertyFileExistShouldReturnEmptyMap() {
         expect:
         [:] == SystemPropertiesHandler.getSystemProperties(tmpDir.file('unknown'))
     }
