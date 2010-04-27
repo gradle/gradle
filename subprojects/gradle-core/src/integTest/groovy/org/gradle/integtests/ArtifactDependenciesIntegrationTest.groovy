@@ -41,6 +41,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void dependencyReportWithConflicts() {
         File buildFile = testFile("projectWithConflicts.gradle");
+        usingBuildFile(buildFile).run();
         usingBuildFile(buildFile).withDependencyList().run();
     }
 

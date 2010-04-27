@@ -1,19 +1,47 @@
+import static org.junit.Assert.*
 
-configurations {
-    compile
-}
-dependencies {
-    repositories {
-        add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
-            name = 'resolver'
-            addArtifactPattern(projectDir.absolutePath + '/[module]-[revision].jar')
-            addIvyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
+allprojects {
+    configurations {
+        singleProject
+        multiProject
+        add('default')
+    }
+    dependencies {
+        repositories {
+            add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+                name = 'resolver'
+                addArtifactPattern(projectDir.absolutePath + '/[module]-[revision].jar')
+                addIvyPattern(projectDir.absolutePath + '/[module]-[revision]-ivy.xml')
+            }
         }
     }
-    compile 'test:projectA:1.2'
-    compile 'test:projectB:2.1.5'
+}
+
+dependencies {
+    singleProject 'test:projectA:1.2'
+    singleProject 'test:projectB:2.1.5'
+
+    multiProject 'test:projectA:1.2'
+    multiProject project(':subproject')
+}
+
+project(':subproject') {
+    dependencies {
+        add('default', 'test:projectA:2.0')
+    }
 }
 
 file("projectA-1.2.jar").text = ''
+file("projectA-2.0.jar").text = ''
 file("projectB-1.5.jar").text = ''
 file("projectB-2.1.5.jar").text = ''
+
+defaultTasks 'check'
+
+task check << {
+    def jars = configurations.singleProject.collect { it.name }
+    assertEquals(['projectA-1.2.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
+
+    jars = configurations.multiProject.collect { it.name }
+    assertEquals(['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
+}
