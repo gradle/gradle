@@ -16,10 +16,22 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+/**
+ * A processor for test results. Implementations are not required to be thread-safe.
+ */
 public interface TestResultProcessor {
+    /**
+     * Notifies this processor that a test has started execution.
+     */
     void started(TestDescriptorInternal test, TestStartEvent event);
 
+    /**
+     * Notifies this processor that a test has completed execution.
+     */
     void completed(Object testId, TestCompleteEvent event);
 
+    /**
+     * Notifies this processor that a failure has occurred in the given test.
+     */
     void addFailure(Object testId, Throwable result);
 }

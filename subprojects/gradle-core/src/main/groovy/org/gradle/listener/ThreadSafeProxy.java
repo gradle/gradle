@@ -22,7 +22,7 @@ import org.gradle.messaging.dispatch.ReflectionDispatch;
 import org.gradle.messaging.dispatch.ThreadSafeDispatch;
 
 /**
- * Creates a proxy object which invoking method on the target object from a single thread at a time.
+ * Creates a proxy object which invokes methods on the target object from a single thread at a time.
  *
  * @param <T>
  */

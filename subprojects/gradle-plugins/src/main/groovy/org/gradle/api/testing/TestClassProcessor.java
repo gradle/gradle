@@ -20,15 +20,15 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 
 /**
- * A processor for test classes. Implementations are not required to be thread-safe.
+ * A processor for executing tests. Implementations are not required to be thread-safe.
  *
  * @author Tom Eyckmans
  */
 public interface TestClassProcessor {
     /**
-     * Performs any initialisation which this processor performs.
+     * Performs any initialisation which this processor needs to perform.
      *
-     * @param resultProcessor The processor to send results to.
+     * @param resultProcessor The processor to send results to during test execution.
      */
     void startProcessing(TestResultProcessor resultProcessor);
 
@@ -42,7 +42,8 @@ public interface TestClassProcessor {
 
     /**
      * Completes any pending or asynchronous processing. Blocks until all processing is complete. The processor should
-     * not use the result processor once this method has returned.
+     * not use the result processor provided to {@link #startProcessing(TestResultProcessor)} after this method has
+     * returned.
      */
     void endProcessing();
 }

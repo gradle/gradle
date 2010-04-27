@@ -34,7 +34,7 @@ public class DefaultScriptMetaData implements ScriptMetaData {
             if (name == 'out') {
                 return System.out
             }
-             logger.debug("Property {} not found in script! Delegating to {}.", name, delegate)
+            logger.debug("Property {} not found in script! Delegating to {}.", name, delegate)
             delegate."$name"
         }
         metaClass.setProperty = {String name, value ->

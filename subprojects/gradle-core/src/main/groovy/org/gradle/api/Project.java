@@ -315,8 +315,12 @@ public interface Project extends Comparable<Project> {
 
     /**
      * <p>Returns this project. This method is useful in build files to explicitly access project properties and
-     * methods. For example, using <code>project.name</code> can express intent better than using <code>name</code></p>
-     * <p/> <p>You can access this property in your build file using <code>project</code></p>
+     * methods. For example, using <code>project.name</code> can express your intent better than using <code>name</code>.
+     * This method also allows you to access project properties from a scope where the property may be hidden,
+     * such as, for example, from a method or closure.
+     * </p>
+     *
+     * <p>You can access this property in your build file using <code>project</code></p>
      *
      * @return This project. Never returns null.
      */
