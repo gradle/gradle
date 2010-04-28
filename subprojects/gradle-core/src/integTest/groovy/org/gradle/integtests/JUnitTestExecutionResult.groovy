@@ -22,10 +22,10 @@ import static org.junit.Assert.*
 import groovy.util.slurpersupport.GPathResult
 
 class JUnitTestExecutionResult implements TestExecutionResult {
-    private final TestFile projectDir
+    private final TestFile buildDir
 
-    def JUnitTestExecutionResult(TestFile projectDir) {
-        this.projectDir = projectDir
+    def JUnitTestExecutionResult(TestFile projectDir, String buildDirName = 'build') {
+        this.buildDir = projectDir.file(buildDirName)
     }
 
     TestExecutionResult assertTestClassesExecuted(String... testClasses) {
@@ -46,12 +46,12 @@ class JUnitTestExecutionResult implements TestExecutionResult {
     }
 
     private def findClasses() {
-        projectDir.file('build/test-results').assertIsDir()
-        projectDir.file('build/test-results/TESTS-TestSuites.xml').assertIsFile()
-        projectDir.file('build/reports/tests/index.html').assertIsFile()
+        buildDir.file('test-results').assertIsDir()
+        buildDir.file('test-results/TESTS-TestSuites.xml').assertIsFile()
+        buildDir.file('reports/tests/index.html').assertIsFile()
 
         Map<String, File> classes = [:]
-        projectDir.file('build/test-results').eachFile { File file ->
+        buildDir.file('test-results').eachFile { File file ->
             def matcher = (file.name =~ /TEST-(.+)\.xml/)
             if (matcher.matches()) {
                 classes[matcher.group(1)] = file
@@ -72,7 +72,9 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
     }
 
     TestClassExecutionResult assertTestsExecuted(String... testNames) {
-        throw new UnsupportedOperationException();
+        Map<String, Node> testMethods = findTests()
+        assertThat(testMethods.keySet(), equalTo(testNames as Set))
+        this
     }
 
     TestClassExecutionResult assertTestPassed(String name) {

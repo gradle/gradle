@@ -139,6 +139,10 @@ public class GradleDistribution implements MethodRule {
         return temporaryFolder.getDir();
     }
 
+    public TemporaryFolder getTemporaryFolder() {
+        return temporaryFolder;
+    }
+
     /**
      * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
      */

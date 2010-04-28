@@ -24,17 +24,11 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.lang.reflect.Field;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Provides access to test resources for integration testing. Looks for the following directory in the test classpath:
- * <ul>
- * <li>${testClass}/shared</li>
- * <li>${testClass}/${testName}</li>
- * </ul>
+ * <ul> <li>${testClass}/shared</li> <li>${testClass}/${testName}</li> </ul>
  *
  * Copies the contents of each such directory into a temporary directory for the test to use.
  */
@@ -69,13 +63,27 @@ public class TestResources implements MethodRule {
     }
 
     private TemporaryFolder findTempDir(Object target) {
-        Set<TemporaryFolder> matches = new HashSet<TemporaryFolder>();
+        GradleDistribution dist = findField(target, GradleDistribution.class);
+        if (dist != null) {
+            return dist.getTemporaryFolder();
+        }
+        TemporaryFolder folder = findField(target, TemporaryFolder.class);
+        if (folder != null) {
+            return folder;
+        }
+        throw new RuntimeException(String.format(
+                "Could not find a GradleDistribution or TemporaryFolder field for test class %s.",
+                target.getClass().getSimpleName()));
+    }
+
+    private <T> T findField(Object target, Class<T> type) {
+        List<T> matches = new ArrayList<T>();
         for (Class<?> cl = target.getClass(); cl != Object.class; cl = cl.getSuperclass()) {
             for (Field field : cl.getDeclaredFields()) {
-                if (TemporaryFolder.class.isAssignableFrom(field.getType())) {
+                if (type.isAssignableFrom(field.getType())) {
                     field.setAccessible(true);
                     try {
-                        matches.add((TemporaryFolder) field.get(target));
+                        matches.add(type.cast(field.get(target)));
                     } catch (IllegalAccessException e) {
                         throw new RuntimeException(e);
                     }
@@ -83,14 +91,13 @@ public class TestResources implements MethodRule {
             }
         }
         if (matches.isEmpty()) {
-            throw new RuntimeException(String.format("No TemporaryFolder field found for test class %s.",
-                    target.getClass().getSimpleName()));
+            return null;
         }
         if (matches.size() > 1) {
-            throw new RuntimeException(String.format("Multiple TemporaryFolder fields found for test class %s.",
-                    target.getClass().getSimpleName()));
+            throw new RuntimeException(String.format("Multiple %s fields found for test class %s.",
+                    type.getSimpleName(), target.getClass().getSimpleName()));
         }
-        return matches.iterator().next();
+        return matches.get(0);
     }
 
     private void maybeCopy(String resource) {

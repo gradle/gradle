@@ -23,6 +23,7 @@ import org.junit.Rule
 @RunWith(DistributionIntegrationTestRunner.class)
 class ProjectLayoutIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
+    @Rule public final TestResources resources = new TestResources()
     private final GradleExecuter executer = dist.executer;
 
     @Test
@@ -156,5 +157,16 @@ sourceSets.main.java {
         dist.testFile('b/build/classes/main').assertHasDescendants(
                 'org/gradle/b/ClassB.class'
         )
+    }
+
+    @Test
+    public void canUseANonStandardBuildDir() {
+        executer.withTasks('build').withArguments('-i').run()
+
+        dist.testFile('build').assertDoesNotExist()
+
+        JUnitTestExecutionResult results = new JUnitTestExecutionResult(dist.testFile(), 'target')
+        results.assertTestClassesExecuted('PersonTest')
+        results.testClass('PersonTest').assertTestsExecuted('ok')
     }
 }

@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins;
 
-
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -31,11 +30,11 @@ import org.gradle.api.tasks.bundling.Jar;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.concurrent.Callable;
-
 
 /**
  * <p>A {@link Plugin} which compiles and tests Java source, and assembles it into a JAR file.</p>
@@ -85,8 +84,8 @@ public class JavaPlugin implements Plugin<Project> {
         SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getClasses(), project.getConfigurations().getByName(
                 TEST_COMPILE_CONFIGURATION_NAME)));
-        test.setRuntimeClasspath(project.files(test.getClasses(), main.getClasses(), project.getConfigurations().getByName(
-                TEST_RUNTIME_CONFIGURATION_NAME)));
+        test.setRuntimeClasspath(project.files(test.getClasses(), main.getClasses(),
+                project.getConfigurations().getByName(TEST_RUNTIME_CONFIGURATION_NAME)));
     }
 
     private void configureJavaDoc(final JavaPluginConvention pluginConvention) {
@@ -117,30 +116,44 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private void configureBuild(Project project) {
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME),
-                true, JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
-        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME),
-                false, JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_NEEDED_TASK_NAME), true,
+                JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
+        addDependsOnTaskInOtherProjects(project.getTasks().getByName(JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME), false,
+                JavaBasePlugin.BUILD_TASK_NAME, TEST_RUNTIME_CONFIGURATION_NAME);
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         Test test = project.getTasks().add(TEST_TASK_NAME, Test.class);
         test.setDescription("Runs the unit tests.");
-        test.setTestClassesDir(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir());
-        test.setClasspath(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath());
-        test.setTestSrcDirs(new ArrayList(
-                pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getJava().getSrcDirs()));
+        test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
+            public Object call() throws Exception {
+                return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();
+            }
+        });
+        test.getConventionMapping().map("classpath", new Callable<Object>() {
+            public Object call() throws Exception {
+                return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getRuntimeClasspath();
+            }
+        });
+        test.getConventionMapping().map("testSrcDirs", new Callable<Object>() {
+            public Object call() throws Exception {
+                return new ArrayList<File>(pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME)
+                        .getJava().getSrcDirs());
+            }
+        });
     }
 
     void configureConfigurations(final Project project) {
         ConfigurationContainer configurations = project.getConfigurations();
         Configuration compileConfiguration = configurations.add(COMPILE_CONFIGURATION_NAME).setVisible(false).
                 setDescription("Classpath for compiling the sources.");
-        Configuration runtimeConfiguration = configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
-                setDescription("Classpath for running the compiled sources.");
+        Configuration runtimeConfiguration = configurations.add(RUNTIME_CONFIGURATION_NAME).setVisible(false)
+                .extendsFrom(compileConfiguration).
+                        setDescription("Classpath for running the compiled sources.");
 
-        Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false).extendsFrom(compileConfiguration).
-                setTransitive(false).setDescription("Classpath for compiling the test sources.");
+        Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false)
+                .extendsFrom(compileConfiguration).
+                        setTransitive(false).setDescription("Classpath for compiling the test sources.");
 
         configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration,
                 compileTestsConfiguration).
@@ -154,11 +167,11 @@ public class JavaPlugin implements Plugin<Project> {
      * project lib dependencies using the specified configuration name. These may be projects this project depends on or
      * projects that depend on this project based on the useDependOn argument.
      *
-     * @param task                 Task to add dependencies to
-     * @param useDependedOn        if true, add tasks from projects this project depends on, otherwise use projects that depend
-     *                             on this one.
+     * @param task Task to add dependencies to
+     * @param useDependedOn if true, add tasks from projects this project depends on, otherwise use projects that depend
+     * on this one.
      * @param otherProjectTaskName name of task in other projects
-     * @param configurationName    name of configuration to use to find the other projects
+     * @param configurationName name of configuration to use to find the other projects
      */
     private void addDependsOnTaskInOtherProjects(final Task task, boolean useDependedOn, String otherProjectTaskName,
                                                  String configurationName) {
@@ -182,6 +195,4 @@ public class JavaPlugin implements Plugin<Project> {
             return convention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath();
         }
     }
-
-
 }
