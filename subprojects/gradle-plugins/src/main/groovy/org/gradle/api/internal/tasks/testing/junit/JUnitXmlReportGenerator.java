@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.apache.tools.ant.taskdefs.optional.junit.XMLConstants;
+import org.apache.tools.ant.util.DOMElementWriter;
 import org.apache.tools.ant.util.DateUtils;
 import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.GradleException;
@@ -26,13 +27,7 @@ import org.w3c.dom.Element;
 
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.transform.OutputKeys;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-import java.io.File;
+import java.io.*;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.util.EnumMap;
@@ -42,7 +37,6 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor<JU
         implements TestResultProcessor {
     private final File testResultsDir;
     private final DocumentBuilder documentBuilder;
-    private final Transformer transformer;
     private final String hostName;
     private Document testSuiteReport;
     private TestState testSuite;
@@ -54,9 +48,6 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor<JU
         this.testResultsDir = testResultsDir;
         try {
             documentBuilder = DocumentBuilderFactory.newInstance().newDocumentBuilder();
-            TransformerFactory transformerFactory = TransformerFactory.newInstance();
-            transformer = transformerFactory.newTransformer();
-            transformer.setOutputProperty(OutputKeys.INDENT, "yes");
         } catch (Exception e) {
             throw new GradleException(e);
         }
@@ -128,8 +119,13 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor<JU
         if (state.equals(testSuite)) {
             File reportFile = new File(testResultsDir, "TEST-" + testClassName + ".xml");
             try {
-                transformer.transform(new DOMSource(testSuiteReport), new StreamResult(reportFile));
-            } catch (TransformerException e) {
+                OutputStream outstr = new BufferedOutputStream(new FileOutputStream(reportFile));
+                try {
+                    new DOMElementWriter(true).write(rootElement, outstr);
+                } finally {
+                    outstr.close();
+                }
+            } catch (IOException e) {
                 throw new GradleException(String.format("Could not write test report file '%s'.", reportFile), e);
             }
 
