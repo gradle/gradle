@@ -40,11 +40,11 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 @RunWith(JMock.class)
-class AntJUnitTestClassProcessorTest {
+class JUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final AntJUnitTestClassProcessor processor = new AntJUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator());
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator());
 
     @Test
     public void executesATestClass() {

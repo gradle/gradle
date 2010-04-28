@@ -17,8 +17,8 @@
 package org.gradle.external.junit;
 
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
-import org.gradle.api.internal.tasks.testing.junit.AntJUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.util.IdGenerator;
@@ -76,7 +76,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         }});
 
         TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create(idGenerator);
-        assertThat(testClassProcessor, instanceOf(AntJUnitTestClassProcessor.class));
+        assertThat(testClassProcessor, instanceOf(JUnitTestClassProcessor.class));
     }
 
     @org.junit.Test

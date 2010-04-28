@@ -29,14 +29,14 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
-public class AntJUnitTestClassProcessor implements TestClassProcessor {
-    private static final Logger LOGGER = LoggerFactory.getLogger(AntJUnitTestClassProcessor.class);
+public class JUnitTestClassProcessor implements TestClassProcessor {
+    private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final File testResultsDir;
     private final IdGenerator<?> idGenerator;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private JUnitTestClassExecuter executer;
 
-    public AntJUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator) {
+    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator) {
         this.testResultsDir = testResultsDir;
         this.idGenerator = idGenerator;
     }
