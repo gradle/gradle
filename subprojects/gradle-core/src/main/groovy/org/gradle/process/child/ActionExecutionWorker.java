@@ -28,8 +28,9 @@ import java.io.Serializable;
 import java.net.URI;
 
 /**
- * This is the other half of {@link org.gradle.process.launcher.GradleWorkerMain}. It is instantiated inside the
- * implementation ClassLoader.
+ * <p>The final stage of worker start-up. Takes care of executing the worker action.</p>
+ *
+ * <p>It is instantiated in the implementation ClassLoader and called from {@link org.gradle.process.child.ImplementationClassLoaderWorker}.<p>
  */
 public class ActionExecutionWorker implements Action<WorkerContext>, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(ActionExecutionWorker.class);

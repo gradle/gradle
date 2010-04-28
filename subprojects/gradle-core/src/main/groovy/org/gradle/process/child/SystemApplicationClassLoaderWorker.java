@@ -28,6 +28,13 @@ import java.net.URLClassLoader;
 import java.util.Collection;
 import java.util.concurrent.Callable;
 
+/**
+ * <p>Stage 3 of the start-up for a worker process with the application classes loaded in the system ClassLoader. Takes
+ * care of adding the application classes to the system ClassLoader and then invoking the next stage of start-up.</p>
+ *
+ * <p> Instantiated in the worker bootstrap ClassLoader and invoked from {@link org.gradle.process.launcher.BootstrapClassLoaderWorker}.
+ * See {@link org.gradle.process.child.ApplicationClassesInSystemClassLoaderWorkerFactory} for details.</p>
+ */
 public class SystemApplicationClassLoaderWorker implements Callable<Void> {
     private final byte[] serializedWorker;
     private final Collection<File> applicationClassPath;

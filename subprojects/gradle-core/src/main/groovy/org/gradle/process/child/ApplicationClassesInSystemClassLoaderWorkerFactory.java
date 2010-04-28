@@ -33,20 +33,21 @@ import java.util.concurrent.Callable;
  *
  * <p>Class loader hierarchy:</p>
  * <pre>
- *                          bootstrap
- *                             |
- *            +----------------+--------------+
- *            |                               |
- *          system                      worker bootstrap
- *  (this class, application)      (bootstrap classes, logging)
- *            |                               |
- *         filter                          filter
- *    (shared packages)                  (logging)
- *            |                              |
- *            +---------------+--------------+
- *                            |
- *                       implementation
- *             (ActionExecutionWorker + action implementation)
+ *                              bootstrap
+ *                                 |
+ *                +----------------+--------------+
+ *                |                               |
+ *              system                      worker bootstrap
+ *  (GradleWorkerMain, application) (SystemApplicationClassLoaderWorker, logging)
+ *                |                   (ImplementationClassLoaderWorker)
+ *                |                               |
+ *             filter                          filter
+ *        (shared packages)                  (logging)
+ *                |                              |
+ *                +---------------+--------------+
+ *                                |
+ *                          implementation
+ *         (ActionExecutionWorker + worker action implementation)
  * </pre>
  *
  */
