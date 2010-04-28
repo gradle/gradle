@@ -75,7 +75,7 @@ class SamplesJavaMultiProjectIntegrationTest {
         TestFile buildSrcDir = javaprojectDir.file('buildSrc')
 
         buildSrcDir.file('build/libs/buildSrc.jar').assertIsFile()
-        JUnitTestResult result = new JUnitTestResult(buildSrcDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(buildSrcDir)
         result.assertTestClassesExecuted('org.gradle.buildsrc.BuildSrcClassTest')
     }
 
@@ -94,10 +94,10 @@ class SamplesJavaMultiProjectIntegrationTest {
         assertExists(javaprojectDir, WEBAPP_PATH, packagePrefix, WEBAPP_NAME, 'TestTest.class')
 
         // Check test results and report
-        JUnitTestResult result = new JUnitTestResult(javaprojectDir.file(SHARED_NAME))
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir.file(SHARED_NAME))
         result.assertTestClassesExecuted('org.gradle.shared.PersonTest')
 
-        result = new JUnitTestResult(javaprojectDir.file(WEBAPP_PATH))
+        result = new JUnitTestExecutionResult(javaprojectDir.file(WEBAPP_PATH))
         result.assertTestClassesExecuted('org.gradle.webservice.TestTestTest')
 
         // Check contents of shared jar

@@ -3,5 +3,5 @@ public class BadTest {
    /** 
     * @testng.test 
     */
-   public void failingTest() { throw new IllegalArgumentException(); }
+   public void failingTest() { throw new IllegalArgumentException("broken"); }
 }

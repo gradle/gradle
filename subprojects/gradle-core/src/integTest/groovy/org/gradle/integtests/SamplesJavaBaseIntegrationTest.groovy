@@ -38,7 +38,7 @@ class SamplesJavaBaseIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(javaprojectDir.file('test'))
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir.file('test'))
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists

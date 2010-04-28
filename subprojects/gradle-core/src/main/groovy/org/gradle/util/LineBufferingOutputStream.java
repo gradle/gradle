@@ -19,6 +19,8 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 /**
+ * An OutputStream which separates bytes written into lines. Uses the platform default encoding.
+ *
  * @author Hans Dockter
  */
 public abstract class LineBufferingOutputStream extends OutputStream {
@@ -124,6 +126,10 @@ public abstract class LineBufferingOutputStream extends OutputStream {
         reset();
     }
 
+    /**
+     * Writes a line of output.
+     * @param message The output, without the line separator.
+     */
     protected abstract void writeLine(String message) throws IOException;
 
     private void reset() {

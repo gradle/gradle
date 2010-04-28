@@ -32,7 +32,7 @@ class SamplesGroovyCustomizedLayoutIntegrationTest {
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(groovyProjectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(groovyProjectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check contents of jar

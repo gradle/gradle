@@ -13,23 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.integtests
 
-import org.gradle.util.TestFile;
-import org.junit.Test;
-import org.junit.runner.RunWith;
-
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*
 import org.gradle.api.Project
-import org.slf4j.Logger
 import org.gradle.process.child.SystemApplicationClassLoaderWorker
-import org.junit.Rule;
+import org.gradle.util.TestFile
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.slf4j.Logger
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class JUnitIntegrationTest {
@@ -52,7 +47,14 @@ public class JUnitIntegrationTest {
         testDir.file("src/test/java/org/gradle/OkTest.java") << """
             package org.gradle;
             import static org.junit.Assert.*;
+            import java.util.logging.Logger;
             public class OkTest {
+                static {
+                    System.out.println("class loaded");
+                }
+                public OkTest() {
+                    System.out.println("test constructed");
+                }
                 @org.junit.Test public void ok() throws Exception {
                     // check JUnit version
                     assertEquals("4.4", new org.junit.runner.JUnitCore().getVersion());
@@ -74,17 +76,22 @@ public class JUnitIntegrationTest {
                     // check stdout and stderr
                     System.out.println("This is test stdout");
                     System.err.println("This is test stderr");
+                    // check logging
+                    Logger.getLogger("test-logger").warning("this is a warning");
                 }
             }
         """
 
         executer.withTasks('build').run();
 
-        JUnitTestResult result = new JUnitTestResult(testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
-        result.assertTestPassed('org.gradle.OkTest', 'ok')
-        result.assertStdout('org.gradle.OkTest', containsString('This is test stdout'))
-        result.assertStderr('org.gradle.OkTest', containsString('This is test stderr'))
+        result.testClass('org.gradle.OkTest').assertTestPassed('ok')
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('This is test stdout'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('class loaded'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('test constructed'))
+        result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
+//        result.testClass('org.gradle.OkTest').assertStdout(containsString('this is a warning'))
     }
 
     @Test
@@ -99,7 +106,7 @@ public class JUnitIntegrationTest {
         testDir.file("src/test/java/org/gradle/BrokenTest.java") << '''
             package org.gradle;
             public class BrokenTest {
-                @org.junit.Test public void broken() { org.junit.Assert.fail(); }
+                @org.junit.Test public void broken() { org.junit.Assert.fail("failed"); }
             }
         '''
         ExecutionFailure failure = executer.withTasks('build').runWithFailure();
@@ -108,9 +115,9 @@ public class JUnitIntegrationTest {
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith('There were failing tests.'));
 
-        JUnitTestResult result = new JUnitTestResult(testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.BrokenTest')
-        result.assertTestFailed('org.gradle.BrokenTest', 'broken')
+        result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('failed'))
 
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenTest FAILED'));
     }
@@ -144,9 +151,9 @@ public class JUnitIntegrationTest {
 
         executer.withTasks('a:test').run();
 
-        JUnitTestResult result = new JUnitTestResult(testDir.file('a'))
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir.file('a'))
         result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.assertTestPassed('org.gradle.SomeTest', 'ok')
+        result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
 
     @Test
@@ -173,9 +180,9 @@ public class JUnitIntegrationTest {
 
         executer.withTasks('test').run();
 
-        JUnitTestResult result = new JUnitTestResult(testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.assertTestPassed('org.gradle.SomeTest', 'ok')
+        result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
 
     @Test
@@ -196,9 +203,9 @@ public class JUnitIntegrationTest {
 
         executer.withTasks('test').run();
 
-        JUnitTestResult result = new JUnitTestResult(testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.SomeTest$SomeInner')
-        result.assertTestPassed('org.gradle.SomeTest$SomeInner', 'ok')
+        result.testClass('org.gradle.SomeTest$SomeInner').assertTestPassed('ok')
     }
 
     @Test
@@ -227,9 +234,9 @@ public class JUnitIntegrationTest {
 
         executer.withTasks('test').run();
 
-        JUnitTestResult result = new JUnitTestResult(testDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.assertTestPassed('org.gradle.SomeTest', 'ok')
+        result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
     }
 
     @Test
@@ -352,7 +359,7 @@ public class JUnitIntegrationTest {
         assertThat(result.getOutput(), containsLine("START [test class SomeTest] [SomeTest]"));
         assertThat(result.getOutput(), containsLine("FINISH [test class SomeTest] [SomeTest] [FAILURE] [3]"));
         assertThat(result.getOutput(), containsLine("START [test fail(SomeTest)] [fail]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [junit.framework.AssertionFailedError: message]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test fail(SomeTest)] [fail] [FAILURE] [1] [java.lang.AssertionError: message]"));
         assertThat(result.getOutput(), containsLine("START [test knownError(SomeTest)] [knownError]"));
         assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]"));
         assertThat(result.getOutput(), containsLine("START [test unknownError(SomeTest)] [unknownError]"));

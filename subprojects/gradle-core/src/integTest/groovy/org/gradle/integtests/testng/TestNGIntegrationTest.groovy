@@ -21,7 +21,7 @@ import org.gradle.api.Project
 import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.GradleDistribution
 import org.gradle.integtests.GradleExecuter
-import org.gradle.integtests.TestResult
+import org.gradle.integtests.TestExecutionResult
 import org.gradle.util.TestFile
 import org.junit.Ignore
 import org.junit.Test
@@ -43,53 +43,53 @@ public class TestNGIntegrationTest {
     static final String JDK14 = "jdk14"
     static final String JDK15 = "jdk15"
 
-    static final GROOVY_JDK15_FAILING = failingIntegrationProject(GROOVY, JDK15, { name, projectDir, TestResult result ->
+    static final GROOVY_JDK15_FAILING = failingIntegrationProject(GROOVY, JDK15, { name, projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.BadTest')
-        result.assertTestFailed('org.gradle.BadTest', 'failingTest')
+        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
     })
-    static final GROOVY_JDK15_PASSING = passingIntegrationProject(GROOVY, JDK15, { name, TestFile projectDir, TestResult result ->
+    static final GROOVY_JDK15_PASSING = passingIntegrationProject(GROOVY, JDK15, { name, TestFile projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest')
-        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     })
-    static final JAVA_JDK14_FAILING = failingIntegrationProject(JAVA, JDK14, { name, projectDir, TestResult result ->
+    static final JAVA_JDK14_FAILING = failingIntegrationProject(JAVA, JDK14, { name, projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.BadTest')
-        result.assertTestFailed('org.gradle.BadTest', 'failingTest')
+        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
     })
-    static final JAVA_JDK14_PASSING = passingIntegrationProject(JAVA, JDK14, { name, projectDir, TestResult result ->
+    static final JAVA_JDK14_PASSING = passingIntegrationProject(JAVA, JDK14, { name, projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest')
-        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     })
-    static final JAVA_JDK15_FAILING = failingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result, ExecutionResult execution ->
+    static final JAVA_JDK15_FAILING = failingIntegrationProject(JAVA, JDK15, { name, projectDir, TestExecutionResult result, ExecutionResult execution ->
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite')
-        result.assertTestFailed('org.gradle.BadTest', 'failingTest')
-        result.assertConfigMethodFailed('org.gradle.TestWithBrokenSetup', 'setup')
-        result.assertConfigMethodFailed('org.gradle.BrokenAfterSuite', 'cleanup')
+        result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
+        result.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
+        result.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
         assertThat(execution.error, containsString('Test org.gradle.BadTest FAILED'))
         assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenSetup FAILED'))
         assertThat(execution.error, containsString('Test org.gradle.BrokenAfterSuite FAILED'))
     })
-    static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestResult result ->
+    static final JAVA_JDK15_PASSING = passingIntegrationProject(JAVA, JDK15, { name, projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
-        result.assertTestsExecuted('org.gradle.OkTest', 'passingTest', 'expectedFailTest')
-        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
-        result.assertTestPassed('org.gradle.OkTest', 'expectedFailTest')
-        result.assertTestsExecuted('org.gradle.ConcreteTest', 'ok', 'alsoOk')
-        result.assertTestPassed('org.gradle.ConcreteTest', 'ok')
-        result.assertTestPassed('org.gradle.ConcreteTest', 'alsoOk')
-        result.assertConfigMethodPassed('org.gradle.SuiteSetup', 'setupSuite')
-        result.assertConfigMethodPassed('org.gradle.SuiteCleanup', 'cleanupSuite')
-        result.assertConfigMethodPassed('org.gradle.TestSetup', 'setupTest')
-        result.assertConfigMethodPassed('org.gradle.TestCleanup', 'cleanupTest')
+        result.testClass('org.gradle.OkTest').assertTestsExecuted('passingTest', 'expectedFailTest')
+        result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
+        result.testClass('org.gradle.OkTest').assertTestPassed('expectedFailTest')
+        result.testClass('org.gradle.ConcreteTest').assertTestsExecuted('ok', 'alsoOk')
+        result.testClass('org.gradle.ConcreteTest').assertTestPassed('ok')
+        result.testClass('org.gradle.ConcreteTest').assertTestPassed('alsoOk')
+        result.testClass('org.gradle.SuiteSetup').assertConfigMethodPassed('setupSuite')
+        result.testClass('org.gradle.SuiteCleanup').assertConfigMethodPassed('cleanupSuite')
+        result.testClass('org.gradle.TestSetup').assertConfigMethodPassed('setupTest')
+        result.testClass('org.gradle.TestCleanup').assertConfigMethodPassed('cleanupTest')
     })
-    static final JAVA_JDK15_PASSING_NO_REPORT = passingIntegrationProject(JAVA, JDK15, "-no-report", { name, TestFile projectDir, TestResult result ->
+    static final JAVA_JDK15_PASSING_NO_REPORT = passingIntegrationProject(JAVA, JDK15, "-no-report", { name, TestFile projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.OkTest')
-        result.assertTestPassed('org.gradle.OkTest', 'passingTest')
+        result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
         projectDir.file('build/reports/tests/index.html').assertDoesNotExist()
     })
-    static final SUITE_XML_BUILDER = new TestNGIntegrationProject("suitexmlbuilder", false, null, { name, projectDir, TestResult result ->
+    static final SUITE_XML_BUILDER = new TestNGIntegrationProject("suitexmlbuilder", false, null, { name, projectDir, TestExecutionResult result ->
         result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
-        result.assertTestsExecuted('org.gradle.testng.UserImplTest', 'testOkFirstName')
-        result.assertTestPassed('org.gradle.testng.UserImplTest', 'testOkFirstName')
+        result.testClass('org.gradle.testng.UserImplTest').assertTestsExecuted('testOkFirstName')
+        result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
     })
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
@@ -129,7 +129,7 @@ public class TestNGIntegrationTest {
         """
         executer.withTasks('build').run();
 
-        new TestNgResult(testDir).assertTestPassed('org.gradle.OkTest', 'ok')
+        new TestNgExecutionResult(testDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
     @Test

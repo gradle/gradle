@@ -31,7 +31,12 @@ public interface TestResultProcessor {
     void completed(Object testId, TestCompleteEvent event);
 
     /**
+     * Notifies this processor that a test has produced some output.
+     */
+    void output(Object testId, TestOutputEvent event);
+
+    /**
      * Notifies this processor that a failure has occurred in the given test.
      */
-    void addFailure(Object testId, Throwable result);
+    void failure(Object testId, Throwable result);
 }

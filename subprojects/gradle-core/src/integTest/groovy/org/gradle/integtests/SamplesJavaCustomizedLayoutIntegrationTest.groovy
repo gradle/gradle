@@ -38,7 +38,7 @@ class SamplesJavaCustomizedLayoutIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build', 'uploadArchives').run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(javaprojectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.PersonTest')
 
         // Check jar exists

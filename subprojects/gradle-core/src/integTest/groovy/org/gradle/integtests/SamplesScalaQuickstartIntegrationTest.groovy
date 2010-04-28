@@ -41,7 +41,7 @@ class SamplesScalaQuickstartIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(projectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.sample.impl.PersonImplTest')
 
         // Check contents of Jar

@@ -40,7 +40,7 @@ public class WorkerTestClassProcessor implements TestClassProcessor {
         try {
             processor.startProcessing(resultProcessor);
         } catch(Throwable t) {
-            resultProcessor.addFailure(thisTest.getId(), t);
+            resultProcessor.failure(thisTest.getId(), t);
         }
     }
 
@@ -48,7 +48,7 @@ public class WorkerTestClassProcessor implements TestClassProcessor {
         try {
             processor.processTestClass(testClass);
         } catch(Throwable t) {
-            resultProcessor.addFailure(thisTest.getId(), t);
+            resultProcessor.failure(thisTest.getId(), t);
         }
     }
 
@@ -56,7 +56,7 @@ public class WorkerTestClassProcessor implements TestClassProcessor {
         try {
             processor.endProcessing();
         } catch(Throwable t) {
-            resultProcessor.addFailure(thisTest.getId(), t);
+            resultProcessor.failure(thisTest.getId(), t);
         } finally {
             resultProcessor.completed(thisTest.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
         }

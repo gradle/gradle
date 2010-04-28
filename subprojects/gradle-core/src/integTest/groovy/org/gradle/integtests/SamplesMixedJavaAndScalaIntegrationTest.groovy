@@ -35,7 +35,7 @@ class SamplesMixedJavaAndScalaIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(projectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.sample.PersonTest')
 
         // Check contents of Jar

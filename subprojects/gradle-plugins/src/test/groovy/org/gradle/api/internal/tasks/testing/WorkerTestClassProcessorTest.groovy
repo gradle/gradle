@@ -108,7 +108,7 @@ class WorkerTestClassProcessorTest {
             inSequence(sequence)
             will(throwException(failure))
 
-            one(resultProcessor).addFailure('worker-id', failure)
+            one(resultProcessor).failure('worker-id', failure)
             inSequence(sequence)
         }
 
@@ -132,7 +132,7 @@ class WorkerTestClassProcessorTest {
             inSequence(sequence)
             will(throwException(failure))
 
-            one(resultProcessor).addFailure('worker-id', failure)
+            one(resultProcessor).failure('worker-id', failure)
             inSequence(sequence)
 
             one(resultProcessor).completed(withParam(equalTo('worker-id')), withParam(notNullValue()))
@@ -164,7 +164,7 @@ class WorkerTestClassProcessorTest {
             inSequence(sequence)
             will(throwException(failure))
 
-            one(resultProcessor).addFailure('worker-id', failure)
+            one(resultProcessor).failure('worker-id', failure)
             inSequence(sequence)
         }
 

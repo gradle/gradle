@@ -37,7 +37,7 @@ class SamplesJavaProjectWithIntTestsIntegrationTest {
         executer.inDirectory(javaprojectDir).withTasks('clean', 'integrationTest').run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(javaprojectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(javaprojectDir)
         result.assertTestClassesExecuted('org.gradle.PersonIntegrationTest')
     }
 }

@@ -30,13 +30,23 @@ public class LoggingResultProcessor implements TestResultProcessor {
         processor.started(test, event);
     }
 
-    public void addFailure(Object testId, Throwable result) {
-        System.out.println(String.format("%s FAILED %s %s", prefix, testId, result));
-        processor.addFailure(testId, result);
+    public void failure(Object testId, Throwable result) {
+        System.out.println(String.format("%s FAILED %s", prefix, testId));
+        result.printStackTrace(System.out);
+        processor.failure(testId, result);
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        System.out.println(String.format("%s COMPLETED %s %s", prefix, testId, event.getFailure()));
+        System.out.println(String.format("%s COMPLETED %s %s", prefix, testId, event.getResultType()));
+        if (event.getFailure() != null) {
+            event.getFailure().printStackTrace(System.out);
+        }
         processor.completed(testId, event);
+    }
+
+    public void output(Object testId, TestOutputEvent event) {
+        System.out.println(String.format("%s OUTPUT %s %s [%s]", prefix, testId, event.getDestination(),
+                event.getMessage()));
+        processor.output(testId, event);
     }
 }

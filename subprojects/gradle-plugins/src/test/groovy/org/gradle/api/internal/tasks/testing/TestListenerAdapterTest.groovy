@@ -77,7 +77,7 @@ class TestListenerAdapterTest {
         }
 
         adapter.started(test, new TestStartEvent(100L))
-        adapter.addFailure('id', failure)
+        adapter.failure('id', failure)
         adapter.completed('id', new TestCompleteEvent(200L))
     }
 
@@ -304,7 +304,7 @@ class TestListenerAdapterTest {
         adapter.started(suite, new TestStartEvent(100L))
         adapter.started(test, new TestStartEvent(100L, 'id'))
         adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED, null))
-        adapter.addFailure('id', failure)
+        adapter.failure('id', failure)
         adapter.completed('id', new TestCompleteEvent(200L))
     }
 

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import junit.framework.JUnit4TestCaseFacade;
 import junit.framework.Test;
 import org.gradle.api.internal.tasks.testing.DefaultTestDescriptor;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
@@ -25,13 +26,28 @@ import org.gradle.util.TimeProvider;
 import org.junit.runner.Describable;
 import org.junit.runner.Description;
 
-public class JUnit4TestListenerFormatter extends TestListenerFormatter {
-    public JUnit4TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
+public class JUnit4TestResultProcessorAdapter extends JUnitTestResultProcessorAdapter {
+    public JUnit4TestResultProcessorAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider, IdGenerator<?> idGenerator) {
         super(resultProcessor, timeProvider, idGenerator);
     }
 
     @Override
     protected TestDescriptorInternal convert(Object id, Test test) {
+        if (test instanceof JUnit4TestCaseFacade) {
+            JUnit4TestCaseFacade facade = (JUnit4TestCaseFacade) test;
+            Matcher matcher = Pattern.compile("(.*)\\((.*)\\)").matcher(facade.toString());
+            String className = facade.toString();
+            String methodName = null;
+            if (matcher.matches()) {
+                className = matcher.group(2);
+                methodName = matcher.group(1);
+            }
+            return new DefaultTestDescriptor(id, className, methodName);
+        }
+        // JUnit4TestCaseFacade is-a Describable in junit 4.7+
         if (test instanceof Describable) {
             Describable describable = (Describable) test;
             Description description = describable.getDescription();

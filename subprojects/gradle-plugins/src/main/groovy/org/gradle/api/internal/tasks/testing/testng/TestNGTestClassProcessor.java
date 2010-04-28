@@ -36,7 +36,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     private final TestNGOptions options;
     private final List<File> suiteFiles;
     private final IdGenerator<?> idGenerator;
-    private TestNGListenerAdapter listener;
+    private TestNGTestResultProcessorAdapter testResultProcessor;
     private ClassLoader applicationClassLoader;
 
     public TestNGTestClassProcessor(File testReportDir, TestNGOptions options, List<File> suiteFiles, IdGenerator<?> idGenerator) {
@@ -47,7 +47,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        listener = new TestNGListenerAdapter(resultProcessor, idGenerator);
+        testResultProcessor = new TestNGTestResultProcessorAdapter(resultProcessor, idGenerator);
         applicationClassLoader = Thread.currentThread().getContextClassLoader();
     }
 
@@ -69,7 +69,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
             testNg.setSourcePath(GUtil.join(options.getTestResources(), File.pathSeparator));
         }
         testNg.setUseDefaultListeners(options.getUseDefaultListeners());
-        testNg.addListener(listener);
+        testNg.addListener(testResultProcessor);
         testNg.setVerbose(0);
         testNg.setGroups(GUtil.join(options.getIncludeGroups(), ","));
         testNg.setExcludedGroups(GUtil.join(options.getExcludeGroups(), ","));

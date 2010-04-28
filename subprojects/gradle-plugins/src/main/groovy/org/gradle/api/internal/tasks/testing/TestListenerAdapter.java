@@ -19,28 +19,17 @@ package org.gradle.api.internal.tasks.testing;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 
-import java.util.HashMap;
-import java.util.Map;
-
-public class TestListenerAdapter implements TestResultProcessor {
+public class TestListenerAdapter extends StateTrackingTestResultProcessor<TestListenerAdapter.TestState>
+        implements TestResultProcessor {
     private final TestListener listener;
-    private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
 
     public TestListenerAdapter(TestListener listener) {
         this.listener = listener;
     }
 
-    public void started(TestDescriptorInternal test, TestStartEvent event) {
-        TestState oldState = executing.put(test.getId(), new TestState(test, event));
-        if (oldState != null) {
-            throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
-                    test, test.getId()));
-        }
-        if (event.getParentId() != null) {
-            TestState parentState = executing.get(event.getParentId());
-            test.setParent(parentState.test);
-        }
-        
+    @Override
+    protected void started(TestState state) {
+        TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
             listener.beforeSuite(test);
         } else {
@@ -48,14 +37,10 @@ public class TestListenerAdapter implements TestResultProcessor {
         }
     }
 
-    public void completed(Object testId, TestCompleteEvent event) {
-        TestState testState = executing.remove(testId);
-        if (testState == null) {
-            throw new IllegalArgumentException(String.format(
-                    "Received a completed event for test with unknown id '%s'.", testId));
-        }
-        TestResult result = testState.completed(event);
-        TestDescriptorInternal test = testState.test;
+    @Override
+    protected void completed(TestState state) {
+        TestResult result = state.result;
+        TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
             listener.afterSuite(test, result);
         } else {
@@ -63,63 +48,23 @@ public class TestListenerAdapter implements TestResultProcessor {
         }
     }
 
-    public void addFailure(Object testId, Throwable result) {
-        TestState testState = executing.get(testId);
-        if (testState == null) {
-            throw new IllegalArgumentException(String.format(
-                    "Received a failure event for test with unknown id '%s'.", testId));
-        }
-        testState.failure = result;
+    @Override
+    protected TestState createState(TestDescriptorInternal test, TestStartEvent event) {
+        return new TestState(test, event);
     }
 
-    private class TestState {
-        final TestDescriptorInternal test;
-        final TestStartEvent startEvent;
-        boolean failedChild;
-        Throwable failure;
-        long testCount;
-        long successfulCount;
-        long failedCount;
+    class TestState extends StateTrackingTestResultProcessor.TestState {
+        public TestResult result;
 
         private TestState(TestDescriptorInternal test, TestStartEvent startEvent) {
-            this.test = test;
-            this.startEvent = startEvent;
+            super(test, startEvent);
         }
 
-        boolean isFailed() {
-            return failedChild || failure != null;
-        }
-
-        public TestResult completed(TestCompleteEvent event) {
-            if (event.getFailure() != null) {
-                failure = event.getFailure();
-            }
-            TestResult.ResultType resultType = isFailed() ? TestResult.ResultType.FAILURE
-                    : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
-
-            if (!test.isComposite()) {
-                testCount = 1;
-                switch (resultType) {
-                    case SUCCESS:
-                        successfulCount = 1;
-                        break;
-                    case FAILURE:
-                        failedCount = 1;
-                        break;
-                }
-            }
-
-            if (startEvent.getParentId() != null) {
-                TestState parentState = executing.get(startEvent.getParentId());
-                if (isFailed()) {
-                    parentState.failedChild = true;
-                }
-                parentState.testCount += testCount;
-                parentState.successfulCount += successfulCount;
-                parentState.failedCount += failedCount;
-            }
-
-            return new DefaultTestResult(resultType, failure, startEvent.getStartTime(), event.getEndTime(), testCount, successfulCount, failedCount);
+        @Override
+        public void completed(TestCompleteEvent event) {
+            super.completed(event);
+            result = new DefaultTestResult(resultType, failure, getStartTime(), getEndTime(),
+                    testCount, successfulCount, failedCount);
         }
     }
 }

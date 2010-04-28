@@ -27,14 +27,14 @@ import org.testng.internal.IConfigurationListener;
 import java.util.HashMap;
 import java.util.Map;
 
-public class TestNGListenerAdapter implements ITestListener, IConfigurationListener {
+public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigurationListener {
     private final TestResultProcessor resultProcessor;
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private Map<String, Object> suites = new HashMap<String, Object>();
     private Map<String, Object> tests = new HashMap<String, Object>();
 
-    public TestNGListenerAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
+    public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.idGenerator = idGenerator;
     }

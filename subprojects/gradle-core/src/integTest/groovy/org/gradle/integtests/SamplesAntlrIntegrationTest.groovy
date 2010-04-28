@@ -33,7 +33,7 @@ class SamplesAntlrIntegrationTest {
         executer.inDirectory(projectDir).withTasks('clean', 'build').withArguments("--no-opt").run()
 
         // Check tests have run
-        JUnitTestResult result = new JUnitTestResult(projectDir)
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.GrammarTest')
     }
 }

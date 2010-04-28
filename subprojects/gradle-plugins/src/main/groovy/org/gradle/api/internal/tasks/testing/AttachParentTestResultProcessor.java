@@ -39,8 +39,12 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
         processor.started(test, event);
     }
 
-    public void addFailure(Object testId, Throwable result) {
-        processor.addFailure(testId, result);
+    public void failure(Object testId, Throwable result) {
+        processor.failure(testId, result);
+    }
+
+    public void output(Object testId, TestOutputEvent event) {
+        processor.output(testId, event);
     }
 
     public void completed(Object testId, TestCompleteEvent event) {

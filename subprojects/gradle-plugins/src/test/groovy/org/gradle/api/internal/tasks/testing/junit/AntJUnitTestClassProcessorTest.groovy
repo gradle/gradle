@@ -189,7 +189,7 @@ class AntJUnitTestClassProcessorTest {
                 assertThat(event.resultType, nullValue())
                 assertThat(event.failure, nullValue())
             }
-            one(resultProcessor).addFailure(2L, CustomRunner.failure)
+            one(resultProcessor).failure(2L, CustomRunner.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -250,6 +250,38 @@ class AntJUnitTestClassProcessorTest {
     }
 
     @Test
+    public void executesATestClassWithBrokenSuiteMethod() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenSuiteMethod.class.name))
+                assertThat(suite.className, equalTo(ATestClassWithBrokenSuiteMethod.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('suite'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenSuiteMethod.class.name))
+            }
+            one(resultProcessor).failure(2L, ATestClassWithBrokenSuiteMethod.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+                assertThat(event.failure, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenSuiteMethod.class));
+        processor.endProcessing();
+    }
+    
+    @Test
     public void executesATestClassWithBrokenConstructor() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
@@ -262,7 +294,7 @@ class AntJUnitTestClassProcessorTest {
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestClassWithBrokenConstructor.class.name))
             }
-            one(resultProcessor).addFailure(2L, ATestClassWithBrokenConstructor.failure)
+            one(resultProcessor).failure(2L, ATestClassWithBrokenConstructor.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -292,7 +324,7 @@ class AntJUnitTestClassProcessorTest {
                 assertThat(test.name, equalTo('test'))
                 assertThat(test.className, equalTo(ATestClassWithBrokenSetup.class.name))
             }
-            one(resultProcessor).addFailure(2L, ATestClassWithBrokenSetup.failure)
+            one(resultProcessor).failure(2L, ATestClassWithBrokenSetup.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -322,7 +354,7 @@ class AntJUnitTestClassProcessorTest {
                 assertThat(test.name, equalTo('initializationError'))
                 assertThat(test.className, equalTo(ATestClassWithUnconstructableRunner.class.name))
             }
-            one(resultProcessor).addFailure(2L, CustomRunnerWithBrokenConstructor.failure)
+            one(resultProcessor).failure(2L, CustomRunnerWithBrokenConstructor.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -354,10 +386,11 @@ class AntJUnitTestClassProcessorTest {
                 assertThat(test.name, equalTo('initializationError'))
                 assertThat(test.className, equalTo(testClassName))
             }
+            one(resultProcessor).failure(withParam(equalTo(2L)), withParam(instanceOf(NoClassDefFoundError)))
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, instanceOf(NoClassDefFoundError.class))
+                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
@@ -428,6 +461,14 @@ public static class AJunit3TestClass extends TestCase {
 public static class ATestClassWithSuiteMethod {
     public static junit.framework.Test suite() {
         return new junit.framework.TestSuite(AJunit3TestClass.class, AJunit3TestClass.class);
+    }
+}
+
+public static class ATestClassWithBrokenSuiteMethod {
+    static RuntimeException failure = new RuntimeException('broken')
+
+    public static junit.framework.Test suite() {
+        throw failure
     }
 }
 

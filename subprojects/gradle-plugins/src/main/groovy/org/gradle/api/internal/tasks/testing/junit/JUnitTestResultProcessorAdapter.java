@@ -19,18 +19,16 @@ package org.gradle.api.internal.tasks.testing.junit;
 import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestCase;
+import junit.framework.TestListener;
 import org.apache.tools.ant.BuildException;
-import org.apache.tools.ant.taskdefs.optional.junit.JUnitResultFormatter;
-import org.apache.tools.ant.taskdefs.optional.junit.JUnitTest;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 
-import java.io.OutputStream;
 import java.util.IdentityHashMap;
 import java.util.Map;
 
-public class TestListenerFormatter implements JUnitResultFormatter {
+public class JUnitTestResultProcessorAdapter implements TestListener {
     private final TestResultProcessor resultProcessor;
     private final TimeProvider timeProvider;
     private final IdGenerator<?> idGenerator;
@@ -38,41 +36,31 @@ public class TestListenerFormatter implements JUnitResultFormatter {
     private final Map<Object, TestDescriptorInternal> executing = new IdentityHashMap<Object, TestDescriptorInternal>();
     private TestDescriptorInternal currentSuite;
 
-    public TestListenerFormatter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
+    public JUnitTestResultProcessorAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
                                  IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
         this.timeProvider = timeProvider;
         this.idGenerator = idGenerator;
     }
 
-    public void startTestSuite(JUnitTest jUnitTest) throws BuildException {
+    public void startTestSuite(String testClassName) throws BuildException {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
-            testInternal = convert(idGenerator.generateId(), jUnitTest);
-            executing.put(jUnitTest, testInternal);
+            testInternal = convert(idGenerator.generateId(), testClassName);
             currentSuite = testInternal;
         }
         long startTime = timeProvider.getCurrentTime();
         resultProcessor.started(testInternal, new TestStartEvent(startTime));
     }
 
-    public void endTestSuite(JUnitTest jUnitTest) throws BuildException {
+    public void endTestSuite() throws BuildException {
         long endTime = timeProvider.getCurrentTime();
         TestDescriptorInternal testInternal;
         synchronized (lock) {
-            testInternal = executing.remove(jUnitTest);
+            testInternal = currentSuite;
             currentSuite = null;
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
-    }
-
-    public void setOutput(OutputStream outputStream) {
-    }
-
-    public void setSystemOutput(String s) {
-    }
-
-    public void setSystemError(String s) {
     }
 
     public void startTest(Test test) {
@@ -91,23 +79,10 @@ public class TestListenerFormatter implements JUnitResultFormatter {
 
     public void addError(Test test, Throwable throwable) {
         TestDescriptorInternal testInternal;
-        boolean synthesiseFailedTest;
         synchronized (lock) {
-            if (test == null) {
-                testInternal = new DefaultTestDescriptor(idGenerator.generateId(), currentSuite.getClassName(), "initializationError");
-                synthesiseFailedTest = true;
-            } else {
-                testInternal = executing.get(test);
-                synthesiseFailedTest = false;
-            }
+            testInternal = executing.get(test);
         }
-        if (synthesiseFailedTest) {
-            // Do this when the Ant JUnitRunner fails to load the test class some how
-            resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
-            resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime(), null, throwable));
-        } else {
-            resultProcessor.addFailure(testInternal.getId(), throwable);
-        }
+        resultProcessor.failure(testInternal.getId(), throwable);
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {
@@ -123,8 +98,7 @@ public class TestListenerFormatter implements JUnitResultFormatter {
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }
 
-    private TestDescriptorInternal convert(Object id, JUnitTest jUnitTest) {
-        String className = jUnitTest.getName();
+    private TestDescriptorInternal convert(Object id, String className) {
         return new DefaultTestClassDescriptor(id, className);
     }
 
