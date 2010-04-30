@@ -15,83 +15,40 @@
  */
 package org.gradle.integtests
 
-import org.gradle.api.Project
-import org.gradle.process.child.SystemApplicationClassLoaderWorker
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.slf4j.Logger
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 @RunWith(DistributionIntegrationTestRunner.class)
 public class JUnitIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
+    @Rule public final TestResources resources = new TestResources()
     private final GradleExecuter executer = dist.executer;
 
     @Test
     public void executesTestsInCorrectEnvironment() {
         TestFile testDir = dist.testDir;
-        TestFile buildFile = testDir.file('build.gradle');
-        buildFile << '''
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.4', 'ant:ant:1.6.1', 'ant:ant-launcher:1.6.1' }
-            test {
-                systemProperties.testSysProperty = 'value'
-                environment.TEST_ENV_VAR = 'value'
-            }
-        '''
-        testDir.file("src/test/java/org/gradle/OkTest.java") << """
-            package org.gradle;
-            import static org.junit.Assert.*;
-            import java.util.logging.Logger;
-            public class OkTest {
-                static {
-                    System.out.println("class loaded");
-                }
-                public OkTest() {
-                    System.out.println("test constructed");
-                }
-                @org.junit.Test public void ok() throws Exception {
-                    // check JUnit version
-                    assertEquals("4.4", new org.junit.runner.JUnitCore().getVersion());
-                    // check Ant version
-                    assertTrue(org.apache.tools.ant.Main.getAntVersion().contains("1.6.1"));
-                    // check working dir
-                    assertEquals("${testDir.absolutePath.replaceAll('\\\\', '\\\\\\\\')}", System.getProperty("user.dir"));
-                    // check classloader
-                    assertSame(ClassLoader.getSystemClassLoader(), getClass().getClassLoader());
-                    assertSame(getClass().getClassLoader(), Thread.currentThread().getContextClassLoader());
-                    // check Gradle and impl classes not visible
-                    try { getClass().getClassLoader().loadClass("${Project.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
-                    try { getClass().getClassLoader().loadClass("${Logger.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
-                    try { getClass().getClassLoader().loadClass("${SystemApplicationClassLoaderWorker.class.getName()}"); fail(); } catch(ClassNotFoundException e) { }
-                    // check sys properties
-                    assertEquals("value", System.getProperty("testSysProperty"));
-                    // check env vars
-                    assertEquals("value", System.getenv("TEST_ENV_VAR"));
-                    // check stdout and stderr
-                    System.out.println("This is test stdout");
-                    System.err.println("This is test stderr");
-                    // check logging
-                    Logger.getLogger("test-logger").warning("this is a warning");
-                }
-            }
-        """
-
         executer.withTasks('build').run();
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.OkTest')
+        result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('ok')
         result.testClass('org.gradle.OkTest').assertStdout(containsString('This is test stdout'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('no EOL'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('class loaded'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('test constructed'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
-//        result.testClass('org.gradle.OkTest').assertStdout(containsString('this is a warning'))
+        result.testClass('org.gradle.OkTest').assertStderr(containsString('this is a warning'))
+        result.testClass('org.gradle.OtherTest').assertTestPassed('ok')
+        result.testClass('org.gradle.OtherTest').assertStdout(containsString('This is other stdout'))
+        result.testClass('org.gradle.OtherTest').assertStdout(containsString('other class loaded'))
+        result.testClass('org.gradle.OtherTest').assertStdout(containsString('other test constructed'))
+        result.testClass('org.gradle.OtherTest').assertStderr(containsString('This is other stderr'))
+        result.testClass('org.gradle.OtherTest').assertStderr(containsString('this is another warning'))
     }
 
     @Test

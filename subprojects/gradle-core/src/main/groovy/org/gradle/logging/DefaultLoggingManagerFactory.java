@@ -16,7 +16,6 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.logging.DefaultStandardOutputCapture;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.initialization.LoggingConfigurer;
 
@@ -30,6 +29,6 @@ public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     }
 
     public LoggingManager create() {
-        return new DefaultStandardOutputCapture(slfLoggingSystem, stdOutLoggingSystem);
+        return new DefaultLoggingManager(slfLoggingSystem, stdOutLoggingSystem);
     }
 }

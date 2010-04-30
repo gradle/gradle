@@ -17,7 +17,9 @@
 package org.gradle.external.junit;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
+import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -107,8 +109,11 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
             this.testResultsDir = testResultsDir;
         }
 
-        public TestClassProcessor create(IdGenerator<?> idGenerator) {
-            return new JUnitTestClassProcessor(testResultsDir, idGenerator);
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+            return new JUnitTestClassProcessor(
+                    testResultsDir,
+                    serviceRegistry.get(IdGenerator.class),
+                    new JULRedirector());
         }
     }
 }

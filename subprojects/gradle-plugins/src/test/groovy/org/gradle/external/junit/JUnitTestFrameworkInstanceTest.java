@@ -16,6 +16,7 @@
 
 package org.gradle.external.junit;
 
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.junit.AntJUnitReport;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
@@ -39,6 +40,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
     private IdGenerator<?> idGenerator;
+    private ServiceRegistry serviceRegistry;
 
     @Before
     public void setUp() throws Exception {
@@ -48,6 +50,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         idGenerator = context.mock(IdGenerator.class);
+        serviceRegistry = context.mock(ServiceRegistry.class);
 
         jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock, jUnitTestFrameworkMock);
     }
@@ -73,9 +76,10 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
         context.checking(new Expectations() {{
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
+            one(serviceRegistry).get(IdGenerator.class); will(returnValue(idGenerator));
         }});
 
-        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create(idGenerator);
+        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create(serviceRegistry);
         assertThat(testClassProcessor, instanceOf(JUnitTestClassProcessor.class));
     }
 

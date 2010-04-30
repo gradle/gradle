@@ -17,6 +17,7 @@
 package org.gradle.external.testng;
 
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestFrameworkInstanceTest;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
@@ -35,18 +36,19 @@ import static org.junit.Assert.*;
  */
 public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstanceTest {
 
-    private TestNGTestFramework testNgTestFrameworkMock;
     private TestNGTestFrameworkInstance testNGTestFrameworkInstance;
     private TestNGOptions testngOptionsMock;
     private IdGenerator<?> idGeneratorMock;
+    private ServiceRegistry serviceRegistry;
 
     @Before
     public void setUp() throws Exception {
         super.setUp();
 
-        testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
+        TestNGTestFramework testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
         idGeneratorMock = context.mock(IdGenerator.class);
+        serviceRegistry = context.mock(ServiceRegistry.class);
 
         testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock, testNgTestFrameworkMock);
     }
@@ -75,11 +77,12 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
         context.checking(new Expectations() {{
             allowing(testMock).getTestSrcDirs();  will(returnValue(testSrcDirs));
             allowing(testMock).getTestReportDir(); will(returnValue(testReportDir));
+            allowing(serviceRegistry).get(IdGenerator.class); will(returnValue(idGeneratorMock));
             one(testngOptionsMock).setTestResources(testSrcDirs);
             one(testngOptionsMock).getSuites(testReportDir);
         }});
 
-        TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create(idGeneratorMock);
+        TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create(serviceRegistry);
         assertThat(processor, instanceOf(TestNGTestClassProcessor.class));
     }
 

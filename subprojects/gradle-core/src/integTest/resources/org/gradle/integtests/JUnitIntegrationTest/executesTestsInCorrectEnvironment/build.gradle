@@ -1,0 +1,8 @@
+apply plugin: 'java'
+repositories { mavenCentral() }
+dependencies { testCompile 'junit:junit:4.4', 'ant:ant:1.6.1', 'ant:ant-launcher:1.6.1' }
+test {
+    systemProperties.testSysProperty = 'value'
+    systemProperties.projectDir = projectDir
+    environment.TEST_ENV_VAR = 'value'
+}

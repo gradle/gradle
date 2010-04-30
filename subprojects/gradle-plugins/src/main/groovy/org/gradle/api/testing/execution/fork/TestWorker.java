@@ -18,6 +18,7 @@ package org.gradle.api.testing.execution.fork;
 
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.tasks.testing.AttachParentTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessor;
@@ -55,7 +56,11 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
 
         IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
-        TestClassProcessor targetProcessor = factory.create(idGenerator);
+        
+        DefaultServiceRegistry testServices = new DefaultServiceRegistry();
+        testServices.add(IdGenerator.class, idGenerator);
+        TestClassProcessor targetProcessor = factory.create(testServices);
+
         targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(), workerProcessContext.getDisplayName(), new TrueTimeProvider());
         ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();

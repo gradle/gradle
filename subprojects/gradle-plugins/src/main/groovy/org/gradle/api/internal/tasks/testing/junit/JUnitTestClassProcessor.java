@@ -21,6 +21,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.fabric.TestClassRunInfo;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
@@ -33,12 +34,15 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
     private static final Logger LOGGER = LoggerFactory.getLogger(JUnitTestClassProcessor.class);
     private final File testResultsDir;
     private final IdGenerator<?> idGenerator;
+    private final StandardOutputRedirector outputRedirector;
     private final TimeProvider timeProvider = new TrueTimeProvider();
     private JUnitTestClassExecuter executer;
 
-    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator) {
+    public JUnitTestClassProcessor(File testResultsDir, IdGenerator<?> idGenerator,
+                                   StandardOutputRedirector standardOutputRedirector) {
         this.testResultsDir = testResultsDir;
         this.idGenerator = idGenerator;
+        this.outputRedirector = standardOutputRedirector;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
@@ -47,7 +51,8 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
                 TestResultProcessor.class);
         processors.add(new JUnitXmlReportGenerator(testResultsDir));
         processors.add(resultProcessor);
-        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(processors.getSource());
+        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(processors.getSource(),
+                outputRedirector);
         JUnitTestResultProcessorAdapter listener = new JUnit4TestResultProcessorAdapter(resultProcessorChain,
                 timeProvider, idGenerator);
         executer = new JUnitTestClassExecuter(applicationClassLoader, listener);

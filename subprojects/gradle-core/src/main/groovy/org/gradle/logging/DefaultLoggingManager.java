@@ -14,14 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.api.logging;
+package org.gradle.logging;
 
-import org.gradle.logging.LoggingSystem;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.LoggingManager;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultStandardOutputCapture implements LoggingManager {
+public class DefaultLoggingManager implements LoggingManager {
     private LogLevel stdOutCaptureLevel;
     private LogLevel level;
     private LoggingSystem.Snapshot originalStdOutState;
@@ -33,13 +34,13 @@ public class DefaultStandardOutputCapture implements LoggingManager {
     /**
      * Creates and instance with enabled set to false and LogLevel set to null.
      */
-    public DefaultStandardOutputCapture(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem) {
+    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem) {
         this.loggingSystem = loggingSystem;
         this.stdOutLoggingSystem = stdOutLoggingSystem;
         stdOutCaptureLevel = LogLevel.QUIET;
     }
 
-    public DefaultStandardOutputCapture start() {
+    public DefaultLoggingManager start() {
         started = true;
         if (stdOutCaptureLevel != null) {
             originalStdOutState = stdOutLoggingSystem.on(stdOutCaptureLevel);
@@ -55,7 +56,7 @@ public class DefaultStandardOutputCapture implements LoggingManager {
         return this;
     }
 
-    public DefaultStandardOutputCapture stop() {
+    public DefaultLoggingManager stop() {
         try {
             if (originalStdOutState != null) {
                 stdOutLoggingSystem.restore(originalStdOutState);
@@ -71,13 +72,14 @@ public class DefaultStandardOutputCapture implements LoggingManager {
         return this;
     }
 
-    public void setLevel(LogLevel logLevel) {
+    public DefaultLoggingManager setLevel(LogLevel logLevel) {
         if (this.level != logLevel) {
             this.level = logLevel;
             if (started) {
                 loggingSystem.on(logLevel);
             }
         }
+        return this;
     }
 
     public LogLevel getLevel() {
@@ -92,7 +94,7 @@ public class DefaultStandardOutputCapture implements LoggingManager {
         return stdOutCaptureLevel != null;
     }
 
-    public DefaultStandardOutputCapture captureStandardOutput(LogLevel level) {
+    public DefaultLoggingManager captureStandardOutput(LogLevel level) {
         if (this.stdOutCaptureLevel != level) {
             this.stdOutCaptureLevel = level;
             if (started) {
@@ -102,7 +104,7 @@ public class DefaultStandardOutputCapture implements LoggingManager {
         return this;
     }
 
-    public DefaultStandardOutputCapture disableStandardOutputCapture() {
+    public DefaultLoggingManager disableStandardOutputCapture() {
         if (stdOutCaptureLevel != null) {
             stdOutCaptureLevel = null;
             if (started) {

@@ -16,19 +16,14 @@
 
 package org.gradle.api.internal.tasks.testing.junit
 
+import org.gradle.logging.StandardOutputRedirector
 import spock.lang.Specification
-import org.junit.Rule
-import org.gradle.util.RedirectStdOutAndErr
-import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.api.internal.tasks.testing.TestOutputEvent
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.*
 
 class CaptureTestOutputTestResultProcessorTest extends Specification {
-    @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final TestResultProcessor target = Mock()
-    private final CaptureTestOutputTestResultProcessor processor = new CaptureTestOutputTestResultProcessor(target)
+    private final StandardOutputRedirector redirector = Mock()
+    private final CaptureTestOutputTestResultProcessor processor = new CaptureTestOutputTestResultProcessor(target, redirector)
 
     def capturesStdOutputAndStdErrorWhileTestIsExecuting() {
         TestDescriptorInternal test = Mock()
@@ -36,26 +31,34 @@ class CaptureTestOutputTestResultProcessorTest extends Specification {
         TestCompleteEvent completeEvent = Mock()
         String testId = 'id'
         _ * test.getId() >> testId
+        def stdoutListener
+        def stderrListener
 
         when:
         processor.started(test, startEvent)
-        System.out.println('this is stdout')
-        System.err.println('this is stderr')
-        processor.completed(testId, completeEvent)
 
         then:
         1 * target.started(test, startEvent)
+        1 * redirector.redirectStandardOutputTo(!null) >> { args -> stdoutListener = args[0] }
+        1 * redirector.redirectStandardErrorTo(!null) >> { args -> stderrListener = args[0] }
+        1 * redirector.start()
+
+        when:
+        stdoutListener.onOutput('this is stdout')
+        stderrListener.onOutput('this is stderr')
+
+        then:
         1 * target.output(testId, { TestOutputEvent event ->
-            event.destination == TestOutputEvent.Destination.StdOut && event.message == 'this is stdout\n' })
+            event.destination == TestOutputEvent.Destination.StdOut && event.message == 'this is stdout'
+        })
         1 * target.output(testId, { TestOutputEvent event ->
-            event.destination == TestOutputEvent.Destination.StdErr && event.message == 'this is stderr\n' })
+            event.destination == TestOutputEvent.Destination.StdErr && event.message == 'this is stderr' })
+
+        when:
+        processor.completed(testId, completeEvent)
+
+        then:
+        1 * redirector.stop()
         1 * target.completed(testId, completeEvent)
-        0 * target._
-        System.out == outputs.stdOutPrintStream
-        System.err == outputs.stdErrPrintStream
-    }
-
-    def flushesStdOutputAndStdError() {
-
     }
 }

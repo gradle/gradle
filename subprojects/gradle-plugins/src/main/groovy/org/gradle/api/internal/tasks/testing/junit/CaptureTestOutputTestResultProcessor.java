@@ -17,58 +17,47 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.util.LineBufferingOutputStream;
-
-import java.io.IOException;
-import java.io.PrintStream;
+import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.logging.StandardOutputRedirector;
 
 public class CaptureTestOutputTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor processor;
-    private PrintStream out;
-    private PrintStream err;
+    private final StandardOutputRedirector outputRedirector;
     private Object suite;
 
-    public CaptureTestOutputTestResultProcessor(TestResultProcessor processor) {
+    public CaptureTestOutputTestResultProcessor(TestResultProcessor processor, StandardOutputRedirector outputRedirector) {
         this.processor = processor;
+        this.outputRedirector = outputRedirector;
     }
 
     public void started(final TestDescriptorInternal test, TestStartEvent event) {
         processor.started(test, event);
+        if (suite != null) {
+            return;
+        }
         suite = test.getId();
-        out = System.out;
-        err = System.err;
-        System.setOut(new PrintStream(new LineBufferingOutputStream() {
-            @Override
-            protected void writeLine(String message) throws IOException {
-                processor.output(suite, new TestOutputEvent(TestOutputEvent.Destination.StdOut, String.format("%s%n",
-                        message)));
+        outputRedirector.redirectStandardOutputTo(new StandardOutputListener() {
+            public void onOutput(CharSequence output) {
+                processor.output(suite, new TestOutputEvent(TestOutputEvent.Destination.StdOut, output.toString()));
             }
-        }));
-        System.setErr(new PrintStream(new LineBufferingOutputStream() {
-            @Override
-            protected void writeLine(String message) throws IOException {
-                processor.output(suite, new TestOutputEvent(TestOutputEvent.Destination.StdErr, String.format("%s%n",
-                        message)));
+        });
+        outputRedirector.redirectStandardErrorTo(new StandardOutputListener() {
+            public void onOutput(CharSequence output) {
+                processor.output(suite, new TestOutputEvent(TestOutputEvent.Destination.StdErr, output.toString()));
             }
-        }));
+        });
+        outputRedirector.start();
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        processor.completed(testId, event);
         if (testId.equals(suite)) {
             try {
-                PrintStream capturingOut = System.out;
-                PrintStream capturingErr = System.err;
-                System.setOut(out);
-                System.setErr(err);
-                capturingOut.close();
-                capturingErr.close();
+                outputRedirector.stop();
             } finally {
                 suite = null;
-                out = null;
-                err = null;
             }
         }
+        processor.completed(testId, event);
     }
 
     public void output(Object testId, TestOutputEvent event) {

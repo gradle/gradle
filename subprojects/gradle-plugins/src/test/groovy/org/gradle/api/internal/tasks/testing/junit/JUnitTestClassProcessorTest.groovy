@@ -38,13 +38,14 @@ import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.logging.StandardOutputRedirector
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
-    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator());
+    private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), {} as StandardOutputRedirector);
 
     @Test
     public void executesATestClass() {

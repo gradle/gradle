@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.artifacts;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
+package org.gradle.logging;
 
-/**
- * @author Hans Dockter
- */
-public class ResolvedDependencies {
-    public static Set<File> getFilesFromArtifacts(Set<ResolvedArtifact> artifacts) {
-        Set<File> files = new LinkedHashSet<File>();
-        for (ResolvedArtifact moduleArtifact : artifacts) {
-            files.add(moduleArtifact.getFile());
-        }
-        return files;
-    }
+import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.logging.StandardOutputListener;
+
+public interface StandardOutputRedirector extends StandardOutputCapture {
+    void redirectStandardOutputTo(StandardOutputListener stdOutDestination);
+
+    void redirectStandardErrorTo(StandardOutputListener stdErrDestination);
 }

@@ -47,5 +47,5 @@ public interface LoggingManager extends StandardOutputCapture {
      *
      * @param logLevel The minimum logging level.
      */
-    void setLevel(LogLevel logLevel);
+    LoggingManager setLevel(LogLevel logLevel);
 }

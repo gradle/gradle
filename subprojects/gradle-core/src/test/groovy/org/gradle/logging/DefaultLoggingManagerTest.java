@@ -13,9 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.logging;
+package org.gradle.logging;
 
-import org.gradle.logging.LoggingSystem;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.RedirectStdOutAndErr;
 import org.jmock.Expectations;
@@ -30,44 +30,44 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 @RunWith(JMock.class)
-public class DefaultStandardOutputCaptureTest {
+public class DefaultLoggingManagerTest {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final LoggingSystem loggingSystem = context.mock(LoggingSystem.class);
     private final LoggingSystem stdOutLoggingSystem = context.mock(LoggingSystem.class);
-    private final DefaultStandardOutputCapture standardOutputCapture = new DefaultStandardOutputCapture(loggingSystem, stdOutLoggingSystem);
+    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, stdOutLoggingSystem);
 
     @Test
     public void defaultValues() {
-        assertTrue(standardOutputCapture.isStandardOutputCaptureEnabled());
-        assertEquals(LogLevel.QUIET, standardOutputCapture.getStandardOutputCaptureLevel());
-        assertNull(standardOutputCapture.getLevel());
+        assertTrue(loggingManager.isStandardOutputCaptureEnabled());
+        assertEquals(LogLevel.QUIET, loggingManager.getStandardOutputCaptureLevel());
+        assertNull(loggingManager.getLevel());
     }
 
     @Test
     public void canChangeStdOutCaptureLogLevel() {
-        standardOutputCapture.captureStandardOutput(LogLevel.ERROR);
-        assertTrue(standardOutputCapture.isStandardOutputCaptureEnabled());
-        assertEquals(LogLevel.ERROR, standardOutputCapture.getStandardOutputCaptureLevel());
+        loggingManager.captureStandardOutput(LogLevel.ERROR);
+        assertTrue(loggingManager.isStandardOutputCaptureEnabled());
+        assertEquals(LogLevel.ERROR, loggingManager.getStandardOutputCaptureLevel());
     }
 
     @Test
     public void canChangeLogLevel() {
-        standardOutputCapture.setLevel(LogLevel.ERROR);
-        assertEquals(LogLevel.ERROR, standardOutputCapture.getLevel());
+        loggingManager.setLevel(LogLevel.ERROR);
+        assertEquals(LogLevel.ERROR, loggingManager.getLevel());
     }
 
     @Test
     public void canDisableCapture() {
-        standardOutputCapture.disableStandardOutputCapture();
-        assertFalse(standardOutputCapture.isStandardOutputCaptureEnabled());
-        assertNull(standardOutputCapture.getStandardOutputCaptureLevel());
+        loggingManager.disableStandardOutputCapture();
+        assertFalse(loggingManager.isStandardOutputCaptureEnabled());
+        assertNull(loggingManager.getStandardOutputCaptureLevel());
     }
 
     @Test
     public void startStopWithCaptureDisabled() {
-        standardOutputCapture.disableStandardOutputCapture();
+        loggingManager.disableStandardOutputCapture();
 
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
@@ -76,18 +76,18 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations(){{
             one(stdOutLoggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
 
     @Test
     public void startStopWithCaptureEnabled() {
-        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardOutput(LogLevel.DEBUG);
 
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
@@ -96,18 +96,18 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations(){{
             one(stdOutLoggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
 
     @Test
     public void startStopWithLogLevelSet() {
-        standardOutputCapture.setLevel(LogLevel.DEBUG);
+        loggingManager.setLevel(LogLevel.DEBUG);
 
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
@@ -116,13 +116,13 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations(){{
             one(loggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
 
     @Test
@@ -134,13 +134,13 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations() {{
             one(loggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
 
     @Test
@@ -152,22 +152,22 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardOutput(LogLevel.DEBUG);
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).off();
             will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 
-        standardOutputCapture.disableStandardOutputCapture();
+        loggingManager.disableStandardOutputCapture();
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
 
     @Test
@@ -179,22 +179,22 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.disableStandardOutputCapture();
+        loggingManager.disableStandardOutputCapture();
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).on(LogLevel.DEBUG);
             will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 
-        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardOutput(LogLevel.DEBUG);
 
         context.checking(new Expectations(){{
             one(stdOutLoggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
     
     @Test
@@ -206,22 +206,22 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardOutput(LogLevel.DEBUG);
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).on(LogLevel.WARN);
             will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 
-        standardOutputCapture.captureStandardOutput(LogLevel.WARN);
+        loggingManager.captureStandardOutput(LogLevel.WARN);
 
         context.checking(new Expectations(){{
             one(stdOutLoggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
     
     @Test
@@ -233,7 +233,7 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(snapshot));
         }});
 
-        standardOutputCapture.start();
+        loggingManager.start();
 
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
@@ -241,12 +241,12 @@ public class DefaultStandardOutputCaptureTest {
             will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 
-        standardOutputCapture.setLevel(LogLevel.LIFECYCLE);
+        loggingManager.setLevel(LogLevel.LIFECYCLE);
 
         context.checking(new Expectations(){{
             one(loggingSystem).restore(snapshot);
         }});
 
-        standardOutputCapture.stop();
+        loggingManager.stop();
     }
 }

@@ -16,9 +16,9 @@
 
 package org.gradle.api.testing.execution.fork;
 
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.util.IdGenerator;
 
 public interface WorkerTestClassProcessorFactory {
-    TestClassProcessor create(IdGenerator<?> idGenerator);
+    TestClassProcessor create(ServiceRegistry serviceRegistry);
 }

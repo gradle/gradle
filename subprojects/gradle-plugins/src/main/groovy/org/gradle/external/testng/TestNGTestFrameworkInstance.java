@@ -18,6 +18,7 @@ package org.gradle.external.testng;
 
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
@@ -97,8 +98,8 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
             this.suiteFiles = suiteFiles;
         }
 
-        public TestClassProcessor create(IdGenerator<?> idGenerator) {
-            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, idGenerator);
+        public TestClassProcessor create(ServiceRegistry serviceRegistry) {
+            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class));
         }
     }
 }
