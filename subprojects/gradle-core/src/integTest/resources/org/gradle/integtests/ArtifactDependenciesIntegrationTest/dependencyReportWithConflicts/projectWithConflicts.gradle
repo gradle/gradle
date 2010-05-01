@@ -2,7 +2,8 @@ import static org.junit.Assert.*
 
 allprojects {
     configurations {
-        singleProject
+        evictedTransitive
+        evictedDirect
         multiProject
         add('default')
     }
@@ -18,9 +19,15 @@ allprojects {
 }
 
 dependencies {
-    singleProject 'test:projectA:1.2'
-    singleProject 'test:projectB:2.1.5'
+    // projectA-1.2 depends on projectB-1.5, which should be evicted by projectB-2.1.5
+    evictedTransitive 'test:projectA:1.2'
+    evictedTransitive 'test:projectB:2.1.5'
 
+    // projectA-2.0 depends on projectB-2.1.5, which should evict projectB-1.5
+    evictedDirect 'test:projectA:2.0'
+    evictedDirect 'test:projectB:1.5'
+
+    // subproject depends on projectA-2.0, which should evict projectA-1.2
     multiProject 'test:projectA:1.2'
     multiProject project(':subproject')
 }
@@ -39,8 +46,11 @@ file("projectB-2.1.5.jar").text = ''
 defaultTasks 'check'
 
 task check << {
-    def jars = configurations.singleProject.collect { it.name }
+    def jars = configurations.evictedTransitive.collect { it.name }
     assertEquals(['projectA-1.2.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
+
+    jars = configurations.evictedDirect.collect { it.name }
+    assertEquals(['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
 
     jars = configurations.multiProject.collect { it.name }
     assertEquals(['projectA-2.0.jar', 'projectB-2.1.5.jar'] as Set, jars as Set)
