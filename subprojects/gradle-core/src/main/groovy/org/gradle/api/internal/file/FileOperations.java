@@ -22,6 +22,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.exec.ExecResult;
 
 import java.io.File;
 import java.net.URI;
@@ -59,4 +60,8 @@ public interface FileOperations {
     File mkdir(Object path);
 
     boolean delete(Object... paths);
+
+    ExecResult javaexec(Closure cl);
+
+    ExecResult exec(Closure cl);
 }

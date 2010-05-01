@@ -284,7 +284,8 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected WorkerProcessFactory createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
-        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry, null, new LongIdGenerator());
+        return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
+                new IdentityFileResolver(), new LongIdGenerator());
     }
     
     protected MessagingServer createMessagingServer() {

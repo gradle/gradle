@@ -32,6 +32,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.exec.ExecResult;
 
 import java.io.File;
 import java.net.URI;
@@ -876,6 +877,24 @@ public interface Project extends Comparable<Project> {
      * @return true if anything got deleted, false otherwise
      */
     boolean delete(Object... paths);
+
+    /**
+     * Executes a Java main class. The closure configures a {@link org.gradle.util.exec.JavaExecSpec}.
+     *
+     * @param closure The closure for configuring the execution.
+     *
+     * @return the result of the execution
+     */
+    ExecResult javaexec(Closure closure);
+
+    /**
+     * Executes an external command. The closure configures a {@link org.gradle.util.exec.ExecSpec}.
+     *
+     * @param closure The closure for configuring the execution.
+     *
+     * @return the result of the execution
+     */
+    ExecResult exec(Closure closure);
 
     /**
      * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>

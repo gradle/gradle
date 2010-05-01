@@ -17,10 +17,10 @@
 package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.messaging.ObjectConnection;
@@ -28,6 +28,7 @@ import org.gradle.process.WorkerProcess;
 import org.gradle.process.WorkerProcessBuilder;
 import org.gradle.process.WorkerProcessFactory;
 import org.gradle.util.exec.JavaExecHandleBuilder;
+import org.gradle.util.exec.JavaForkOptions;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -106,7 +107,7 @@ public class ForkingTestClassProcessorTest {
         context.checking(new Expectations() {{
             WorkerProcessBuilder builder = context.mock(WorkerProcessBuilder.class);
             ObjectConnection connection = context.mock(ObjectConnection.class);
-            JavaExecHandleBuilder javaCommandBuilder = new JavaExecHandleBuilder();
+            JavaExecHandleBuilder javaCommandBuilder = new JavaExecHandleBuilder(new IdentityFileResolver());
 
             one(workerFactory).newProcess();
             will(returnValue(builder));

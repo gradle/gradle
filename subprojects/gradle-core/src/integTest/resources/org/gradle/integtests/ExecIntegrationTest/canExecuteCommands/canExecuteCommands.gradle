@@ -1,0 +1,29 @@
+defaultTasks 'execTask', 'execByMethod'
+
+task execTask(type: Exec) {
+    testFile = file("$buildDir/$name")
+    executable = "touch"
+    workingDir = buildDir
+    args testFile.name
+    doFirst {
+        mkdir buildDir
+    }
+    doLast {
+        assert testFile.exists()
+    }
+}
+
+task execByMethod {
+    testFile = file("$buildDir/$name")
+    doFirst {
+        mkdir buildDir
+        exec {
+            executable = "touch"
+            workingDir = buildDir
+            args testFile.name
+        }
+    }
+    doLast {
+        assert testFile.exists()
+    }
+}

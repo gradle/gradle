@@ -13,30 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.util.exec;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
-public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaForkOptions {
+public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private String mainClass;
-    private final List<String> applicationArgs = new ArrayList<String>();
-    private final Set<File> classpath = new LinkedHashSet<File>();
+    private List<String> applicationArgs = new ArrayList<String>();
+    private FileCollection classpath;
     private final JavaForkOptions javaOptions;
+    private FileResolver fileResolver;
 
-    public JavaExecHandleBuilder() {
-        this(null);
-    }
-
-    public JavaExecHandleBuilder(FileResolver resolver) {
-        javaOptions = new DefaultJavaForkOptions(resolver);
+    public JavaExecHandleBuilder(FileResolver fileResolver) {
+        this.fileResolver = fileResolver;
+        javaOptions = new DefaultJavaForkOptions(fileResolver);
+        classpath = new PathResolvingFileCollection(fileResolver, null);
         executable(javaOptions.getExecutable());
     }
 
@@ -45,7 +46,7 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
         allArgs.addAll(javaOptions.getAllJvmArgs());
         if (!classpath.isEmpty()) {
             allArgs.add("-cp");
-            allArgs.add(GUtil.join(classpath, File.pathSeparator));
+            allArgs.add(GUtil.join(classpath.getFiles(), File.pathSeparator));
         }
         return allArgs;
     }
@@ -124,60 +125,50 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
         javaOptions.setEnableAssertions(enabled);
     }
 
-    public String getMainClass() {
+    public String getMain() {
         return mainClass;
     }
 
-    public JavaExecHandleBuilder mainClass(String mainClassName) {
+    public JavaExecHandleBuilder setMain(String mainClassName) {
         this.mainClass = mainClassName;
         return this;
     }
 
-    public List<String> getApplicationArgs() {
+    public List<String> getArgs() {
         return applicationArgs;
     }
 
-    public JavaExecHandleBuilder applicationArgs(String... args) {
+    public JavaExecHandleBuilder setArgs(List<String> applicationArgs) {
+        this.applicationArgs = applicationArgs;
+        return this;
+    }
+
+    public JavaExecHandleBuilder args(String... args) {
         applicationArgs.addAll(Arrays.asList(args));
         return this;
     }
 
-    public JavaExecHandleBuilder classpath(File... classpath) {
-        classpath(Arrays.asList(classpath));
-        return this;
-    }
-    
-    public JavaExecHandleBuilder classpath(Collection<File> classpath) {
-        this.classpath.addAll(classpath);
+    public JavaExecHandleBuilder setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
         return this;
     }
 
-    public Set<File> getClasspath() {
+    public JavaExecHandleBuilder classpath(Object... paths) {
+        classpath = classpath.plus(fileResolver.resolveFiles(paths));
+        return this;
+    }
+
+    public FileCollection getClasspath() {
         return classpath;
     }
 
     @Override
-    public List<String> getArguments() {
+    public List<String> getAllArguments() {
         List<String> arguments = new ArrayList<String>();
         arguments.addAll(getAllJvmArgs());
         arguments.add(mainClass);
         arguments.addAll(applicationArgs);
         return arguments;
-    }
-
-    @Override
-    public ExecHandleBuilder setArguments(List<String> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ExecHandleBuilder arguments(List<String> arguments) {
-        throw new UnsupportedOperationException();
-    }
-
-    @Override
-    public ExecHandleBuilder arguments(String... arguments) {
-        throw new UnsupportedOperationException();
     }
 
     public JavaForkOptions copyTo(JavaForkOptions options) {
@@ -189,5 +180,11 @@ public class JavaExecHandleBuilder extends ExecHandleBuilder implements JavaFork
             throw new IllegalStateException("No main class specified");
         }
         return super.build();
+    }
+
+    @Override
+    public JavaExecSpec setIgnoreExitValue(boolean ignoreExitValue) {
+        super.setIgnoreExitValue(ignoreExitValue);
+        return this;
     }
 }

@@ -15,15 +15,16 @@
  */
 package org.gradle.api.internal.tasks.util
 
+import static org.gradle.util.Matchers.*
+
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.exec.ProcessForkOptions
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import org.gradle.api.tasks.util.ProcessForkOptions
+import static org.junit.Assert.assertThat
 
 @RunWith(JMock.class)
 public class DefaultProcessForkOptionsTest {

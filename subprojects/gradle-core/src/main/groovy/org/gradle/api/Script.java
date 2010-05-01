@@ -24,6 +24,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.exec.ExecResult;
 
 import java.io.File;
 import java.net.URI;
@@ -33,7 +34,7 @@ import java.util.Map;
  * <p>The base class for all scripts executed by Gradle. This is a extension to the Groovy {@code Script} class, which
  * adds in some Gradle-specific methods. As your compiled script class will implement this interface, you can use the
  * methods and properties declared here directly in your script.</p>
- *
+ * <p/>
  * <p>Generally, a {@code Script} object will have a delegate object attached to it. For example, a build script will
  * have a {@link Project} instance attached to it, and an initialization script will have a {@link
  * org.gradle.api.invocation.Gradle} instance attached to it. Any property reference or method call which is not found
@@ -52,14 +53,14 @@ public interface Script {
     /**
      * <p>Configures the delegate object for this script using plugins or scripts. The following options are
      * available:</p>
-     *
+     * <p/>
      * <ul><li>{@code from}: A script to apply to the delegate object. Accepts any path supported by {@link
      * #uri(Object)}.</li>
-     *
+     * <p/>
      * <li>{@code plugin}: The id or implementation class of the plugin to apply to the delegate object.</li>
-     *
+     * <p/>
      * <li>{@code to}: The target delegate object or objects.</li></ul>
-     *
+     * <p/>
      * <p>For more detail, see {@link org.gradle.api.plugins.ObjectConfigurationAction}.</p>
      *
      * @param options The options to use to configure the {@code ObjectConfigurationAction}.
@@ -95,7 +96,7 @@ public interface Script {
      * <p>Resolves a file path relative to the directory containing this script and validates it using the given scheme.
      * See {@link PathValidation} for the list of possible validations.</p>
      *
-     * @param path An object to resolve as a File.
+     * @param path       An object to resolve as a File.
      * @param validation The validation to perform on the file.
      * @return The resolved file. Never returns null.
      * @throws InvalidUserDataException When the file does not meet the given validation constraint.
@@ -126,7 +127,7 @@ public interface Script {
      * using the given closure. This method works as described for {@link Project#files(Object, groovy.lang.Closure)}.
      * Relative paths are resolved relative to the directory containing this script.</p>
      *
-     * @param paths The contents of the file collection. Evaluated as for {@link #files(Object...)}.
+     * @param paths            The contents of the file collection. Evaluated as for {@link #files(Object...)}.
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
@@ -144,7 +145,7 @@ public interface Script {
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the given base directory. The given baseDir path is evaluated
      * as for {@link #file(Object)}.</p>
-     *
+     * <p/>
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -157,11 +158,11 @@ public interface Script {
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided map of arguments.  The map will be applied as
      * properties on the new file tree.  Example:</p>
-     *
+     * <p/>
      * <pre>
      * fileTree(dir:'src', excludes:['**&#47;ignore/**','**&#47;.svn/**'])
      * </pre>
-     *
+     * <p/>
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -174,14 +175,14 @@ public interface Script {
     /**
      * <p>Creates a new {@code ConfigurableFileTree} using the provided closure.  The closure will be used to configure
      * the new file tree. The file tree is passed to the closure as its delegate.  Example:</p>
-     *
+     * <p/>
      * <pre>
      * fileTree {
      *    from 'src'
      *    exclude '**&#47;.svn/**'
      * }.copy { into 'dest'}
      * </pre>
-     *
+     * <p/>
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -195,7 +196,7 @@ public interface Script {
      * <p>Creates a new {@code FileTree} which contains the contents of the given ZIP file. The given zipPath path is
      * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to unzip a ZIP file.</p>
-     *
+     * <p/>
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -209,7 +210,7 @@ public interface Script {
      * <p>Creates a new {@code FileTree} which contains the contents of the given TAR file. The given tarPath path is
      * evaluated as for {@link #file(Object)}. You can combine this method with the {@link #copy(groovy.lang.Closure)}
      * method to untar a TAR file.</p>
-     *
+     * <p/>
      * <p>The returned file tree is lazy, so that it scans for files only when the contents of the file tree are
      * queried. The file tree is also live, so that it scans for files each time the contents of the file tree are
      * queried.</p>
@@ -263,7 +264,8 @@ public interface Script {
      *
      * @param path The path for the directory to be created. Evaluated as for {@link #file(Object)}.
      * @return the created directory
-     * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     * @throws org.gradle.api.InvalidUserDataException
+     *          If the path points to an existing file.
      */
     File mkdir(Object path);
 
@@ -276,6 +278,22 @@ public interface Script {
     boolean delete(Object... paths);
 
     /**
+     * Executes a Java main class. The closure configures a {@link org.gradle.util.exec.JavaExecSpec}.
+     *
+     * @param closure The closure for configuring the execution.
+     * @return the result of the execution
+     */
+    ExecResult javaexec(Closure closure);
+
+    /**
+     * Executes an external command. The closure configures a {@link org.gradle.util.exec.ExecSpec}.
+     *
+     * @param closure The closure for configuring the execution.
+     * @return the result of the execution
+     */
+    ExecResult exec(Closure closure);
+
+    /**
      * Disables redirection of standard output during script execution. By default redirection is enabled.
      *
      * @see #captureStandardOutput(org.gradle.api.logging.LogLevel)
@@ -286,7 +304,7 @@ public interface Script {
      * Starts redirection of standard output during to the logging system during script execution. By default
      * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
      * ERROR level. Redirection of output at execution time can be configured via the tasks.
-     *
+     * <p/>
      * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
      *
      * @param level The level standard out should be logged to.

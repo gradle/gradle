@@ -16,16 +16,18 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.external.javadoc.optionfile.JavadocOptionFile;
 import org.gradle.external.javadoc.optionfile.JavadocOptionFileOption;
 import org.gradle.external.javadoc.optionfile.OptionLessJavadocOptionFileOption;
-import org.gradle.external.javadoc.optionfile.JavadocOptionFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 import org.gradle.util.exec.ExecHandleBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * 
@@ -129,8 +131,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     public void contributeCommandLineOptions(ExecHandleBuilder execHandleBuilder) {
         execHandleBuilder
-            .arguments(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
-            .arguments(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
+            .args(GUtil.prefix("-J", jFlags).toArray(new String[jFlags.size()])) // J flags can not be set in the option file
+            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles)).toArray(new String[jFlags.size()])); // add additional option files
     }
 
     public MinimalJavadocOptions showFromPrivate() {

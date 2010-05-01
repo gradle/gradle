@@ -50,13 +50,15 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.*;
+import org.gradle.util.exec.ExecResult;
 
 import java.io.File;
 import java.net.URI;
 import java.util.*;
 
-import static java.util.Collections.*;
-import static org.gradle.util.GUtil.*;
+import static java.util.Collections.singletonMap;
+import static org.gradle.util.GUtil.addMaps;
+import static org.gradle.util.GUtil.isTrue;
 
 /**
  * @author Hans Dockter
@@ -821,6 +823,14 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public CopySpec copySpec(Closure closure) {
         return fileOperations.copySpec(closure);
+    }
+
+    public ExecResult javaexec(Closure closure) {
+        return fileOperations.javaexec(closure);
+    }
+
+    public ExecResult exec(Closure closure) {
+        return fileOperations.exec(closure);
     }
 
     public ServiceRegistryFactory getServiceRegistryFactory() {

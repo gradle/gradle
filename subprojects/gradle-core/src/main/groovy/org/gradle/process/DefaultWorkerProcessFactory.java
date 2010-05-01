@@ -62,7 +62,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
         public DefaultWorkerProcessBuilder() {
             super(resolver);
             setLogLevel(workerLogLevel);
-            getJavaCommand().mainClass(GradleWorkerMain.class.getName());
+            getJavaCommand().setMain(GradleWorkerMain.class.getName());
         }
 
         @Override
@@ -93,7 +93,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             LOGGER.debug("Using application classpath {}", getApplicationClasspath());
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
-            getJavaCommand().standardInput(new ByteArrayInputStream(config));
+            getJavaCommand().setStandardInput(new ByteArrayInputStream(config));
             ExecHandle execHandle = getJavaCommand().build();
 
             return new DefaultWorkerProcess(connection, execHandle);

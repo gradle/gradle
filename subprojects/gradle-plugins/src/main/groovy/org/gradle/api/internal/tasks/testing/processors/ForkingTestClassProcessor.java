@@ -18,14 +18,14 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.process.WorkerProcess;
 import org.gradle.process.WorkerProcessBuilder;
 import org.gradle.process.WorkerProcessFactory;
+import org.gradle.util.exec.JavaForkOptions;
 
 import java.io.File;
 

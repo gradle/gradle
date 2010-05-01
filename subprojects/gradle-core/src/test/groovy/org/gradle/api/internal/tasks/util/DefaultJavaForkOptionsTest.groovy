@@ -17,19 +17,19 @@
 
 package org.gradle.api.internal.tasks.util
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.gradle.api.internal.file.FileResolver
-import org.junit.Test
-import org.gradle.util.Jvm
-import org.gradle.api.tasks.util.JavaForkOptions
 import org.gradle.api.file.FileCollection
+import org.gradle.api.internal.file.FileResolver
+import org.gradle.util.JUnit4GroovyMockery
+import org.gradle.util.Jvm
+import org.gradle.util.exec.JavaForkOptions
+import org.jmock.integration.junit4.JMock
 import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.gradle.util.Matchers.isEmpty
+import static org.gradle.util.Matchers.isEmptyMap
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 public class DefaultJavaForkOptionsTest {

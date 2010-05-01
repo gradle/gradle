@@ -15,196 +15,291 @@
  */
 package org.gradle.api.internal.file
 
+import org.apache.commons.io.FileUtils
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.PathValidation
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.FileTree
 import org.gradle.api.internal.file.archive.TarFileTree
 import org.gradle.api.internal.file.archive.ZipFileTree
 import org.gradle.api.internal.file.copy.CopyActionImpl
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.internal.tasks.TaskResolver
-import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
-import org.jmock.integration.junit4.JMock
+import org.gradle.util.exec.ExecException
+import org.gradle.util.exec.ExecResult
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertThat
-import org.gradle.api.InvalidUserDataException
-import org.gradle.api.file.ConfigurableFileCollection
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-public class DefaultFileOperationsTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final FileResolver resolver = context.mock(FileResolver.class)
-    private final TaskResolver taskResolver = context.mock(TaskResolver.class)
-    private final TemporaryFileProvider temporaryFileProvider = context.mock(TemporaryFileProvider.class)
-    private final DefaultFileOperations fileOperations = new DefaultFileOperations(resolver, taskResolver, temporaryFileProvider)
+public class DefaultFileOperationsTest extends Specification {
+    private final FileResolver resolver = Mock()
+    private final TaskResolver taskResolver = Mock()
+    private final TemporaryFileProvider temporaryFileProvider = Mock()
+    private DefaultFileOperations fileOperations = new DefaultFileOperations(resolver, taskResolver, temporaryFileProvider)
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder()
 
-    @Test
-    public void resolvesFile() {
+    def resolvesFile() {
+        when:
         TestFile file = expectPathResolved('path')
-        assertThat(fileOperations.file('path'), equalTo(file))
+
+        then:
+        fileOperations.file('path') == file
     }
 
-    @Test
-    public void resolvesFileWithValidation() {
+    def resolvesFileWithValidation() {
         TestFile file = tmpDir.file('path')
-        context.checking {
-            one(resolver).resolve('path', PathValidation.EXISTS)
-            will(returnValue(file))
-        }
-        assertThat(fileOperations.file('path', PathValidation.EXISTS), equalTo(file))
+        resolver.resolve('path', PathValidation.EXISTS) >> file
+
+        expect:
+        fileOperations.file('path', PathValidation.EXISTS) == file
     }
 
-    @Test
-    public void resolvesURI() {
+    def resolvesURI() {
+        when:
         URI uri = expectPathResolvedToUri('path')
-        assertThat(fileOperations.uri('path'), equalTo(uri))
+
+        then:
+        fileOperations.uri('path') == uri
     }
 
-    @Test
-    public void resolvesFiles() {
+    def resolvesFiles() {
+        when:
         def fileCollection = fileOperations.files('a', 'b')
-        assertThat(fileCollection, instanceOf(PathResolvingFileCollection.class))
-        assertThat(fileCollection.sources, equalTo(['a', 'b']))
-        assertThat(fileCollection.resolver, sameInstance(resolver))
-        assertThat(fileCollection.buildDependency.resolver, sameInstance(taskResolver))
+
+        then:
+        fileCollection instanceof PathResolvingFileCollection
+        fileCollection.sources == ['a', 'b']
+        fileCollection.resolver.is(resolver)
+        fileCollection.buildDependency.resolver.is(taskResolver)
     }
 
-    @Test
-    public void createsFileTree() {
+    def createsFileTree() {
         TestFile baseDir = expectPathResolved('base')
 
+        when:
         def fileTree = fileOperations.fileTree('base')
-        assertThat(fileTree, instanceOf(FileTree.class))
-        assertThat(fileTree.dir, equalTo(baseDir))
-        assertThat(fileTree.resolver, sameInstance(resolver))
+
+        then:
+        fileTree instanceof FileTree
+        fileTree.dir == baseDir
+        fileTree.resolver.is(resolver)
     }
 
-    @Test
-    public void createsFileTreeFromMap() {
+    def createsFileTreeFromMap() {
         TestFile baseDir = expectPathResolved('base')
 
+        when:
         def fileTree = fileOperations.fileTree(dir: 'base')
-        assertThat(fileTree, instanceOf(FileTree.class))
-        assertThat(fileTree.dir, equalTo(baseDir))
-        assertThat(fileTree.resolver, sameInstance(resolver))
+
+        then:
+        fileTree instanceof FileTree
+        fileTree.dir == baseDir
+        fileTree.resolver.is(resolver)
     }
 
     @Test
     public void createsFileTreeFromClosure() {
         TestFile baseDir = expectPathResolved('base')
 
+        when:
         def fileTree = fileOperations.fileTree { from 'base' }
-        assertThat(fileTree, instanceOf(FileTree.class))
-        assertThat(fileTree.dir, equalTo(baseDir))
-        assertThat(fileTree.resolver, sameInstance(resolver))
+
+        then:
+        fileTree instanceof FileTree
+        fileTree.dir == baseDir
+        fileTree.resolver.is(resolver)
     }
 
-    @Test
-    public void createsZipFileTree() {
+    def createsZipFileTree() {
         expectPathResolved('path')
         expectTempFileCreated()
+        when:
         def zipTree = fileOperations.zipTree('path')
-        assertThat(zipTree, instanceOf(ZipFileTree.class))
+
+        then:
+        zipTree instanceof ZipFileTree
     }
 
-    @Test
-    public void createsTarFileTree() {
+    def createsTarFileTree() {
         expectPathResolved('path')
         expectTempFileCreated()
+
+        when:
         def tarTree = fileOperations.tarTree('path')
-        assertThat(tarTree, instanceOf(TarFileTree.class))
+
+        then:
+        tarTree instanceof TarFileTree
     }
 
-    @Test
-    public void copiesFiles() {
-        context.checking {
-            one(resolver).resolveFilesAsTree(['file'] as Set)
-            one(resolver).resolve('dir')
-            will(returnValue(tmpDir.getDir()))
-        }
+    def copiesFiles() {
+        FileTree fileTree = Mock(FileTree)
+        resolver.resolveFilesAsTree(_) >> fileTree
+        // todo we should make this work so that we can be more specific
+//        resolver.resolveFilesAsTree(['file'] as Object[]) >> fileTree
+//        resolver.resolveFilesAsTree(['file'] as Set) >> fileTree
+        fileTree.matching(_) >> fileTree
+        resolver.resolve('dir') >> tmpDir.getDir()
 
+        when:
         def result = fileOperations.copy { from 'file'; into 'dir' }
-        assertThat(result, instanceOf(CopyActionImpl.class))
-        assertFalse(result.didWork)
+
+        then:
+        result instanceof CopyActionImpl
+        !result.didWork
     }
 
-    @Test
-    public void deletes() {
+    def deletes() {
         TestFile fileToBeDeleted = tmpDir.file("file")
         ConfigurableFileCollection fileCollection = new PathResolvingFileCollection(resolver, null, "file")
-
-        context.checking {
-            one(resolver).resolveFiles("file")
-            will(returnValue(fileCollection))
-            one(resolver).resolve("file")
-            will(returnValue(fileToBeDeleted))
-        }
+        resolver.resolveFiles(["file"] as Object[]) >> fileCollection
+        resolver.resolve("file") >> fileToBeDeleted
         fileToBeDeleted.touch();
-        assertThat(fileOperations.delete('file'), equalTo(true))
-        assertThat(fileToBeDeleted.isFile(), equalTo(false))
+
+        expect:
+        fileOperations.delete('file') == true
+        fileToBeDeleted.isFile() == false
     }
 
-    @Test
-    public void makesDir() {
+    def makesDir() {
         TestFile dirToBeCreated = tmpDir.file("parentDir", "dir")
-        context.checking {
-            one(resolver).resolve('parentDir/dir')
-            will(returnValue(dirToBeCreated))
-        }
+        resolver.resolve('parentDir/dir') >> dirToBeCreated
+
+        when:
         File actualDir = fileOperations.mkdir('parentDir/dir')
-        assertThat(actualDir, equalTo(dirToBeCreated))
-        assertThat(actualDir.isDirectory(), equalTo(true))
+
+        then:
+        actualDir == dirToBeCreated
+        actualDir.isDirectory() == true
     }
 
-    @Test(expected = InvalidUserDataException)
-    public void makesDirThrowsExceptionIfPathPointsToFile() {
+    def makesDirThrowsExceptionIfPathPointsToFile() {
         TestFile dirToBeCreated = tmpDir.file("parentDir", "dir")
         dirToBeCreated.touch();
-        context.checking {
-            one(resolver).resolve('parentDir/dir')
-            will(returnValue(dirToBeCreated))
-        }
+        resolver.resolve('parentDir/dir') >> dirToBeCreated
+
+        when:
         fileOperations.mkdir('parentDir/dir')
+
+        then:
+        thrown(InvalidUserDataException)
     }
 
-    @Test
-    public void createsCopySpec() {
+    def createsCopySpec() {
+        when:
         def spec = fileOperations.copySpec { include 'pattern'}
-        assertThat(spec, instanceOf(CopySpecImpl.class))
-        assertThat(spec.includes, equalTo(['pattern'] as Set))
+
+        then:
+        spec instanceof CopySpecImpl
+        spec.includes == ['pattern'] as Set
     }
 
     private TestFile expectPathResolved(String path) {
         TestFile file = tmpDir.file(path)
-        context.checking {
-            one(resolver).resolve(path)
-            will(returnValue(file))
-        }
+        resolver.resolve(path) >> file
         return file
     }
 
     private URI expectPathResolvedToUri(String path) {
         TestFile file = tmpDir.file(path)
-        context.checking {
-            one(resolver).resolveUri(path)
-            will(returnValue(file.toURI()))
-        }
+        resolver.resolveUri(path) >> file.toURI()
         return file.toURI()
     }
 
     private TestFile expectTempFileCreated() {
         TestFile file = tmpDir.file('expandedArchives')
-        context.checking {
-            one(temporaryFileProvider).newTemporaryFile('expandedArchives')
-            will(returnValue(file))
-        }
+        temporaryFileProvider.newTemporaryFile('expandedArchives') >> file
         return file
+    }
+
+//    def javaexec() {
+//        File testFile = tmpDir.file("someFile")
+//        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+//        String someArg = 'someArg'
+//        List files = System.properties['java.class.path'].split(System.properties['path.separator']).collect { new File(it) }
+//
+//        when:
+//        ExecResult result = fileOperations.javaexec {
+//            classpath(files as Object[])
+//            main = 'org.gradle.api.internal.file.SomeMain'
+//            args testFile.absolutePath
+//        }
+//
+//        then:
+//        testFile.isFile()
+//        result.exitValue == 0
+//    }
+
+    def javaexecWithNonZeroExitValueShouldThrowException() {
+        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+
+        when:
+        fileOperations.javaexec {
+            main = 'org.gradle.UnknownMain'
+        }
+
+        then:
+        thrown(ExecException)
+    }
+
+    def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
+        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+
+        when:
+        ExecResult result = fileOperations.javaexec {
+            main = 'org.gradle.UnknownMain'
+            ignoreExitValue = true
+        }
+
+        then:
+        result.exitValue != 0
+    }
+
+    def exec() {
+        File testFile = tmpDir.file("someFile")
+
+        when:
+        ExecResult result = fileOperations.exec {
+            executable = "touch"
+            workingDir = tmpDir.getDir()
+            args testFile.name
+        }
+
+        then:
+        testFile.isFile()
+        result.exitValue == 0
+    }
+
+    def execWithNonZeroExitValueShouldThrowException() {
+        when:
+        fileOperations.exec {
+            executable = "touch"
+            workingDir = tmpDir.getDir()
+            args tmpDir.dir.name + "/nonExistingDir/someFile"
+        }
+
+        then:
+        thrown(ExecException)
+    }
+
+    def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
+        when:
+        ExecResult result = fileOperations.exec {
+            ignoreExitValue = true
+            executable = "touch"
+            workingDir = tmpDir.getDir()
+            args tmpDir.dir.name + "/nonExistingDir/someFile"
+        }
+
+        then:
+        result.exitValue != 0
+    }
+}
+
+class SomeMain {
+    static void main(String[] args) {
+        FileUtils.touch(new File(args[0]))
     }
 }

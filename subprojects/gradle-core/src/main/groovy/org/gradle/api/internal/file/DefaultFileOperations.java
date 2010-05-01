@@ -24,13 +24,15 @@ import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.util.ConfigureUtil;
+import org.gradle.util.exec.*;
 
 import java.io.File;
 import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
-import static org.gradle.util.ConfigureUtil.*;
+import static org.gradle.util.ConfigureUtil.configure;
 
 public class DefaultFileOperations implements FileOperations {
     private final FileResolver fileResolver;
@@ -126,5 +128,15 @@ public class DefaultFileOperations implements FileOperations {
 
     public void setDeleteAction(DeleteAction deleteAction) {
         this.deleteAction = deleteAction;
+    }
+
+    public ExecResult javaexec(Closure cl) {
+        JavaExecAction javaExecAction = ConfigureUtil.configure(cl, new DefaultJavaExecAction(fileResolver));
+        return javaExecAction.execute();
+    }
+
+    public ExecResult exec(Closure cl) {
+        ExecAction execAction = ConfigureUtil.configure(cl, new DefaultExecAction());
+        return execAction.execute();
     }
 }

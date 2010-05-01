@@ -32,9 +32,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.Matchers.containsLine;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.startsWith;
+import static org.junit.Assert.assertThat;
 
 // todo: implement more of the unsupported methods
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
@@ -113,8 +114,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 return ForkingGradleExecuter.this.getWorkingDir();
             }
         };
-        builder.standardOutput(outStream);
-        builder.errorOutput(errStream);
+        builder.setStandardOutput(outStream);
+        builder.setErrorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", System.getProperty("java.home"));
         builder.environment("GRADLE_OPTS", "-ea");
@@ -123,17 +124,17 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
         if (Os.isFamily(Os.FAMILY_WINDOWS)) {
             builder.executable("cmd");
-            builder.arguments("/c", windowsCommandSnippet);
+            builder.args("/c", windowsCommandSnippet);
             builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
         } else {
             builder.executable(unixCommandSnippet);
         }
 
-        builder.arguments(getAllArgs());
+        builder.setArgs(getAllArgs());
 
         LOG.info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(),
-                builder.getArguments()));
+                builder.getArgs()));
 
         ExecHandle proc = builder.build();
         proc.startAndWaitForFinish();
@@ -149,7 +150,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         if (failed != expectFailure) {
             String message = String.format("Gradle execution %s in %s with: %s %s%nOutput:%n%s%nError:%n%s%n-----%n",
                     expectFailure ? "did not fail" : "failed", builder.getWorkingDir(), builder.getExecutable(),
-                    builder.getArguments(), output, error);
+                    builder.getArgs(), output, error);
             System.out.println(message);
             throw new RuntimeException(message);
         }

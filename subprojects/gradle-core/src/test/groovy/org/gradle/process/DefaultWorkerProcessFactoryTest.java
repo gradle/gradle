@@ -64,7 +64,7 @@ public class DefaultWorkerProcessFactoryTest {
 
         WorkerProcessBuilder builder = factory.newProcess();
 
-        assertThat(builder.getJavaCommand().getMainClass(), equalTo(GradleWorkerMain.class.getName()));
+        assertThat(builder.getJavaCommand().getMain(), equalTo(GradleWorkerMain.class.getName()));
         assertThat(builder.getLogLevel(), equalTo(LogLevel.LIFECYCLE));
 
         builder.worker(new TestAction());

@@ -16,139 +16,65 @@
 
 package org.gradle.util.exec;
 
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.tasks.util.DefaultProcessForkOptions;
-import org.gradle.util.GUtil;
-import org.gradle.util.LineBufferingOutputStream;
-
-import java.io.*;
-import java.util.*;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author Tom Eyckmans
  */
-public class ExecHandleBuilder extends DefaultProcessForkOptions {
+public class ExecHandleBuilder extends AbstractExecHandleBuilder implements ExecSpec {
     private final List<String> arguments = new ArrayList<String>();
-    private int normalTerminationExitCode;
-    private OutputStream standardOutput;
-    private OutputStream errorOutput;
-    private InputStream input = new ByteArrayInputStream(new byte[0]);
-    private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
-
+    
     public ExecHandleBuilder() {
-        super(null);
-        standardOutput = new LineBuffer(System.out);
-        errorOutput = new LineBuffer(System.err);
+        super();
     }
 
     public ExecHandleBuilder(File execDirectory) {
-        this();
-        setWorkingDir(execDirectory);
+        super(execDirectory);
     }
 
     public ExecHandleBuilder(String execCommand) {
-        this();
-        setExecutable(execCommand);
+        super(execCommand);
     }
 
     public ExecHandleBuilder(File execDirectory, String execCommand) {
-        this();
-        setWorkingDir(execDirectory);
-        setExecutable(execCommand);
+        super(execDirectory, execCommand);
     }
 
     public ExecHandleBuilder commandLine(String... arguments) {
         executable(arguments[0]);
-        arguments(Arrays.asList(arguments).subList(1, arguments.length));
+        setArgs(Arrays.asList(arguments).subList(1, arguments.length));
         return this;
     }
 
-    public ExecHandleBuilder arguments(String... arguments) {
-        if (arguments == null) {
-            throw new IllegalArgumentException("arguments == null!");
+    public ExecHandleBuilder args(String... args) {
+        if (args == null) {
+            throw new IllegalArgumentException("args == null!");
         }
-        this.arguments.addAll(Arrays.asList(arguments));
+        this.arguments.addAll(Arrays.asList(args));
         return this;
     }
 
-    public ExecHandleBuilder arguments(List<String> arguments) {
-        this.arguments.addAll(arguments);
-        return this;
-    }
-
-    public ExecHandleBuilder setArguments(List<String> arguments) {
+    public ExecHandleBuilder setArgs(List<String> arguments) {
         this.arguments.clear();
         this.arguments.addAll(arguments);
         return this;
     }
 
-    public List<String> getArguments() {
+    public List<String> getArgs() {
         return arguments;
     }
 
-    public ExecHandleBuilder normalTerminationExitCode(int normalTerminationExitCode) {
-        this.normalTerminationExitCode = normalTerminationExitCode;
+    @Override
+    public List<String> getAllArguments() {
+        return getArgs();
+    }
+
+    @Override
+    public ExecHandleBuilder setIgnoreExitValue(boolean ignoreExitValue) {
+        super.setIgnoreExitValue(ignoreExitValue);
         return this;
-    }
-
-    public ExecHandleBuilder standardInput(InputStream inputStream) {
-        this.input = inputStream;
-        return this;
-    }
-
-    public InputStream getStandardInput() {
-        return input;
-    }
-
-    public ExecHandleBuilder standardOutput(OutputStream outputStream) {
-        if (outputStream == null) {
-            throw new IllegalArgumentException("outputStream == null!");
-        }
-        this.standardOutput = outputStream;
-        return this;
-    }
-
-    public ExecHandleBuilder errorOutput(OutputStream outputStream) {
-        if (outputStream == null) {
-            throw new IllegalArgumentException("outputStream == null!");
-        }
-        this.errorOutput = outputStream;
-        return this;
-    }
-
-    public ExecHandleBuilder listener(ExecHandleListener listener) {
-        if (listeners == null) {
-            throw new IllegalArgumentException("listeners == null!");
-        }
-        this.listeners.add(listener);
-        return this;
-    }
-
-    public List<String> getCommandLine() {
-        return GUtil.addLists(Collections.singleton(getExecutable()), getArguments());
-    }
-
-    public ExecHandle build() {
-        if (StringUtils.isEmpty(getExecutable())) {
-            throw new IllegalStateException("execCommand == null!");
-        }
-
-        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getArguments(), normalTerminationExitCode, getActualEnvironment(),
-                standardOutput, errorOutput, input, listeners);
-    }
-
-    private static class LineBuffer extends LineBufferingOutputStream {
-        private static final byte[] EOL = System.getProperty("line.separator").getBytes();
-        private final OutputStream target;
-
-        private LineBuffer(OutputStream target) {
-            this.target = target;
-        }
-
-        @Override
-        protected void writeLine(String message) throws IOException {
-            target.write(message.getBytes());
-            target.write(EOL);
-        }
     }
 }

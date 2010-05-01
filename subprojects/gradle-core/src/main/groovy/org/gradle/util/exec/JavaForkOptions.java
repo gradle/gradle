@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.util;
+package org.gradle.util.exec;
 
 import org.gradle.api.file.FileCollection;
 

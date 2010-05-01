@@ -98,8 +98,8 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                     builder.commandLine(executionInfo.getCommandLineArguments());
                     builder.environment(executionInfo.getEnvironmentVariables());
                     output = new ByteArrayOutputStream();
-                    builder.standardOutput(output);
-                    builder.errorOutput(output);
+                    builder.setStandardOutput(output);
+                    builder.setErrorOutput(output);
                     execHandle = builder.build();
                     setExternalProcess(execHandle);
 

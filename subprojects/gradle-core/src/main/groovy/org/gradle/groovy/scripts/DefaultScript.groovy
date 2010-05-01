@@ -14,33 +14,27 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.groovy.scripts
 
+import org.gradle.api.PathValidation
+import org.gradle.api.Script
 import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.file.ConfigurableFileTree
+import org.gradle.api.file.CopySpec
+import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.file.BaseDirConverter
-import org.gradle.api.internal.file.FileResolver
-import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.ObjectConfigurationAction
+import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.util.ConfigureUtil
-import org.gradle.api.logging.Logging
-import org.gradle.api.Script
-import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.internal.file.DefaultFileOperations
-import org.gradle.api.PathValidation
-import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.file.FileTree
-import org.gradle.api.tasks.WorkResult
-import org.gradle.api.file.CopySpec
-import org.gradle.api.logging.LoggingManager
+import org.gradle.util.exec.ExecResult
+import org.gradle.api.internal.file.*
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
@@ -143,6 +137,14 @@ abstract class DefaultScript extends BasicScript {
 
     boolean delete(Object... paths) {
         return fileOperations.delete(paths);
+    }
+
+    ExecResult javaexec(Closure closure) {
+        return fileOperations.javaexec(closure);
+    }
+
+    ExecResult exec(Closure closure) {
+        return fileOperations.exec(closure);
     }
 
     public void captureStandardOutput(LogLevel level) {

@@ -195,7 +195,7 @@ public class WorkerProcessIntegrationTest {
             builder.worker(action);
 
             if (mainClass != null) {
-                builder.getJavaCommand().mainClass(mainClass);
+                builder.getJavaCommand().setMain(mainClass);
             }
 
             proc = builder.build();
