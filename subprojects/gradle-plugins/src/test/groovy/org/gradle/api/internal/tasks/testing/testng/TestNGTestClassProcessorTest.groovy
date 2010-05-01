@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 
 import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.tasks.testing.testng.TestNGOptions
-import org.gradle.api.testing.fabric.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
 import org.jmock.Sequence

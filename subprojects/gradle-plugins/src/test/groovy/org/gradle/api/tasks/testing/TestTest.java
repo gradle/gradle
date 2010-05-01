@@ -19,14 +19,13 @@ package org.gradle.api.tasks.testing;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.testing.TestListenerAdapter;
+import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
+import org.gradle.api.internal.tasks.testing.detection.TestClassScannerFactory;
+import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.detection.TestClassScannerFactory;
-import org.gradle.api.testing.execution.MaxNParallelTestClassProcessor;
-import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
-import org.gradle.api.testing.fabric.TestFramework;
-import org.gradle.api.testing.fabric.TestFrameworkInstance;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
@@ -233,7 +232,8 @@ public class TestTest extends AbstractConventionTaskTest {
             one(testFrameworkInstanceMock).getProcessorFactory();
             will(returnValue(testProcessorFactoryMock));
 
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher), with(notNullValue(TestListenerAdapter.class)));
+            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher), with(notNullValue(
+                    TestListenerAdapter.class)));
             will(returnValue(testClassScannerMock));
 
             one(testClassScannerMock).run();

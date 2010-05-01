@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,24 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.testing.detection;
 
-package org.gradle.api.tasks.testing;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 
-import org.gradle.util.JUnit4GroovyMockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import java.io.File;
 
 /**
  * @author Tom Eyckmans
  */
-public class AbstractTestFrameworkOptionsTest<T extends TestFramework> {
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
+public interface TestFrameworkDetector {
+    void startDetection(TestClassProcessor testClassProcessor);
 
-    protected T testFrameworkMock;
-
-    protected void setUp(Class<T> testFrameworkClass) throws Exception
-    {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-
-        testFrameworkMock = context.mock(testFrameworkClass);
-    }
+    boolean processTestClass(File testClassFile);
 }

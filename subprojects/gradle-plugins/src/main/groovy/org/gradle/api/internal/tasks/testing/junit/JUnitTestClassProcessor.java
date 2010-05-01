@@ -17,9 +17,9 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.testing.TestClassProcessor;
-import org.gradle.api.testing.fabric.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.IdGenerator;

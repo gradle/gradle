@@ -24,7 +24,6 @@ import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
-import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.util.GUtil;
 
@@ -187,8 +186,8 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureTest(final Project project) {
-        project.getTasks().withType(AbstractTestTask.class).allTasks(new Action<AbstractTestTask>() {
-            public void execute(AbstractTestTask test) {
+        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
+            public void execute(Test test) {
                 test.getConventionMapping().map(GUtil.map("testResultsDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return convention.getPlugin(JavaPluginConvention.class).getTestResultsDir();

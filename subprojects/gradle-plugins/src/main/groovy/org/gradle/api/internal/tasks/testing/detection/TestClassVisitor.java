@@ -14,23 +14,31 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.testing;
+package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.util.JUnit4GroovyMockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import org.objectweb.asm.commons.EmptyVisitor;
 
 /**
+ * Base class for ASM test class scanners.
+ *
  * @author Tom Eyckmans
  */
-public class AbstractTestFrameworkOptionsTest<T extends TestFramework> {
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
+public abstract class TestClassVisitor extends EmptyVisitor {
 
-    protected T testFrameworkMock;
+    protected final TestFrameworkDetector detector;
 
-    protected void setUp(Class<T> testFrameworkClass) throws Exception
-    {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-
-        testFrameworkMock = context.mock(testFrameworkClass);
+    protected TestClassVisitor(TestFrameworkDetector detector) {
+        if (detector == null) {
+            throw new IllegalArgumentException("detector == null!");
+        }
+        this.detector = detector;
     }
+
+    public abstract String getClassName();
+
+    public abstract boolean isTest();
+
+    public abstract boolean isAbstract();
+
+    public abstract String getSuperClassName();
 }

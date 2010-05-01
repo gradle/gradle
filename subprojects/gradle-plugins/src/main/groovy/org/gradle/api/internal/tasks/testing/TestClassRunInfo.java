@@ -13,24 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.testing;
 
-package org.gradle.api.tasks.testing;
-
-import org.gradle.util.JUnit4GroovyMockery;
-import org.jmock.lib.legacy.ClassImposteriser;
+import java.io.Serializable;
 
 /**
  * @author Tom Eyckmans
  */
-public class AbstractTestFrameworkOptionsTest<T extends TestFramework> {
-    protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-
-    protected T testFrameworkMock;
-
-    protected void setUp(Class<T> testFrameworkClass) throws Exception
-    {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-
-        testFrameworkMock = context.mock(testFrameworkClass);
-    }
+public interface TestClassRunInfo extends Serializable {
+    String getTestClassName();
 }

@@ -22,6 +22,7 @@ import org.apache.tools.ant.util.DateUtils;
 import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 

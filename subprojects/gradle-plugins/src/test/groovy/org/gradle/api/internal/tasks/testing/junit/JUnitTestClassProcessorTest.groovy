@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.api.testing.fabric.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.LongIdGenerator
 import org.gradle.util.TemporaryFolder
