@@ -57,8 +57,8 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.TcpMessagingServer;
-import org.gradle.process.DefaultWorkerProcessFactory;
-import org.gradle.process.WorkerProcessFactory;
+import org.gradle.process.internal.DefaultWorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.*;
 
 import java.io.File;

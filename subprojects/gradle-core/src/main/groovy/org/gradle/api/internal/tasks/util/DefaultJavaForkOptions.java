@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.util;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Jvm;
-import org.gradle.util.exec.JavaForkOptions;
 
 import java.io.File;
 import java.util.*;

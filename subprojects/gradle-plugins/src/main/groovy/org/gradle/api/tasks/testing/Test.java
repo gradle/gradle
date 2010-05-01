@@ -44,10 +44,10 @@ import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassPr
 import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
-import org.gradle.process.WorkerProcessFactory;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.exec.JavaForkOptions;
-import org.gradle.util.exec.ProcessForkOptions;
+import org.gradle.process.ProcessForkOptions;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;

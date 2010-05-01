@@ -24,8 +24,12 @@ import org.gradle.api.internal.file.archive.ZipFileTree;
 import org.gradle.api.internal.file.copy.*;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.tasks.WorkResult;
+import org.gradle.process.ExecResult;
+import org.gradle.process.internal.DefaultExecAction;
+import org.gradle.process.internal.DefaultJavaExecAction;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.JavaExecAction;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.exec.*;
 
 import java.io.File;
 import java.net.URI;

@@ -17,8 +17,8 @@ package org.gradle.integtests;
 
 import org.apache.tools.ant.taskdefs.condition.Os;
 import org.gradle.util.GUtil;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleBuilder;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;

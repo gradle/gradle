@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.process.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.IdGenerator;
 
 import java.io.File;

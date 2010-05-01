@@ -19,10 +19,10 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.exec.JavaExecHandleBuilder;
-import org.gradle.util.exec.JavaExecSpec;
-import org.gradle.util.exec.JavaForkOptions;
-import org.gradle.util.exec.ProcessForkOptions;
+import org.gradle.process.internal.JavaExecHandleBuilder;
+import org.gradle.process.JavaExecSpec;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ProcessForkOptions;
 
 import java.io.File;
 import java.io.InputStream;

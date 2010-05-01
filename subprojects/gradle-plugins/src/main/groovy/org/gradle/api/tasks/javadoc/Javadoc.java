@@ -23,7 +23,7 @@ import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.util.GUtil;
-import org.gradle.util.exec.ExecHandle;
+import org.gradle.process.internal.ExecHandle;
 
 import java.io.File;
 import java.util.*;

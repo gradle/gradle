@@ -17,8 +17,8 @@ package org.gradle.api.tasks
 
 import org.gradle.api.internal.AbstractTask
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.exec.ExecAction
-import org.gradle.util.exec.ExecResult
+import org.gradle.process.internal.ExecAction
+import org.gradle.process.ExecResult
 import org.hamcrest.Matchers
 import org.junit.Before
 import org.junit.Test

@@ -22,10 +22,10 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.worker.TestWorker;
-import org.gradle.process.WorkerProcess;
-import org.gradle.process.WorkerProcessBuilder;
-import org.gradle.process.WorkerProcessFactory;
-import org.gradle.util.exec.JavaForkOptions;
+import org.gradle.process.internal.WorkerProcess;
+import org.gradle.process.internal.WorkerProcessBuilder;
+import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
 

@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.Jvm
-import org.gradle.util.exec.JavaForkOptions
+import org.gradle.process.JavaForkOptions
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test

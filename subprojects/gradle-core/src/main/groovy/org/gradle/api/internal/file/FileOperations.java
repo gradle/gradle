@@ -22,7 +22,7 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.util.exec.ExecResult;
+import org.gradle.process.ExecResult;
 
 import java.io.File;
 import java.net.URI;

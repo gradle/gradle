@@ -24,7 +24,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.tasks.WorkResult;
-import org.gradle.util.exec.ExecResult;
+import org.gradle.process.ExecResult;
 
 import java.io.File;
 import java.net.URI;
@@ -278,7 +278,7 @@ public interface Script {
     boolean delete(Object... paths);
 
     /**
-     * Executes a Java main class. The closure configures a {@link org.gradle.util.exec.JavaExecSpec}.
+     * Executes a Java main class. The closure configures a {@link org.gradle.process.JavaExecSpec}.
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution
@@ -286,7 +286,7 @@ public interface Script {
     ExecResult javaexec(Closure closure);
 
     /**
-     * Executes an external command. The closure configures a {@link org.gradle.util.exec.ExecSpec}.
+     * Executes an external command. The closure configures a {@link org.gradle.process.ExecSpec}.
      *
      * @param closure The closure for configuring the execution.
      * @return the result of the execution

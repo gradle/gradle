@@ -27,8 +27,8 @@ import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.internal.tasks.TaskResolver
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
-import org.gradle.util.exec.ExecException
-import org.gradle.util.exec.ExecResult
+import org.gradle.process.internal.ExecException
+import org.gradle.process.ExecResult
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification

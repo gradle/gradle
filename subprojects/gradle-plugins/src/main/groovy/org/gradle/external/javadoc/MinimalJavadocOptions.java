@@ -16,7 +16,7 @@
 
 package org.gradle.external.javadoc;
 
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.File;
 import java.io.IOException;

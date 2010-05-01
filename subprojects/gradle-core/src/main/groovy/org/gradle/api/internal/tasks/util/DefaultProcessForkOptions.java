@@ -17,7 +17,7 @@ package org.gradle.api.internal.tasks.util;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
-import org.gradle.util.exec.ProcessForkOptions;
+import org.gradle.process.ProcessForkOptions;
 
 import java.io.File;
 import java.util.HashMap;

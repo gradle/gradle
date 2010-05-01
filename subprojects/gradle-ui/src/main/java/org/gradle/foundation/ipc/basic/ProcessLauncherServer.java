@@ -18,8 +18,8 @@ package org.gradle.foundation.ipc.basic;
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.ByteArrayOutputStream;
 

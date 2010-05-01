@@ -107,7 +107,7 @@ test {
 
 task workerJar(type: Jar) {
     from sourceSets.main.classes
-    include 'org/gradle/process/launcher/**'
+    include 'org/gradle/process/internal/launcher/**'
     baseName = "$jar.baseName-worker"
 }
 

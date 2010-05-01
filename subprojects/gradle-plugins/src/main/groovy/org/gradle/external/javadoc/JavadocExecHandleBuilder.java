@@ -18,8 +18,8 @@ package org.gradle.external.javadoc;
 
 import org.gradle.api.GradleException;
 import org.gradle.util.Jvm;
-import org.gradle.util.exec.ExecHandle;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandle;
+import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.File;
 import java.io.IOException;

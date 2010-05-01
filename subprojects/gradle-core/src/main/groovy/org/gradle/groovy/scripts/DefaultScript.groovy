@@ -33,7 +33,7 @@ import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.util.ConfigureUtil
-import org.gradle.util.exec.ExecResult
+import org.gradle.process.ExecResult
 import org.gradle.api.internal.file.*
 
 abstract class DefaultScript extends BasicScript {

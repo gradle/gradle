@@ -25,7 +25,7 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.messaging.ObjectConnection
-import org.gradle.process.WorkerProcessContext
+import org.gradle.process.internal.WorkerProcessContext
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
 import org.jmock.integration.junit4.JMock

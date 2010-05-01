@@ -16,7 +16,11 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.util.exec.*;
+import org.gradle.process.ExecResult;
+import org.gradle.process.ExecSpec;
+import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.DefaultExecAction;
+import org.gradle.process.internal.ExecAction;
 
 import java.io.File;
 import java.io.InputStream;

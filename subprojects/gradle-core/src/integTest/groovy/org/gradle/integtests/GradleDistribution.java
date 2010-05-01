@@ -16,8 +16,8 @@
 
 package org.gradle.integtests;
 
-import org.gradle.process.launcher.BootstrapClassLoaderWorker;
-import org.gradle.process.launcher.GradleWorkerMain;
+import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
+import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;

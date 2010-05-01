@@ -27,7 +27,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.listener.ContextClassLoaderProxy;
 import org.gradle.listener.ThreadSafeProxy;
 import org.gradle.messaging.ObjectConnection;
-import org.gradle.process.WorkerProcessContext;
+import org.gradle.process.internal.WorkerProcessContext;
 import org.gradle.util.CompositeIdGenerator;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.LongIdGenerator;

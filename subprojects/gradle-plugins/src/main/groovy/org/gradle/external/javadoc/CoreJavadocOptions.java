@@ -21,7 +21,7 @@ import org.gradle.external.javadoc.optionfile.JavadocOptionFileOption;
 import org.gradle.external.javadoc.optionfile.OptionLessJavadocOptionFileOption;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.exec.ExecHandleBuilder;
+import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.File;
 import java.io.IOException;

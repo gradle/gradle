@@ -19,7 +19,7 @@ import static org.gradle.util.Matchers.*
 
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.JUnit4GroovyMockery
-import org.gradle.util.exec.ProcessForkOptions
+import org.gradle.process.ProcessForkOptions
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith

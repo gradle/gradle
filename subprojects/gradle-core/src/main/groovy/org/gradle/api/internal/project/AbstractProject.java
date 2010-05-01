@@ -50,7 +50,7 @@ import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.*;
-import org.gradle.util.exec.ExecResult;
+import org.gradle.process.ExecResult;
 
 import java.io.File;
 import java.net.URI;
