@@ -18,7 +18,6 @@ package org.gradle.api.testing.fabric;
 
 import org.gradle.api.Action;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.process.WorkerProcessBuilder;
 
@@ -26,7 +25,6 @@ import org.gradle.process.WorkerProcessBuilder;
  * @author Tom Eyckmans
  */
 public interface TestFrameworkInstance {
-    TestFramework getTestFramework();
 
     TestFrameworkDetector getDetector();
 
@@ -35,8 +33,6 @@ public interface TestFrameworkInstance {
     void report();
 
     TestFrameworkOptions getOptions();
-
-    void applyForkArguments(JavaForkOptions forkOptions);
 
     WorkerTestClassProcessorFactory getProcessorFactory();
 

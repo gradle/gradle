@@ -23,7 +23,6 @@ import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
@@ -91,15 +90,6 @@ public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     public JUnitDetector getDetector() {
         return detector;
-    }
-
-    public void applyForkArguments(JavaForkOptions javaForkOptions) {
-        // TODO - implement
-        // TODO clone
-        // TODO bootstrapClasspath - not sure which bootstrap classpath option to use:
-        // TODO one of: -Xbootclasspath or -Xbootclasspath/a or -Xbootclasspath/p
-        // TODO -Xbootclasspath/a seems the correct one - to discuss or improve and make it
-        // TODO possible to specify which one to use. -> will break ant task compatibility in options.
     }
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {

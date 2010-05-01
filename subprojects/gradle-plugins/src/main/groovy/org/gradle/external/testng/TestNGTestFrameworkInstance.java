@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestClassProcessor;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.api.tasks.util.JavaForkOptions;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.AbstractTestFrameworkInstance;
@@ -81,10 +80,6 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
 
     public TestNGDetector getDetector() {
         return detector;
-    }
-
-    public void applyForkArguments(JavaForkOptions javaForkOptions) {
-        // TODO - implement
     }
 
     private static class TestClassProcessorFactoryImpl implements WorkerTestClassProcessorFactory, Serializable {

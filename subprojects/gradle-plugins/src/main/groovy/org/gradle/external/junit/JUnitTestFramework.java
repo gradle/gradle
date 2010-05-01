@@ -18,39 +18,17 @@ package org.gradle.external.junit;
 import org.gradle.api.tasks.testing.AbstractTestFramework;
 import org.gradle.api.tasks.testing.AbstractTestTask;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
-import org.gradle.api.testing.fabric.TestProcessorFactory;
-import org.gradle.api.testing.fabric.TestMethodProcessResultState;
-import org.gradle.api.testing.fabric.TestMethodProcessResultStates;
-
-import java.util.Map;
-import java.util.HashMap;
 
 /**
  * @author Tom Eyckmans
  */
 public class JUnitTestFramework extends AbstractTestFramework {
 
-    private static final Map<TestMethodProcessResultState, TestMethodProcessResultState>
-            METHOD_PROCESS_RESULT_STATE_MAPPING = new HashMap<TestMethodProcessResultState, TestMethodProcessResultState>();
-
-    static {
-        METHOD_PROCESS_RESULT_STATE_MAPPING.put(JUnitTestMethodProcessResultStates.SUCCESS, TestMethodProcessResultStates.SUCCESS);
-        METHOD_PROCESS_RESULT_STATE_MAPPING.put(JUnitTestMethodProcessResultStates.FAILURE, TestMethodProcessResultStates.FAILURE);
-        METHOD_PROCESS_RESULT_STATE_MAPPING.put(JUnitTestMethodProcessResultStates.ERROR, TestMethodProcessResultStates.ERROR);
-    }
     public JUnitTestFramework() {
         super("junit", "JUnit");
     }
 
     public TestFrameworkInstance getInstance(AbstractTestTask testTask) {
         return new JUnitTestFrameworkInstance(testTask, this);
-    }
-
-    public TestProcessorFactory getProcessorFactory() {
-        return new JUnitTestProcessorFactory();
-    }
-
-    public Map<TestMethodProcessResultState, TestMethodProcessResultState> getMethodProcessResultStateMapping() {
-        return METHOD_PROCESS_RESULT_STATE_MAPPING;
     }
 }

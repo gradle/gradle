@@ -36,8 +36,4 @@ public abstract class AbstractTestFrameworkInstance implements TestFrameworkInst
         this.testTask = testTask;
         this.testFramework = testFramework;
     }
-
-    public TestFramework getTestFramework() {
-        return testFramework;
-    }
 }
