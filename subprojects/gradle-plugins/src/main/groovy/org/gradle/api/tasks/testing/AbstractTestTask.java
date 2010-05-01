@@ -69,7 +69,9 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     private boolean scanForTestClasses = true;
 
-    private Long forkEvery;
+    private long forkEvery;
+
+    private int maxParallelForks = 1;
 
     /**
      * The broadcaster for all {@link TestListener} implementations that have been registered with ListenerManager.
@@ -468,20 +470,46 @@ public abstract class AbstractTestTask extends ConventionTask implements Pattern
 
     /**
      * Returns the maximum number of test classes to execute in a forked test process. The forked test process will be
-     * restarted when this limit is reached.
+     * restarted when this limit is reached. The default value is 0 (no maximum).
      *
-     * @return The maximum number of test classes. Returns null when there is no maximum.
+     * @return The maximum number of test classes. Returns 0 when there is no maximum.
      */
-    public Long getForkEvery() {
+    public long getForkEvery() {
         return forkEvery;
     }
 
     /**
-     * Sets the maximum number of test classes to execute in a forked test process. Use null to use no maximum.
+     * Sets the maximum number of test classes to execute in a forked test process. Use null or 0 to use no maximum.
      *
-     * @param forkEvery The maximum number of test classes. Use null to specify no maximum.
+     * @param forkEvery The maximum number of test classes. Use null or 0 to specify no maximum.
      */
     public void setForkEvery(Long forkEvery) {
-        this.forkEvery = forkEvery;
+        if (forkEvery != null && forkEvery < 0) {
+            throw new IllegalArgumentException("Cannot set forkEvery to a value less than 0.");
+        }
+        this.forkEvery = forkEvery == null ? 0 : forkEvery;
+    }
+
+    /**
+     * Returns the maximum number of forked test processes to execute in parallel. The default value is 1 (no parallel
+     * test execution).
+     *
+     * @return The maximum number of forked test processes.
+     */
+    public int getMaxParallelForks() {
+        return maxParallelForks;
+    }
+
+    /**
+     * Sets the maximum number of forked test processes to execute in parallel. Set to 1 to disable parallel test
+     * execution.
+     *
+     * @param maxParallelForks The maximum number of forked test processes.
+     */
+    public void setMaxParallelForks(int maxParallelForks) {
+        if (maxParallelForks < 1) {
+            throw new IllegalArgumentException("Cannot set maxParallelForks to a value less than 1.");
+        }
+        this.maxParallelForks = maxParallelForks;
     }
 }

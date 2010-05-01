@@ -29,6 +29,7 @@ import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.TestClassProcessorFactory;
 import org.gradle.api.testing.detection.DefaultTestClassScannerFactory;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
+import org.gradle.api.testing.execution.MaxNParallelTestClassProcessor;
 import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
 import org.gradle.api.testing.execution.fork.ForkingTestClassProcessor;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
@@ -286,14 +287,18 @@ public class Test extends AbstractTestTask implements JavaForkOptions {
 
         final TestFrameworkInstance testFrameworkInstance = getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
-        TestClassProcessorFactory processorFactory = new TestClassProcessorFactory() {
+        final TestClassProcessorFactory forkingProcessorFactory = new TestClassProcessorFactory() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, options, getClasspath(), testFrameworkInstance.getWorkerConfigurationAction());
             }
         };
+        TestClassProcessorFactory reforkingProcessorFactory = new TestClassProcessorFactory() {
+            public TestClassProcessor create() {
+                return new RestartEveryNTestClassProcessor(forkingProcessorFactory, getForkEvery());
+            }
+        };
 
-        Long forkEvery = getForkEvery();
-        TestClassProcessor processor = new RestartEveryNTestClassProcessor(processorFactory, forkEvery == null ? 0 : forkEvery);
+        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(), reforkingProcessorFactory); 
 
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);

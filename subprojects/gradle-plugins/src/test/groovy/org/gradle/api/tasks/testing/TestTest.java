@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.api.testing.TestClassProcessor;
 import org.gradle.api.testing.detection.TestClassScannerFactory;
-import org.gradle.api.testing.execution.RestartEveryNTestClassProcessor;
+import org.gradle.api.testing.execution.MaxNParallelTestClassProcessor;
 import org.gradle.api.testing.execution.fork.WorkerTestClassProcessorFactory;
 import org.gradle.api.testing.fabric.TestFramework;
 import org.gradle.api.testing.fabric.TestFrameworkInstance;
@@ -305,7 +305,7 @@ public class TestTest extends AbstractConventionTaskTest {
     private Matcher<TestClassProcessor> forkingProcessor() {
         return new BaseMatcher<TestClassProcessor>() {
             public boolean matches(Object o) {
-                return o instanceof RestartEveryNTestClassProcessor;
+                return o instanceof MaxNParallelTestClassProcessor;
             }
 
             public void describeTo(Description description) {
