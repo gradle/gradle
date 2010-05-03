@@ -19,10 +19,11 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.DefaultJavaExecAction;
+import org.gradle.process.internal.JavaExecAction;
 
 import java.io.File;
 import java.io.InputStream;
@@ -36,16 +37,16 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class JavaExec extends ConventionTask implements JavaExecSpec {
-    private JavaExecHandleBuilder javaExecHandleBuilder;
+    private JavaExecAction javaExecHandleBuilder;
 
     public JavaExec() {
         FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
-        javaExecHandleBuilder = new JavaExecHandleBuilder(fileResolver);
+        javaExecHandleBuilder = new DefaultJavaExecAction(fileResolver);
     }
 
     @TaskAction
     void exec() {
-        javaExecHandleBuilder.build().start().waitForFinish();
+        javaExecHandleBuilder.execute();
     }
 
     /**
@@ -132,16 +133,8 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    public void setBootstrapClasspath(Iterable<?> classpath) {
+    public void setBootstrapClasspath(FileCollection classpath) {
         javaExecHandleBuilder.setBootstrapClasspath(classpath);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public JavaExec bootstrapClasspath(Iterable<?> classpath) {
-        javaExecHandleBuilder.bootstrapClasspath(classpath);
-        return this;
     }
 
     /**

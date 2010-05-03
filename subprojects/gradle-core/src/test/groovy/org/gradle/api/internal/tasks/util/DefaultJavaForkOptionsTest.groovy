@@ -17,34 +17,27 @@
 
 package org.gradle.api.internal.tasks.util
 
+import static org.hamcrest.Matchers.*
+
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.file.IdentityFileResolver
+import org.gradle.process.JavaForkOptions
+import org.gradle.process.internal.DefaultJavaForkOptions
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.Jvm
-import org.gradle.process.JavaForkOptions
 import org.jmock.integration.junit4.JMock
-import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.Matchers.isEmptyMap
-import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 public class DefaultJavaForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FileResolver resolver = context.mock(FileResolver.class)
-    private final FileCollection bootstrapClasspath = [isEmpty: {true}, toString: {'empty-classpath'}] as FileCollection
-    private final DefaultJavaForkOptions options = new DefaultJavaForkOptions(resolver, Jvm.current())
-
-    @Before
-    public void setUp() {
-        context.checking {
-            allowing(resolver).resolveFiles([])
-            will(returnValue(bootstrapClasspath))
-        }
-    }
+    private DefaultJavaForkOptions options = new DefaultJavaForkOptions(resolver, Jvm.current())
     
     @Test
     public void defaultValues() {
@@ -52,7 +45,7 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.jvmArgs, isEmpty())
         assertThat(options.systemProperties, isEmptyMap())
         assertThat(options.maxHeapSize, nullValue())
-        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+        assertThat(options.bootstrapClasspath.files, isEmpty())
         assertFalse(options.enableAssertions)
         assertThat(options.allJvmArgs, isEmpty())
     }
@@ -156,53 +149,45 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void canSetBootstrapClasspath() {
-        options.bootstrapClasspath = ['file.jar']
-
-        context.checking {
-            allowing(resolver).resolveFiles(['file.jar'])
-            will(returnValue(bootstrapClasspath))
-        }
+        def bootstrapClasspath = [:] as FileCollection
+        options.bootstrapClasspath = bootstrapClasspath
 
         assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
     }
 
     @Test
     public void canAddToBootstrapClasspath() {
-        options.bootstrapClasspath = ['file.jar']
-        options.bootstrapClasspath('file2.jar')
+        def files = ['file1.jar', 'file2.jar'].collect { new File(it).absoluteFile }
+        options = new DefaultJavaForkOptions(new IdentityFileResolver());
+        options.bootstrapClasspath(files[0])
+        options.bootstrapClasspath(files[1])
 
-        context.checking {
-            allowing(resolver).resolveFiles(['file.jar', 'file2.jar'])
-            will(returnValue(bootstrapClasspath))
-        }
-
-        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+        assertThat(options.bootstrapClasspath.getFiles(), equalTo(files as Set))
     }
 
     @Test
     public void allJvmArgsIncludeBootstrapClasspath() {
-        options.bootstrapClasspath('file.jar')
+        def files = ['file1.jar', 'file2.jar'].collect { new File(it).absoluteFile }
+        options = new DefaultJavaForkOptions(new IdentityFileResolver());
+        options.bootstrapClasspath(files)
 
         context.checking {
             allowing(resolver).resolveFiles(['file.jar'])
             will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'} ] as FileCollection))
         }
 
-        assertThat(options.allJvmArgs, equalTo(['-Xbootclasspath:<classpath>']))
+        assertThat(options.allJvmArgs, equalTo(['-Xbootclasspath:' + files.join(System.properties['path.separator'])]))
     }
 
     @Test
     public void canSetBootstrapClasspathViaAllJvmArgs() {
-        options.bootstrapClasspath('file.jar')
+        def files = ['file1.jar', 'file2.jar'].collect { new File(it).absoluteFile }
+        options = new DefaultJavaForkOptions(new IdentityFileResolver());
+        options.bootstrapClasspath(files[0])
 
-        options.allJvmArgs = ['-Xbootclasspath:file2.jar']
+        options.allJvmArgs = ['-Xbootclasspath:' + files[1]]
 
-        context.checking {
-            allowing(resolver).resolveFiles(['file2.jar'])
-            will(returnValue(bootstrapClasspath))
-        }
-
-        assertThat(options.bootstrapClasspath, sameInstance(bootstrapClasspath))
+        assertThat(options.bootstrapClasspath.files, equalTo([files[1]] as Set))
     }
 
     @Test
@@ -210,7 +195,6 @@ public class DefaultJavaForkOptionsTest {
         options.executable('executable')
         options.jvmArgs('arg')
         options.systemProperties(key: 12)
-        options.bootstrapClasspath('file.jar')
         options.maxHeapSize = '1g'
 
         JavaForkOptions target = context.mock(JavaForkOptions.class)
@@ -219,7 +203,7 @@ public class DefaultJavaForkOptionsTest {
             one(target).setJvmArgs(['arg'])
             one(target).setSystemProperties(key: 12)
             one(target).setMaxHeapSize('1g')
-            one(target).setBootstrapClasspath(['file.jar'])
+            one(target).setBootstrapClasspath(options.bootstrapClasspath)
             one(target).setEnableAssertions(false)
             ignoring(target)
         }

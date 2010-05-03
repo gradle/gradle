@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.util;
+package org.gradle.process.internal;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.util.Jvm;
 
@@ -33,7 +34,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     private final Pattern bootstrapPattern = Pattern.compile("-Xbootclasspath:(.+)");
     private final List<Object> extraJvmArgs = new ArrayList<Object>();
     private final Map<String, Object> systemProperties = new TreeMap<String, Object>();
-    private final List<Object> bootstrapClasspath = new ArrayList<Object>();
+    private FileCollection bootstrapClasspath;
     private String maxHeapSize;
     private boolean assertionsEnabled;
 
@@ -43,6 +44,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
     public DefaultJavaForkOptions(FileResolver resolver, Jvm jvm) {
         super(resolver);
+        this.bootstrapClasspath = new PathResolvingFileCollection(resolver, null);
         setExecutable(jvm.getJavaExecutable());
     }
 
@@ -110,7 +112,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             }
             matcher = bootstrapPattern.matcher(argStr);
             if (matcher.matches()) {
-                setBootstrapClasspath(Arrays.asList(matcher.group(1).split(Pattern.quote(File.pathSeparator))));
+                setBootstrapClasspath(getResolver().resolveFiles(matcher.group(1).split(Pattern.quote(File.pathSeparator))));
                 continue;
             }
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
@@ -152,23 +154,15 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     }
 
     public FileCollection getBootstrapClasspath() {
-        return getResolver().resolveFiles(bootstrapClasspath);
+        return bootstrapClasspath;
     }
 
-    public void setBootstrapClasspath(Iterable<?> classpath) {
-        bootstrapClasspath.clear();
-        bootstrapClasspath(classpath);
-    }
-
-    public JavaForkOptions bootstrapClasspath(Iterable<?> classpath) {
-        for (Object item : classpath) {
-            bootstrapClasspath.add(item);
-        }
-        return this;
+    public void setBootstrapClasspath(FileCollection classpath) {
+        this.bootstrapClasspath = classpath;
     }
 
     public JavaForkOptions bootstrapClasspath(Object... classpath) {
-        bootstrapClasspath(Arrays.asList(classpath));
+        this.bootstrapClasspath = this.bootstrapClasspath.plus(getResolver().resolveFiles(classpath));
         return this;
     }
 

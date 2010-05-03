@@ -111,21 +111,12 @@ public interface JavaForkOptions extends ProcessForkOptions {
     FileCollection getBootstrapClasspath();
 
     /**
-     * Sets the bootstrap classpath to use for the process. The given classpath is evaluated as for {@link
-     * org.gradle.api.Project#files(Object...)}. Set to an empty classpath to use the default bootstrap classpath for
-     * the specified JVM.
+     * Sets the bootstrap classpath to use for the process. Set to an empty classpath to use the default bootstrap
+     * classpath for the specified JVM.
      *
      * @param classpath The classpath. Must not be null. Can be empty.
      */
-    void setBootstrapClasspath(Iterable<?> classpath);
-
-    /**
-     * Adds the given values to the end of the bootstrap classpath for the process.
-     *
-     * @param classpath The classpath. Must not be null. Can be empty.
-     * @return this
-     */
-    JavaForkOptions bootstrapClasspath(Iterable<?> classpath);
+    void setBootstrapClasspath(FileCollection classpath);
 
     /**
      * Adds the given values to the end of the bootstrap classpath for the process.

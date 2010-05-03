@@ -16,7 +16,7 @@
 package org.gradle.process.internal;
 
 import org.apache.commons.lang.StringUtils;
-import org.gradle.api.internal.tasks.util.DefaultProcessForkOptions;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.util.GUtil;
 import org.gradle.util.LineBufferingOutputStream;
@@ -37,26 +37,10 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
 
-    public AbstractExecHandleBuilder() {
-        super(null);
+    public AbstractExecHandleBuilder(FileResolver fileResolver) {
+        super(fileResolver);
         standardOutput = new LineBuffer(System.out);
         errorOutput = new LineBuffer(System.err);
-    }
-
-    public AbstractExecHandleBuilder(File execDirectory) {
-        this();
-        setWorkingDir(execDirectory);
-    }
-
-    public AbstractExecHandleBuilder(String execCommand) {
-        this();
-        setExecutable(execCommand);
-    }
-
-    public AbstractExecHandleBuilder(File execDirectory, String execCommand) {
-        this();
-        setWorkingDir(execDirectory);
-        setExecutable(execCommand);
     }
 
     public abstract List<String> getAllArguments();

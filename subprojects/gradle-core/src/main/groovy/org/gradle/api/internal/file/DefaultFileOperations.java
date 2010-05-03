@@ -140,7 +140,7 @@ public class DefaultFileOperations implements FileOperations {
     }
 
     public ExecResult exec(Closure cl) {
-        ExecAction execAction = ConfigureUtil.configure(cl, new DefaultExecAction());
+        ExecAction execAction = ConfigureUtil.configure(cl, new DefaultExecAction(fileResolver));
         return execAction.execute();
     }
 }

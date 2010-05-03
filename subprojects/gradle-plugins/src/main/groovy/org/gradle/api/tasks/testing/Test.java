@@ -33,7 +33,7 @@ import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestSummaryListener;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
-import org.gradle.api.internal.tasks.util.DefaultJavaForkOptions;
+import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
@@ -175,16 +175,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
-    public void setBootstrapClasspath(Iterable<?> classpath) {
+    public void setBootstrapClasspath(FileCollection classpath) {
         options.setBootstrapClasspath(classpath);
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    public Test bootstrapClasspath(Iterable<?> classpath) {
-        options.bootstrapClasspath(classpath);
-        return this;
     }
 
     /**

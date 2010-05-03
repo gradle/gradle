@@ -25,6 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
+import org.gradle.process.internal.DefaultProcessForkOptions
 
 @RunWith(JMock.class)
 public class DefaultProcessForkOptionsTest {

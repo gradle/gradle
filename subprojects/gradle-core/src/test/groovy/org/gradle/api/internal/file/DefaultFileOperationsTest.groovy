@@ -258,6 +258,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def exec() {
+        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
         File testFile = tmpDir.file("someFile")
 
         when:

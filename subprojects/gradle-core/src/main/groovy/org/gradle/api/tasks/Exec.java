@@ -16,6 +16,7 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.ProcessForkOptions;
@@ -38,7 +39,7 @@ public class Exec extends ConventionTask implements ExecSpec {
     private ExecResult execResult;
 
     public Exec() {
-        execAction = new DefaultExecAction();
+        execAction = new DefaultExecAction(getServices().get(FileResolver.class));
     }
 
     @TaskAction

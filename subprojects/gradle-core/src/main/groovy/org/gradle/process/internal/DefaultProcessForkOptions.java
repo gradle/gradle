@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.util;
+package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ProcessForkOptions;
 
 import java.io.File;
@@ -30,7 +29,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final Map<String, Object> environment = new HashMap<String, Object>(System.getenv());
 
     public DefaultProcessForkOptions(FileResolver resolver) {
-        this.resolver = resolver == null ? new IdentityFileResolver() : resolver;
+        this.resolver = resolver;
     }
 
     protected FileResolver getResolver() {

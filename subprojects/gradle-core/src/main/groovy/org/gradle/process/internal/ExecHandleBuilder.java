@@ -16,9 +16,10 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ExecSpec;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -28,21 +29,13 @@ import java.util.List;
  */
 public class ExecHandleBuilder extends AbstractExecHandleBuilder implements ExecSpec {
     private final List<String> arguments = new ArrayList<String>();
-    
+
     public ExecHandleBuilder() {
-        super();
+        super(new IdentityFileResolver());
     }
 
-    public ExecHandleBuilder(File execDirectory) {
-        super(execDirectory);
-    }
-
-    public ExecHandleBuilder(String execCommand) {
-        super(execCommand);
-    }
-
-    public ExecHandleBuilder(File execDirectory, String execCommand) {
-        super(execDirectory, execCommand);
+    public ExecHandleBuilder(FileResolver fileResolver) {
+        super(fileResolver);
     }
 
     public ExecHandleBuilder commandLine(String... arguments) {
