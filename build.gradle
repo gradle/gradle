@@ -61,7 +61,7 @@ libraries = [
         log4j_to_slf4j  : 'org.slf4j:log4j-over-slf4j:1.5.11@jar',
         logback_classic : 'ch.qos.logback:logback-classic:0.9.20@jar',
         logback_core    : 'ch.qos.logback:logback-core:0.9.20@jar',
-        junit           : 'junit:junit:4.7',
+        junit           : 'junit:junit:4.8.1',
         xmlunit         : 'xmlunit:xmlunit:1.3',
         spock           : 'org.spockframework:spock-core:0.4-groovy-1.7-SNAPSHOT'
     ]
@@ -80,7 +80,6 @@ allprojects {
 
     repositories {
         mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
-        mavenRepo(urls: 'http://jansi.fusesource.org/repo/release')
     }
 
     version = this.version
