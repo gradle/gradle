@@ -24,10 +24,10 @@ dependencies {
             libraries.slf4j_api
 
     def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", libraries.jcl_to_slf4j]
-    runtime "checkstyle:checkstyle:5.0@jar",
+    runtime "checkstyle:checkstyle:5.1@jar",
             libraries.antlr,
             libraries.jcl_to_slf4j,
-            "com.google.collections:google-collections:0.9@jar",
+            "com.google.collections:google-collections:1.0@jar",
             BEAN_UTILS
     
     testCompile project(path: ':core', configuration: 'testFixtures')
