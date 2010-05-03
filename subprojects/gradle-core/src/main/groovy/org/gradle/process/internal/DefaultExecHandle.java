@@ -53,7 +53,6 @@ import java.util.concurrent.ExecutorService;
  * <ul>
  * <li>{@link #start()} can only be called when the state is NOT {@link ExecHandleState#STARTED}</li>
  * <li>{@link #abort()} can only be called when the state is {@link ExecHandleState#STARTED}</li>
- * <li>{@link #startAndWaitForFinish()} can only be called when the state is NOT {@link ExecHandleState#STARTED}</li> 
  * </ul>
  *
  * @author Tom Eyckmans
@@ -238,7 +237,7 @@ public class DefaultExecHandle implements ExecHandle {
         threadPool.shutdown();
     }
 
-    public void start() {
+    public ExecHandle start() {
         lock.lock();
         try {
             if (!stateIn(ExecHandleState.INIT)) {
@@ -263,6 +262,7 @@ public class DefaultExecHandle implements ExecHandle {
         } finally {
             lock.unlock();
         }
+        return this;
     }
 
     public void abort() {
@@ -279,12 +279,6 @@ public class DefaultExecHandle implements ExecHandle {
 
     public ExecHandleState waitForFinish() {
         ThreadUtils.awaitTermination(threadPool);
-        return getState();
-    }
-
-    public ExecHandleState startAndWaitForFinish() {
-        start();
-        waitForFinish();
         return getState();
     }
 

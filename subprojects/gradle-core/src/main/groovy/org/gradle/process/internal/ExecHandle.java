@@ -41,13 +41,11 @@ public interface ExecHandle {
 
     Throwable getFailureCause();
 
-    void start();
+    ExecHandle start();
 
     void abort();
 
     ExecHandleState waitForFinish();
-
-    ExecHandleState startAndWaitForFinish();
 
     void addListener(ExecHandleListener listener);
 

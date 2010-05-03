@@ -22,5 +22,5 @@ import org.gradle.process.ExecSpec;
  * @author Hans Dockter
  */
 public interface ExecAction extends ExecSpec {
-    ExecResult execute();
+    ExecResult execute() throws ExecException;
 }

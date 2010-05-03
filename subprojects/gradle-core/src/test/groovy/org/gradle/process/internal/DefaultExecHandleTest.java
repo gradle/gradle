@@ -74,7 +74,7 @@ public class DefaultExecHandleTest {
                 null
         );
 
-        final ExecHandleState endState = execHandle.startAndWaitForFinish();
+        final ExecHandleState endState = execHandle.start().waitForFinish();
 
         if ( endState == ExecHandleState.FAILED ) {
             execHandle.getFailureCause().printStackTrace();

@@ -45,7 +45,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
 
     @TaskAction
     void exec() {
-        javaExecHandleBuilder.build().startAndWaitForFinish();
+        javaExecHandleBuilder.build().start().waitForFinish();
     }
 
     /**

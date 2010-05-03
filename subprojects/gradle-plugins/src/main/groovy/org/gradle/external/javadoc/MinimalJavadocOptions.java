@@ -16,7 +16,7 @@
 
 package org.gradle.external.javadoc;
 
-import org.gradle.process.internal.ExecHandleBuilder;
+import org.gradle.process.ExecSpec;
 
 import java.io.File;
 import java.io.IOException;
@@ -146,5 +146,5 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions sourceNames(String ... sourceNames);
 
-    void contributeCommandLineOptions(ExecHandleBuilder execHandleBuilder);
+    void contributeCommandLineOptions(ExecSpec execHandleBuilder);
 }

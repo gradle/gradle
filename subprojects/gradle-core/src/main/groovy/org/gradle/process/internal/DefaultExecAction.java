@@ -23,7 +23,7 @@ import org.gradle.process.ExecResult;
 public class DefaultExecAction extends ExecHandleBuilder implements ExecAction {
     public ExecResult execute() {
         ExecHandle execHandle = build();
-        execHandle.startAndWaitForFinish();
+        execHandle.start().waitForFinish();
         ExecResult execResult = createExecResult(execHandle);
         if (!isIgnoreExitValue() && execResult.getExitValue() != 0) {
             throw new ExecException("Process finished with non zero exit value.", execResult);

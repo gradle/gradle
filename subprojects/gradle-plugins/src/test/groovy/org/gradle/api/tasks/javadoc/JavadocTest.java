@@ -16,29 +16,29 @@
 
 package org.gradle.api.tasks.javadoc;
 
-import org.apache.tools.ant.BuildException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
-import org.gradle.util.TestFile;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecException;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.TestFile;
 import org.gradle.util.WrapUtil;
-import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleState;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.util.Set;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class JavadocTest extends AbstractConventionTaskTest {
@@ -50,7 +50,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private final File srcDir = new File(testDir, "srcdir");
     private final Set<File> classpath = WrapUtil.toSet(new File("classpath"));
     private JavadocExecHandleBuilder javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);
-    private ExecHandle execHandleMock = context.mock(ExecHandle.class);
+    private ExecAction execActionMock = context.mock(ExecAction.class);
     private Javadoc task;
     private FileCollection configurationMock = context.mock(FileCollection.class);
 
@@ -80,7 +80,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             one(javadocExecHandleBuilderMock).optionsFile(new File(getProject().getBuildDir(), "tmp/taskname/javadoc.options"));
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).getExecHandle();
-            will(returnValue(execHandleMock));
+            will(returnValue(execActionMock));
         }});
     }
 
@@ -97,24 +97,21 @@ public class JavadocTest extends AbstractConventionTaskTest {
 
     private void expectJavadocExec() {
         context.checking(new Expectations(){{
-            one(execHandleMock).startAndWaitForFinish();
-            will(returnValue(ExecHandleState.SUCCEEDED));
+            one(execActionMock).execute();
         }});
     }
 
     @Test
     public void wrapsExecutionFailure() {
-        final BuildException failure = new BuildException();
+        final ExecException failure = new ExecException(null);
 
         task.setDestinationDir(destDir);
         task.source(srcDir);
 
         expectJavadocExecHandle();
         context.checking(new Expectations(){{
-            one(execHandleMock).startAndWaitForFinish();
-            will(returnValue(ExecHandleState.FAILED));
-            one(execHandleMock).getFailureCause();
-            will(returnValue(failure));
+            one(execActionMock).execute();
+            will(throwException(failure));
         }});
 
         try {

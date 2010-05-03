@@ -17,9 +17,9 @@
 package org.gradle.external.javadoc;
 
 import org.gradle.api.GradleException;
+import org.gradle.process.internal.DefaultExecAction;
+import org.gradle.process.internal.ExecAction;
 import org.gradle.util.Jvm;
-import org.gradle.process.internal.ExecHandle;
-import org.gradle.process.internal.ExecHandleBuilder;
 
 import java.io.File;
 import java.io.IOException;
@@ -61,20 +61,20 @@ public class JavadocExecHandleBuilder {
         return this;
     }
 
-    public ExecHandle getExecHandle() {
+    public ExecAction getExecHandle() {
         try {
             options.write(optionsFile);
         } catch (IOException e) {
             throw new GradleException("Faild to store javadoc options.", e);
         }
 
-        ExecHandleBuilder execHandleBuilder = new ExecHandleBuilder();
-        execHandleBuilder.workingDir(execDirectory);
-        execHandleBuilder.executable(Jvm.current().getJavadocExecutable());
-        execHandleBuilder.args("@" + optionsFile.getAbsolutePath());
+        ExecAction execAction = new DefaultExecAction();
+        execAction.workingDir(execDirectory);
+        execAction.executable(Jvm.current().getJavadocExecutable());
+        execAction.args("@" + optionsFile.getAbsolutePath());
 
-        options.contributeCommandLineOptions(execHandleBuilder);
+        options.contributeCommandLineOptions(execAction);
 
-        return execHandleBuilder.build();
+        return execAction;
     }
 }

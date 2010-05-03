@@ -18,15 +18,21 @@ package org.gradle.api.tasks.javadoc;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.SourceTask;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
+import org.gradle.process.internal.ExecAction;
+import org.gradle.process.internal.ExecException;
 import org.gradle.util.GUtil;
-import org.gradle.process.internal.ExecHandle;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * <p>Generates Javadoc from Java source.</p>
@@ -95,22 +101,15 @@ public class Javadoc extends SourceTask {
     private void executeExternalJavadoc() {
         javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
 
-        final ExecHandle execHandle = javadocExecHandleBuilder.getExecHandle();
+        ExecAction execAction = javadocExecHandleBuilder.getExecHandle();
+        if (!failOnError) {
+            execAction.setIgnoreExitValue(true);
+        }
 
-        switch (execHandle.startAndWaitForFinish()) {
-            case SUCCEEDED:
-                break;
-            case ABORTED:
-                throw new GradleException(
-                        "Javadoc generation ended in aborted state (should not happen)." + execHandle.getState());
-            case FAILED:
-                if (failOnError) {
-                    throw new GradleException("Javadoc generation failed.", execHandle.getFailureCause());
-                } else {
-                    break;
-                }
-            default:
-                throw new GradleException("Javadoc generation ended in an unknown end state." + execHandle.getState());
+        try {
+            execAction.execute();
+        } catch (ExecException e) {
+            throw new GradleException("Javadoc generation failed.", e);
         }
     }
 

@@ -137,7 +137,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 builder.getArgs()));
 
         ExecHandle proc = builder.build();
-        proc.startAndWaitForFinish();
+        proc.start().waitForFinish();
 
         int exitValue = proc.getExitCode();
         String output = outStream.toString();
