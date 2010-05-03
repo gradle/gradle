@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.ClassPathRegistry;
@@ -20,8 +21,12 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.initialization.*;
+import org.gradle.listener.DefaultListenerManager;
+import org.gradle.listener.ListenerManager;
 import org.gradle.logging.DefaultLoggingManagerFactory;
+import org.gradle.logging.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.integration.junit4.JMock;
 import org.junit.Test;
@@ -59,5 +64,15 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesALoggingManagerFactory() {
         assertThat(registry.get(LoggingManagerFactory.class), instanceOf(DefaultLoggingManagerFactory.class));
+    }
+    
+    @Test
+    public void providesAListenerManager() {
+        assertThat(registry.get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
+    }
+    
+    @Test
+    public void providesAProgressLoggerFactory() {
+        assertThat(registry.get(ProgressLoggerFactory.class), instanceOf(DefaultProgressLoggerFactory.class));
     }
 }

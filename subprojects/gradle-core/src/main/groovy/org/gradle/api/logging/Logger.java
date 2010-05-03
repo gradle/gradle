@@ -112,11 +112,4 @@ public interface Logger extends org.slf4j.Logger {
      * @param throwable the exception to log.
      */
     void log(LogLevel level, String message, Throwable throwable);
-
-    /**
-     * Creates a new progress logger backed by this logger.
-     *
-     * @return A progress logger.
-     */
-    ProgressLogger createProgressLogger();
 }

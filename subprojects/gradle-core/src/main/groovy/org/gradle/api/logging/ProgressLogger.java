@@ -21,18 +21,18 @@ package org.gradle.api.logging;
  */
 public interface ProgressLogger {
     /**
-     * Logs the start of the operation.
+     * Returns the description of the operation.
      *
-     * @param description A short description of the long running operation.
+     * @return the description, possibly empty.
      */
-    void started(String description);
+    String getDescription();
 
     /**
      * Logs some progress.
      *
-     * @param progressMessage The new status message
+     * @param status The new status message
      */
-    void progress(String progressMessage);
+    void progress(String status);
 
     /**
      * Logs the completion of the operation
@@ -45,4 +45,11 @@ public interface ProgressLogger {
      * @param status The final status message
      */
     void completed(String status);
+
+    /**
+     * Returns the current status of the operation.
+     *
+     * @return The status, possibly empty.
+     */
+    String getStatus();
 }

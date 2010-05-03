@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,36 @@
 package org.gradle.listener;
 
 import groovy.lang.Closure;
+import org.gradle.messaging.dispatch.BroadcastDispatch;
+import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.messaging.dispatch.ReflectionDispatch;
 
 import java.util.*;
 
 @SuppressWarnings({"unchecked"})
 public class DefaultListenerManager implements ListenerManager {
     private final Set<Object> allListeners = new LinkedHashSet<Object>();
-    private final Set<Object> loggers = new LinkedHashSet<Object>();
-    private final Map<Class<?>, ListenerBroadcast> broadcasterCache = new HashMap<Class<?>, ListenerBroadcast>();
+    private final Set<Object> allLoggers = new LinkedHashSet<Object>();
+    private final Map<Class<?>, ListenerBroadcast> broadcasters = new HashMap<Class<?>, ListenerBroadcast>();
+    private final Map<Class<?>, LoggerDispatch> loggers = new HashMap<Class<?>, LoggerDispatch>();
+    private final Map<Class<?>, BroadcastDispatch> dispatchers = new HashMap<Class<?>, BroadcastDispatch>();
     private final Object lock = new Object();
+    private final DefaultListenerManager parent;
+
+    public DefaultListenerManager() {
+        this(null);
+    }
+
+    private DefaultListenerManager(DefaultListenerManager parent) {
+        this.parent = parent;
+    }
 
     public void addListener(Object listener) {
         synchronized (lock) {
             if (allListeners.add(listener)) {
-                for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
-                    addToBroadcasterIfTypeMatches(broadcaster, listener);
+                for (BroadcastDispatch<?> broadcaster : dispatchers.values()) {
+                    maybeAddToDispatcher(broadcaster, listener);
                 }
             }
         }
@@ -44,7 +59,7 @@ public class DefaultListenerManager implements ListenerManager {
     public void removeListener(Object listener) {
         synchronized (lock) {
             if (allListeners.remove(listener)) {
-                for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
+                for (BroadcastDispatch<?> broadcaster : dispatchers.values()) {
                     broadcaster.remove(listener);
                 }
             }
@@ -53,9 +68,9 @@ public class DefaultListenerManager implements ListenerManager {
 
     public void useLogger(Object logger) {
         synchronized (lock) {
-            if (loggers.add(logger)) {
-                for (ListenerBroadcast broadcaster : broadcasterCache.values()) {
-                    addLoggerToBroadcasterIfTypeMatches(broadcaster, logger);
+            if (allLoggers.add(logger)) {
+                for (LoggerDispatch dispatch : loggers.values()) {
+                    dispatch.maybeSetLogger(logger);
                 }
             }
         }
@@ -73,52 +88,62 @@ public class DefaultListenerManager implements ListenerManager {
 
     private <T> ListenerBroadcast<T> getBroadcasterInternal(Class<T> listenerClass) {
         synchronized (lock) {
-            ListenerBroadcast<T> broadcaster = broadcasterCache.get(listenerClass);
+            ListenerBroadcast<T> broadcaster = broadcasters.get(listenerClass);
             if (broadcaster == null) {
-                broadcaster = createBroadcaster(listenerClass);
-                broadcasterCache.put(listenerClass, broadcaster);
+                broadcaster = new ListenerBroadcast<T>(listenerClass);
+                broadcaster.add(getLogger(listenerClass));
+                broadcaster.add(getDispatcher(listenerClass));
+                if (parent != null) {
+                    broadcaster.add(parent.getDispatcher(listenerClass));
+                }
+                broadcasters.put(listenerClass, broadcaster);
             }
 
             return broadcaster;
         }
     }
 
-    private <T> ListenerBroadcast<T> createBroadcaster(Class<T> listenerClass) {
-        ListenerBroadcast<T> broadcaster = new ListenerBroadcast<T>(listenerClass);
-        for (Object listener : allListeners) {
-            addToBroadcasterIfTypeMatches(broadcaster, listener);
-        }
-        for (Object logger : loggers) {
-            addLoggerToBroadcasterIfTypeMatches(broadcaster, logger);
-        }
-
-        return broadcaster;
-    }
-
-    private void addLoggerToBroadcasterIfTypeMatches(ListenerBroadcast broadcaster, Object listener) {
-        if (broadcaster.getType().isAssignableFrom(listener.getClass())) {
-            Object oldLogger = broadcaster.setLogger(listener);
-            if (loggers.remove(oldLogger)) {
-                removeLogger(oldLogger);
+    private <T> BroadcastDispatch<T> getDispatcher(Class<T> listenerClass) {
+        synchronized (lock) {
+            BroadcastDispatch<T> dispatcher = dispatchers.get(listenerClass);
+            if (dispatcher == null) {
+                dispatcher = new BroadcastDispatch<T>(listenerClass);
+                dispatchers.put(listenerClass, dispatcher);
+                for (Object listener : allListeners) {
+                    maybeAddToDispatcher(dispatcher, listener);
+                }
             }
+            return dispatcher;
         }
     }
 
-    private void removeLogger(Object oldLogger) {
-        for (ListenerBroadcast listenerBroadcast : broadcasterCache.values()) {
-            listenerBroadcast.remove(oldLogger);
+    private LoggerDispatch getLogger(Class<?> listenerClass) {
+        synchronized (lock) {
+            LoggerDispatch dispatch = loggers.get(listenerClass);
+            if (dispatch == null) {
+                dispatch = new LoggerDispatch(listenerClass, parent == null ? null : parent.getLogger(listenerClass));
+                for (Object logger : allLoggers) {
+                    dispatch.maybeSetLogger(logger);
+                }
+                loggers.put(listenerClass, dispatch);
+            }
+            return dispatch;
         }
     }
 
-    private void addToBroadcasterIfTypeMatches(ListenerBroadcast broadcaster, Object listener) {
+    private void maybeAddToDispatcher(BroadcastDispatch broadcaster, Object listener) {
         if (listener instanceof ClosureListener) {
             ClosureListener closureListener = (ClosureListener) listener;
             if (broadcaster.getType().isAssignableFrom(closureListener.listenerType)) {
                 broadcaster.add(closureListener.method, closureListener.closure);
             }
-        } else {
-            broadcaster.maybeAdd(listener);
+        } else if (broadcaster.getType().isInstance(listener)) {
+            broadcaster.add(listener);
         }
+    }
+
+    public ListenerManager createChild() {
+        return new DefaultListenerManager(this);
     }
 
     private static class ClosureListener {
@@ -130,6 +155,28 @@ public class DefaultListenerManager implements ListenerManager {
             this.listenerType = listenerType;
             this.method = method;
             this.closure = closure;
+        }
+    }
+
+    private static class LoggerDispatch implements Dispatch<MethodInvocation> {
+        private final Class<?> type;
+        private Dispatch<MethodInvocation> dispatch;
+
+        private LoggerDispatch(Class<?> type, LoggerDispatch parentDispatch) {
+            this.type = type;
+            this.dispatch = parentDispatch;
+        }
+
+        public void dispatch(MethodInvocation message) {
+            if (dispatch != null) {
+                dispatch.dispatch(message);
+            }
+        }
+
+        public void maybeSetLogger(Object logger) {
+            if (type.isInstance(logger)) {
+                dispatch = new ReflectionDispatch(logger);
+            }
         }
     }
 }

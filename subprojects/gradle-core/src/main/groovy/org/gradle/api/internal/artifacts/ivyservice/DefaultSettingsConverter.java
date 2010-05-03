@@ -30,6 +30,7 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.ProgressLogger;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
@@ -43,8 +44,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
     private static Logger logger = Logging.getLogger(DefaultSettingsConverter.class);
 
     private RepositoryCacheManager repositoryCacheManager;
+    private IvySettings ivySettings;
+    private final ProgressLoggerFactory progressLoggerFactory;
+    private final TransferListener transferListener = new ProgressLoggingTransferListener();
 
-    private static final TransferListener TRANSFER_LISTENER = new ProgressLoggingTransferListener();
+    public DefaultSettingsConverter(ProgressLoggerFactory progressLoggerFactory) {
+        this.progressLoggerFactory = progressLoggerFactory;
+    }
 
     private static String getLengthText(TransferEvent evt) {
         return getLengthText(evt.isTotalLengthSet() ? evt.getTotalLength() : null);
@@ -62,8 +68,6 @@ public class DefaultSettingsConverter implements SettingsConverter {
             return String.format("%.2f MB", bytes / 1048576.0);
         }
     }
-
-    private IvySettings ivySettings;
 
     public IvySettings convertForPublish(List<DependencyResolver> publishResolvers, File gradleUserHome, DependencyResolver internalRepository) {
         if (ivySettings != null) {
@@ -159,8 +163,8 @@ public class DefaultSettingsConverter implements SettingsConverter {
             ((DefaultRepositoryCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
-                if (!repository.hasTransferListener(TRANSFER_LISTENER)) {
-                    repository.addTransferListener(TRANSFER_LISTENER);
+                if (!repository.hasTransferListener(transferListener)) {
+                    repository.addTransferListener(transferListener);
                 }
             }
         }
@@ -174,7 +178,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         this.ivySettings = ivySettings;
     }
 
-    private static class ProgressLoggingTransferListener implements TransferListener {
+    private class ProgressLoggingTransferListener implements TransferListener {
         private ProgressLogger logger;
         private long total;
 
@@ -184,8 +188,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
                 total = 0;
-                logger = DefaultSettingsConverter.logger.createProgressLogger();
-                logger.started(evt.getResource().getName());
+                logger = progressLoggerFactory.start(evt.getResource().getName());
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                 total += evt.getLength();

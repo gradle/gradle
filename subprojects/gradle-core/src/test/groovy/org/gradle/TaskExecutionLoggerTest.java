@@ -13,14 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.ProgressLogger;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -31,12 +32,12 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class TaskExecutionLoggerTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Logger logger = context.mock(Logger.class);
+    private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
     private final Task task = context.mock(Task.class);
     private final TaskState state = context.mock(TaskState.class);
     private final ProgressLogger progressLogger = context.mock(ProgressLogger.class);
     private final Gradle gradle = context.mock(Gradle.class);
-    private final TaskExecutionLogger executionLogger = new TaskExecutionLogger(logger);
+    private final TaskExecutionLogger executionLogger = new TaskExecutionLogger(progressLoggerFactory);
 
     @Before
     public void setUp() {
@@ -56,9 +57,8 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            one(logger).createProgressLogger();
+            one(progressLoggerFactory).start(":path");
             will(returnValue(progressLogger));
-            one(progressLogger).started(":path");
         }});
 
         executionLogger.beforeExecute(task);
@@ -84,9 +84,8 @@ public class TaskExecutionLoggerTest {
             allowing(rootProject).getName();
             will(returnValue("build"));
 
-            one(logger).createProgressLogger();
+            one(progressLoggerFactory).start(":build:path");
             will(returnValue(progressLogger));
-            one(progressLogger).started(":build:path");
         }});
 
         executionLogger.beforeExecute(task);
@@ -105,9 +104,8 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            one(logger).createProgressLogger();
+            one(progressLoggerFactory).start(":path");
             will(returnValue(progressLogger));
-            one(progressLogger).started(":path");
         }});
 
         executionLogger.beforeExecute(task);

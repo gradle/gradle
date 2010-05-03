@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.initialization;
 
 import org.gradle.*;
@@ -23,7 +24,6 @@ import org.gradle.api.internal.project.ProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
@@ -32,6 +32,8 @@ import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.ProgressLoggingBridge;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
@@ -49,6 +51,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingConfigurer.configure(LogLevel.LIFECYCLE);
         sharedServices = new GlobalServicesRegistry(loggingConfigurer);
         commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
+        ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
+        listenerManager.useLogger(new ProgressLoggingBridge());
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {
@@ -69,7 +73,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingConfigurer.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
         loggingConfigurer.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
-        listenerManager.useLogger(new TaskExecutionLogger(Logging.getLogger(TaskExecutionLogger.class)));
+        listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
         listenerManager.addListener(tracker);
         listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 

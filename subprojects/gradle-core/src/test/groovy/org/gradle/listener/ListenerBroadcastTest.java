@@ -17,6 +17,7 @@
 package org.gradle.listener;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
@@ -100,6 +101,33 @@ public class ListenerBroadcastTest {
     }
 
     @Test
+    public void canUseDispatchToReceiveNotifications() throws NoSuchMethodException {
+        final Dispatch<MethodInvocation> dispatch1 = context.mock(Dispatch.class, "listener1");
+        final Dispatch<MethodInvocation> dispatch2 = context.mock(Dispatch.class, "listener2");
+        final MethodInvocation invocation = new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[] { "param" });
+
+        context.checking(new Expectations() {{
+            one(dispatch1).dispatch(invocation);
+            one(dispatch2).dispatch(invocation);
+        }});
+
+        broadcast.add(dispatch1);
+        broadcast.add(dispatch2);
+
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
+    public void dispatchIsNotUsedAfterItIsRemoved() {
+        Dispatch<MethodInvocation> dispatch = context.mock(Dispatch.class);
+
+        broadcast.add(dispatch);
+        broadcast.remove(dispatch);
+
+        broadcast.getSource().event1("param");
+    }
+
+    @Test
     public void canUseClosureToReceiveNotificationsForSingleEventMethod() {
         final TestClosure testClosure = context.mock(TestClosure.class);
         context.checking(new Expectations() {{
@@ -155,56 +183,6 @@ public class ListenerBroadcastTest {
         broadcast.add("event2", action);
         broadcast.getSource().event2(1, "param");
         broadcast.getSource().event2(2, null);
-    }
-
-    @Test
-    public void canAttachALogger() {
-        final TestListener logger = context.mock(TestListener.class);
-        broadcast.setLogger(logger);
-
-        context.checking(new Expectations() {{
-            one(logger).event1("param");
-        }});
-
-        broadcast.getSource().event1("param");
-    }
-
-    @Test
-    public void canRemoveALogger() {
-        final TestListener logger = context.mock(TestListener.class);
-        broadcast.setLogger(logger);
-        broadcast.remove(logger);
-
-        broadcast.getSource().event1("param");
-    }
-
-    @Test
-    public void discardsPreviousLoggerWhenLoggerAttached() {
-        final TestListener oldLogger = context.mock(TestListener.class, "old");
-        final TestListener logger = context.mock(TestListener.class, "new");
-        assertThat(broadcast.setLogger(oldLogger), nullValue());
-        assertThat(broadcast.setLogger(logger), sameInstance(oldLogger));
-
-        context.checking(new Expectations() {{
-            one(logger).event1("param");
-        }});
-
-        broadcast.getSource().event1("param");
-    }
-
-    @Test
-    public void loggerIsNotifiedBeforeAnyListeners() {
-        final TestListener listener = context.mock(TestListener.class, "listener");
-        final TestListener logger = context.mock(TestListener.class, "logger");
-        broadcast.add(listener);
-        broadcast.setLogger(logger);
-
-        context.checking(new Expectations() {{
-            one(logger).event1("param");
-            one(listener).event1("param");
-        }});
-
-        broadcast.getSource().event1("param");
     }
 
     @Test

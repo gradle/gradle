@@ -37,8 +37,10 @@ import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
@@ -59,7 +61,7 @@ import static org.junit.Assert.*;
 public class TopLevelBuildServiceRegistryTest {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final StartParameter startParameter = new StartParameter();
     private final CacheFactory cacheFactory = context.mock(CacheFactory.class);
@@ -67,6 +69,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
     private final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
+    private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
 
     @Before
     public void setUp() {
@@ -80,6 +83,8 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(classLoaderFactory));
             allowing(parent).get(LoggingManagerFactory.class);
             will(returnValue(loggingManagerFactory));
+            allowing(parent).get(ProgressLoggerFactory.class);
+            will(returnValue(progressLoggerFactory));
         }});
     }
     
@@ -112,8 +117,8 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAListenerManager() {
-        assertThat(factory.get(ListenerManager.class), instanceOf(DefaultListenerManager.class));
-        assertThat(factory.get(ListenerManager.class), sameInstance(factory.get(ListenerManager.class)));
+        ListenerManager listenerManager = expectListenerManagerCreated();
+        assertThat(factory.get(ListenerManager.class), sameInstance(listenerManager));
     }
 
     @Test
@@ -124,6 +129,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesATaskExecuter() {
+        expectListenerManagerCreated();
         context.checking(new Expectations(){{
             allowing(cacheFactory).open(with(notNullValue(File.class)), with(equalTo(startParameter.getCacheUsage())), with(equalTo(Collections.EMPTY_MAP)));
         }});
@@ -140,6 +146,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAScriptCompilerFactory() {
+        expectListenerManagerCreated();
         assertThat(factory.get(ScriptCompilerFactory.class), instanceOf(DefaultScriptCompilerFactory.class));
         assertThat(factory.get(ScriptCompilerFactory.class), sameInstance(factory.get(ScriptCompilerFactory.class)));
     }
@@ -153,12 +160,14 @@ public class TopLevelBuildServiceRegistryTest {
     @Test
     public void providesAnInitScriptHandler() {
         expectScriptClassLoaderCreated();
+        expectListenerManagerCreated();
         assertThat(factory.get(InitScriptHandler.class), instanceOf(InitScriptHandler.class));
         assertThat(factory.get(InitScriptHandler.class), sameInstance(factory.get(InitScriptHandler.class)));
     }
 
     @Test
     public void providesAScriptObjectConfigurerFactory() {
+        expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
         assertThat(factory.get(ScriptPluginFactory.class), instanceOf(DefaultScriptPluginFactory.class));
         assertThat(factory.get(ScriptPluginFactory.class), sameInstance(factory.get(ScriptPluginFactory.class)));
@@ -166,6 +175,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesASettingsProcessor() {
+        expectListenerManagerCreated();
         expectScriptClassLoaderCreated();
         assertThat(factory.get(SettingsProcessor.class), instanceOf(PropertiesLoadingSettingsProcessor.class));
         assertThat(factory.get(SettingsProcessor.class), sameInstance(factory.get(SettingsProcessor.class)));
@@ -173,6 +183,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesAnExceptionAnalyser() {
+        expectListenerManagerCreated();
         assertThat(factory.get(ExceptionAnalyser.class), instanceOf(DefaultExceptionAnalyser.class));
         assertThat(factory.get(ExceptionAnalyser.class), sameInstance(factory.get(ExceptionAnalyser.class)));
     }
@@ -190,9 +201,21 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(new ClassLoader() {
             }));
         }});
-        
+
         assertThat(factory.get(WorkerProcessFactory.class), instanceOf(DefaultWorkerProcessFactory.class));
         assertThat(factory.get(WorkerProcessFactory.class), sameInstance(factory.get(WorkerProcessFactory.class)));
+    }
+
+    private ListenerManager expectListenerManagerCreated() {
+        final ListenerManager listenerManager = new DefaultListenerManager();
+        context.checking(new Expectations(){{
+            allowing(parent).get(ListenerManager.class);
+            ListenerManager parent = context.mock(ListenerManager.class);
+            will(returnValue(parent));
+            one(parent).createChild();
+            will(returnValue(listenerManager));
+        }});
+        return listenerManager;
     }
 
     private void expectScriptClassLoaderCreated() {

@@ -13,31 +13,31 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.ProgressLogger;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.logging.ProgressLoggerFactory;
 
 /**
  * A listener which logs the execution of tasks.
  */
 public class TaskExecutionLogger implements TaskExecutionListener {
-    private final Logger logger;
     private ProgressLogger currentTask;
+    private final ProgressLoggerFactory progressLoggerFactory;
 
-    public TaskExecutionLogger(Logger logger) {
-        this.logger = logger;
+    public TaskExecutionLogger(ProgressLoggerFactory progressLoggerFactory) {
+        this.progressLoggerFactory = progressLoggerFactory;
     }
 
     public void beforeExecute(Task task) {
         assert currentTask == null;
-        currentTask = logger.createProgressLogger();
-        currentTask.started(getDisplayName(task));
+        currentTask = progressLoggerFactory.start(getDisplayName(task));
     }
 
     public void afterExecute(Task task, TaskState state) {

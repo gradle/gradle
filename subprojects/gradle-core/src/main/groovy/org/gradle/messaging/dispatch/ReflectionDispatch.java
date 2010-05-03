@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.GradleException;
+import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
 
@@ -30,9 +31,9 @@ public class ReflectionDispatch implements Dispatch<MethodInvocation> {
         try {
             message.getMethod().invoke(target, message.getArguments());
         } catch (InvocationTargetException e) {
-            throw new GradleException(e.getCause());
+            throw new UncheckedException(e.getCause());
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw new UncheckedException(e);
         }
     }
 }

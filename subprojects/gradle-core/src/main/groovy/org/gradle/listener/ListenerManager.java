@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,4 +88,13 @@ public interface ListenerManager {
      * @param logger The new logger to use.
      */
     void useLogger(Object logger);
+
+    /**
+     * Creates a child {@code ListenerManager}. All events broadcast in the child will be received by the listeners
+     * registered in the parent. However, the reverse is not true: events broadcast in the parent are not received
+     * by the listeners in the children. The child inherits the loggers of its parent, though these can be replaced.
+     *
+     * @return The child
+     */
+    ListenerManager createChild();
 }

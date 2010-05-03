@@ -78,10 +78,6 @@ public class Logging {
             this.logger = logger;
         }
 
-        public ProgressLogger createProgressLogger() {
-            return new ProgressLoggerImpl(this);
-        }
-
         public boolean isEnabled(LogLevel level) {
             return level.isEnabled(this);
         }
@@ -372,30 +368,6 @@ public class Logging {
 
         public void warn(String s, Throwable throwable) {
             logger.warn(s, throwable);
-        }
-    }
-
-    private static class ProgressLoggerImpl implements ProgressLogger {
-        private final Logger logger;
-
-        public ProgressLoggerImpl(Logger logger) {
-            this.logger = logger;
-        }
-
-        public void started(String description) {
-            logger.info(PROGRESS_STARTED, description);
-        }
-
-        public void progress(String progressMessage) {
-            logger.info(PROGRESS, progressMessage);
-        }
-
-        public void completed() {
-            completed("");
-        }
-
-        public void completed(String status) {
-            logger.info(PROGRESS_COMPLETE, status);
         }
     }
 }

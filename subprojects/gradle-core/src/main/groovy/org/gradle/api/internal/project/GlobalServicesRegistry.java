@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.ClassPathRegistry;
@@ -21,8 +22,12 @@ import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.*;
+import org.gradle.listener.DefaultListenerManager;
+import org.gradle.listener.ListenerManager;
 import org.gradle.logging.DefaultLoggingManagerFactory;
+import org.gradle.logging.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.ProgressLoggerFactory;
 
 /**
  * Contains the services shared by all builds in a given process.
@@ -45,4 +50,11 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         return new DefaultClassLoaderFactory(get(ClassPathRegistry.class));
     }
 
+    protected ListenerManager createListenerManager() {
+        return new DefaultListenerManager();
+    }
+
+    protected ProgressLoggerFactory createProgressLoggerFactory() {
+        return new DefaultProgressLoggerFactory(get(ListenerManager.class));
+    }
 }

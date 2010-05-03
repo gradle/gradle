@@ -102,20 +102,6 @@ public class LoggingTest {
         assertFalse(logger.isEnabled(LogLevel.INFO));
     }
 
-    @Test
-    public void logsProgress() {
-        ProgressLogger logger = Logging.getLogger(LoggingTest.class).createProgressLogger();
-
-        expectLogMessage(Level.INFO, Logging.PROGRESS_STARTED, "start");
-        logger.started("start");
-
-        expectLogMessage(Level.INFO, Logging.PROGRESS, "tick");
-        logger.progress("tick");
-
-        expectLogMessage(Level.INFO, Logging.PROGRESS_COMPLETE, "complete");
-        logger.completed("complete");
-    }
-
     private void expectLogMessage(final Level level, final Marker marker, final String text) {
         final Matcher<LoggingEvent> matcher = new BaseMatcher<LoggingEvent>() {
 

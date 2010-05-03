@@ -52,9 +52,9 @@ import org.gradle.cache.DefaultCacheRepository;
 import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
-import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
@@ -77,11 +77,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         super(parent);
         this.startParameter = startParameter;
 
-        add(ListenerManager.class, new DefaultListenerManager());
         add(ImportsReader.class, new ImportsReader(startParameter.getDefaultImportsFile()));
         add(ClassGenerator.class, new AsmBackedClassGenerator());
         add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
         add(TimeProvider.class, new TrueTimeProvider());
+    }
+
+    protected ListenerManager createListenerManager(ListenerManager listenerManager) {
+        return listenerManager.createChild();
     }
 
     protected CacheFactory createCacheFactory(CacheFactory parentFactory) {
@@ -167,7 +170,9 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
 
         return new DefaultConfigurationContainerFactory(clientModuleRegistry,
-                new DefaultSettingsConverter(),
+                new DefaultSettingsConverter(
+                        get(ProgressLoggerFactory.class)
+                ),
                 get(ResolveModuleDescriptorConverter.class),
                 get(PublishModuleDescriptorConverter.class),
                 fileModuleDescriptorConverter,

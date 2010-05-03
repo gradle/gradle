@@ -15,10 +15,6 @@
  */
 
 
-
-
-
-
 package org.gradle.integtests
 
 import org.gradle.util.TestFile

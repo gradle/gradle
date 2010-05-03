@@ -18,11 +18,9 @@ package org.gradle.messaging.dispatch;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.listener.ListenerNotificationException;
+import org.gradle.util.UncheckedException;
 
-import java.lang.reflect.InvocationHandler;
-import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -31,25 +29,22 @@ import java.util.Map;
 
 public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation> {
     private final Class<T> type;
-    private final Map<Object, InvocationHandler> handlers = new LinkedHashMap<Object, InvocationHandler>();
-    private final DelegatingInvocationHandler noOpLogger = new DelegatingInvocationHandler() {
-        @Override
-        public T getDelegate() {
-            return null;
-        }
-
-        public Object invoke(Object o, Method method, Object[] objects) throws Throwable {
-            return null;
-        }
-    };
-    private DelegatingInvocationHandler logger = noOpLogger;
+    private final Map<Object, Dispatch<MethodInvocation>> handlers = new LinkedHashMap<Object, Dispatch<MethodInvocation>>();
 
     public BroadcastDispatch(Class<T> type) {
         this.type = type;
     }
 
+    public Class<T> getType() {
+        return type;
+    }
+
+    public void add(Dispatch<MethodInvocation> dispatch) {
+        handlers.put(dispatch, dispatch);
+    }
+    
     public void add(T listener) {
-        handlers.put(listener, new ListenerInvocationHandler(listener));
+        handlers.put(listener, new ReflectionDispatch(listener));
     }
 
     public void add(String methodName, Closure closure) {
@@ -73,16 +68,7 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
     }
 
     public void remove(Object listener) {
-        if (listener.equals(logger.getDelegate())) {
-            logger = noOpLogger;
-        }
         handlers.remove(listener);
-    }
-
-    public T setLogger(T logger) {
-        T oldLogger = this.logger.getDelegate();
-        this.logger = new ListenerInvocationHandler(logger);
-        return oldLogger;
     }
 
     private String getErrorMessage() {
@@ -92,52 +78,20 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
 
     public void dispatch(MethodInvocation invocation) {
         try {
-            Method method = invocation.getMethod();
-            dispatch(method, invocation.getArguments());
-        } catch (ListenerNotificationException e) {
-            throw e;
-        } catch (Throwable throwable) {
-            throw new GradleException(throwable);
-        }
-    }
-
-    private void dispatch(Method method, Object[] parameters) throws Throwable {
-        logger.invoke(null, method, parameters);
-        for (InvocationHandler handler : new ArrayList<InvocationHandler>(handlers.values())) {
-            handler.invoke(null, method, parameters);
+            for (Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
+                handler.dispatch(invocation);
+            }
+        } catch (UncheckedException e) {
+            throw new ListenerNotificationException(getErrorMessage(), e.getCause());
+        } catch (Throwable t) {
+            throw new ListenerNotificationException(getErrorMessage(), t);
         }
     }
 
     public void stop() {
     }
 
-    private abstract class DelegatingInvocationHandler implements InvocationHandler {
-        abstract T getDelegate();
-    }
-
-    private class ListenerInvocationHandler extends DelegatingInvocationHandler {
-        private final T listener;
-
-        public ListenerInvocationHandler(T listener) {
-            this.listener = listener;
-        }
-
-        @Override
-        T getDelegate() {
-            return listener;
-        }
-
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            try {
-                method.invoke(listener, parameters);
-            } catch (InvocationTargetException e) {
-                throw new ListenerNotificationException(getErrorMessage(), e.getCause());
-            }
-            return null;
-        }
-    }
-
-    private class ClosureInvocationHandler implements InvocationHandler {
+    private class ClosureInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
         private final Closure closure;
 
@@ -146,22 +100,18 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
             this.closure = closure;
         }
 
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            if (method.getName().equals(methodName)) {
+        public void dispatch(MethodInvocation message) {
+            if (message.getMethod().getName().equals(methodName)) {
+                Object[] parameters = message.getArguments();
                 if (closure.getMaximumNumberOfParameters() < parameters.length) {
                     parameters = Arrays.asList(parameters).subList(0, closure.getMaximumNumberOfParameters()).toArray();
                 }
-                try {
-                    closure.call(parameters);
-                } catch (Throwable e) {
-                    throw new ListenerNotificationException(getErrorMessage(), e);
-                }
+                closure.call(parameters);
             }
-            return null;
         }
     }
 
-    private class ActionInvocationHandler implements InvocationHandler {
+    private class ActionInvocationHandler implements Dispatch<MethodInvocation> {
         private final String methodName;
         private final Action action;
 
@@ -170,15 +120,10 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
             this.action = action;
         }
 
-        public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
-            if (method.getName().equals(methodName)) {
-                try {
-                    action.execute(parameters[0]);
-                } catch (Throwable e) {
-                    throw new ListenerNotificationException(getErrorMessage(), e);
-                }
+        public void dispatch(MethodInvocation message) {
+            if (message.getMethod().getName().equals(methodName)) {
+                action.execute(message.getArguments()[0]);
             }
-            return null;
         }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -151,6 +151,67 @@ public class DefaultListenerManagerTest {
         }});
 
         manager.createAnonymousBroadcaster(TestFooListener.class).getSource().foo("param");
+    }
+
+    @Test
+    public void listenerReceivesEventsFromChildren() {
+        manager.addListener(fooListener1);
+
+        context.checking(new Expectations() {{
+            one(fooListener1).foo("param");
+        }});
+
+        manager.createChild().getBroadcaster(TestFooListener.class).foo("param");
+    }
+    
+    @Test
+    public void listenerDoesNotReceiveEventsFromParent() {
+        manager.createChild().addListener(fooListener1);
+
+        manager.getBroadcaster(TestFooListener.class).foo("param");
+    }
+
+    @Test
+    public void loggerReceivesEventsFromChildren() {
+        manager.useLogger(fooListener1);
+
+        ListenerManager child = manager.createChild();
+        TestFooListener broadcaster = child.getBroadcaster(TestFooListener.class);
+
+        context.checking(new Expectations() {{
+            one(fooListener1).foo("param");
+        }});
+        broadcaster.foo("param");
+
+        manager.useLogger(fooListener2);
+
+        context.checking(new Expectations() {{
+            one(fooListener2).foo("param");
+        }});
+        broadcaster.foo("param");
+    }
+
+    @Test
+    public void loggerDoesNotReceiveEventsFromParent() {
+        manager.createChild().useLogger(fooListener1);
+
+        manager.getBroadcaster(TestFooListener.class).foo("param");
+    }
+
+    @Test
+    public void loggerInChildHasPrecedenceOverLoggerInParent() {
+        manager.useLogger(fooListener1);
+
+        ListenerManager child = manager.createChild();
+        TestFooListener broadcaster = child.getBroadcaster(TestFooListener.class);
+
+        child.useLogger(fooListener2);
+
+        context.checking(new Expectations() {{
+            one(fooListener2).foo("param");
+        }});
+
+        broadcaster.foo("param");
     }
 
     public interface TestFooListener {
