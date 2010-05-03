@@ -15,13 +15,13 @@
   -->
 <chapter id='announce_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
     <title>The Announce Plugin</title>
-    <para>The Gradle announce plugin enables you to publish messages on succeded tasks to your favourite plattforms.
+    <para>The Gradle announce plugin enables you to publish messages on succeeded tasks to your favourite platforms.
 	It supports 
 	<itemizedlist>
- 		<listitem><ulink url='http://twitter.com'>Twitter,</ulink></listitem>
+ 		<listitem><ulink url='http://twitter.com'>Twitter</ulink></listitem>
  		<listitem><ulink url='http://ubuntu.com'>Ubuntu Notify</ulink></listitem>
-<listitem><ulink url="http://www.fullphat.net/index.php">Snarl</ulink>,a Windows Notification System</listitem>
-<listitem>....</listitem>
+        <listitem><ulink url="http://www.fullphat.net/index.php">Snarl</ulink>, a Windows Notification System</listitem>
+        <listitem><ulink url="http://growl.info/">Growl</ulink>, a Mac OS X Notification System</listitem>
  	</itemizedlist>
 	
 	</para>
@@ -54,40 +54,41 @@
 	</para>
     </section>
    <table>
-            <title>announce plugin targets</title>
-            <thead>
-                <tr>
-                    <td>target literal</td>
-                    <td>target</td>
-                    <td>configuration parameters</td>
-		    <td>more information</td>
-                </tr>
-            </thead>
-            <tr>
-                <td>twitter</td>
-                <td>Twitter</td>
-           	<td>username , password</td> 
-		<td></td>
-	   </tr>
-            <tr>
-                <td>snarl</td>
-                <td>Snarl Windows Notification Service</td>
-		<td></td>
-		<td></td>
-            </tr>
-            <tr>
-                <td>notify-send</td>
-                <td>Notify Ubuntu Notofication Service</td>
-		<td></td>
-		<td>You need to habe notify-send installed for this. Run 
-
-			<literal> sudo apt-get install libnotify-bin</literal> 
-
-			on Ubuntu to install it.</td>
-            </tr>
-        </table>
-
-
+       <title>announce plugin targets</title>
+       <thead>
+           <tr>
+               <td>target literal</td>
+               <td>target</td>
+               <td>configuration parameters</td>
+               <td>more information</td>
+           </tr>
+       </thead>
+       <tr>
+           <td>twitter</td>
+           <td>Twitter</td>
+           <td>username , password</td>
+           <td></td>
+       </tr>
+       <tr>
+           <td>snarl</td>
+           <td>Snarl Windows Notification Service</td>
+           <td></td>
+           <td></td>
+       </tr>
+       <tr>
+           <td>growl</td>
+           <td>Growl Mac OS X Notification Service</td>
+           <td></td>
+           <td></td>
+       </tr>
+       <tr>
+           <td>notify-send</td>
+           <td>Notify Ubuntu Notification Service</td>
+           <td></td>
+           <td>You need to have notify-send installed for this. Run <literal>sudo apt-get install libnotify-bin</literal>
+               on Ubuntu to install it.</td>
+       </tr>
+   </table>
 
     <section>
         <title>Tasks</title>

@@ -50,6 +50,11 @@ class DefaultAnnouncerFactoryTest extends Specification {
         announcerFactory.createAnnouncer('notify-send') instanceof NotifySend
     }
 
+    def createForGrowl() {
+        expect:
+        announcerFactory.createAnnouncer('growl') instanceof Growl
+    }
+
     def createWithUnknownType() {
         expect:
         announcerFactory.createAnnouncer('unknown') instanceof DoNothingAnnouncer

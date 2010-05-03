@@ -34,6 +34,8 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
             return new NotifySend()
         } else if (type == "snarl") {
             return new Snarl()
+        } else if (type == "growl") {
+            return new Growl()
         }
         new DoNothingAnnouncer()
     }
