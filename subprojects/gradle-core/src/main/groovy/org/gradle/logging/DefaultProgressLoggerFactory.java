@@ -16,7 +16,6 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.logging.ProgressLogger;
 import org.gradle.listener.ListenerManager;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
@@ -24,6 +23,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
     public DefaultProgressLoggerFactory(ListenerManager listenerManager) {
         this.listenerManager = listenerManager;
+    }
+
+    public ProgressLogger start() {
+        return start("");
     }
 
     public ProgressLogger start(String description) {

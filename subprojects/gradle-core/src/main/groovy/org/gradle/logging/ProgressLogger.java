@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.logging;
+package org.gradle.logging;
 
 /**
  * Used to log the progress of a potentially long running operation.

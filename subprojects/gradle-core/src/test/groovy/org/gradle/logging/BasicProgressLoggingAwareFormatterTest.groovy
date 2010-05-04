@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.logging
 
 import ch.qos.logback.classic.LoggerContext
@@ -83,12 +85,9 @@ class BasicProgressLoggingAwareFormatterTest {
     }
 
     @Test
-    public void logsProgressStatusMessages() {
+    public void ignoresProgressStatusMessages() {
         context.checking {
             one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(' ')
-            one(infoMessage).onOutput('.')
-            one(infoMessage).onOutput('.')
             one(infoMessage).onOutput(' ')
             one(infoMessage).onOutput('complete')
             one(infoMessage).onOutput(EOL)
@@ -106,9 +105,6 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput('description1')
             one(infoMessage).onOutput(EOL)
             one(infoMessage).onOutput('description2')
-            one(infoMessage).onOutput(' ')
-            one(infoMessage).onOutput('.')
-            one(infoMessage).onOutput('.')
             one(infoMessage).onOutput(' ')
             one(infoMessage).onOutput('complete2')
             one(infoMessage).onOutput(EOL)
@@ -128,12 +124,8 @@ class BasicProgressLoggingAwareFormatterTest {
     public void logsMixOfProgressAndInfoMessages() {
         context.checking {
             one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(' ')
-            one(infoMessage).onOutput('.')
             one(infoMessage).onOutput(EOL)
             one(infoMessage).onOutput(String.format('message%n'))
-            one(infoMessage).onOutput('.')
-            one(infoMessage).onOutput(' ')
             one(infoMessage).onOutput('complete')
             one(infoMessage).onOutput(EOL)
         }
@@ -182,6 +174,50 @@ class BasicProgressLoggingAwareFormatterTest {
         formatter.format(event('description', Logging.PROGRESS_STARTED))
         formatter.format(event('message'))
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
+    }
+
+    @Test
+    public void logsProgressMessagesWithNoStartStatus() {
+        formatter.format(event('', Logging.PROGRESS_STARTED))
+
+        context.checking {
+            one(infoMessage).onOutput('done')
+            one(infoMessage).onOutput(EOL)
+        }
+
+        formatter.format(event('done', Logging.PROGRESS_COMPLETE))
+    }
+
+    @Test
+    public void logsNestedProgressMessagesWithNoStartStatusAndOtherMessages() {
+        context.checking {
+            one(infoMessage).onOutput('outer')
+        }
+
+        formatter.format(event('outer', Logging.PROGRESS_STARTED))
+
+        formatter.format(event('', Logging.PROGRESS_STARTED))
+
+        context.checking {
+            one(infoMessage).onOutput(EOL)
+            one(errorMessage).onOutput(String.format('message%n'))
+        }
+
+        formatter.format(event('message', Level.ERROR))
+
+        context.checking {
+            one(infoMessage).onOutput('done inner')
+            one(infoMessage).onOutput(EOL)
+        }
+
+        formatter.format(event('done inner', Logging.PROGRESS_COMPLETE))
+
+        context.checking {
+            one(infoMessage).onOutput('done outer')
+            one(infoMessage).onOutput(EOL)
+        }
+
+        formatter.format(event('done outer', Logging.PROGRESS_COMPLETE))
     }
 
     private ILoggingEvent event(String text, Marker marker) {

@@ -29,7 +29,7 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.ProgressLogger;
+import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;

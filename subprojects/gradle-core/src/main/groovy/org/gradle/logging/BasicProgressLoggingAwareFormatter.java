@@ -26,55 +26,37 @@ public class BasicProgressLoggingAwareFormatter extends AbstractProgressLoggingA
     private enum State {
         StartOfLine {
             @Override
-            public void startNewLine(StandardOutputListener target) throws IOException {
+            public State startNewLine(StandardOutputListener target) throws IOException {
+                return this;
             }
             @Override
-            public void addCompletion(StandardOutputListener target, String status) throws IOException {
+            public State addCompletion(StandardOutputListener target, String status) throws IOException {
                 if (status.length() == 0) {
-                    return;
+                    return this;
                 }
                 target.onOutput(status);
                 target.onOutput(EOL);
+                return this;
             }},
         Description {
             @Override
-            public void startNewLine(StandardOutputListener target) throws IOException {
+            public State startNewLine(StandardOutputListener target) throws IOException {
                 target.onOutput(EOL);
+                return StartOfLine;
             }
             @Override
-            public void addStatus(StandardOutputListener target) throws IOException {
-                target.onOutput(" ");
-                super.addStatus(target);
-            }
-            @Override
-            public void addCompletion(StandardOutputListener target, String status) throws IOException {
+            public State addCompletion(StandardOutputListener target, String status) throws IOException {
                 if (status.length() > 0) {
                     target.onOutput(" ");
                     target.onOutput(status);
                 }
                 target.onOutput(EOL);
-            }},
-        Status {
-            @Override
-            public void startNewLine(StandardOutputListener target) throws IOException {
-                target.onOutput(EOL);
-            }
-            @Override
-            public void addCompletion(StandardOutputListener target, String status) throws IOException {
-                if (status.length() > 0) {
-                    target.onOutput(" ");
-                    target.onOutput(status);
-                }
-                target.onOutput(EOL);
+                return StartOfLine;
             }};
 
-        public abstract void startNewLine(StandardOutputListener target) throws IOException;
+        public abstract State startNewLine(StandardOutputListener target) throws IOException;
 
-        public void addStatus(StandardOutputListener target) throws IOException {
-            target.onOutput(".");
-        }
-
-        public abstract void addCompletion(StandardOutputListener target, String status) throws IOException;
+        public abstract State addCompletion(StandardOutputListener target, String status) throws IOException;
     }
 
     private State state = State.StartOfLine;
@@ -89,34 +71,31 @@ public class BasicProgressLoggingAwareFormatter extends AbstractProgressLoggingA
 
     @Override
     protected void onStart(Operation operation) throws IOException {
-        state.startNewLine(infoTarget);
-        infoTarget.onOutput(operation.getDescription());
-        state = State.Description;
+        if (operation.getDescription().length() > 0) {
+            state.startNewLine(infoTarget);
+            infoTarget.onOutput(operation.getDescription());
+            state = State.Description;
+        }
     }
 
     @Override
     protected void onStatusChange(Operation operation) throws IOException {
-        state.addStatus(infoTarget);
-        state = State.Status;
     }
 
     @Override
     protected void onComplete(Operation operation) throws IOException {
-        state.addCompletion(infoTarget, operation.getStatus());
-        state = State.StartOfLine;
+        state = state.addCompletion(infoTarget, operation.getStatus());
     }
 
     @Override
     protected void onInfoMessage(String message) throws IOException {
-        state.startNewLine(infoTarget);
+        state = state.startNewLine(infoTarget);
         infoTarget.onOutput(message);
-        state = State.StartOfLine;
     }
 
     @Override
     protected void onErrorMessage(String message) throws IOException {
-        state.startNewLine(infoTarget);
+        state = state.startNewLine(infoTarget);
         errorTarget.onOutput(message);
-        state = State.StartOfLine;
     }
 }

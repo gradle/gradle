@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.logging
 
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -190,7 +192,7 @@ class ConsoleBackedFormatterTest {
     }
 
     @Test
-    public void logsProgressMessagesWithNoCompletionStatus() {
+    public void logsProgressMessagesWithEmptyCompletionStatus() {
         Label statusBar = statusBar()
 
         context.checking {
@@ -210,7 +212,7 @@ class ConsoleBackedFormatterTest {
     }
 
     @Test
-    public void logsProgressMessagesWithNoCompletionStatusAndOtherMessages() {
+    public void logsProgressMessagesWithEmptyCompletionStatusAndOtherMessages() {
         Label statusBar = statusBar()
 
         context.checking {
@@ -235,6 +237,55 @@ class ConsoleBackedFormatterTest {
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
     }
 
+    @Test
+    public void logsProgressMessagesWithEmptyStartAndCompletionStatus() {
+        Label statusBar = statusBar()
+
+        context.checking {
+            one(console).addStatusBar()
+            will(returnValue(statusBar))
+            one(statusBar).setText('')
+        }
+
+        formatter.format(event('', Logging.PROGRESS_STARTED))
+
+        context.checking {
+            one(statusBar).setText('running')
+        }
+        formatter.format(event('running', Logging.PROGRESS))
+
+        context.checking {
+            one(statusBar).close()
+        }
+
+        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+    }
+
+    @Test
+    public void logsProgressMessagesWithEmptyStartAndCompletionStatusAndOtherMessages() {
+        Label statusBar = statusBar()
+
+        context.checking {
+            one(console).addStatusBar()
+            will(returnValue(statusBar))
+            one(statusBar).setText('')
+        }
+
+        formatter.format(event('', Logging.PROGRESS_STARTED))
+
+        context.checking {
+            one(mainArea).append(String.format('message%n'))
+        }
+
+        formatter.format(event('message'))
+
+        context.checking {
+            one(statusBar).close()
+        }
+
+        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+    }
+    
     private Label statusBar() {
         return context.mock(Label.class)
     }

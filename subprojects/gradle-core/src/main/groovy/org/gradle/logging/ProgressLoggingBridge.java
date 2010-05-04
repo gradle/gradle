@@ -18,7 +18,6 @@ package org.gradle.logging;
 
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.ProgressLogger;
 
 public class ProgressLoggingBridge implements ProgressListener {
     private static final Logger LOGGER = Logging.getLogger(ProgressLoggingBridge.class);

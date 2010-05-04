@@ -16,8 +16,6 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.logging.ProgressLogger;
-
 public interface ProgressListener {
     void started(ProgressLogger logger);
 

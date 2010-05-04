@@ -16,8 +16,8 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.logging.ProgressLogger;
-
 public interface ProgressLoggerFactory {
+    ProgressLogger start();
+    
     ProgressLogger start(String description);
 }

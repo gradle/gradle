@@ -45,16 +45,36 @@ public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatte
         Label label = currentOperations.remove(operation);
         label.close();
         boolean hasCompletionStatus = operation.getStatus().length() > 0;
+        boolean hasDescription = operation.getDescription().length() > 0;
         if (noHeader.remove(operation) || hasCompletionStatus) {
-            String status = hasCompletionStatus ? " " + operation.getStatus() : "";
-            console.getMainArea().append(operation.getDescription() + status + EOL);
+            StringBuilder builder = new StringBuilder();
+            if (hasDescription) {
+                builder.append(operation.getDescription());
+            }
+            if (hasCompletionStatus) {
+                if (hasDescription) {
+                    builder.append(' ');
+                }
+                builder.append(operation.getStatus());
+            }
+            if (builder.length() > 0) {
+                builder.append(EOL);
+                console.getMainArea().append(builder.toString());
+            }
         }
     }
 
     @Override
     protected void onStatusChange(Operation operation) throws IOException {
         Label label = currentOperations.get(operation);
-        label.setText(operation.getDescription() + ' ' + operation.getStatus());
+        String text;
+        if (operation.getDescription().length() > 0) {
+            text = operation.getDescription() + ' ' + operation.getStatus();
+        } else {
+            text = operation.getStatus();
+        }
+
+        label.setText(text);
     }
 
     @Override
@@ -70,7 +90,9 @@ public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatte
 
     private void writeHeaders() {
         for (Operation operation : noHeader) {
-            console.getMainArea().append(operation.getDescription() + EOL);
+            if (operation.getDescription().length() > 0) {
+                console.getMainArea().append(operation.getDescription() + EOL);
+            }
         }
         noHeader.clear();
     }

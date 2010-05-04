@@ -139,7 +139,7 @@ public class DefaultLoggingConfigurerTest {
         logger.info(Logging.PROGRESS, "<tick>");
         logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start> .. <complete>%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("<start> <complete>%n")));
     }
 
     @Test
@@ -151,7 +151,7 @@ public class DefaultLoggingConfigurerTest {
         logger.info(Logging.PROGRESS, "<tick>");
         logger.info(Logging.PROGRESS_COMPLETE, "<complete>");
 
-        assertThat(outputListener.toString(), equalTo(String.format("<start> .. <complete>%n")));
+        assertThat(outputListener.toString(), equalTo(String.format("<start> <complete>%n")));
     }
 
     @Test

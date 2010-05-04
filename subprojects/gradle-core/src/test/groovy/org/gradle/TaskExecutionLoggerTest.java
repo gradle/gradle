@@ -19,7 +19,7 @@ package org.gradle;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.logging.ProgressLogger;
+import org.gradle.logging.ProgressLogger;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.jmock.Expectations;
