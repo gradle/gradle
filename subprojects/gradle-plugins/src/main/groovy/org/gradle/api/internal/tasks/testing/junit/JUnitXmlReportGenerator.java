@@ -21,7 +21,8 @@ import org.apache.tools.ant.util.DOMElementWriter;
 import org.apache.tools.ant.util.DateUtils;
 import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.GradleException;
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestOutputEvent;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -34,8 +35,7 @@ import java.net.UnknownHostException;
 import java.util.EnumMap;
 import java.util.Map;
 
-public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor<JUnitXmlReportGenerator.TestState>
-        implements TestResultProcessor {
+public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
     private final File testResultsDir;
     private final DocumentBuilder documentBuilder;
     private final String hostName;
@@ -53,11 +53,6 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor<JU
             throw new GradleException(e);
         }
         hostName = getHostname();
-    }
-
-    @Override
-    protected TestState createState(TestDescriptorInternal test, TestStartEvent event) {
-        return new TestState(test, event);
     }
 
     @Override
@@ -140,12 +135,6 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor<JU
             return InetAddress.getLocalHost().getHostName();
         } catch (UnknownHostException e) {
             return "localhost";
-        }
-    }
-
-    class TestState extends StateTrackingTestResultProcessor.TestState {
-        private TestState(TestDescriptorInternal test, TestStartEvent startEvent) {
-            super(test, startEvent);
         }
     }
 }

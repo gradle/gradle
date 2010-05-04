@@ -46,6 +46,7 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
     public void startTestSuite(String testClassName) throws BuildException {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
+            assert currentSuite == null;
             testInternal = convert(idGenerator.generateId(), testClassName);
             currentSuite = testInternal;
         }
@@ -57,6 +58,7 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
         long endTime = timeProvider.getCurrentTime();
         TestDescriptorInternal testInternal;
         synchronized (lock) {
+            assert currentSuite != null;
             testInternal = currentSuite;
             currentSuite = null;
         }
@@ -65,22 +67,23 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
 
     public void startTest(Test test) {
         TestDescriptorInternal testInternal;
+        Object parentId;
         synchronized (lock) {
+            assert currentSuite != null;
+            parentId = currentSuite.getId();
             testInternal = convert(idGenerator.generateId(), test);
             TestDescriptorInternal oldTest = executing.put(test, testInternal);
-            if (oldTest != null) {
-                throw new IllegalStateException(String.format(
-                        "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
-            }
+            assert oldTest == null;
         }
         long startTime = timeProvider.getCurrentTime();
-        resultProcessor.started(testInternal, new TestStartEvent(startTime));
+        resultProcessor.started(testInternal, new TestStartEvent(startTime, parentId));
     }
 
     public void addError(Test test, Throwable throwable) {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.get(test);
+            assert testInternal != null;
         }
         resultProcessor.failure(testInternal.getId(), throwable);
     }
@@ -94,6 +97,7 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.remove(test);
+            assert testInternal != null;
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }

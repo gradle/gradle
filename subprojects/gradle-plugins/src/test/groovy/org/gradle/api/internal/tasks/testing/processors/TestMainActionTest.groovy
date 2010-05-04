@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
@@ -60,7 +62,6 @@ class TestMainActionTest {
             will { id, TestCompleteEvent event ->
                 assertThat(event.endTime, equalTo(200L))
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 

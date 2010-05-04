@@ -20,6 +20,4 @@ import org.gradle.api.tasks.testing.TestDescriptor;
 
 public interface TestDescriptorInternal extends TestDescriptor {
     Object getId();
-
-    void setParent(TestDescriptorInternal parent);
 }

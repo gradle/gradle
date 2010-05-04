@@ -20,10 +20,10 @@ import java.io.Serializable;
 
 public class TestStartEvent implements Serializable {
     private final long startTime;
-    private Object parentId;
+    private final Object parentId;
 
     public TestStartEvent(long startTime) {
-        this.startTime = startTime;
+        this(startTime, null);
     }
 
     public TestStartEvent(long startTime, Object parentId) {
@@ -39,7 +39,10 @@ public class TestStartEvent implements Serializable {
         return parentId;
     }
 
-    public void setParentId(Object parentId) {
-        this.parentId = parentId;
+    /**
+     * Creates a copy of this event with a new parent id.
+     */
+    public TestStartEvent withParentId(Object parentId) {
+        return new TestStartEvent(startTime, parentId);
     }
 }

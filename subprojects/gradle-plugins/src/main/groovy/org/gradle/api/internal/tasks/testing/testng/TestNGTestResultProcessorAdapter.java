@@ -21,6 +21,7 @@ import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.util.IdGenerator;
 import org.testng.ITestContext;
 import org.testng.ITestListener;
+import org.testng.ITestNGMethod;
 import org.testng.ITestResult;
 import org.testng.internal.IConfigurationListener;
 
@@ -33,6 +34,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
     private final Object lock = new Object();
     private Map<String, Object> suites = new HashMap<String, Object>();
     private Map<String, Object> tests = new HashMap<String, Object>();
+    private Map<ITestNGMethod, Object> testMethodToSuiteMapping = new HashMap<ITestNGMethod, Object>();
 
     public TestNGTestResultProcessorAdapter(TestResultProcessor resultProcessor, IdGenerator<?> idGenerator) {
         this.resultProcessor = resultProcessor;
@@ -44,6 +46,9 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         synchronized (lock) {
             testInternal = new DefaultTestSuiteDescriptor(idGenerator.generateId(), iTestContext.getName());
             suites.put(testInternal.getName(), testInternal.getId());
+            for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
+                testMethodToSuiteMapping.put(method, testInternal.getId());
+            }
         }
         resultProcessor.started(testInternal, new TestStartEvent(iTestContext.getStartDate().getTime()));
     }
@@ -52,22 +57,24 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         Object id;
         synchronized (lock) {
             id = suites.remove(iTestContext.getName());
+            for (ITestNGMethod method : iTestContext.getAllTestMethods()) {
+                testMethodToSuiteMapping.remove(method);
+            }
         }
         resultProcessor.completed(id, new TestCompleteEvent(iTestContext.getEndDate().getTime()));
     }
 
     public void onTestStart(ITestResult iTestResult) {
         TestDescriptorInternal testInternal;
+        Object parentId;
         synchronized (lock) {
-            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(),
-                    iTestResult.getName());
+            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), iTestResult.getTestClass().getName(), iTestResult.getName());
             Object oldTestId = tests.put(testInternal.getName(), testInternal.getId());
-            if (oldTestId != null) {
-                throw new IllegalStateException(String.format(
-                        "Cannot handle a test instance executing multiple times concurrently: %s", testInternal));
-            }
+            assert oldTestId == null;
+            parentId = testMethodToSuiteMapping.get(iTestResult.getMethod());
+            assert parentId != null;
         }
-        resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis()));
+        resultProcessor.started(testInternal, new TestStartEvent(iTestResult.getStartMillis(), parentId));
     }
 
     public void onTestSuccess(ITestResult iTestResult) {
@@ -91,8 +98,10 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         synchronized (lock) {
             testId = tests.remove(iTestResult.getName());
         }
-        resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType,
-                resultType == TestResult.ResultType.FAILURE ? iTestResult.getThrowable() : null));
+        if (resultType == TestResult.ResultType.FAILURE) {
+            resultProcessor.failure(testId, iTestResult.getThrowable());
+        }
+        resultProcessor.completed(testId, new TestCompleteEvent(iTestResult.getEndMillis(), resultType));
     }
 
     public void onConfigurationSuccess(ITestResult testResult) {
@@ -106,7 +115,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         TestDescriptorInternal test = new DefaultTestMethodDescriptor(idGenerator.generateId(),
                 testResult.getMethod().getTestClass().getName(), testResult.getMethod().getMethodName());
         resultProcessor.started(test, new TestStartEvent(testResult.getStartMillis()));
-        resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(),
-                TestResult.ResultType.FAILURE, testResult.getThrowable()));
+        resultProcessor.failure(test.getId(), testResult.getThrowable());
+        resultProcessor.completed(test.getId(), new TestCompleteEvent(testResult.getEndMillis(), TestResult.ResultType.FAILURE));
     }
 }

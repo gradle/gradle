@@ -14,28 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
 
-import java.io.Serializable;
 
-public class DefaultTestDescriptor extends AbstractTestDescriptor implements Serializable {
-    private final String className;
+package org.gradle.api.internal.tasks.testing
 
-    public DefaultTestDescriptor(Object id, String className, String name) {
-        super(id, name);
-        this.className = className;
-    }
+import spock.lang.Specification
 
-    @Override
-    public String toString() {
-        return String.format("test %s(%s)", getName(), className);
-    }
+class TestStartEventTest extends Specification {
+    def canCreateCopyWithNonNullParentId() {
+        TestStartEvent event = new TestStartEvent(200L)
 
-    public boolean isComposite() {
-        return false;
-    }
-
-    public String getClassName() {
-        return className;
+        expect:
+        def newEvent = event.withParentId('parent')
+        newEvent != event
+        newEvent.startTime == 200L
+        newEvent.parentId == 'parent'
     }
 }

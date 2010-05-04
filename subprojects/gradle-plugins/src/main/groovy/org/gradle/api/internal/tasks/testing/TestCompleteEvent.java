@@ -22,36 +22,22 @@ import java.io.Serializable;
 
 public class TestCompleteEvent implements Serializable {
     private final long endTime;
-    private TestResult.ResultType resultType;
-    private Throwable failure;
+    private final TestResult.ResultType resultType;
 
     public TestCompleteEvent(long endTime) {
-        this.endTime = endTime;
+        this(endTime, null);
     }
 
-    public TestCompleteEvent(long endTime, TestResult.ResultType resultType, Throwable failure) {
+    public TestCompleteEvent(long endTime, TestResult.ResultType resultType) {
         this.endTime = endTime;
         this.resultType = resultType;
-        this.failure = failure;
     }
 
     public long getEndTime() {
         return endTime;
     }
 
-    public Throwable getFailure() {
-        return failure;
-    }
-
-    public void setFailure(Throwable failure) {
-        this.failure = failure;
-    }
-
     public TestResult.ResultType getResultType() {
         return resultType;
-    }
-
-    public void setResultType(TestResult.ResultType resultType) {
-        this.resultType = resultType;
     }
 }

@@ -21,7 +21,6 @@ import java.io.Serializable;
 public abstract class AbstractTestDescriptor implements TestDescriptorInternal, Serializable {
     private final Object id;
     private final String name;
-    private TestDescriptorInternal parent;
 
     public AbstractTestDescriptor(Object id, String name) {
         this.id = id;
@@ -41,10 +40,6 @@ public abstract class AbstractTestDescriptor implements TestDescriptorInternal, 
     }
 
     public TestDescriptorInternal getParent() {
-        return parent;
-    }
-
-    public void setParent(TestDescriptorInternal parent) {
-        this.parent = parent;
+        return null;
     }
 }

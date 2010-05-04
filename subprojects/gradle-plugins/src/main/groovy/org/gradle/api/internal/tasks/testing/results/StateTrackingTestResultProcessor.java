@@ -22,27 +22,26 @@ import org.gradle.api.tasks.testing.TestResult;
 import java.util.HashMap;
 import java.util.Map;
 
-public abstract class StateTrackingTestResultProcessor<T extends StateTrackingTestResultProcessor.TestState>
-        implements TestResultProcessor {
-    private final Map<Object, T> executing = new HashMap<Object, T>();
+public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
+    private final Map<Object, TestState> executing = new HashMap<Object, TestState>();
 
     public void started(TestDescriptorInternal test, TestStartEvent event) {
-        T state = createState(test, event);
-        T oldState = executing.put(test.getId(), state);
+        TestDescriptorInternal parent = null;
+        if (event.getParentId() != null) {
+            parent = executing.get(event.getParentId()).test;
+        }
+        TestState state = new TestState(new DecoratingTestDescriptor(test, parent), event);
+        TestState oldState = executing.put(test.getId(), state);
         if (oldState != null) {
             throw new IllegalArgumentException(String.format("Received a start event for %s with duplicate id '%s'.",
                     test, test.getId()));
-        }
-        if (event.getParentId() != null) {
-            T parentState = executing.get(event.getParentId());
-            test.setParent(parentState.test);
         }
 
         started(state);
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        T testState = executing.remove(testId);
+        TestState testState = executing.remove(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format(
                     "Received a completed event for test with unknown id '%s'.", testId));
@@ -53,7 +52,7 @@ public abstract class StateTrackingTestResultProcessor<T extends StateTrackingTe
     }
 
     public void failure(Object testId, Throwable result) {
-        T testState = executing.get(testId);
+        TestState testState = executing.get(testId);
         if (testState == null) {
             throw new IllegalArgumentException(String.format("Received a failure event for test with unknown id '%s'.",
                     testId));
@@ -65,13 +64,11 @@ public abstract class StateTrackingTestResultProcessor<T extends StateTrackingTe
         // Don't care
     }
 
-    protected void started(T state) {
+    protected void started(TestState state) {
     }
 
-    protected void completed(T state) {
+    protected void completed(TestState state) {
     }
-
-    protected abstract T createState(TestDescriptorInternal test, TestStartEvent event);
 
     public class TestState {
         public final TestDescriptorInternal test;
@@ -107,9 +104,6 @@ public abstract class StateTrackingTestResultProcessor<T extends StateTrackingTe
 
         public void completed(TestCompleteEvent event) {
             this.completeEvent = event;
-            if (event.getFailure() != null) {
-                failure = event.getFailure();
-            }
             resultType = isFailed() ? TestResult.ResultType.FAILURE
                     : event.getResultType() != null ? event.getResultType() : TestResult.ResultType.SUCCESS;
 
@@ -126,7 +120,7 @@ public abstract class StateTrackingTestResultProcessor<T extends StateTrackingTe
             }
 
             if (startEvent.getParentId() != null) {
-                T parentState = executing.get(startEvent.getParentId());
+                TestState parentState = executing.get(startEvent.getParentId());
                 if (parentState != null) {
                     if (isFailed()) {
                         parentState.failedChild = true;

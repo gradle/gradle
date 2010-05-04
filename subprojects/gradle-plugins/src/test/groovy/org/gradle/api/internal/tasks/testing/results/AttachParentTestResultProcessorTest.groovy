@@ -15,152 +15,66 @@
  */
 
 
-
-
-
-
 package org.gradle.api.internal.tasks.testing.results
 
-
-import org.gradle.util.JUnit4GroovyMockery;
-import org.jmock.integration.junit4.JMock
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
+import org.gradle.api.internal.tasks.testing.TestStartEvent
+import spock.lang.Specification
 
-@RunWith(JMock.class)
-class AttachParentTestResultProcessorTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final TestResultProcessor target = context.mock(TestResultProcessor.class)
+class AttachParentTestResultProcessorTest extends Specification {
+    private final TestResultProcessor target = Mock()
     private final AttachParentTestResultProcessor processor = new AttachParentTestResultProcessor(target)
 
-    @Test
-    public void attachesTestToCurrentlyExecutingSuite() {
+    def attachesTestToCurrentlyExecutingRootSuite() {
         TestDescriptorInternal suite = suite('suite')
         TestDescriptorInternal test = test('test')
-        TestStartEvent testStartEvent = new TestStartEvent(200L)
+        TestStartEvent suiteStartEvent = new TestStartEvent(100L)
 
-        context.checking {
-            ignoring(target)
-        }
+        when:
+        processor.started(suite, suiteStartEvent)
+        processor.started(test, new TestStartEvent(200L))
 
-        processor.started(suite, new TestStartEvent(100L))
-        processor.started(test, testStartEvent)
-
-        assertThat(testStartEvent.parentId, equalTo('suite'))
+        then:
+        1 * target.started(suite, suiteStartEvent)
+        1 * target.started(test, { it.parentId == 'suite' })
     }
 
-    @Test
-    public void attachesSuiteToMostCurrentlyExecutingSuite() {
-        TestDescriptorInternal parent = suite('suite')
-        TestDescriptorInternal child = suite('test')
-        TestStartEvent childStartEvent = new TestStartEvent(200L)
-
-        context.checking {
-            ignoring(target)
-        }
-
-        processor.started(parent, new TestStartEvent(100L))
-        processor.started(child, childStartEvent)
-
-        assertThat(childStartEvent.parentId, equalTo('suite'))
-    }
-
-    @Test
-    public void popsSuiteOffStackWhenComplete() {
+    def canHaveMoreThanOneRootSuite() {
         TestDescriptorInternal root = suite('root')
         TestDescriptorInternal other = suite('suite1')
         TestDescriptorInternal test = test('test')
-        TestStartEvent testStartEvent = new TestStartEvent(200L)
-
-        context.checking {
-            ignoring(target)
-        }
 
         processor.started(root, new TestStartEvent(100L))
-        processor.started(other, new TestStartEvent(100L))
-        processor.completed('suite1', new TestCompleteEvent(200L))
-        processor.started(test, testStartEvent)
+        processor.completed('root', new TestCompleteEvent(200L))
+        processor.started(other, new TestStartEvent(200L))
 
-        assertThat(testStartEvent.parentId, equalTo('root'))
+        when:
+        processor.started(test, new TestStartEvent(200L))
+
+        then:
+        1 * target.started(test, { it.parentId == 'suite1' })
     }
 
-    @Test
-    public void implictlyCompleteSuitesWhenParentSuiteCompletes() {
-        TestDescriptorInternal root = suite('root')
-        TestDescriptorInternal parent = suite('parent')
-        TestDescriptorInternal suite = suite('suite1')
-        TestDescriptorInternal test = test('test')
-        TestStartEvent testStartEvent = new TestStartEvent(200L)
-
-        context.checking {
-            ignoring(target)
-        }
-
-        processor.started(root, new TestStartEvent(100L))
-        processor.started(parent, new TestStartEvent(100L))
-        processor.started(suite, new TestStartEvent(100L))
-        processor.completed('parent', new TestCompleteEvent(200L))
-        processor.started(test, testStartEvent)
-
-        assertThat(testStartEvent.parentId, equalTo('root'))
-    }
-
-    @Test
-    public void doesNothingToTestWhichHasAParentId() {
+    def doesNothingToTestWhichHasAParentId() {
         TestDescriptorInternal suite = suite('suite')
         TestDescriptorInternal test = test('test')
         TestStartEvent testStartEvent = new TestStartEvent(200L, 'parent')
-
-        context.checking {
-            ignoring(target)
-        }
-
         processor.started(suite, new TestStartEvent(100L))
+
+        when:
         processor.started(test, testStartEvent)
 
-        assertThat(testStartEvent.parentId, equalTo('parent'))
-    }
-
-    @Test
-    public void doesNothingToSuiteWhenNoSuiteExecuting() {
-        TestDescriptorInternal suite = suite('suite')
-        TestStartEvent suiteStartEvent = new TestStartEvent(100L)
-
-        context.checking {
-            ignoring(target)
-        }
-
-        processor.started(suite, suiteStartEvent)
-
-        assertThat(suiteStartEvent.parentId, nullValue())
-    }
-
-    @Test
-    public void doesNothingToTestWhenNoSuiteExecuting() {
-        TestDescriptorInternal test = test('test')
-        TestStartEvent testStartEvent = new TestStartEvent(200L)
-
-        context.checking {
-            ignoring(target)
-        }
-
-        processor.started(test, testStartEvent)
-
-        assertThat(testStartEvent.parentId, nullValue())
+        then:
+        1 * target.started(test, testStartEvent)
     }
 
     TestDescriptorInternal test(String id) {
-        [isComposite: {false}, getId: {id}] as TestDescriptorInternal
+        [isComposite: {false}, getId: {id}, toString: {id}] as TestDescriptorInternal
     }
 
     TestDescriptorInternal suite(String id) {
-        [isComposite: {true}, getId: {id}] as TestDescriptorInternal
+        [isComposite: {true}, getId: {id}, toString: {id}] as TestDescriptorInternal
     }
 }

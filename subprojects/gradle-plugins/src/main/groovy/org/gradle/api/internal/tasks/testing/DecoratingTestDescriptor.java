@@ -16,26 +16,39 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import java.io.Serializable;
+import org.gradle.api.tasks.testing.TestDescriptor;
 
-public class DefaultTestDescriptor extends AbstractTestDescriptor implements Serializable {
-    private final String className;
+public class DecoratingTestDescriptor implements TestDescriptorInternal {
+    private final TestDescriptorInternal descriptor;
+    private final TestDescriptorInternal parent;
 
-    public DefaultTestDescriptor(Object id, String className, String name) {
-        super(id, name);
-        this.className = className;
+    public DecoratingTestDescriptor(TestDescriptorInternal descriptor, TestDescriptorInternal parent) {
+        this.descriptor = descriptor;
+        this.parent = parent;
     }
 
     @Override
     public String toString() {
-        return String.format("test %s(%s)", getName(), className);
+        return descriptor.toString();
     }
 
-    public boolean isComposite() {
-        return false;
+    public TestDescriptor getParent() {
+        return parent;
+    }
+
+    public Object getId() {
+        return descriptor.getId();
     }
 
     public String getClassName() {
-        return className;
+        return descriptor.getClassName();
+    }
+
+    public String getName() {
+        return descriptor.getName();
+    }
+
+    public boolean isComposite() {
+        return descriptor.isComposite();
     }
 }

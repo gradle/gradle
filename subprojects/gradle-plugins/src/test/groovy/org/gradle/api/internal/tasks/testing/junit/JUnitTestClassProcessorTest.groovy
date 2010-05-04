@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
@@ -51,26 +53,26 @@ class JUnitTestClassProcessorTest {
     public void executesATestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
+                assertThat(event.parentId, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
             }
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -83,24 +85,26 @@ class JUnitTestClassProcessorTest {
     public void executesAJUnit3TestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
+                assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
+                assertThat(event.parentId, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
+            will { TestDescriptorInternal test, TestStartEvent event ->
+                assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
             }
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -113,48 +117,48 @@ class JUnitTestClassProcessorTest {
     public void executesMultipleTestClasses() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo(ATestClass.class.name))
                 assertThat(suite.className, equalTo(ATestClass.class.name))
+                assertThat(event.parentId, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
             }
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo(3L))
                 assertThat(suite.name, equalTo(AJunit3TestClass.class.name))
                 assertThat(suite.className, equalTo(AJunit3TestClass.class.name))
+                assertThat(event.parentId, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(4L))
                 assertThat(test.name, equalTo('testOk'))
                 assertThat(test.className, equalTo(AJunit3TestClass.class.name))
+                assertThat(event.parentId, equalTo(3L))
             }
             one(resultProcessor).completed(withParam(equalTo(4L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -188,18 +192,15 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).failure(2L, CustomRunner.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -225,7 +226,6 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
@@ -236,12 +236,10 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -268,12 +266,10 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -299,12 +295,10 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -329,12 +323,10 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -359,12 +351,10 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -391,12 +381,10 @@ class JUnitTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 

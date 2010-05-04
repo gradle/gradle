@@ -16,15 +16,11 @@
 
 package org.gradle.api.internal.tasks.testing.results;
 
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 
-public class TestListenerAdapter extends StateTrackingTestResultProcessor<TestListenerAdapter.TestState>
-        implements TestResultProcessor {
+public class TestListenerAdapter extends StateTrackingTestResultProcessor {
     private final TestListener listener;
 
     public TestListenerAdapter(TestListener listener) {
@@ -43,32 +39,13 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor<TestLi
 
     @Override
     protected void completed(TestState state) {
-        TestResult result = state.result;
+        TestResult result = new DefaultTestResult(state.resultType, state.failure, state.getStartTime(),
+                state.getEndTime(), state.testCount, state.successfulCount, state.failedCount);
         TestDescriptorInternal test = state.test;
         if (test.isComposite()) {
             listener.afterSuite(test, result);
         } else {
             listener.afterTest(test, result);
-        }
-    }
-
-    @Override
-    protected TestState createState(TestDescriptorInternal test, TestStartEvent event) {
-        return new TestState(test, event);
-    }
-
-    class TestState extends StateTrackingTestResultProcessor.TestState {
-        public TestResult result;
-
-        private TestState(TestDescriptorInternal test, TestStartEvent startEvent) {
-            super(test, startEvent);
-        }
-
-        @Override
-        public void completed(TestCompleteEvent event) {
-            super.completed(event);
-            result = new DefaultTestResult(resultType, failure, getStartTime(), getEndTime(),
-                    testCount, successfulCount, failedCount);
         }
     }
 }

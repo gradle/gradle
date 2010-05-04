@@ -23,31 +23,29 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassProcessorFactory;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.tasks.testing.detection.DefaultTestClassScannerFactory;
 import org.gradle.api.internal.tasks.testing.detection.TestClassScannerFactory;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.processors.ForkingTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
+import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.results.TestLogger;
 import org.gradle.api.internal.tasks.testing.results.TestSummaryListener;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestFramework;
-import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.*;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.api.internal.tasks.testing.detection.DefaultTestClassScannerFactory;
-import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.process.JavaForkOptions;
+import org.gradle.process.ProcessForkOptions;
+import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.process.ProcessForkOptions;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -328,6 +326,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);
+        addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(getTestListenerBroadcaster().getSource());
         Runnable testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor, resultProcessor);

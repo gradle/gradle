@@ -18,25 +18,21 @@ package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
 
-import java.util.LinkedList;
-
 public class AttachParentTestResultProcessor implements TestResultProcessor {
+    private Object rootId;
     private final TestResultProcessor processor;
-    private final LinkedList<Object> suiteStack = new LinkedList<Object>();
 
     public AttachParentTestResultProcessor(TestResultProcessor processor) {
         this.processor = processor;
     }
 
     public void started(TestDescriptorInternal test, TestStartEvent event) {
-        if (event.getParentId() == null && !suiteStack.isEmpty()) {
-            event.setParentId(suiteStack.getFirst());
+        if (rootId == null) {
+            assert test.isComposite();
+            rootId = test.getId();
         }
-        if (test.isComposite()) {
-            if (suiteStack.contains(test.getId())) {
-                throw new IllegalArgumentException(String.format("Multiple start events received for test with id '%s'.", test.getId()));
-            }
-            suiteStack.addFirst(test.getId());
+        else if (event.getParentId() == null) {
+            event = event.withParentId(rootId);
         }
         processor.started(test, event);
     }
@@ -50,10 +46,8 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        int pos = suiteStack.indexOf(testId);
-        if (pos >= 0) {
-            // Implicitly stop everything up to the given test
-            suiteStack.subList(0, pos + 1).clear();
+        if (testId.equals(rootId)) {
+            rootId = null;
         }
         processor.completed(testId, event);
     }

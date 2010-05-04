@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
@@ -40,6 +42,7 @@ import static org.junit.Assert.*
 import org.gradle.util.LongIdGenerator
 import org.junit.Ignore
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestStartEvent
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
@@ -53,26 +56,26 @@ class TestNGTestClassProcessorTest {
     public void executesATestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal suite ->
+            will { TestDescriptorInternal suite, TestStartEvent event ->
                 assertThat(suite.id, equalTo(1L))
                 assertThat(suite.name, equalTo('Gradle test'))
                 assertThat(suite.className, nullValue())
+                assertThat(event.parentId, nullValue())
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
-            will { TestDescriptorInternal test ->
+            will { TestDescriptorInternal test, TestStartEvent event ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('ok'))
                 assertThat(test.className, equalTo(ATestNGClass.class.name))
+                assertThat(event.parentId, equalTo(1L))
             }
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -97,12 +100,10 @@ class TestNGTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -124,12 +125,10 @@ class TestNGTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, equalTo(ResultType.SUCCESS))
-                assertThat(event.failure, nullValue())
             }
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -165,10 +164,11 @@ class TestNGTestClassProcessorTest {
             }
             inSequence(sequence)
 
+            one(resultProcessor).failure(2L, ATestNGClassWithBrokenSetupMethod.failure)
+
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, equalTo(ResultType.FAILURE))
-                assertThat(event.failure, sameInstance(ATestNGClassWithBrokenSetupMethod.failure))
             }
             inSequence(sequence)
 
@@ -182,14 +182,12 @@ class TestNGTestClassProcessorTest {
             one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, equalTo(ResultType.SKIPPED))
-                assertThat(event.failure, nullValue())
             }
             inSequence(sequence)
 
             one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
             inSequence(sequence)
         }

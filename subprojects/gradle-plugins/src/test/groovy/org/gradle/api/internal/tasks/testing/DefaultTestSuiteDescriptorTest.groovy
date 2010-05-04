@@ -14,28 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing;
 
-import java.io.Serializable;
 
-public class DefaultTestDescriptor extends AbstractTestDescriptor implements Serializable {
-    private final String className;
+package org.gradle.api.internal.tasks.testing
 
-    public DefaultTestDescriptor(Object id, String className, String name) {
-        super(id, name);
-        this.className = className;
-    }
+import spock.lang.Specification
 
-    @Override
-    public String toString() {
-        return String.format("test %s(%s)", getName(), className);
-    }
+class DefaultTestSuiteDescriptorTest extends Specification {
+    def hasUsefulToString() {
+        DefaultTestSuiteDescriptor descriptor = new DefaultTestSuiteDescriptor('id', '<suite-name>')
 
-    public boolean isComposite() {
-        return false;
-    }
-
-    public String getClassName() {
-        return className;
+        expect:
+        descriptor.toString() == 'test \'<suite-name>\''
     }
 }

@@ -52,7 +52,6 @@ public class TestSummaryListener implements TestListener {
         }
         if (suite.getParent() == null && result.getResultType() == ResultType.FAILURE) {
             hadFailures = true;
-            logger.error("{} out of {} tests failed.", result.getFailedTestCount(), result.getTestCount());
         }
     }
 

@@ -15,6 +15,8 @@
  */
 
 
+
+
 package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.tasks.testing.TestDescriptor
@@ -25,6 +27,7 @@ import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.junit.Test
 import org.junit.Before
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 public class TestSummaryListenerTest {
@@ -107,11 +110,9 @@ public class TestSummaryListenerTest {
     }
 
     @Test
-    public void logsSummaryOnCompletionOfRootSuite() {
-        context.checking {
-            one(logger).error('{} out of {} tests failed.', 3L, 5L)
-        }
+    public void usesRootSuiteResultsToDetermineIfTestsHasFailed() {
         listener.afterSuite(test('<test>', null, null), result(TestResult.ResultType.FAILURE, null, 3, 5))
+        assertTrue(listener.hadFailures())
     }
 
     private TestResult result(TestResult.ResultType type, Throwable failure = this.failure, long failures = 0, long total = 0) {

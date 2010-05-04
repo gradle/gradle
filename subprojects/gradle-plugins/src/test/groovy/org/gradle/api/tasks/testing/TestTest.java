@@ -275,6 +275,7 @@ public class TestTest extends AbstractConventionTaskTest {
                 }
 
                 public Object invoke(Invocation invocation) throws Throwable {
+                    TestTest.this.test.getTestListenerBroadcaster().getSource().beforeSuite(testDescriptor);
                     TestTest.this.test.getTestListenerBroadcaster().getSource().afterSuite(testDescriptor, result);
                     return null;
                 }

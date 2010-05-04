@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
@@ -84,7 +86,6 @@ class WorkerTestClassProcessorTest {
             will { id, TestCompleteEvent event ->
                 assertThat(event.endTime, equalTo(200L))
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 
@@ -137,7 +138,6 @@ class WorkerTestClassProcessorTest {
             inSequence(sequence)
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
-                assertThat(event.failure, nullValue())
             }
         }
 

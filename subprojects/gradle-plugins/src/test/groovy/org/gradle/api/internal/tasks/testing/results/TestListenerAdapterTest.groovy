@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.api.internal.tasks.testing.results
 
 import org.gradle.api.tasks.testing.TestListener
@@ -31,6 +33,7 @@ import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.tasks.testing.TestDescriptor
 
 @RunWith(JMock.class)
 class TestListenerAdapterTest {
@@ -43,9 +46,14 @@ class TestListenerAdapterTest {
         TestDescriptorInternal test = test('id')
 
         context.checking {
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(test))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
@@ -66,9 +74,14 @@ class TestListenerAdapterTest {
         TestDescriptorInternal test = test('id')
 
         context.checking {
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(test))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.exception, sameInstance(failure))
                 assertThat(result.startTime, equalTo(100L))
@@ -85,37 +98,18 @@ class TestListenerAdapterTest {
     }
 
     @Test
-    public void createsAResultForATestWithFailureInEndEvent() {
-        RuntimeException failure = new RuntimeException()
-
-        TestDescriptorInternal test = test('id')
-
-        context.checking {
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            will { arg, TestResult result ->
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, sameInstance(failure))
-                assertThat(result.startTime, equalTo(100L))
-                assertThat(result.endTime, equalTo(200L))
-                assertThat(result.testCount, equalTo(1L))
-                assertThat(result.successfulTestCount, equalTo(0L))
-                assertThat(result.failedTestCount, equalTo(1L))
-            }
-        }
-
-        adapter.started(test, new TestStartEvent(100L))
-        adapter.completed('id', new TestCompleteEvent(200L, ResultType.FAILURE, failure))
-    }
-
-    @Test
     public void createsAResultForASkippedTest() {
         TestDescriptorInternal test = test('id')
 
         context.checking {
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(test))
                 assertThat(result.resultType, equalTo(ResultType.SKIPPED))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
@@ -126,7 +120,7 @@ class TestListenerAdapterTest {
         }
 
         adapter.started(test, new TestStartEvent(100L))
-        adapter.completed('id', new TestCompleteEvent(200L, ResultType.SKIPPED, null))
+        adapter.completed('id', new TestCompleteEvent(200L, ResultType.SKIPPED))
     }
 
     @Test
@@ -134,9 +128,14 @@ class TestListenerAdapterTest {
         TestDescriptorInternal suite = suite('id')
 
         context.checking {
-            one(listener).beforeSuite(suite)
-            one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeSuite(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(suite))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
@@ -156,12 +155,23 @@ class TestListenerAdapterTest {
         TestDescriptorInternal test = test('testid')
 
         context.checking {
-            one(listener).beforeSuite(suite)
-            one(test).setParent(suite)
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeSuite(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(suite))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(t.parent.descriptor, equalTo(suite))
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+            }
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(1L))
@@ -182,15 +192,26 @@ class TestListenerAdapterTest {
         TestDescriptorInternal broken = test('broken')
 
         context.checking {
-            one(listener).beforeSuite(suite)
-            one(ok).setParent(suite)
-            one(listener).beforeTest(ok)
-            one(broken).setParent(suite)
-            one(listener).beforeTest(broken)
-            one(listener).afterTest(withParam(sameInstance(ok)), withParam(notNullValue()))
-            one(listener).afterTest(withParam(sameInstance(broken)), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeSuite(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(suite))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(ok))
+                assertThat(t.parent.descriptor, equalTo(suite))
+            }
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(broken))
+                assertThat(t.parent.descriptor, equalTo(suite))
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.testCount, equalTo(2L))
                 assertThat(result.successfulTestCount, equalTo(1L))
@@ -202,7 +223,8 @@ class TestListenerAdapterTest {
         adapter.started(ok, new TestStartEvent(100L, 'id'))
         adapter.started(broken, new TestStartEvent(100L, 'id'))
         adapter.completed('ok', new TestCompleteEvent(200L))
-        adapter.completed('broken', new TestCompleteEvent(200L, ResultType.FAILURE, new RuntimeException()))
+        adapter.failure('broken', new RuntimeException())
+        adapter.completed('broken', new TestCompleteEvent(200L))
         adapter.completed('id', new TestCompleteEvent(200L))
     }
 
@@ -212,12 +234,20 @@ class TestListenerAdapterTest {
         TestDescriptorInternal test = test('testid')
 
         context.checking {
-            one(listener).beforeSuite(suite)
-            one(test).setParent(suite)
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeSuite(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(suite))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(t.parent.descriptor, equalTo(suite))
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(0L))
@@ -227,7 +257,7 @@ class TestListenerAdapterTest {
 
         adapter.started(suite, new TestStartEvent(100L))
         adapter.started(test, new TestStartEvent(100L, 'id'))
-        adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED, null))
+        adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED))
         adapter.completed('id', new TestCompleteEvent(200L))
     }
 
@@ -240,33 +270,32 @@ class TestListenerAdapterTest {
         TestDescriptorInternal broken = test('broken')
 
         context.checking {
-            one(listener).beforeSuite(root)
-            one(suite1).setParent(root)
-            one(listener).beforeSuite(suite1)
-            one(ok).setParent(suite1)
-            one(listener).beforeTest(ok)
-            one(listener).afterTest(withParam(sameInstance(ok)), withParam(notNullValue()))
-            one(suite2).setParent(root)
-            one(listener).beforeSuite(suite2)
-            one(broken).setParent(suite2)
-            one(listener).beforeTest(broken)
-            one(listener).afterTest(withParam(sameInstance(broken)), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(sameInstance(suite1)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeSuite(withParam(notNullValue()))
+            one(listener).beforeSuite(withParam(notNullValue()))
+            one(listener).beforeTest(withParam(notNullValue()))
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            one(listener).beforeSuite(withParam(notNullValue()))
+            one(listener).beforeTest(withParam(notNullValue()))
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite1))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(1L))
                 assertThat(result.failedTestCount, equalTo(0L))
             }
-            one(listener).afterSuite(withParam(sameInstance(suite2)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite2))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(0L))
                 assertThat(result.failedTestCount, equalTo(1L))
             }
-            one(listener).afterSuite(withParam(sameInstance(root)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(root))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.testCount, equalTo(2L))
                 assertThat(result.successfulTestCount, equalTo(1L))
@@ -278,10 +307,11 @@ class TestListenerAdapterTest {
         adapter.started(suite1, new TestStartEvent(100L, 'root'))
         adapter.started(ok, new TestStartEvent(100L, 'suite1'))
         adapter.started(suite2, new TestStartEvent(100L, 'root'))
-        adapter.started(broken, new TestStartEvent(100L, 'suite2'))
         adapter.completed('ok', new TestCompleteEvent(200L))
-        adapter.completed('broken', new TestCompleteEvent(200L, ResultType.FAILURE, new RuntimeException()))
         adapter.completed('suite1', new TestCompleteEvent(200L))
+        adapter.started(broken, new TestStartEvent(100L, 'suite2'))
+        adapter.failure('broken', new RuntimeException())
+        adapter.completed('broken', new TestCompleteEvent(200L))
         adapter.completed('suite2', new TestCompleteEvent(200L))
         adapter.completed('root', new TestCompleteEvent(200L))
     }
@@ -293,12 +323,12 @@ class TestListenerAdapterTest {
         RuntimeException failure = new RuntimeException()
 
         context.checking {
-            one(listener).beforeSuite(suite)
-            one(test).setParent(suite)
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
-            will { arg, TestResult result ->
+            one(listener).beforeSuite(withParam(notNullValue()))
+            one(listener).beforeTest(withParam(notNullValue()))
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            one(listener).afterSuite(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.exception, sameInstance(failure))
             }
@@ -306,33 +336,9 @@ class TestListenerAdapterTest {
 
         adapter.started(suite, new TestStartEvent(100L))
         adapter.started(test, new TestStartEvent(100L, 'id'))
-        adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED, null))
+        adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED))
         adapter.failure('id', failure)
         adapter.completed('id', new TestCompleteEvent(200L))
-    }
-
-    @Test
-    public void createsAnAggregateResultForTestSuiteWithFailureInEndEvent() {
-        TestDescriptorInternal suite = suite('id')
-        TestDescriptorInternal test = test('testid')
-        RuntimeException failure = new RuntimeException()
-
-        context.checking {
-            one(listener).beforeSuite(suite)
-            one(test).setParent(suite)
-            one(listener).beforeTest(test)
-            one(listener).afterTest(withParam(sameInstance(test)), withParam(notNullValue()))
-            one(listener).afterSuite(withParam(sameInstance(suite)), withParam(notNullValue()))
-            will { arg, TestResult result ->
-                assertThat(result.resultType, equalTo(ResultType.FAILURE))
-                assertThat(result.exception, sameInstance(failure))
-            }
-        }
-
-        adapter.started(suite, new TestStartEvent(100L))
-        adapter.started(test, new TestStartEvent(100L, 'id'))
-        adapter.completed('testid', new TestCompleteEvent(200L, ResultType.SKIPPED, null))
-        adapter.completed('id', new TestCompleteEvent(200L, ResultType.FAILURE, failure))
     }
 
     private TestDescriptorInternal test(String id) {
