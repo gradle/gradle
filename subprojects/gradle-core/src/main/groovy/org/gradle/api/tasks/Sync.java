@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks;
 
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.copy.FileCopyActionImpl;
 import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import org.gradle.api.internal.file.copy.SyncCopySpecVisitor;
-import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
 
@@ -31,7 +31,7 @@ public class Sync extends AbstractCopyTask {
     private FileCopyActionImpl action;
 
     public Sync() {
-        FileResolver fileResolver = ((ProjectInternal) getProject()).getFileResolver();
+        FileResolver fileResolver = getServices().get(FileResolver.class);
         action = new FileCopyActionImpl(fileResolver, new SyncCopySpecVisitor(new FileCopySpecVisitor()));
     }
 

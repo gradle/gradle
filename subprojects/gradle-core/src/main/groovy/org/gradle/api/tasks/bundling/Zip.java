@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,11 +15,10 @@
  */
 package org.gradle.api.tasks.bundling;
 
-import org.gradle.api.internal.file.*;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.ZipCopySpecVisitor;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
 
@@ -32,7 +31,7 @@ public class Zip extends AbstractArchiveTask {
 
     public Zip() {
         setExtension(ZIP_EXTENSION);
-        action = new ZipCopyAction(((ProjectInternal) getProject()).getFileResolver());
+        action = new ZipCopyAction(getServices().get(FileResolver.class));
     }
 
     protected CopyActionImpl getCopyAction() {

@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks.bundling;
 
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.file.archive.TarCopyAction;
 import org.gradle.api.internal.file.archive.TarCopySpecVisitor;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
-import org.gradle.api.internal.project.ProjectInternal;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -37,7 +37,7 @@ public class Tar extends AbstractArchiveTask {
     public Tar() {
         compression = Compression.NONE;
         longFile = LongFile.WARN;
-        action = new TarCopyActionImpl(((ProjectInternal) getProject()).getFileResolver());
+        action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
                 return getCompression().getExtension();
