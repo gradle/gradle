@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 import java.text.DateFormat
 
 apply plugin: 'groovy'
@@ -71,7 +73,7 @@ dependencies {
             'org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar',
             'org.codehaus.plexus:plexus-component-annotations:1.5.2'
 
-    runtime 'net.java.dev.jna:jna:3.2.3'
+    runtime 'net.java.dev.jna:jna:3.2.2'
 
     runtime libraries.log4j_to_slf4j, libraries.jcl_to_slf4j
 
