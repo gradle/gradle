@@ -15,6 +15,7 @@
  */
 
 
+
 package org.gradle.integtests
 
 import org.gradle.util.TestFile
@@ -352,6 +353,7 @@ task b(dependsOn: a)
 task otherBuild(type: GradleBuild) {
     buildFile = 'other.gradle'
     tasks = ['generate']
+    startParameter.searchUpwards = false
 }
 task transform(type: org.gradle.integtests.TransformerTask) {
     dependsOn otherBuild
