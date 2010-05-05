@@ -15,6 +15,8 @@
  */
 
 
+
+
  
 package org.gradle.api.plugins
 
@@ -107,7 +109,20 @@ class JavaPluginTest {
         assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/main')))
         assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/test')))
     }
-        
+
+    @Test public void createsMappingsForCustomSourceSets() {
+        javaPlugin.apply(project)
+
+        def set = project.sourceSets.add('custom')
+        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
+        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
+        assertThat(set.compileClasspath, sameInstance(project.configurations.compile))
+        assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
+        assertThat(set.classes, builtBy('customClasses'))
+        assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
+        assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/custom')))
+    }
+    
     @Test public void createsStandardTasksAndAppliesMappings() {
         javaPlugin.apply(project)
 
@@ -197,7 +212,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
     }
-    
+
     @Test public void buildOtherProjects() {
         DefaultProject commonProject = HelperUtil.createChildProject(project, "common");
         DefaultProject middleProject = HelperUtil.createChildProject(project, "middle");
@@ -216,9 +231,9 @@ class JavaPluginTest {
         }
 
         Task task = middleProject.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME];
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build',':common:build'] as Set))
+        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':common:build'] as Set))
 
         task = middleProject.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME];
-        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build',':app:build'] as Set))
+        assertThat(task.taskDependencies.getDependencies(task)*.path as Set, equalTo([':middle:build', ':app:build'] as Set))
     }
 }

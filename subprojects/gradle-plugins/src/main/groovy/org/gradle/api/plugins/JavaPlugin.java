@@ -16,6 +16,7 @@
 
 package org.gradle.api.plugins;
 
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
@@ -74,12 +75,16 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {
-        Project project = pluginConvention.getProject();
+        final Project project = pluginConvention.getProject();
 
+        pluginConvention.getSourceSets().allObjects(new Action<SourceSet>() {
+            public void execute(SourceSet sourceSet) {
+                sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
+                sourceSet.setRuntimeClasspath(sourceSet.getClasses().plus(project.getConfigurations().getByName(
+                        RUNTIME_CONFIGURATION_NAME)));
+            }
+        });
         SourceSet main = pluginConvention.getSourceSets().add(SourceSet.MAIN_SOURCE_SET_NAME);
-        main.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
-        main.setRuntimeClasspath(main.getClasses().plus(project.getConfigurations().getByName(
-                RUNTIME_CONFIGURATION_NAME)));
 
         SourceSet test = pluginConvention.getSourceSets().add(SourceSet.TEST_SOURCE_SET_NAME);
         test.setCompileClasspath(project.files(main.getClasses(), project.getConfigurations().getByName(
