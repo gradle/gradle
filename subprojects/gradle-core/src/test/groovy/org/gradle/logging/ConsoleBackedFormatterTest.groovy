@@ -17,6 +17,8 @@
 
 
 
+
+
 package org.gradle.logging
 
 import ch.qos.logback.classic.spi.ILoggingEvent
@@ -41,14 +43,19 @@ class ConsoleBackedFormatterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Console console = context.mock(Console.class)
     private final TextArea mainArea = context.mock(TextArea.class)
-    private final ConsoleBackedFormatter formatter = new ConsoleBackedFormatter((LoggerContext) LoggerFactory.getILoggerFactory(), console)
+    private final Label statusBar = context.mock(Label.class)
+    private ConsoleBackedFormatter formatter
 
     @Before
     public void setup() {
         context.checking {
+            one(console).addStatusBar()
+            will(returnValue(statusBar))
             allowing(console).getMainArea()
             will(returnValue(mainArea))
         }
+
+        formatter = new ConsoleBackedFormatter((LoggerContext) LoggerFactory.getILoggerFactory(), console)
     }
 
     @Test
@@ -84,18 +91,14 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsProgressMessages() {
-        Label statusBar = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
-            one(statusBar).setText('description')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description', Logging.PROGRESS_STARTED))
 
         context.checking {
-            one(statusBar).close()
+            one(statusBar).setText('')
             one(mainArea).append(String.format('description complete%n'))
         }
         
@@ -104,18 +107,14 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsProgressStatusMessages() {
-        Label statusBar = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
-            one(statusBar).setText('description')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description', Logging.PROGRESS_STARTED))
 
         context.checking {
-            one(statusBar).setText('description status')
+            one(statusBar).setText('> status')
         }
 
         formatter.format(event('status', Logging.PROGRESS))
@@ -123,41 +122,34 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsNestedProgressMessages() {
-        Label statusBar1 = statusBar()
-        Label statusBar2 = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar1))
-            one(statusBar1).setText('description1')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description1', Logging.PROGRESS_STARTED))
 
         context.checking {
             one(mainArea).append(String.format('description1%n'))
-            one(console).addStatusBar()
-            will(returnValue(statusBar2))
-            one(statusBar2).setText('description2')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description2', Logging.PROGRESS_STARTED))
 
         context.checking {
-            one(statusBar2).setText('description2 tick')
+            one(statusBar).setText('> tick')
         }
 
         formatter.format(event('tick', Logging.PROGRESS))
 
         context.checking {
-            one(statusBar2).close()
+            one(statusBar).setText('')
             one(mainArea).append(String.format('description2 complete2%n'))
         }
 
         formatter.format(event('complete2', Logging.PROGRESS_COMPLETE))
 
         context.checking {
-            one(statusBar1).close()
+            one(statusBar).setText('')
             one(mainArea).append(String.format('description1 complete1%n'))
         }
 
@@ -166,12 +158,8 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsMixOfProgressAndOtherMessages() {
-        Label statusBar = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
-            one(statusBar).setText('description')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description', Logging.PROGRESS_STARTED))
@@ -184,7 +172,7 @@ class ConsoleBackedFormatterTest {
         formatter.format(event('message'))
 
         context.checking {
-            one(statusBar).close()
+            one(statusBar).setText('')
             one(mainArea).append(String.format('description complete%n'))
         }
 
@@ -193,19 +181,15 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsProgressMessagesWithEmptyCompletionStatus() {
-        Label statusBar = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
-            one(statusBar).setText('description')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description', Logging.PROGRESS_STARTED))
 
         context.checking {
             one(mainArea).append(String.format('description%n'))
-            one(statusBar).close()
+            one(statusBar).setText('')
         }
 
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
@@ -213,12 +197,9 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsProgressMessagesWithEmptyCompletionStatusAndOtherMessages() {
-        Label statusBar = statusBar()
 
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
-            one(statusBar).setText('description')
+            one(statusBar).setText('')
         }
 
         formatter.format(event('description', Logging.PROGRESS_STARTED))
@@ -231,7 +212,7 @@ class ConsoleBackedFormatterTest {
         formatter.format(event('message'))
 
         context.checking {
-            one(statusBar).close()
+            one(statusBar).setText('')
         }
 
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
@@ -239,23 +220,19 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsProgressMessagesWithEmptyStartAndCompletionStatus() {
-        Label statusBar = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
             one(statusBar).setText('')
         }
 
         formatter.format(event('', Logging.PROGRESS_STARTED))
 
         context.checking {
-            one(statusBar).setText('running')
+            one(statusBar).setText('> running')
         }
         formatter.format(event('running', Logging.PROGRESS))
 
         context.checking {
-            one(statusBar).close()
+            one(statusBar).setText('')
         }
 
         formatter.format(event('', Logging.PROGRESS_COMPLETE))
@@ -263,11 +240,7 @@ class ConsoleBackedFormatterTest {
 
     @Test
     public void logsProgressMessagesWithEmptyStartAndCompletionStatusAndOtherMessages() {
-        Label statusBar = statusBar()
-
         context.checking {
-            one(console).addStatusBar()
-            will(returnValue(statusBar))
             one(statusBar).setText('')
         }
 
@@ -280,7 +253,7 @@ class ConsoleBackedFormatterTest {
         formatter.format(event('message'))
 
         context.checking {
-            one(statusBar).close()
+            one(statusBar).setText('')
         }
 
         formatter.format(event('', Logging.PROGRESS_COMPLETE))

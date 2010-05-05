@@ -294,7 +294,13 @@ public class DefaultLoggingConfigurerTest {
         }
 
         public Label addStatusBar() {
-            throw new UnsupportedOperationException();
+            return new Label() {
+                public void setText(String text) {
+                }
+
+                public void close() {
+                }
+            };
         }
 
         public TextArea getMainArea() {

@@ -43,6 +43,7 @@ public abstract class AbstractProgressLoggingAwareFormatter implements LogEventF
             if (event.getMarker() == Logging.PROGRESS_STARTED) {
                 Operation operation = new Operation();
                 operation.description = event.getFormattedMessage();
+                operation.status = "";
                 pendingOperations.addFirst(operation);
                 onStart(operation);
             } else if (event.getMarker() == Logging.PROGRESS) {

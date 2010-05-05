@@ -59,6 +59,7 @@ public class TaskExecutionLoggerTest {
             will(returnValue(null));
             one(progressLoggerFactory).start(":path");
             will(returnValue(progressLogger));
+            one(progressLogger).progress(":path");
         }});
 
         executionLogger.beforeExecute(task);
@@ -86,6 +87,7 @@ public class TaskExecutionLoggerTest {
 
             one(progressLoggerFactory).start(":build:path");
             will(returnValue(progressLogger));
+            one(progressLogger).progress(":build:path");
         }});
 
         executionLogger.beforeExecute(task);
@@ -106,6 +108,7 @@ public class TaskExecutionLoggerTest {
             will(returnValue(null));
             one(progressLoggerFactory).start(":path");
             will(returnValue(progressLogger));
+            one(progressLogger).progress(":path");
         }});
 
         executionLogger.beforeExecute(task);

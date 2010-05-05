@@ -53,6 +53,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
         listenerManager.useLogger(new ProgressLoggingBridge());
+        listenerManager.addListener(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class)));
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {

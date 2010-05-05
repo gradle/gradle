@@ -105,7 +105,7 @@ public class DefaultLoggingConfigurer implements LoggingConfigurer {
             stderr.init(FileDescriptor.err, System.err);
 
             Console console = createConsole();
-            consoleFormatter = new ConsoleBackedFormatter(lc, console);
+            consoleFormatter = console == null ? null : new ConsoleBackedFormatter(lc, console);
             nonConsoleFormatter = new BasicProgressLoggingAwareFormatter(lc, stdout.getBroadcast(),
                     stderr.getBroadcast());
 

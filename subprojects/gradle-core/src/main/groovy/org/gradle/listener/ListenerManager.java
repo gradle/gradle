@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.listener;
 
 import groovy.lang.Closure;
@@ -72,7 +73,7 @@ public interface ListenerManager {
      * broadcaster returned by {@link #getBroadcaster(Class)} for the given listener type.  However, it can also have
      * listeners assigned/removed directly to/from it.  This allows these "anonymous" broadcasters to specialize what
      * listeners receive messages.  Each call creates a new broadcaster, so that client code can create as many "facets"
-     * of the listener as they need.  The client code must provide some way for it's users to register listeners on the
+     * of the listener as they need.  The client code must provide some way for its users to register listeners on the
      * specialized broadcasters.
      *
      * @param listenerClass The type of listener for which to create a broadcaster.

@@ -188,7 +188,8 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
                 total = 0;
-                logger = progressLoggerFactory.start(evt.getResource().getName());
+                DefaultSettingsConverter.this.logger.lifecycle("Download " + evt.getResource().getName());
+                logger = progressLoggerFactory.start();
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                 total += evt.getLength();
@@ -196,7 +197,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED
                     || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
-                logger.completed(String.format("downloaded (%s)", getLengthText(total)));
+                logger.completed();
             }
         }
     }

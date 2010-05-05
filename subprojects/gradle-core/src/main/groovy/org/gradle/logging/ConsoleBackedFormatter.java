@@ -23,27 +23,27 @@ import java.util.*;
 
 public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatter {
     private final Console console;
-    private Map<Operation, Label> currentOperations = new HashMap<Operation, Label>();
-    private Set<Operation> noHeader = new LinkedHashSet<Operation>();
+    private final Set<Operation> currentOperations = new LinkedHashSet<Operation>();
+    private final Set<Operation> noHeader = new LinkedHashSet<Operation>();
+    private final Label statusBar;
 
     public ConsoleBackedFormatter(Context context, Console console) {
         super(context);
         this.console = console;
+        statusBar = console.addStatusBar();
     }
 
     @Override
     protected void onStart(Operation operation) throws IOException {
         writeHeaders();
-        Label label = console.addStatusBar();
-        label.setText(operation.getDescription());
-        currentOperations.put(operation, label);
+        currentOperations.add(operation);
         noHeader.add(operation);
+        updateText();
     }
 
     @Override
     protected void onComplete(Operation operation) throws IOException {
-        Label label = currentOperations.remove(operation);
-        label.close();
+        currentOperations.remove(operation);
         boolean hasCompletionStatus = operation.getStatus().length() > 0;
         boolean hasDescription = operation.getDescription().length() > 0;
         if (noHeader.remove(operation) || hasCompletionStatus) {
@@ -62,19 +62,12 @@ public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatte
                 console.getMainArea().append(builder.toString());
             }
         }
+        updateText();
     }
 
     @Override
     protected void onStatusChange(Operation operation) throws IOException {
-        Label label = currentOperations.get(operation);
-        String text;
-        if (operation.getDescription().length() > 0) {
-            text = operation.getDescription() + ' ' + operation.getStatus();
-        } else {
-            text = operation.getStatus();
-        }
-
-        label.setText(text);
+        updateText();
     }
 
     @Override
@@ -86,6 +79,21 @@ public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatte
     @Override
     protected void onErrorMessage(String message) throws IOException {
         onInfoMessage(message);
+    }
+
+    private void updateText() {
+        StringBuilder builder = new StringBuilder();
+        for (Operation operation : currentOperations) {
+            if (operation.getStatus().length() == 0) {
+                continue;
+            }
+            if (builder.length() > 0) {
+                builder.append(' ');
+            }
+            builder.append("> ");
+            builder.append(operation.getStatus());
+        }
+        statusBar.setText(builder.toString());
     }
 
     private void writeHeaders() {
