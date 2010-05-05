@@ -112,7 +112,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             }
             matcher = bootstrapPattern.matcher(argStr);
             if (matcher.matches()) {
-                setBootstrapClasspath(getResolver().resolveFiles(matcher.group(1).split(Pattern.quote(File.pathSeparator))));
+                setBootstrapClasspath(getResolver().resolveFiles((Object[]) matcher.group(1).split(Pattern.quote(File.pathSeparator))));
                 continue;
             }
             if (argStr.equals("-ea") || argStr.equals("-enableassertions")) {
