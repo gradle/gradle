@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.gradle.api.artifacts.repositories.WebdavResolver
@@ -66,7 +68,7 @@ libraries = [
         spock           : 'org.spockframework:spock-core:0.4-groovy-1.7-SNAPSHOT'
     ]
 
-libraries.groovy_depends  = [libraries.groovy, libraries.commons_cli]
+libraries.groovy_depends = [libraries.groovy, libraries.commons_cli]
 libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.22@jar", "org.mortbay.jetty:jetty-util:6.1.22@jar",
         "javax.servlet:servlet-api:2.5@jar"]
 
@@ -115,6 +117,10 @@ configure(groovyProjects()) {
             classpath = sourceSet.compileClasspath
             resultFile = new File(checkstyleResultsDir, "${sourceSet.name}.xml")
         }
+    }
+
+    test {
+        maxParallelForks = guessMaxForks()
     }
 }
 
@@ -263,6 +269,7 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':d
     systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
     forkEvery = 15
+    maxParallelForks = guessMaxForks()
 
     testClassesDir = project(':core').sourceSets.integTest.classesDir
     classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
@@ -293,6 +300,11 @@ boolean noForkIntegTests() {
 
 private def isDevBuild() {
     gradle.taskGraph.hasTask(':developerBuild')
+}
+
+def guessMaxForks() {
+    int processors = Runtime.runtime.availableProcessors()
+    return Math.max(2, (int)(processors / 2))
 }
 
 tasks.addRule("Pattern: integTestSingle<Name> will integ test **/<Name>.class") {String taskName ->
