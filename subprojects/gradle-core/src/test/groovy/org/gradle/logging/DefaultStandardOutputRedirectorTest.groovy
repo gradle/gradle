@@ -21,6 +21,7 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class DefaultStandardOutputRedirectorTest extends Specification {
+    private static final String EOL = System.getProperty('line.separator')
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final DefaultStandardOutputRedirector redirector = new DefaultStandardOutputRedirector()
     private final StandardOutputListener stdOutListener = Mock()
@@ -47,7 +48,7 @@ class DefaultStandardOutputRedirectorTest extends Specification {
         redirector.stop()
 
         then:
-        1 * stdOutListener.onOutput('this is stdout\n')
+        1 * stdOutListener.onOutput('this is stdout' + EOL)
         0 * stdOutListener._
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
@@ -62,7 +63,7 @@ class DefaultStandardOutputRedirectorTest extends Specification {
         redirector.stop()
 
         then:
-        1 * stdErrListener.onOutput('this is stderr\n')
+        1 * stdErrListener.onOutput('this is stderr' + EOL)
         0 * stdErrListener._
         System.out == outputs.stdOutPrintStream
         System.err == outputs.stdErrPrintStream
@@ -80,7 +81,7 @@ class DefaultStandardOutputRedirectorTest extends Specification {
         redirector.stop()
 
         then:
-        1 * stdOutListener.onOutput('this is stdout\n')
+        1 * stdOutListener.onOutput('this is stdout' + EOL)
         0 * stdOutListener._
         0 * stdErrListener._
         System.out == outputs.stdOutPrintStream
