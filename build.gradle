@@ -269,7 +269,7 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':d
     systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
     forkEvery = 15
-    maxParallelForks = guessMaxForks()
+    maxParallelForks = guessMaxForks(true)
 
     testClassesDir = project(':core').sourceSets.integTest.classesDir
     classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
@@ -302,9 +302,13 @@ private def isDevBuild() {
     gradle.taskGraph.hasTask(':developerBuild')
 }
 
-def guessMaxForks() {
+def guessMaxForks(intTests = false) {
+    if (intTests && OperatingSystem.current().isWindows()) {
+        // Don't run int tests in parallel on windows
+        return 1
+    }
     int processors = Runtime.runtime.availableProcessors()
-    return Math.max(2, (int)(processors / 2))
+    return Math.max(2, (int) (processors / 2))
 }
 
 tasks.addRule("Pattern: integTestSingle<Name> will integ test **/<Name>.class") {String taskName ->
