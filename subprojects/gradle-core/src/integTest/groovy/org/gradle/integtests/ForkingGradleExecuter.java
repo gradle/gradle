@@ -131,7 +131,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             builder.executable(unixCommandSnippet);
         }
 
-        builder.setArgs(getAllArgs());
+        builder.args(getAllArgs());
 
         LOG.info(String.format("Execute in %s with: %s %s", builder.getWorkingDir(), builder.getExecutable(),
                 builder.getArgs()));

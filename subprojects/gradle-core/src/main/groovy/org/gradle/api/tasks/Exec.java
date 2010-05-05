@@ -63,6 +63,17 @@ public class Exec extends ConventionTask implements ExecSpec {
         return this;
     }
 
+    /**
+     * {@inheritDoc}
+     */
+    public ExecSpec args(Iterable<String> args) {
+        execAction.args(args);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public Exec setArgs(List<String> arguments) {
         execAction.setArgs(arguments);
         return this;

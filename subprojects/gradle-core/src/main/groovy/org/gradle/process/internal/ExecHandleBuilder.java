@@ -19,6 +19,7 @@ package org.gradle.process.internal;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.process.ExecSpec;
+import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -49,6 +50,11 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
             throw new IllegalArgumentException("args == null!");
         }
         this.arguments.addAll(Arrays.asList(args));
+        return this;
+    }
+
+    public ExecSpec args(Iterable<String> args) {
+        GUtil.addToCollection(arguments, args);
         return this;
     }
 

@@ -39,6 +39,15 @@ public interface ExecSpec extends BaseExecSpec {
     ExecSpec args(String... args);
 
     /**
+     * Adds args for the command to be executed.
+     *
+     * @param args args for the command
+     *
+     * @return this
+     */
+    ExecSpec args(Iterable<String> args);
+
+    /**
      * Sets the args for the command to be executed.
      *
      * @param args args for the command
