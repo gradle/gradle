@@ -32,6 +32,7 @@ import org.gradle.process.ExecResult
 import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
+import org.gradle.util.OperatingSystem
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
@@ -258,6 +259,10 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def exec() {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
         fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
         File testFile = tmpDir.file("someFile")
 
@@ -274,6 +279,10 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def execWithNonZeroExitValueShouldThrowException() {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
         when:
         fileOperations.exec {
             executable = "touch"
@@ -286,6 +295,10 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def execWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
+        if (OperatingSystem.current().isWindows()) {
+            return
+        }
+
         when:
         ExecResult result = fileOperations.exec {
             ignoreExitValue = true
