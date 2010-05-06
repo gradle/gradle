@@ -38,11 +38,12 @@ import org.slf4j.LoggerFactory;
 import java.io.Serializable;
 import java.util.concurrent.CountDownLatch;
 
-public class TestWorker implements Action<WorkerProcessContext>, TestClassProcessor, Serializable {
+public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
     private final WorkerTestClassProcessorFactory factory;
     private CountDownLatch completed;
     private TestClassProcessor processor;
+    private TestResultProcessor resultProcessor;
 
     public TestWorker(WorkerTestClassProcessorFactory factory) {
         this.factory = factory;
@@ -56,7 +57,7 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
 
         IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
-        
+
         DefaultServiceRegistry testServices = new DefaultServiceRegistry();
         testServices.add(IdGenerator.class, idGenerator);
         TestClassProcessor targetProcessor = factory.create(testServices);
@@ -68,9 +69,9 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         TestResultProcessor resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
         resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
         ThreadSafeProxy<TestResultProcessor> resultProcessorProxy = new ThreadSafeProxy<TestResultProcessor>(TestResultProcessor.class, resultProcessor);
-        processor.startProcessing(resultProcessorProxy.getSource());
+        this.resultProcessor = resultProcessorProxy.getSource();
 
-        serverConnection.addIncoming(TestClassProcessor.class, this);
+        serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
 
         try {
             completed.await();
@@ -80,9 +81,8 @@ public class TestWorker implements Action<WorkerProcessContext>, TestClassProces
         LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
     }
 
-    public void startProcessing(TestResultProcessor resultProcessor) {
-        // Unexpected
-        throw new UnsupportedOperationException();
+    public void startProcessing() {
+        processor.startProcessing(resultProcessor);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {

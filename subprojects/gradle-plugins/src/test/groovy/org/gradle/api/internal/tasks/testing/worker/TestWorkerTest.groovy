@@ -15,10 +15,6 @@
  */
 
 
-
-
-
-
 package org.gradle.api.internal.tasks.testing.worker
 
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
@@ -68,9 +64,10 @@ public class TestWorkerTest extends MultithreadedTestCase {
             one(connection).addOutgoing(TestResultProcessor.class)
             will(returnValue(resultProcessor))
 
-            one(connection).addIncoming(TestClassProcessor.class, worker)
+            one(connection).addIncoming(RemoteTestClassProcessor.class, worker)
             will {
                 start {
+                    worker.startProcessing()
                     worker.processTestClass(test)
                     syncAt(1)
                     worker.endProcessing()

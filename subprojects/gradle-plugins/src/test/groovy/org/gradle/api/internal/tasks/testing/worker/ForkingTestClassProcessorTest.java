@@ -14,21 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.processors;
+package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.api.internal.tasks.testing.worker.TestWorker;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.process.JavaForkOptions;
+import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.WorkerProcessFactory;
-import org.gradle.process.internal.JavaExecHandleBuilder;
-import org.gradle.process.JavaForkOptions;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -50,7 +48,7 @@ public class ForkingTestClassProcessorTest {
     private final WorkerTestClassProcessorFactory processorFactory = context.mock(WorkerTestClassProcessorFactory.class);
     private final WorkerProcessFactory workerFactory = context.mock(WorkerProcessFactory.class);
     private final WorkerProcess workerProcess = context.mock(WorkerProcess.class);
-    private final TestClassProcessor worker = context.mock(TestClassProcessor.class);
+    private final RemoteTestClassProcessor worker = context.mock(RemoteTestClassProcessor.class);
     private final TestClassRunInfo test1 = context.mock(TestClassRunInfo.class, "test1");
     private final TestClassRunInfo test2 = context.mock(TestClassRunInfo.class, "test2");
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
@@ -133,10 +131,12 @@ public class ForkingTestClassProcessorTest {
 
             one(connection).addIncoming(TestResultProcessor.class, resultProcessor);
             
-            one(connection).addOutgoing(TestClassProcessor.class);
+            one(connection).addOutgoing(RemoteTestClassProcessor.class);
             will(returnValue(worker));
 
             one(workerProcess).start();
+
+            one(worker).startProcessing();
         }});
     }
 }

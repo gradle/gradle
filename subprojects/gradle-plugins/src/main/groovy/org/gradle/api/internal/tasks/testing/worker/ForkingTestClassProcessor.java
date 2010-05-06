@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.processors;
+package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.api.internal.tasks.testing.worker.TestWorker;
+import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.WorkerProcessFactory;
-import org.gradle.process.JavaForkOptions;
 
 import java.io.File;
 
@@ -35,7 +34,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
-    private TestClassProcessor worker;
+    private RemoteTestClassProcessor worker;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
 
@@ -66,9 +65,10 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             
             workerProcess = builder.build();
             workerProcess.getConnection().addIncoming(TestResultProcessor.class, resultProcessor);
-            worker = workerProcess.getConnection().addOutgoing(TestClassProcessor.class);
+            worker = workerProcess.getConnection().addOutgoing(RemoteTestClassProcessor.class);
 
             workerProcess.start();
+            worker.startProcessing();
         }
         worker.processTestClass(testClass);
     }
