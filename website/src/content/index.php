@@ -8,8 +8,8 @@
     <p>There is no one-size-fits-all process for builds. Therefore Gradle does not impose a rigid process over people.
     Yet we think finding and describing YOUR process is very important. And so, Gradle has the very best support for
     describing it.</p>
-    <p>We don't believe in tools that save people from themselves. Gradle gives you all the freedom you need. Gradle
-    enables you to create declarative, maintainable, concise and highly-performing builds.
+    <p>We don't believe in tools that save people from themselves. Gradle gives you all the freedom you need. Using Gradle
+    you can create declarative, maintainable, concise and highly-performing builds.
     </p>
 
     <div class="more"><a href="overview.html" title="Learn more"><img src="img/learnMore.png"/></a></div>
