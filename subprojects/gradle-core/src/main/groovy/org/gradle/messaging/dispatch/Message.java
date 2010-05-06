@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import org.gradle.util.ClassLoaderObjectInputStream;
-import org.gradle.util.ReflectionUtil;
+import org.gradle.util.UncheckedException;
 
 import java.io.*;
+import java.lang.reflect.Constructor;
 
 public abstract class Message implements Serializable {
     public void send(OutputStream outputSteam) throws IOException {
@@ -71,13 +73,17 @@ public abstract class Message implements Serializable {
                     // Ignore
                 } catch (InvalidClassException e) {
                     try {
-                        Throwable throwable = ReflectionUtil.newInstance(classLoader.loadClass(type),
-                                new Object[]{message});
+                        Constructor<?> constructor = classLoader.loadClass(type).getConstructor(String.class);
+                        Throwable throwable = (Throwable) constructor.newInstance(message);
                         throwable.initCause(getCause(classLoader));
                         throwable.setStackTrace(stackTrace);
                         return throwable;
                     } catch (ClassNotFoundException e1) {
                         // Ignore
+                    } catch (NoSuchMethodException e1) {
+                        // Ignore
+                    } catch (Throwable t) {
+                        throw new UncheckedException(t);
                     }
                 }
             }

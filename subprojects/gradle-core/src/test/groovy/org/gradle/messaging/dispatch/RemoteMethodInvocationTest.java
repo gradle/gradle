@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import groovy.lang.GroovyClassLoader;
@@ -117,6 +118,27 @@ public class RemoteMethodInvocationTest {
         assertThat(transported, instanceOf(destExceptionType));
         RuntimeException e = (RuntimeException) transported;
         assertThat(e.getMessage(), equalTo(original.getMessage()));
+        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
+
+        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
+        assertThat(e.getCause().getMessage(), equalTo("nested"));
+        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
+    }
+
+    @Test
+    public void usesPlaceholderWhenLocalExceptionCannotBeConstructed() throws Exception {
+        RuntimeException cause = new RuntimeException("nested");
+        Class<? extends RuntimeException> sourceExceptionType = source.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
+        Class<? extends RuntimeException> destExceptionType = dest.parseClass(
+                "package org.gradle; public class TestException extends RuntimeException { private String someField; }");
+
+        RuntimeException original = sourceExceptionType.getConstructor(String.class, Throwable.class).newInstance("message", cause);
+        Object transported = transport(original);
+
+        assertThat(transported, instanceOf(PlaceholderException.class));
+        RuntimeException e = (RuntimeException) transported;
+        assertThat(e.getMessage(), equalTo(original.toString()));
         assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
 
         assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
