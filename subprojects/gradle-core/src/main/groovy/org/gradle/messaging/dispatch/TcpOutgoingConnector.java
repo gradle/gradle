@@ -20,11 +20,11 @@ import org.gradle.api.GradleException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.NetworkInterface;
-import java.net.URI;
+import java.net.*;
 import java.nio.channels.SocketChannel;
+import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
@@ -40,16 +40,58 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                     destinationUri));
         }
 
+        // Find all loop back addresses. Not all of them are necessarily reachable (eg when socket option IPV6_V6ONLY
+        // is on - the default for debian and others), so we will try each of them until we can connect
+        List<InetAddress> loopBackAddresses = findLocalAddresses();
+
+        // Now try each address
         try {
-            SocketChannel socketChannel;
-            InetAddress loopBackAddress = InetAddress.getByName(null);
-            LOGGER.debug("Connecting to address {}.", loopBackAddress);
-            LOGGER.debug("Using interface {}.", NetworkInterface.getByInetAddress(loopBackAddress));
-            socketChannel = SocketChannel.open(new InetSocketAddress(loopBackAddress, destinationUri.getPort()));
-            URI localAddress = new URI(String.format("tcp://localhost:%d", socketChannel.socket().getLocalPort()));
-            return new SocketConnection(socketChannel, localAddress, destinationUri, classLoader);
+            SocketException lastFailure = null;
+            for (InetAddress address : loopBackAddresses) {
+                LOGGER.debug("Trying to connect to address {}.", address);
+                SocketChannel socketChannel;
+                try {
+                    socketChannel = SocketChannel.open(new InetSocketAddress(address, destinationUri.getPort()));
+                } catch (SocketException e) {
+                    LOGGER.debug("Cannot connect to address {}, skipping.", address);
+                    lastFailure = e;
+                    continue;
+                }
+                LOGGER.debug("Connected to address {}.", address);
+                URI localAddress = new URI(String.format("tcp://localhost:%d", socketChannel.socket().getLocalPort()));
+                return new SocketConnection(socketChannel, localAddress, destinationUri, classLoader);
+            }
+            throw lastFailure;
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw new GradleException(String.format("Could not connect to server %s. Tried addresses: %s.",
+                    destinationUri, loopBackAddresses), e);
+        }
+    }
+
+    /**
+     * Never returns an empty list.
+     */
+    static List<InetAddress> findLocalAddresses() {
+        try {
+            List<InetAddress> addresses = new ArrayList<InetAddress>();
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface networkInterface = interfaces.nextElement();
+                Enumeration<InetAddress> candidates = networkInterface.getInetAddresses();
+                while (candidates.hasMoreElements()) {
+                    InetAddress inetAddress = candidates.nextElement();
+                    if (inetAddress.isLoopbackAddress()) {
+                        addresses.add(inetAddress);
+                    }
+                }
+            }
+            if (addresses.isEmpty()) {
+                addresses.add(InetAddress.getByName(null));
+            }
+            LOGGER.debug("Found loop-back addresses: {}.", addresses);
+            return addresses;
+        } catch (Exception e) {
+            throw new GradleException("Could not determine the local loop-back addresses.", e);
         }
     }
 }

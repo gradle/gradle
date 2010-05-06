@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import org.gradle.api.Action;
@@ -29,6 +30,7 @@ import java.net.URI;
 import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
+import java.util.List;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -38,6 +40,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     private final ServerSocketChannel serverSocket;
     private final URI localAddress;
     private final ClassLoader classLoader;
+    private final List<InetAddress> localAddresses;
 
     public TcpIncomingConnector(ClassLoader classLoader) {
         this(Executors.newCachedThreadPool(), classLoader);
@@ -46,11 +49,13 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     public TcpIncomingConnector(ExecutorService executor, ClassLoader classLoader) {
         this.executor = executor;
         this.classLoader = classLoader;
-        
+
+        localAddresses = TcpOutgoingConnector.findLocalAddresses();
         try {
             serverSocket = ServerSocketChannel.open();
-            serverSocket.socket().bind(new InetSocketAddress(InetAddress.getByName(null), 0));
+            serverSocket.socket().bind(new InetSocketAddress(0));
             localAddress = new URI(String.format("tcp://localhost:%d", serverSocket.socket().getLocalPort()));
+            LOGGER.debug("Listening on {}.", localAddress);
         } catch (Exception e) {
             throw new GradleException(e);
         }
@@ -88,8 +93,13 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
             try {
                 while (true) {
                     SocketChannel socket = serverSocket.accept();
-                    URI remoteAddress = new URI(String.format("tcp://localhost:%d", ((InetSocketAddress)socket.socket().getRemoteSocketAddress()).getPort()));
-                    action.execute(new SocketConnection(socket, localAddress, remoteAddress, classLoader));
+                    InetSocketAddress remoteAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
+                    if (!localAddresses.contains(remoteAddress.getAddress())) {
+                        LOGGER.error("Cannot accept connection from remote address {}.", remoteAddress.getAddress());
+                    }
+                    URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
+                    LOGGER.debug("Accepted connection from {}.", remoteUri);
+                    action.execute(new SocketConnection(socket, localAddress, remoteUri, classLoader));
                 }
             } catch (AsynchronousCloseException e) {
                 // Ignore

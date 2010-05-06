@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import org.gradle.api.Action;
@@ -23,7 +24,7 @@ public interface IncomingConnector {
     URI getLocalAddress();
 
     /**
-     * Registers an action to be executed when an incoming connection is received.
+     * Registers an action to be executed when an incoming connection is received. The action must be thread-safe.
      */
     void accept(Action<Connection<Message>> action);
 }
