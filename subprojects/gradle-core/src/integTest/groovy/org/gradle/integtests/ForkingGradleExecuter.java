@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests;
 
 import org.apache.tools.ant.taskdefs.condition.Os;
@@ -137,9 +138,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                 builder.getArgs()));
 
         ExecHandle proc = builder.build();
-        proc.start().waitForFinish();
+        int exitValue = proc.start().waitForFinish().getExitValue();
 
-        int exitValue = proc.getExitCode();
         String output = outStream.toString();
         String error = errStream.toString();
         boolean failed = exitValue != 0;

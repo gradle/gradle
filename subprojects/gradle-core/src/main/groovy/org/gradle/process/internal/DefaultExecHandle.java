@@ -18,6 +18,7 @@ package org.gradle.process.internal;
 
 import org.gradle.listener.AsyncListenerBroadcast;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
 import org.gradle.util.ThreadUtils;
 
@@ -103,7 +104,7 @@ public class DefaultExecHandle implements ExecHandle {
     private ExecHandleRunner execHandleRunner;
 
     private int exitCode;
-    private Throwable failureCause;
+    private RuntimeException failureCause;
 
     private final ListenerBroadcast<ExecHandleListener> broadcast;
 
@@ -192,42 +193,20 @@ public class DefaultExecHandle implements ExecHandle {
         }
     }
 
-    public int getNormalTerminationExitCode() {
-        return normalTerminationExitCode;
-    }
-
-    public int getExitCode() {
-        lock.lock();
-        try {
-            if (!stateIn(ExecHandleState.SUCCEEDED, ExecHandleState.FAILED)) {
-                throw new IllegalStateException("not in succeeded or failed state!");
-            }
-            return exitCode;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    public Throwable getFailureCause() {
-        lock.lock();
-        try {
-            if (!stateIn(ExecHandleState.FAILED)) {
-                throw new IllegalStateException("not in failed state!");
-            }
-            return failureCause;
-        } finally {
-            lock.unlock();
-        }
-    }
-
     private void setEndStateInfo(ExecHandleState state, int exitCode, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
         lock.lock();
         try {
+            if (failureCause != null) {
+                if (this.state == ExecHandleState.STARTING) {
+                    this.failureCause = new ExecException(String.format("A problem occurred starting '%s'.", command), failureCause);
+                } else {
+                    this.failureCause = new ExecException(String.format("A problem occurred waiting for '%s' to complete.", command), failureCause);
+                }
+            }
             setState(state);
             this.exitCode = exitCode;
-            this.failureCause = failureCause;
         } finally {
             lock.unlock();
         }
@@ -259,6 +238,9 @@ public class DefaultExecHandle implements ExecHandle {
                     throw new RuntimeException(e);
                 }
             }
+            if (failureCause != null) {
+                throw failureCause;
+            }
         } finally {
             lock.unlock();
         }
@@ -268,6 +250,9 @@ public class DefaultExecHandle implements ExecHandle {
     public void abort() {
         lock.lock();
         try {
+            if (state == ExecHandleState.SUCCEEDED) {
+                return;
+            }
             if (!stateIn(ExecHandleState.STARTED)) {
                 throw new IllegalStateException("not in started state!");
             }
@@ -277,9 +262,31 @@ public class DefaultExecHandle implements ExecHandle {
         }
     }
 
-    public ExecHandleState waitForFinish() {
+    public ExecResult waitForFinish() {
         ThreadUtils.awaitTermination(threadPool);
-        return getState();
+        final int exitValue;
+        lock.lock();
+        try {
+            exitValue = exitCode;
+            if (failureCause != null) {
+                throw failureCause;
+            }
+        } finally {
+            lock.unlock();
+        }
+
+        return new ExecResult() {
+            public int getExitValue() {
+                return exitValue;
+            }
+
+            public ExecResult assertNormalExitValue() throws ExecException {
+                if (exitValue != 0) {
+                    throw new ExecException("Process finished with non-zero exit value.");
+                }
+                return this;
+            }
+        };
     }
 
     void started() {
@@ -291,15 +298,14 @@ public class DefaultExecHandle implements ExecHandle {
 
     void finished(int exitCode) {
         if (exitCode != normalTerminationExitCode) {
-            setEndStateInfo(ExecHandleState.FAILED, exitCode, new RuntimeException(
-                    "exitCode(" + exitCode + ") != " + normalTerminationExitCode + "!"));
+            setEndStateInfo(ExecHandleState.FAILED, exitCode, null);
         } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);
         }
     }
 
-    void aborted() {
-        setEndStateInfo(ExecHandleState.ABORTED, -1, null);
+    void aborted(int exitCode) {
+        setEndStateInfo(ExecHandleState.ABORTED, exitCode, null);
     }
 
     void failed(Throwable failureCause) {

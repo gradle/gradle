@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.foundation.ipc.basic;
 
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 
@@ -112,12 +114,12 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                     return;
                 }
 
-                execHandle.waitForFinish();
+                ExecResult result = execHandle.waitForFinish();
 
                 setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
                 executionInfo.processExecutionComplete();
-                notifyClientExited( execHandle.getExitCode(), output.toString() );
+                notifyClientExited( result.getExitValue(), output.toString() );
             }
         });
 

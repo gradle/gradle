@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.process.ExecResult;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -33,19 +35,11 @@ public interface ExecHandle {
 
     Map<String, String> getEnvironment();
 
-    ExecHandleState getState();
-
-    int getNormalTerminationExitCode();
-
-    int getExitCode();
-
-    Throwable getFailureCause();
-
     ExecHandle start();
 
     void abort();
 
-    ExecHandleState waitForFinish();
+    ExecResult waitForFinish();
 
     void addListener(ExecHandleListener listener);
 

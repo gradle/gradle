@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
@@ -28,20 +29,10 @@ public class DefaultJavaExecAction extends JavaExecHandleBuilder implements Java
 
     public ExecResult execute() {
         ExecHandle execHandle = build();
-        execHandle.start().waitForFinish();
-        ExecResult execResult = createExecResult(execHandle);
-        if (!isIgnoreExitValue() && execResult.getExitValue() != 0) {
-            throw new ExecException("Process finished with non zero exit value.", execResult);
+        ExecResult execResult = execHandle.start().waitForFinish();
+        if (!isIgnoreExitValue()) {
+            execResult.assertNormalExitValue();
         }
         return execResult;
-    }
-
-    ExecResult createExecResult(ExecHandle execHandle) {
-        final int exitValue = execHandle.getExitCode();
-        return new ExecResult() {
-            public int getExitValue() {
-                return exitValue;
-            }
-        };
     }
 }

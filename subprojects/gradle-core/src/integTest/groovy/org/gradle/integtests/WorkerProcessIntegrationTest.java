@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests;
 
 import org.apache.tools.ant.Project;
@@ -26,12 +27,8 @@ import org.gradle.messaging.ObjectConnection;
 import org.gradle.messaging.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
-import org.gradle.process.internal.DefaultWorkerProcessFactory;
-import org.gradle.process.internal.WorkerProcess;
-import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessContext;
+import org.gradle.process.internal.*;
 import org.gradle.util.LongIdGenerator;
-import org.gradle.process.internal.ExecHandleState;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -207,12 +204,11 @@ public class WorkerProcessIntegrationTest {
         }
 
         public void waitForStop() {
-            proc.waitForStop();
-            ExecHandleState result = proc.getState();
-            if (!fails) {
-                assertThat(result, equalTo(ExecHandleState.SUCCEEDED));
-            } else {
-                assertThat(result, not(equalTo(ExecHandleState.SUCCEEDED)));
+            try {
+                proc.waitForStop();
+                assertFalse(fails);
+            } catch (ExecException e) {
+                assertTrue(fails);
             }
         }
 

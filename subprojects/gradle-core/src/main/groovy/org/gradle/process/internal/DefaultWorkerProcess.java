@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process.internal;
 
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.process.ExecResult;
 
 public class DefaultWorkerProcess implements WorkerProcess {
     private final ObjectConnection connection;
@@ -42,11 +44,7 @@ public class DefaultWorkerProcess implements WorkerProcess {
         execHandle.start();
     }
 
-    public void waitForStop() {
-        execHandle.waitForFinish();
-    }
-
-    public ExecHandleState getState() {
-        return execHandle.getState();
+    public ExecResult waitForStop() {
+        return execHandle.waitForFinish().assertNormalExitValue();
     }
 }

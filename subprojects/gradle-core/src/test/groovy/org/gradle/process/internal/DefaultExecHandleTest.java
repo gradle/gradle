@@ -16,84 +16,116 @@
 
 package org.gradle.process.internal;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.tools.ant.util.JavaEnvUtils;
-import org.junit.After;
-import org.junit.Before;
+import org.gradle.process.ExecResult;
+import org.gradle.util.Jvm;
+import org.gradle.util.TemporaryFolder;
+import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.ByteArrayInputStream;
-import java.io.File;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*;
 
 /**
  * @author Tom Eyckmans
  */
 public class DefaultExecHandleTest {
-
-    private DefaultExecHandle execHandle;
-
-    private final File tmpDir = new File("tmp");
-    private final File sourceDir = new File(tmpDir, "src/main/groovy");
-
-    @Before
-    public void setUp() throws IOException {
-        sourceDir.mkdirs();
-
-        final File gradlePackage = new File(sourceDir, "org/gradle");
-        gradlePackage.mkdirs();
-
-        final File testSourceFile = new File(gradlePackage, "Test.java");
-        final String newLine = System.getProperty("line.separator");
-
-        FileUtils.writeStringToFile(testSourceFile,
-                "package org.gradle; " + newLine +
-                "/**" + newLine +
-                " *@author Test Author" + newLine +
-                " */" + newLine +
-                "public class Test { }"
-        );
-    }
+    @Rule
+    public final TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Test
-    public void testJavadocVersion() throws IOException {
-        execHandle = new DefaultExecHandle(
-                tmpDir,
-                JavaEnvUtils.getJdkExecutable("javadoc"),
+    public void testCanForkProcess() throws IOException {
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        DefaultExecHandle execHandle = new DefaultExecHandle(
+                tmpDir.getDir(),
+                Jvm.current().getJavaExecutable().getAbsolutePath(),
                 Arrays.asList(
-                        "-verbose",
-                        "-d", new File("tmp/javadocTmpOut").getAbsolutePath(),
-                        "-sourcepath", "src/main/groovy",
-                        "org.gradle"), 0,
-                System.getenv(), System.out,
+                        "-cp",
+                        System.getProperty("java.class.path"),
+                        TestApp.class.getName(),
+                        "arg1", "arg2"),
+                0,
+                System.getenv(),
+                out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
                 null
         );
 
-        final ExecHandleState endState = execHandle.start().waitForFinish();
+        ExecResult result = execHandle.start().waitForFinish();
+        assertEquals(ExecHandleState.SUCCEEDED, execHandle.getState());
+        assertEquals(0, result.getExitValue());
+        assertEquals("args: [arg1, arg2]", out.toString());
+        result.assertNormalExitValue();
+    }
 
-        if ( endState == ExecHandleState.FAILED ) {
-            execHandle.getFailureCause().printStackTrace();
+    @Test
+    public void testProcessCanHaveNonZeroExitCode() throws IOException {
+        DefaultExecHandle execHandle = new DefaultExecHandle(
+                tmpDir.getDir(),
+                Jvm.current().getJavaExecutable().getAbsolutePath(),
+                Arrays.asList(
+                        "-cp",
+                        System.getProperty("java.class.path"),
+                        BrokenApp.class.getName()),
+                0,
+                System.getenv(),
+                System.out,
+                System.err,
+                new ByteArrayInputStream(new byte[0]),
+                null
+        );
+
+        ExecResult result = execHandle.start().waitForFinish();
+        assertEquals(ExecHandleState.FAILED, execHandle.getState());
+        assertEquals(72, result.getExitValue());
+        try {
+            result.assertNormalExitValue();
+            fail();
+        } catch (ExecException e) {
+            assertEquals("Process finished with non-zero exit value.", e.getMessage());
         }
+    }
 
-        assertEquals(ExecHandleState.SUCCEEDED, endState);
+    @Test
+    public void testThrowsExceptionWhenProcessCannotBeStarted() throws IOException {
+        DefaultExecHandle execHandle = new DefaultExecHandle(
+                tmpDir.getDir(),
+                "no_such_command",
+                Arrays.asList(),
+                0,
+                System.getenv(),
+                System.out,
+                System.err,
+                new ByteArrayInputStream(new byte[0]),
+                null
+        );
+
+        try {
+            execHandle.start();
+            fail();
+        } catch (ExecException e) {
+            assertEquals("A problem occurred starting 'no_such_command'.", e.getMessage());
+        }
     }
 
     @Test
     public void testAbort() throws IOException {
-        execHandle = new DefaultExecHandle(
-                tmpDir,
-                JavaEnvUtils.getJdkExecutable("javadoc"),
+        DefaultExecHandle execHandle = new DefaultExecHandle(
+                tmpDir.getDir(),
+                Jvm.current().getJavaExecutable().getAbsolutePath(),
                 Arrays.asList(
-                        "-verbose",
-                        "-d", new File("tmp/javadocTmpOut").getAbsolutePath(),
-                        "-sourcepath", "src/main/groovy",
-                        "org.gradle"), 0,
-                System.getenv(), System.out,
+                        "-cp",
+                        System.getProperty("java.class.path"),
+                        SlowApp.class.getName()),
+                0,
+                System.getenv(),
+                System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
                 null
@@ -102,17 +134,26 @@ public class DefaultExecHandleTest {
         execHandle.start();
         execHandle.abort();
 
-        final ExecHandleState endState = execHandle.waitForFinish();
-
-        if ( endState == ExecHandleState.FAILED ) {
-            execHandle.getFailureCause().printStackTrace();
-        }
-
-        assertEquals(ExecHandleState.ABORTED, endState);
+        ExecResult result = execHandle.waitForFinish();
+        assertEquals(ExecHandleState.ABORTED, execHandle.getState());
+        assertThat(result.getExitValue(), not(equalTo(0)));
     }
 
-    @After
-    public void tearDown() throws IOException {
-        FileUtils.deleteDirectory(tmpDir);
+    public static class TestApp {
+        public static void main(String[] args) {
+            System.out.print("args: " + Arrays.asList(args));
+        }
+    }
+
+    public static class BrokenApp {
+        public static void main(String[] args) {
+            System.exit(72);
+        }
+    }
+
+    public static class SlowApp {
+        public static void main(String[] args) throws InterruptedException {
+            Thread.sleep(10000L);
+        }
     }
 }

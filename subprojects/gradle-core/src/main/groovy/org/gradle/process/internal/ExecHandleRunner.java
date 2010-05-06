@@ -84,7 +84,7 @@ public class ExecHandleRunner implements Runnable {
             int exitCode = process.waitFor();
 
             if (aborted) {
-                execHandle.aborted();
+                execHandle.aborted(exitCode);
             } else {
                 execHandle.finished(exitCode);
             }

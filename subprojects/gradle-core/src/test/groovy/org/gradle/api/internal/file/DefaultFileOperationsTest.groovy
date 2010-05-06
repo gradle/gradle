@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.file
 
 import org.apache.commons.io.FileUtils
@@ -33,6 +35,7 @@ import org.junit.Rule
 import org.junit.Test
 import spock.lang.Specification
 import org.gradle.util.OperatingSystem
+import org.gradle.util.ClasspathUtil
 
 public class DefaultFileOperationsTest extends Specification {
     private final FileResolver resolver = Mock()
@@ -215,23 +218,22 @@ public class DefaultFileOperationsTest extends Specification {
         return file
     }
 
-//    def javaexec() {
-//        File testFile = tmpDir.file("someFile")
-//        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
-//        String someArg = 'someArg'
-//        List files = System.properties['java.class.path'].split(System.properties['path.separator']).collect { new File(it) }
-//
-//        when:
-//        ExecResult result = fileOperations.javaexec {
-//            classpath(files as Object[])
-//            main = 'org.gradle.api.internal.file.SomeMain'
-//            args testFile.absolutePath
-//        }
-//
-//        then:
-//        testFile.isFile()
-//        result.exitValue == 0
-//    }
+    def javaexec() {
+        File testFile = tmpDir.file("someFile")
+        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        List files = ClasspathUtil.getClasspath(getClass().classLoader)
+
+        when:
+        ExecResult result = fileOperations.javaexec {
+            classpath(files as Object[])
+            main = 'org.gradle.api.internal.file.SomeMain'
+            args testFile.absolutePath
+        }
+
+        then:
+        testFile.isFile()
+        result.exitValue == 0
+    }
 
     def javaexecWithNonZeroExitValueShouldThrowException() {
         fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)

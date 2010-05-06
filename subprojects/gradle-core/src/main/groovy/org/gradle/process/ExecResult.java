@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process;
+
+import org.gradle.process.internal.ExecException;
 
 /**
  * Represent the result of running an external process.
@@ -25,4 +28,11 @@ public interface ExecResult {
      * Return the exit value of the process.
      */
     int getExitValue();
+
+    /**
+     * Throws an {@link org.gradle.process.internal.ExecException} if the process did not exit with a 0 exit value.
+     * @return this
+     * @throws ExecException On non-zero exit value.
+     */
+    ExecResult assertNormalExitValue() throws ExecException;
 }

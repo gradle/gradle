@@ -13,28 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.process.ExecResult;
 
 /**
  * @author Hans Dockter
  */
 public class ExecException extends GradleException {
-    private ExecResult execResult;
-
-    public ExecException(ExecResult execResult) {
-        super();    //To change body of overridden methods use File | Settings | File Templates.
-        this.execResult = execResult;
+    public ExecException(String message) {
+        super(message);
     }
 
-    public ExecException(String message, ExecResult execResult) {
-        super(message);    //To change body of overridden methods use File | Settings | File Templates.
-        this.execResult = execResult;
-    }
-
-    public ExecResult getExecResult() {
-        return execResult;
+    public ExecException(String message, Throwable cause) {
+        super(message, cause);
     }
 }

@@ -13,9 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.process.internal;
 
 import org.gradle.messaging.ObjectConnection;
+import org.gradle.process.ExecResult;
 
 /**
  * A Java process which performs some worker action. You can send and receive messages to/from the worker process
@@ -26,7 +28,5 @@ public interface WorkerProcess {
 
     void start();
 
-    void waitForStop();
-
-    ExecHandleState getState();
+    ExecResult waitForStop();
 }
