@@ -13,16 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import org.gradle.api.GradleException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.NetworkInterface;
 import java.net.URI;
 import java.nio.channels.SocketChannel;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
     private ClassLoader classLoader;
 
     public TcpOutgoingConnector(ClassLoader classLoader) {
@@ -34,11 +39,13 @@ public class TcpOutgoingConnector implements OutgoingConnector {
             throw new IllegalArgumentException(String.format("Cannot create connection to destination URI '%s'.",
                     destinationUri));
         }
-        
+
         try {
             SocketChannel socketChannel;
-            socketChannel = SocketChannel.open(new InetSocketAddress(InetAddress.getByName(null),
-                    destinationUri.getPort()));
+            InetAddress loopBackAddress = InetAddress.getByName(null);
+            LOGGER.debug("Connecting to address {}.", loopBackAddress);
+            LOGGER.debug("Using interface {}.", NetworkInterface.getByInetAddress(loopBackAddress));
+            socketChannel = SocketChannel.open(new InetSocketAddress(loopBackAddress, destinationUri.getPort()));
             URI localAddress = new URI(String.format("tcp://localhost:%d", socketChannel.socket().getLocalPort()));
             return new SocketConnection(socketChannel, localAddress, destinationUri, classLoader);
         } catch (Exception e) {
