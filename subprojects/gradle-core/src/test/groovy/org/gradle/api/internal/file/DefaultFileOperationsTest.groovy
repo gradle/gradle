@@ -222,6 +222,9 @@ public class DefaultFileOperationsTest extends Specification {
         File testFile = tmpDir.file("someFile")
         fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
         List files = ClasspathUtil.getClasspath(getClass().classLoader)
+        println "Using classpath:"
+        files.each {println it}
+        println "==="
 
         when:
         ExecResult result = fileOperations.javaexec {
