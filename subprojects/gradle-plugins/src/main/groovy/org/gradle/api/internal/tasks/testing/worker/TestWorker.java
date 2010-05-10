@@ -34,6 +34,7 @@ import java.util.concurrent.CountDownLatch;
 
 public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClassProcessor, Serializable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TestWorker.class);
+    public static final String WORKER_ID_SYS_PROPERTY = "org.gradle.test.worker";
     private final WorkerTestClassProcessorFactory factory;
     private CountDownLatch completed;
     private TestClassProcessor processor;
@@ -48,16 +49,21 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
 
         completed = new CountDownLatch(1);
 
+        System.setProperty(WORKER_ID_SYS_PROPERTY, workerProcessContext.getWorkerId().toString());
+        
         ObjectConnection serverConnection = workerProcessContext.getServerConnection();
 
-        IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(), new LongIdGenerator());
+        IdGenerator<Object> idGenerator = new CompositeIdGenerator(workerProcessContext.getWorkerId(),
+                new LongIdGenerator());
 
         DefaultServiceRegistry testServices = new DefaultServiceRegistry();
         testServices.add(IdGenerator.class, idGenerator);
         TestClassProcessor targetProcessor = factory.create(testServices);
 
-        targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(), workerProcessContext.getDisplayName(), new TrueTimeProvider());
-        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
+        targetProcessor = new WorkerTestClassProcessor(targetProcessor, idGenerator.generateId(),
+                workerProcessContext.getDisplayName(), new TrueTimeProvider());
+        ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(
+                TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
 
         this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);

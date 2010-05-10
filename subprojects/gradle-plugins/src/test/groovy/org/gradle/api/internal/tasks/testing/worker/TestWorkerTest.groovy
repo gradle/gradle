@@ -28,11 +28,15 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
+import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory
+import org.junit.Rule
+import org.gradle.util.SetSystemProperties
 
 @RunWith(JMock.class)
 public class TestWorkerTest extends MultithreadedTestCase {
+    @Rule public final SetSystemProperties properties = new SetSystemProperties()
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final WorkerProcessContext workerContext = context.mock(WorkerProcessContext.class)
     private final ObjectConnection connection = context.mock(ObjectConnection.class)
@@ -45,7 +49,9 @@ public class TestWorkerTest extends MultithreadedTestCase {
     @Before
     public void setup() {
         context.checking {
-            ignoring(workerContext).getWorkerId()
+            allowing(workerContext).getWorkerId()
+            will(returnValue('<worker-id>'))
+            
             ignoring(workerContext).getDisplayName()
 
             allowing(workerContext).getServerConnection()
@@ -86,5 +92,7 @@ public class TestWorkerTest extends MultithreadedTestCase {
                 worker.execute(workerContext)
             }
         }
+
+        assertThat(System.properties['org.gradle.test.worker'], equalTo('<worker-id>'))
     }
 }
