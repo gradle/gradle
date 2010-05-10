@@ -23,7 +23,7 @@ import org.junit.runners.model.Statement;
 import java.io.File;
 
 /**
- * A JUnit rule which provides a temporary folder for the test.
+ * A JUnit rule which provides a unique temporary folder for the test.
  */
 public class TemporaryFolder implements MethodRule {
     private TestFile dir;

@@ -25,12 +25,23 @@ public class Jvm {
         return new Jvm();
     }
 
+    Jvm() {
+    }
+
     public File getJavaExecutable() {
         return new File(JavaEnvUtils.getJdkExecutable("java"));
     }
 
     public File getJavadocExecutable() {
         return new File(JavaEnvUtils.getJdkExecutable("javadoc"));
+    }
+
+    public boolean isJava5Compatible() {
+        return System.getProperty("java.version").startsWith("1.5") || isJava6Compatible();
+    }
+
+    public boolean isJava6Compatible() {
+        return System.getProperty("java.version").startsWith("1.6");
     }
 
     public File getToolsJar() {
