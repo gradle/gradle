@@ -17,21 +17,15 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.listener.ContextClassLoaderProxy;
-import org.gradle.listener.ThreadSafeProxy;
 import org.gradle.messaging.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
-import org.gradle.util.CompositeIdGenerator;
-import org.gradle.util.IdGenerator;
-import org.gradle.util.LongIdGenerator;
-import org.gradle.util.TrueTimeProvider;
+import org.gradle.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -66,17 +60,14 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         ContextClassLoaderProxy<TestClassProcessor> proxy = new ContextClassLoaderProxy<TestClassProcessor>(TestClassProcessor.class, targetProcessor, workerProcessContext.getApplicationClassLoader());
         processor = proxy.getSource();
 
-        TestResultProcessor resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
-        resultProcessor = new AttachParentTestResultProcessor(resultProcessor);
-        ThreadSafeProxy<TestResultProcessor> resultProcessorProxy = new ThreadSafeProxy<TestResultProcessor>(TestResultProcessor.class, resultProcessor);
-        this.resultProcessor = resultProcessorProxy.getSource();
+        this.resultProcessor = serverConnection.addOutgoing(TestResultProcessor.class);
 
         serverConnection.addIncoming(RemoteTestClassProcessor.class, this);
 
         try {
             completed.await();
         } catch (InterruptedException e) {
-            throw new GradleException(e);
+            throw new UncheckedException(e);
         }
         LOGGER.info("{} finished executing tests.", workerProcessContext.getDisplayName());
     }

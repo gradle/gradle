@@ -20,7 +20,6 @@ import junit.framework.AssertionFailedError;
 import junit.framework.Test;
 import junit.framework.TestCase;
 import junit.framework.TestListener;
-import org.apache.tools.ant.BuildException;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
@@ -34,7 +33,6 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
     private final IdGenerator<?> idGenerator;
     private final Object lock = new Object();
     private final Map<Object, TestDescriptorInternal> executing = new IdentityHashMap<Object, TestDescriptorInternal>();
-    private TestDescriptorInternal currentSuite;
 
     public JUnitTestResultProcessorAdapter(TestResultProcessor resultProcessor, TimeProvider timeProvider,
                                  IdGenerator<?> idGenerator) {
@@ -43,40 +41,15 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
         this.idGenerator = idGenerator;
     }
 
-    public void startTestSuite(String testClassName) throws BuildException {
-        TestDescriptorInternal testInternal;
-        synchronized (lock) {
-            assert currentSuite == null;
-            testInternal = convert(idGenerator.generateId(), testClassName);
-            currentSuite = testInternal;
-        }
-        long startTime = timeProvider.getCurrentTime();
-        resultProcessor.started(testInternal, new TestStartEvent(startTime));
-    }
-
-    public void endTestSuite() throws BuildException {
-        long endTime = timeProvider.getCurrentTime();
-        TestDescriptorInternal testInternal;
-        synchronized (lock) {
-            assert currentSuite != null;
-            testInternal = currentSuite;
-            currentSuite = null;
-        }
-        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
-    }
-
     public void startTest(Test test) {
         TestDescriptorInternal testInternal;
-        Object parentId;
         synchronized (lock) {
-            assert currentSuite != null;
-            parentId = currentSuite.getId();
             testInternal = convert(idGenerator.generateId(), test);
             TestDescriptorInternal oldTest = executing.put(test, testInternal);
             assert oldTest == null;
         }
         long startTime = timeProvider.getCurrentTime();
-        resultProcessor.started(testInternal, new TestStartEvent(startTime, parentId));
+        resultProcessor.started(testInternal, new TestStartEvent(startTime));
     }
 
     public void addError(Test test, Throwable throwable) {
@@ -100,10 +73,6 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
             assert testInternal != null;
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
-    }
-
-    private TestDescriptorInternal convert(Object id, String className) {
-        return new DefaultTestClassDescriptor(id, className);
     }
 
     protected TestDescriptorInternal convert(Object id, Test test) {

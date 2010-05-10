@@ -167,8 +167,10 @@ public class TestNGIntegrationTest {
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
-        assertThat(result.getOutput(), containsLine("START [all tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [all tests] []"));
+        assertThat(result.getOutput(), containsLine("START [tests] []"));
+        assertThat(result.getOutput(), containsLine("FINISH [tests] []"));
+        assertThat(result.getOutput(), containsLine("START [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
         assertThat(result.getOutput(), containsLine("START [test 'Gradle test'] [Gradle test]"));
         assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle test'] [Gradle test]"));
         assertThat(result.getOutput(), containsLine("START [test method pass(SomeTest)] [pass]"));

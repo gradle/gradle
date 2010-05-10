@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.results.AttachParentTestResultProcessor;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.logging.StandardOutputRedirector;
 import org.gradle.util.IdGenerator;
@@ -51,21 +51,15 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
                 TestResultProcessor.class);
         processors.add(new JUnitXmlReportGenerator(testResultsDir));
         processors.add(resultProcessor);
-        TestResultProcessor resultProcessorChain = new CaptureTestOutputTestResultProcessor(processors.getSource(),
-                outputRedirector);
+        TestResultProcessor resultProcessorChain = new AttachParentTestResultProcessor(new CaptureTestOutputTestResultProcessor(processors.getSource(), outputRedirector));
         JUnitTestResultProcessorAdapter listener = new JUnit4TestResultProcessorAdapter(resultProcessorChain,
                 timeProvider, idGenerator);
-        executer = new JUnitTestClassExecuter(applicationClassLoader, listener);
+        executer = new JUnitTestClassExecuter(applicationClassLoader, listener, resultProcessorChain, idGenerator, timeProvider);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        try {
-            LOGGER.debug("Executing test {}", testClass.getTestClassName());
-            executer.execute(testClass.getTestClassName());
-        } catch (Throwable e) {
-            throw new GradleException(String.format("Could not execute test class '%s'.", testClass.getTestClassName()),
-                    e);
-        }
+        LOGGER.debug("Executing test {}", testClass.getTestClassName());
+        executer.execute(testClass.getTestClassName());
     }
 
     public void endProcessing() {

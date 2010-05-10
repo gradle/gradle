@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase

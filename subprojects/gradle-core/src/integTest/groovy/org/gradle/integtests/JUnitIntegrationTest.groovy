@@ -302,11 +302,11 @@ public class JUnitIntegrationTest {
         '''
 
         ExecutionResult result = executer.withTasks("test").run();
-        assertThat(result.getOutput(), containsLine("START [all tests] []"));
-        assertThat(result.getOutput(), containsLine("FINISH [all tests] [] [FAILURE] [4]"));
+        assertThat(result.getOutput(), containsLine("START [tests] []"));
+        assertThat(result.getOutput(), containsLine("FINISH [tests] [] [FAILURE] [4]"));
 
-        assertThat(result.getOutput(), containsLine("START [test 'Gradle Worker 1'] [Gradle Worker 1]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]"));
+        assertThat(result.getOutput(), containsLine("START [test process 'Gradle Worker 1'] [Gradle Worker 1]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test process 'Gradle Worker 1'] [Gradle Worker 1] [FAILURE] [4]"));
 
         assertThat(result.getOutput(), containsLine("START [test class SomeOtherTest] [SomeOtherTest]"));
         assertThat(result.getOutput(), containsLine("FINISH [test class SomeOtherTest] [SomeOtherTest] [SUCCESS] [1]"));

@@ -28,6 +28,7 @@ import org.slf4j.Logger
 import org.junit.Test
 import org.junit.Before
 import static org.junit.Assert.*
+import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException
 
 @RunWith(JMock.class)
 public class TestSummaryListenerTest {
@@ -96,6 +97,15 @@ public class TestSummaryListenerTest {
     @Test
     public void logsFailedSuiteExecutionWhenSuiteHasNoException() {
         listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, null))
+    }
+
+    @Test
+    public void logsSuiteInternalException() {
+        TestSuiteExecutionException failure = new TestSuiteExecutionException('broken', new RuntimeException())
+        context.checking {
+            one(logger).error('Execution for <test> FAILED', failure)
+        }
+        listener.afterSuite(test('<test>'), result(TestResult.ResultType.FAILURE, failure))
     }
 
     @Test

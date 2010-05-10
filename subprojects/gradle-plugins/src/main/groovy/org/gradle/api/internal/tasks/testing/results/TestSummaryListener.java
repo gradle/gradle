@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.internal.tasks.testing.TestSuiteExecutionException;
 import org.gradle.api.tasks.testing.TestDescriptor;
 import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
@@ -78,7 +79,9 @@ public class TestSummaryListener implements TestListener {
 
     private void reportFailure(TestDescriptor testDescriptor, String testDescription, TestResult result) {
         String testClass = testDescriptor.getClassName();
-        if (testClass == null) {
+        if (result.getException() instanceof TestSuiteExecutionException) {
+            logger.error(String.format("Execution for %s FAILED", testDescription), result.getException());
+        } else if (testClass == null) {
             logger.error("{} FAILED: {}", testDescription, result.getException());
         } else {
             logger.info("{} FAILED: {}", testDescription, result.getException());

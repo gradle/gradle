@@ -17,49 +17,23 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.util.TimeProvider;
 
-public class WorkerTestClassProcessor implements TestClassProcessor {
-    private final TestClassProcessor processor;
-    private final TimeProvider timeProvider;
-    private final TestDescriptorInternal thisTest;
-    private TestResultProcessor resultProcessor;
+public class WorkerTestClassProcessor extends SuiteTestClassProcessor {
 
     public WorkerTestClassProcessor(TestClassProcessor processor, Object workerSuiteId, String workerDisplayName,
                                     TimeProvider timeProvider) {
-        this.processor = processor;
-        this.timeProvider = timeProvider;
-        thisTest = new DefaultTestSuiteDescriptor(workerSuiteId, workerDisplayName);
+        super(new WorkerTestSuiteDescriptor(workerSuiteId, workerDisplayName), processor, timeProvider);
     }
 
-    public void startProcessing(TestResultProcessor resultProcessor) {
-        this.resultProcessor = resultProcessor;
-        resultProcessor.started(thisTest, new TestStartEvent(timeProvider.getCurrentTime()));
-
-        try {
-            processor.startProcessing(resultProcessor);
-        } catch(Throwable t) {
-            resultProcessor.failure(thisTest.getId(), t);
+    private static class WorkerTestSuiteDescriptor extends DefaultTestSuiteDescriptor {
+        private WorkerTestSuiteDescriptor(Object id, String name) {
+            super(id, name);
         }
-    }
 
-    public void processTestClass(TestClassRunInfo testClass) {
-        try {
-            processor.processTestClass(testClass);
-        } catch(Throwable t) {
-            resultProcessor.failure(thisTest.getId(), t);
-        }
-    }
-
-    public void endProcessing() {
-        try {
-            processor.endProcessing();
-        } catch(Throwable t) {
-            resultProcessor.failure(thisTest.getId(), t);
-        } finally {
-            resultProcessor.completed(thisTest.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
+        @Override
+        public String toString() {
+            return String.format("test process '%s'", getName());
         }
     }
 }

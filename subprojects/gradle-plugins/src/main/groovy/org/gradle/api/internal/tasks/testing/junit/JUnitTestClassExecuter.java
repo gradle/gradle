@@ -16,7 +16,13 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import junit.framework.*;
+import junit.framework.JUnit4TestAdapter;
+import junit.framework.Test;
+import junit.framework.TestListener;
+import junit.framework.TestResult;
+import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.util.IdGenerator;
+import org.gradle.util.TimeProvider;
 import org.junit.runner.Describable;
 import org.junit.runner.Description;
 
@@ -25,22 +31,29 @@ import java.lang.reflect.Method;
 
 public class JUnitTestClassExecuter {
     private final ClassLoader applicationClassLoader;
-    private final JUnitTestResultProcessorAdapter listener;
+    private final TestListener listener;
+    private final TestResultProcessor resultProcessor;
+    private final IdGenerator<?> idGenerator;
+    private final TimeProvider timeProvider;
 
-    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, JUnitTestResultProcessorAdapter listener) {
+    public JUnitTestClassExecuter(ClassLoader applicationClassLoader, TestListener listener, TestResultProcessor resultProcessor, IdGenerator<?> idGenerator, TimeProvider timeProvider) {
         this.applicationClassLoader = applicationClassLoader;
         this.listener = listener;
+        this.resultProcessor = resultProcessor;
+        this.idGenerator = idGenerator;
+        this.timeProvider = timeProvider;
     }
 
     public void execute(String testClassName) {
-        listener.startTestSuite(testClassName);
+        TestDescriptorInternal testInternal = new DefaultTestClassDescriptor(idGenerator.generateId(), testClassName);
+        resultProcessor.started(testInternal, new TestStartEvent(timeProvider.getCurrentTime()));
 
         Test adapter = createTest(testClassName);
         TestResult result = new TestResult();
         result.addListener(listener);
         adapter.run(result);
 
-        listener.endTestSuite();
+        resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));
     }
 
     private Test createTest(String testClassName) {
