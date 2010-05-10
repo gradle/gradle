@@ -327,25 +327,35 @@ public class MultithreadedTestCase {
      *
      * @param tick The expected clock tick.
      */
-    private void expectLater(int tick) {
-        LOGGER.debug("Thread {} expecting tick {}", Thread.currentThread(), tick);
+    private void expectLater(final int tick) {
+        final Thread targetThread = Thread.currentThread();
+        LOGGER.debug("Thread {} expecting tick {}", targetThread, tick);
+        start(new Runnable() {
+            public void run() {
+                try {
+                    Thread.sleep(200L);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                lock.lock();
+                try {
+                    ClockTickImpl clockTick = getTick(tick);
+                    if (!clockTick.isImmediatelyAfter(currentTick)) {
+                        throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.",
+                                clockTick, currentTick));
+                    }
+                    if (!active.contains(targetThread)) {
+                        throw new RuntimeException(
+                                "Cannot wait for clock tick from a thread which is not a test thread.");
+                    }
 
-        lock.lock();
-        try {
-            ClockTickImpl clockTick = getTick(tick);
-            if (!clockTick.isImmediatelyAfter(currentTick)) {
-                throw new RuntimeException(String.format("Cannot wait for %s, as clock is currently at %s.", clockTick,
-                        currentTick));
+                    synching.add(targetThread);
+                    condition.signalAll();
+                } finally {
+                    lock.unlock();
+                }
             }
-            if (!active.contains(Thread.currentThread())) {
-                throw new RuntimeException("Cannot wait for clock tick from a thread which is not a test thread.");
-            }
-
-            synching.add(Thread.currentThread());
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
+        });
     }
 
     /**
@@ -394,7 +404,6 @@ public class MultithreadedTestCase {
         }
 
         public void shutdown() {
-            throw new UnsupportedOperationException();
         }
 
         public List<Runnable> shutdownNow() {
