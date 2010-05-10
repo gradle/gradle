@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.file
 
 import org.gradle.api.InvalidUserDataException
@@ -177,6 +179,11 @@ class BaseDirConverterTest {
     @Test public void testResolveAbsoluteFileURI() {
         File absoluteFile = new File('nonRelative').absoluteFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
+    }
+
+    @Test public void testResolveAbsoluteFileURL() {
+        File absoluteFile = new File('nonRelative').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
     @Test public void testCannotResolveNonFileURI() {
