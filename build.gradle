@@ -295,7 +295,7 @@ boolean noForkIntegTests() {
     if (project.hasProperty('forkIntegTests')) {
         return !Boolean.valueOf(forkIntegTests)
     }
-    return isDevBuild()
+    return isDevBuild() && !OperatingSystem.current().isWindows()
 }
 
 private def isDevBuild() {
@@ -303,10 +303,6 @@ private def isDevBuild() {
 }
 
 def guessMaxForks(intTests = false) {
-    if (intTests && OperatingSystem.current().isWindows()) {
-        // Don't run int tests in parallel on windows
-        return 1
-    }
     int processors = Runtime.runtime.availableProcessors()
     return Math.max(2, (int) (processors / 2))
 }

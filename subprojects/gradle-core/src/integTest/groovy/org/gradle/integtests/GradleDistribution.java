@@ -43,7 +43,8 @@ public class GradleDistribution implements MethodRule {
     private GradleExecuter executer;
 
     static {
-        USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir");
+        String workerId = System.getProperty("org.gradle.test.worker", "1");
+        USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file(String.format("worker-%s", workerId));
 
         TestFile workerJar = USER_HOME_DIR.file("worker-main-jar-exploded");
         for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
@@ -55,8 +56,8 @@ public class GradleDistribution implements MethodRule {
 
         GRADLE_HOME_DIR = file("integTest.gradleHomeDir", null);
         SAMPLES_DIR = file("integTest.samplesdir", new File(GRADLE_HOME_DIR, "samples").getAbsolutePath());
-        USER_GUIDE_OUTPUT_DIR
-                = file("integTest.userGuideOutputDir", "subprojects/gradle-docs/src/samples/userguideOutput");
+        USER_GUIDE_OUTPUT_DIR = file("integTest.userGuideOutputDir",
+                "subprojects/gradle-docs/src/samples/userguideOutput");
         USER_GUIDE_INFO_DIR = file("integTest.userGuideInfoDir", "subprojects/gradle-docs/build/src/docbook");
         DISTS_DIR = file("integTest.distsDir", "build/distributions");
 
