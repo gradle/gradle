@@ -186,6 +186,30 @@ class BaseDirConverterTest {
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
+    @Test public void testResolveFilePathWithURIEncodedAndReservedCharacters() {
+        File absoluteFile = new File('white%20space').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.absolutePath))
+        absoluteFile = new File('white space').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.absolutePath))
+    }
+
+    @Test public void testResolveURIStringWithEncodedAndReservedCharacters() {
+        assertEquals(new File(baseDir, 'white space'), baseDirConverter.resolve('file:white%20space'))
+        assertEquals(new File(baseDir, 'not%encoded'), baseDirConverter.resolve('file:not%encoded'))
+        assertEquals(new File(baseDir, 'bad%1'), baseDirConverter.resolve('file:bad%1'))
+        assertEquals(new File(baseDir, 'white space'), baseDirConverter.resolve('file:white space'))
+    }
+
+    @Test public void testResolveURIWithReservedCharacters() {
+        File absoluteFile = new File('white space').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
+    }
+
+    @Test public void testResolveURLWithReservedCharacters() {
+        File absoluteFile = new File('white space').absoluteFile
+        assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
+    }
+
     @Test public void testCannotResolveNonFileURI() {
         try {
             baseDirConverter.resolve("http://www.gradle.org")
@@ -243,16 +267,25 @@ class BaseDirConverterTest {
     @Test public void testResolveUriStringToUri() {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri("http://www.gradle.org"))
     }
-    
+
     @Test public void testResolveUriObjectToUri() {
         URI uri = new URI("http://www.gradle.org")
         assertEquals(uri, baseDirConverter.resolveUri(uri))
     }
-    
+
     @Test public void testResolveUrlObjectToUri() {
         assertEquals(new URI("http://www.gradle.org"), baseDirConverter.resolveUri(new URL("http://www.gradle.org")))
     }
 
+    @Test public void testResolveAbsolutePathWithReservedCharsToUri() {
+        assertEquals(new File(baseDir, 'with white%20space').toURI(), baseDirConverter.resolveUri('with white%20space'))
+        assertEquals('with white%20space', baseDirConverter.resolve(baseDirConverter.resolveUri('with white%20space')).name)
+    }
+
+    @Test public void testResolveUriStringWithEncodedCharsToUri() {
+        assertEquals(new URI("http://www.gradle.org/white%20space"), baseDirConverter.resolveUri("http://www.gradle.org/white%20space"))
+    }
+    
     @Test public void testResolveRelativePathToRelativePath() {
         assertEquals("relative", baseDirConverter.resolveAsRelativePath("relative"))
     }
@@ -275,14 +308,14 @@ class BaseDirConverterTest {
         assertEquals('.', baseDirConverter.resolveAsRelativePath('.'))
         assertEquals('.', baseDirConverter.resolveAsRelativePath("../$baseDir.name"))
     }
-    
+
     @Test public void testResolveParentDirToRelativePath() {
         assertEquals('..', baseDirConverter.resolveAsRelativePath(baseDir.parentFile))
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
     }
-    
+
     @Test public void testCreateFileResolver() {
         File newBaseDir = new File(baseDir, 'subdir')
-        assertEquals(new File(newBaseDir, 'file') , baseDirConverter.withBaseDir('subdir').resolve('file'))
+        assertEquals(new File(newBaseDir, 'file'), baseDirConverter.withBaseDir('subdir').resolve('file'))
     }
 }

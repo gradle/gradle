@@ -18,6 +18,7 @@ package org.gradle.api.internal.file;
 import groovy.lang.Closure;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.util.GFileUtils;
@@ -26,11 +27,14 @@ import org.gradle.util.OperatingSystem;
 import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.concurrent.Callable;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public abstract class AbstractFileResolver implements FileResolver {
     private static final Pattern URI_SCHEME = Pattern.compile("[a-zA-Z][a-zA-Z0-9+-\\.]*:.+");
+    private static final Pattern ENCODED_URI = Pattern.compile("%([0-9a-fA-F]{2})");
 
     public FileResolver withBaseDir(Object path) {
         return new BaseDirConverter(resolve(path));
@@ -78,6 +82,15 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (path instanceof File) {
             return path;
         }
+
+        if (path instanceof URL) {
+            try {
+                path = ((URL) path).toURI();
+            } catch (URISyntaxException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
         if (path instanceof URI) {
             URI uri = (URI) path;
             if (uri.getScheme().equals("file")) {
@@ -85,11 +98,12 @@ public abstract class AbstractFileResolver implements FileResolver {
             }
             return uri;
         }
+
         String str = path.toString();
         if (str.startsWith("file:")) {
-            return new File(str.substring(5));
+            return new File(uriDecode(str.substring(5)));
         }
-        
+
         for (File file : File.listRoots()) {
             String rootPath = file.getAbsolutePath();
             String normalisedStr = str;
@@ -97,7 +111,8 @@ public abstract class AbstractFileResolver implements FileResolver {
                 rootPath = rootPath.toLowerCase();
                 normalisedStr = normalisedStr.toLowerCase();
             }
-            if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar, '/'))) {
+            if (normalisedStr.startsWith(rootPath) || normalisedStr.startsWith(rootPath.replace(File.separatorChar,
+                    '/'))) {
                 return new File(str);
             }
         }
@@ -107,11 +122,22 @@ public abstract class AbstractFileResolver implements FileResolver {
             try {
                 return new URI(str);
             } catch (URISyntaxException e) {
-                throw new RuntimeException(e);
+                throw new UncheckedIOException(e);
             }
         }
 
         return new File(str);
+    }
+
+    private String uriDecode(String path) {
+        StringBuffer builder = new StringBuffer();
+        Matcher matcher = ENCODED_URI.matcher(path);
+        while (matcher.find()) {
+            String val = matcher.group(1);
+            matcher.appendReplacement(builder, String.valueOf((char) (Integer.parseInt(val, 16))));
+        }
+        matcher.appendTail(builder);
+        return builder.toString();
     }
 
     private Object unpack(Object path) {
