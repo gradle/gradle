@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
 import org.hamcrest.Matcher;
 

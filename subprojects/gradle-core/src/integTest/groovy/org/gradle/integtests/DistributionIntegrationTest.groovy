@@ -15,20 +15,22 @@
  */
 package org.gradle.integtests
 
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.gradle.util.GradleVersion
-import org.gradle.util.AntUtil
 import org.apache.tools.ant.taskdefs.Expand
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.util.AntUtil
+import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(DistributionIntegrationTestRunner)
 class DistributionIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer;
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     private String version = new GradleVersion().version
 
     @Test

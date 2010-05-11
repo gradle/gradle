@@ -25,7 +25,9 @@ import org.gradle.util.GFileUtils
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
 import org.gradle.gradleplugin.foundation.runner.GradleRunner
 import org.gradle.foundation.TestUtility
-import org.junit.Rule;
+import org.junit.Rule
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter;
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -45,7 +47,7 @@ class LiveOutputIntegrationTest {
     private List projects;
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer;
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Before
     void setUp() {

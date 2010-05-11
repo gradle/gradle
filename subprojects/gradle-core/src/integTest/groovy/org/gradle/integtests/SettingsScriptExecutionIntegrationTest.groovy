@@ -15,10 +15,12 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.ArtifactBuilder
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.util.TestFile
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class SettingsScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -35,10 +37,10 @@ new BuildSrcClass();
 println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
-assertNotNull(settings)
-assertSame(buildscript.classLoader, getClass().classLoader.parent)
-assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-assertSame(gradle.scriptClassLoader.parent, buildscript.classLoader.parent.parent)
+assert settings != null
+assert buildscript.classLoader == getClass().classLoader.parent
+assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+assert gradle.scriptClassLoader.parent == buildscript.classLoader.parent.parent
 '''
         testFile('build.gradle') << 'task doStuff'
 

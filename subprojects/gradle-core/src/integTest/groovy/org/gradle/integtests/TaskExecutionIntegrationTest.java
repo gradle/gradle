@@ -16,12 +16,12 @@
 
 package org.gradle.integtests;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
-
 import org.gradle.util.TestFile;
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public static boolean graphListenerNotified;
@@ -35,15 +35,23 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public void taskCanAccessTaskGraph() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns("import org.gradle.integtests.TaskExecutionIntegrationTest",
-                "task a(dependsOn: 'b') << { task ->", "    assertTrue(gradle.taskGraph.hasTask(task))",
-                "    assertTrue(gradle.taskGraph.hasTask(':a'))", "    assertTrue(gradle.taskGraph.hasTask(a))",
-                "    assertTrue(gradle.taskGraph.hasTask(':b'))", "    assertTrue(gradle.taskGraph.hasTask(b))",
-                "    assertTrue(gradle.taskGraph.allTasks.contains(task))",
-                "    assertTrue(gradle.taskGraph.allTasks.contains(tasks.getByName('b')))", "}", "task b",
-                "gradle.taskGraph.whenReady { graph ->", "    assertTrue(graph.hasTask(':a'))",
-                "    assertTrue(graph.hasTask(a))", "    assertTrue(graph.hasTask(':b'))",
-                "    assertTrue(graph.hasTask(b))", "    assertTrue(graph.allTasks.contains(a))",
-                "    assertTrue(graph.allTasks.contains(b))",
+                "task a(dependsOn: 'b') << { task ->",
+                "    assert gradle.taskGraph.hasTask(task)",
+                "    assert gradle.taskGraph.hasTask(':a')",
+                "    assert gradle.taskGraph.hasTask(a)",
+                "    assert gradle.taskGraph.hasTask(':b')",
+                "    assert gradle.taskGraph.hasTask(b)",
+                "    assert gradle.taskGraph.allTasks.contains(task)",
+                "    assert gradle.taskGraph.allTasks.contains(tasks.getByName('b'))",
+                "}",
+                "task b",
+                "gradle.taskGraph.whenReady { graph ->",
+                "    assert graph.hasTask(':a')",
+                "    assert graph.hasTask(a)",
+                "    assert graph.hasTask(':b')",
+                "    assert graph.hasTask(b)",
+                "    assert graph.allTasks.contains(a)",
+                "    assert graph.allTasks.contains(b)",
                 "    TaskExecutionIntegrationTest.graphListenerNotified = true", "}");
         usingBuildFile(buildFile).withTasks("a").run().assertTasksExecuted(":b", ":a");
 
@@ -54,10 +62,15 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
     public void executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {
         TestFile buildFile = testFile("build.gradle");
         buildFile.writelns(
-                "gradle.taskGraph.whenReady { assertFalse(project.hasProperty('graphReady')); graphReady = true }",
-                "task a << { task -> project.executedA = task }", "task b << { ",
-                "    assertSame(a, project.executedA);", "    assertTrue(gradle.taskGraph.hasTask(':a'))", "}",
-                "task c(dependsOn: a)", "task d(dependsOn: a)", "task e(dependsOn: [a, d])");
+                "gradle.taskGraph.whenReady { assert !project.hasProperty('graphReady'); graphReady = true }",
+                "task a << { task -> project.executedA = task }",
+                "task b << { ",
+                "    assert a == project.executedA",
+                "    assert gradle.taskGraph.hasTask(':a')",
+                "}",
+                "task c(dependsOn: a)",
+                "task d(dependsOn: a)",
+                "task e(dependsOn: [a, d])");
         usingBuildFile(buildFile).withTasks("a", "b").run().assertTasksExecuted(":a", ":b");
         usingBuildFile(buildFile).withTasks("a", "a").run().assertTasksExecuted(":a");
         usingBuildFile(buildFile).withTasks("c", "a").run().assertTasksExecuted(":a", ":c");

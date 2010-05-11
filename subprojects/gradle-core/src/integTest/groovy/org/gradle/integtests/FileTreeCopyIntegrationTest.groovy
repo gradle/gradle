@@ -15,9 +15,10 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
 import org.junit.Rule
+import org.junit.Test
 
 public class FileTreeCopyIntegrationTest extends AbstractIntegrationTest {
     @Rule

@@ -17,10 +17,11 @@
 
 package org.gradle.integtests
 
-import org.junit.Test
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.util.TestFile
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
 
@@ -31,12 +32,12 @@ class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
             println 'quiet message'
             captureStandardOutput(LogLevel.ERROR)
             println 'error message'
-            assertNotNull(project)
-            assertEquals("${buildScript.absolutePath.replace("\\", "\\\\")}", buildscript.sourceFile as String)
-            assertEquals("${buildScript.toURI()}", buildscript.sourceURI as String)
-            assertSame(buildscript.classLoader, getClass().classLoader.parent)
-            assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-            assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)
+            assert project != null
+            assert "${buildScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sourceFile as String
+            assert "${buildScript.toURI()}" == buildscript.sourceURI as String
+            assert buildscript.classLoader == getClass().classLoader.parent
+            assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+            assert gradle.scriptClassLoader == buildscript.classLoader.parent
 
             task doStuff
 """

@@ -17,20 +17,18 @@ package org.gradle.integtests;
 
 import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
-import org.gradle.util.Resources;
-import org.gradle.util.TemporaryFolder;
+import org.gradle.integtests.fixtures.*;
 import org.gradle.util.TestFile;
 import org.junit.Rule;
 
 import java.io.File;
 
 public class AbstractIntegrationTest {
-    @Rule public TemporaryFolder testDir = new TemporaryFolder();
-    @Rule public Resources resources = new Resources();
-    private TestFile userHome = getUserHomeDir();
+    @Rule public GradleDistribution distribution = new GradleDistribution();
+    private TestFile userHome = distribution.getUserHomeDir();
 
     public TestFile getTestDir() {
-        return testDir.getDir();
+        return distribution.getTestDir();
     }
 
     public TestFile testFile(String name) {
@@ -47,18 +45,7 @@ public class AbstractIntegrationTest {
 
     private StartParameter startParameter() {
         StartParameter parameter = new StartParameter();
-        parameter.setGradleHomeDir(testFile("gradle-home"));
-
-        //todo - this should use the src/toplevel/gradle-imports file
-        testFile("gradle-home/gradle-imports").writelns("import static org.junit.Assert.*",
-                "import static org.hamcrest.Matchers.*",
-                "import org.gradle.*",
-                "import org.gradle.api.*",
-                "import org.gradle.api.invocation.*",
-                "import org.gradle.api.file.*",
-                "import org.gradle.api.logging.*",
-                "import org.gradle.api.tasks.*",
-                "import org.gradle.api.tasks.bundling.*");
+        parameter.setGradleHomeDir(distribution.getGradleHomeDir());
 
         parameter.setGradleUserHomeDir(userHome);
 
@@ -67,11 +54,6 @@ public class AbstractIntegrationTest {
         parameter.setCurrentDir(getTestDir());
 
         return parameter;
-    }
-
-    private static TestFile getUserHomeDir() {
-        String path = System.getProperty("integTest.gradleUserHomeDir", "intTestHomeDir");
-        return new TestFile(new File(path));
     }
 
     protected GradleExecuter inTestDirectory() {

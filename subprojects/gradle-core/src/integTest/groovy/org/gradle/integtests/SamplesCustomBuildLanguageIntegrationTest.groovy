@@ -15,15 +15,17 @@
  */
 package org.gradle.integtests
 
-import org.junit.runner.RunWith
-import org.junit.Test
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesCustomBuildLanguageIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void testBuildProductDistributions() {

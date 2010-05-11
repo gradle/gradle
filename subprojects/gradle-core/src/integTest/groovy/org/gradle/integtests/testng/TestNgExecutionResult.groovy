@@ -17,13 +17,13 @@
 
 package org.gradle.integtests.testng
 
-import org.gradle.util.TestFile
-import org.gradle.integtests.TestExecutionResult
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
 import groovy.util.slurpersupport.GPathResult
-import org.gradle.integtests.TestClassExecutionResult
+import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
+import org.gradle.util.TestFile
 import org.hamcrest.Matcher
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 class TestNgExecutionResult implements TestExecutionResult {
     private final TestFile projectDir

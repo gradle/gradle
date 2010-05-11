@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.junit.Test
 
 public class ExternalPluginIntegrationTest extends AbstractIntegrationTest {
@@ -32,7 +33,7 @@ implementation-class=CustomPlugin
 
         testFile('build.gradle') << '''
 apply plugin: 'custom'
-assertEquals('value', prop)
+assert 'value' == prop
 task test
 '''
         inTestDirectory().withTasks('test').run()
@@ -59,7 +60,7 @@ buildscript {
     }
 }
 apply plugin: 'custom'
-assertEquals('value', prop)
+assert 'value' == prop
 task test
 '''
         inTestDirectory().withTasks('test').run()

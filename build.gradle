@@ -269,7 +269,7 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':d
     systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
     forkEvery = 15
-    maxParallelForks = guessMaxForks(true)
+    maxParallelForks = guessMaxForks()
 
     testClassesDir = project(':core').sourceSets.integTest.classesDir
     classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
@@ -302,7 +302,7 @@ private def isDevBuild() {
     gradle.taskGraph.hasTask(':developerBuild')
 }
 
-def guessMaxForks(intTests = false) {
+def guessMaxForks() {
     int processors = Runtime.runtime.availableProcessors()
     return Math.max(2, (int) (processors / 2))
 }

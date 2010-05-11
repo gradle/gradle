@@ -15,12 +15,13 @@
  */
 package org.gradle.integtests;
 
-import static org.hamcrest.Matchers.*;
-
+import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.gradle.util.TestFile;
 import org.junit.Test;
 
 import java.io.File;
+
+import static org.hamcrest.Matchers.*;
 
 public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -195,8 +196,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         File subDirectory = new File(getTestDir(), "subdirectory");
         TestFile buildFile = testFile(subDirectory, "build.gradle");
         buildFile.writelns("task('do-stuff') << {",
-                "assertThat(prop, equalTo('value'))",
-                "assertTrue(!project.hasProperty('otherProp'))",
+                "assert prop == 'value'",
+                "assert !project.hasProperty('otherProp')",
                 "}");
         testFile("subdirectory/gradle.properties").write("prop=value");
 

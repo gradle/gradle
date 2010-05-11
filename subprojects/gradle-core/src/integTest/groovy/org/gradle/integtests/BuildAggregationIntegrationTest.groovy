@@ -15,15 +15,19 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
-import org.junit.runner.RunWith
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class BuildAggregationIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void canExecuteAnotherBuildFromBuild() {
@@ -43,7 +47,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        dist.executer.withTasks('build').run()
+        executer.withTasks('build').run()
     }
 
     @Test
@@ -61,7 +65,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        dist.executer.withTasks('build').run()
+        executer.withTasks('build').run()
     }
 
     @Test
@@ -77,7 +81,7 @@ class BuildAggregationIntegrationTest {
             }
 '''
 
-        ExecutionFailure failure = dist.executer.withTasks('build').runWithFailure()
+        ExecutionFailure failure = executer.withTasks('build').runWithFailure()
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription('A problem occurred evaluating root project')
@@ -87,7 +91,7 @@ class BuildAggregationIntegrationTest {
     @Test
     public void reportsBuildSrcFailure() {
         dist.testFile('buildSrc/src/main/java/Broken.java') << 'broken!'
-        ExecutionFailure failure = dist.executer.runWithFailure()
+        ExecutionFailure failure = executer.runWithFailure()
         failure.assertHasFileName('Default buildSrc build script')
         failure.assertHasDescription('Execution failed for task \':compileJava\'')
     }

@@ -19,19 +19,19 @@ package org.gradle.integtests.testng
 
 import org.gradle.api.Project
 import org.gradle.integtests.DistributionIntegrationTestRunner
-import org.gradle.integtests.GradleDistribution
-import org.gradle.integtests.GradleExecuter
-import org.gradle.integtests.TestExecutionResult
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.util.TestFile
 import org.junit.Ignore
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.gradle.integtests.testng.TestNGIntegrationProject.*
-import static org.junit.Assert.*
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
-import org.gradle.integtests.ExecutionResult
-import org.junit.Rule
+import static org.junit.Assert.*
 
 /**
  * @author Tom Eyckmans
@@ -93,7 +93,7 @@ public class TestNGIntegrationTest {
     })
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void executesTestsInCorrectEnvironment() {

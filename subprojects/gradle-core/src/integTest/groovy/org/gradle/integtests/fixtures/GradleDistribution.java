@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
 import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
@@ -31,16 +31,13 @@ import java.util.Arrays;
  * Provides access to a Gradle distribution for integration testing.
  */
 public class GradleDistribution implements MethodRule {
-    private static final String NOFORK_SYS_PROP = "org.gradle.integtest.nofork";
     private static final TestFile USER_HOME_DIR;
     private static final TestFile GRADLE_HOME_DIR;
     private static final TestFile SAMPLES_DIR;
     private static final TestFile USER_GUIDE_OUTPUT_DIR;
     private static final TestFile USER_GUIDE_INFO_DIR;
     private static final TestFile DISTS_DIR;
-    private static final boolean FORK;
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
-    private GradleExecuter executer;
 
     static {
         String workerId = System.getProperty("org.gradle.test.worker", "1");
@@ -61,7 +58,6 @@ public class GradleDistribution implements MethodRule {
         USER_GUIDE_INFO_DIR = file("integTest.userGuideInfoDir", "subprojects/gradle-docs/build/src/docbook");
         DISTS_DIR = file("integTest.distsDir", "build/distributions");
 
-        FORK = System.getProperty(NOFORK_SYS_PROP, "false").equalsIgnoreCase("false");
     }
 
     public Statement apply(Statement base, FrameworkMethod method, Object target) {
@@ -75,16 +71,6 @@ public class GradleDistribution implements MethodRule {
                     propertyName));
         }
         return new TestFile(new File(path));
-    }
-
-    /**
-     * An executer to use to execute this gradle distribution.
-     */
-    public GradleExecuter getExecuter() {
-        if (executer == null) {
-            executer = new QuickGradleExecuter(this, FORK);
-        }
-        return executer;
     }
 
     /**

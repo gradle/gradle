@@ -15,11 +15,12 @@
  */
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.util.TestFile
+import org.hamcrest.Matcher
 import org.junit.Test
 import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
-import org.hamcrest.Matcher
-import org.gradle.util.TestFile
 
 class CodeQualityIntegrationTest extends AbstractIntegrationTest {
     @Test

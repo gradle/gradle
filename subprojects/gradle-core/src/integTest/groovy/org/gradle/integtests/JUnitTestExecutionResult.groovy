@@ -15,11 +15,13 @@
  */
 package org.gradle.integtests
 
+import groovy.util.slurpersupport.GPathResult
+import org.gradle.integtests.fixtures.TestClassExecutionResult
+import org.gradle.integtests.fixtures.TestExecutionResult
 import org.gradle.util.TestFile
 import org.hamcrest.Matcher
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import groovy.util.slurpersupport.GPathResult
 
 class JUnitTestExecutionResult implements TestExecutionResult {
     private final TestFile buildDir

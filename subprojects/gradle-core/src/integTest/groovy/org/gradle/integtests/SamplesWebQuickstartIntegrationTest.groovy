@@ -16,12 +16,15 @@
 
 package org.gradle.integtests
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.junit.runner.RunWith
-import org.junit.Test
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -31,7 +34,7 @@ class SamplesWebQuickstartIntegrationTest {
     static final String WEB_PROJECT_NAME = 'web-project'
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void webProjectSamples() {

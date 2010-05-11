@@ -16,16 +16,17 @@
 
 package org.gradle.integtests
 
-import static org.junit.Assert.*
-
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.junit.Before
-import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.groovy.scripts.UriScriptSource
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.GradleVersion
 import org.gradle.util.TestFile
+import org.junit.Before
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -35,7 +36,7 @@ class CacheProjectIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer;
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     TestFile projectDir
     TestFile userHomeDir

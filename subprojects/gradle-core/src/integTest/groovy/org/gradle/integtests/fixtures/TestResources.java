@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
 import org.gradle.util.Resources;
 import org.gradle.util.TemporaryFolder;
@@ -23,8 +23,8 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
-import java.lang.reflect.Field;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
 
 /**
  * Provides access to test resources for integration testing. Looks for the following directory in the test classpath:
@@ -63,41 +63,17 @@ public class TestResources implements MethodRule {
     }
 
     private TemporaryFolder findTempDir(Object target) {
-        GradleDistribution dist = findField(target, GradleDistribution.class);
+        GradleDistribution dist = RuleHelper.findField(target, GradleDistribution.class);
         if (dist != null) {
             return dist.getTemporaryFolder();
         }
-        TemporaryFolder folder = findField(target, TemporaryFolder.class);
+        TemporaryFolder folder = RuleHelper.findField(target, TemporaryFolder.class);
         if (folder != null) {
             return folder;
         }
         throw new RuntimeException(String.format(
                 "Could not find a GradleDistribution or TemporaryFolder field for test class %s.",
                 target.getClass().getSimpleName()));
-    }
-
-    private <T> T findField(Object target, Class<T> type) {
-        List<T> matches = new ArrayList<T>();
-        for (Class<?> cl = target.getClass(); cl != Object.class; cl = cl.getSuperclass()) {
-            for (Field field : cl.getDeclaredFields()) {
-                if (type.isAssignableFrom(field.getType())) {
-                    field.setAccessible(true);
-                    try {
-                        matches.add(type.cast(field.get(target)));
-                    } catch (IllegalAccessException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-            }
-        }
-        if (matches.isEmpty()) {
-            return null;
-        }
-        if (matches.size() > 1) {
-            throw new RuntimeException(String.format("Multiple %s fields found for test class %s.",
-                    type.getSimpleName(), target.getClass().getSimpleName()));
-        }
-        return matches.get(0);
     }
 
     private void maybeCopy(String resource) {

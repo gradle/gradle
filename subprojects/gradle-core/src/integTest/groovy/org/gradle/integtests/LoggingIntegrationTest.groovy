@@ -16,13 +16,16 @@
 
 package org.gradle.integtests
 
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.junit.runner.RunWith
-import org.junit.Test
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.gradle.util.Matchers.*
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -31,7 +34,7 @@ import org.junit.Rule
 @RunWith(DistributionIntegrationTestRunner.class)
 class LoggingIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer;
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     List quietMessages = [
             'An info log message which is always logged.',

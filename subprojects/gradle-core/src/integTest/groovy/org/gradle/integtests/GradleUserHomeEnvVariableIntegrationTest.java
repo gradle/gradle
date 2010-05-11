@@ -16,6 +16,9 @@
 
 package org.gradle.integtests;
 
+import org.gradle.integtests.fixtures.AbstractGradleExecuter;
+import org.gradle.integtests.fixtures.GradleDistribution;
+import org.gradle.integtests.fixtures.GradleDistributionExecuter;
 import org.gradle.util.WrapUtil;
 import org.junit.Ignore;
 import org.junit.Rule;
@@ -28,7 +31,8 @@ import java.io.File;
 public class GradleUserHomeEnvVariableIntegrationTest  {
     @Rule
     public final GradleDistribution dist = new GradleDistribution();
-    private final GradleExecuter executer = dist.getExecuter();
+    @Rule
+    public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
 
     @Test
     public void canDefineGradleUserHomeViaEnvVariable() {

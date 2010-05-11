@@ -17,11 +17,13 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.ExecutionFailure
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
+import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
-import org.junit.Before
 
 class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
     @Rule
@@ -96,7 +98,9 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
         testFile("build.gradle") << '''
             configurations { compile }
             dependencies { compile project(path: ':sub', configuration: 'compile') }
-            task test(dependsOn: configurations.compile) << { assertTrue(file('sub/sub.jar').isFile()) }
+            task test(dependsOn: configurations.compile) << {
+                assert file('sub/sub.jar').isFile()
+            }
 '''
         testFile("sub/build.gradle") << '''
             configurations { compile }
@@ -128,7 +132,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
             configurations { compile }
             dependencies { compile project(path: ':a', configuration: 'compile'), project(path: ':b', configuration: 'compile') }
             task test(dependsOn: configurations.compile) << {
-                assertEquals(configurations.compile.collect { it.name }, ['a.jar', 'b-late.jar'])
+                assert configurations.compile.collect { it.name } == ['a.jar', 'b-late.jar']
             }
 '''
         inTestDirectory().withTasks('test').run()
@@ -149,7 +153,7 @@ class ArtifactDependenciesIntegrationTest extends AbstractIntegrationTest {
             task test {
                 inputs.files configurations.compile
                 doFirst {
-                    assertEquals([project(':a').tasks.aJar.archivePath] as Set, configurations.compile.files)
+                    assert [project(':a').tasks.aJar.archivePath] as Set == configurations.compile.files
                 }
             }
 '''

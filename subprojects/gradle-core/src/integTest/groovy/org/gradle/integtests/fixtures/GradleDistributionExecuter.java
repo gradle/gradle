@@ -13,27 +13,56 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.integtests.ForkingGradleExecuter;
 import org.gradle.util.TestFile;
+import org.junit.rules.MethodRule;
+import org.junit.runners.model.FrameworkMethod;
+import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
-public class QuickGradleExecuter extends AbstractGradleExecuter {
-    private final GradleDistribution dist;
-    private final boolean fork;
+/**
+ * A Junit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
+ * GradleDistribution}. If not supplied in the constructor, this rule locates a field on the test object with type
+ * {@link GradleDistribution}.
+ *
+ * By default, this executer will execute Gradle in a forked process. There is a system property which enables
+ * executing Gradle in the current process.
+ */
+public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
+    private static final String NOFORK_SYS_PROP = "org.gradle.integtest.nofork";
+    private static final boolean FORK;
+    private GradleDistribution dist;
     private StartParameterModifier inProcessStartParameterModifier;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private String script;
 
-    public QuickGradleExecuter(GradleDistribution dist, boolean fork) {
+    static {
+        FORK = System.getProperty(NOFORK_SYS_PROP, "false").equalsIgnoreCase("false");
+    }
+
+    public GradleDistributionExecuter(GradleDistribution dist) {
         this.dist = dist;
-        this.fork = fork;
+    }
+
+    public GradleDistributionExecuter() {
+    }
+
+    public Statement apply(Statement base, FrameworkMethod method, Object target) {
+        if (dist == null) {
+            dist = RuleHelper.findField(target, GradleDistribution.class);
+        }
+        if (dist == null) {
+            throw new RuntimeException(String.format("Could not find a GradleDistribution field on %s.", target));
+        }
         inDirectory(dist.getTestDir());
+        return base;
     }
 
     @Override
@@ -64,6 +93,9 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
     }
 
     private GradleExecuter configureExecuter() {
+        if (!getClass().desiredAssertionStatus()) {
+            throw new RuntimeException("Assertions should be enabled when running integration tests.");
+        }
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setGradleHomeDir(dist.getGradleHomeDir());
@@ -75,9 +107,10 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter(parameter);
         copyTo(inProcessGradleExecuter);
 
-        GradleExecuter returnedExecuter = inProcessGradleExecuter; 
+        GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
-        if (fork || inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty() || script != null) {
+        if (FORK || inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty()
+                || script != null) {
             ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist);
             copyTo(forkingGradleExecuter);
             forkingGradleExecuter.setDisableTestGradleUserHome(isDisableTestGradleUserHome());
@@ -91,9 +124,9 @@ public class QuickGradleExecuter extends AbstractGradleExecuter {
         }
 
         boolean settingsFound = false;
-        for ( File dir = new TestFile(getWorkingDir());
-             dir != null && dist.isFileUnderTest(dir) && !settingsFound;
-             dir = dir.getParentFile()) {
+        for (
+                File dir = new TestFile(getWorkingDir()); dir != null && dist.isFileUnderTest(dir) && !settingsFound;
+                dir = dir.getParentFile()) {
             if (new File(dir, "settings.gradle").isFile()) {
                 settingsFound = true;
             }

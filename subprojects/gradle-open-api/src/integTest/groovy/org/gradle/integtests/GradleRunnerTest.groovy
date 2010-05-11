@@ -26,7 +26,9 @@ import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
 import org.gradle.openapi.wrappers.RunnerWrapperFactory
-import org.junit.Rule;
+import org.junit.Rule
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter;
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class GradleRunnerTest {
@@ -42,7 +44,7 @@ class GradleRunnerTest {
   private List projects;
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
-  private final GradleExecuter executer = dist.executer;
+  @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
   @Before
   void setUp() {

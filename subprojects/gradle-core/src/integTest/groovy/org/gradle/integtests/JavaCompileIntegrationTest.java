@@ -16,9 +16,9 @@
 
 package org.gradle.integtests;
 
-import org.junit.Test;
+import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.junit.Before;
-import static org.junit.Assert.*;
+import org.junit.Test;
 
 import java.io.File;
 

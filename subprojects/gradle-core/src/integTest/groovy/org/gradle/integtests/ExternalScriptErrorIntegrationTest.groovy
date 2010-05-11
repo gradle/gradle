@@ -15,8 +15,9 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
+import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.util.TestFile
+import org.junit.Test
 
 class ExternalScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test

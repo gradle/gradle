@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests;
 
+import org.gradle.integtests.fixtures.ArtifactBuilder;
 import org.gradle.util.TestFile;
 import org.junit.Ignore;
 import org.junit.Test;
@@ -165,14 +166,14 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
                 "include 'child'"
         );
         testFile("build.gradle").writelns(
-                "assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)",
+                "assert gradle.scriptClassLoader == buildscript.classLoader.parent",
                 "buildscript {",
                 "    repositories { flatDir(dirs: file('repo')) }",
                 "    dependencies { classpath name: 'test', version: '1.3' }",
                 "}"
         );
         testFile("child/build.gradle").writelns(
-                "assertSame(parent.buildscript.classLoader, buildscript.classLoader.parent)",
+                "assert parent.buildscript.classLoader == buildscript.classLoader.parent",
                 "task hello << ",
                 "{",
                 "    new org.gradle.test.BuildClass()",

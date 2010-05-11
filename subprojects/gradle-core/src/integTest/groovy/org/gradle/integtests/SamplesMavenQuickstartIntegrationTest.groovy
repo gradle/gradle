@@ -19,6 +19,8 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.Resources
 import org.gradle.util.TestFile
 import org.junit.Assert
@@ -34,7 +36,7 @@ import static org.junit.Assert.*
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesMavenQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     private TestFile pomProjectDir
     private TestFile repoDir

@@ -37,6 +37,8 @@ task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
     systemProperties['integTest.srcDir'] = file('src').absolutePath
     systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTest.integTestUserDir.absolutePath
     include 'org/gradle/integtests/**/*IntegrationTest.*'
+    testClassesDir = sourceSets.test.classesDir
+    classpath = sourceSets.test.runtimeClasspath
 
     doFirst { task -> systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
 }

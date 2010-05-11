@@ -16,6 +16,8 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Assert
 import org.junit.Rule
@@ -33,7 +35,7 @@ class UserguideIntegrationTest {
     private static Logger logger = LoggerFactory.getLogger(UserguideIntegrationTest)
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void apiLinks() {

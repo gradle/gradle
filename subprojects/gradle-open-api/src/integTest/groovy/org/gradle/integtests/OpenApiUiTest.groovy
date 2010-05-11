@@ -51,6 +51,8 @@ import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
 import org.gradle.openapi.wrappers.UIWrapperFactory
 import org.junit.Rule
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
 /**
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
@@ -69,7 +71,7 @@ public class OpenApiUiTest {
   private List projects;
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
-  private final GradleExecuter executer = dist.executer;
+  @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
   @Before
   void setUp() {

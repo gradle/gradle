@@ -15,9 +15,10 @@
  */
 package org.gradle.integtests;
 
+import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.gradle.util.TestFile;
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
 
 import java.io.File;
 

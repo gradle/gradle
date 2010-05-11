@@ -32,6 +32,8 @@ import org.gradle.openapi.external.foundation.RequestObserverVersion1
 import org.gradle.openapi.external.foundation.RequestVersion1
 import org.gradle.openapi.external.foundation.GradleInterfaceVersion1
 import org.junit.Rule
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 
 /**
  * Tests aspects of the OutputUILord in OpenAPI
@@ -51,7 +53,7 @@ public class OutputUILordTest  {
   private List projects;
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
-  private final GradleExecuter executer = dist.executer;
+  @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
   @Before
   void setUp() {

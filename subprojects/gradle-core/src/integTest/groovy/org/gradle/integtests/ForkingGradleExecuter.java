@@ -17,6 +17,7 @@
 package org.gradle.integtests;
 
 import org.apache.tools.ant.taskdefs.condition.Os;
+import org.gradle.integtests.fixtures.*;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
@@ -33,10 +34,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import static org.gradle.util.Matchers.containsLine;
-import static org.hamcrest.Matchers.containsString;
-import static org.hamcrest.Matchers.startsWith;
-import static org.junit.Assert.assertThat;
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 // todo: implement more of the unsupported methods
 public class ForkingGradleExecuter extends AbstractGradleExecuter {

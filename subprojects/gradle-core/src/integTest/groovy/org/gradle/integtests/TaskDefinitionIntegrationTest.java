@@ -100,10 +100,10 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "v = task(asExpression, type: TestTask) { property = 'value' }",
                 "task(postConfigure, type: TestTask).configure { property = 'value' }",
                 "[asStatement, dynamic, asExpression, postConfigure].each { ",
-                "    assertEquals('value', it.property)",
+                "    assert 'value' == it.property",
                 "}",
                 "[withDescription, asMethod].each {",
-                "    assertEquals('value', it.description)",
+                "    assert 'value' == it.description",
                 "}",
                 "task all(dependsOn: tasks.all)");
         inTestDirectory().withTasks("all").run();
@@ -127,8 +127,8 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "cl.call('h')",
                 "cl = { String taskNameParam -> task(taskNameParam) { property = 'value' } }",
                 "cl.call('i')",
-                "assertEquals('value', f.property)",
-                "assertEquals('value', i.property)",
+                "assert 'value' == f.property",
+                "assert 'value' == i.property",
                 "task all(dependsOn: tasks.all)");
         inTestDirectory().withTasks("all").run().assertTasksExecuted(":a", ":d", ":e", ":f", ":g", ":h", ":i", ":all");
     }

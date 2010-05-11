@@ -59,7 +59,7 @@ public abstract class AbstractFileResolver implements FileResolver {
 
     protected URI convertObjectToURI(Object path) {
         Object object = unpack(path);
-        Object converted = stringToFileOrUri(object);
+        Object converted = convertToFileOrUri(object);
         if (converted instanceof File) {
             return resolve(converted).toURI();
         }
@@ -71,14 +71,14 @@ public abstract class AbstractFileResolver implements FileResolver {
         if (object == null) {
             return null;
         }
-        Object converted = stringToFileOrUri(object);
+        Object converted = convertToFileOrUri(object);
         if (converted instanceof File) {
             return (File) converted;
         }
         throw new InvalidUserDataException(String.format("Cannot convert URL '%s' to a file.", converted));
     }
 
-    private Object stringToFileOrUri(Object path) {
+    private Object convertToFileOrUri(Object path) {
         if (path instanceof File) {
             return path;
         }

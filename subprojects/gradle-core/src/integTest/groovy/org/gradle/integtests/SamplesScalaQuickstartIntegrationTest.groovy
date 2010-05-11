@@ -16,17 +16,19 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.util.TestFile
 import org.junit.Before
+import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
-import org.gradle.util.TestFile
-import org.junit.Rule
 
 @RunWith (DistributionIntegrationTestRunner.class)
 class SamplesScalaQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     private TestFile projectDir
 

@@ -16,13 +16,15 @@
 
 package org.gradle.integtests
 
-import org.junit.runner.RunWith
-import org.junit.Test
 import java.util.jar.Manifest
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -30,7 +32,7 @@ import org.junit.Rule
 @RunWith (DistributionIntegrationTestRunner.class)
 class SamplesJavaQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void canBuildAndUploadJar() {

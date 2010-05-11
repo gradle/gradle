@@ -22,7 +22,10 @@ import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
 import org.gradle.StartParameter
-import org.gradle.integtests.QuickGradleExecuter.StartParameterModifier
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.GradleDistributionExecuter.StartParameterModifier
 import org.gradle.util.AntUtil
 import org.junit.Assert
 import org.junit.runner.Description
@@ -36,7 +39,7 @@ class UserGuideSamplesRunner extends Runner {
     Description description
     Map<Description, SampleRun> samples;
     GradleDistribution dist = new GradleDistribution()
-    GradleExecuter executer = dist.getExecuter()
+    GradleDistributionExecuter executer = new GradleDistributionExecuter(dist)
 
     def UserGuideSamplesRunner(Class<?> testClass) {
         this.testClass = testClass
@@ -88,8 +91,8 @@ class UserGuideSamplesRunner extends Runner {
             println("Test Id: $run.id, dir: $run.subDir, args: $run.args")
             File rootProjectDir = dist.samplesDir.file(run.subDir)
             executer.inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
-            if (executer instanceof QuickGradleExecuter) {
-                ((QuickGradleExecuter) executer).setInProcessStartParameterModifier(createModifier(rootProjectDir))
+            if (executer instanceof GradleDistributionExecuter) {
+                ((GradleDistributionExecuter) executer).setInProcessStartParameterModifier(createModifier(rootProjectDir))
             }
             
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
@@ -113,13 +116,12 @@ class UserGuideSamplesRunner extends Runner {
 
     private static def compareStrings(String expected, String actual) {
         List actualLines = removePotentialBuildSuccessfulMessages(actual.readLines())
-        List expectedLines = removePotentialBuildSuccessfulMessages(expected.readLines())
+        List expectedLines = expected.readLines()
         int pos = 0
         for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
             String expectedLine = expectedLines[pos]
             String actualLine = actualLines[pos]
-            String normalisedActual = actualLine.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
-            boolean matches = normalisedActual == expectedLine
+            boolean matches = actualLine == expectedLine
             if (!matches) {
                 if (expectedLine.contains(actualLine)) {
                     Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
@@ -145,17 +147,20 @@ class UserGuideSamplesRunner extends Runner {
     }
 
     static List<String> removePotentialBuildSuccessfulMessages(List<String> lines) {
-        if (lines.isEmpty()) {
-            return lines
+        lines.inject(new ArrayList<String>()) { List values, String line ->
+            if (line.matches('Total time: .+ secs')) {
+                values << 'Total time: 1 secs'
+            } else if (line.matches('Download .+')) {
+                // Skip
+            }
+            else {
+                values << line.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
+            }
+            values
         }
-        List<String> normalizedLines = null
-        if (lines.last().matches('Total time: .+ secs')) {
-            normalizedLines = lines[0..lines.size() - 5]
-        }
-        return normalizedLines ?: lines;
     }
 
-    static org.gradle.integtests.QuickGradleExecuter.StartParameterModifier createModifier(File rootProjectDir) {
+    static GradleDistributionExecuter.StartParameterModifier createModifier(File rootProjectDir) {
         {StartParameter parameter ->
             if (parameter.getCurrentDir() != null) {
                 parameter.setCurrentDir(normalizedPath(parameter.getCurrentDir(), rootProjectDir));

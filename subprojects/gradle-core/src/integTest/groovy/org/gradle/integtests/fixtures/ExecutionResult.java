@@ -13,16 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
-import org.gradle.util.TestFile;
+public interface ExecutionResult {
+    String getOutput();
 
-import java.io.File;
+    String getError();
 
-public interface ArtifactBuilder {
-    TestFile sourceFile(String path);
+    ExecutionResult assertTasksExecuted(String... taskPaths);
 
-    TestFile resourceFile(String path);
-
-    void buildJar(File jarFile);
+    ExecutionResult assertTasksSkipped(String... taskPaths);
 }

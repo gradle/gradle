@@ -17,12 +17,14 @@
 
 package org.gradle.integtests
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import org.junit.Test
+import org.gradle.integtests.fixtures.ArtifactBuilder
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.util.TestFile
 import org.junit.Ignore
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationTest {
     @Test
@@ -40,19 +42,19 @@ public class ExternalScriptExecutionIntegrationTest extends AbstractIntegrationT
             println 'quiet message'
             captureStandardOutput(LogLevel.ERROR)
             println 'error message'
-            assertNotNull(project)
-            assertEquals("${externalScript.absolutePath.replace("\\", "\\\\")}", buildscript.sourceFile as String)
-            assertEquals("${externalScript.toURI()}", buildscript.sourceURI as String)
-            assertSame(buildscript.classLoader, getClass().classLoader.parent)
-            assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-            assertSame(gradle.scriptClassLoader, buildscript.classLoader.parent)
-            assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
+            assert project != null
+            assert "${externalScript.absolutePath.replace("\\", "\\\\")}" == buildscript.sourceFile as String
+            assert "${externalScript.toURI()}" == buildscript.sourceURI as String
+            assert buildscript.classLoader == getClass().classLoader.parent
+            assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+            assert gradle.scriptClassLoader == buildscript.classLoader.parent
+            assert project.buildscript.classLoader != buildscript.classLoader
             task doStuff
             someProp = 'value'
 """
         testFile('build.gradle') << '''
 apply { from 'external.gradle' }
-assertEquals('value', someProp)
+assert 'value' == someProp
 '''
 
         ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
@@ -71,11 +73,11 @@ println 'quiet message'
 captureStandardOutput(LogLevel.ERROR)
 println 'error message'
 new BuildSrcClass()
-assertEquals('doStuff', name)
-assertSame(buildscript.classLoader, getClass().classLoader.parent)
-assertSame(buildscript.classLoader, Thread.currentThread().contextClassLoader)
-assertSame(project.gradle.scriptClassLoader, buildscript.classLoader.parent)
-assertNotSame(project.buildscript.classLoader, buildscript.classLoader)
+assert 'doStuff' == name
+assert buildscript.classLoader == getClass().classLoader.parent
+assert buildscript.classLoader == Thread.currentThread().contextClassLoader
+assert project.gradle.scriptClassLoader == buildscript.classLoader.parent
+assert project.buildscript.classLoader != buildscript.classLoader
 someProp = 'value'
 '''
         testFile('build.gradle') << '''
@@ -84,7 +86,7 @@ apply {
     to doStuff
     from 'external.gradle'
 }
-assertEquals('value', doStuff.someProp)
+assert 'value' == doStuff.someProp
 '''
 
         ExecutionResult result = inTestDirectory().withTasks('doStuff').run()
@@ -98,7 +100,7 @@ assertEquals('value', doStuff.someProp)
     public void canExecuteExternalScriptFromSettingsScript() {
         testFile('settings.gradle') << ''' apply { from 'other.gradle' } '''
         testFile('other.gradle') << ''' include 'child' '''
-        testFile('build.gradle') << ''' assertEquals(['child'], subprojects*.name) '''
+        testFile('build.gradle') << ''' assert ['child'] == subprojects*.name '''
 
         inTestDirectory().withTaskList().run()
     }
@@ -136,8 +138,8 @@ class ListenerImpl extends BuildAdapter {
 
         script << """
             task doStuff
-            assertNull(buildscript.sourceFile)
-            assertEquals("http://localhost:$server.port/external.gradle", buildscript.sourceURI as String)
+            assert buildscript.sourceFile == null
+            assert "http://localhost:$server.port/external.gradle" == buildscript.sourceURI as String
 """
 
         testFile('build.gradle') << """
@@ -159,7 +161,7 @@ allprojects {
    apply script: rootProject.file('external.gradle') 
 }
 subprojects {
-    assertSame(appliedScript.class, rootProject.appliedScript.class)
+    assert appliedScript.class == rootProject.appliedScript.class
 }
 task doStuff
 '''

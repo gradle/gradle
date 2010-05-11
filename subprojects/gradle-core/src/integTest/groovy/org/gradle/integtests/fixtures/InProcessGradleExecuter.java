@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
 import junit.framework.AssertionFailedError;
+import org.gradle.BuildLogger;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
@@ -27,10 +28,12 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.util.Clock;
 import org.hamcrest.Matcher;
 
 import java.io.File;
@@ -140,6 +143,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
         gradleLauncher.addListener(listener);
+        gradleLauncher.useLogger(new BuildLogger(Logging.getLogger(InProcessGradleExecuter.class), new Clock(), parameter));
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
         return gradleLauncher.run();

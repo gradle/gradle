@@ -15,11 +15,12 @@
  */
 package org.gradle.integtests
 
-import org.junit.Test
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
-import org.junit.Rule;
+import org.junit.Rule
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 public class CopyTaskIntegrationTest extends AbstractIntegrationTest {
     @Rule

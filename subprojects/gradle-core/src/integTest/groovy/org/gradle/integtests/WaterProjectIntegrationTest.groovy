@@ -16,10 +16,13 @@
 
 package org.gradle.integtests
 
-import org.junit.runner.RunWith
-import org.junit.Test
-import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.ExecutionResult
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -41,7 +44,7 @@ class WaterProjectIntegrationTest {
     final static String PHYTOPLANKTON_NAME = 'phytoplankton'
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Test
     public void waterProject() {

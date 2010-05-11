@@ -20,12 +20,14 @@ import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
-import org.junit.Before
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.junit.Rule
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.Resources
 import org.gradle.util.TestFile
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
  * @author Hans Dockter
@@ -39,7 +41,7 @@ class SamplesEclipseIntegrationTest {
     private TestFile eclipseProjectDir
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    private final GradleExecuter executer = dist.executer
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
 
     @Rule public Resources resources = new Resources();
 
