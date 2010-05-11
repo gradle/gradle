@@ -1,0 +1,12 @@
+apply plugin: 'groovy'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile gradleApi()
+    groovy localGroovy()
+    testCompile 'junit:junit:4.7'
+    testRuntime fileTree(dir: "${gradle.gradleHomeDir}/lib", include: '*.jar')
+}
