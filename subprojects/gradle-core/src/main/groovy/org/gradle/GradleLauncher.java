@@ -26,7 +26,7 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
  *
  * <li>Optionally create a {@link StartParameter} instance and configure it with the desired properties. The properties
  * of {@code StartParameter} generally correspond to the command-line options of Gradle. You can use {@link
- * #createStartParameter(String[])} to create a {@link StartParameter} from a set of command-line options.</li>
+ * #createStartParameter(String...)} to create a {@link StartParameter} from a set of command-line options.</li>
  *
  * <li>Obtain a {@code GradleLauncher} instance by calling {@link #newInstance}, passing in the {@code StartParameter},
  * or an array of Strings that will be treated as command line arguments.</li>
@@ -75,6 +75,7 @@ public abstract class GradleLauncher {
      * Returns a GradleLauncher instance based on the passed start parameter.
      *
      * @param startParameter The start parameter object the GradleLauncher instance is initialized with
+     * @return The GradleLauncher. Never returns null.
      */
     public static GradleLauncher newInstance(final StartParameter startParameter) {
         return factory.newInstance(startParameter);
@@ -83,11 +84,12 @@ public abstract class GradleLauncher {
     /**
      * Returns a GradleLauncher instance based on the passed command line syntax arguments. Certain command line
      * arguments won't have any effect if you choose this method (e.g. -v, -h). If you want to act upon, you better use
-     * {@link #createStartParameter(String[])} in conjunction with {@link #newInstance(String[])}.
+     * {@link #createStartParameter(String...)} in conjunction with {@link #newInstance(String...)}.
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
+     * @return The GradleLauncher. Never returns null.
      */
-    public static GradleLauncher newInstance(final String[] commandLineArgs) {
+    public static GradleLauncher newInstance(final String... commandLineArgs) {
         return factory.newInstance(commandLineArgs);
     }
 
@@ -96,8 +98,9 @@ public abstract class GradleLauncher {
      * associated field in the StartParameter object.
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
+     * @return The GradleLauncher. Never returns null.
      */
-    public static StartParameter createStartParameter(final String[] commandLineArgs) {
+    public static StartParameter createStartParameter(final String... commandLineArgs) {
         return factory.createStartParameter(commandLineArgs);
     }
 

@@ -134,6 +134,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
     private static Object invoke(Method method, Object target, Object... args) {
         try {
+            method.setAccessible(true);
             return method.invoke(target, args);
         } catch (InvocationTargetException e) {
             if (e.getCause() instanceof RuntimeException) {
@@ -153,10 +154,6 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             this.serviceType = serviceType;
         }
 
-        boolean creates(Class<?> serviceType) {
-            return serviceType.isAssignableFrom(this.serviceType);
-        }
-        
         <T> T getService(Class<T> serviceType) {
             if (!serviceType.isAssignableFrom(this.serviceType)) {
                 return null;

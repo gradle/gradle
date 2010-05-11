@@ -47,7 +47,7 @@ public class DefaultClassPathRegistry implements ClassPathRegistry {
         List<Pattern> groovyPatterns = toPatterns("groovy-all");
 
         classPaths.put("LOCAL_GROOVY", groovyPatterns);
-        List<Pattern> gradleApiPatterns = toPatterns("gradle-\\w+", "ivy", "slf4j");
+        List<Pattern> gradleApiPatterns = toPatterns("gradle-\\w+", "ivy", "slf4j", "ant");
         gradleApiPatterns.addAll(groovyPatterns);
         classPaths.put("GRADLE_API", gradleApiPatterns);
         classPaths.put("GRADLE_CORE", toPatterns("gradle-core"));

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.TestPlugin1;
 import org.gradle.api.internal.project.TestPlugin2;
@@ -98,6 +99,16 @@ public class DefaultPluginRegistryTest {
             fail();
         } catch (UnknownPluginException e) {
             assertThat(e.getMessage(), equalTo("Plugin with id 'unknownId' not found."));
+        }
+    }
+
+    @Test
+    public void failsWhenClassDoesNotImplementPlugin() {
+        try {
+            pluginRegistry.loadPlugin((Class)String.class);
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), equalTo("Cannot create plugin of type 'String' as it does not implement the Plugin interface."));
         }
     }
 

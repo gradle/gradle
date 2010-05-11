@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.plugins;
 
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Plugin;
 import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
@@ -53,6 +54,11 @@ public class DefaultPluginRegistry implements PluginRegistry {
             return parent.loadPlugin(pluginClass);
         }
 
+        if (!Plugin.class.isAssignableFrom(pluginClass)) {
+            throw new InvalidUserDataException(String.format(
+                    "Cannot create plugin of type '%s' as it does not implement the Plugin interface.",
+                    pluginClass.getSimpleName()));
+        }
         try {
             return pluginClass.newInstance();
         } catch (InstantiationException e) {
