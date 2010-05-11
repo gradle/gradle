@@ -51,7 +51,7 @@ dependencies {
 
     compile "commons-httpclient:commons-httpclient:3.0@jar", "commons-codec:commons-codec:1.2@jar", libraries.jcl_to_slf4j
 
-    compile libraries.ivy, "jsch:jsch:0.1.31@jar"
+    compile libraries.ivy, "com.jcraft:jsch:0.1.42@jar", 'com.jcraft:jzlib:1.0.7@jar'
 
     compile libraries.jopt_simple,
             libraries.ant,
