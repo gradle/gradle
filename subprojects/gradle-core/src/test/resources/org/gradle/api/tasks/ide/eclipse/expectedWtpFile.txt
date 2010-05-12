@@ -12,7 +12,7 @@
     <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib//lib/b.jar">
       <dependency-type>uses</dependency-type>
     </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/dependent/dependent">
+    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/resource/test/test">
       <dependency-type>uses</dependency-type>
     </dependent-module>
   </wb-module>

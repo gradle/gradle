@@ -62,7 +62,7 @@ public class DefaultTaskGraphExecuterTest {
 
     @Before
     public void setUp() {
-        root = createRootProject(new File("root"));
+        root = createRootProject();
         context.checking(new Expectations(){{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));

@@ -182,8 +182,9 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/api/**'
     include 'org/gradle/*'
     include 'org/gradle/external/javadoc/**'
+    include 'org/gradle/process/**'
+    include 'org/gradle/testfixtures/**'
     exclude '**/internal/**'
-    optionsFile = file("$buildDir/tmp/javadoc.options")
     options.links("http://java.sun.com/j2se/1.5.0/docs/api", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")
     doFirst {

@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.artifacts.DependencyResolveContext;
 import org.gradle.api.internal.project.DefaultProject;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
@@ -60,9 +61,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     }
 
     protected AbstractModuleDependency createDependency(String group, String name, String version, String configuration) {
-        DefaultProject dependencyProject = HelperUtil.createRootProject(new File(name));
-        dependencyProject.setGroup(group);
-        dependencyProject.setVersion(version);
+        ProjectInternal dependencyProject = context.mock(ProjectInternal.class);
         DefaultProjectDependency projectDependency;
         if (configuration != null) {
             projectDependency = new DefaultProjectDependency(dependencyProject, configuration, instruction);

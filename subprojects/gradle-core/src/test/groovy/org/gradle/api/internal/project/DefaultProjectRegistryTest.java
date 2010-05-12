@@ -51,7 +51,7 @@ public class DefaultProjectRegistryTest {
     @Before
     public void setUp() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        rootMock = HelperUtil.createRootProject(new File("root"));
+        rootMock = HelperUtil.createRootProject();
         childMock = HelperUtil.createChildProject(rootMock, CHILD_NAME);
         childChildMock = HelperUtil.createChildProject(childMock, CHILD_CHILD_NAME);
         projectRegistry.addProject(rootMock);
@@ -92,7 +92,7 @@ public class DefaultProjectRegistryTest {
     @Test
     public void accessMethodsForNonExistingsPaths() {
         projectRegistry = new DefaultProjectRegistry<ProjectInternal>();
-        Project otherRoot = HelperUtil.createRootProject(new File("otherRoot"));
+        Project otherRoot = HelperUtil.createRootProject();
         assertNull(projectRegistry.getProject(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getAllProjects(otherRoot.getPath()));
         assertEquals(new TreeSet<ProjectInternal>(), projectRegistry.getSubProjects(otherRoot.getPath()));

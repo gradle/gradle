@@ -305,6 +305,10 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void aborted(int exitCode) {
+        if (exitCode == 0) {
+            // This can happen on windows
+            exitCode = -1;
+        }
         setEndStateInfo(ExecHandleState.ABORTED, exitCode, null);
     }
 

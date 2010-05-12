@@ -17,10 +17,9 @@
 package org.gradle.initialization;
 
 import org.gradle.*;
-import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.project.GlobalServicesRegistry;
-import org.gradle.api.internal.project.ProjectFactory;
+import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
@@ -32,8 +31,8 @@ import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
-import org.gradle.logging.ProgressLoggingBridge;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.ProgressLoggingBridge;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
@@ -99,9 +98,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         )),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
-                        new ProjectFactory(
-                                startParameter.getBuildScriptSource(),
-                                serviceRegistry.get(ClassGenerator.class))),
+                        serviceRegistry.get(IProjectFactory.class)
+                ),
                 new BuildConfigurer(new ProjectDependencies2TaskResolver()),
                 loggingConfigurer,
                 gradle.getBuildListenerBroadcaster(),

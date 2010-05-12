@@ -53,7 +53,7 @@ public class BuildConfigurerTest {
         buildConfigurer = new BuildConfigurer(projectDependencies2TasksResolver);
         resolveCalled = false;
         expectedTasksMap = new TreeMap();
-        rootProject = HelperUtil.createRootProject(new File("root"));
+        rootProject = HelperUtil.createRootProject();
         rootProject = context.mock(ProjectInternal.class);
     }
 

@@ -34,6 +34,6 @@ class SamplesCustomPluginIntegrationTest {
         executer.inDirectory(projectDir).withTasks('check').run()
 
         def result = new JUnitTestExecutionResult(projectDir)
-        result.assertTestClassesExecuted('org.gradle.GreetingTest', 'org.gradle.GreeterPluginTest')
+        result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
 }

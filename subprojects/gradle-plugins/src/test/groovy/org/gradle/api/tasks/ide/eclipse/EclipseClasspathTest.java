@@ -67,7 +67,7 @@ public class EclipseClasspathTest extends AbstractTaskTest {
         expectedTestSrcDirs = WrapUtil.<Object>toList("src/test/java", "src/test/resources");
         createProjectDirs(expectedSrcDirs, expectedTestSrcDirs);
         projectDependencyMock = context.mock(DefaultProjectDependency.class);
-        testProject = HelperUtil.createRootProject(new File("dependent"));
+        testProject = HelperUtil.createRootProject();
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});

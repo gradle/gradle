@@ -24,9 +24,11 @@ import org.gradle.foundation.TaskView;
 import org.gradle.foundation.TestUtility;
 import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Assert;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 
 import javax.swing.filechooser.FileFilter;
@@ -40,6 +42,8 @@ import java.util.List;
  * @author mhunsicker
  */
 public class FavoritesIntegrationTest {
+    @Rule
+    public final TemporaryFolder tempDir = new TemporaryFolder();
     private BuildInformation buildInformation;
 
     private ProjectView myRootProject;
@@ -151,8 +155,7 @@ public class FavoritesIntegrationTest {
         assertFavorite(originalFavoriteTask2, "mysubproject1:mysubsubproject:lib", "mysubproject1:mysubsubproject:lib",
                 false);
 
-        File file = TestUtility.createTemporaryFile("fred", ".favorite-tasks");
-        file.deleteOnExit();
+        File file = tempDir.createFile("fred.favorite-tasks");
         originalEditor.exportToFile(new TestUtility.TestExportInteraction(file,
                 true)); //confirm overwrite because the above function actually creates the file.
 
@@ -181,9 +184,8 @@ public class FavoritesIntegrationTest {
         //add a favorite
         FavoriteTask favoriteTask1 = originalEditor.addFavorite(mySubProject1Comple, true);
 
-        File incorrectFile = TestUtility.createTemporaryFile("fred",
-                ".wrong");  //specify a wrong extension. It should actually end in ".favorite-tasks"
-        incorrectFile.deleteOnExit();
+        //specify a wrong extension. It should actually end in ".favorite-tasks"
+        File incorrectFile = tempDir.createFile("fred.wrong");
         File correctFile = new File(incorrectFile.getParentFile(), incorrectFile.getName() + ".favorite-tasks");
 
         //Make sure the correct file doesn't already exist before we've even done our test. This is highly unlikely, but it might happen.
@@ -192,8 +194,6 @@ public class FavoritesIntegrationTest {
             throw new AssertionFailedError(
                     "'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
         }
-
-        correctFile.deleteOnExit();
 
         //do the export
         originalEditor.exportToFile(new TestUtility.TestExportInteraction(incorrectFile,
@@ -240,8 +240,7 @@ public class FavoritesIntegrationTest {
         //add a favorite
         FavoriteTask favoriteTask1 = originalEditor.addFavorite(mySubProject1Comple, true);
 
-        File file = TestUtility.createTemporaryFile("confirm-overwrite", ".favorite-tasks");
-        file.deleteOnExit();
+        File file = tempDir.createFile("test.favorite-tasks");
 
         //make sure the file exists, so we know our save will be overwritting something.
         Assert.assertTrue(file.exists());

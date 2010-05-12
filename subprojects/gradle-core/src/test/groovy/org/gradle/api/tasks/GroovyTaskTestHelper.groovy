@@ -32,9 +32,7 @@ class GroovyTaskTestHelper {
         Closure action2 = {Task t -> action2Called = true}
         task.doFirst(action1)
         task.doLast(action2)
-        task.execute()
-        assertTrue(action1Called)
-        assertTrue(action2Called)
+        assertEquals([action1, action2], task.actions.collect { it.closure })
     }
 
     public static void checkConfigure(AbstractTask task) {

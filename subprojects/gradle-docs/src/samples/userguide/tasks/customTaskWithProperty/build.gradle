@@ -1,18 +1,17 @@
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
-
 // START SNIPPET add-property
-task hello(type: HelloTask)
+// Use the default greeting
+task hello(type: GreetingTask)
 
-task greeting(type: HelloTask) {
-    greeting = 'greetings from HelloTask'
+// Customize the greeting
+task greeting(type: GreetingTask) {
+    greeting = 'greetings from GreetingTask'
 }
 
-class HelloTask extends DefaultTask {
-    def String greeting = 'hello from HelloTask'
+class GreetingTask extends DefaultTask {
+    def String greeting = 'hello from GreetingTask'
 
     @TaskAction
-    def printGreeting() {
+    def greet() {
         println greeting
     }
 }

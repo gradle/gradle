@@ -17,4 +17,4 @@
 /**
  * Classes and interfaces for testing custom task and plugin implementations.
  */
-package org.gradle.api.test;
+package org.gradle.testfixtures;

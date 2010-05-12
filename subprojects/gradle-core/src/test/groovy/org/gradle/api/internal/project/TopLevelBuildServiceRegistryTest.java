@@ -206,6 +206,12 @@ public class TopLevelBuildServiceRegistryTest {
         assertThat(factory.get(WorkerProcessFactory.class), sameInstance(factory.get(WorkerProcessFactory.class)));
     }
 
+    @Test
+    public void providesAProjectFactory() {
+        assertThat(factory.get(IProjectFactory.class), instanceOf(ProjectFactory.class));
+        assertThat(factory.get(IProjectFactory.class), sameInstance(factory.get(IProjectFactory.class)));
+    }
+
     private ListenerManager expectListenerManagerCreated() {
         final ListenerManager listenerManager = new DefaultListenerManager();
         context.checking(new Expectations(){{

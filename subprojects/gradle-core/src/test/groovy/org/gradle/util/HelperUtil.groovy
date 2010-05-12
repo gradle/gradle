@@ -35,31 +35,25 @@ import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.BuildResult
 import org.gradle.StartParameter
-import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
-import org.gradle.api.execution.TaskActionListener
+import org.gradle.api.internal.ClassGenerator
 import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator
 import org.gradle.api.internal.artifacts.configurations.DefaultConfiguration
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
-import org.gradle.api.internal.tasks.DefaultTaskExecuter
-import org.gradle.api.internal.tasks.TaskExecuter
+import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
+import org.gradle.api.internal.project.taskfactory.ITaskFactory
+import org.gradle.api.internal.project.taskfactory.TaskFactory
 import org.gradle.api.specs.AndSpec
 import org.gradle.api.specs.Spec
 import org.gradle.groovy.scripts.DefaultScript
 import org.gradle.groovy.scripts.Script
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
-import org.gradle.initialization.DefaultProjectDescriptor
-import org.gradle.initialization.DefaultProjectDescriptorRegistry
-import org.gradle.invocation.DefaultGradle
-import org.gradle.api.internal.project.*
-import org.gradle.api.internal.project.taskfactory.TaskFactory
-import org.gradle.api.internal.project.taskfactory.ITaskFactory
-import org.gradle.api.internal.project.taskfactory.AnnotationProcessingTaskFactory
-import org.gradle.api.internal.ClassGenerator
-import org.gradle.initialization.LoggingConfigurer
+import org.gradle.testfixtures.ProjectBuilder
 
 /**
  * @author Hans Dockter
@@ -88,18 +82,7 @@ class HelperUtil {
     }
 
     static DefaultProject createRootProject(File rootDir) {
-        StartParameter startParameter = new StartParameter()
-        startParameter.gradleUserHomeDir = new File(rootDir, 'home')
-        TopLevelBuildServiceRegistry serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry({} as LoggingConfigurer), startParameter)
-        serviceRegistryFactory.add(TaskExecuter, new DefaultTaskExecuter({} as TaskActionListener))
-        IProjectFactory projectFactory = new ProjectFactory(new StringScriptSource("embedded build file", "embedded"), CLASS_GENERATOR)
-
-        DefaultGradle build = new DefaultGradle(null, startParameter, serviceRegistryFactory)
-        DefaultProjectDescriptor descriptor = new DefaultProjectDescriptor(null, rootDir.name, rootDir,
-                new DefaultProjectDescriptorRegistry())
-        DefaultProject project = projectFactory.createProject(descriptor, null, build)
-        build.rootProject = project
-        return project;
+        return ProjectBuilder.builder().withProjectDir(rootDir).build()
     }
 
     static DefaultProject createChildProject(DefaultProject parentProject, String name, File projectDir = null) {

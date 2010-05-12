@@ -105,7 +105,7 @@ public class DefaultGradleLauncherTest {
         testGradleProperties = toMap("prop1", "value1");
         boolean expectedSearchUpwards = false;
 
-        File expectedRootDir = new File("rootDir");
+        File expectedRootDir = tmpDir.file("rootDir");
         File expectedCurrentDir = new File(expectedRootDir, "currentDir");
 
         expectedRootProjectDescriptor = new DefaultProjectDescriptor(null, "someName", new File("somedir"), new DefaultProjectDescriptorRegistry());

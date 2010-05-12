@@ -1,16 +1,16 @@
 package org.gradle
 
 import org.junit.Test
-import org.gradle.api.test.ProjectBuilder
+import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
 import static org.junit.Assert.*
 
-class GreeterPluginTest {
+class GreetingPluginTest {
     @Test
     public void greeterPluginAddsGreetingTaskToProject() {
-        Project project = ProjectBuilder.withProjectDir(new File('build/test')).create()
+        Project project = ProjectBuilder.builder().build()
         project.apply plugin: 'greeting'
 
-        assertTrue(project.tasks.hello instanceof Greeting)
+        assertTrue(project.tasks.hello instanceof GreetingTask)
     }
 }

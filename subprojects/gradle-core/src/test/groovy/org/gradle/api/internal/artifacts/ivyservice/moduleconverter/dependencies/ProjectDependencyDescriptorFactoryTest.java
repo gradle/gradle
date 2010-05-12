@@ -74,12 +74,10 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
     }
 
     private ProjectDependency createProjectDependency(String dependencyConfiguration) {
-        AbstractProject dependencyProject = HelperUtil.createRootProject(new File("someName"));
+        AbstractProject dependencyProject = HelperUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
-        final ProjectDependency projectDependency = new DefaultProjectDependency(dependencyProject, dependencyConfiguration,
-                new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()));
-        return projectDependency;
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()));
     }
 
     @Test

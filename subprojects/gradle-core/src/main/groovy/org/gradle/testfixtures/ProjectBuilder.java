@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.test;
+package org.gradle.testfixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.api.internal.project.IProjectFactory;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
@@ -29,9 +31,10 @@ import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.initialization.ClassLoaderFactory;
 import org.gradle.initialization.DefaultClassLoaderFactory;
+import org.gradle.initialization.DefaultProjectDescriptor;
+import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
@@ -41,17 +44,37 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
+import java.io.IOException;
 
 /**
- * Creates dummy instances of {@link org.gradle.api.Project} which you can use for testing custom task and plugin
- * implementations.
+ * <p>Creates dummy instances of {@link org.gradle.api.Project} which you can use in testing custom task and plugin
+ * implementations.</p>
+ *
+ * <p>To create a project instance:</p>
+ *
+ * <ol>
+ *
+ * <li>Create a {@code ProjectBuilder} instance by calling {@link #builder()}.</li>
+ *
+ * <li>Optionally, configure the builder.</li>
+ *
+ * <li>Call {@link #build()} to create the {@code Project} instance.</li>
+ *
+ * </ol>
+ *
+ * <p>You can reuse a builder to create multiple {@code Project} instances.</p>
  */
 public class ProjectBuilder {
     private static final GlobalTestServices GLOBAL_SERVICES = new GlobalTestServices();
     private File projectDir;
 
-    private ProjectBuilder(File projectDir) {
-        this.projectDir = GFileUtils.canonicalise(projectDir);
+    /**
+     * Creates a project builder.
+     *
+     * @return The builder
+     */
+    public static ProjectBuilder builder() {
+        return new ProjectBuilder();
     }
 
     /**
@@ -60,8 +83,9 @@ public class ProjectBuilder {
      * @param dir The project directory
      * @return A new ProjectBuilder.
      */
-    public static ProjectBuilder withProjectDir(File dir) {
-        return new ProjectBuilder(dir);
+    public ProjectBuilder withProjectDir(File dir) {
+        projectDir = GFileUtils.canonicalise(dir);
+        return this;
     }
 
     /**
@@ -69,32 +93,57 @@ public class ProjectBuilder {
      *
      * @return The project
      */
-    public Project create() {
+    public Project build() {
+        if (projectDir == null) {
+            try {
+                projectDir = File.createTempFile("gradle", "projectDir");
+                projectDir.delete();
+                projectDir.mkdir();
+                projectDir.deleteOnExit();
+            } catch (IOException e) {
+                throw new UncheckedIOException(e);
+            }
+        }
+
+        File homeDir = new File(projectDir, "gradleHome");
+        GFileUtils.touch(new File(homeDir, "gradle-imports"));
+
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleHomeDir(new File(projectDir, "gradleHome"));
+        startParameter.setGradleHomeDir(homeDir);
         startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
+
         TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(GLOBAL_SERVICES,
                 startParameter);
         GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
-        return new DefaultProject("test", null, projectDir, new StringScriptSource("Empty build file", ""), gradle,
-                gradle.getServiceRegistryFactory());
+
+        DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, "test", projectDir, new DefaultProjectDescriptorRegistry());
+        ProjectInternal project = topLevelRegistry.get(IProjectFactory.class).createProject(projectDescriptor, null, gradle);
+
+        gradle.setRootProject(project);
+        gradle.setDefaultProject(project);
+
+        return project;
     }
 
     private static class NoOpLoggingManager implements LoggingManager {
+        private LogLevel stdoutLevel = LogLevel.LIFECYCLE;
+
         public LoggingManager captureStandardOutput(LogLevel level) {
+            stdoutLevel = level;
             return this;
         }
 
         public LoggingManager disableStandardOutputCapture() {
+            stdoutLevel = null;
             return this;
         }
 
         public boolean isStandardOutputCaptureEnabled() {
-            return false;
+            return stdoutLevel != null;
         }
 
         public LogLevel getStandardOutputCaptureLevel() {
-            return null;
+            return stdoutLevel;
         }
 
         public LoggingManager setLevel(LogLevel logLevel) {

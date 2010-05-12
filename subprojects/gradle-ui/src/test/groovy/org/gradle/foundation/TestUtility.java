@@ -31,7 +31,6 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 
 import javax.swing.filechooser.FileFilter;
 import java.io.File;
-import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 
@@ -312,15 +311,6 @@ public class TestUtility {
     }
 
     //wrapper around File.createTempFile just so we don't have to deal with the exception for tests.
-
-    public static File createTemporaryFile(String prefix, String suffix) {
-        try {
-            return File.createTempFile(prefix, suffix);
-        }
-        catch (IOException e) {
-            throw new AssertionFailedError("Unexpected exception: " + e);
-        }
-    }
 
     /**
      * This refreshes the projects but blocks until it is complete (its being executed in a separate process).

@@ -61,7 +61,7 @@ public class EclipseWtpTest extends AbstractTaskTest {
     public void setUp() {
         super.setUp();
         projectDependencyMock = context.mock(DefaultProjectDependency.class);
-        testProject = HelperUtil.createRootProject(new File("dependent"));
+        testProject = HelperUtil.createRootProject();
         context.checking(new Expectations() {{
             allowing(projectDependencyMock).getDependencyProject(); will(returnValue(testProject));
         }});

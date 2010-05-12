@@ -20,20 +20,32 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Properties;
 
 /**
  * A JUnit rule which restores system properties at the end of the test.
  */
 public class SetSystemProperties implements MethodRule {
-    private Properties properties;
+    private final Properties properties;
+    private final Map<String, Object> customProperties = new HashMap<String, Object>();
+
+    public SetSystemProperties() {
+        properties = new Properties();
+        properties.putAll(System.getProperties());
+    }
+
+    public SetSystemProperties(Map<String, Object> properties) {
+        this();
+        customProperties.putAll(properties);
+    }
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                properties = new Properties();
-                properties.putAll(System.getProperties());
+                System.getProperties().putAll(customProperties);
                 try {
                     base.evaluate();
                 } finally {

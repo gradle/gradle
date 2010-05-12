@@ -83,6 +83,12 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         add(TimeProvider.class, new TrueTimeProvider());
     }
 
+    protected IProjectFactory createProjectFactory() {
+        return new ProjectFactory(
+                startParameter.getBuildScriptSource(),
+                get(ClassGenerator.class));
+    }
+
     protected ListenerManager createListenerManager(ListenerManager listenerManager) {
         return listenerManager.createChild();
     }
