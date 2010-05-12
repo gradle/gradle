@@ -20,17 +20,15 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.project.DefaultProject
+import org.gradle.api.tasks.TaskAction
+import org.gradle.util.Resources
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.api.tasks.TaskAction
-import org.gradle.util.SetSystemProperties
-import org.gradle.util.Resources
 
 class ProjectBuilderTest extends Specification {
     @Rule public final TemporaryFolder temporaryFolder = new TemporaryFolder()
     @Rule public final Resources resources = new Resources()
-    @Rule public final SetSystemProperties sysProps = new SetSystemProperties('java.io.tmpdir': temporaryFolder.dir.absolutePath)
 
     def canCreateARootProject() {
 
@@ -41,7 +39,7 @@ class ProjectBuilderTest extends Specification {
         project instanceof DefaultProject
         project.name == 'test'
         project.path == ':'
-        project.projectDir.parentFile == temporaryFolder.dir
+        project.projectDir.parentFile != null
         project.gradle != null
         project.gradle.rootProject == project
         project.gradle.gradleHomeDir == project.file('gradleHome')
@@ -60,7 +58,7 @@ class ProjectBuilderTest extends Specification {
 
     def canApplyACustomPlugin() {
         when:
-        def project = ProjectBuilder.builder().build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
         project.apply plugin: CustomPlugin
 
         then:
@@ -69,7 +67,7 @@ class ProjectBuilderTest extends Specification {
 
     def canCreateAndExecuteACustomTask() {
         when:
-        def project = ProjectBuilder.builder().build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
         def task = project.task('custom', type: CustomTask)
         task.doStuff()
 
@@ -79,7 +77,7 @@ class ProjectBuilderTest extends Specification {
 
     def canApplyABuildScript() {
         when:
-        def project = ProjectBuilder.builder().build()
+        def project = ProjectBuilder.builder().withProjectDir(temporaryFolder.dir).build()
         project.apply from: resources.getResource('ProjectBuilderTest.gradle')
 
         then:
