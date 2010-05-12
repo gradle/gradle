@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import org.gradle.util.HelperUtil;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
