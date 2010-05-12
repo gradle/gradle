@@ -22,9 +22,9 @@
     </para>
 
     <para>
-        You can implement a custom plugin in any language you like, provided the implementation ends up compiled as class
-        files. For the examples here, we are going to use Groovy as the implementation language. You could use
-        Java or Scala instead, if you wanted.
+        You can implement a custom plugin in any language you like, provided the implementation ends up compiled as
+        bytecode. For the examples here, we are going to use Groovy as the implementation language. You could use
+        Java or Scala instead, if you want.
     </para>
 
     <section>

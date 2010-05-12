@@ -5,13 +5,13 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
 import static org.junit.Assert.*
 
+// START SNIPPET test-task
 class GreetingTaskTest {
     @Test
-    public void greetingTaskPrintsGreeting() {
+    public void canAddTaskToProject() {
         Project project = ProjectBuilder.builder().build()
         def task = project.task('greeting', type: GreetingTask)
-
         assertTrue(task instanceof GreetingTask)
-        task.greet()
     }
 }
+// END SNIPPET test-task

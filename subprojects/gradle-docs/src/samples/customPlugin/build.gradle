@@ -1,11 +1,15 @@
+// START SNIPPET use-plugin
 apply plugin: 'groovy'
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     compile gradleApi()
+// END SNIPPET use-plugin
     groovy localGroovy()
     testCompile 'junit:junit:4.7'
+// START SNIPPET use-plugin
+}
+// END SNIPPET use-plugin
+
+repositories {
+    mavenCentral()
 }

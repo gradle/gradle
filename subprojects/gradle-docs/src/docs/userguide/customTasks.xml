@@ -16,7 +16,7 @@
 <chapter id="custom_tasks">
     <title>Writing Custom Tasks</title>
 
-    <para>Gradle supports 2 types of task. One such type is the simple task, where you define the task with an
+    <para>Gradle supports two types of task. One such type is the simple task, where you define the task with an
         action closure. We have seen these in <xref linkend="tutorial_using_tasks"/>. For this type of task, the action
         closure determines the behaviour of the task. This type of task is good for implementing one-off tasks in your
         build script.
@@ -27,43 +27,118 @@
         <xref linkend="more_about_tasks"/>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need
         to implement the task behaviour as you do with simple tasks. You simply declare and configure the task using
         its properties.
-        In this way, enhanced tasks let you reuse a piece of behaviour in many different places, potentially
+        In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly
         across different builds.
     </para>
+    <para>Implementing your own custom enhanced tasks in Gradle is easy.
+        You can implement a custom task in pretty much any language you like, provided it ends up compiled to bytecode.
+        In our examples, we are going to use Groovy as the implementation language, but you could use, for example, Java
+        or Scala.
+    </para>
 
-    <para>Gradle allows you to implement your own custom enhanced tasks.
-        Implementing such a custom task in Gradle is easy.
-        You can implement a custom task in pretty much any language you like, provided it ends up compiled to classes
-        files. In our examples, we are going to use Groovy as the implementation language, but you could use, for
-        example, Java or Scala.
-    </para>
-    <para>There are several places where you can put the source for the task. Two convenient options
-        are to add the task implementation to your build script, or to put the source in the
-        <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
-        take care of compiling the task and making it available on the classpath of the build script.
-        See <xref linkend="organizing_build_logic"/> for more details, and some other options.
-        In our examples, we will put the task implementation in the build script, to keep things simple.
-    </para>
-    <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask" lang="groovy"/>.
-    </para>
-    <sample id="customTask" dir="userguide/tasks/customTask" title="Defining a custom task">
-        <sourcefile file="build.gradle" snippet="define-task"/>
-    </sample>
+    <section>
+        <title>Packaging a task</title>
+        <para>There are several places where you can put the source for the task.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term>Build script</term>
+                <listitem>
+                    <para>You can include the task implementation directly in the build script. This has the
+                        benefit that the task class is automatically compiled and included in the classpath of the
+                        build script without you having to do anything. However, the task class is not visible outside the
+                        build script, and so you cannot reuse the task class outside the build script it is defined in.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>buildSrc</filename> project</term>
+                <listitem>
+                    <para>You can put the source for the task implementation in the
+                        <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory.
+                        Gradle will take care of compiling and testing the task class and making it available on the
+                        classpath of the build script. The task class is visible to every build script used by the build.
+                        However, it is not visible outside the build, and so you cannot reuse the task class outside the
+                        build it is defined in.
+                        Using the <filename>buildSrc</filename> project approach keeps separate
+                        the task declaration - that is, what the task should do - from the task implementation - that is,
+                        how the task does it.</para>
+                    <para>
+                        See <xref linkend="organizing_build_logic"/> for more details about the <filename>buildSrc</filename>
+                        project.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Standalone project</term>
+                <listitem>
+                    <para>You can create a separate project for your task implementation. This project produces and
+                        publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR
+                        might include a custom plugin, or bundle several related custom tasks into a single library. Or
+                        some combination.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para> In our examples, we will start with the task implementation in the build script, to keep things simple.
+            Then we will look at creating a standalone project.
+        </para>
+    </section>
 
-    <para>This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task and mark
-        it with the <apilink class="org.gradle.api.tasks.TaskAction"/> annotation. Gradle will call the method when the
-        task executes.
-        You don't have to use a method to define the behaviour for the task. You could, for instance, call
-        <literal>doFirst()</literal> or <literal>doLast()</literal> with a closure in the task constructor to add behaviour.
-    </para>
-    <sample id="customTaskWithAction" dir="userguide/tasks/customTask" title="A hello world task">
-        <sourcefile file="build.gradle" snippet="add-action"/>
-        <output args="-q hello"/>
-    </sample>
+    <section>
+        <title>Writing a simple task</title>
+        <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask" lang="groovy"/>.
+        </para>
+        <sample id="customTask" dir="userguide/tasks/customTask" title="Defining a custom task">
+            <sourcefile file="build.gradle" snippet="define-task"/>
+        </sample>
 
-    <para>Let's add a property to the task, so we can customize it.</para>
-    <sample id="customTaskWithProperty" dir="userguide/tasks/customTaskWithProperty" title="A customizable hello world task">
-        <sourcefile file="build.gradle" snippet="add-property"/>
-        <output args="-q hello greeting"/>
-    </sample>
+        <para>This task doesn't do anything useful, so let's add some behaviour. To do so, we add a method to the task
+            and mark it with the <apilink class="org.gradle.api.tasks.TaskAction"/> annotation. Gradle will call the
+            method when the task executes. You don't have to use a method to define the behaviour for the task. You
+            could, for instance, call <literal>doFirst()</literal> or <literal>doLast()</literal> with a closure in the
+            task constructor to add behaviour.
+        </para>
+        <sample id="customTaskWithAction" dir="userguide/tasks/customTask" title="A hello world task">
+            <sourcefile file="build.gradle" snippet="add-action"/>
+            <output args="-q hello"/>
+        </sample>
+
+        <para>Let's add a property to the task, so we can customize it. Tasks are simply POGOs, and when you declare a
+            task, you can set the properties or call methods on the task object. Here we add a <literal>greeting</literal>
+            property, and set the value when we declare the <literal>greeting</literal> task.
+        </para>
+        <sample id="customTaskWithProperty" dir="userguide/tasks/customTaskWithProperty" title="A customizable hello world task">
+            <sourcefile file="build.gradle" snippet="add-property"/>
+            <output args="-q hello greeting"/>
+        </sample>
+    </section>
+
+    <section>
+        <title>A standalone project</title>
+        <para>Now we will move our task to a standalone project, so we can publish it and share it with others.
+            This project is simply a Groovy project that produces a JAR containing the task implementation.
+            Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API
+            as a compile-time dependency.
+        </para>
+
+        <sample id="customTaskStandalone" dir="customPlugin" title="A build for a custom task" includeLocation="true">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+
+        <para>We just follow the convention for where the source for the task should go.</para>
+
+        <sample id="customTaskStandalone" dir="customPlugin" title="A custom task">
+            <sourcefile file="src/main/groovy/org/gradle/GreetingTask.groovy"/>
+        </sample>
+
+        <section>
+            <title>Writing tests</title>
+            <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
+                <apilink class="org.gradle.api.Project"/> instances to use when you test your task implementation.
+            </para>
+            <sample id="customTaskStandalone" dir="customPlugin" title="Testing a custom task">
+                <sourcefile file="src/test/groovy/org/gradle/GreetingTaskTest.groovy" snippet="test-task"/>
+            </sample>
+        </section>
+    </section>
 </chapter>
