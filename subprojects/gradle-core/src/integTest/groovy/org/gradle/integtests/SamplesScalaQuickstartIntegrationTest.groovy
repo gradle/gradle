@@ -24,17 +24,19 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.Sample
 
 @RunWith (DistributionIntegrationTestRunner.class)
 class SamplesScalaQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('scala/quickstart')
 
     private TestFile projectDir
 
     @Before
     void setUp() {
-        projectDir = dist.samplesDir.file('scala/quickstart')
+        projectDir = sample.dir
     }
 
     @Test

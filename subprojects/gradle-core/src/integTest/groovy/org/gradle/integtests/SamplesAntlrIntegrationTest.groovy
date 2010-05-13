@@ -21,15 +21,17 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 @RunWith (DistributionIntegrationTestRunner.class)
 class SamplesAntlrIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('antlr')
 
     @Test
     public void canBuild() {
-        TestFile projectDir = dist.samplesDir.file('antlr')
+        TestFile projectDir = sample.dir
 
         // Build and test projects
         executer.inDirectory(projectDir).withTasks('clean', 'build').withArguments("--no-opt").run()

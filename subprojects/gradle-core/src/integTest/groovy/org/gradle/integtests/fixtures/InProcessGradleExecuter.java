@@ -47,10 +47,17 @@ import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 public class InProcessGradleExecuter extends AbstractGradleExecuter {
-    private final StartParameter parameter;
+    private StartParameter parameter;
 
     public InProcessGradleExecuter(StartParameter parameter) {
         this.parameter = parameter;
+    }
+
+    @Override
+    public GradleExecuter reset() {
+        super.reset();
+        parameter = new StartParameter();
+        return this;
     }
 
     public StartParameter getParameter() {
@@ -113,7 +120,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         return this;
     }
 
-    public ExecutionResult run() {
+    @Override
+    protected ExecutionResult doRun() {
         OutputListenerImpl outputListener = new OutputListenerImpl();
         OutputListenerImpl errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
@@ -123,7 +131,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 outputListener.toString(), errorListener.toString());
     }
 
-    public ExecutionFailure runWithFailure() {
+    @Override
+    protected ExecutionFailure doRunWithFailure() {
         OutputListenerImpl outputListener = new OutputListenerImpl();
         OutputListenerImpl errorListener = new OutputListenerImpl();
         BuildListenerImpl buildListener = new BuildListenerImpl();
@@ -138,17 +147,35 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private BuildResult doRun(OutputListenerImpl outputListener, OutputListenerImpl errorListener,
                               BuildListenerImpl listener) {
+        assertCanExecute();
         if (isQuiet()) {
             parameter.setLogLevel(LogLevel.QUIET);
         }
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
         gradleLauncher.addListener(listener);
-        gradleLauncher.useLogger(new BuildLogger(Logging.getLogger(InProcessGradleExecuter.class), new Clock(), parameter));
+        gradleLauncher.useLogger(new BuildLogger(Logging.getLogger(InProcessGradleExecuter.class), new Clock(),
+                parameter));
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
         return gradleLauncher.run();
     }
 
+    public void assertCanExecute() {
+        assertNull(getExecutable());
+        assertTrue(getEnvironmentVars().isEmpty());
+        assertFalse(parameter.isShowHelp());
+        assertFalse(parameter.isShowVersion());
+        assertFalse(parameter.isLaunchGUI());
+    }
+
+    public boolean canExecute() {
+        try {
+            assertCanExecute();
+        } catch (AssertionError e) {
+            return false;
+        }
+        return true;
+    }
     private class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new ArrayList<String>();
         private final List<String> skippedTasks = new ArrayList<String>();

@@ -15,19 +15,18 @@
 */
 package org.gradle.integtests
 
-import org.gradle.gradleplugin.foundation.GradlePluginLord
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.junit.Before
-import org.junit.After
-import org.junit.Assert;
-import org.gradle.util.GFileUtils
-import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
-import org.gradle.gradleplugin.foundation.runner.GradleRunner
 import org.gradle.foundation.TestUtility
-import org.junit.Rule
+import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol
+import org.gradle.gradleplugin.foundation.GradlePluginLord
+import org.gradle.gradleplugin.foundation.runner.GradleRunner
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter;
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -44,25 +43,14 @@ class LiveOutputIntegrationTest {
     static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
     private File javaprojectDir
-    private List projects;
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('java/quickstart')
 
     @Before
     void setUp() {
-        javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
-        projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
-        deleteBuildDir(projects)
-    }
-
-    @After
-    void tearDown() {
-        deleteBuildDir(projects)
-    }
-
-    private def deleteBuildDir(List projects) {
-        return projects.each {GFileUtils.deleteDirectory(new File(dist.samplesDir, "$it/build"))}
+        javaprojectDir = sample.dir
     }
 
     /**
@@ -79,7 +67,7 @@ that's likely to change over time. This version executes the command via GradleP
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('assemble').run();
 
-        File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
+        File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 
         GradlePluginLord gradlePluginLord = new GradlePluginLord();
@@ -108,7 +96,7 @@ that's likely to change over time. This version executes the command via GradleR
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('assemble').run();
 
-        File multiProjectDirectory = new File(dist.getSamplesDir(), "java/multiproject");
+        File multiProjectDirectory = sample.getDir();
         Assert.assertTrue(multiProjectDirectory.exists()); //make sure things are setup the way we expect
 
         GradleRunner gradleRunner = new GradleRunner( multiProjectDirectory, dist.gradleHomeDir, null );

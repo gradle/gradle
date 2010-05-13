@@ -16,7 +16,6 @@
 
 package org.gradle.integtests;
 
-import org.gradle.integtests.fixtures.AbstractGradleExecuter;
 import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.integtests.fixtures.GradleDistributionExecuter;
 import org.gradle.util.WrapUtil;
@@ -39,7 +38,7 @@ public class GradleUserHomeEnvVariableIntegrationTest  {
         // the actual testing is done in the build script.
         File projectDir = new File(dist.getSamplesDir(), "gradleUserHome");
         File gradleUserHomeDir = new File(dist.getSamplesDir(), "gradleUserHome/customUserHome");
-        ((AbstractGradleExecuter)executer).setDisableTestGradleUserHome(true);
+        executer.setDisableTestGradleUserHome(true);
         executer.withEnvironmentVars(WrapUtil.toMap("GRADLE_USER_HOME", gradleUserHomeDir.getAbsolutePath())).
                 inDirectory(projectDir).withTasks("checkGradleUserHomeViaSystemEnv").run();
     }
@@ -48,7 +47,7 @@ public class GradleUserHomeEnvVariableIntegrationTest  {
     public void checkDefaultGradleUserHome() {
         // the actual testing is done in the build script.
         File projectDir = new File(dist.getSamplesDir(), "gradleUserHome");
-        ((AbstractGradleExecuter)executer).setDisableTestGradleUserHome(true);
+        executer.setDisableTestGradleUserHome(true);
         executer.inDirectory(projectDir).withTasks("checkDefaultGradleUserHome").run();
     }
 
@@ -58,7 +57,7 @@ public class GradleUserHomeEnvVariableIntegrationTest  {
         File projectDir = new File(dist.getSamplesDir(), "gradleUserHome");
         File gradleUserHomeDir = new File(dist.getSamplesDir(), "gradleUserHome/customUserHome");
         File systemPropGradleUserHomeDir = new File(dist.getSamplesDir(), "gradleUserHome/systemPropCustomUserHome");
-        ((AbstractGradleExecuter)executer).setDisableTestGradleUserHome(true);
+        executer.setDisableTestGradleUserHome(true);
         executer.withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.getAbsolutePath()).
                 withEnvironmentVars(WrapUtil.toMap("GRADLE_USER_HOME", gradleUserHomeDir.getAbsolutePath())).
                 inDirectory(projectDir).withTasks("checkSystemPropertyGradleUserHomeHasPrecedence").run();

@@ -23,11 +23,13 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 @RunWith (DistributionIntegrationTestRunner.class)
 public class SamplesJavaOnlyIfIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('java/onlyif')
 
     /**
      * runs a build 3 times.
@@ -43,7 +45,7 @@ public class SamplesJavaOnlyIfIntegrationTest {
      * check that it re-ran tests 
      */
     @Test public void testOptimizedBuild() {
-        TestFile javaprojectDir = dist.samplesDir.file('java/onlyif')
+        TestFile javaprojectDir = sample.dir
 
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()

@@ -25,6 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -35,10 +36,11 @@ class SamplesWebQuickstartIntegrationTest {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('webApplication/quickstart')
 
     @Test
     public void webProjectSamples() {
-        TestFile webProjectDir = dist.samplesDir.file('webApplication/quickstart')
+        TestFile webProjectDir = sample.dir
         executer.inDirectory(webProjectDir).withTasks('clean', 'build').run()
 
         // Check contents of War

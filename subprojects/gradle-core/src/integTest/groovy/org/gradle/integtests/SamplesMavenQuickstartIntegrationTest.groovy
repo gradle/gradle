@@ -29,6 +29,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -42,10 +43,11 @@ class SamplesMavenQuickstartIntegrationTest {
     private TestFile repoDir
 
     @Rule public Resources resources = new Resources();
+    @Rule public final Sample sample = new Sample('maven/quickstart')
 
     @Before
     public void setUp() {
-        pomProjectDir = dist.samplesDir.file('maven/quickstart')
+        pomProjectDir = sample.dir
         repoDir = pomProjectDir.file('pomRepo');
     }
 

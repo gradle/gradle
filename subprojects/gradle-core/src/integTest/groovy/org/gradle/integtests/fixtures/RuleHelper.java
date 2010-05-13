@@ -21,6 +21,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class RuleHelper {
+    public static <T> T getField(Object target, Class<T> type) {
+        T value = findField(target, type);
+        if (value != null) {
+            return value;
+        }
+        throw new RuntimeException(String.format("Cannot find a field of type %s for test class %s.",
+                type.getSimpleName(), target.getClass().getSimpleName()));
+    }
+
     public static <T> T findField(Object target, Class<T> type) {
         List<T> matches = new ArrayList<T>();
         for (Class<?> cl = target.getClass(); cl != Object.class; cl = cl.getSuperclass()) {

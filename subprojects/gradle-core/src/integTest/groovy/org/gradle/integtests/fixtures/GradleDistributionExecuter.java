@@ -24,8 +24,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * A Junit rule which provides a {@link GradleExecuter} implementation that executes Gradle using a given {@link
@@ -40,8 +38,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private static final boolean FORK;
     private GradleDistribution dist;
     private StartParameterModifier inProcessStartParameterModifier;
-    private Map<String, String> environmentVars = new HashMap<String, String>();
-    private String script;
 
     static {
         FORK = System.getProperty(NOFORK_SYS_PROP, "false").equalsIgnoreCase("false");
@@ -56,36 +52,27 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
     public Statement apply(Statement base, FrameworkMethod method, Object target) {
         if (dist == null) {
-            dist = RuleHelper.findField(target, GradleDistribution.class);
+            dist = RuleHelper.getField(target, GradleDistribution.class);
         }
-        if (dist == null) {
-            throw new RuntimeException(String.format("Could not find a GradleDistribution field on %s.", target));
-        }
-        inDirectory(dist.getTestDir());
+        reset();
         return base;
     }
 
     @Override
-    public GradleExecuter usingExecutable(String script) {
-        this.script = script;
-        return this;
-    }
-
-    public ExecutionResult run() {
-        return configureExecuter().run();
-    }
-
-    public ExecutionFailure runWithFailure() {
-        return configureExecuter().runWithFailure();
+    public GradleExecuter reset() {
+        super.reset();
+        inDirectory(dist.getTestDir());
+        return this;        
     }
 
     @Override
-    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
-        environmentVars.clear();
-        for (Map.Entry<String, ?> entry : environment.entrySet()) {
-            environmentVars.put(entry.getKey(), entry.getValue().toString());
-        }
-        return this;
+    protected ExecutionResult doRun() {
+        return configureExecuter().run();
+    }
+
+    @Override
+    protected ExecutionFailure doRunWithFailure() {
+        return configureExecuter().runWithFailure();
     }
 
     public void setInProcessStartParameterModifier(StartParameterModifier inProcessStartParameterModifier) {
@@ -109,13 +96,10 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
-        if (FORK || inProcessGradleExecuter.getParameter().isShowVersion() || !environmentVars.isEmpty()
-                || script != null) {
+        if (FORK || !inProcessGradleExecuter.canExecute()) {
             ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist);
             copyTo(forkingGradleExecuter);
             forkingGradleExecuter.setDisableTestGradleUserHome(isDisableTestGradleUserHome());
-            forkingGradleExecuter.withEnvironmentVars(environmentVars);
-            forkingGradleExecuter.usingExecutable(script);
             returnedExecuter = forkingGradleExecuter;
         } else {
             if (inProcessStartParameterModifier != null) {

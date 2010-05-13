@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -33,6 +34,7 @@ class SamplesGroovyMultiProjectIntegrationTest {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('groovy/multiproject')
 
     private List mainFiles = ['JavaPerson', 'GroovyPerson', 'GroovyJavaPerson']
     private List excludedFiles = ['ExcludeJava', 'ExcludeGroovy', 'ExcludeGroovyJava']
@@ -44,7 +46,7 @@ class SamplesGroovyMultiProjectIntegrationTest {
         String testPackagePrefix = 'build/classes/test/org/gradle'
 
 
-        TestFile groovyProjectDir = dist.samplesDir.file('groovy/multiproject')
+        TestFile groovyProjectDir = sample.dir
         TestFile testProjectDir = groovyProjectDir.file(TEST_PROJECT_NAME)
 
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()

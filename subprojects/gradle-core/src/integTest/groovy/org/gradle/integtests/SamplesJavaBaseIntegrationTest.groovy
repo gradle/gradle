@@ -22,6 +22,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -31,10 +32,11 @@ import org.junit.runner.RunWith
 class SamplesJavaBaseIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('java/base')
 
     @Test
     public void canBuildAndUploadJar() {
-        TestFile javaprojectDir = dist.samplesDir.file('java/base')
+        TestFile javaprojectDir = sample.dir
 
         // Build and test projects
         executer.inDirectory(javaprojectDir).withTasks('clean', 'build').run()

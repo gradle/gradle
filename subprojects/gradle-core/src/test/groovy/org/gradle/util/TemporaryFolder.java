@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * A JUnit rule which provides a unique temporary folder for the test.
  */
-public class TemporaryFolder implements MethodRule {
+public class TemporaryFolder implements MethodRule, TestFileContext {
     private TestFile dir;
     private String prefix;
     private static TestFile root;
@@ -89,12 +89,16 @@ public class TemporaryFolder implements MethodRule {
         return temporaryFolder;
     }
 
-    public TestFile file(String... path) {
+    public TestFile getTestDir() {
+        return getDir();
+    }
+
+    public TestFile file(Object... path) {
         return getDir().file((Object[]) path);
     }
 
     public TestFile createFile(String... path) {
-        return file(path).touch();
+        return file(path).createFile();
     }
 
     public TestFile createDir(String... path) {

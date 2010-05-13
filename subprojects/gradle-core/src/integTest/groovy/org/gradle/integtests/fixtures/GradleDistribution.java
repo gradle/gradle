@@ -20,6 +20,7 @@ import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
+import org.gradle.util.TestFileContext;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -30,7 +31,7 @@ import java.util.Arrays;
 /**
  * Provides access to a Gradle distribution for integration testing.
  */
-public class GradleDistribution implements MethodRule {
+public class GradleDistribution implements MethodRule, TestFileContext {
     private static final TestFile USER_HOME_DIR;
     private static final TestFile GRADLE_HOME_DIR;
     private static final TestFile SAMPLES_DIR;
@@ -38,6 +39,7 @@ public class GradleDistribution implements MethodRule {
     private static final TestFile USER_GUIDE_INFO_DIR;
     private static final TestFile DISTS_DIR;
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
+    private TestFile userHome;
 
     static {
         String workerId = System.getProperty("org.gradle.test.worker", "1");
@@ -60,6 +62,14 @@ public class GradleDistribution implements MethodRule {
 
     }
 
+    public GradleDistribution() {
+        this.userHome = USER_HOME_DIR;
+    }
+
+    public void requireOwnUserHomeDir() {
+        userHome = getTestDir().file("user-home");
+    }
+
     public Statement apply(Statement base, FrameworkMethod method, Object target) {
         return temporaryFolder.apply(base, method, target);
     }
@@ -74,10 +84,11 @@ public class GradleDistribution implements MethodRule {
     }
 
     /**
-     * The user home dir used for the current test. This is usually shared with other tests.
+     * The user home dir used for the current test. This is usually shared with other tests unless
+     * {@link #requireOwnUserHomeDir()} is called.
      */
     public TestFile getUserHomeDir() {
-        return USER_HOME_DIR;
+        return userHome;
     }
 
     /**
@@ -88,7 +99,7 @@ public class GradleDistribution implements MethodRule {
     }
 
     /**
-     * The samples from the distribution.
+     * The samples from the distribution. These are usually shared with other tests.
      */
     public TestFile getSamplesDir() {
         return SAMPLES_DIR;
@@ -120,7 +131,7 @@ public class GradleDistribution implements MethodRule {
     }
 
     /**
-     * Returns a scratch-pad directory for the current test.
+     * Returns a scratch-pad directory for the current test. This directory is not shared with any other tests.
      */
     public TestFile getTestDir() {
         return temporaryFolder.getDir();
@@ -128,6 +139,13 @@ public class GradleDistribution implements MethodRule {
 
     public TemporaryFolder getTemporaryFolder() {
         return temporaryFolder;
+    }
+
+    /**
+     * Returns a scratch-pad file for the current test. Equivalent to getTestDir().file(path)
+     */
+    public TestFile file(Object... path) {
+        return getTestDir().file(path);
     }
 
     /**

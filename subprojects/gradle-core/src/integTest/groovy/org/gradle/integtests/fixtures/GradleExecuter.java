@@ -22,10 +22,19 @@ import java.util.Map;
 public interface GradleExecuter {
     GradleExecuter inDirectory(File directory);
 
+    /**
+     * Enables search upwards. Defaults to false.
+     */
     GradleExecuter withSearchUpwards();
 
+    /**
+     * Sets the task names to execute. Defaults to an empty list.
+     */
     GradleExecuter withTasks(String... names);
 
+    /**
+     * Sets the task names to execute. Defaults to an empty list.
+     */
     GradleExecuter withTasks(List<String> names);
 
     GradleExecuter withTaskList();
@@ -34,8 +43,14 @@ public interface GradleExecuter {
 
     GradleExecuter withQuietLogging();
 
+    /**
+     * Sets the additional command-line arguments to use when executing the build. Defaults to an empty list.
+     */
     GradleExecuter withArguments(String... args);
 
+    /**
+     * Sets the additional command-line arguments to use when executing the build. Defaults to an empty list.
+     */
     GradleExecuter withArguments(List<String> args);
 
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
@@ -46,9 +61,22 @@ public interface GradleExecuter {
 
     GradleExecuter usingBuildScript(String script);
 
+    /**
+     * Sets the executable to use. Set to null to use the default executable (if any)
+     */
     GradleExecuter usingExecutable(String script);
 
+    /**
+     * Executes the requested build, asserting that the build succeeds. Resets the configuration of this executer.
+     *
+     * @return The result.
+     */
     ExecutionResult run();
 
+    /**
+     * Executes the requested build, asserting that the build fails. Resets the configuration of this executer.
+     *
+     * @return The result.
+     */
     ExecutionFailure runWithFailure();
 }

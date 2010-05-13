@@ -23,6 +23,7 @@ import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -33,13 +34,14 @@ class SamplesWebProjectIntegrationTest {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('webApplication/customised')
 
     @Test
     public void webProjectSamples() {
-        TestFile webProjectDir = dist.samplesDir.file("webApplication/$WEB_PROJECT_NAME")
+        TestFile webProjectDir = sample.dir
         executer.inDirectory(webProjectDir).withTasks('clean', 'assemble').run()
         TestFile tmpDir = dist.testDir.file('unjar')
-        webProjectDir.file("build/libs/$WEB_PROJECT_NAME-1.0.war").unzipTo(tmpDir)
+        webProjectDir.file("build/libs/customised-1.0.war").unzipTo(tmpDir)
         tmpDir.assertHasDescendants(
                 'root.txt',
                 'META-INF/MANIFEST.MF',
@@ -58,7 +60,7 @@ class SamplesWebProjectIntegrationTest {
 
     @Test
     public void checkJettyPlugin() {
-        TestFile webProjectDir = dist.samplesDir.file("webApplication/$WEB_PROJECT_NAME")
+        TestFile webProjectDir = sample.dir
         executer.inDirectory(webProjectDir).withTasks('clean', 'runTest').run()
         checkServletOutput(webProjectDir)
         executer.inDirectory(webProjectDir).withTasks('clean', 'runWarTest').run()

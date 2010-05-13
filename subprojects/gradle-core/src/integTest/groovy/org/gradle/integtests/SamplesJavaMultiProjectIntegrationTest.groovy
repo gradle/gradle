@@ -20,9 +20,8 @@ package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.util.GFileUtils
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
-import org.junit.After
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
@@ -47,21 +46,12 @@ class SamplesJavaMultiProjectIntegrationTest {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('java/multiproject')
 
     @Before
     void setUp() {
-        javaprojectDir = dist.samplesDir.file('java/multiproject')
+        javaprojectDir = sample.dir
         projects = [SHARED_NAME, API_NAME, WEBAPP_PATH].collect {"$JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
-        deleteBuildDir(projects)
-    }
-
-    @After
-    void tearDown() {
-        deleteBuildDir(projects)
-    }
-
-    private def deleteBuildDir(List projects) {
-        return projects.each {GFileUtils.deleteDirectory(new File(dist.samplesDir, "$it/build"))}
     }
 
     @Test
@@ -192,7 +182,7 @@ class SamplesJavaMultiProjectIntegrationTest {
     public void clean() {
         executer.inDirectory(javaprojectDir).withTasks('classes').run()
         executer.inDirectory(javaprojectDir).withTasks('clean').run()
-        projects.each {assert !(new File(dist.samplesDir, "$it/build").exists())}
+        projects.each { javaprojectDir.file("$it/build").assertDoesNotExist() }
     }
 
     @Test

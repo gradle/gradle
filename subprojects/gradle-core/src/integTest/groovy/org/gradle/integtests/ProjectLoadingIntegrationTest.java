@@ -169,9 +169,9 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
             "project(':child').buildFileName = 'child.gradle'"
         );
 
-        File subDirectory = new File(getTestDir(), "child");
-        testFile(subDirectory, "build.gradle").write("throw new RuntimeException()");
-        testFile(subDirectory, "child.gradle").write("task('do-stuff')");
+        TestFile subDirectory = getTestDir().file("child");
+        subDirectory.file("build.gradle").write("throw new RuntimeException()");
+        subDirectory.file("child.gradle").write("task('do-stuff')");
 
         inDirectory(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
         usingProjectDir(subDirectory).withSearchUpwards().withTasks("do-stuff").run();
@@ -193,8 +193,8 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         testFile("settings.gradle").write("include 'another'");
         testFile("gradle.properties").writelns("prop=value2", "otherProp=value");
 
-        File subDirectory = new File(getTestDir(), "subdirectory");
-        TestFile buildFile = testFile(subDirectory, "build.gradle");
+        TestFile subDirectory = getTestDir().file("subdirectory");
+        TestFile buildFile = subDirectory.file("build.gradle");
         buildFile.writelns("task('do-stuff') << {",
                 "assert prop == 'value'",
                 "assert !project.hasProperty('otherProp')",
@@ -232,15 +232,15 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void multiProjectBuildCanHaveSettingsFileAndRootBuildFileInSubDir() {
-        File buildFilesDir = new File(getTestDir(), "root");
-        TestFile settingsFile = testFile(buildFilesDir, "settings.gradle");
+        TestFile buildFilesDir = getTestDir().file("root");
+        TestFile settingsFile = buildFilesDir.file("settings.gradle");
         settingsFile.writelns(
             "includeFlat 'child'",
             "rootProject.projectDir = new File(settingsDir, '..')",
             "rootProject.buildFileName = 'root/build.gradle'"
         );
 
-        TestFile rootBuildFile = testFile(buildFilesDir, "build.gradle");
+        TestFile rootBuildFile = buildFilesDir.file("build.gradle");
         rootBuildFile.write("task('do-stuff', dependsOn: ':child:task')");
 
         TestFile childBuildFile = testFile("child/build.gradle");

@@ -17,6 +17,7 @@ package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.integtests.fixtures.GradleDistributionExecuter;
+import org.gradle.integtests.fixtures.Sample;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -32,11 +33,13 @@ public class IvyPublishIntegrationTest {
     public final GradleDistribution dist = new GradleDistribution();
     @Rule
     public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
+    @Rule
+    public final Sample sample = new Sample("ivypublish");
 
     @Test
     public void testResolve() {
         // the actual testing is done in the build script.
-        File projectDir = new File(dist.getSamplesDir(), "ivypublish");
+        File projectDir = sample.getDir();
         executer.inDirectory(projectDir).withTasks("clean", "uploadArchives").run();
     }
 }

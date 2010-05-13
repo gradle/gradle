@@ -15,44 +15,30 @@
  */
 package org.gradle.integtests
 
-import org.gradle.util.GFileUtils
-
-import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
-import org.gradle.openapi.external.foundation.ProjectVersion1
-import org.gradle.openapi.external.foundation.RequestVersion1
-import org.gradle.openapi.external.foundation.RequestObserverVersion1
-import org.gradle.openapi.external.ExternalUtility
-import org.gradle.openapi.external.ui.SinglePaneUIVersion1
-import org.gradle.openapi.external.ui.UIFactory
-import org.gradle.openapi.external.ui.DualPaneUIVersion1
-import org.gradle.openapi.external.ui.BasicGradleUIVersion1
-import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1
-import org.gradle.openapi.external.ui.GradleTabVersion1
-
-import junit.framework.AssertionFailedError
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.junit.Before
-import org.junit.After
-import org.junit.Assert
-
-import java.awt.event.HierarchyListener
-import java.awt.event.HierarchyEvent
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
-import javax.swing.JPanel
-import javax.swing.JLabel
+import java.awt.event.HierarchyEvent
+import java.awt.event.HierarchyListener
 import javax.swing.JFrame
+import javax.swing.JLabel
+import javax.swing.JPanel
 import javax.swing.SwingUtilities
-import org.gradle.openapi.external.ui.OutputUILordVersion1
-import org.gradle.openapi.external.foundation.TaskVersion1
-import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
-import org.gradle.openapi.wrappers.UIWrapperFactory
-import org.junit.Rule
+import junit.framework.AssertionFailedError
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.openapi.external.ExternalUtility
+import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
+import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
+import org.gradle.openapi.wrappers.UIWrapperFactory
+import org.junit.Assert
+import org.junit.Before
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.gradle.openapi.external.foundation.*
+import org.gradle.openapi.external.ui.*
 
 /**
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
@@ -68,27 +54,15 @@ public class OpenApiUiTest {
   static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
   private File javaprojectDir
-  private List projects;
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
   @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+  @Rule public final Sample sample = new Sample('java/quickstart')
 
   @Before
   void setUp() {
-      javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
-      projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
-      deleteBuildDir(projects)
+      javaprojectDir = sample.dir
   }
-
-  @After
-  void tearDown() {
-      deleteBuildDir(projects)
-  }
-
-  private def deleteBuildDir(List projects) {
-      return projects.each {GFileUtils.deleteDirectory(new File(dist.samplesDir, "$it/build"))}
-  }
-
 
      /**
       This tests to see if we can call the UIFactory to create a single pane UI.

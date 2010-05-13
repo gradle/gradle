@@ -23,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -31,10 +32,11 @@ import static org.junit.Assert.*
 class SamplesExcludesAndClassifiersIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('userguide/artifacts/excludesAndClassifiers')
 
     @Test
     public void checkExcludeAndClassifier() {
-        File projectDir = new File(dist.samplesDir, "/userguide/artifacts/excludesAndClassifiers")
+        File projectDir = sample.dir
         String outputCompile = executer.inDirectory(projectDir).withTasks('clean', 'resolveCompile').run().getOutput()
         String outputRuntime = executer.inDirectory(projectDir).withTasks('clean', 'resolveRuntime').run().getOutput()
         assertThat(outputCompile, not(containsString("commons")))

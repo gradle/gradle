@@ -19,35 +19,31 @@ import org.gradle.CacheUsage;
 import org.gradle.StartParameter;
 import org.gradle.integtests.fixtures.*;
 import org.gradle.util.TestFile;
+import org.gradle.util.TestFileContext;
 import org.junit.Rule;
 
 import java.io.File;
 
-public class AbstractIntegrationTest {
+public abstract class AbstractIntegrationTest implements TestFileContext {
     @Rule public GradleDistribution distribution = new GradleDistribution();
-    private TestFile userHome = distribution.getUserHomeDir();
 
     public TestFile getTestDir() {
         return distribution.getTestDir();
     }
 
+    public TestFile file(Object... path) {
+        return getTestDir().file(path);
+    }
+
     public TestFile testFile(String name) {
-        return getTestDir().file(name);
-    }
-
-    public TestFile testFile(File dir, String name) {
-        return new TestFile(dir, name);
-    }
-
-    public void requireOwnUserHomeDir() {
-        userHome = getTestDir().file("user-home");
+        return file(name);
     }
 
     private StartParameter startParameter() {
         StartParameter parameter = new StartParameter();
         parameter.setGradleHomeDir(distribution.getGradleHomeDir());
 
-        parameter.setGradleUserHomeDir(userHome);
+        parameter.setGradleUserHomeDir(distribution.getUserHomeDir());
 
         parameter.setSearchUpwards(false);
         parameter.setCacheUsage(CacheUsage.ON);

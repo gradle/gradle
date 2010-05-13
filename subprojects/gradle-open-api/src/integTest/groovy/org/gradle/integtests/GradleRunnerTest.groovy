@@ -15,20 +15,19 @@
  */
 package org.gradle.integtests
 
-import org.gradle.util.GFileUtils
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.junit.Before
-import org.junit.After
-import org.junit.Assert
 import junit.framework.AssertionFailedError
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
 import org.gradle.openapi.wrappers.RunnerWrapperFactory
+import org.junit.Assert
+import org.junit.Before
 import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter;
+import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class GradleRunnerTest {
@@ -41,27 +40,15 @@ class GradleRunnerTest {
   static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
   private File javaprojectDir
-  private List projects;
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
   @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+  @Rule public final Sample sample = new Sample('java/quickstart')
 
   @Before
   void setUp() {
-      javaprojectDir = new File(dist.samplesDir, 'java/multiproject')
-      projects = [SHARED_NAME, API_NAME, WEBAPP_NAME, SERVICES_NAME].collect {"JAVA_PROJECT_NAME/$it"} + JAVA_PROJECT_NAME
-      deleteBuildDir(projects)
+      javaprojectDir = sample.dir
   }
-
-  @After
-  void tearDown() {
-      deleteBuildDir(projects)
-  }
-
-  private def deleteBuildDir(List projects) {
-      return projects.each {GFileUtils.deleteDirectory(new File(dist.samplesDir, "$it/build"))}
-  }
-
 
   /**
    * We just want to make sure we can instantiate a GradleRunner here. That's all

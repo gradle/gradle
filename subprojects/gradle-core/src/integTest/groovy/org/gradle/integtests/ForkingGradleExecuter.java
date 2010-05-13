@@ -16,11 +16,14 @@
 
 package org.gradle.integtests;
 
-import org.apache.tools.ant.taskdefs.condition.Os;
-import org.gradle.integtests.fixtures.*;
+import org.gradle.integtests.fixtures.AbstractGradleExecuter;
+import org.gradle.integtests.fixtures.ExecutionFailure;
+import org.gradle.integtests.fixtures.ExecutionResult;
+import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
+import org.gradle.util.OperatingSystem;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -30,7 +33,6 @@ import org.slf4j.LoggerFactory;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -38,52 +40,29 @@ import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-// todo: implement more of the unsupported methods
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
     private final GradleDistribution distribution;
-    private Map<String, String> environmentVars = new HashMap<String, String>();
-    private String command;
 
     public ForkingGradleExecuter(GradleDistribution distribution) {
         this.distribution = distribution;
-        inDirectory(distribution.getTestDir());
     }
 
-    public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
-        environmentVars.clear();
-        for (Map.Entry<String, ?> entry : environment.entrySet()) {
-            environmentVars.put(entry.getKey(), entry.getValue().toString());
-        }
-        return this;
-    }
-
-    public GradleExecuter usingExecutable(String script) {
-        command = script;
-        return this;
-    }
-
-    public ExecutionResult run() {
+    @Override
+    protected ExecutionResult doRun() {
         Map result = doRun(false);
         return new ForkedExecutionResult(result);
     }
 
-    public ExecutionFailure runWithFailure() {
+    @Override
+    protected ExecutionFailure doRunWithFailure() {
         Map result = doRun(true);
         return new ForkedExecutionFailure(result);
     }
 
     private Map doRun(boolean expectFailure) {
-        String windowsCmd;
-        String unixCmd;
-        if (command != null) {
-            windowsCmd = command.replace('/', File.separatorChar);
-            unixCmd = String.format("%s/%s", getWorkingDir().getAbsolutePath(), command);
-        } else {
-            windowsCmd = "gradle";
-            unixCmd = String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath());
-        }
-        return executeInternal(windowsCmd, unixCmd, expectFailure);
+        CommandBuilder builder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder() : new UnixCommandBuilder();
+        return executeInternal(builder, expectFailure);
     }
 
     @Override
@@ -102,10 +81,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return args;
     }
 
-    Map executeInternal(String windowsCommandSnippet, String unixCommandSnippet, boolean expectFailure) {
+    Map executeInternal(CommandBuilder commandBuilder, boolean expectFailure) {
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errStream = new ByteArrayOutputStream();
-        String gradleHome = distribution.getGradleHomeDir().toString();
 
         ExecHandleBuilder builder = new ExecHandleBuilder() {
             @Override
@@ -120,17 +98,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.environment("GRADLE_HOME", "");
         builder.environment("JAVA_HOME", System.getProperty("java.home"));
         builder.environment("GRADLE_OPTS", "-ea");
-        builder.environment(environmentVars);
+        builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());
 
-        if (Os.isFamily(Os.FAMILY_WINDOWS)) {
-            builder.executable("cmd");
-            builder.args("/c", windowsCommandSnippet);
-            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
-            builder.environment("GRADLE_EXIT_CONSOLE", "true");
-        } else {
-            builder.executable(unixCommandSnippet);
-        }
+        commandBuilder.build(builder);
 
         builder.args(getAllArgs());
 
@@ -155,6 +126,36 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             throw new RuntimeException(message);
         }
         return GUtil.map("output", output, "error", error);
+    }
+
+    private interface CommandBuilder {
+        void build(ExecHandleBuilder builder);
+    }
+
+    private class WindowsCommandBuilder implements CommandBuilder {
+        public void build(ExecHandleBuilder builder) {
+            String cmd;
+            if (getExecutable() != null) {
+                cmd = getExecutable().replace('/', File.separatorChar);
+            } else {
+                cmd = "gradle";
+            }
+            builder.executable("cmd");
+            builder.args("/c", cmd);
+            String gradleHome = distribution.getGradleHomeDir().toString();
+            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
+            builder.environment("GRADLE_EXIT_CONSOLE", "true");
+        }
+    }
+
+    private class UnixCommandBuilder implements CommandBuilder {
+        public void build(ExecHandleBuilder builder) {
+            if (getExecutable() != null) {
+                builder.executable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
+            } else {
+                builder.executable(String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath()));
+            }
+        }
     }
 
     private static class ForkedExecutionResult implements ExecutionResult {

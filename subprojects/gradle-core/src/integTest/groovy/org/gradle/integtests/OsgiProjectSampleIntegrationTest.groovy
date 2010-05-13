@@ -24,6 +24,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -32,11 +33,12 @@ import static org.junit.Assert.*
 class OsgiProjectSampleIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('osgi')
 
     @Test
     public void osgiProjectSamples() {
         long start = System.currentTimeMillis()
-        TestFile osgiProjectDir = dist.samplesDir.file('osgi')
+        TestFile osgiProjectDir = sample.dir
         executer.inDirectory(osgiProjectDir).withTasks('clean', 'assemble').run()
         TestFile tmpDir = dist.testDir
         osgiProjectDir.file('build/libs/osgi-1.0.jar').unzipTo(tmpDir)

@@ -502,29 +502,29 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         }
         '''
 
-                inTestDirectory().withTasks('zip').run()
+        inTestDirectory().withTasks('zip').run()
 
-                TestFile expandDir = testFile('expanded')
-                testFile('build/test.zip').unzipTo(expandDir)
-                expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
-            }
+        TestFile expandDir = testFile('expanded')
+        testFile('build/test.zip').unzipTo(expandDir)
+        expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
+    }
 
-            private def createZip(String name, Closure cl) {
-                TestFile zipRoot = testFile("${name}.root")
-                TestFile zip = testFile(name)
-                zipRoot.create(cl)
-                zipRoot.zipTo(zip)
-            }
+    private def createZip(String name, Closure cl) {
+        TestFile zipRoot = testFile("${name}.root")
+        TestFile zip = testFile(name)
+        zipRoot.create(cl)
+        zipRoot.zipTo(zip)
+    }
 
-            private def createTar(String name, Closure cl) {
-                TestFile tarRoot = testFile("${name}.root")
-                TestFile tar = testFile(name)
-                tarRoot.create(cl)
-                tarRoot.tarTo(tar)
-            }
+    private def createTar(String name, Closure cl) {
+        TestFile tarRoot = testFile("${name}.root")
+        TestFile tar = testFile(name)
+        tarRoot.create(cl)
+        tarRoot.tarTo(tar)
+    }
 
-            private def createDir(String name, Closure cl) {
-                TestFile root = testFile(name)
-                root.create(cl)
-            }
-        }
+    private def createDir(String name, Closure cl) {
+        TestFile root = testFile(name)
+        root.create(cl)
+    }
+}

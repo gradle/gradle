@@ -16,10 +16,7 @@
 package org.gradle.integtests.fixtures;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public abstract class AbstractGradleExecuter implements GradleExecuter {
     private final List<String> args = new ArrayList<String>();
@@ -29,6 +26,21 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean taskList;
     private boolean searchUpwards;
     private boolean disableTestGradleUserHome;
+    private Map<String, String> environmentVars = new HashMap<String, String>();
+    private String executable;
+
+    public GradleExecuter reset() {
+        args.clear();
+        tasks.clear();
+        workingDir = null;
+        quiet = false;
+        taskList = false;
+        searchUpwards = false;
+        disableTestGradleUserHome = false;
+        executable = null;
+        environmentVars.clear();
+        return this;
+    }
 
     public GradleExecuter inDirectory(File directory) {
         workingDir = directory;
@@ -45,6 +57,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
+        executer.withEnvironmentVars(environmentVars);
+        executer.usingExecutable(executable);
         if (quiet) {
             executer.withQuietLogging();
         }
@@ -74,7 +88,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter usingExecutable(String script) {
-        throw new UnsupportedOperationException();
+        this.executable = script;
+        return this;
+    }
+
+    public String getExecutable() {
+        return executable;
     }
 
     public GradleExecuter withSearchUpwards() {
@@ -111,7 +130,15 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withEnvironmentVars(Map<String, ?> environment) {
-        throw new UnsupportedOperationException();
+        environmentVars.clear();
+        for (Map.Entry<String, ?> entry : environment.entrySet()) {
+            environmentVars.put(entry.getKey(), entry.getValue().toString());
+        }
+        return this;
+    }
+
+    public Map<String, String> getEnvironmentVars() {
+        return environmentVars;
     }
 
     public GradleExecuter withTasks(String... names) {
@@ -139,4 +166,24 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         allArgs.addAll(tasks);
         return allArgs;
     }
+
+    public final ExecutionResult run() {
+        try {
+            return doRun();
+        } finally {
+            reset();
+        }
+    }
+
+    public final ExecutionFailure runWithFailure() {
+        try {
+            return doRunWithFailure();
+        } finally {
+            reset();
+        }
+    }
+
+    protected abstract ExecutionResult doRun();
+
+    protected abstract ExecutionFailure doRunWithFailure();
 }

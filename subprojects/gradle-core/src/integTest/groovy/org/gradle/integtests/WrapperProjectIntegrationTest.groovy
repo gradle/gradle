@@ -24,6 +24,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -32,10 +33,11 @@ import static org.junit.Assert.*
 class WrapperProjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('wrapper-project')
 
     @Test
     public void wrapperSample() {
-        File wrapperSampleDir = new File(dist.samplesDir, 'wrapper-project')
+        File wrapperSampleDir = sample.dir
 
         executer.inDirectory(wrapperSampleDir).withTasks('wrapper').run()
 

@@ -21,6 +21,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -29,10 +30,11 @@ import org.junit.runner.RunWith
 class SamplesCodeQualityIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('codeQuality')
 
     @Test
     public void checkReportsGenerated() {
-        TestFile projectDir = dist.samplesDir.file('codeQuality')
+        TestFile projectDir = sample.dir
         TestFile buildDir = projectDir.file('build')
 
         executer.inDirectory(projectDir).withTasks('check').run()

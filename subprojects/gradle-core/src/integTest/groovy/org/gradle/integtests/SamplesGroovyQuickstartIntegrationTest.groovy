@@ -22,15 +22,17 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesGroovyQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('groovy/quickstart')
 
     @Test
     public void groovyProjectQuickstartSample() {
-        TestFile groovyProjectDir = dist.samplesDir.file('groovy/quickstart')
+        TestFile groovyProjectDir = sample.dir
         executer.inDirectory(groovyProjectDir).withTasks('clean', 'build').run()
 
         // Check tests have run

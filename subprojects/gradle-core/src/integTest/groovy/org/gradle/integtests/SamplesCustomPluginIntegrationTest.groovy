@@ -21,15 +21,17 @@ import org.junit.Test
 import org.gradle.util.TestFile
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesCustomPluginIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('customPlugin')
 
     @Test
     public void canTestPluginAndTaskImplementation() {
-        TestFile projectDir = dist.samplesDir.file('customPlugin')
+        TestFile projectDir = sample.dir
 
         executer.inDirectory(projectDir).withTasks('check').run()
 

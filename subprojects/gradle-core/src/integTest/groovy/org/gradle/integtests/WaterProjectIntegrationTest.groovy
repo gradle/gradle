@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -45,10 +46,11 @@ class WaterProjectIntegrationTest {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample(WATER_NAME)
 
     @Test
     public void waterProject() {
-        File waterDir = new File(dist.samplesDir, WATER_NAME)
+        File waterDir = sample.dir
         ExecutionResult result = executer.inDirectory(waterDir).withTasks('hello').withQuietLogging().run()
         assertEquals(result.output, list2text([intro(WATER_NAME), WATER_INFO,
                 intro(PHYTOPLANKTON_NAME), CHILDREN_TEXT, PHYTOPLANKTON_INFO,

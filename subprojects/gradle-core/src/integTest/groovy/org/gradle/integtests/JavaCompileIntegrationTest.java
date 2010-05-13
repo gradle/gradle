@@ -17,22 +17,12 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.ExecutionFailure;
-import org.junit.Before;
 import org.junit.Test;
-
-import java.io.File;
 
 public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
 
-    private File testDir;
-
-    @Before
-    public void setUp() {
-        testDir= testFile("javacompiletest");
-    }
-
     private void writeShortInterface() {
-        testFile(testDir, "src/main/java/IPerson.java").writelns(
+        testFile("src/main/java/IPerson.java").writelns(
                 "interface IPerson {",
                 "    String getName();",
                 "}"
@@ -40,7 +30,7 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void writeLongInterface() {
-        testFile(testDir, "src/main/java/IPerson.java").writelns(
+        testFile("src/main/java/IPerson.java").writelns(
                 "interface IPerson {",
                 "    String getName();",
                 "    String getAddress();",
@@ -49,7 +39,7 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
     }
 
     private void writeTestClass() {
-        testFile(testDir, "src/main/java/Person.java").writelns(
+        testFile("src/main/java/Person.java").writelns(
                 "public class Person implements IPerson {",
                 "    private final String name = \"never changes\";",
                 "    public String getName() {",
@@ -61,30 +51,30 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void compileWithoutDepends() {
-        testFile(testDir, "build.gradle").writelns("apply plugin: 'java'");
+        testFile("build.gradle").writelns("apply plugin: 'java'");
         writeShortInterface();
         writeTestClass();
 
-        inDirectory(testDir).withTasks("classes").run();
+        inTestDirectory().withTasks("classes").run();
 
         // Update interface, compile will pass even though build is broken
         writeLongInterface();
-        inDirectory(testDir).withTasks("classes").run();
+        inTestDirectory().withTasks("classes").run();
 
-        ExecutionFailure failure = inDirectory(testDir).withTasks("clean", "classes").runWithFailure();
+        ExecutionFailure failure = inTestDirectory().withTasks("clean", "classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
     }
 
     @Test
     public void compileWithDepends() {
-        testFile(testDir, "build.gradle").writelns(
+        testFile("build.gradle").writelns(
                 "apply plugin: 'java'",
                 "compileJava.options.depend()"
         );
         writeShortInterface();
         writeTestClass();
 
-        inDirectory(testDir).withTasks("classes").run();
+        inTestDirectory().withTasks("classes").run();
 
         // file system time stamp may not see change without this wait
         try {
@@ -95,10 +85,10 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
         
         // Update interface, compile should fail because depend deletes old class
         writeLongInterface();
-        ExecutionFailure failure = inDirectory(testDir).withTasks("classes").runWithFailure();
+        ExecutionFailure failure = inTestDirectory().withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
 
         // assert that dependency caching is on
-        testFile(testDir, "build/dependency-cache/dependencies.txt").assertExists();
+        testFile("build/dependency-cache/dependencies.txt").assertExists();
     }
 }

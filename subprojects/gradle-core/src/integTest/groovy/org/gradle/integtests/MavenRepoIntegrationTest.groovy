@@ -22,24 +22,23 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 class MavenRepoIntegrationTest {
-    static final String PROJECT_NAME = 'mavenRepo'
-    static final String TEST_PROJECT_NAME = 'testproject'
-
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('mavenRepo')
 
     @Test
     public void mavenRepoSample() {
         List expectedFiles = ['sillyexceptions-1.0.1.jar', 'repotest-1.0.jar', 'testdep-1.0.jar', 'testdep2-1.0.jar',
                 'classifier-1.0-jdk15.jar', 'classifier-dep-1.0.jar', 'jaronly-1.0.jar']
 
-        File projectDir = new File(dist.samplesDir, PROJECT_NAME)
+        File projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks('retrieve').run()
         expectedFiles.each { new TestFile(projectDir, 'build', it).assertExists() }
     }

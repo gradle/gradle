@@ -23,6 +23,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -31,12 +32,13 @@ import static org.junit.Assert.*
 class SamplesRepositoriesIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('userguide/artifacts/defineRepository')
 
     @Test
     public void repositoryNotations() {
         // This test is not very strong. Its main purpose is to the for the correct syntax as we use many
         // code snippets from this build script in the user's guide.
-        File projectDir = new File(dist.samplesDir, "/userguide/artifacts/defineRepository")
+        File projectDir = sample.dir
         String output = executer.inDirectory(projectDir).withQuietLogging().withTasks('lookup').run().getOutput()
         assertThat(output, equalTo(String.format("localRepository%nlocalRepository%n")))
     }

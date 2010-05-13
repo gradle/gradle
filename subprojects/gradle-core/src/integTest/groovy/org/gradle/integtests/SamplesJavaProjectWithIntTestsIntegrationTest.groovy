@@ -22,6 +22,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -30,10 +31,11 @@ import org.junit.runner.RunWith
 class SamplesJavaProjectWithIntTestsIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('java/withIntegrationTests')
 
     @Test
     public void canRunIntegrationTests() {
-        TestFile javaprojectDir = dist.samplesDir.file('java/withIntegrationTests')
+        TestFile javaprojectDir = sample.dir
         
         // Run int tests
         executer.inDirectory(javaprojectDir).withTasks('clean', 'integrationTest').run()

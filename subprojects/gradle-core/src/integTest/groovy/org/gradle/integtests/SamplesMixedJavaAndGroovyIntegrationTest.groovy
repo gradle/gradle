@@ -23,15 +23,17 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class SamplesMixedJavaAndGroovyIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('groovy/mixedJavaAndGroovy')
 
     @Test
     public void canBuildJar() {
-        TestFile projectDir = dist.samplesDir.file('groovy/mixedJavaAndGroovy')
+        TestFile projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks('clean', 'build').run()
 
         // Check tests have run
@@ -52,7 +54,7 @@ class SamplesMixedJavaAndGroovyIntegrationTest {
 
     @Test
     public void canBuildDocs() {
-        TestFile projectDir = dist.samplesDir.file('groovy/mixedJavaAndGroovy')
+        TestFile projectDir = sample.dir
         executer.inDirectory(projectDir).withTasks('clean', 'javadoc', 'groovydoc').run()
 
         TestFile javadocsDir = projectDir.file("build/docs/javadoc")

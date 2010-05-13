@@ -30,6 +30,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
@@ -44,10 +45,11 @@ class SamplesMavenPomGenerationIntegrationTest {
     private TestFile snapshotRepoDir
 
     @Rule public Resources resources = new Resources();
+    @Rule public final Sample sample = new Sample('maven/pomGeneration')
 
     @Before
     public void setUp() {
-        pomProjectDir = dist.samplesDir.file('maven/pomGeneration')
+        pomProjectDir = sample.dir
         repoDir = pomProjectDir.file('pomRepo');
         snapshotRepoDir = pomProjectDir.file('snapshotRepo');
     }
