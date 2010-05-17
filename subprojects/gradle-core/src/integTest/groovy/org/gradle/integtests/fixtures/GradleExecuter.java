@@ -62,6 +62,11 @@ public interface GradleExecuter {
     GradleExecuter usingBuildScript(String script);
 
     /**
+     * Sets the user home dir. Set to null to use the default user home dir.
+     */
+    GradleExecuter withUserHomeDir(File userHomeDir);
+
+    /**
      * Sets the executable to use. Set to null to use the default executable (if any)
      */
     GradleExecuter usingExecutable(String script);

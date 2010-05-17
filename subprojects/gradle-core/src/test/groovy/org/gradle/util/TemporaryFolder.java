@@ -97,11 +97,11 @@ public class TemporaryFolder implements MethodRule, TestFileContext {
         return getDir().file((Object[]) path);
     }
 
-    public TestFile createFile(String... path) {
-        return file(path).createFile();
+    public TestFile createFile(Object... path) {
+        return file((Object[]) path).createFile();
     }
 
-    public TestFile createDir(String... path) {
-        return file(path).createDir();
+    public TestFile createDir(Object... path) {
+        return file((Object[]) path).createDir();
     }
 }

@@ -64,7 +64,7 @@ class StartParameterTest {
 
     @Test public void testDefaultValues() {
         StartParameter parameter = new StartParameter();
-        assertThat(parameter.gradleUserHomeDir, equalTo(new File(StartParameter.DEFAULT_GRADLE_USER_HOME)))
+        assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
         assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
 
         assertThat(parameter.buildFile, nullValue())
@@ -211,6 +211,12 @@ class StartParameterTest {
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
         assertThat(parameter.defaultImportsFile, equalTo(new File("imports")))
+    }
+
+    @Test public void testSetNullUserHomeDir() {
+        StartParameter parameter = new StartParameter()
+        parameter.gradleUserHomeDir = null
+        assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
     }
 
     @Test public void testWrapsExecuterWhenDryRunIsTrue() {

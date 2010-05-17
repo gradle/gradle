@@ -59,7 +59,6 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
         Assert.assertTrue(dir.exists())
         Assert.assertFalse(dir.canRead())
         Assert.assertTrue(dir.canWrite())
-        Assert.assertFalse(dir.canExecute())
 
         testFile('build.gradle') << '''
             task copy(type: Copy) {

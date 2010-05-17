@@ -59,8 +59,11 @@ public class StartParameter {
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
-    public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
-    private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME));
+    /**
+     * The default user home directory.
+     */
+    public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
+    private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME.getAbsolutePath()));
     private File defaultImportsFile;
     private File gradleHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
@@ -352,12 +355,22 @@ public class StartParameter {
         this.systemPropertiesArgs = systemPropertiesArgs;
     }
 
+    /**
+     * Returns the directory to use as the user home directory.
+     *
+     * @return The home directory.
+     */
     public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
     }
 
+    /**
+     * Sets the directory to use as the user home directory. Set to null to use the default directory.
+     *
+     * @param gradleUserHomeDir The home directory. May be null.
+     */
     public void setGradleUserHomeDir(File gradleUserHomeDir) {
-        this.gradleUserHomeDir = GFileUtils.canonicalise(gradleUserHomeDir);
+        this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
     public File getDefaultImportsFile() {

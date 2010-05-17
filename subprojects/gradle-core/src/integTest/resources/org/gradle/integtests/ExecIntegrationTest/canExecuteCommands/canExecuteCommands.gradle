@@ -1,10 +1,13 @@
+apply plugin: 'java'
+
 defaultTasks 'execTask', 'execByMethod'
 
 task execTask(type: Exec) {
+    dependsOn sourceSets.main.runtimeClasspath
     testFile = file("$buildDir/$name")
-    executable = "touch"
+    executable = Jvm.current().getJavaExecutable()
     workingDir = buildDir
-    args testFile.name
+    args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', testFile.name
     doFirst {
         mkdir buildDir
     }
@@ -14,13 +17,14 @@ task execTask(type: Exec) {
 }
 
 task execByMethod {
+    dependsOn sourceSets.main.runtimeClasspath
     testFile = file("$buildDir/$name")
     doFirst {
         mkdir buildDir
         exec {
-            executable = "touch"
+            executable = Jvm.current().getJavaExecutable()
             workingDir = buildDir
-            args testFile.name
+            args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', testFile.name
         }
     }
     doLast {

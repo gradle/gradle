@@ -121,6 +121,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
+    public GradleExecuter withUserHomeDir(File userHomeDir) {
+        parameter.setGradleUserHomeDir(userHomeDir);
+        return this;
+    }
+
+    @Override
     protected ExecutionResult doRun() {
         OutputListenerImpl outputListener = new OutputListenerImpl();
         OutputListenerImpl errorListener = new OutputListenerImpl();

@@ -44,14 +44,14 @@ task listJars << {
     jars = runtime.collect { it.name } as Set
     assertEquals(['projectA-1.2.jar', 'projectB-api-1.5.jar', 'projectB-1.5.jar', 'projectB-extraRuntime-1.5.jar'] as Set, jars)
 
-    projectA = runtime.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' }
+    projectA = runtime.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectA' && it.configuration == 'api' }
     root = (projectA.parents as List)[0]
     artifacts = projectA.getAllArtifacts(root).collect { it.name } as Set
     // TODO - this is not right
 //    assertEquals(['projectA', 'projectB-api', 'projectB'] as Set, artifacts)
     assertEquals(['projectA', 'projectB-api', 'projectB', 'projectB-extraRuntime'] as Set, artifacts)
 
-    projectB = runtime.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectB' }
+    projectB = runtime.resolvedConfiguration.firstLevelModuleDependencies.find { it.moduleName == 'projectB' && it.configuration == 'extraRuntime' }
     artifacts = projectB.getAllArtifacts(root).collect { it.name } as Set
     // TODO - this is not right
 //    assertEquals(['projectB', 'projectB-extraRuntime'] as Set, artifacts)

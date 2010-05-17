@@ -19,11 +19,11 @@ package org.gradle.integtests;
 import org.gradle.integtests.fixtures.AbstractGradleExecuter;
 import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.gradle.integtests.fixtures.ExecutionResult;
-import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
 import org.gradle.util.OperatingSystem;
+import org.gradle.util.TestFile;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -32,8 +32,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static org.gradle.util.Matchers.*;
@@ -42,10 +40,10 @@ import static org.junit.Assert.*;
 
 public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private static final Logger LOG = LoggerFactory.getLogger(ForkingGradleExecuter.class);
-    private final GradleDistribution distribution;
+    private final TestFile gradleHomeDir;
 
-    public ForkingGradleExecuter(GradleDistribution distribution) {
-        this.distribution = distribution;
+    public ForkingGradleExecuter(TestFile gradleHomeDir) {
+        this.gradleHomeDir = gradleHomeDir;
     }
 
     @Override
@@ -63,22 +61,6 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     private Map doRun(boolean expectFailure) {
         CommandBuilder builder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder() : new UnixCommandBuilder();
         return executeInternal(builder, expectFailure);
-    }
-
-    @Override
-    protected List<String> getAllArgs() {
-        return GUtil.addLists(getExtraArgs(), super.getAllArgs());
-    }
-
-    private List<String> getExtraArgs() {
-        List<String> args = new ArrayList<String>();
-
-        if (!isDisableTestGradleUserHome()) {
-            args.add("--gradle-user-home");
-            args.add(distribution.getUserHomeDir().getAbsolutePath());
-        }
-
-        return args;
     }
 
     Map executeInternal(CommandBuilder commandBuilder, boolean expectFailure) {
@@ -142,7 +124,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             }
             builder.executable("cmd");
             builder.args("/c", cmd);
-            String gradleHome = distribution.getGradleHomeDir().toString();
+            String gradleHome = gradleHomeDir.getAbsolutePath();
             builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
         }
@@ -153,7 +135,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             if (getExecutable() != null) {
                 builder.executable(String.format("%s/%s", getWorkingDir().getAbsolutePath(), getExecutable()));
             } else {
-                builder.executable(String.format("%s/bin/gradle", distribution.getGradleHomeDir().getAbsolutePath()));
+                builder.executable(String.format("%s/bin/gradle", gradleHomeDir.getAbsolutePath()));
             }
         }
     }

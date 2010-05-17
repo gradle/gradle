@@ -52,7 +52,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     private String previousGradleHome;
     private File expectedBuildFile;
-    private File expectedGradleUserHome = new File(StartParameter.DEFAULT_GRADLE_USER_HOME);
+    private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
     private File expectedGradleImportsFile;
     private File expectedProjectDir;
     private List<String> expectedTaskNames = toList();

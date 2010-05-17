@@ -54,6 +54,11 @@ public class ResolvedConfigurationIdentifier {
     }
 
     @Override
+    public String toString() {
+        return String.format("%s:%s:%s:%s", moduleGroup, moduleName, moduleVersion, configuration);
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (this == o) {
             return true;

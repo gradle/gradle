@@ -25,9 +25,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private boolean quiet;
     private boolean taskList;
     private boolean searchUpwards;
-    private boolean disableTestGradleUserHome;
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private String executable;
+    private File userHomeDir;
 
     public GradleExecuter reset() {
         args.clear();
@@ -36,7 +36,6 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         quiet = false;
         taskList = false;
         searchUpwards = false;
-        disableTestGradleUserHome = false;
         executable = null;
         environmentVars.clear();
         return this;
@@ -65,14 +64,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (taskList) {
             executer.withTaskList();
         }
-    }
-
-    public boolean isDisableTestGradleUserHome() {
-        return disableTestGradleUserHome;
-    }
-
-    public void setDisableTestGradleUserHome(boolean disableTestGradleUserHome) {
-        this.disableTestGradleUserHome = disableTestGradleUserHome;
+        executer.withUserHomeDir(userHomeDir);
     }
 
     public GradleExecuter usingBuildScript(String script) {
@@ -85,6 +77,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     public GradleExecuter usingInitScript(File initScript) {
         throw new UnsupportedOperationException();
+    }
+
+    public GradleExecuter withUserHomeDir(File userHomeDir) {
+        this.userHomeDir = userHomeDir;
+        return this;
     }
 
     public GradleExecuter usingExecutable(String script) {
@@ -161,6 +158,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         }
         if (!searchUpwards) {
             allArgs.add("--no-search-upward");
+        }
+        if (userHomeDir != null) {
+            args.add("--gradle-user-home");
+            args.add(userHomeDir.getAbsolutePath());
         }
         allArgs.addAll(args);
         allArgs.addAll(tasks);

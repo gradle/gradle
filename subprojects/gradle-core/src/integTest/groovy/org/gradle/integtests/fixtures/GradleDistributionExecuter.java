@@ -45,6 +45,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
     public GradleDistributionExecuter(GradleDistribution dist) {
         this.dist = dist;
+        reset();
     }
 
     public GradleDistributionExecuter() {
@@ -62,6 +63,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     public GradleExecuter reset() {
         super.reset();
         inDirectory(dist.getTestDir());
+        withUserHomeDir(dist.getUserHomeDir());
         return this;        
     }
 
@@ -87,9 +89,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setGradleHomeDir(dist.getGradleHomeDir());
         parameter.setSearchUpwards(false);
-        if (!isDisableTestGradleUserHome()) {
-            parameter.setGradleUserHomeDir(dist.getUserHomeDir());
-        }
 
         InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter(parameter);
         copyTo(inProcessGradleExecuter);
@@ -97,9 +96,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
         if (FORK || !inProcessGradleExecuter.canExecute()) {
-            ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist);
+            ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
-            forkingGradleExecuter.setDisableTestGradleUserHome(isDisableTestGradleUserHome());
             returnedExecuter = forkingGradleExecuter;
         } else {
             if (inProcessStartParameterModifier != null) {
