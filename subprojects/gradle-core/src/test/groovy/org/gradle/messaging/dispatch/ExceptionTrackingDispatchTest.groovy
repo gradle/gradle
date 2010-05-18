@@ -33,8 +33,8 @@ class ExceptionTrackingDispatchTest extends Specification {
 
         then:
         1 * target.dispatch('message') >> { throw failure }
-        def e = thrown(RuntimeException)
-        e == failure
+        def e = thrown(DispatchException)
+        e.cause == failure
         0 * logger._
     }
 
@@ -51,8 +51,8 @@ class ExceptionTrackingDispatchTest extends Specification {
         1 * target.dispatch('message1') >> { throw failure1 }
         1 * target.dispatch('message2') >> { throw failure2 }
         1 * logger.error('Failed to dispatch message message2.', failure2)
-        def e = thrown(RuntimeException)
-        e == failure1
+        def e = thrown(DispatchException)
+        e.cause == failure1
         0 * logger._
     }
 

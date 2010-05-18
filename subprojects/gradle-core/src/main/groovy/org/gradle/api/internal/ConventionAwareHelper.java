@@ -19,15 +19,15 @@ package org.gradle.api.internal;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.GradleException;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.util.ReflectionUtil;
+import org.gradle.util.UncheckedException;
 
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Collection;
 import java.util.concurrent.Callable;
 
 /**
@@ -72,7 +72,7 @@ public class ConventionAwareHelper implements ConventionMapping {
                 try {
                     return value.call();
                 } catch (Exception e) {
-                    throw new GradleException(e);
+                    throw UncheckedException.asUncheckedException(e);
                 }
             }
         });

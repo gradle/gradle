@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.ProjectState;
+import org.gradle.util.UncheckedException;
 
 public class ProjectStateInternal implements ProjectState {
     private boolean executing;
@@ -54,9 +54,6 @@ public class ProjectStateInternal implements ProjectState {
         if (failure == null) {
             return;
         }
-        if (failure instanceof RuntimeException) {
-            throw (RuntimeException) failure;
-        }
-        throw new GradleException(failure);
+        throw UncheckedException.asUncheckedException(failure);
     }
 }

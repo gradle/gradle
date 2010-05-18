@@ -22,6 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.messaging.dispatch.CompositeStoppable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -64,10 +65,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         processor.processTestClass(testClass);
     }
 
-    public void endProcessing() {
-        for (TestClassProcessor processor : processors) {
-            processor.endProcessing();
-        }
-        resultProcessorActor.stop();
+    public void stop() {
+        new CompositeStoppable(processors).add(resultProcessorActor).stop();
     }
 }

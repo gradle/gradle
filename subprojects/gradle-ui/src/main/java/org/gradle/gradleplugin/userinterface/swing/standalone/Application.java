@@ -15,13 +15,13 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
-import org.gradle.api.GradleException;
 import org.gradle.gradleplugin.foundation.DOM4JSerializer;
 import org.gradle.gradleplugin.foundation.ExtensionFileFilter;
 import org.gradle.gradleplugin.foundation.settings.DOM4JSettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.PreferencesAssistant;
 import org.gradle.gradleplugin.userinterface.swing.generic.SinglePaneUIInstance;
+import org.gradle.util.UncheckedException;
 
 import javax.swing.*;
 import javax.swing.filechooser.FileFilter;
@@ -89,7 +89,7 @@ public class Application implements AlternateUIInteraction {
         try {   //try and make it look like a native app
             UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
 
         this.doesSupportEditingFiles = determineIfSupportsEditingFiles();

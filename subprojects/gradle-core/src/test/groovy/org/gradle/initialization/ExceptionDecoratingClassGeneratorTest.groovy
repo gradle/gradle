@@ -89,7 +89,7 @@ public class ExceptionDecoratingClassGeneratorTest {
         RuntimeException actualCause = new RuntimeException(new Throwable());
         ContextualException contextualCause = new ContextualException(actualCause);
         ContextualException outerContextualCause = new ContextualException(contextualCause);
-        GradleException target = new GradleException(outerContextualCause)
+        GradleException target = new GradleException('fail', outerContextualCause)
         GradleException exception = generator.newInstance(GradleException.class, target, script, 91)
         assertThat(exception.reportableCauses, equalTo([outerContextualCause, contextualCause, actualCause]));
     }
@@ -97,7 +97,7 @@ public class ExceptionDecoratingClassGeneratorTest {
     @Test
     public void usesDirectCauseAsReportableCauseWhenNoContextualCausesPresent() {
         RuntimeException actualCause = new RuntimeException(new Throwable());
-        GradleException target = new GradleException(actualCause)
+        GradleException target = new GradleException('fail', actualCause)
         GradleException exception = generator.newInstance(GradleException.class, target, script, 91)
         assertThat(exception.reportableCauses, equalTo([actualCause]));
     }

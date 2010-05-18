@@ -62,6 +62,6 @@ public class JUnitTestClassProcessor implements TestClassProcessor {
         executer.execute(testClass.getTestClassName());
     }
 
-    public void endProcessing() {
+    public void stop() {
     }
 }

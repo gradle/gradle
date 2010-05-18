@@ -17,7 +17,6 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.DefaultLoggingConfigurer;
 import org.gradle.initialization.LoggingConfigurer;
@@ -75,7 +74,7 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
                     implementationClassLoader);
             action = (Action<WorkerContext>) instr.readObject();
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
         action.execute(workerContext);
     }

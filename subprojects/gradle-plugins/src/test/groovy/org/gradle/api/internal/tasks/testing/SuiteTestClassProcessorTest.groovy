@@ -51,11 +51,11 @@ class SuiteTestClassProcessorTest extends Specification {
         processor.startProcessing(resultProcessor)
 
         when:
-        processor.endProcessing()
+        processor.stop()
 
         then:
         1 * resultProcessor.completed('id', !null)
-        1 * targetProcessor.endProcessing()
+        1 * targetProcessor.stop()
     }
 
     def firesAFailureEventOnStartProcessingFailure() {
@@ -98,10 +98,10 @@ class SuiteTestClassProcessorTest extends Specification {
         processor.startProcessing(resultProcessor)
 
         when:
-        processor.endProcessing()
+        processor.stop()
 
         then:
-        1 * targetProcessor.endProcessing() >> { throw failure }
+        1 * targetProcessor.stop() >> { throw failure }
         1 * resultProcessor.failure('id', !null) >> { args ->
             def e = args[1]
             assert e instanceof TestSuiteExecutionException

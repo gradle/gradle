@@ -15,11 +15,11 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.util.UncheckedException;
 
-import javax.swing.SwingUtilities;
+import javax.swing.*;
 
 /**
  * This is the same as Application, but this version blocks the calling thread until the Application shuts down.
@@ -99,7 +99,7 @@ public class BlockingApplication {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    throw new GradleException(e);
+                    throw new UncheckedException(e);
                 }
             }
         }

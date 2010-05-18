@@ -86,9 +86,9 @@ public class TestWorker implements Action<WorkerProcessContext>, RemoteTestClass
         processor.processTestClass(testClass);
     }
 
-    public void endProcessing() {
+    public void stop() {
         try {
-            processor.endProcessing();
+            processor.stop();
         } finally {
             completed.countDown();
         }

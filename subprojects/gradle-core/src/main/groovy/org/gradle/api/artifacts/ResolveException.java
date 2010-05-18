@@ -27,6 +27,7 @@ import org.gradle.util.GUtil;
  */
 @Contextual
 public class ResolveException extends GradleException {
+    // Required for @Contextual
     public ResolveException() {
     }
 
@@ -36,10 +37,6 @@ public class ResolveException extends GradleException {
 
     public ResolveException(Configuration configuration, Throwable cause) {
         super(buildMessage(configuration, null), cause);
-    }
-
-    public ResolveException(String message, Throwable cause) {
-        super(message, cause);
     }
 
     private static String buildMessage(Configuration configuration, String message) {

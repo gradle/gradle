@@ -59,7 +59,7 @@ public class TestNGTestClassProcessor implements TestClassProcessor {
         }
     }
 
-    public void endProcessing() {
+    public void stop() {
         TestNG testNg = new TestNG();
         testNg.setOutputDirectory(testReportDir.getAbsolutePath());
         testNg.setDefaultSuiteName(options.getSuiteName());

@@ -40,9 +40,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     public void stop() {
         synchronized (lock) {
             try {
-                for (ActorImpl actor : actors.values()) {
-                    actor.stop();
-                }
+                new CompositeStoppable(actors.values()).stop();
             } finally {
                 actors.clear();
             }
@@ -84,8 +82,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
         public void stop() {
             try {
-                dispatch.stop();
-                syncDispatch.stop();
+                new CompositeStoppable(dispatch, syncDispatch).stop();
             } finally {
                 stopped(this);
             }

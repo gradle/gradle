@@ -21,19 +21,11 @@ import org.gradle.api.GradleException;
  * @author Hans Dockter
  */
 public class CommandLineArgumentException extends GradleException {
-    public CommandLineArgumentException() {
-        super();
-    }
-
     public CommandLineArgumentException(String message) {
         super(message);
     }
 
     public CommandLineArgumentException(String message, Throwable cause) {
         super(message, cause);
-    }
-
-    public CommandLineArgumentException(Throwable cause) {
-        super(cause);
     }
 }

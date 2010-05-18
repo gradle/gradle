@@ -17,12 +17,12 @@
 package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskResolver;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.*;
@@ -131,7 +131,7 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
                 try {
                     callableResult = callable.call();
                 } catch (Exception e) {
-                    throw new GradleException(e);
+                    throw UncheckedException.asUncheckedException(e);
                 }
                 if (callableResult != null) {
                     queue.add(0, callableResult);

@@ -31,8 +31,4 @@ public class IllegalDependencyNotation extends GradleException {
     public IllegalDependencyNotation(String message, Throwable cause) {
         super(message, cause);
     }
-
-    public IllegalDependencyNotation(Throwable cause) {
-        super(cause);
-    }
 }

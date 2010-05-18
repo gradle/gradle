@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.GradleException;
+import org.gradle.util.UncheckedException;
 
 import java.io.Serializable;
 import java.lang.reflect.Method;
@@ -52,7 +52,7 @@ public class MethodMetaInfo extends Message {
             }
             return declaringClass.getMethod(methodName, paramTypes);
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 

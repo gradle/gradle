@@ -28,10 +28,10 @@ import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.CompilationFailedException;
 import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
-import org.gradle.api.GradleException;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.groovy.scripts.Transformer;
+import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.Field;
 import java.util.ArrayList;
@@ -67,7 +67,7 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
                     Map value = (Map) field.get(source.getAST());
                     value.remove(importedClass.getAlias());
                 } catch (Exception e) {
-                    throw new GradleException(e);
+                    throw UncheckedException.asUncheckedException(e);
                 }
             }
         }

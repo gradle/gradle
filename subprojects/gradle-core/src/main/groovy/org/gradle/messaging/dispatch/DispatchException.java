@@ -13,22 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.java.archives;
 
-import org.gradle.api.GradleException;
+package org.gradle.messaging.dispatch;
 
-/**
- * Is thrown in the case an operation is applied against a {@link org.gradle.api.java.archives.Manifest} that violates
- * the Manifest specification.
- * 
- * @author Hans Dockter
- */
-public class ManifestException extends GradleException {
-    public ManifestException(String message) {
-        super(message);
-    }
-
-    public ManifestException(String message, Throwable cause) {
+public class DispatchException extends RuntimeException {
+    public DispatchException(String message, Throwable cause) {
         super(message, cause);
     }
 }

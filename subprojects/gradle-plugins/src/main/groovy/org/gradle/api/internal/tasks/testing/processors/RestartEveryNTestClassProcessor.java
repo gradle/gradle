@@ -49,15 +49,18 @@ public class RestartEveryNTestClassProcessor implements TestClassProcessor {
         }
     }
 
-    public void endProcessing() {
+    public void stop() {
         if (processor != null) {
             endBatch();
         }
     }
 
     private void endBatch() {
-        processor.endProcessing();
-        processor = null;
-        testCount = 0;
+        try {
+            processor.stop();
+        } finally {
+            processor = null;
+            testCount = 0;
+        }
     }
 }

@@ -45,7 +45,7 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         startProcessor()
         
         when:
-        processor.endProcessing()
+        processor.stop()
 
         then:
         0 * factory.create()
@@ -77,10 +77,10 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         1 * asyncProcessor1.processTestClass(test)
 
         when:
-        processor.endProcessing()
+        processor.stop()
 
         then:
-        1 * asyncProcessor1.endProcessing()
+        1 * asyncProcessor1.stop()
     }
 
     def startsMultipleProcessorsOnDemandAndStopsAtEnd() {
@@ -115,11 +115,11 @@ class MaxNParallelTestClassProcessorTest extends Specification {
         1 * asyncProcessor2.processTestClass(test)
 
         when:
-        processor.endProcessing()
+        processor.stop()
 
         then:
-        1 * asyncProcessor1.endProcessing()
-        1 * asyncProcessor2.endProcessing()
+        1 * asyncProcessor1.stop()
+        1 * asyncProcessor2.stop()
     }
 
     def roundRobinsTestClassesToProcessors() {

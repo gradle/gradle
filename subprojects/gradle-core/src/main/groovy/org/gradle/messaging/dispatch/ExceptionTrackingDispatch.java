@@ -16,13 +16,12 @@
 
 package org.gradle.messaging.dispatch;
 
-import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 
 public class ExceptionTrackingDispatch<T> implements StoppableDispatch<T> {
     private final Dispatch<T> dispatch;
     private final Logger logger;
-    private Throwable failure;
+    private DispatchException failure;
 
     public ExceptionTrackingDispatch(Dispatch<T> dispatch, Logger logger) {
         this.dispatch = dispatch;
@@ -33,10 +32,11 @@ public class ExceptionTrackingDispatch<T> implements StoppableDispatch<T> {
         try {
             dispatch.dispatch(message);
         } catch (Throwable t) {
+            String errorMessage = String.format("Failed to dispatch message %s.", message);
             if (failure != null) {
-                logger.error(String.format("Failed to dispatch message %s.", message), t);
+                logger.error(errorMessage, t);
             } else {
-                failure = t;
+                failure = new DispatchException(errorMessage, t);
             }
         }
     }
@@ -44,7 +44,7 @@ public class ExceptionTrackingDispatch<T> implements StoppableDispatch<T> {
     public void stop() {
         if (failure != null) {
             try {
-                throw UncheckedException.asRuntimeException(failure);
+                throw failure;
             } finally {
                 failure = null;
             }

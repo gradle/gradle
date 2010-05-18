@@ -16,18 +16,19 @@
 
 package org.gradle.messaging.actor;
 
+import org.gradle.messaging.dispatch.DispatchException;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.StoppableDispatch;
 
 /**
- * <p>An {@code Actor} delivers method calls to a target object in a thread-safe manner. Methods are called either by
+ * <p>An {@code Actor} dispatches method calls to a target object in a thread-safe manner. Methods are called either by
  * calling {@link org.gradle.messaging.dispatch.Dispatch#dispatch(Object)} on the actor, or using the proxy object
  * returned by {@link #getProxy(Class)}. Methods are delivered to the target object in the order they are called on the
- * actor, but are delivered by a single thread. In this way, the target object does not need to perform any
- * synchronisation.</p>
+ * actor, but are delivered to the target object by a single thread. In this way, the target object does not need to
+ * perform any synchronisation.</p>
  *
- * <p>An actor generally delivers method calls to the target object asynchronously, so that method dispatch does
- * not block waiting for the method call to be delivered.</p>
+ * <p>An actor delivers method calls to the target object asynchronously, so that method dispatch does not block waiting
+ * for the method call to be delivered.</p>
  *
  * <p>All implementations of this interface must be thread-safe.</p>
  */
@@ -44,6 +45,8 @@ public interface Actor extends StoppableDispatch<MethodInvocation> {
 
     /**
      * Blocks until all method calls have been delivered to the target object. Stops accepting new method calls.
+     *
+     * @throws DispatchException When there were any failures dispatching method calls to the target object.
      */
-    void stop();
+    void stop() throws DispatchException;
 }

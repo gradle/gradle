@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.GradleException;
+import org.gradle.util.UncheckedException;
 
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -59,7 +59,7 @@ public class EndOfStreamFilter implements Dispatch<Message>, Stoppable {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw new GradleException(e);
+                    throw new UncheckedException(e);
                 }
             }
         } finally {

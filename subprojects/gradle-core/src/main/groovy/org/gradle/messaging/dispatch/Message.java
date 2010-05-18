@@ -83,7 +83,7 @@ public abstract class Message implements Serializable {
                     } catch (NoSuchMethodException e1) {
                         // Ignore
                     } catch (Throwable t) {
-                        throw new UncheckedException(t);
+                        throw UncheckedException.asUncheckedException(t);
                     }
                 }
             }

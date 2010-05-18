@@ -17,9 +17,9 @@
 package org.gradle.messaging.dispatch;
 
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.util.ThreadUtils;
+import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -57,7 +57,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
             localAddress = new URI(String.format("tcp://localhost:%d", serverSocket.socket().getLocalPort()));
             LOGGER.debug("Listening on {}.", localAddress);
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 

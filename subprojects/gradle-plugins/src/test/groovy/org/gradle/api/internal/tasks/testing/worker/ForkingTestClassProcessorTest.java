@@ -86,19 +86,19 @@ public class ForkingTestClassProcessorTest {
         expectWorkerProcessStarted();
         context.checking(new Expectations() {{
             one(worker).processTestClass(test1);
-            one(worker).endProcessing();
+            one(worker).stop();
             one(workerProcess).waitForStop();
         }});
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
     public void onEndProcessingDoesNothingIfNoTestsProcessed() {
         processor.startProcessing(resultProcessor);
-        processor.endProcessing();
+        processor.stop();
     }
 
     private void expectWorkerProcessStarted() {

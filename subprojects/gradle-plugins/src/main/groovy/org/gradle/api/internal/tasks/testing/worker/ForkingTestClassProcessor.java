@@ -73,9 +73,9 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         worker.processTestClass(testClass);
     }
 
-    public void endProcessing() {
+    public void stop() {
         if (worker != null) {
-            worker.endProcessing();
+            worker.stop();
             workerProcess.waitForStop();
         }
     }

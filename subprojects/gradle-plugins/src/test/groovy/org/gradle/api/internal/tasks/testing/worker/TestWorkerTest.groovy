@@ -76,7 +76,7 @@ public class TestWorkerTest extends MultithreadedTestCase {
                     worker.startProcessing()
                     worker.processTestClass(test)
                     syncAt(1)
-                    worker.endProcessing()
+                    worker.stop()
                 }
             }
 
@@ -84,7 +84,7 @@ public class TestWorkerTest extends MultithreadedTestCase {
 
             one(processor).startProcessing(withParam(notNullValue()))
             one(processor).processTestClass(test)
-            one(processor).endProcessing()
+            one(processor).stop()
         }
 
         run {

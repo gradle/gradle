@@ -55,7 +55,7 @@ class TestMainActionTest {
             }
             one(processor).startProcessing(withParam(notNullValue()))
             one(detector).run()
-            one(processor).endProcessing()
+            one(processor).stop()
             one(timeProvider).getCurrentTime()
             will(returnValue(200L))
             one(resultProcessor).completed(withParam(equalTo('root')), withParam(notNullValue()))
@@ -78,7 +78,7 @@ class TestMainActionTest {
             one(processor).startProcessing(withParam(notNullValue()))
             one(detector).run()
             will(throwException(failure))
-            one(processor).endProcessing()
+            one(processor).stop()
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
         }
 
@@ -119,7 +119,7 @@ class TestMainActionTest {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             one(processor).startProcessing(withParam(notNullValue()))
             one(detector).run()
-            one(processor).endProcessing()
+            one(processor).stop()
             will(throwException(failure))
             one(resultProcessor).completed(withParam(notNullValue()), withParam(notNullValue()))
         }

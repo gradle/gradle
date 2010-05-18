@@ -15,9 +15,9 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.GradleException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Optional;
@@ -62,7 +62,7 @@ public abstract class AbstractReportTask extends ConventionTask {
             }
             renderer.complete();
         } catch (IOException e) {
-            throw new GradleException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

@@ -60,7 +60,7 @@ public class RestartEveryNTestClassProcessorTest {
             one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
-            one(delegate).endProcessing();
+            one(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
@@ -77,7 +77,7 @@ public class RestartEveryNTestClassProcessorTest {
             one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
-            one(delegate).endProcessing();
+            one(delegate).stop();
 
             TestClassProcessor delegate2 = context.mock(TestClassProcessor.class, "delegate2");
 
@@ -102,17 +102,17 @@ public class RestartEveryNTestClassProcessorTest {
 
             one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
-            one(delegate).endProcessing();
+            one(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
     public void onEndOfProcessingDoesNothingWhenNoTestsReceived() {
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -124,13 +124,13 @@ public class RestartEveryNTestClassProcessorTest {
             one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
-            one(delegate).endProcessing();
+            one(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.processTestClass(test2);
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -144,12 +144,12 @@ public class RestartEveryNTestClassProcessorTest {
             one(delegate).startProcessing(resultProcessor);
             one(delegate).processTestClass(test1);
             one(delegate).processTestClass(test2);
-            one(delegate).endProcessing();
+            one(delegate).stop();
         }});
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(test1);
         processor.processTestClass(test2);
-        processor.endProcessing();
+        processor.stop();
     }
 }

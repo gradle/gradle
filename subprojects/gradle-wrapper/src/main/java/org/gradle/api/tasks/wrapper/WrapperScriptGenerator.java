@@ -20,7 +20,7 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.tools.ant.taskdefs.Chmod;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
@@ -42,7 +42,7 @@ public class WrapperScriptGenerator {
             createUnixScript(jarPath, scriptDestinationDir, wrapperPropertiesPath);
             createWindowsScript(jarPath, scriptDestinationDir, wrapperPropertiesPath);
         } catch (IOException e) {
-            throw new InvalidUserDataException(e);
+            throw new UncheckedIOException(e);
         }
     }
 

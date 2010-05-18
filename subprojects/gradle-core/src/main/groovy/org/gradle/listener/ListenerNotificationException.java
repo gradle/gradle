@@ -23,6 +23,7 @@ import org.gradle.api.internal.Contextual;
  */
 @Contextual
 public class ListenerNotificationException extends GradleException {
+    // Required for @Contextual
     public ListenerNotificationException() {
     }
 

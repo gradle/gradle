@@ -81,7 +81,7 @@ class TestNGTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClass.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -109,7 +109,7 @@ class TestNGTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGFactoryClass.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -134,14 +134,14 @@ class TestNGTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClassWithExpectedException.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test @Ignore
     public void executesATestClassWithBrokenConstructor() {
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClassWithBrokenConstructor.class));
-        processor.endProcessing();
+        processor.stop();
         fail()
     }
 
@@ -194,7 +194,7 @@ class TestNGTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClassWithBrokenSetupMethod.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -222,7 +222,7 @@ class TestNGTestClassProcessorTest {
         options.excludeGroups('group3')
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClassWithGroups.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test

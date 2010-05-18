@@ -32,8 +32,4 @@ public class InvalidUserDataException extends GradleException {
     public InvalidUserDataException(String message, Throwable cause) {
         super(message, cause);
     }
-
-    public InvalidUserDataException(Throwable cause) {
-        super(cause);
-    }
 }

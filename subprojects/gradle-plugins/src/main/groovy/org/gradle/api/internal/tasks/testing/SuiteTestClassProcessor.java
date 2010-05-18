@@ -53,9 +53,9 @@ public class SuiteTestClassProcessor implements TestClassProcessor {
         }
     }
 
-    public void endProcessing() {
+    public void stop() {
         try {
-            processor.endProcessing();
+            processor.stop();
         } catch (Throwable t) {
             resultProcessor.failure(suiteDescriptor.getId(), new TestSuiteExecutionException(String.format(
                     "Could not complete execution for %s.", suiteDescriptor), t));

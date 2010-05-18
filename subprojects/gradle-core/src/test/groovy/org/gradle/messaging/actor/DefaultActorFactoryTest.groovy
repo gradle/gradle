@@ -25,6 +25,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.messaging.dispatch.MethodInvocation
 import org.junit.After
+import org.gradle.messaging.dispatch.DispatchException
 
 @RunWith(JMock.class)
 class DefaultActorFactoryTest extends MultithreadedTestCase {
@@ -110,9 +111,9 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
             try {
                 proxy.stopDoingStuff()
                 fail()
-            } catch (RuntimeException e) {
-                e.printStackTrace()
-                assertThat(e, sameInstance(failure))
+            } catch (DispatchException e) {
+                assertThat(e.message, startsWith('Failed to dispatch message'))
+                assertThat(e.cause, sameInstance(failure))
             }
         }
     }

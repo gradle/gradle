@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.project;
 
-import org.gradle.api.GradleException;
+import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation. Subclasses can register services by:
@@ -140,9 +140,9 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             if (e.getCause() instanceof RuntimeException) {
                 throw (RuntimeException) e.getCause();
             }
-            throw new GradleException(e.getCause());
+            throw UncheckedException.asUncheckedException(e.getCause());
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 

@@ -22,9 +22,18 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
  * @see org.gradle.api.internal.tasks.testing.TestClassProcessor
  */
 public interface RemoteTestClassProcessor {
+    /**
+     * Does not block.
+     */
     void startProcessing();
 
+    /**
+     * Does not block.
+     */
     void processTestClass(TestClassRunInfo testClass);
 
-    void endProcessing();
+    /**
+     * Does not block.
+     */
+    void stop();
 }

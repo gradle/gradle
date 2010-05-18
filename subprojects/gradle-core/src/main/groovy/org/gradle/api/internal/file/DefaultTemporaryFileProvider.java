@@ -15,9 +15,9 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.GradleException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.util.concurrent.Callable;
@@ -33,7 +33,7 @@ public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
         try {
             return GFileUtils.canonicalise(new File(baseDir.call(), GUtil.join(path, "/")));
         } catch (Exception e) {
-            throw new GradleException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
     }
 }

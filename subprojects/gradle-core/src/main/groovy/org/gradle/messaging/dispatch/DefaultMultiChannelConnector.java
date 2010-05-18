@@ -17,14 +17,15 @@ package org.gradle.messaging.dispatch;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.GradleException;
 import org.gradle.util.ThreadUtils;
+import org.gradle.util.UncheckedException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -63,7 +64,7 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
                 localAddress = new URI(String.format("channel:%s!%d", incomingConnector.getLocalAddress(),
                         nextConnectionId++));
             } catch (URISyntaxException e) {
-                throw new GradleException(e);
+                throw new UncheckedException(e);
             }
             DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorService, localAddress, null);
             pending.put(localAddress, channelConnection);
@@ -92,7 +93,7 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
         try {
             connectionAddress = new URI(StringUtils.substringBeforeLast(content, "!"));
         } catch (URISyntaxException e) {
-            throw new GradleException(e);
+            throw new UncheckedException(e);
         }
         return connectionAddress;
     }

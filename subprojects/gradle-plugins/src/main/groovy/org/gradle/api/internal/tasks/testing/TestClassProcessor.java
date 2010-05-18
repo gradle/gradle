@@ -17,13 +17,14 @@
 package org.gradle.api.internal.tasks.testing;
 
 import org.gradle.messaging.actor.StopMethod;
+import org.gradle.messaging.dispatch.Stoppable;
 
 /**
  * A processor for executing tests. Implementations are not required to be thread-safe.
  *
  * @author Tom Eyckmans
  */
-public interface TestClassProcessor {
+public interface TestClassProcessor extends Stoppable {
     /**
      * Performs any initialisation which this processor needs to perform.
      *
@@ -45,5 +46,5 @@ public interface TestClassProcessor {
      * returned.
      */
     @StopMethod
-    void endProcessing();
+    void stop();
 }

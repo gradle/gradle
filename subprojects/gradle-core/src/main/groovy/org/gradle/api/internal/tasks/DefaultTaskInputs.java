@@ -16,11 +16,11 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.PathResolvingFileCollection;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.util.UncheckedException;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +63,7 @@ public class DefaultTaskInputs implements TaskInputs {
                 try {
                     value = callable.call();
                 } catch (Exception e) {
-                    throw new GradleException(e);
+                    throw UncheckedException.asUncheckedException(e);
                 }
             }
             if (value instanceof Closure) {

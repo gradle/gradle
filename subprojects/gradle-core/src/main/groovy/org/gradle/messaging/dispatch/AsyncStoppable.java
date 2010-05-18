@@ -23,8 +23,8 @@ public interface AsyncStoppable extends Stoppable {
      * <p>Requests that this stoppable commence a graceful stop. Does not block. You should call {@link
      * org.gradle.messaging.dispatch.Stoppable#stop} to wait for the stop process to complete.</p>
      *
-     * <p>Generally, an {@code AsyncStoppable} should continue to work after this method has returned. It should,
-     * however, stop accepting new work to perform.</p>
+     * <p>Generally, an {@code AsyncStoppable} should continue to complete existing work after this method has returned.
+     * It should, however, stop accepting new work.</p>
      */
     void requestStop();
 }

@@ -18,11 +18,11 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.Buildable;
-import org.gradle.api.GradleException;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.GUtil;
+import org.gradle.util.UncheckedException;
 
 import java.util.*;
 import java.util.concurrent.Callable;
@@ -75,7 +75,7 @@ public class DefaultTaskDependency extends AbstractTaskDependency {
                 try {
                     callableResult = callable.call();
                 } catch (Exception e) {
-                    throw new GradleException(e);
+                    throw UncheckedException.asUncheckedException(e);
                 }
                 if (callableResult != null) {
                     queue.add(0, callableResult);

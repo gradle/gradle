@@ -24,7 +24,7 @@ public final class UncheckedException extends RuntimeException {
         super(cause);
     }
 
-    public static RuntimeException asRuntimeException(Throwable t) {
+    public static RuntimeException asUncheckedException(Throwable t) {
         if (t instanceof RuntimeException) {
             return (RuntimeException) t;
         }

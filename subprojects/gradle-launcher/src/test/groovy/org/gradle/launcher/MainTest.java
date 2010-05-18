@@ -140,7 +140,7 @@ public class MainTest {
         final CommandLine2StartParameterConverter commandLine2StartParameterConverterMock =
                 context.mock(CommandLine2StartParameterConverter.class, "exceptionMock");
         Main main = new Main(TEST_ARGS);
-        final CommandLineArgumentException conversionException = new CommandLineArgumentException();
+        final CommandLineArgumentException conversionException = new CommandLineArgumentException("fail");
         final StartParameter startParameter = new StartParameter();
         setUpMain(main, startParameter);
         main.setParameterConverter(commandLine2StartParameterConverterMock);

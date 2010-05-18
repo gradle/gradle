@@ -15,11 +15,13 @@
  */
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.GradleException;
+import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -80,7 +82,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw new GradleException(e);
+                    throw new UncheckedException(e);
                 }
             }
             switch (receiveState) {
@@ -144,7 +146,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw new GradleException(e);
+                    throw new UncheckedException(e);
                 }
             }
             switch (dispatchState) {

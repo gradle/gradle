@@ -42,7 +42,7 @@ public class TestMainAction implements Runnable {
             try {
                 detector.run();
             } finally {
-                processor.endProcessing();
+                processor.stop();
             }
         } finally {
             resultProcessor.completed(suite.getId(), new TestCompleteEvent(timeProvider.getCurrentTime()));

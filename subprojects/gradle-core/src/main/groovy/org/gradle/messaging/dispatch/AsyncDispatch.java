@@ -15,7 +15,7 @@
  */
 package org.gradle.messaging.dispatch;
 
-import org.gradle.api.GradleException;
+import org.gradle.util.UncheckedException;
 
 import java.util.Date;
 import java.util.LinkedList;
@@ -146,7 +146,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
-                        throw new GradleException(e);
+                        throw new UncheckedException(e);
                     }
                 }
                 assert state != State.Stopped;
@@ -175,7 +175,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
                     try {
                         condition.await();
                     } catch (InterruptedException e) {
-                        throw new GradleException(e);
+                        throw new UncheckedException(e);
                     }
                 }
                 if (!queue.isEmpty()) {
@@ -202,7 +202,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
                 try {
                     condition.await();
                 } catch (InterruptedException e) {
-                    throw new GradleException(e);
+                    throw new UncheckedException(e);
                 }
             }
             if (state == State.Stopped) {
@@ -261,7 +261,7 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
                         "Cannot wait for messages to be dispatched, as there are no dispatch threads running.");
             }
         } catch (InterruptedException e) {
-            throw new GradleException(e);
+            throw new UncheckedException(e);
         } finally {
             lock.unlock();
         }

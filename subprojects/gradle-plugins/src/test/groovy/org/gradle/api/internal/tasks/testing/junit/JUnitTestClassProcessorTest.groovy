@@ -75,7 +75,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClass.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -107,7 +107,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(AJunit3TestClass.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -162,7 +162,7 @@ class JUnitTestClassProcessorTest {
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClass.class));
         processor.processTestClass(testClass(AJunit3TestClass.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -203,7 +203,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithRunner.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -242,7 +242,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithSuiteMethod.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -272,7 +272,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithBrokenSuiteMethod.class));
-        processor.endProcessing();
+        processor.stop();
     }
     
     @Test
@@ -301,7 +301,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithBrokenConstructor.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -329,7 +329,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithBrokenSetup.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -357,7 +357,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestClassWithUnconstructableRunner.class));
-        processor.endProcessing();
+        processor.stop();
     }
 
     @Test
@@ -387,7 +387,7 @@ class JUnitTestClassProcessorTest {
 
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(testClassName));
-        processor.endProcessing();
+        processor.stop();
     }
 
     private TestClassRunInfo testClass(Class<?> type) {
