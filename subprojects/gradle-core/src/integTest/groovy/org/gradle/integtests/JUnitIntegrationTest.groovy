@@ -33,7 +33,7 @@ public class JUnitIntegrationTest {
     @Test
     public void executesTestsInCorrectEnvironment() {
         TestFile testDir = dist.testDir;
-        executer.withTasks('build').run();
+        executer.withTasks('build').withArguments('-i').run();
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
@@ -115,7 +115,7 @@ public class JUnitIntegrationTest {
     }
 
     @Test
-    public void canExcludeSuperClasses() {
+    public void canExcludeSuperClassesFromExecution() {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file('build.gradle');
         buildFile << '''
@@ -144,57 +144,14 @@ public class JUnitIntegrationTest {
     }
 
     @Test
-    public void canHaveTestsOnInnerClasses() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle').writelns(
-                "apply plugin: 'java'",
-                "repositories { mavenCentral() }",
-                "dependencies { compile 'junit:junit:4.7' }"
-        );
-        testDir.file('src/test/java/org/gradle/SomeTest.java').writelns(
-                "package org.gradle;",
-                "public class SomeTest {",
-                "    public static class SomeInner {",
-                "        @org.junit.Test public void ok() { }",
-                "    }",
-                "}");
+    public void detectsTestClasses() {
+        executer.withTasks('test').run()
 
-        executer.withTasks('test').run();
-
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.SomeTest$SomeInner')
-        result.testClass('org.gradle.SomeTest$SomeInner').assertTestPassed('ok')
-    }
-
-    @Test
-    public void canHaveRunWithAnnotationOnSuperClass() {
-        TestFile testDir = dist.getTestDir();
-        testDir.file('build.gradle').writelns(
-                "apply plugin: 'java'",
-                "repositories { mavenCentral() }",
-                "dependencies { compile 'junit:junit:4.7' }"
-        );
-        testDir.file('src/test/java/org/gradle/CustomRunner.java').writelns(
-                "package org.gradle;",
-                "public class CustomRunner extends org.junit.runners.BlockJUnit4ClassRunner {",
-                "    public CustomRunner(Class c) throws Exception { super(c); }",
-                "}");
-        testDir.file('src/test/java/org/gradle/AbstractTest.java').writelns(
-                "package org.gradle;",
-                "@org.junit.runner.RunWith(CustomRunner.class)",
-                "public abstract class AbstractTest {",
-                "    @org.junit.Test public void ok() { }",
-                "}");
-        testDir.file('src/test/java/org/gradle/SomeTest.java').writelns(
-                "package org.gradle;",
-                "public class SomeTest extends AbstractTest {",
-                "}");
-
-        executer.withTasks('test').run();
-
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.SomeTest')
-        result.testClass('org.gradle.SomeTest').assertTestPassed('ok')
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner$SomeInner')
+        result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
+        result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
+        result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')        
     }
 
     @Test

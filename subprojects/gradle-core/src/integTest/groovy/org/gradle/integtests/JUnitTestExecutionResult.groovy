@@ -42,6 +42,7 @@ class JUnitTestExecutionResult implements TestExecutionResult {
 
     private def findTestClass(String testClass) {
         def classes = findClasses()
+        assertThat(classes.keySet(), hasItem(testClass))
         def classFile = classes.get(testClass)
         assertThat(classFile, notNullValue())
         return new XmlSlurper().parse(classFile)

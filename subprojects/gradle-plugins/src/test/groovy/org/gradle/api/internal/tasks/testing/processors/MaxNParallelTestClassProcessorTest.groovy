@@ -21,103 +21,148 @@ import org.gradle.api.internal.tasks.testing.TestClassProcessorFactory
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
+import org.gradle.messaging.actor.ActorFactory
+import org.gradle.messaging.actor.Actor
 
 class MaxNParallelTestClassProcessorTest extends Specification {
     private final TestClassProcessorFactory factory = Mock()
     private final TestResultProcessor resultProcessor = Mock()
-    private final MaxNParallelTestClassProcessor processor = new MaxNParallelTestClassProcessor(2, factory)
+    private final TestResultProcessor asyncResultProcessor = Mock()
+    private final Actor resultProcessorActor = Mock()
+    private final ActorFactory actorFactory = Mock()
+    private final MaxNParallelTestClassProcessor processor = new MaxNParallelTestClassProcessor(2, factory, actorFactory)
 
-    def doesNothingWhenNoTestsProcessed() {
+    def createsThreadSafeWrapperForResultProcessorOnStart() {
         when:
         processor.startProcessing(resultProcessor)
+
+        then:
+        1 * actorFactory.createActor(resultProcessor) >> resultProcessorActor
+        1 * resultProcessorActor.getProxy(TestResultProcessor) >> asyncResultProcessor
+    }
+
+    def doesNothingWhenNoTestsProcessed() {
+        startProcessor()
+        
+        when:
         processor.endProcessing()
 
         then:
         0 * factory.create()
+        1 * resultProcessorActor.stop()
     }
-    
+
+    def startProcessor() {
+        1 * actorFactory.createActor(resultProcessor) >> resultProcessorActor
+        1 * resultProcessorActor.getProxy(TestResultProcessor) >> asyncResultProcessor
+        processor.startProcessing(resultProcessor)
+    }
+
     def startsProcessorsOnDemandAndStopsAtEnd() {
         TestClassRunInfo test = Mock()
         TestClassProcessor processor1 = Mock()
+        TestClassProcessor asyncProcessor1 = Mock()
+        Actor actor1 = Mock()
+
+        startProcessor()
 
         when:
-        processor.startProcessing(resultProcessor)
         processor.processTestClass(test)
 
         then:
         1 * factory.create() >> processor1
-        1 * processor1.startProcessing(!null)
-        1 * processor1.processTestClass(test)
+        1 * actorFactory.createActor(processor1) >> actor1
+        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * asyncProcessor1.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor1.processTestClass(test)
 
         when:
         processor.endProcessing()
 
         then:
-        1 * processor1.endProcessing()
+        1 * asyncProcessor1.endProcessing()
     }
 
     def startsMultipleProcessorsOnDemandAndStopsAtEnd() {
         TestClassRunInfo test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
+        TestClassProcessor asyncProcessor1 = Mock()
+        TestClassProcessor asyncProcessor2 = Mock()
+        Actor actor1 = Mock()
+        Actor actor2 = Mock()
+
+        startProcessor()
 
         when:
-        processor.startProcessing(resultProcessor)
         processor.processTestClass(test)
 
         then:
         1 * factory.create() >> processor1
-        1 * processor1.startProcessing(!null)
-        1 * processor1.processTestClass(test)
+        1 * actorFactory.createActor(processor1) >> actor1
+        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * asyncProcessor1.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor1.processTestClass(test)
 
         when:
         processor.processTestClass(test)
 
         then:
         1 * factory.create() >> processor2
-        1 * processor2.startProcessing(!null)
-        1 * processor2.processTestClass(test)
+        1 * actorFactory.createActor(processor2) >> actor2
+        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+        1 * asyncProcessor2.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor2.processTestClass(test)
 
         when:
         processor.endProcessing()
 
         then:
-        1 * processor1.endProcessing()
-        1 * processor2.endProcessing()
+        1 * asyncProcessor1.endProcessing()
+        1 * asyncProcessor2.endProcessing()
     }
 
     def roundRobinsTestClassesToProcessors() {
         TestClassRunInfo test = Mock()
         TestClassProcessor processor1 = Mock()
         TestClassProcessor processor2 = Mock()
+        TestClassProcessor asyncProcessor1 = Mock()
+        TestClassProcessor asyncProcessor2 = Mock()
+        Actor actor1 = Mock()
+        Actor actor2 = Mock()
+
+        startProcessor()
 
         when:
-        processor.startProcessing(resultProcessor)
         processor.processTestClass(test)
 
         then:
         1 * factory.create() >> processor1
-        1 * processor1.startProcessing(!null)
-        1 * processor1.processTestClass(test)
+        1 * actorFactory.createActor(processor1) >> actor1
+        1 * actor1.getProxy(TestClassProcessor) >> asyncProcessor1
+        1 * asyncProcessor1.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor1.processTestClass(test)
 
         when:
         processor.processTestClass(test)
 
         then:
         1 * factory.create() >> processor2
-        1 * processor2.startProcessing(!null)
-        1 * processor2.processTestClass(test)
+        1 * actorFactory.createActor(processor2) >> actor2
+        1 * actor2.getProxy(TestClassProcessor) >> asyncProcessor2
+        1 * asyncProcessor2.startProcessing(asyncResultProcessor)
+        1 * asyncProcessor2.processTestClass(test)
 
         when:
         processor.processTestClass(test)
 
         then:
-        1 * processor1.processTestClass(test)
+        1 * asyncProcessor1.processTestClass(test)
 
         when:
         processor.processTestClass(test)
 
         then:
-        1 * processor2.processTestClass(test)
+        1 * asyncProcessor2.processTestClass(test)
     }
 }

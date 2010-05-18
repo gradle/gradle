@@ -27,10 +27,6 @@ public class MethodInvocation {
         arguments = args;
     }
 
-    public Class<?> getTargetClass() {
-        return method.getDeclaringClass();
-    }
-    
     public Object[] getArguments() {
         return arguments;
     }

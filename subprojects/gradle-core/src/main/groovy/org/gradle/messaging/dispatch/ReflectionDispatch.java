@@ -31,9 +31,9 @@ public class ReflectionDispatch implements Dispatch<MethodInvocation> {
         try {
             message.getMethod().invoke(target, message.getArguments());
         } catch (InvocationTargetException e) {
-            throw new UncheckedException(e.getCause());
-        } catch (Exception e) {
-            throw new UncheckedException(e);
+            throw UncheckedException.asRuntimeException(e.getCause());
+        } catch (Throwable throwable) {
+            throw UncheckedException.asRuntimeException(throwable);
         }
     }
 }

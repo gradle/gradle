@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.gradle.messaging.actor.StopMethod;
+
 /**
  * A processor for executing tests. Implementations are not required to be thread-safe.
  *
@@ -42,5 +44,6 @@ public interface TestClassProcessor {
      * not use the result processor provided to {@link #startProcessing(TestResultProcessor)} after this method has
      * returned.
      */
+    @StopMethod
     void endProcessing();
 }

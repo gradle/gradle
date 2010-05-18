@@ -41,6 +41,7 @@ import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
@@ -322,7 +323,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         };
 
         TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(),
-                reforkingProcessorFactory);
+                reforkingProcessorFactory, getServices().get(ActorFactory.class));
 
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);

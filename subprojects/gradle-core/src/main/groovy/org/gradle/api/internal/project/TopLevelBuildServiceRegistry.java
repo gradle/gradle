@@ -57,6 +57,8 @@ import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.MessagingServer;
 import org.gradle.messaging.TcpMessagingServer;
+import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.messaging.actor.DefaultActorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.*;
@@ -95,6 +97,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected CacheFactory createCacheFactory(CacheFactory parentFactory) {
         return new AutoCloseCacheFactory(parentFactory);
+    }
+
+    protected ActorFactory createActorFactory() {
+        return new DefaultActorFactory();
     }
 
     protected TaskExecuter createTaskExecuter() {

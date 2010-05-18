@@ -26,14 +26,12 @@ import java.lang.reflect.Proxy;
  */
 public class ProxyDispatchAdapter<T> {
     private final Class<T> type;
-    private final Dispatch<? super MethodInvocation> dispatch;
     private final T source;
 
     public ProxyDispatchAdapter(Class<T> type, Dispatch<? super MethodInvocation> dispatch) {
         this.type = type;
-        this.dispatch = dispatch;
         source = type.cast(Proxy.newProxyInstance(type.getClassLoader(), new Class<?>[]{type},
-                new DispatchingInvocationHandler()));
+                new DispatchingInvocationHandler(type, dispatch)));
     }
 
     public Class<T> getType() {
@@ -44,14 +42,32 @@ public class ProxyDispatchAdapter<T> {
         return source;
     }
 
-    private class DispatchingInvocationHandler implements InvocationHandler {
+    private static class DispatchingInvocationHandler implements InvocationHandler {
+        private final Class<?> type;
+        private final Dispatch<? super MethodInvocation> dispatch;
+
+        private DispatchingInvocationHandler(Class<?> type, Dispatch<? super MethodInvocation> dispatch) {
+            this.type = type;
+            this.dispatch = dispatch;
+        }
+
         public Object invoke(Object target, Method method, Object[] parameters) throws Throwable {
             if (method.getName().equals("equals")) {
-                return parameters[0] != null && Proxy.isProxyClass(parameters[0].getClass())
-                        && Proxy.getInvocationHandler(parameters[0]) == this;
+                Object parameter = parameters[0];
+                if (parameter == null || !Proxy.isProxyClass(parameter.getClass())) {
+                    return false;
+                }
+                Object handler = Proxy.getInvocationHandler(parameter);
+                if (!DispatchingInvocationHandler.class.isInstance(handler)) {
+                    return false;
+                }
+
+                DispatchingInvocationHandler otherHandler = (DispatchingInvocationHandler) handler;
+                return otherHandler.type.equals(type) && otherHandler.dispatch == dispatch;
             }
+
             if (method.getName().equals("hashCode")) {
-                return hashCode();
+                return dispatch.hashCode();
             }
             if (method.getName().equals("toString")) {
                 return String.format("%s broadcast", type.getSimpleName());

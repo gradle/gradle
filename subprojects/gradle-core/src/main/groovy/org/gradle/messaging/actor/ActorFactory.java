@@ -14,20 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.messaging.actor;
 
-/**
- * Wraps a checked exception. Carries no other context.
- */
-public final class UncheckedException extends RuntimeException {
-    public UncheckedException(Throwable cause) {
-        super(cause);
-    }
-
-    public static RuntimeException asRuntimeException(Throwable t) {
-        if (t instanceof RuntimeException) {
-            return (RuntimeException) t;
-        }
-        return new UncheckedException(t);
-    }
+public interface ActorFactory {
+    /**
+     * Creates an asynchronous actor for the given target object.
+     *
+     * @param target The target object.
+     * @return The actor.
+     */
+    Actor createActor(Object target);
 }

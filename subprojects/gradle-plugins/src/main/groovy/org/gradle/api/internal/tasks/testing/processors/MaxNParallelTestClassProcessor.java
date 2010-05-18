@@ -18,9 +18,10 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassProcessorFactory;
-import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
-import org.gradle.listener.ThreadSafeProxy;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.messaging.actor.Actor;
+import org.gradle.messaging.actor.ActorFactory;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,25 +33,28 @@ import java.util.List;
 public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private final int maxProcessors;
     private final TestClassProcessorFactory factory;
+    private final ActorFactory actorFactory;
     private TestResultProcessor resultProcessor;
     private int pos;
     private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
+    private Actor resultProcessorActor;
 
-    public MaxNParallelTestClassProcessor(int maxProcessors, TestClassProcessorFactory factory) {
+    public MaxNParallelTestClassProcessor(int maxProcessors, TestClassProcessorFactory factory, ActorFactory actorFactory) {
         this.maxProcessors = maxProcessors;
         this.factory = factory;
+        this.actorFactory = actorFactory;
     }
 
     public void startProcessing(TestResultProcessor resultProcessor) {
-        ThreadSafeProxy<TestResultProcessor> proxy
-                = new ThreadSafeProxy<TestResultProcessor>(TestResultProcessor.class, resultProcessor);
-        this.resultProcessor = proxy.getSource();
+        resultProcessorActor = actorFactory.createActor(resultProcessor);
+        this.resultProcessor = resultProcessorActor.getProxy(TestResultProcessor.class);
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
         TestClassProcessor processor;
         if (processors.size() < maxProcessors) {
             processor = factory.create();
+            processor = actorFactory.createActor(processor).getProxy(TestClassProcessor.class);
             processors.add(processor);
             processor.startProcessing(resultProcessor);
         } else {
@@ -64,5 +68,6 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         for (TestClassProcessor processor : processors) {
             processor.endProcessing();
         }
+        resultProcessorActor.stop();
     }
 }

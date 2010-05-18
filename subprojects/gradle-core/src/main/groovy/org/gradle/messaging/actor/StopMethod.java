@@ -14,20 +14,15 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.messaging.actor;
+
+import java.lang.annotation.*;
 
 /**
- * Wraps a checked exception. Carries no other context.
+ * Marks a method as the 'stop' method for an asynchronous interface.
  */
-public final class UncheckedException extends RuntimeException {
-    public UncheckedException(Throwable cause) {
-        super(cause);
-    }
-
-    public static RuntimeException asRuntimeException(Throwable t) {
-        if (t instanceof RuntimeException) {
-            return (RuntimeException) t;
-        }
-        return new UncheckedException(t);
-    }
+@Target(ElementType.METHOD)
+@Retention(RetentionPolicy.RUNTIME)
+@Inherited
+public @interface StopMethod {
 }
