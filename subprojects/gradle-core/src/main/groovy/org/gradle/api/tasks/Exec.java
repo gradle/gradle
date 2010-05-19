@@ -50,7 +50,7 @@ public class Exec extends ConventionTask implements ExecSpec {
     /**
      * {@inheritDoc}
      */
-    public Exec commandLine(String... arguments) {
+    public Exec commandLine(Object... arguments) {
         execAction.commandLine(arguments);
         return this;
     }
@@ -58,7 +58,15 @@ public class Exec extends ConventionTask implements ExecSpec {
     /**
      * {@inheritDoc}
      */
-    public Exec args(String... args) {
+    public ExecSpec commandLine(Iterable<?> args) {
+        execAction.commandLine(args);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public Exec args(Object... args) {
         execAction.args(args);
         return this;
     }
@@ -66,7 +74,7 @@ public class Exec extends ConventionTask implements ExecSpec {
     /**
      * {@inheritDoc}
      */
-    public ExecSpec args(Iterable<String> args) {
+    public ExecSpec args(Iterable<?> args) {
         execAction.args(args);
         return this;
     }
@@ -74,7 +82,7 @@ public class Exec extends ConventionTask implements ExecSpec {
     /**
      * {@inheritDoc}
      */
-    public Exec setArgs(List<String> arguments) {
+    public Exec setArgs(Iterable<?> arguments) {
         execAction.setArgs(arguments);
         return this;
     }

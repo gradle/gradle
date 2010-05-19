@@ -49,7 +49,16 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @return this
      */
-    JavaExecSpec args(String... args);
+    JavaExecSpec args(Object... args);
+
+    /**
+     * Adds args for the main class to be executed.
+     *
+     * @param args Args for the main class.
+     *
+     * @return this
+     */
+    JavaExecSpec args(Iterable<?> args);
 
     /**
      * Sets the args for the main class to be executed.
@@ -58,7 +67,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      *
      * @return this
      */
-    JavaExecSpec setArgs(List<String> args);
+    JavaExecSpec setArgs(Iterable<?> args);
 
     /**
      * Adds elements to the classpath for executing the main class.

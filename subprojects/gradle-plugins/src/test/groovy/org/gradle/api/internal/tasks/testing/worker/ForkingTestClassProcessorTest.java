@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
-import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -105,7 +104,7 @@ public class ForkingTestClassProcessorTest {
         context.checking(new Expectations() {{
             WorkerProcessBuilder builder = context.mock(WorkerProcessBuilder.class);
             ObjectConnection connection = context.mock(ObjectConnection.class);
-            JavaExecHandleBuilder javaCommandBuilder = new JavaExecHandleBuilder(new IdentityFileResolver());
+            JavaExecHandleBuilder javaCommandBuilder = context.mock(JavaExecHandleBuilder.class);
 
             one(workerFactory).newProcess();
             will(returnValue(builder));

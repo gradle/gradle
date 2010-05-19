@@ -131,8 +131,8 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
 
     public void contributeCommandLineOptions(ExecSpec execHandleBuilder) {
         execHandleBuilder
-            .args(GUtil.prefix("-J", jFlags).toArray(new String[jFlags.size()])) // J flags can not be set in the option file
-            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles)).toArray(new String[jFlags.size()])); // add additional option files
+            .args(GUtil.prefix("-J", jFlags)) // J flags can not be set in the option file
+            .args(GUtil.prefix("@", GFileUtils.toPaths(optionFiles))); // add additional option files
     }
 
     public MinimalJavadocOptions showFromPrivate() {

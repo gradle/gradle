@@ -30,7 +30,7 @@ import java.util.Map;
 
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private String mainClass;
-    private List<String> applicationArgs = new ArrayList<String>();
+    private List<Object> applicationArgs = new ArrayList<Object>();
     private FileCollection classpath;
     private final JavaForkOptions javaOptions;
     private FileResolver fileResolver;
@@ -132,16 +132,26 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
     }
 
     public List<String> getArgs() {
-        return applicationArgs;
+        List<String> args = new ArrayList<String>();
+        for (Object applicationArg : applicationArgs) {
+            args.add(applicationArg.toString());
+        }
+        return args;
     }
 
-    public JavaExecHandleBuilder setArgs(List<String> applicationArgs) {
-        this.applicationArgs = applicationArgs;
+    public JavaExecHandleBuilder setArgs(Iterable<?> applicationArgs) {
+        this.applicationArgs.clear();
+        GUtil.addToCollection(this.applicationArgs, applicationArgs);
         return this;
     }
 
-    public JavaExecHandleBuilder args(String... args) {
+    public JavaExecHandleBuilder args(Object... args) {
         applicationArgs.addAll(Arrays.asList(args));
+        return this;
+    }
+
+    public JavaExecSpec args(Iterable<?> args) {
+        GUtil.addToCollection(applicationArgs, args);
         return this;
     }
 
@@ -164,7 +174,7 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         List<String> arguments = new ArrayList<String>();
         arguments.addAll(getAllJvmArgs());
         arguments.add(mainClass);
-        arguments.addAll(applicationArgs);
+        arguments.addAll(getArgs());
         return arguments;
     }
 

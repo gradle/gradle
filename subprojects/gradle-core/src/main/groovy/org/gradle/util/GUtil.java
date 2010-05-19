@@ -121,7 +121,7 @@ public class GUtil {
         return addToCollection(new ArrayList<T>(), lists);
     }
 
-    public static <V, T extends Collection<V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
+    public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
                 dest.add(v);

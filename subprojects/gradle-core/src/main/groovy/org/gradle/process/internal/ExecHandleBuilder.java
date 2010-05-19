@@ -29,7 +29,7 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public class ExecHandleBuilder extends AbstractExecHandleBuilder implements ExecSpec {
-    private final List<String> arguments = new ArrayList<String>();
+    private final List<Object> arguments = new ArrayList<Object>();
 
     public ExecHandleBuilder() {
         super(new IdentityFileResolver());
@@ -39,13 +39,19 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         super(fileResolver);
     }
 
-    public ExecHandleBuilder commandLine(String... arguments) {
-        executable(arguments[0]);
-        setArgs(Arrays.asList(arguments).subList(1, arguments.length));
+    public ExecHandleBuilder commandLine(Object... arguments) {
+        commandLine(Arrays.asList(arguments));
         return this;
     }
 
-    public ExecHandleBuilder args(String... args) {
+    public ExecSpec commandLine(Iterable<?> args) {
+        List<Object> argsList = GUtil.addLists(args);
+        executable(argsList.get(0));
+        setArgs(argsList.subList(1, argsList.size()));
+        return this;
+    }
+
+    public ExecHandleBuilder args(Object... args) {
         if (args == null) {
             throw new IllegalArgumentException("args == null!");
         }
@@ -53,19 +59,23 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         return this;
     }
 
-    public ExecSpec args(Iterable<String> args) {
+    public ExecSpec args(Iterable<?> args) {
         GUtil.addToCollection(arguments, args);
         return this;
     }
 
-    public ExecHandleBuilder setArgs(List<String> arguments) {
+    public ExecHandleBuilder setArgs(Iterable<?> arguments) {
         this.arguments.clear();
-        this.arguments.addAll(arguments);
+        GUtil.addToCollection(this.arguments, arguments);
         return this;
     }
 
     public List<String> getArgs() {
-        return arguments;
+        List<String> args = new ArrayList<String>();
+        for (Object argument : arguments) {
+            args.add(argument.toString());
+        }
+        return args;
     }
 
     @Override

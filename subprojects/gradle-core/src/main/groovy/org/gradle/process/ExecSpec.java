@@ -27,7 +27,15 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @return this
      */
-    ExecSpec commandLine(String... args);
+    ExecSpec commandLine(Object... args);
+
+    /**
+     * Sets the command plus the args to be executed.
+     * @param args the command plus the args to be executed
+     *
+     * @return this
+     */
+    ExecSpec commandLine(Iterable<?> args);
 
     /**
      * Adds args for the command to be executed.
@@ -36,7 +44,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @return this
      */
-    ExecSpec args(String... args);
+    ExecSpec args(Object... args);
 
     /**
      * Adds args for the command to be executed.
@@ -45,7 +53,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @return this
      */
-    ExecSpec args(Iterable<String> args);
+    ExecSpec args(Iterable<?> args);
 
     /**
      * Sets the args for the command to be executed.
@@ -54,7 +62,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @return this
      */
-    ExecSpec setArgs(List<String> args);
+    ExecSpec setArgs(Iterable<?> args);
 
     /**
      * Returns the args for the command to be executed

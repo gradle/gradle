@@ -198,7 +198,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    public JavaExec setArgs(List<String> applicationArgs) {
+    public JavaExec setArgs(Iterable<?> applicationArgs) {
         javaExecHandleBuilder.setArgs(applicationArgs);
         return this;
     }
@@ -206,7 +206,15 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
-    public JavaExec args(String... args) {
+    public JavaExec args(Object... args) {
+        javaExecHandleBuilder.args(args);
+        return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public JavaExecSpec args(Iterable<?> args) {
         javaExecHandleBuilder.args(args);
         return this;
     }
