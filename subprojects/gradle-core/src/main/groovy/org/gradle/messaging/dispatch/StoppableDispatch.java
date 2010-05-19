@@ -15,6 +15,8 @@
  */
 package org.gradle.messaging.dispatch;
 
+import org.gradle.messaging.concurrent.Stoppable;
+
 public interface StoppableDispatch<T> extends Dispatch<T>, Stoppable {
     /**
      * Stops this dispatch. Stops accepting new events and blocks until all events have been dispatched.

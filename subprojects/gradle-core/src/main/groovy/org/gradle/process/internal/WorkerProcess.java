@@ -16,12 +16,12 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 
 /**
  * A Java process which performs some worker action. You can send and receive messages to/from the worker process
- * using a supplied {@link org.gradle.messaging.ObjectConnection}.
+ * using a supplied {@link org.gradle.messaging.remote.ObjectConnection}.
  */
 public interface WorkerProcess {
     ObjectConnection getConnection();

@@ -22,7 +22,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.dispatch.CompositeStoppable;
+import org.gradle.messaging.concurrent.CompositeStoppable;
 
 import java.util.ArrayList;
 import java.util.List;

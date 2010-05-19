@@ -15,7 +15,7 @@
  */
 package org.gradle.process.internal;
 
-import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;

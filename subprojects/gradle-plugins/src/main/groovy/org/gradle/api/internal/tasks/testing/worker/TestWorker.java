@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.listener.ContextClassLoaderProxy;
-import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.gradle.util.*;
 import org.slf4j.Logger;

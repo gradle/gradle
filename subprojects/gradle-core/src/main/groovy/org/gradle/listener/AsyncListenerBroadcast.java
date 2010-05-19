@@ -21,7 +21,6 @@ import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.messaging.dispatch.StoppableDispatch;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 /**
  * An {@code AsyncListenerBroadcast} is a {@code ListenerBroadcast} which dispatches events to listeners asynchronously
@@ -29,10 +28,6 @@ import java.util.concurrent.Executors;
  * maintained.
  */
 public class AsyncListenerBroadcast<T> extends ListenerBroadcast<T> {
-    public AsyncListenerBroadcast(Class<T> type) {
-        this(type, Executors.newSingleThreadExecutor());
-    }
-
     public AsyncListenerBroadcast(Class<T> type, final Executor executor) {
         super(type, new Transformer<StoppableDispatch<MethodInvocation>>() {
             public StoppableDispatch<MethodInvocation> transform(StoppableDispatch<MethodInvocation> original) {

@@ -21,7 +21,7 @@ import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;

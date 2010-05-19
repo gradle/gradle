@@ -17,9 +17,9 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.MessagingClient;
-import org.gradle.messaging.ObjectConnection;
-import org.gradle.messaging.TcpMessagingClient;
+import org.gradle.messaging.remote.MessagingClient;
+import org.gradle.messaging.remote.ObjectConnection;
+import org.gradle.messaging.remote.internal.TcpMessagingClient;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

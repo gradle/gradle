@@ -17,15 +17,14 @@
 
 package org.gradle.messaging.dispatch
 
-
-import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import org.junit.After
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.junit.After
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class ContextClassLoaderDispatchTest {

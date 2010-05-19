@@ -15,6 +15,7 @@
  */
 package org.gradle.messaging.dispatch;
 
+import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.util.UncheckedException;
 
 import java.util.Date;

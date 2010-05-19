@@ -20,7 +20,7 @@ package org.gradle.api.internal.tasks.testing.worker
 import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo
-import org.gradle.messaging.ObjectConnection
+import org.gradle.messaging.remote.ObjectConnection
 import org.gradle.process.internal.WorkerProcessContext
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase

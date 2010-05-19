@@ -17,8 +17,8 @@
 package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
-import org.gradle.messaging.MessagingClient;
-import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.remote.MessagingClient;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.WorkerProcessContext;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;

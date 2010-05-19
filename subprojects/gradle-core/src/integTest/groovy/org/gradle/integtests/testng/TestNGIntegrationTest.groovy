@@ -180,7 +180,7 @@ public class TestNGIntegrationTest {
         assertThat(result.getOutput(), containsLine("START [test method knownError(SomeTest)] [knownError]"));
         assertThat(result.getOutput(), containsLine("FINISH [test method knownError(SomeTest)] [knownError] [java.lang.RuntimeException: message]"));
         assertThat(result.getOutput(), containsLine("START [test method unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test method unknownError(SomeTest)] [unknownError] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test method unknownError(SomeTest)] [unknownError] [org.gradle.messaging.remote.internal.PlaceholderException: AppException: null]"));
     }
 
     @Test

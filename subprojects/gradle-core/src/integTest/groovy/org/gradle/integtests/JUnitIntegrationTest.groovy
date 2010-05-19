@@ -278,7 +278,7 @@ public class JUnitIntegrationTest {
         assertThat(result.getOutput(), containsLine("START [test knownError(SomeTest)] [knownError]"));
         assertThat(result.getOutput(), containsLine("FINISH [test knownError(SomeTest)] [knownError] [FAILURE] [1] [java.lang.RuntimeException: message]"));
         assertThat(result.getOutput(), containsLine("START [test unknownError(SomeTest)] [unknownError]"));
-        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [org.gradle.messaging.dispatch.PlaceholderException: AppException: null]"));
+        assertThat(result.getOutput(), containsLine("FINISH [test unknownError(SomeTest)] [unknownError] [FAILURE] [1] [org.gradle.messaging.remote.internal.PlaceholderException: AppException: null]"));
     }
 
     @Test

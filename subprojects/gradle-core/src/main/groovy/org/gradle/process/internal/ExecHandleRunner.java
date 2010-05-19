@@ -17,7 +17,6 @@
 package org.gradle.process.internal;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.ExecutorService;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -32,7 +31,7 @@ public class ExecHandleRunner implements Runnable {
     private Process process;
     private boolean aborted;
 
-    public ExecHandleRunner(DefaultExecHandle execHandle, ExecutorService threadPool) {
+    public ExecHandleRunner(DefaultExecHandle execHandle, Executor threadPool) {
         if (execHandle == null) {
             throw new IllegalArgumentException("execHandle == null!");
         }

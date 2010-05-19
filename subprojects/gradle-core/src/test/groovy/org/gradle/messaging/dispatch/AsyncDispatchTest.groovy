@@ -17,12 +17,12 @@ package org.gradle.messaging.dispatch
 
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.MultithreadedTestCase
+import org.jmock.Sequence
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.jmock.Sequence
 
 @RunWith(JMock.class)
 public class AsyncDispatchTest extends MultithreadedTestCase {

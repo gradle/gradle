@@ -16,7 +16,7 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.messaging.ObjectConnection;
+import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.ExecResult;
 
 public class DefaultWorkerProcess implements WorkerProcess {

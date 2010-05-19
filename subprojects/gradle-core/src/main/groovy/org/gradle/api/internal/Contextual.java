@@ -18,9 +18,9 @@ package org.gradle.api.internal;
 import java.lang.annotation.*;
 
 /**
- * Attached to an exception class to indicate that it provides contextual information about the exception which might
- * help the user determine what the failed operation was, or where it took place. Generally, this annotation is only
- * attached to exceptions which chain lower-level exceptions.
+ * This annotation is attached to an exception class to indicate that it provides contextual information about the
+ * exception which might help the user determine what the failed operation was, or where it took place. Generally, this
+ * annotation is only attached to exceptions which chain lower-level exceptions.
  *
  * A contextual exception class should declare a no-args constructor or a copy constructor, to allow automated
  * generation of subclasses by an {@link org.gradle.api.internal.ExceptionAnalyser}.

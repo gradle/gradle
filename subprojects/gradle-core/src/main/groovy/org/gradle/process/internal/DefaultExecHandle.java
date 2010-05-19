@@ -26,11 +26,11 @@ import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
-import java.util.concurrent.locks.Condition;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ExecutorService;
 
 /**
  * Default implementation for the ExecHandle interface.
@@ -71,10 +71,7 @@ public class DefaultExecHandle implements ExecHandle {
      * Arguments to pass to the executable.
      */
     private final List<String> arguments;
-    /**
-     * The exit code of the executable when it terminates normally.
-     */
-    private final int normalTerminationExitCode;
+
     /**
      * The variables to set in the environment the executable is run in.
      */
@@ -110,9 +107,9 @@ public class DefaultExecHandle implements ExecHandle {
 
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
-    DefaultExecHandle(File directory, String command, List<?> arguments, int normalTerminationExitCode,
-                      Map<String, String> environment, OutputStream standardOutput, OutputStream errorOutput,
-                      InputStream standardInput, List<ExecHandleListener> listeners) {
+    DefaultExecHandle(File directory, String command, List<?> arguments, Map<String, String> environment,
+                      OutputStream standardOutput, OutputStream errorOutput, InputStream standardInput,
+                      List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
         this.arguments = new ArrayList<String>();
@@ -121,7 +118,6 @@ public class DefaultExecHandle implements ExecHandle {
                 this.arguments.add(objectArgument.toString());
             }
         }
-        this.normalTerminationExitCode = normalTerminationExitCode;
         this.environment = environment;
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
@@ -297,7 +293,7 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     void finished(int exitCode) {
-        if (exitCode != normalTerminationExitCode) {
+        if (exitCode != 0) {
             setEndStateInfo(ExecHandleState.FAILED, exitCode, null);
         } else {
             setEndStateInfo(ExecHandleState.SUCCEEDED, 0, null);

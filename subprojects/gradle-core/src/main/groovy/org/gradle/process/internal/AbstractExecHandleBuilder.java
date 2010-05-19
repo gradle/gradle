@@ -30,7 +30,6 @@ import java.util.List;
  * @author Hans Dockter
  */
 public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOptions implements BaseExecSpec {
-    private int normalTerminationExitCode;
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input = new ByteArrayInputStream(new byte[0]);
@@ -47,11 +46,6 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public List<String> getCommandLine() {
         return GUtil.addLists(Collections.singleton(getExecutable()), getAllArguments());
-    }
-
-    public AbstractExecHandleBuilder normalTerminationExitCode(int normalTerminationExitCode) {
-        this.normalTerminationExitCode = normalTerminationExitCode;
-        return this;
     }
 
     public AbstractExecHandleBuilder setStandardInput(InputStream inputStream) {
@@ -101,7 +95,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
             throw new IllegalStateException("execCommand == null!");
         }
 
-        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getAllArguments(), normalTerminationExitCode, getActualEnvironment(),
+        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getAllArguments(), getActualEnvironment(),
                 standardOutput, errorOutput, input, listeners);
     }
 
