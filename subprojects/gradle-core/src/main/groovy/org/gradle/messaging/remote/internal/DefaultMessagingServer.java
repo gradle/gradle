@@ -16,6 +16,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
+import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 
@@ -44,8 +45,11 @@ public class DefaultMessagingServer implements MessagingServer {
             }
 
             public void stop() {
-                messageConnection.stop();
-                connections.remove(connectionRef.get());
+                try {
+                    messageConnection.stop();
+                } finally {
+                    connections.remove(connectionRef.get());
+                }
             }
         };
 
@@ -60,8 +64,10 @@ public class DefaultMessagingServer implements MessagingServer {
         for (ObjectConnection connection : connections) {
             connection.requestStop();
         }
-        for (ObjectConnection connection : connections) {
-            connection.stop();
+        try {
+            new CompositeStoppable(connections).stop();
+        } finally {
+            connections.clear();
         }
     }
 }

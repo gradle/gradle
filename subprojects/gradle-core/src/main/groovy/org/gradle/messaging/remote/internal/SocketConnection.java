@@ -17,6 +17,7 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.messaging.concurrent.CompositeStoppable;
 
 import java.io.EOFException;
 import java.io.IOException;
@@ -85,21 +86,11 @@ public class SocketConnection implements Connection<Message> {
     }
 
     public void requestStop() {
-        try {
-            instr.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        new CompositeStoppable(instr).stop();
     }
 
     public void stop() {
-        try {
-            instr.close();
-            outstr.close();
-            socket.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        new CompositeStoppable(instr, outstr, socket).stop();
     }
 
     private static class SocketInputStream extends InputStream {

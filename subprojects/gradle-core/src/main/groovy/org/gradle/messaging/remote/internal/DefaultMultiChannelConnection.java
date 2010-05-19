@@ -17,10 +17,7 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
-import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.concurrent.CompositeStoppable;
-import org.gradle.messaging.concurrent.ExecutorFactory;
-import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.messaging.concurrent.*;
 import org.gradle.messaging.dispatch.AsyncDispatch;
 import org.gradle.messaging.dispatch.DiscardOnFailureDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
@@ -162,9 +159,16 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         }
 
         public void stop() {
-            for (AsyncDispatch<Message> queue : incomingQueues.values()) {
-                queue.stop();
+            Stoppable stopper;
+            queueLock.lock();
+            try {
+                stopper = new CompositeStoppable(incomingQueues.values());
+                incomingQueues.clear();
+            } finally {
+                queueLock.unlock();
             }
+
+            stopper.stop();
         }
     }
 

@@ -69,4 +69,19 @@ class CompositeStoppableTest extends Specification {
         def e = thrown(RuntimeException)
         e == failure1
     }
+
+    def closesACloseableElement() {
+        Closeable a = Mock()
+        Stoppable b = Mock()
+
+        stoppable.add(a)
+        stoppable.add(b)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.close()
+        1 * b.stop()
+    }
 }

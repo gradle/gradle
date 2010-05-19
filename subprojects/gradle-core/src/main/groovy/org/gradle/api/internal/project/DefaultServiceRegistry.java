@@ -15,6 +15,8 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
@@ -95,9 +97,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
      */
     public void close() {
         try {
-            for (Service service : services) {
-                service.close();
-            }
+            new CompositeStoppable(services).stop();
         } finally {
             closed = true;
             services.clear();
@@ -146,7 +146,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    protected static abstract class Service {
+    protected static abstract class Service implements Stoppable {
         final Class<?> serviceType;
         Object service;
 
@@ -167,7 +167,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
         protected abstract Object create();
 
-        public void close() {
+        public void stop() {
             try {
                 if (service != null) {
                     try {

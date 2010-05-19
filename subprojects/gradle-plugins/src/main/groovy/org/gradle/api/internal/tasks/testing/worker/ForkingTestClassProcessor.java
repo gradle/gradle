@@ -34,7 +34,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
     private final Action<WorkerProcessBuilder> buildConfigAction;
-    private RemoteTestClassProcessor worker;
+    private RemoteTestClassProcessor remoteProcessor;
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
 
@@ -46,16 +46,12 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
         this.buildConfigAction = buildConfigAction;
     }
 
-    public WorkerTestClassProcessorFactory getProcessorFactory() {
-        return processorFactory;
-    }
-
     public void startProcessing(TestResultProcessor resultProcessor) {
         this.resultProcessor = resultProcessor;
     }
 
     public void processTestClass(TestClassRunInfo testClass) {
-        if (worker == null) {
+        if (remoteProcessor == null) {
             WorkerProcessBuilder builder = workerFactory.newProcess();
             builder.applicationClasspath(classPath);
             builder.setLoadApplicationInSystemClassLoader(true);
@@ -65,17 +61,18 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             
             workerProcess = builder.build();
             workerProcess.getConnection().addIncoming(TestResultProcessor.class, resultProcessor);
-            worker = workerProcess.getConnection().addOutgoing(RemoteTestClassProcessor.class);
+            remoteProcessor = workerProcess.getConnection().addOutgoing(RemoteTestClassProcessor.class);
 
             workerProcess.start();
-            worker.startProcessing();
+            remoteProcessor.startProcessing();
         }
-        worker.processTestClass(testClass);
+
+        remoteProcessor.processTestClass(testClass);
     }
 
     public void stop() {
-        if (worker != null) {
-            worker.stop();
+        if (remoteProcessor != null) {
+            remoteProcessor.stop();
             workerProcess.waitForStop();
         }
     }

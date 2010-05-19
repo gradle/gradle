@@ -20,7 +20,7 @@ package org.gradle.messaging.concurrent;
  */
 public interface Stoppable {
     /**
-     * <p>Requests a graceful stop of this object. Blocks until any concurrent activity has been completed.</p>
+     * <p>Requests a graceful stop of this object. Blocks until all concurrent activity has been completed.</p>
      *
      * <p>If this object has already been stopped, this method does nothing.</p>
      */

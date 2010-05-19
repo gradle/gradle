@@ -21,13 +21,13 @@ import java.util.concurrent.TimeUnit;
 
 public interface StoppableExecutor extends AsyncStoppable, Executor {
     /**
-     * Stops accepting new tasks and blocks until all currently executing tasks have been completed.
+     * Stops accepting new jobs and blocks until all currently executing jobs have been completed.
      */
     void stop();
 
     /**
-     * Stops accepting new tasks and blocks until all currently executing tasks have been completed. Once the given
-     * timeout has been reached, forcefully stops tasks and throws an exception.
+     * Stops accepting new jobs and blocks until all currently executing jobs have been completed. Once the given
+     * timeout has been reached, forcefully stops remaining jobs and throws an exception.
      *
      * @throws IllegalStateException on timeout.
      */

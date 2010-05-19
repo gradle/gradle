@@ -16,11 +16,14 @@
 
 package org.gradle.messaging.concurrent;
 
+import org.gradle.api.UncheckedIOException;
 import org.gradle.util.GUtil;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.Closeable;
+import java.io.IOException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
@@ -30,16 +33,39 @@ public class CompositeStoppable implements Stoppable {
     private final List<Stoppable> elements = new CopyOnWriteArrayList<Stoppable>();
 
     public CompositeStoppable(Stoppable... elements) {
-        this.elements.addAll(Arrays.asList(elements));
+        this(Arrays.asList(elements));
     }
 
     public CompositeStoppable(Iterable<? extends Stoppable> elements) {
         GUtil.addToCollection(this.elements, elements);
     }
 
+    public CompositeStoppable(Closeable... elements) {
+        for (Closeable element : elements) {
+            add(element);
+        }
+    }
+   
     public CompositeStoppable add(Stoppable stoppable) {
         elements.add(stoppable);
         return this;
+    }
+
+    public CompositeStoppable add(final Closeable closeable) {
+        elements.add(toStoppable(closeable));
+        return this;
+    }
+
+    private Stoppable toStoppable(final Closeable closeable) {
+        return new Stoppable() {
+            public void stop() {
+                try {
+                    closeable.close();
+                } catch (IOException e) {
+                    throw new UncheckedIOException(e);
+                }
+            }
+        };
     }
 
     public void stop() {
