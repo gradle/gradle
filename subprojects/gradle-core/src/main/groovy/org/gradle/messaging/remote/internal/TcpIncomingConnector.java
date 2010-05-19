@@ -19,7 +19,8 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.util.ThreadUtils;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,23 +33,17 @@ import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
-    private final ExecutorService executor;
+    private final StoppableExecutor executor;
     private final ServerSocketChannel serverSocket;
     private final URI localAddress;
     private final ClassLoader classLoader;
     private final List<InetAddress> localAddresses;
 
-    public TcpIncomingConnector(ClassLoader classLoader) {
-        this(Executors.newCachedThreadPool(), classLoader);
-    }
-
-    public TcpIncomingConnector(ExecutorService executor, ClassLoader classLoader) {
-        this.executor = executor;
+    public TcpIncomingConnector(ExecutorFactory executorFactory, ClassLoader classLoader) {
+        this.executor = executorFactory.create("Incoming TCP Connector");
         this.classLoader = classLoader;
 
         localAddresses = TcpOutgoingConnector.findLocalAddresses();
@@ -67,7 +62,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     }
 
     public void accept(Action<Connection<Message>> action) {
-        executor.submit(new Receiver(action));
+        executor.execute(new Receiver(action));
     }
 
     public void requestStop() {
@@ -80,7 +75,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
 
     public void stop() {
         requestStop();
-        ThreadUtils.shutdown(executor);
+        executor.stop();
     }
 
     private class Receiver implements Runnable {

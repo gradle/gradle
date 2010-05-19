@@ -33,7 +33,7 @@ import static org.hamcrest.Matchers.*
 class DefaultActorFactoryTest extends MultithreadedTestCase {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final TargetObject target = context.mock(TargetObject.class)
-    private final DefaultActorFactory factory = new DefaultActorFactory(executor)
+    private final DefaultActorFactory factory = new DefaultActorFactory(executorFactory)
 
     @After
     public void tearDown() {

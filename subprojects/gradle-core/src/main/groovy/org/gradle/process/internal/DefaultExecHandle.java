@@ -18,16 +18,15 @@ package org.gradle.process.internal;
 
 import org.gradle.listener.AsyncListenerBroadcast;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
-import org.gradle.util.ThreadUtils;
 
 import java.io.File;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -88,7 +87,7 @@ public class DefaultExecHandle implements ExecHandle {
 
     private final Condition stateChange;
 
-    private final ExecutorService threadPool;
+    private final StoppableExecutor executor;
 
     /**
      * State of this ExecHandle.
@@ -107,17 +106,12 @@ public class DefaultExecHandle implements ExecHandle {
 
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
-    DefaultExecHandle(File directory, String command, List<?> arguments, Map<String, String> environment,
+    DefaultExecHandle(File directory, String command, List<String> arguments, Map<String, String> environment,
                       OutputStream standardOutput, OutputStream errorOutput, InputStream standardInput,
                       List<ExecHandleListener> listeners) {
         this.directory = directory;
         this.command = command;
-        this.arguments = new ArrayList<String>();
-        for (Object objectArgument : arguments) { // to handle GStrings! otherwise ClassCassExceptions may occur.
-            if (objectArgument != null) {
-                this.arguments.add(objectArgument.toString());
-            }
-        }
+        this.arguments = arguments;
         this.environment = environment;
         this.standardOutput = standardOutput;
         this.errorOutput = errorOutput;
@@ -125,9 +119,9 @@ public class DefaultExecHandle implements ExecHandle {
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        threadPool = Executors.newCachedThreadPool();
+        executor = new DefaultExecutorFactory().create(String.format("Run %s", command));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
-        broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, threadPool);
+        broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
         if (listeners != null) {
             broadcast.addAll(listeners);
         }
@@ -196,9 +190,9 @@ public class DefaultExecHandle implements ExecHandle {
         try {
             if (failureCause != null) {
                 if (this.state == ExecHandleState.STARTING) {
-                    this.failureCause = new ExecException(String.format("A problem occurred starting '%s'.", command), failureCause);
+                    this.failureCause = new ExecException(String.format("A problem occurred starting command '%s'.", command), failureCause);
                 } else {
-                    this.failureCause = new ExecException(String.format("A problem occurred waiting for '%s' to complete.", command), failureCause);
+                    this.failureCause = new ExecException(String.format("A problem occurred waiting for command '%s' to complete.", command), failureCause);
                 }
             }
             setState(state);
@@ -209,7 +203,7 @@ public class DefaultExecHandle implements ExecHandle {
 
         broadcast.getSource().executionFinished(this);
         broadcast.stop();
-        threadPool.shutdown();
+        executor.requestStop();
     }
 
     public ExecHandle start() {
@@ -223,9 +217,9 @@ public class DefaultExecHandle implements ExecHandle {
             exitCode = -1;
             failureCause = null;
 
-            execHandleRunner = new ExecHandleRunner(this, threadPool);
+            execHandleRunner = new ExecHandleRunner(this, executor);
 
-            threadPool.execute(execHandleRunner);
+            executor.execute(execHandleRunner);
 
             while (getState() == ExecHandleState.STARTING) {
                 try {
@@ -259,7 +253,8 @@ public class DefaultExecHandle implements ExecHandle {
     }
 
     public ExecResult waitForFinish() {
-        ThreadUtils.awaitTermination(threadPool);
+        executor.stop();
+
         final int exitValue;
         lock.lock();
         try {

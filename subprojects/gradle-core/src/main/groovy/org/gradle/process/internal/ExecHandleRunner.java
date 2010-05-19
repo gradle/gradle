@@ -55,6 +55,7 @@ public class ExecHandleRunner implements Runnable {
 
     public void run() {
         ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
+        int exitCode;
         try {
             Process process = processBuilder.start();
             lock.lock();
@@ -80,15 +81,16 @@ public class ExecHandleRunner implements Runnable {
             // especially when the startAndWaitForFinish method is used on the ExecHandle.
             execHandle.started();
 
-            int exitCode = process.waitFor();
-
-            if (aborted) {
-                execHandle.aborted(exitCode);
-            } else {
-                execHandle.finished(exitCode);
-            }
+            exitCode = process.waitFor();
         } catch (Throwable t) {
             execHandle.failed(t);
+            return;
+        }
+        
+        if (aborted) {
+            execHandle.aborted(exitCode);
+        } else {
+            execHandle.finished(exitCode);
         }
     }
 }

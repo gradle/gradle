@@ -38,6 +38,8 @@ import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.JUnit4GroovyMockery;
@@ -210,6 +212,12 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesAProjectFactory() {
         assertThat(factory.get(IProjectFactory.class), instanceOf(ProjectFactory.class));
         assertThat(factory.get(IProjectFactory.class), sameInstance(factory.get(IProjectFactory.class)));
+    }
+
+    @Test
+    public void providesAnExecutorFactory() {
+        assertThat(factory.get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
+        assertThat(factory.get(ExecutorFactory.class), sameInstance(factory.get(ExecutorFactory.class)));
     }
 
     private ListenerManager expectListenerManagerCreated() {

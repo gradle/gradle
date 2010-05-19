@@ -206,9 +206,9 @@ public class WorkerProcessIntegrationTest {
         public void waitForStop() {
             try {
                 proc.waitForStop();
-                assertFalse(fails);
+                assertFalse("Expected process to fail", fails);
             } catch (ExecException e) {
-                assertTrue(fails);
+                assertTrue("Unexpected failure in worker process", fails);
             }
         }
 

@@ -21,25 +21,21 @@ import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.StopMethod;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.*;
 
 import java.util.IdentityHashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
-import java.util.concurrent.Executors;
 
 public class DefaultActorFactory implements ActorFactory, Stoppable {
     private final Map<Object, ActorImpl> actors = new IdentityHashMap<Object, ActorImpl>();
     private final Object lock = new Object();
-    private final Executor executor;
+    private final ExecutorFactory executorFactory;
 
-    public DefaultActorFactory() {
-        this(Executors.newCachedThreadPool());
-    }
-
-    DefaultActorFactory(Executor executor) {
-        this.executor = executor;
+    public DefaultActorFactory(ExecutorFactory executorFactory) {
+        this.executorFactory = executorFactory;
     }
 
     public void stop() {
@@ -74,11 +70,14 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
     private class ActorImpl implements Actor {
         private final StoppableDispatch<MethodInvocation> dispatch;
-        private final ExceptionTrackingDispatch<MethodInvocation> syncDispatch;
+        private final StoppableExecutor executor;
+        private ExceptionTrackingListener exceptionListener;
 
         public ActorImpl(Object targetObject) {
-            syncDispatch = new ExceptionTrackingDispatch<MethodInvocation>(new ReflectionDispatch(targetObject), Logging.getLogger(ActorImpl.class));
-            dispatch = new AsyncDispatch<MethodInvocation>(executor, syncDispatch);
+            executor = executorFactory.create(String.format("Dispatch %s", targetObject));
+            exceptionListener = new ExceptionTrackingListener(Logging.getLogger(ActorImpl.class));
+            dispatch = new AsyncDispatch<MethodInvocation>(executor, new ExceptionTrackingDispatch<MethodInvocation>(
+                    new ReflectionDispatch(targetObject), exceptionListener));
         }
 
         public <T> T getProxy(Class<T> type) {
@@ -87,7 +86,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
         public void stop() {
             try {
-                new CompositeStoppable(dispatch, syncDispatch).stop();
+                new CompositeStoppable(dispatch, executor, exceptionListener).stop();
             } finally {
                 stopped(this);
             }

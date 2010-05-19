@@ -16,6 +16,8 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
 
@@ -27,9 +29,11 @@ import java.net.URI;
 public class TcpMessagingClient implements MessagingClient {
     private final DefaultMultiChannelConnector connector;
     private final DefaultMessagingClient client;
+    private final DefaultExecutorFactory executorFactory;
 
     public TcpMessagingClient(ClassLoader messagingClassLoader, URI serverAddress) {
-        connector = new DefaultMultiChannelConnector(new TcpOutgoingConnector(messagingClassLoader), new NoOpIncomingConnector());
+        executorFactory = new DefaultExecutorFactory();
+        connector = new DefaultMultiChannelConnector(new TcpOutgoingConnector(messagingClassLoader), new NoOpIncomingConnector(), executorFactory);
         client = new DefaultMessagingClient(connector, messagingClassLoader, serverAddress);
     }
 
@@ -38,8 +42,7 @@ public class TcpMessagingClient implements MessagingClient {
     }
 
     public void stop() {
-        client.stop();
-        connector.stop();
+        new CompositeStoppable(client, connector, executorFactory).stop();
     }
 
     private static class NoOpIncomingConnector implements IncomingConnector {

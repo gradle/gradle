@@ -28,7 +28,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Connection<Message> target = context.mock(Connection.class)
     private final TestMessage message = new TestMessage()
-    private final DefaultMultiChannelConnection connection = new DefaultMultiChannelConnection(executor, new URI('test:local'), new URI('test:remote'))
+    private final DefaultMultiChannelConnection connection = new DefaultMultiChannelConnection(executorFactory, 'connection', new URI('test:local'), new URI('test:remote'))
 
     @Test
     public void dispatchesOutgoingMessageToTargetConnection() {

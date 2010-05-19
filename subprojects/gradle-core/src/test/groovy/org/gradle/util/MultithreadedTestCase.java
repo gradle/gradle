@@ -18,6 +18,8 @@ package org.gradle.util;
 import groovy.lang.Closure;
 import junit.framework.AssertionFailedError;
 import org.codehaus.groovy.runtime.InvokerInvocationException;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.hamcrest.Matcher;
 import org.junit.After;
 import org.slf4j.Logger;
@@ -25,6 +27,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.AbstractExecutorService;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
@@ -57,8 +60,7 @@ public class MultithreadedTestCase {
     private final Map<Integer, ClockTickImpl> ticks = new HashMap<Integer, ClockTickImpl>();
     private ClockTickImpl currentTick = getTick(0);
     private boolean stopped;
-    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
-            = new ThreadLocal<Matcher<? extends Throwable>>();
+    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure = new ThreadLocal<Matcher<? extends Throwable>>();
 
     /**
      * Creates an Executor which the test can control.
@@ -68,6 +70,18 @@ public class MultithreadedTestCase {
             executor = new ExecutorImpl();
         }
         return executor;
+    }
+
+    /**
+     * Creates an ExecutorFactory for the test to use.
+     */
+    protected ExecutorFactory getExecutorFactory() {
+        return new DefaultExecutorFactory(){
+            @Override
+            protected ExecutorService createExecutor(String displayName) {
+                return getExecutor();
+            }
+        };
     }
 
     /**
@@ -94,6 +108,17 @@ public class MultithreadedTestCase {
         };
 
         return start(task).waitFor();
+    }
+
+    protected ThreadHandle expectCompletesIn(int value, TimeUnit units, Closure closure) {
+        Date start = new Date();
+        ThreadHandle threadHandle = start(closure);
+        threadHandle.waitFor();
+        Date end = new Date();
+        if (end.getTime() - start.getTime() > units.toMillis(value) + 300) {
+            throw new RuntimeException("Action did not complete within expected time.");
+        }
+        return threadHandle;
     }
 
     /**
@@ -128,6 +153,10 @@ public class MultithreadedTestCase {
             public ThreadHandle waitFor() {
                 MultithreadedTestCase.this.waitFor(thread);
                 return this;
+            }
+
+            public boolean waitFor(Date expiry) {
+                return MultithreadedTestCase.this.waitFor(thread, expiry);
             }
         };
     }
@@ -173,19 +202,26 @@ public class MultithreadedTestCase {
         }
     }
 
+
     private void waitFor(Thread thread) {
+        Date expiry = new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
+        if (!waitFor(thread, expiry)) {
+            throw new RuntimeException("timeout waiting for test thread to stop.");
+        }
+    }
+    
+    private boolean waitFor(Thread thread, Date expiry) {
         if (Thread.currentThread() == thread) {
             throw new RuntimeException("A test thread cannot wait for itself to complete.");
         }
 
-        Date expiry = new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
         lock.lock();
         try {
             while (active.contains(thread)) {
                 try {
                     boolean signalled = condition.awaitUntil(expiry);
                     if (!signalled) {
-                        throw new RuntimeException("timeout waiting for test thread to stop.");
+                        return false;
                     }
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -194,6 +230,8 @@ public class MultithreadedTestCase {
         } finally {
             lock.unlock();
         }
+
+        return true;
     }
 
     /**
@@ -395,19 +433,27 @@ public class MultithreadedTestCase {
     }
 
     private class ExecutorImpl extends AbstractExecutorService {
+        private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
+
         public void execute(Runnable command) {
-            start(command);
+            threads.add(start(command));
         }
 
         public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
-            throw new UnsupportedOperationException();
+            Date expiry = new Date(System.currentTimeMillis() + unit.toMillis(timeout));
+            for (ThreadHandle thread : threads) {
+                if (!thread.waitFor(expiry) ) {
+                    return false;
+                }
+            }
+            return true;
         }
 
         public void shutdown() {
         }
 
         public List<Runnable> shutdownNow() {
-            throw new UnsupportedOperationException();
+            return new ArrayList<Runnable>();
         }
 
         public boolean isShutdown() {
@@ -421,6 +467,8 @@ public class MultithreadedTestCase {
 
     public interface ThreadHandle {
         ThreadHandle waitFor();
+
+        boolean waitFor(Date expiry);
     }
 
     public interface ClockTick {

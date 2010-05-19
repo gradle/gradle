@@ -18,7 +18,6 @@ package org.gradle.messaging.dispatch;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.util.UncheckedException;
 
-import java.util.Date;
 import java.util.LinkedList;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
@@ -240,21 +239,15 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
     public void stop() {
         lock.lock();
         try {
-            Date expiry = new Date(System.currentTimeMillis() + (120 * 1000));
-
             doRequestStop();
 
             while (receivers > 0) {
-                if (!condition.awaitUntil(expiry)) {
-                    throw new IllegalStateException("Timeout waiting for receiver threads to be dispatched.");
-                }
+                condition.await();
             }
 
             setState(State.Stopped);
             while (dispatchers > 0) {
-                if (!condition.awaitUntil(expiry)) {
-                    throw new IllegalStateException("Timeout waiting for messages to be dispatched.");
-                }
+                condition.await();
             }
 
             if (!queue.isEmpty()) {

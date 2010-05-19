@@ -93,7 +93,8 @@ public class DefaultExecHandleTest {
         DefaultExecHandle execHandle = new DefaultExecHandle(
                 tmpDir.getDir(),
                 "no_such_command",
-                Arrays.asList(), System.getenv(),
+                Arrays.asList("arg"), 
+                System.getenv(),
                 System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
@@ -104,7 +105,7 @@ public class DefaultExecHandleTest {
             execHandle.start();
             fail();
         } catch (ExecException e) {
-            assertEquals("A problem occurred starting 'no_such_command'.", e.getMessage());
+            assertEquals("A problem occurred starting command 'no_such_command'.", e.getMessage());
         }
     }
 

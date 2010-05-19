@@ -18,6 +18,9 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.messaging.concurrent.AsyncStoppable;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.ExecutorFactory;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.messaging.dispatch.AsyncDispatch;
 import org.gradle.messaging.dispatch.DiscardOnFailureDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
@@ -26,9 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Future;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -41,10 +42,10 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
     private final EndOfStreamFilter incomingDispatch;
     private final IncomingDemultiplex incomingDemux;
     private final DeferredConnection connection = new DeferredConnection();
-    private final ExecutorService executor;
+    private final StoppableExecutor executor;
 
-    DefaultMultiChannelConnection(ExecutorService executor, URI sourceAddress, URI destinationAddress) {
-        this.executor = executor;
+    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, URI sourceAddress, URI destinationAddress) {
+        this.executor = executorFactory.create(displayName);
 
         this.sourceAddress = sourceAddress;
         this.destinationAddress = destinationAddress;
@@ -103,7 +104,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
     }
 
     public void stop() {
-        Future<?> stopJob = executor.submit(new Runnable() {
+        executor.execute(new Runnable() {
             public void run() {
                 // End-of-stream handshake
                 requestStop();
@@ -113,14 +114,12 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
                 incomingQueue.requestStop();
                 incomingDemux.requestStop();
                 outgoingQueue.requestStop();
-                incomingQueue.stop();
-                incomingDemux.stop();
-                outgoingQueue.stop();
+                new CompositeStoppable(incomingQueue, incomingDemux, outgoingQueue).stop();
             }
         });
         try {
-            stopJob.get(120, TimeUnit.SECONDS);
-        } catch (Exception e) {
+            executor.stop(120, TimeUnit.SECONDS);
+        } catch (Throwable e) {
             throw new GradleException("Could not stop connection.", e);
         }
     }

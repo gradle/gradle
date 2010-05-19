@@ -55,6 +55,8 @@ import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.messaging.actor.ActorFactory;
@@ -78,11 +80,25 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     public TopLevelBuildServiceRegistry(final ServiceRegistry parent, final StartParameter startParameter) {
         super(parent);
         this.startParameter = startParameter;
+    }
 
-        add(ImportsReader.class, new ImportsReader(startParameter.getDefaultImportsFile()));
-        add(ClassGenerator.class, new AsmBackedClassGenerator());
-        add(PublishArtifactFactory.class, new DefaultPublishArtifactFactory());
-        add(TimeProvider.class, new TrueTimeProvider());
+    protected PublishArtifactFactory createPublishArtifactFactory() {
+        return new DefaultPublishArtifactFactory();
+    }
+
+    protected ImportsReader createImportsReader() {
+        return new ImportsReader(startParameter.getDefaultImportsFile());
+    }
+    protected ClassGenerator createClassGenerator() {
+        return new AsmBackedClassGenerator();
+    }
+
+    protected TimeProvider createTimeProvider() {
+        return new TrueTimeProvider();
+    }
+    
+    protected ExecutorFactory createExecutorFactory() {
+        return new DefaultExecutorFactory();
     }
 
     protected IProjectFactory createProjectFactory() {
@@ -100,7 +116,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ActorFactory createActorFactory() {
-        return new DefaultActorFactory();
+        return new DefaultActorFactory(get(ExecutorFactory.class));
     }
 
     protected TaskExecuter createTaskExecuter() {

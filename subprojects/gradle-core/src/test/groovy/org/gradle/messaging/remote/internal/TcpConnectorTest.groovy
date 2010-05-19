@@ -27,7 +27,7 @@ class TcpConnectorTest extends MultithreadedTestCase {
     @Test
     public void canConnectToServer() {
         TcpOutgoingConnector outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
-        TcpIncomingConnector incomingConnector = new TcpIncomingConnector(executor, getClass().classLoader)
+        TcpIncomingConnector incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
 
         Action action = { syncAt(1) } as Action
         incomingConnector.accept(action)

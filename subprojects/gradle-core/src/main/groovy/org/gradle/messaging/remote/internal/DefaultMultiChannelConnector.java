@@ -17,44 +17,45 @@ package org.gradle.messaging.remote.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
+import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
-import org.gradle.util.ThreadUtils;
+import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.util.UncheckedException;
 
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultMultiChannelConnector implements MultiChannelConnector, Stoppable {
     private final OutgoingConnector outgoingConnector;
     private final IncomingConnector incomingConnector;
+    private final ExecutorFactory executorFactory;
     private final Lock lock = new ReentrantLock();
     private int nextConnectionId;
     private final Map<URI, DefaultMultiChannelConnection> pending = new HashMap<URI, DefaultMultiChannelConnection>();
-    private final ExecutorService executorService;
+    private final StoppableExecutor executorService;
 
-    public DefaultMultiChannelConnector(OutgoingConnector outgoingConnector, IncomingConnector incomingConnector) {
+    public DefaultMultiChannelConnector(OutgoingConnector outgoingConnector, IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
         this.outgoingConnector = outgoingConnector;
         this.incomingConnector = incomingConnector;
-        executorService = Executors.newCachedThreadPool();
+        this.executorFactory = executorFactory;
+        executorService = executorFactory.create("Incoming Connection Handler");
         incomingConnector.accept(incomingConnectionAction());
     }
 
     private Action<Connection<Message>> incomingConnectionAction() {
         return new Action<Connection<Message>>() {
             public void execute(Connection<Message> connection) {
-                executorService.submit(new IncomingChannelHandler(connection));
+                executorService.execute(new IncomingChannelHandler(connection));
             }
         };
     }
 
     public void stop() {
-        ThreadUtils.shutdown(executorService);
+        executorService.stop();
     }
 
     public MultiChannelConnection<Message> listen() {
@@ -67,7 +68,7 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
             } catch (URISyntaxException e) {
                 throw new UncheckedException(e);
             }
-            DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorService, localAddress, null);
+            DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory, String.format("Incoming Connection %s", localAddress), localAddress, null);
             pending.put(localAddress, channelConnection);
             return channelConnection;
         } finally {
@@ -83,7 +84,7 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
         URI connectionAddress = toConnectionAddress(destinationAddress);
         Connection<Message> connection = outgoingConnector.connect(connectionAddress);
         connection.dispatch(new ConnectRequest(destinationAddress, null));
-        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorService, null, destinationAddress);
+        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory, String.format("Outgoing Connection %s", destinationAddress), null, destinationAddress);
         channelConnection.setConnection(connection);
         return channelConnection;
     }

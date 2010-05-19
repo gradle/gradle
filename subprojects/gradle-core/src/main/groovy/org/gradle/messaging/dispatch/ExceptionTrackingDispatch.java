@@ -16,38 +16,22 @@
 
 package org.gradle.messaging.dispatch;
 
-import org.slf4j.Logger;
+import org.gradle.api.Action;
 
-public class ExceptionTrackingDispatch<T> implements StoppableDispatch<T> {
+public class ExceptionTrackingDispatch<T> implements Dispatch<T> {
     private final Dispatch<T> dispatch;
-    private final Logger logger;
-    private DispatchException failure;
+    private final Action<? super DispatchException> action;
 
-    public ExceptionTrackingDispatch(Dispatch<T> dispatch, Logger logger) {
+    public ExceptionTrackingDispatch(Dispatch<T> dispatch, Action<? super DispatchException> action) {
         this.dispatch = dispatch;
-        this.logger = logger;
+        this.action = action;
     }
 
     public void dispatch(T message) {
         try {
             dispatch.dispatch(message);
         } catch (Throwable t) {
-            String errorMessage = String.format("Failed to dispatch message %s.", message);
-            if (failure != null) {
-                logger.error(errorMessage, t);
-            } else {
-                failure = new DispatchException(errorMessage, t);
-            }
-        }
-    }
-
-    public void stop() {
-        if (failure != null) {
-            try {
-                throw failure;
-            } finally {
-                failure = null;
-            }
+            action.execute(new DispatchException(String.format("Failed to dispatch message %s.", message), t));
         }
     }
 }
