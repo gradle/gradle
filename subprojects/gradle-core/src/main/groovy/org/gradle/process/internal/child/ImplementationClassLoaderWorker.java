@@ -18,8 +18,8 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.DefaultLoggingConfigurer;
-import org.gradle.initialization.LoggingConfigurer;
+import org.gradle.logging.DefaultLoggingConfigurer;
+import org.gradle.logging.LoggingConfigurer;
 import org.gradle.util.*;
 
 import java.io.ByteArrayInputStream;

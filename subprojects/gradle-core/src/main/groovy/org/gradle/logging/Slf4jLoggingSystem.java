@@ -17,7 +17,6 @@
 package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.LoggingConfigurer;
 
 public class Slf4jLoggingSystem implements LoggingSystem {
     private final LoggingConfigurer configurer;

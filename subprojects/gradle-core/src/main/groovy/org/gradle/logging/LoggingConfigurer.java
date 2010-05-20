@@ -13,22 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.initialization;
+package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.LoggingOutput;
 
 /**
  * @author Hans Dockter
  */
-public interface LoggingConfigurer {
+public interface LoggingConfigurer extends LoggingOutput {
     void configure(LogLevel logLevel);
-
-    void addStandardOutputListener(StandardOutputListener listener);
-
-    void removeStandardOutputListener(StandardOutputListener listener);
-
-    void addStandardErrorListener(StandardOutputListener listener);
-
-    void removeStandardErrorListener(StandardOutputListener listener);
 }

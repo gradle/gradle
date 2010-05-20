@@ -17,7 +17,7 @@
 package org.gradle.logging
 
 import spock.lang.Specification
-import org.gradle.initialization.LoggingConfigurer
+
 import org.gradle.api.logging.LogLevel
 
 class Slf4jLoggingSystemTest extends Specification {

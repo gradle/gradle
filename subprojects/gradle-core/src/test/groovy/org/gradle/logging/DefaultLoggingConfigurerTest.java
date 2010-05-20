@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.initialization;
+package org.gradle.logging;
 
 import ch.qos.logback.classic.LoggerContext;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.specs.Spec;
-import org.gradle.logging.Console;
-import org.gradle.logging.Label;
-import org.gradle.logging.TextArea;
 import org.gradle.util.RedirectStdOutAndErr;
 import org.junit.After;
 import org.junit.Before;

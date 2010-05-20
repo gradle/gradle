@@ -20,6 +20,10 @@ public interface ExecutionResult {
 
     String getError();
 
+    void assertOutputHasNoStackTraces();
+
+    void assertErrorHasNoStackTraces();
+
     ExecutionResult assertTasksExecuted(String... taskPaths);
 
     ExecutionResult assertTasksSkipped(String... taskPaths);

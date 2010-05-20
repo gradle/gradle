@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.integtests.ForkingGradleExecuter;
 import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
@@ -69,12 +68,18 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
     @Override
     protected ExecutionResult doRun() {
-        return configureExecuter().run();
+        return checkResult(configureExecuter().run());
     }
 
     @Override
     protected ExecutionFailure doRunWithFailure() {
-        return configureExecuter().runWithFailure();
+        return checkResult(configureExecuter().runWithFailure());
+    }
+
+    private <T extends ExecutionResult> T checkResult(T result) {
+        result.assertOutputHasNoStackTraces();
+        result.assertErrorHasNoStackTraces();
+        return result;
     }
 
     public void setInProcessStartParameterModifier(StartParameterModifier inProcessStartParameterModifier) {
@@ -83,7 +88,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
     private GradleExecuter configureExecuter() {
         if (!getClass().desiredAssertionStatus()) {
-            throw new RuntimeException("Assertions should be enabled when running integration tests.");
+            throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);

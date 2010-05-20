@@ -29,6 +29,7 @@ import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskGraphExecuter;
+import org.gradle.logging.LoggingConfigurer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.hamcrest.BaseMatcher;
@@ -121,8 +122,7 @@ public class DefaultGradleLauncherTest {
         expectedStartParams.setGradleUserHomeDir(tmpDir.createDir("gradleUserHome"));
 
         gradleLauncher = new DefaultGradleLauncher(gradleMock, initscriptHandlerMock, settingsHandlerMock,
-                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, loggingConfigurerMock,
-                buildBroadcaster, exceptionAnalyserMock, loggingManagerMock);
+                gradlePropertiesLoaderMock, buildLoaderMock, buildConfigurerMock, buildBroadcaster, exceptionAnalyserMock, loggingManagerMock);
 
         context.checking(new Expectations() {
             {

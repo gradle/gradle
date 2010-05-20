@@ -26,6 +26,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Collections;
 
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
@@ -52,7 +53,7 @@ public class DefaultExecHandleTest {
                 out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
-                null
+                Collections.<ExecHandleListener>emptyList()
         );
 
         ExecResult result = execHandle.start().waitForFinish();
@@ -74,7 +75,7 @@ public class DefaultExecHandleTest {
                 System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
-                null
+                Collections.<ExecHandleListener>emptyList()
         );
 
         ExecResult result = execHandle.start().waitForFinish();
@@ -98,7 +99,7 @@ public class DefaultExecHandleTest {
                 System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
-                null
+                Collections.<ExecHandleListener>emptyList()
         );
 
         try {
@@ -121,7 +122,7 @@ public class DefaultExecHandleTest {
                 System.out,
                 System.err,
                 new ByteArrayInputStream(new byte[0]),
-                null
+                Collections.<ExecHandleListener>emptyList()
         );
 
         execHandle.start();

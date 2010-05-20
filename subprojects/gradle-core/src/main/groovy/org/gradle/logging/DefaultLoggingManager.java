@@ -18,6 +18,11 @@ package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.logging.LoggingOutput;
+import org.gradle.api.logging.StandardOutputListener;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -30,27 +35,34 @@ public class DefaultLoggingManager implements LoggingManager {
     private boolean started;
     private final LoggingSystem loggingSystem;
     private final LoggingSystem stdOutLoggingSystem;
+    private final LoggingOutput loggingOutput;
+    private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
+    private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
 
-    /**
-     * Creates and instance with enabled set to false and LogLevel set to null.
-     */
-    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem) {
+    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem, LoggingOutput loggingOutput) {
         this.loggingSystem = loggingSystem;
         this.stdOutLoggingSystem = stdOutLoggingSystem;
+        this.loggingOutput = loggingOutput;
         stdOutCaptureLevel = LogLevel.QUIET;
     }
 
     public DefaultLoggingManager start() {
         started = true;
-        if (stdOutCaptureLevel != null) {
-            originalStdOutState = stdOutLoggingSystem.on(stdOutCaptureLevel);
-        } else {
-            originalStdOutState = stdOutLoggingSystem.off();
+        for (StandardOutputListener stdoutListener : stdoutListeners) {
+            loggingOutput.addStandardOutputListener(stdoutListener);
+        }
+        for (StandardOutputListener stderrListener : stderrListeners) {
+            loggingOutput.addStandardErrorListener(stderrListener);
         }
         if (level != null) {
             originalLoggingState = loggingSystem.on(level);
         } else {
             originalLoggingState = loggingSystem.snapshot();
+        }
+        if (stdOutCaptureLevel != null) {
+            originalStdOutState = stdOutLoggingSystem.on(stdOutCaptureLevel);
+        } else {
+            originalStdOutState = stdOutLoggingSystem.off();
         }
 
         return this;
@@ -63,6 +75,12 @@ public class DefaultLoggingManager implements LoggingManager {
             }
             if (originalLoggingState != null) {
                 loggingSystem.restore(originalLoggingState);
+            }
+            for (StandardOutputListener stdoutListener : stdoutListeners) {
+                loggingOutput.removeStandardOutputListener(stdoutListener);
+            }
+            for (StandardOutputListener stderrListener : stderrListeners) {
+                loggingOutput.removeStandardErrorListener(stderrListener);
             }
         } finally {
             originalStdOutState = null;
@@ -112,5 +130,29 @@ public class DefaultLoggingManager implements LoggingManager {
             }
         }
         return this;
+    }
+
+    public void addStandardOutputListener(StandardOutputListener listener) {
+        if (stdoutListeners.add(listener) && started) {
+            loggingOutput.addStandardOutputListener(listener);
+        }
+    }
+
+    public void addStandardErrorListener(StandardOutputListener listener) {
+        if (stderrListeners.add(listener) && started) {
+            loggingOutput.addStandardErrorListener(listener);
+        }
+    }
+
+    public void removeStandardOutputListener(StandardOutputListener listener) {
+        if (stdoutListeners.remove(listener) && started) {
+            loggingOutput.removeStandardOutputListener(listener);
+        }
+    }
+
+    public void removeStandardErrorListener(StandardOutputListener listener) {
+        if (stderrListeners.remove(listener) && started) {
+            loggingOutput.removeStandardErrorListener(listener);
+        }
     }
 }

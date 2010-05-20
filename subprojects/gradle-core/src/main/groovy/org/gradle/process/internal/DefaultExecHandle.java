@@ -122,9 +122,7 @@ public class DefaultExecHandle implements ExecHandle {
         executor = new DefaultExecutorFactory().create(String.format("Run %s", command));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
-        if (listeners != null) {
-            broadcast.addAll(listeners);
-        }
+        broadcast.addAll(listeners);
     }
 
     public File getDirectory() {

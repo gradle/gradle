@@ -24,10 +24,7 @@ import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.DefaultLoggingManagerFactory;
-import org.gradle.logging.DefaultProgressLoggerFactory;
-import org.gradle.logging.LoggingManagerFactory;
-import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.*;
 
 /**
  * Contains the services shared by all builds in a given process.

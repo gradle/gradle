@@ -30,9 +30,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.ProgressLoggingBridge;
+import org.gradle.logging.*;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
@@ -42,11 +40,10 @@ import org.gradle.util.WrapUtil;
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker = new NestedBuildTracker();
-    private LoggingConfigurer loggingConfigurer;
     private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
 
     public DefaultGradleLauncherFactory() {
-        loggingConfigurer = new DefaultLoggingConfigurer();
+        LoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer();
         loggingConfigurer.configure(LogLevel.LIFECYCLE);
         sharedServices = new GlobalServicesRegistry(loggingConfigurer);
         commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
@@ -70,8 +67,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         loggingManager.setLevel(startParameter.getLogLevel());
 
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.
-        loggingConfigurer.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
-        loggingConfigurer.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+        loggingManager.addStandardOutputListener(listenerManager.getBroadcaster(StandardOutputListener.class));
+        loggingManager.addStandardErrorListener(listenerManager.getBroadcaster(StandardOutputListener.class));
 
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
         listenerManager.addListener(tracker);
@@ -100,9 +97,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 new BuildLoader(
                         serviceRegistry.get(IProjectFactory.class)
                 ),
-                new BuildConfigurer(new ProjectDependencies2TaskResolver()),
-                loggingConfigurer,
-                gradle.getBuildListenerBroadcaster(),
+                new BuildConfigurer(new ProjectDependencies2TaskResolver()), gradle.getBuildListenerBroadcaster(),
                 serviceRegistry.get(ExceptionAnalyser.class),
                 loggingManager);
     }

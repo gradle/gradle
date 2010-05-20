@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
@@ -156,6 +157,18 @@ public class ProjectBuilder {
 
         public StandardOutputCapture stop() {
             return this;
+        }
+
+        public void addStandardErrorListener(StandardOutputListener listener) {
+        }
+
+        public void addStandardOutputListener(StandardOutputListener listener) {
+        }
+
+        public void removeStandardOutputListener(StandardOutputListener listener) {
+        }
+
+        public void removeStandardErrorListener(StandardOutputListener listener) {
         }
     }
 

@@ -39,11 +39,32 @@ public class OkTest {
         assertEquals("value", System.getProperty("testSysProperty"));
         // check env vars
         assertEquals("value", System.getenv("TEST_ENV_VAR"));
-        // check stdout and stderr
+
+        // check stdout and stderr and logging
         System.out.println("This is test stdout");
         System.out.print("no EOL");
+        System.out.println();
         System.err.println("This is test stderr");
-        // check logging
         Logger.getLogger("test-logger").warning("this is a warning");
+        
+        // logging from a shutdown hook
+        Runtime.getRuntime().addShutdownHook(new Thread() {
+            @Override
+            public void run() {
+                System.out.println("stdout from a shutdown hook.");
+//                Logger.getLogger("test-logger").info("info from a shutdown hook.");
+            }
+        });
+
+        // logging from another thread
+        Thread thread = new Thread() {
+            @Override
+            public void run() {
+                System.out.println("stdout from another thread");
+                Logger.getLogger("test-logger").info("info from another thread.");
+            }
+        };
+        thread.start();
+        thread.join();
     }
 }

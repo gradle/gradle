@@ -21,15 +21,12 @@ import org.gradle.GradleLauncher;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import java.util.LinkedHashSet;
-import java.util.Set;
 
 public class DefaultGradleLauncher extends GradleLauncher {
     private enum Stage {
@@ -43,32 +40,28 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final IGradlePropertiesLoader gradlePropertiesLoader;
     private final BuildLoader buildLoader;
     private final BuildConfigurer buildConfigurer;
-    private final LoggingConfigurer loggingConfigurer;
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final InitScriptHandler initScriptHandler;
-    private final StandardOutputCapture outputCapture;
-    private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
-    private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
+    private final LoggingManager loggingManager;
 
     /**
      * Creates a new instance.  Don't call this directly, use {@link #newInstance(org.gradle.StartParameter)} or {@link
-     * #newInstance(String[])} instead.  Note that this method is package-protected to discourage it's direct use.
+     * #newInstance(String...)} instead.  Note that this method is package-protected to discourage it's direct use.
      */
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
-                   IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
-                   BuildConfigurer buildConfigurer, LoggingConfigurer loggingConfigurer, BuildListener buildListener,
-                   ExceptionAnalyser exceptionAnalyser, StandardOutputCapture outputCapture) {
+                                 IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
+                                 BuildConfigurer buildConfigurer, BuildListener buildListener,
+                                 ExceptionAnalyser exceptionAnalyser, LoggingManager loggingManager) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;
         this.gradlePropertiesLoader = gradlePropertiesLoader;
         this.buildLoader = buildLoader;
         this.buildConfigurer = buildConfigurer;
-        this.loggingConfigurer = loggingConfigurer;
         this.exceptionAnalyser = exceptionAnalyser;
         this.buildListener = buildListener;
-        this.outputCapture = outputCapture;
+        this.loggingManager = loggingManager;
     }
 
     /**
@@ -106,8 +99,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     }
 
     private BuildResult doBuild(Stage upTo) {
-        addOutputListeners();
-        outputCapture.start();
+        loggingManager.start();
         buildListener.buildStarted(gradle);
 
         Throwable failure = null;
@@ -124,27 +116,8 @@ public class DefaultGradleLauncher extends GradleLauncher {
         // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
         // always be closed. But as we expose this functionality to the builds, we can't
         // guarantee this.
-        outputCapture.stop();
-        removeOutputListeners();
+        loggingManager.stop();
         return buildResult;
-    }
-
-    private void removeOutputListeners() {
-        for (StandardOutputListener stdoutListener : stdoutListeners) {
-            loggingConfigurer.removeStandardOutputListener(stdoutListener);
-        }
-        for (StandardOutputListener stderrListener : stderrListeners) {
-            loggingConfigurer.removeStandardErrorListener(stderrListener);
-        }
-    }
-
-    private void addOutputListeners() {
-        for (StandardOutputListener stdoutListener : stdoutListeners) {
-            loggingConfigurer.addStandardOutputListener(stdoutListener);
-        }
-        for (StandardOutputListener stderrListener : stderrListeners) {
-            loggingConfigurer.addStandardErrorListener(stderrListener);
-        }
     }
 
     private void doBuildStages(Stage upTo) {
@@ -214,7 +187,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
      */
     @Override
     public void addStandardOutputListener(StandardOutputListener listener) {
-        stdoutListeners.add(listener);
+        loggingManager.addStandardOutputListener(listener);
     }
 
     /**
@@ -225,6 +198,6 @@ public class DefaultGradleLauncher extends GradleLauncher {
      */
     @Override
     public void addStandardErrorListener(StandardOutputListener listener) {
-        stderrListeners.add(listener);
+        loggingManager.addStandardErrorListener(listener);
     }
 }

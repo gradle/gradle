@@ -33,7 +33,7 @@ public class JUnitIntegrationTest {
     @Test
     public void executesTestsInCorrectEnvironment() {
         TestFile testDir = dist.testDir;
-        executer.withTasks('build').withArguments('-i').run();
+        executer.withTasks('build').run();
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.OtherTest')
@@ -42,6 +42,7 @@ public class JUnitIntegrationTest {
         result.testClass('org.gradle.OkTest').assertStdout(containsString('no EOL'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('class loaded'))
         result.testClass('org.gradle.OkTest').assertStdout(containsString('test constructed'))
+        result.testClass('org.gradle.OkTest').assertStdout(containsString('stdout from another thread'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('This is test stderr'))
         result.testClass('org.gradle.OkTest').assertStderr(containsString('this is a warning'))
         result.testClass('org.gradle.OtherTest').assertTestPassed('ok')

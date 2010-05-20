@@ -18,7 +18,7 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.LoggingConfigurer;
+import org.gradle.logging.LoggingConfigurer;
 import org.gradle.process.child.*;
 import org.gradle.process.child.SerializableMockHelper;
 import org.gradle.util.JUnit4GroovyMockery;

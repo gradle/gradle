@@ -17,6 +17,7 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.logging.LoggingConfigurer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;

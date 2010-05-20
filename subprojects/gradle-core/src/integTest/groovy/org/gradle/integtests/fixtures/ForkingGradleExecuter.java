@@ -14,11 +14,8 @@
  * limitations under the License.
  */
 
-package org.gradle.integtests;
+package org.gradle.integtests.fixtures;
 
-import org.gradle.integtests.fixtures.AbstractGradleExecuter;
-import org.gradle.integtests.fixtures.ExecutionFailure;
-import org.gradle.integtests.fixtures.ExecutionResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
@@ -140,7 +137,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private static class ForkedExecutionResult implements ExecutionResult {
+    private static class ForkedExecutionResult extends AbstractExecutionResult {
         private final Map result;
 
         public ForkedExecutionResult(Map result) {
@@ -165,11 +162,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private static class ForkedExecutionFailure extends ForkedExecutionResult implements ExecutionFailure {
-        private final Map result;
-
         public ForkedExecutionFailure(Map result) {
             super(result);
-            this.result = result;
         }
 
         public void assertHasLineNumber(int lineNumber) {
