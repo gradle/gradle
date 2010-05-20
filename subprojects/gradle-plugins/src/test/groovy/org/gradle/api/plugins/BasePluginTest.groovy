@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 package org.gradle.api.plugins
 
 import org.gradle.api.DefaultTask
@@ -65,7 +63,7 @@ class BasePluginTest {
     @Test public void addsRulesWhenAConfigurationIsAdded() {
         plugin.apply(project)
 
-        assertThat(project.tasks.rules.size(), equalTo(2))
+        assertThat(project.tasks.rules.size(), equalTo(3))
     }
 
     @Test public void addsImplicitTasksForConfiguration() {
@@ -94,6 +92,17 @@ class BasePluginTest {
         assertThat(task, instanceOf(Upload))
         assertThat(task, dependsOn('producer'))
         assertThat(task.configuration, sameInstance(project.configurations.conf))
+    }
+
+    @Test public void addsACleanRule() {
+        plugin.apply(project)
+
+        Task test = project.task('test')
+        test.outputs.files(project.buildDir)
+
+        Task cleanTest = project.tasks['cleanTest']
+        assertThat(cleanTest, instanceOf(Delete))
+        assertThat(cleanTest.delete, equalTo([test.outputs.files] as Set))
     }
 
     @Test public void appliesMappingsForArchiveTasks() {

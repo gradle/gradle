@@ -27,7 +27,6 @@
         <sample id="useJavaPlugin" dir="java/quickstart" title="Using the Java plugin">
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
-        <para>The Java plugin</para>
     </section>
 
     <section>
@@ -62,14 +61,6 @@
                     <td>Description</td>
                 </tr>
             </thead>
-            <tr>
-                <td>
-                    <literal>clean</literal>
-                </td>
-                <td>-</td>
-                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Deletes the project build directory.</td>
-            </tr>
             <tr>
                 <td>
                     <literal>compileJava</literal>
@@ -167,6 +158,25 @@
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Upload"/></td>
                 <td>Uploads the artifacts in the <literal>archives</literal> configuration, including the JAR file.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>clean</literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Deletes the project build directory.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>clean<replaceable>TaskName</replaceable></literal>
+                </td>
+                <td>-</td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Deletes the output files produced by the specified task. For example <literal>cleanJar</literal>
+                    will delete the JAR file created by the <literal>jar</literal> task, and
+                    <literal>cleanTest</literal> will delete the test results created by the <literal>test</literal> task.
+                </td>
             </tr>
         </table>
 

@@ -28,6 +28,7 @@ import org.gradle.api.tasks.bundling.AbstractArchiveTask
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Dependency
+import org.apache.commons.lang.StringUtils
 
 /**
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
@@ -43,8 +44,9 @@ class BasePlugin implements Plugin<Project> {
         configureUploadRules(project)
         configureArchiveDefaults(project, project.convention.plugins.base)
         configureConfigurations(project)
-        
+
         addClean(project)
+        addCleanRule(project)
         addAssemble(project);
     }
 
@@ -72,16 +74,37 @@ class BasePlugin implements Plugin<Project> {
         clean.delete { project.buildDir }
     }
 
-    private void configureBuildConfigurationRule(final Project project) {
-        final String prefix = "build";
-        String description = String.format("Pattern: %s<ConfigurationName>: Builds the artifacts belonging to the configuration.", prefix)
+    private void addCleanRule(Project project) {
+        String prefix = 'clean'
+        String description = "Pattern: ${prefix}<TaskName>: Cleans the output files of the task."
+        Rule rule = [
+                getDescription: { description },
+                apply: {String taskName ->
+                    if (!taskName.startsWith(prefix)) {
+                        return
+                    }
+                    Task task = project.tasks.findByName(StringUtils.uncapitalize(taskName.substring(prefix.length())))
+                    if (task == null) {
+                        return
+                    }
+                    Delete clean = project.tasks.add(taskName, Delete)
+                    clean.delete(task.outputs.files)
+                }
+        ] as Rule
+
+        project.tasks.addRule(rule)
+    }
+
+    private void configureBuildConfigurationRule(Project project) {
+        String prefix = "build";
+        String description = "Pattern: ${prefix}<ConfigurationName>: Builds the artifacts belonging to the configuration."
         Rule rule = [
                 getDescription: {
                     description
                 },
                 apply: {String taskName ->
                     if (taskName.startsWith(prefix)) {
-                        Configuration configuration = project.configurations.findByName(taskName.substring(prefix.length()).toLowerCase())
+                        Configuration configuration = project.configurations.findByName(StringUtils.uncapitalize(taskName.substring(prefix.length())))
                         if (configuration != null) {
                             project.tasks.add(taskName).dependsOn(configuration.getBuildArtifacts()).setDescription(String.format("Builds the artifacts belonging to %s.", configuration))
                         }
@@ -139,6 +162,4 @@ class BasePlugin implements Plugin<Project> {
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(archivesConfiguration).
                 setDescription("Configuration the default artifacts and its dependencies.");
     }
-
-
 }
