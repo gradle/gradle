@@ -36,10 +36,10 @@ import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-public class DefaultLoggingConfigurerTest {
+public class Slf4jLoggingConfigurerTest {
     private final TerminalDetectorStub terminalDetector = new TerminalDetectorStub();
     private final ConsoleStub console = new ConsoleStub();
-    private final DefaultLoggingConfigurer configurer = new DefaultLoggingConfigurer(terminalDetector) {
+    private final Slf4jLoggingConfigurer configurer = new Slf4jLoggingConfigurer(terminalDetector) {
         @Override
         Console createConsole() {
             return console;

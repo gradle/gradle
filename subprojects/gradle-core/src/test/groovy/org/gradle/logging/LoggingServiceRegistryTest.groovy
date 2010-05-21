@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
 
-import org.gradle.api.logging.LogLevel;
+package org.gradle.logging
 
-/**
- * @author Hans Dockter
- */
-public interface LoggingConfigurer {
-    void configure(LogLevel logLevel);
+import spock.lang.Specification
+
+class LoggingServiceRegistryTest extends Specification {
+    private final LoggingServiceRegistry registry = new LoggingServiceRegistry()
+    
+    def providesALoggingManagerFactory() {
+        expect:
+        def factory = registry.get(LoggingManagerFactory.class)
+        factory instanceof DefaultLoggingManagerFactory
+    }
 }

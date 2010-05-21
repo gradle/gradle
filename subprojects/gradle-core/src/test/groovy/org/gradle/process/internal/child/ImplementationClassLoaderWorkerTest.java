@@ -18,9 +18,8 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.LoggingConfigurer;
-import org.gradle.process.child.*;
 import org.gradle.process.child.SerializableMockHelper;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.ObservableUrlClassLoader;
 import org.jmock.Expectations;
@@ -34,16 +33,16 @@ import java.net.URL;
 import java.util.Collection;
 import java.util.List;
 
-import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.*;
 
 @RunWith(JMock.class)
 public class ImplementationClassLoaderWorkerTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ClassLoader applicationClassLoader = getClass().getClassLoader();
-    private final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
+    private final LoggingManager loggingManager = context.mock(LoggingManager.class);
     private final ObservableUrlClassLoader implementationClassLoader = new ObservableUrlClassLoader(applicationClassLoader);
     private final WorkerContext workerContext = context.mock(WorkerContext.class);
-    private final org.gradle.process.child.SerializableMockHelper helper = new SerializableMockHelper();
+    private final SerializableMockHelper helper = new SerializableMockHelper();
 
     @Test
     public void createsClassLoaderAndInstantiatesAndExecutesWorker() throws Exception {
@@ -54,7 +53,9 @@ public class ImplementationClassLoaderWorkerTest {
         ImplementationClassLoaderWorker worker = new TestImplementationClassLoaderWorker(LogLevel.DEBUG, toList("a", "b"), implementationClassPath, serializableAction);
 
         context.checking(new Expectations() {{
-            one(loggingConfigurer).configure(LogLevel.DEBUG);
+            one(loggingManager).setLevel(LogLevel.DEBUG);
+            will(returnValue(loggingManager));
+            one(loggingManager).start();
             allowing(workerContext).getApplicationClassLoader();
             will(returnValue(applicationClassLoader));
             one(action).execute(workerContext);
@@ -71,8 +72,8 @@ public class ImplementationClassLoaderWorkerTest {
         }
 
         @Override
-        protected LoggingConfigurer createLoggingConfigurer() {
-            return loggingConfigurer;
+        protected LoggingManager createLoggingManager() {
+            return loggingManager;
         }
 
         @Override

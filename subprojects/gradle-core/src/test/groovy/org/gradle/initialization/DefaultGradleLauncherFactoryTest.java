@@ -16,17 +16,16 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.LoggingConfigurer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
-
 import org.junit.Before;
 import org.junit.Test;
+
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -47,8 +46,6 @@ public class DefaultGradleLauncherFactoryTest {
         final StartParameter startParameter = HelperUtil.dummyStartParameter();
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
-            one(loggingConfigurer).addStandardOutputListener( with(any( StandardOutputListener.class)) );
-            one(loggingConfigurer).addStandardErrorListener( with(any( StandardOutputListener.class)) );
         }});
         assertNotNull(factory.newInstance(startParameter));
     }
@@ -60,8 +57,6 @@ public class DefaultGradleLauncherFactoryTest {
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
             allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
-            one(loggingConfigurer).addStandardOutputListener( with(any( StandardOutputListener.class)) );
-            one(loggingConfigurer).addStandardErrorListener( with(any( StandardOutputListener.class)) );
         }});
         assertNotNull(factory.newInstance(commandLineArgs));
     }

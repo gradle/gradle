@@ -18,8 +18,9 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.DefaultLoggingConfigurer;
-import org.gradle.logging.LoggingConfigurer;
+import org.gradle.api.logging.LoggingManager;
+import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.*;
 
 import java.io.ByteArrayInputStream;
@@ -48,8 +49,8 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
     }
 
     public void execute(WorkerContext workerContext) {
-        LoggingConfigurer configurer = createLoggingConfigurer();
-        configurer.configure(logLevel);
+        LoggingManager configurer = createLoggingManager();
+        configurer.setLevel(logLevel).start();
 
         FilteringClassLoader filteredWorkerClassLoader = new FilteringClassLoader(getClass().getClassLoader());
         filteredWorkerClassLoader.allowPackage("org.slf4j");
@@ -79,8 +80,8 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
         action.execute(workerContext);
     }
 
-    LoggingConfigurer createLoggingConfigurer() {
-        return new DefaultLoggingConfigurer();
+    LoggingManager createLoggingManager() {
+        return new LoggingServiceRegistry().get(LoggingManagerFactory.class).create();
     }
 
     ObservableUrlClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {

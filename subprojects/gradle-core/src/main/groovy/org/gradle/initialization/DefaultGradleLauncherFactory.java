@@ -30,7 +30,9 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.*;
+import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.ProgressLoggingBridge;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
@@ -39,14 +41,19 @@ import org.gradle.util.WrapUtil;
  */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
-    private final NestedBuildTracker tracker = new NestedBuildTracker();
+    private final NestedBuildTracker tracker;
     private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
 
     public DefaultGradleLauncherFactory() {
-        LoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer();
-        loggingConfigurer.configure(LogLevel.LIFECYCLE);
-        sharedServices = new GlobalServicesRegistry(loggingConfigurer);
+        sharedServices = new GlobalServicesRegistry();
+
+        // Start logging system
+        sharedServices.get(LoggingManagerFactory.class).create().setLevel(LogLevel.LIFECYCLE).start();
+
         commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
+        tracker = new NestedBuildTracker();
+
+        // Register default loggers 
         ListenerManager listenerManager = sharedServices.get(ListenerManager.class);
         listenerManager.useLogger(new ProgressLoggingBridge());
         listenerManager.addListener(new BuildProgressLogger(sharedServices.get(ProgressLoggerFactory.class)));

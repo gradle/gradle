@@ -17,19 +17,20 @@
 package org.gradle.logging;
 
 import org.gradle.api.logging.LoggingManager;
+import org.gradle.api.logging.LoggingOutput;
 
 public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     private final LoggingSystem slfLoggingSystem;
     private final LoggingSystem stdOutLoggingSystem;
-    private final LoggingConfigurer loggingConfigurer;
+    private final LoggingOutput loggingOutput;
 
-    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer) {
-        this.loggingConfigurer = loggingConfigurer;
-        slfLoggingSystem = new Slf4jLoggingSystem(loggingConfigurer);
+    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutput loggingOutput) {
+        this.loggingOutput = loggingOutput;
+        slfLoggingSystem = new LoggingSystemAdapter(loggingConfigurer);
         stdOutLoggingSystem = new StandardOutputLoggingSystem();
     }
 
     public LoggingManager create() {
-        return new DefaultLoggingManager(slfLoggingSystem, stdOutLoggingSystem, loggingConfigurer);
+        return new DefaultLoggingManager(slfLoggingSystem, stdOutLoggingSystem, loggingOutput);
     }
 }

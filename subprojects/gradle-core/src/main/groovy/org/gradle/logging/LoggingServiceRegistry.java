@@ -16,22 +16,16 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.internal.project.DefaultServiceRegistry;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-
-public class DefaultLoggingConfigurer implements LoggingConfigurer {
-    private final List<LoggingConfigurer> configurers = new ArrayList<LoggingConfigurer>();
-
-    public DefaultLoggingConfigurer(LoggingConfigurer... configurers) {
-        this.configurers.addAll(Arrays.asList(configurers));
-    }
-
-    public void configure(LogLevel logLevel) {
-        for (LoggingConfigurer configurer : configurers) {
-            configurer.configure(logLevel);
-        }
+/**
+ * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.
+ */
+public class LoggingServiceRegistry extends DefaultServiceRegistry {
+    protected LoggingManagerFactory createLoggingManagerFactory() {
+        Slf4jLoggingConfigurer slf4jLoggingConfigurer = new Slf4jLoggingConfigurer();
+        LoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer(slf4jLoggingConfigurer,
+                new JavaUtilLoggingConfigurer());
+        return new DefaultLoggingManagerFactory(loggingConfigurer, slf4jLoggingConfigurer);
     }
 }

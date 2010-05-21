@@ -21,20 +21,28 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.*;
+import org.gradle.initialization.ClassLoaderFactory;
+import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultClassLoaderFactory;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.*;
+import org.gradle.logging.DefaultProgressLoggerFactory;
+import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.ProgressLoggerFactory;
 
 /**
  * Contains the services shared by all builds in a given process.
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
-    public GlobalServicesRegistry(LoggingConfigurer loggingConfigurer) {
-        add(CommandLine2StartParameterConverter.class, new DefaultCommandLine2StartParameterConverter());
-        add(LoggingManagerFactory.class, new DefaultLoggingManagerFactory(loggingConfigurer));
+    public GlobalServicesRegistry() {
+        super(new LoggingServiceRegistry());
     }
-    
+
+    protected CommandLine2StartParameterConverter createCommandLine2StartParameterConverter() {
+        return new DefaultCommandLine2StartParameterConverter();
+    }
+
     protected ClassPathRegistry createClassPathRegistry() {
         return new DefaultClassPathRegistry();
     }

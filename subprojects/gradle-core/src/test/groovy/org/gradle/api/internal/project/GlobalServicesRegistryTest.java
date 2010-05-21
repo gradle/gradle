@@ -20,22 +20,20 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
-import org.gradle.initialization.*;
+import org.gradle.initialization.ClassLoaderFactory;
+import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultClassLoaderFactory;
+import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.*;
-import org.gradle.util.JUnit4GroovyMockery;
-import org.jmock.integration.junit4.JMock;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
-@RunWith(JMock.class)
 public class GlobalServicesRegistryTest {
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
-    private final GlobalServicesRegistry registry = new GlobalServicesRegistry(context.mock(LoggingConfigurer.class));
+    private final GlobalServicesRegistry registry = new GlobalServicesRegistry();
 
     @Test
     public void providesCommandLineArgsConverter() {

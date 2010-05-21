@@ -20,9 +20,9 @@ import spock.lang.Specification
 
 import org.gradle.api.logging.LogLevel
 
-class Slf4jLoggingSystemTest extends Specification {
+class LoggingSystemAdapterTest extends Specification {
     private final LoggingConfigurer loggingConfigurer = Mock()
-    private final Slf4jLoggingSystem loggingSystem = new Slf4jLoggingSystem(loggingConfigurer)
+    private final LoggingSystemAdapter loggingSystem = new LoggingSystemAdapter(loggingConfigurer)
 
     def onUsesLoggingConfigurerToSetLoggingLevel() {
         when:

@@ -18,11 +18,14 @@ package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
 
-public class Slf4jLoggingSystem implements LoggingSystem {
+/**
+ * Adapts a {@link org.gradle.logging.LoggingConfigurer} to a {@link org.gradle.logging.LoggingSystem}.
+ */
+public class LoggingSystemAdapter implements LoggingSystem {
     private final LoggingConfigurer configurer;
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
-    public Slf4jLoggingSystem(LoggingConfigurer configurer) {
+    public LoggingSystemAdapter(LoggingConfigurer configurer) {
         this.configurer = configurer;
     }
 
