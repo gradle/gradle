@@ -16,21 +16,20 @@
 
 package org.gradle.logging;
 
+import org.gradle.api.Action;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.util.LineBufferingOutputStream;
 
-import java.io.IOException;
 import java.io.PrintStream;
 
 public class DefaultStandardOutputRedirector implements StandardOutputRedirector {
-    private static final String EOL = System.getProperty("line.separator");
     private PrintStream originalStdOut;
     private PrintStream originalStdErr;
-    private final OutputStreamImpl stdOut = new OutputStreamImpl();
-    private final OutputStreamImpl stdErr = new OutputStreamImpl();
-    private final PrintStream redirectedStdOut = new PrintStream(stdOut);
-    private final PrintStream redirectedStdErr = new PrintStream(stdErr);
+    private final WriteAction stdOut = new WriteAction();
+    private final WriteAction stdErr = new WriteAction();
+    private final PrintStream redirectedStdOut = new PrintStream(new LineBufferingOutputStream(stdOut, true));
+    private final PrintStream redirectedStdErr = new PrintStream(new LineBufferingOutputStream(stdErr, true));
 
     public void redirectStandardOutputTo(StandardOutputListener stdOutDestination) {
         stdOut.setDestination(stdOutDestination);
@@ -71,15 +70,11 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         return this;
     }
 
-    private static class OutputStreamImpl extends LineBufferingOutputStream {
+    private static class WriteAction implements Action<String> {
         private StandardOutputListener destination;
 
-        public OutputStreamImpl() throws IllegalArgumentException {
-        }
-
-        @Override
-        protected void writeLine(String message) throws IOException {
-            destination.onOutput(message + EOL);
+        public void execute(String message) {
+            destination.onOutput(message);
         }
 
         public void setDestination(StandardOutputListener destination) {

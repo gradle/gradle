@@ -301,11 +301,9 @@ public interface Script {
     void disableStandardOutputCapture();
 
     /**
-     * Starts redirection of standard output during to the logging system during script execution. By default
+     * <p>Starts redirection of standard output during to the logging system during script execution. By default
      * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks.
-     * <p/>
-     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
+     * ERROR level.</p>
      *
      * @param level The level standard out should be logged to.
      * @see #disableStandardOutputCapture()

@@ -21,8 +21,19 @@ import org.gradle.api.logging.LogLevel;
 public interface LoggingSystem {
     Snapshot snapshot();
 
+    /**
+     * Enables logging for this logging system at the given level.
+     *
+     * @param level The new level.
+     * @return the state of this logging system immediately before the changes are applied.
+     */
     Snapshot on(LogLevel level);
 
+    /**
+     * Disables logging for this logging system
+     *
+     * @return the state of this logging system immediately before the changes are applied.
+     */
     Snapshot off();
 
     void restore(Snapshot state);

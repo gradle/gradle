@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -29,18 +28,14 @@ import java.io.IOException;
 
 @RunWith(JMock.class)
 public class LineBufferingOutputStreamTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private Action<String> action;
-    private LineBufferingOutputStream outputStream;
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
+    private Action<String> action = context.mock(Action.class);
+    private LineBufferingOutputStream outputStream = new LineBufferingOutputStream(action, false, 8);
     private String eol;
 
     @Before
     public void setUp() {
         eol = System.getProperty("line.separator");
-
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        action = context.mock(Action.class);
-        outputStream = new TestOutputStream(8);
     }
 
     @After
@@ -55,6 +50,17 @@ public class LineBufferingOutputStreamTest {
             one(action).execute("line 2");
         }});
 
+        outputStream.write(String.format("line 1%nline 2%n").getBytes());
+    }
+
+    @Test
+    public void canReceiveEachLineWithSeparator() throws IOException {
+        context.checking(new Expectations() {{
+            one(action).execute(String.format("line 1%n"));
+            one(action).execute(String.format("line 2%n"));
+        }});
+
+        outputStream = new LineBufferingOutputStream(action, true);
         outputStream.write(String.format("line 1%nline 2%n").getBytes());
     }
 
@@ -76,7 +82,7 @@ public class LineBufferingOutputStreamTest {
         }});
 
         System.setProperty("line.separator", "-");
-        outputStream = new TestOutputStream(8);
+        outputStream = new LineBufferingOutputStream(action, false, 8);
 
         outputStream.write(String.format("line 1-line 2-").getBytes());
     }
@@ -89,7 +95,7 @@ public class LineBufferingOutputStreamTest {
         }});
 
         System.setProperty("line.separator", "----");
-        outputStream = new TestOutputStream(8);
+        outputStream = new LineBufferingOutputStream(action, false, 8);
 
         outputStream.write(String.format("line 1----line 2----").getBytes());
     }
@@ -128,16 +134,5 @@ public class LineBufferingOutputStreamTest {
     public void cannotWriteAfterClose() throws IOException {
         outputStream.close();
         outputStream.write("ignore me".getBytes());
-    }
-
-    private class TestOutputStream extends LineBufferingOutputStream {
-        public TestOutputStream(int bufferLength) throws IllegalArgumentException {
-            super(bufferLength);
-        }
-
-        @Override
-        protected void writeLine(String message) {
-            action.execute(message);
-        }
     }
 }

@@ -111,7 +111,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         BuildResult buildResult = new BuildResult(gradle, failure);
         buildListener.buildFinished(buildResult);
 
-        // Switching StandardOutputLogging off is important if the Gradle factory is used to
+        // Switching Logging off is important if the Gradle factory is used to
         // run multiple Gradle builds (each one requiring a new instances of GradleLauncher).
         // Switching it off shouldn't be strictly necessary as StandardOutput capturing should
         // always be closed. But as we expose this functionality to the builds, we can't

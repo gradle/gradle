@@ -1115,11 +1115,11 @@ public interface Project extends Comparable<Project> {
     void disableStandardOutputCapture();
 
     /**
-     * Starts redirection of standard output during to the logging system during project evaluation. By default
+     * <p>Starts redirection of standard output during to the logging system during project evaluation. By default
      * redirection is enabled and the output is redirected to the QUIET level. System.err is always redirected to the
-     * ERROR level. Redirection of output at execution time can be configured via the tasks. <p/> In a multi-project
-     * this is a per-project setting. <p/> For more fine-grained control on redirecting standard output see {@link
-     * org.gradle.api.logging.StandardOutputLogging}.
+     * ERROR level. Redirection of output at execution time can be configured via the tasks.</p>
+     * 
+     * <p>In a multi-project this is a per-project setting.</p>
      *
      * @param level The level standard out should be logged to.
      * @see #disableStandardOutputCapture()

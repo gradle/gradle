@@ -19,9 +19,10 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.process.BaseExecSpec;
 import org.gradle.util.GUtil;
-import org.gradle.util.LineBufferingOutputStream;
 
-import java.io.*;
+import java.io.ByteArrayInputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,8 +39,8 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);
-        standardOutput = new LineBuffer(System.out);
-        errorOutput = new LineBuffer(System.err);
+        standardOutput = System.out;
+        errorOutput = System.err;
     }
 
     public abstract List<String> getAllArguments();
@@ -97,20 +98,5 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
 
         return new DefaultExecHandle(getWorkingDir(), getExecutable(), getAllArguments(), getActualEnvironment(),
                 standardOutput, errorOutput, input, listeners);
-    }
-
-    private static class LineBuffer extends LineBufferingOutputStream {
-        private static final byte[] EOL = System.getProperty("line.separator").getBytes();
-        private final OutputStream target;
-
-        private LineBuffer(OutputStream target) {
-            this.target = target;
-        }
-
-        @Override
-        protected void writeLine(String message) throws IOException {
-            target.write(message.getBytes());
-            target.write(EOL);
-        }
     }
 }

@@ -22,6 +22,16 @@ package org.gradle.api.logging;
  */
 public interface LoggingManager extends StandardOutputCapture, LoggingOutput {
     /**
+     * {@inheritDoc}
+     */
+    LoggingManager start();
+
+    /**
+     * {@inheritDoc}
+     */
+    LoggingManager stop();
+
+    /**
      * Requests that output written to System.out and System.err be routed to Gradle's logging system. The default is
      * that System.out is routed to {@link LogLevel#LIFECYCLE} and System.err is routed to {@link LogLevel#ERROR}.
      *

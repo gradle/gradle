@@ -20,40 +20,36 @@ import ch.qos.logback.classic.Level;
 import ch.qos.logback.classic.spi.ILoggingEvent;
 import ch.qos.logback.classic.spi.LoggingEvent;
 import ch.qos.logback.core.Appender;
+import org.gradle.logging.LoggingTestHelper;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.slf4j.LoggerFactory;
 import org.slf4j.Marker;
 
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class LoggingTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
-    private Appender<ILoggingEvent> appender;
-    private ch.qos.logback.classic.Logger delegateLogger;
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
+    private final Appender<ILoggingEvent> appender = context.mock(Appender.class);
+    private final LoggingTestHelper helper = new LoggingTestHelper(appender);
 
     @Before
     public void attachAppender() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
-        appender = context.mock(Appender.class);
-        delegateLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger(LoggingTest.class);
-        delegateLogger.addAppender(appender);
-        delegateLogger.setLevel(Level.ALL);
+        helper.attachAppender();
     }
 
     @After
     public void detachAppender() {
-        delegateLogger.detachAppender(appender);
+        helper.detachAppender();
     }
 
     @Test
@@ -87,7 +83,7 @@ public class LoggingTest {
 
     @Test
     public void delegatesLevelIsEnabledToSlf4j() {
-        delegateLogger.setLevel(Level.WARN);
+        helper.setLevel(Level.WARN);
 
         Logger logger = Logging.getLogger(LoggingTest.class);
         assertTrue(logger.isErrorEnabled());

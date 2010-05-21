@@ -27,7 +27,6 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
-import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
@@ -151,11 +150,11 @@ public class ProjectBuilder {
             return this;
         }
 
-        public StandardOutputCapture start() {
+        public LoggingManager start() {
             return this;
         }
 
-        public StandardOutputCapture stop() {
+        public LoggingManager stop() {
             return this;
         }
 

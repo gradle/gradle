@@ -15,41 +15,38 @@
  */
 package org.gradle.util;
 
+import org.gradle.api.Action;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
 /**
- * An OutputStream which separates bytes written into lines. Uses the platform default encoding.
+ * An OutputStream which separates bytes written into lines. Uses the platform default encoding. Is not thread safe.
  *
  * @author Hans Dockter
  */
-public abstract class LineBufferingOutputStream extends OutputStream {
-    /**
-     * Used to maintain the contract of {@link #close()}.
-     */
-    private boolean hasBeenClosed ;
-
+public class LineBufferingOutputStream extends OutputStream {
+    private boolean hasBeenClosed;
     private final byte[] lineSeparator;
     private final int bufferIncrement;
-
-    /**
-     * The internal buffer where data is stored.
-     */
     private byte[] buf;
-
-    /**
-     * The number of valid bytes in the buffer. This value is always in the range <tt>0</tt> through
-     * <tt>buf.length</tt>; elements <tt>buf[0]</tt> through <tt>buf[count-1]</tt> contain valid byte data.
-     */
     private int count;
+    private final Output output;
 
-    public LineBufferingOutputStream()
-            throws IllegalArgumentException {
-        this(2048);
+    public LineBufferingOutputStream(Action<String> action) {
+        this(action, false, 2048);
     }
 
-    public LineBufferingOutputStream(int bufferLength)
-            throws IllegalArgumentException {
+    public LineBufferingOutputStream(Action<String> action, boolean includeEOL) {
+        this(action, includeEOL, 2048);
+    }
+
+    public LineBufferingOutputStream(Action<String> action, boolean includeEOL, int bufferLength) {
+        this(new StringOutput(includeEOL, action), bufferLength);
+    }
+
+    private LineBufferingOutputStream(Output output, int bufferLength) {
+        this.output = output;
         bufferIncrement = bufferLength;
         buf = new byte[bufferLength];
         count = 0;
@@ -120,22 +117,37 @@ public abstract class LineBufferingOutputStream extends OutputStream {
             if (endsWithLineSeparator()) {
                 length -= lineSeparator.length;
             }
-            String message = new String(buf, 0, length);
-            writeLine(message);
+            output.write(buf, length, count);
         }
         reset();
     }
-
-    /**
-     * Writes a line of output.
-     * @param message The output, without the line separator.
-     */
-    protected abstract void writeLine(String message) throws IOException;
 
     private void reset() {
         if (buf.length > bufferIncrement) {
             buf = new byte[bufferIncrement];
         }
         count = 0;
+    }
+
+    private interface Output {
+        void write(byte[] buffer, int textLength, int lineLength) throws IOException;
+    }
+
+    private static class StringOutput implements Output {
+        private final boolean includeEOL;
+        private final Action<String> action;
+
+        public StringOutput(boolean includeEOL, Action<String> action) {
+            this.includeEOL = includeEOL;
+            this.action = action;
+        }
+
+        public void write(byte[] buffer, int textLength, int lineLength) throws IOException {
+            if (includeEOL) {
+                action.execute(new String(buffer, 0, lineLength));
+            } else {
+                action.execute(new String(buffer, 0, textLength));
+            }
+        }
     }
 }

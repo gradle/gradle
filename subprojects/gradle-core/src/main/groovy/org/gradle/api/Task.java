@@ -376,11 +376,9 @@ public interface Task extends Comparable<Task> {
     Task disableStandardOutputCapture();
 
     /**
-     * Enables redirection of standard output during task execution to the logging system. By default redirection is
+     * <p>Enables redirection of standard output during task execution to the logging system. By default redirection is
      * enabled and the task output is redirected to the QUIET level. System.err is always redirected to the ERROR level.
-     * An exception is thrown, if this method is called during the execution of the task
-     *
-     * For more fine-grained control on redirecting standard output see {@link org.gradle.api.logging.StandardOutputLogging}.
+     * </p>
      *
      * @param level The level standard out should be logged to.
      * @return this

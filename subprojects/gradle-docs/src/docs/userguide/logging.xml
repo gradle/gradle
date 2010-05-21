@@ -173,8 +173,7 @@
         </sample>
         <para>
             Tasks and projects also offer a method <literal>disableStandardOutputCapture()</literal> which causes the
-            standard output to be send to the default standard output. If you need more fine grained control on how
-            standard output is redirected you can use the class <apilink class="org.gradle.api.logging.StandardOutputLogging"/>.
+            standard output to be send to the default standard output.
         </para>
         <para>Gradle also provides integration with the Java Util Logging, Jakarta Commons Logging and Log4j logging
             toolkits. Any log messages which your build classes write using these logging toolkits will be redirected to

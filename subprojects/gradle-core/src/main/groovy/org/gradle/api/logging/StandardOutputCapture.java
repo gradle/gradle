@@ -20,10 +20,7 @@ package org.gradle.api.logging;
  */
 public interface StandardOutputCapture {
     /**
-     * Starts output redirection to the Gradle logging system. System.out is redirected to the INFO level. System.err is
-     * always redirected to the ERROR level.
-     *
-     * For more fine-grained control see {@link org.gradle.api.logging.StandardOutputLogging}.
+     * Starts redirection of System.out and System.err to the Gradle logging system.
      *
      * @return this
      */

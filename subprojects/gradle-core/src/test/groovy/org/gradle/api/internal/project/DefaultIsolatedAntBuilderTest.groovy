@@ -27,30 +27,27 @@ import org.gradle.api.internal.project.ant.BasicAntBuilder
 import org.junit.After
 import org.junit.Before
 import org.junit.Test
-import org.slf4j.LoggerFactory
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.logging.LoggingTestHelper
 
 class DefaultIsolatedAntBuilderTest {
     private final ClassPathRegistry registry = new DefaultClassPathRegistry()
     private final DefaultIsolatedAntBuilder builder = new DefaultIsolatedAntBuilder(registry)
-    private TestAppender appender
-    private ch.qos.logback.classic.Logger delegateLogger
+    private final TestAppender appender = new TestAppender()
+    private final LoggingTestHelper helper = new LoggingTestHelper(appender)
     private Collection classpath
 
     @Before
     public void attachAppender() {
         classpath = registry.getClassPathFiles("ANT") + registry.getClassPathFiles("LOCAL_GROOVY")
-        appender = new TestAppender()
-        delegateLogger = (ch.qos.logback.classic.Logger) LoggerFactory.getLogger('ROOT')
-        delegateLogger.addAppender(appender)
-        appender.context = LoggerFactory.getILoggerFactory()
-        delegateLogger.setLevel(Level.INFO);
+        helper.attachAppender()
+        helper.setLevel(Level.INFO);
     }
 
     @After
     public void detachAppender() {
-        delegateLogger.detachAppender(appender);
+        helper.detachAppender()
     }
 
     @Test

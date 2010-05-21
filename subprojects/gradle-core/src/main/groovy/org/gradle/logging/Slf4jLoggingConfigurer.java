@@ -46,6 +46,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
     private LogEventFormatter consoleFormatter;
     private LogEventFormatter nonConsoleFormatter;
     private LogLevel currentLevel;
+    private final PrintStream defaultStdOut;
 
     public Slf4jLoggingConfigurer() {
         this(new TerminalDetector());
@@ -53,6 +54,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
 
     Slf4jLoggingConfigurer(Spec<FileDescriptor> terminalDetector) {
         this.terminalDetector = terminalDetector;
+        defaultStdOut = System.out;
     }
 
     Console createConsole() {
@@ -222,7 +224,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
         }
     }
 
-    private static class Appender extends AppenderBase<ILoggingEvent> {
+    private class Appender extends AppenderBase<ILoggingEvent> {
         private LogEventFormatter formatter;
 
         public void setFormatter(LogEventFormatter formatter) {
@@ -235,7 +237,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
                 formatter.format(event);
             } catch (Throwable t) {
                 // Give up and try stdout
-                t.printStackTrace(StandardOutputLogging.DEFAULT_ERR);
+                t.printStackTrace(defaultStdOut);
             }
         }
     }
