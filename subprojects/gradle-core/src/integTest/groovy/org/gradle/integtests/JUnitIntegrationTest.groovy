@@ -57,28 +57,36 @@ public class JUnitIntegrationTest {
     public void reportsAndBreaksBuildWhenTestFails() {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file('build.gradle');
-        buildFile << '''
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies { testCompile 'junit:junit:4.7' }
-        '''
-        testDir.file("src/test/java/org/gradle/BrokenTest.java") << '''
-            package org.gradle;
-            public class BrokenTest {
-                @org.junit.Test public void broken() { org.junit.Assert.fail("failed"); }
-            }
-        '''
         ExecutionFailure failure = executer.withTasks('build').runWithFailure();
 
         failure.assertHasFileName("Build file '${buildFile}'");
         failure.assertHasDescription("Execution failed for task ':test'.");
         failure.assertThatCause(startsWith('There were failing tests.'));
 
-        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
-        result.assertTestClassesExecuted('org.gradle.BrokenTest')
-        result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('failed'))
-
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenTest FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBefore FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfter FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBeforeClass FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfterClass FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenConstructor FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.Unloadable FAILED'));
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
+        result.assertTestClassesExecuted(
+                'org.gradle.BrokenTest',
+                'org.gradle.BrokenBefore',
+                'org.gradle.BrokenAfter',
+                'org.gradle.BrokenBeforeClass',
+                'org.gradle.BrokenAfterClass',
+                'org.gradle.BrokenConstructor',
+                'org.gradle.Unloadable')
+        result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('failed'))
+        result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('failed'))
+        result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('failed'))
+        result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('failed'))
+        result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('failed'))
+        result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('failed'))
+        result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('failed'))
     }
 
     @Test
