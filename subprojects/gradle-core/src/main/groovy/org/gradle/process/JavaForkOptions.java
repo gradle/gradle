@@ -141,6 +141,22 @@ public interface JavaForkOptions extends ProcessForkOptions {
     void setEnableAssertions(boolean enabled);
 
     /**
+     * Returns true if debugging is enabled for the process. When enabled, the process is started suspended and
+     * listening on port 5005.
+     *
+     * @return true when debugging is enabled, false to disable.
+     */
+    boolean getDebug();
+
+    /**
+     * Enable or disable debugging for the process. When enabled, the process is started suspended and listening on port
+     * 5005.
+     *
+     * @param enabled true to enable debugging, false to disable.
+     */
+    void setDebug(boolean enabled);
+
+    /**
      * Returns the full set of arguments to use to launch the JVM for the process. This includes arguments to define
      * system properties, the maximum heap size, and the bootstrap classpath.
      *

@@ -176,6 +176,20 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public boolean getDebug() {
+        return javaExecHandleBuilder.getDebug();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setDebug(boolean enabled) {
+        javaExecHandleBuilder.setDebug(enabled);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public String getMain() {
         return javaExecHandleBuilder.getMain();
     }

@@ -247,6 +247,20 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    public boolean getDebug() {
+        return options.getDebug();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setDebug(boolean enabled) {
+        options.setDebug(enabled);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public List<String> getAllJvmArgs() {
         return options.getAllJvmArgs();
     }

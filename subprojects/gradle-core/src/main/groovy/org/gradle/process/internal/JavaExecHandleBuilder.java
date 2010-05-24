@@ -122,6 +122,14 @@ public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements 
         javaOptions.setEnableAssertions(enabled);
     }
 
+    public boolean getDebug() {
+        return javaOptions.getDebug();
+    }
+
+    public void setDebug(boolean enabled) {
+        javaOptions.setDebug(enabled);
+    }
+
     public String getMain() {
         return mainClass;
     }

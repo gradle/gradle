@@ -37,6 +37,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
     private FileCollection bootstrapClasspath;
     private String maxHeapSize;
     private boolean assertionsEnabled;
+    private boolean debug;
 
     public DefaultJavaForkOptions(FileResolver resolver) {
         this(resolver, Jvm.current());
@@ -67,6 +68,10 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         }
         if (assertionsEnabled) {
             args.add("-ea");
+        }
+        if (debug) {
+            args.add("-Xdebug");
+            args.add("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005");
         }
         return args;
     }
@@ -126,6 +131,27 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
             extraJvmArgs.add(argument);
         }
+        
+        boolean xdebugFound = false;
+        boolean xrunjdwpFound = false;
+        Set<Object> matches = new HashSet<Object>();
+        for (Object extraJvmArg : extraJvmArgs) {
+            if (extraJvmArg.toString().equals("-Xdebug")) {
+                xdebugFound = true;
+                matches.add(extraJvmArg);
+            }
+            else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
+                xrunjdwpFound = true;
+                matches.add(extraJvmArg);
+            }
+        }
+        if (xdebugFound && xrunjdwpFound) {
+            debug = true;
+            extraJvmArgs.removeAll(matches);
+        }else {
+            debug = false;
+        }
+
         return this;
     }
 
@@ -182,6 +208,14 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         assertionsEnabled = enabled;
     }
 
+    public boolean getDebug() {
+        return debug;
+    }
+
+    public void setDebug(boolean enabled) {
+        debug = enabled;
+    }
+
     public JavaForkOptions copyTo(JavaForkOptions target) {
         super.copyTo(target);
         target.setJvmArgs(extraJvmArgs);
@@ -189,6 +223,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         target.setMaxHeapSize(maxHeapSize);
         target.setBootstrapClasspath(bootstrapClasspath);
         target.setEnableAssertions(assertionsEnabled);
+        target.setDebug(debug);
         return this;
     }
 }

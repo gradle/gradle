@@ -38,7 +38,7 @@ public class DefaultJavaForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FileResolver resolver = context.mock(FileResolver.class)
     private DefaultJavaForkOptions options = new DefaultJavaForkOptions(resolver, Jvm.current())
-    
+
     @Test
     public void defaultValues() {
         assertThat(options.executable, notNullValue())
@@ -47,6 +47,7 @@ public class DefaultJavaForkOptionsTest {
         assertThat(options.maxHeapSize, nullValue())
         assertThat(options.bootstrapClasspath.files, isEmpty())
         assertFalse(options.enableAssertions)
+        assertFalse(options.debug)
         assertThat(options.allJvmArgs, isEmpty())
     }
 
@@ -136,6 +137,7 @@ public class DefaultJavaForkOptionsTest {
     public void assertionsEnabledIsUpdatedWhenSetUsingJvmArgs() {
         options.jvmArgs('-ea')
         assertTrue(options.enableAssertions)
+        assertThat(options.jvmArgs, equalTo([]))
 
         options.allJvmArgs = []
         assertFalse(options.enableAssertions)
@@ -147,6 +149,45 @@ public class DefaultJavaForkOptionsTest {
         assertFalse(options.enableAssertions)
     }
 
+    @Test
+    public void allJvmArgsIncludeDebugArgs() {
+        assertThat(options.allJvmArgs, equalTo([]))
+
+        options.debug = true
+
+        assertThat(options.allJvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']))
+    }
+
+    @Test
+    public void debugIsUpdatedWhenSetUsingJvmArgs() {
+        options.jvmArgs('-Xdebug', '-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005')
+        assertTrue(options.debug)
+        assertThat(options.jvmArgs, equalTo([]))
+
+        options.allJvmArgs = []
+        assertFalse(options.debug)
+
+        options.jvmArgs = ['-Xdebug']
+        assertFalse(options.debug)
+        assertThat(options.jvmArgs, equalTo(['-Xdebug']))
+
+        options.jvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']
+        assertFalse(options.debug)
+        assertThat(options.jvmArgs, equalTo(['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005']))
+
+        options.jvmArgs '-Xdebug'
+        assertTrue(options.debug)
+        assertThat(options.jvmArgs, equalTo([]))
+
+        options.jvmArgs = ['-Xdebug', '-Xrunjdwp:transport=other']
+        assertFalse(options.debug)
+        assertThat(options.jvmArgs, equalTo(['-Xdebug', '-Xrunjdwp:transport=other']))
+
+        options.allJvmArgs = ['-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005', '-Xdebug']
+        assertTrue(options.debug)
+        assertThat(options.jvmArgs, equalTo([]))
+    }
+    
     @Test
     public void canSetBootstrapClasspath() {
         def bootstrapClasspath = [:] as FileCollection
@@ -173,7 +214,7 @@ public class DefaultJavaForkOptionsTest {
 
         context.checking {
             allowing(resolver).resolveFiles(['file.jar'])
-            will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'} ] as FileCollection))
+            will(returnValue([isEmpty: {false}, getAsPath: {'<classpath>'}] as FileCollection))
         }
 
         assertThat(options.allJvmArgs, equalTo(['-Xbootclasspath:' + files.join(System.properties['path.separator'])]))
@@ -205,6 +246,7 @@ public class DefaultJavaForkOptionsTest {
             one(target).setMaxHeapSize('1g')
             one(target).setBootstrapClasspath(options.bootstrapClasspath)
             one(target).setEnableAssertions(false)
+            one(target).setDebug(false)
             ignoring(target)
         }
 
