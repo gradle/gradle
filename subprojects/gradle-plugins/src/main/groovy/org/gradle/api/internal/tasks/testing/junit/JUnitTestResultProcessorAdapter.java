@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import junit.framework.AssertionFailedError;
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestListener;
+import junit.framework.*;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
@@ -42,23 +39,38 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
     }
 
     public void startTest(Test test) {
-        TestDescriptorInternal testInternal;
+        TestDescriptorInternal descriptor = convert(idGenerator.generateId(), test);
+        doStartTest(test, descriptor);
+    }
+
+    private void doStartTest(Test test, TestDescriptorInternal descriptor) {
         synchronized (lock) {
-            testInternal = convert(idGenerator.generateId(), test);
-            TestDescriptorInternal oldTest = executing.put(test, testInternal);
+            TestDescriptorInternal oldTest = executing.put(test, descriptor);
             assert oldTest == null;
         }
         long startTime = timeProvider.getCurrentTime();
-        resultProcessor.started(testInternal, new TestStartEvent(startTime));
+        resultProcessor.started(descriptor, new TestStartEvent(startTime));
     }
 
     public void addError(Test test, Throwable throwable) {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.get(test);
-            assert testInternal != null;
+        }
+        boolean needEndEvent = false;
+        if (testInternal == null) {
+            // this happens when @AfterClass fails, for example. Synthesise a start and end events
+            assert test instanceof TestSuite;
+            TestSuite suite = (TestSuite) test;
+            needEndEvent = true;
+            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), suite.getName(), "classMethod");
+            doStartTest(test, testInternal);
         }
         resultProcessor.failure(testInternal.getId(), throwable);
+
+        if (needEndEvent) {
+            endTest(test);
+        }
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {

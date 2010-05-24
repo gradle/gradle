@@ -17,8 +17,11 @@
 package org.gradle.api.internal.tasks.testing.results;
 
 import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 public class LoggingResultProcessor implements TestResultProcessor {
+    private static final Logger LOGGER = Logging.getLogger(LoggingResultProcessor.class);
     private final String prefix;
     private final TestResultProcessor processor;
 
@@ -28,23 +31,22 @@ public class LoggingResultProcessor implements TestResultProcessor {
     }
 
     public void started(TestDescriptorInternal test, TestStartEvent event) {
-        System.out.println(String.format("%s START %s %s", prefix, test.getId(), test));
+        LOGGER.lifecycle("{} START {} {}", prefix, test.getId(), test);
         processor.started(test, event);
     }
 
     public void failure(Object testId, Throwable result) {
-        System.out.println(String.format("%s FAILED %s", prefix, testId));
+        LOGGER.lifecycle("{} FAILED {}", prefix, testId);
         processor.failure(testId, result);
     }
 
     public void completed(Object testId, TestCompleteEvent event) {
-        System.out.println(String.format("%s COMPLETED %s %s", prefix, testId, event.getResultType()));
+        LOGGER.lifecycle("{} COMPLETED {} {}", prefix, testId, event.getResultType());
         processor.completed(testId, event);
     }
 
     public void output(Object testId, TestOutputEvent event) {
-        System.out.println(String.format("%s OUTPUT %s %s [%s]", prefix, testId, event.getDestination(),
-                event.getMessage()));
+        LOGGER.lifecycle("{} OUTPUT {} {} [{}]", prefix, testId, event.getDestination(), event.getMessage());
         processor.output(testId, event);
     }
 }

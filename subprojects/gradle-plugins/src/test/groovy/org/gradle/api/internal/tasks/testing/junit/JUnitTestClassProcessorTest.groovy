@@ -38,6 +38,7 @@ import org.junit.runner.notification.RunNotifier
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.logging.StandardOutputRedirector
+import org.junit.BeforeClass
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
@@ -333,6 +334,34 @@ class JUnitTestClassProcessorTest {
     }
 
     @Test
+    public void executesATestClassWithBrokenClassSetup() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenClassSetup.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('classMethod'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenClassSetup.class.name))
+            }
+            one(resultProcessor).failure(2L, ATestClassWithBrokenClassSetup.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenClassSetup.class));
+        processor.stop();
+    }
+
+    @Test
     public void executesATestClassWithRunnerThatCannotBeConstructed() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
@@ -431,6 +460,19 @@ public static class ATestClassWithBrokenSetup {
 
     @Before
     public void setup() {
+        throw failure.fillInStackTrace()
+    }
+
+    @Test
+    public void test() {
+    }
+}
+
+public static class ATestClassWithBrokenClassSetup {
+    static RuntimeException failure = new RuntimeException()
+
+    @BeforeClass
+    public static void setup() {
         throw failure.fillInStackTrace()
     }
 
