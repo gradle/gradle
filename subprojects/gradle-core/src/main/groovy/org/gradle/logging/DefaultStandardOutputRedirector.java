@@ -19,7 +19,7 @@ package org.gradle.logging;
 import org.gradle.api.Action;
 import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.util.LineBufferingOutputStream;
+import org.gradle.util.LinePerThreadBufferingOutputStream;
 
 import java.io.PrintStream;
 
@@ -28,8 +28,8 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
     private PrintStream originalStdErr;
     private final WriteAction stdOut = new WriteAction();
     private final WriteAction stdErr = new WriteAction();
-    private final PrintStream redirectedStdOut = new PrintStream(new LineBufferingOutputStream(stdOut, true));
-    private final PrintStream redirectedStdErr = new PrintStream(new LineBufferingOutputStream(stdErr, true));
+    private final PrintStream redirectedStdOut = new LinePerThreadBufferingOutputStream(stdOut, true);
+    private final PrintStream redirectedStdErr = new LinePerThreadBufferingOutputStream(stdErr, true);
 
     public void redirectStandardOutputTo(StandardOutputListener stdOutDestination) {
         stdOut.setDestination(stdOutDestination);
@@ -64,10 +64,15 @@ public class DefaultStandardOutputRedirector implements StandardOutputRedirector
         } finally {
             originalStdOut = null;
             originalStdErr = null;
-            stdOut.setDestination(null);
-            stdErr.setDestination(null);
+            stdOut.setDestination(new DiscardAction());
+            stdErr.setDestination(new DiscardAction());
         }
         return this;
+    }
+
+    private static class DiscardAction implements StandardOutputListener {
+        public void onOutput(CharSequence output) {
+        }
     }
 
     private static class WriteAction implements Action<String> {

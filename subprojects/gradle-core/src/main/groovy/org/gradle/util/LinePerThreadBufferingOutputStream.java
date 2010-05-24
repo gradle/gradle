@@ -25,16 +25,22 @@ import java.util.Locale;
 
 public class LinePerThreadBufferingOutputStream extends PrintStream {
     private final Action<String> listener;
+    private final boolean includeEol;
     private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>(){
         @Override
         protected PrintStream initialValue() {
-            return new PrintStream(new LineBufferingOutputStream(listener));
+            return new PrintStream(new LineBufferingOutputStream(listener, includeEol));
         }
     };
 
     public LinePerThreadBufferingOutputStream(Action<String> listener) {
+        this(listener, false);
+    }
+
+    public LinePerThreadBufferingOutputStream(Action<String> listener, boolean includeEol) {
         super(new ByteArrayOutputStream());
         this.listener = listener;
+        this.includeEol = includeEol;
     }
 
     private PrintStream getStream() {
