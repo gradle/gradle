@@ -60,10 +60,12 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
 
     private Set<ExcludeRule> excludeRules = new LinkedHashSet<ExcludeRule>();
 
-    private State state = State.UNRESOLVED;
-
-    private ResolvedConfiguration cachedResolvedConfiguration;
     private final ConfigurationTaskDependency taskDependency = new ConfigurationTaskDependency();
+
+    // This lock only protects the following fields
+    private final Object lock = new Object();
+    private State state = State.UNRESOLVED;
+    private ResolvedConfiguration cachedResolvedConfiguration;
 
     public DefaultConfiguration(String path, String name, ConfigurationsProvider configurationsProvider,
                                 IvyService ivyService) {
@@ -78,7 +80,9 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public State getState() {
-        return state;
+        synchronized (lock) {
+            return state;
+        }
     }
 
     public boolean isVisible() {
@@ -190,15 +194,17 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public ResolvedConfiguration getResolvedConfiguration() {
-        if (state == State.UNRESOLVED) {
-            cachedResolvedConfiguration = ivyService.resolve(this);
-            if (cachedResolvedConfiguration.hasError()) {
-                state = State.RESOLVED_WITH_FAILURES;
-            } else {
-                state = State.RESOLVED;
+        synchronized (lock) {
+            if (state == State.UNRESOLVED) {
+                cachedResolvedConfiguration = ivyService.resolve(this);
+                if (cachedResolvedConfiguration.hasError()) {
+                    state = State.RESOLVED_WITH_FAILURES;
+                } else {
+                    state = State.RESOLVED;
+                }
             }
+            return cachedResolvedConfiguration;
         }
-        return cachedResolvedConfiguration;
     }
 
     public void publish(List<DependencyResolver> publishResolvers, File descriptorDestination) {
@@ -335,14 +341,6 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         return Configurations.uploadTaskName(getName());
     }
 
-    public IvyService getIvyService() {
-        return ivyService;
-    }
-
-    public ConfigurationsProvider getConfigurationsProvider() {
-        return configurationsProvider;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -428,7 +426,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     private void throwExceptionIfNotInUnresolvedState() {
-        if (state != State.UNRESOLVED) {
+        if (getState() != State.UNRESOLVED) {
             throw new InvalidUserDataException("You can't change a configuration which is not in unresolved state!");
         }
     }
@@ -471,7 +469,7 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public ConfigurationFileCollection(Closure dependencySpecClosure) {
-            this.dependencySpec = Specs.<Dependency>convertClosureToSpec(dependencySpecClosure);
+            this.dependencySpec = Specs.convertClosureToSpec(dependencySpecClosure);
         }
 
         public ConfigurationFileCollection(final Set<Dependency> dependencies) {
@@ -491,11 +489,13 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
         }
 
         public Set<File> getFiles() {
-            ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
-            if (state == State.RESOLVED_WITH_FAILURES) {
-                resolvedConfiguration.rethrowFailure();
+            synchronized (lock) {
+                ResolvedConfiguration resolvedConfiguration = getResolvedConfiguration();
+                if (getState() == State.RESOLVED_WITH_FAILURES) {
+                    resolvedConfiguration.rethrowFailure();
+                }
+                return resolvedConfiguration.getFiles(dependencySpec);
             }
-            return resolvedConfiguration.getFiles(dependencySpec);
         }
     }
 
