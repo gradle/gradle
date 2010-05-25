@@ -53,6 +53,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
         if (result.getGradle() == gradle) {
             progressLogger.completed();
             progressLogger = null;
+            gradle = null;
         }
     }
 }

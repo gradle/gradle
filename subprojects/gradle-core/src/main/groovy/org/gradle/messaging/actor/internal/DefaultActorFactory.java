@@ -64,7 +64,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
     private void stopped(ActorImpl actor) {
         synchronized (lock) {
-            actors.remove(actor);
+            actors.values().remove(actor);
         }
     }
 
