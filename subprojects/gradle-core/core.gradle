@@ -17,6 +17,7 @@
 
 
 import java.text.DateFormat
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 apply plugin: 'groovy'
 
@@ -100,6 +101,20 @@ task ideVersionProperties(type: WriteVersionProperties) {
 }
 
 ide.dependsOn ideVersionProperties
+
+ideaModule {
+    dependsOn ideVersionProperties
+    sourceDirs += project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() +
+            project.sourceSets.integTest.groovy.srcDirs + new File(ideDir, "resources/test/")
+    testSourceDirs = []
+    scopes.compile.plus.addAll(scopes.test.plus + configurations.detachedConfiguration(
+            new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs as File[]))))
+    scopes.compile.plus.addAll([configurations.integTestCompile])
+    scopes.runtime.plus.addAll([configurations.integTestRuntime])
+    scopes.runtime.minus.addAll([configurations.integTestCompile])
+    scopes.remove('test')
+}
+
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 
