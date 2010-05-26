@@ -19,11 +19,12 @@ package org.gradle.api.internal.tasks.testing.testng;
 import org.gradle.api.Action;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkInstance;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
+import org.gradle.api.internal.tasks.testing.junit.JULRedirector;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.IdGenerator;
 
@@ -34,16 +35,14 @@ import java.util.List;
 /**
  * @author Tom Eyckmans
  */
-public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
+public class TestNGTestFrameworkInstance implements TestFrameworkInstance {
 
     private TestNGOptions options;
     private TestNGDetector detector;
+    private final Test testTask;
 
-    protected TestNGTestFrameworkInstance(Test testTask, TestNGTestFramework testFramework) {
-        super(testTask, testFramework);
-    }
-
-    public void initialize() {
+    protected TestNGTestFrameworkInstance(Test testTask) {
+        this.testTask = testTask;
         options = new TestNGOptions(testTask.getProject().getProjectDir());
         options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property(
                 "sourceCompatibility")));
@@ -93,7 +92,7 @@ public class TestNGTestFrameworkInstance extends AbstractTestFrameworkInstance {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class));
+            return new TestNGTestClassProcessor(testReportDir, options, suiteFiles, serviceRegistry.get(IdGenerator.class), new JULRedirector());
         }
     }
 }

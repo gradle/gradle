@@ -43,6 +43,7 @@ import org.gradle.util.LongIdGenerator
 import org.junit.Ignore
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.logging.StandardOutputRedirector
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
@@ -50,7 +51,7 @@ class TestNGTestClassProcessorTest {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final TestResultProcessor resultProcessor = context.mock(TestResultProcessor.class);
     private final TestNGOptions options = new TestNGOptions(tmpDir.dir)
-    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, options, [], new LongIdGenerator());
+    private final TestNGTestClassProcessor processor = new TestNGTestClassProcessor(tmpDir.dir, options, [], new LongIdGenerator(), {} as StandardOutputRedirector);
 
     @Test
     public void executesATestClass() {

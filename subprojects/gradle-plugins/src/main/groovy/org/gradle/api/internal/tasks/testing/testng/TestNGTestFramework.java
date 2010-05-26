@@ -25,6 +25,6 @@ import org.gradle.api.tasks.testing.TestFramework;
 public class TestNGTestFramework implements TestFramework {
 
     public TestFrameworkInstance getInstance(Test testTask) {
-        return new TestNGTestFrameworkInstance(testTask, this);
+        return new TestNGTestFrameworkInstance(testTask);
     }
 }

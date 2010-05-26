@@ -289,7 +289,6 @@ public class TestTest extends AbstractConventionTaskTest {
         context.checking(new Expectations(){{
             one(testFrameworkMock).getInstance(test);
             will(returnValue(testFrameworkInstanceMock));
-            one(testFrameworkInstanceMock).initialize();
         }});
 
         test.useTestFramework(testFrameworkMock);

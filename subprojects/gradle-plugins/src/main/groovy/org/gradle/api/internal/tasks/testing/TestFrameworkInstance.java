@@ -28,8 +28,6 @@ public interface TestFrameworkInstance {
 
     TestFrameworkDetector getDetector();
 
-    void initialize();
-
     void report();
 
     TestFrameworkOptions getOptions();

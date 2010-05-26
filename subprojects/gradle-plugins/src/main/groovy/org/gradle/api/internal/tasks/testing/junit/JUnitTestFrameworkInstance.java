@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkInstance;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
@@ -32,16 +32,14 @@ import java.io.Serializable;
 /**
  * @author Tom Eyckmans
  */
-public class JUnitTestFrameworkInstance extends AbstractTestFrameworkInstance {
+public class JUnitTestFrameworkInstance implements TestFrameworkInstance {
     private AntJUnitReport antJUnitReport;
     private JUnitOptions options;
     private JUnitDetector detector;
+    private final Test testTask;
 
-    protected JUnitTestFrameworkInstance(Test testTask, JUnitTestFramework testFramework) {
-        super(testTask, testFramework);
-    }
-
-    public void initialize() {
+    protected JUnitTestFrameworkInstance(Test testTask) {
+        this.testTask = testTask;
         antJUnitReport = new AntJUnitReport();
         options = new JUnitOptions();
         detector = new JUnitDetector(testTask.getTestClassesDir(), testTask.getClasspath());

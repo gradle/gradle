@@ -44,33 +44,30 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
     public void setUp() throws Exception {
         super.setUp();
 
-        TestNGTestFramework testNgTestFrameworkMock = context.mock(TestNGTestFramework.class);
         testngOptionsMock = context.mock(TestNGOptions.class);
         idGeneratorMock = context.mock(IdGenerator.class);
         serviceRegistry = context.mock(ServiceRegistry.class);
 
-        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock, testNgTestFrameworkMock);
+        final JavaVersion sourceCompatibility = JavaVersion.VERSION_1_5;
+        context.checking(new Expectations() {{
+            allowing(projectMock).getProjectDir(); will(returnValue(new File("projectDir")));
+            allowing(projectMock).property("sourceCompatibility"); will(returnValue(sourceCompatibility));
+            allowing(testMock).getTestClassesDir();will(returnValue(testClassesDir));
+            allowing(testMock).getClasspath();will(returnValue(classpathMock));
+        }});
     }
 
     @org.junit.Test
     public void testInitialize() {
+        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock);
         setMocks();
-
-        final JavaVersion sourceCompatibility = JavaVersion.VERSION_1_5;
-        context.checking(new Expectations() {{
-            one(projectMock).getProjectDir(); will(returnValue(new File("projectDir")));
-            one(projectMock).property("sourceCompatibility"); will(returnValue(sourceCompatibility));
-            one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
-            one(testMock).getClasspath();will(returnValue(classpathMock));
-        }});
-
-        testNGTestFrameworkInstance.initialize();
 
         assertNotNull(testNGTestFrameworkInstance.getOptions());
     }
 
     @org.junit.Test
     public void testCreatesTestProcessor() {
+        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock);
         setMocks();
 
         context.checking(new Expectations() {{

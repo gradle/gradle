@@ -32,9 +32,7 @@ import static org.junit.Assert.*;
  * @author Tom Eyckmans
  */
 public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanceTest {
-
     private JUnitTestFrameworkInstance jUnitTestFrameworkInstance;
-
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
     private IdGenerator<?> idGenerator;
@@ -44,25 +42,21 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
     public void setUp() throws Exception {
         super.setUp();
 
-        JUnitTestFramework jUnitTestFrameworkMock = context.mock(JUnitTestFramework.class);
         antJUnitReportMock = context.mock(AntJUnitReport.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         idGenerator = context.mock(IdGenerator.class);
         serviceRegistry = context.mock(ServiceRegistry.class);
 
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock, jUnitTestFrameworkMock);
+        context.checking(new Expectations(){{
+            allowing(testMock).getTestClassesDir();will(returnValue(testClassesDir));
+            allowing(testMock).getClasspath();will(returnValue(classpathMock));
+        }});
     }
 
     @org.junit.Test
     public void testInitialize() {
+        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
         setMocks();
-
-        context.checking(new Expectations() {{
-            one(testMock).getTestClassesDir();will(returnValue(testClassesDir));
-            one(testMock).getClasspath();will(returnValue(classpathMock));
-        }});
-
-        jUnitTestFrameworkInstance.initialize();
 
         assertNotNull(jUnitTestFrameworkInstance.getOptions());
         assertNotNull(jUnitTestFrameworkInstance.getAntJUnitReport());
@@ -70,6 +64,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
     @org.junit.Test
     public void testCreatesTestProcessor() {
+        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
         setMocks();
 
         context.checking(new Expectations() {{
@@ -83,6 +78,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
     @org.junit.Test
     public void testReport() {
+        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
         setMocks();
 
         context.checking(new Expectations() {{
@@ -101,6 +97,7 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
     @org.junit.Test
     public void testReportWithDisabledReport() {
+        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
         setMocks();
 
         context.checking(new Expectations() {{

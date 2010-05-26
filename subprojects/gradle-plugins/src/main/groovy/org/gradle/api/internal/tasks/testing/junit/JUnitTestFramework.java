@@ -24,6 +24,6 @@ import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
  */
 public class JUnitTestFramework implements TestFramework {
     public TestFrameworkInstance getInstance(Test testTask) {
-        return new JUnitTestFrameworkInstance(testTask, this);
+        return new JUnitTestFrameworkInstance(testTask);
     }
 }

@@ -642,8 +642,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
         this.testFrameworkInstance = testFramework.getInstance(this);
 
-        testFrameworkInstance.initialize();
-
         if (testFrameworkConfigure != null) {
             ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
         }

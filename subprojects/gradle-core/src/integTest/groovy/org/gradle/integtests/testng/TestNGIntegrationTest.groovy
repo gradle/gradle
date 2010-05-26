@@ -111,6 +111,7 @@ public class TestNGIntegrationTest {
         '''
         testDir.file("src/test/java/org/gradle/OkTest.java") << """
             package org.gradle;
+            import java.util.logging.Logger;
             import static org.testng.Assert.*;
             public class OkTest {
                 @org.testng.annotations.Test public void ok() throws Exception {
@@ -124,10 +125,18 @@ public class TestNGIntegrationTest {
                     assertEquals("value", System.getProperty("testSysProperty"));
                     // check env vars
                     assertEquals("value", System.getenv("TEST_ENV_VAR"));
+                    // check logging
+                    System.out.println("stdout");
+                    System.err.println("stderr");
+                    Logger.getLogger("test").warning("a warning");
                 }
             }
         """
-        executer.withTasks('build').run();
+
+        ExecutionResult result = executer.withTasks('build').withArguments('-s').run();
+        assertThat(result.output, not(containsString('stdout')))
+        assertThat(result.error, not(containsString('stderr')))
+        assertThat(result.error, not(containsString('a warning')))
 
         new TestNgExecutionResult(testDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
