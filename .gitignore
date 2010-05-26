@@ -2,6 +2,7 @@
 .gradle
 build
 out
+intellij
 userguide-trunk.tmproj
 buildSrc/lib
 buildSrc/build
