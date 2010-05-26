@@ -1040,85 +1040,123 @@
 
     <section id='sec:java_test'>
         <title>Test</title>
-        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>. It
-            executes all unit tests found in the <literal>test</literal> source set.
+        <para>The <literal>test</literal> task is an instance of <apilink class="org.gradle.api.tasks.testing.Test"/>.
+            It automatically detects and executes all unit tests in the <literal>test</literal> source set.
+            It also generates a report once test execution is complete. JUnit and TestNG are both supported.
+            Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/> for the complete API.
         </para>
-        <table>
-            <title>Java plugin - test properties</title>
-            <thead>
-                <tr>
-                    <td>Task Property</td>
-                    <td>Type</td>
-                    <td>Default Value</td>
-                </tr>
-            </thead>
-            <tr>
-                <td><literal>testClassesDir</literal></td>
-                <td><classname>File</classname></td>
-                <td><literal>sourceSets.test.classesDir</literal></td>
-            </tr>
-            <tr>
-                <td><literal>classpath</literal></td>
-                <td><apilink class="org.gradle.api.file.FileCollection"/></td>
-                <td><literal>sourceSets.test.runtimeClasspath</literal></td>
-            </tr>
-            <tr>
-                <td><literal>testResultsDir</literal></td>
-                <td><classname>File</classname></td>
-                <td><literal>testResultsDir</literal></td>
-            </tr>
-            <tr>
-                <td><literal>testReportDir</literal></td>
-                <td><classname>File</classname></td>
-                <td><literal>testReportDir</literal></td>
-            </tr>
-            <tr>
-                <td><literal>testSrcDirs</literal></td>
-                <td><classname>List&lt;File></classname></td>
-                <td><literal>sourceSets.test.java.srcDirs</literal></td>
-            </tr>
-        </table>
-        <para>Have a look at <apilink class="org.gradle.api.tasks.testing.Test"/>
-            for its complete API. Right now the test results are always in XML-format. The task has a
-            <literal>ignoreFailures</literal>
-            property to control the behavior when tests are failing. Test
-            <emphasis>always</emphasis>
-            executes all tests. It stops the build afterwards if
-            <literal>ignoreFailures</literal>
-            is false and there are failing tests or tests that have thrown an uncaught exception. The default
-            value of <literal>ignoreFailures</literal> is false.
-        </para>
-        <para>Per default the tests are run in a forked JVM and the fork is done per test. You can modify this behavior
-            by setting forking to false or set the forkmode to once.
-        </para>
-        <para>The Test task detects which classes are test classes by inspecting the compiled test classes.
-            By default it scans all <emphasis>.class</emphasis> files. You can set custom includes / excludes, only those
-            classes will be scanned. Depending on the Test framework used (JUnit / TestNG) the test class detection uses different criteria.
-        </para>
-        <para>
-            When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the following criteria match, the
-            class is considered to be a JUnit test class. Extend TestCase or GroovyTestCase, Class annotated with RunWith or
-            contain a method annotated with Test (inherited test methods are detected).
-        </para>
-        <para>
-            When using TestNG, we scan for methods annotated with Test (inherited test methods are detected).
-        </para>
-        <para>
-            Since 0.6.1 we scan up the inheritance tree into jar files on the test classpath.
-        </para>
-        <para>
-            In case you don't want to use the test class detection, you can disable it by setting scanForTestClasses to false.
-            This will make the test task only use the includes / excludes to find test classes.
 
-            If <code>scanForTestClasses</code> is disabled and no include or exclude patterns are specified, the
-            respective defaults are used. For include this is <literal>"**/*Tests.class", "**/*Test.class"</literal>
-            and the for exclude it is <literal>"**/Abstract*.class"</literal>.
-        </para>
-        <para>Both JUnit and TestNG are supported through their Ant tasks.</para>
-        <para>
-            Regarding TestNG reporting, when the test report is disabled the default TestNG listeners are disabled
-            (options.useDefaultListeners is set to false). 
-        </para>
+        <section>
+            <title>Test execution</title>
+            <para>Tests are executed in a separate isolated JVM. The <apilink class="org.gradle.api.tasks.testing.Test"/> task's
+                API allows you some control over how this happens.
+            </para>
+            <para>There are a number of properties which control how the test process is launched. This includes
+                things such as system properties, JVM arguments, and the Java executable to use. The task also provides a
+                <literal>debug</literal> property, which when set to true, starts the test process in debug mode,
+                suspended and listening on port 5005. This makes it very easy to debug your tests.
+            </para>
+            <para>You can specify whether or not to execute your tests in parallel. Gradle provides parallel test execution 
+                by running multiple test processes concurrently. Each test process executes only a single test at a time, so you
+                generally don't need to do anything special to your tests to take advantage of this.
+                The <literal>maxParallelForks</literal> property specifies the maximum number of test processes to run
+                at any given time. The default is 1, that is, do not execute the tests in parallel.
+            </para>
+            <para>The test process sets the <literal>org.gradle.test.worker</literal> system property to a unique
+                identifier for that test process, which you can use, for example, in files names or other
+                resource identifiers.
+            </para>
+            <para>You can specify that test processes should be restarted after it has executed a certain number of
+                test classes. This can be a useful alternative to giving your test process a very large
+                heap.
+                The <literal>forkEvery</literal> property specifies the
+                maximum number of test classes to execute in a test process. The default is to execute an unlimited number
+                of tests in each test process.</para>
+            <para>The task has an <literal>ignoreFailures</literal> property to control the behavior when tests fail.
+                Test always executes every test that it detects. It stops the build afterwards if <literal>ignoreFailures</literal>
+                is false and there are failing tests. The default value of <literal>ignoreFailures</literal> is false.
+            </para>
+        </section>
+
+        <section>
+            <title>Test detection</title>
+            <para>The <literal>Test</literal> task detects which classes are test classes by inspecting the compiled test classes.
+                By default it scans all <filename>.class</filename> files. You can set custom includes / excludes, only those
+                classes will be scanned. Depending on the test framework used (JUnit / TestNG) the test class detection
+                uses different criteria.
+            </para>
+            <para>
+                When using JUnit, we scan for both JUnit 3 and 4 test classes. If any of the following criteria match, the
+                class is considered to be a JUnit test class:
+                <itemizedlist>
+                    <listitem>
+                        <para>Class or a super class extends <classname>TestCase</classname> or <classname>GroovyTestCase</classname></para>
+                    </listitem>
+                    <listitem>
+                        <para>Class or a super class is annotated with <classname>@RunWith</classname></para>
+                    </listitem>
+                    <listitem>
+                        <para>Class or a super class contain a method annotated with <classname>@Test</classname></para>
+                    </listitem>
+                </itemizedlist>
+            </para>
+            <para>
+                When using TestNG, we scan for methods annotated with <classname>@Test</classname>.
+            </para>
+            <para>
+                Note that abstract classes are not executed. Gradle also scan up the inheritance tree into jar files
+                on the test classpath.
+            </para>
+            <para>
+                In case you don't want to use the test class detection, you can disable it by setting
+                <literal>scanForTestClasses</literal> to false. This will make the test task only use the includes /
+                excludes to find test classes.
+
+                If <literal>scanForTestClasses</literal> is disabled and no include or exclude patterns are specified, the
+                respective defaults are used. For include this is <literal>"**/*Tests.class", "**/*Test.class"</literal>
+                and the for exclude it is <literal>"**/Abstract*.class"</literal>.
+            </para>
+        </section>
+
+        <section>
+            <title>Convention values</title>
+            <table>
+                <title>Java plugin - test properties</title>
+                <thead>
+                    <tr>
+                        <td>Task Property</td>
+                        <td>Type</td>
+                        <td>Default Value</td>
+                    </tr>
+                </thead>
+                <tr>
+                    <td><literal>testClassesDir</literal></td>
+                    <td><classname>File</classname></td>
+                    <td><literal>sourceSets.test.classesDir</literal></td>
+                </tr>
+                <tr>
+                    <td><literal>classpath</literal></td>
+                    <td><apilink class="org.gradle.api.file.FileCollection"/></td>
+                    <td><literal>sourceSets.test.runtimeClasspath</literal></td>
+                </tr>
+                <tr>
+                    <td><literal>testResultsDir</literal></td>
+                    <td><classname>File</classname></td>
+                    <td><literal>testResultsDir</literal></td>
+                </tr>
+                <tr>
+                    <td><literal>testReportDir</literal></td>
+                    <td><classname>File</classname></td>
+                    <td><literal>testReportDir</literal></td>
+                </tr>
+                <tr>
+                    <td><literal>testSrcDirs</literal></td>
+                    <td><classname>List&lt;File></classname></td>
+                    <td><literal>sourceSets.test.java.srcDirs</literal></td>
+                </tr>
+            </table>
+        </section>
+
     </section>
 
     <section>

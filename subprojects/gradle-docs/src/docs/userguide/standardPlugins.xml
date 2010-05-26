@@ -89,6 +89,16 @@
             </thead>
             <tr>
                 <td>
+                    <link linkend='announce_plugin'><literal>announce</literal></link>
+                </td>
+                <td>-</td>
+                <td>-</td>
+                <td>
+                    <para>Publish messages to your favourite platforms, such as Twitter or Growl.</para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend='jetty_plugin'><literal>jetty</literal></link>
                 </td>
                 <td><literal>war</literal></td>
