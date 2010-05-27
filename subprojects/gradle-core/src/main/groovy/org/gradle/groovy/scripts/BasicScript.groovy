@@ -24,15 +24,12 @@ import org.gradle.api.logging.StandardOutputCapture
 /**
  * @author Hans Dockter
  *
- * todo: We need our own base class as a workaround for http://jira.codehaus.org/browse/GROOVY-2635. When this bug is fixed we can use the metaclass.
- * todo: We don't understand why adding propertyMissing and methodMissing to this class does not work.
  */
 abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, FileOperations {
     private StandardOutputCapture standardOutputCapture
     private Object target
 
     void init(Object target, ServiceRegistry services) {
-        new DefaultScriptMetaData().applyMetaData(this, target)
         standardOutputCapture = services.get(StandardOutputCapture.class)
         this.target = target
     }
@@ -54,4 +51,22 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script implements o
             target."$property" = newValue
         }
     }
+
+    def propertyMissing(String property) {
+        if ('out'.equals(property)) {
+            System.out
+        } else {
+            target."$property"
+        }
+    }
+
+    def hasProperty(String property) {
+        target.hasProperty(property)
+    }
+
+    def methodMissing(String name, Object params) {
+        return target.invokeMethod(name, params)
+    }
 }
+
+
