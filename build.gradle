@@ -64,7 +64,7 @@ libraries = [
         logback_core: 'ch.qos.logback:logback-core:0.9.21@jar',
         junit: 'junit:junit:4.8.1',
         xmlunit: 'xmlunit:xmlunit:1.3',
-        spock: 'org.spockframework:spock-core:0.4-groovy-1.7-SNAPSHOT'
+        spock: 'org.spockframework:spock-core:0.4-groovy-1.7'
 ]
 
 libraries.groovy_depends = [libraries.groovy, libraries.commons_cli]
