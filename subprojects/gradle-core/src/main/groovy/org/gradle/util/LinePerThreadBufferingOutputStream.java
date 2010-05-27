@@ -21,6 +21,8 @@ import org.gradle.api.Action;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.Locale;
 
 public class LinePerThreadBufferingOutputStream extends PrintStream {
@@ -29,7 +31,11 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     private final ThreadLocal<PrintStream> stream = new ThreadLocal<PrintStream>(){
         @Override
         protected PrintStream initialValue() {
-            return new PrintStream(new LineBufferingOutputStream(listener, includeEol));
+            return AccessController.doPrivileged(new PrivilegedAction<PrintStream>() {
+                public PrintStream run() {
+                    return new PrintStream(new LineBufferingOutputStream(listener, includeEol));
+                }
+            });
         }
     };
 
@@ -38,7 +44,7 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     public LinePerThreadBufferingOutputStream(Action<String> listener, boolean includeEol) {
-        super(new ByteArrayOutputStream());
+        super(new ByteArrayOutputStream(), true);
         this.listener = listener;
         this.includeEol = includeEol;
     }
