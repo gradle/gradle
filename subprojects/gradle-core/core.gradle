@@ -112,7 +112,7 @@ ideaModule {
     scopes.COMPILE.plus.addAll([configurations.integTestCompile])
     scopes.RUNTIME.plus.addAll([configurations.integTestRuntime])
     scopes.RUNTIME.minus.addAll([configurations.integTestCompile])
-    scopes.remove('test')
+    scopes.remove('TEST')
 }
 
 
