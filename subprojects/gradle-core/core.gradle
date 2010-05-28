@@ -107,11 +107,11 @@ ideaModule {
     sourceDirs += project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() +
             project.sourceSets.integTest.groovy.srcDirs + new File(ideDir, "resources/test/")
     testSourceDirs = []
-    scopes.compile.plus.addAll(scopes.test.plus + configurations.detachedConfiguration(
+    scopes.COMPILE.plus.addAll(scopes.TEST.plus + configurations.detachedConfiguration(
             new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs as File[]))))
-    scopes.compile.plus.addAll([configurations.integTestCompile])
-    scopes.runtime.plus.addAll([configurations.integTestRuntime])
-    scopes.runtime.minus.addAll([configurations.integTestCompile])
+    scopes.COMPILE.plus.addAll([configurations.integTestCompile])
+    scopes.RUNTIME.plus.addAll([configurations.integTestRuntime])
+    scopes.RUNTIME.minus.addAll([configurations.integTestCompile])
     scopes.remove('test')
 }
 

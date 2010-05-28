@@ -125,10 +125,10 @@ configure(groovyProjects()) {
 
 buildscript {
     repositories {
-        mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins-snapshots-local'
+        mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins-releases-local'
     }
     dependencies {
-        classpath "org.gradle.plugins:gradle-intellij-plugin:0.1-SNAPSHOT"
+        classpath "org.gradle.plugins:gradle-intellij-plugin:0.1-20100528182239+0200"
     }
 }
 
@@ -150,9 +150,8 @@ allprojects {
 }
 
 ideaProject {
-    withXml { xml ->
-        xml.component.find { it.name = 'CompilerConfiguration'}.wildcardResourcePatterns[0].appendNode('entry', [name: '?*.gradle'])
-    }
+    wildcards += ['?*.gradle']
+    javaVersion = '1.6'
 }
 
 configurations {
