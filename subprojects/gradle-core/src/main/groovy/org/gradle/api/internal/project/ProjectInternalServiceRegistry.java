@@ -24,6 +24,7 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -98,7 +99,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected TaskContainerInternal createTaskContainerInternal() {
-        return new DefaultTaskContainer(project, get(ITaskFactory.class));
+        ClassGenerator classGenerator = get(ClassGenerator.class);
+        return classGenerator.newInstance(DefaultTaskContainer.class, project, classGenerator, get(ITaskFactory.class));
     }
 
     protected Convention createConvention() {

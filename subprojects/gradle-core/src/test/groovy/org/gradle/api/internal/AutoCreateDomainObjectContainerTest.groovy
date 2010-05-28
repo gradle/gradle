@@ -21,7 +21,7 @@ import static org.hamcrest.Matchers.*
 import org.junit.Ignore
 
 class AutoCreateDomainObjectContainerTest {
-    private final AutoCreateDomainObjectContainer container = new TestContainer()
+    private final AutoCreateDomainObjectContainer container = new AsmBackedClassGenerator().newInstance(TestContainer.class)
 
     @Test
     public void canAddObjectWithName() {

@@ -26,6 +26,7 @@ import org.gradle.api.artifacts.UnknownRepositoryException;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
@@ -54,8 +55,8 @@ public class DefaultResolverContainer extends DefaultNamedDomainObjectContainer<
 
     private ConfigurationContainer configurationContainer;
 
-    public DefaultResolverContainer(ResolverFactory resolverFactory) {
-        super(DependencyResolver.class);
+    public DefaultResolverContainer(ResolverFactory resolverFactory, ClassGenerator classGenerator) {
+        super(DependencyResolver.class, classGenerator);
         this.resolverFactory = resolverFactory;
     }
 

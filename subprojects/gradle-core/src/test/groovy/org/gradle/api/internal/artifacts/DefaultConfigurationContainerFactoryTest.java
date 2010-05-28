@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts;
 
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -52,7 +53,7 @@ public class DefaultConfigurationContainerFactoryTest {
         IvyFactory ivyFactory = context.mock(IvyFactory.class);
         IvyDependencyResolver ivyDependencyResolver = context.mock(IvyDependencyResolver.class);
         IvyDependencyPublisher ivyDependencyPublisher = context.mock(IvyDependencyPublisher.class);
-        ClassGenerator classGenerator = context.mock(ClassGenerator.class);
+        ClassGenerator classGenerator = new AsmBackedClassGenerator();
         DefaultConfigurationContainer configurationContainer = (DefaultConfigurationContainer)
                 new DefaultConfigurationContainerFactory(clientModuleRegistry, settingsConverter,
                         resolveModuleDescriptorConverter, publishModuleDescriptorConverter,

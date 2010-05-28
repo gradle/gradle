@@ -17,32 +17,39 @@ package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
 import org.gradle.api.*;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DefaultNamedDomainObjectContainer;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectContainer<T> implements TaskCollection<T> {
     protected final ProjectInternal project;
 
-    public DefaultTaskCollection(Class<T> type, ProjectInternal project) {
-        super(type);
+    public DefaultTaskCollection(Class<T> type, ClassGenerator classGenerator, ProjectInternal project) {
+        super(type, classGenerator);
         this.project = project;
     }
 
-    protected DefaultTaskCollection(Class<T> type, ProjectInternal project, NamedObjectStore<T> store) {
-        super(type, store);
+    public DefaultTaskCollection(Class<T> type, ClassGenerator classGenerator, ProjectInternal project, NamedObjectStore<T> store) {
+        super(type, classGenerator, store);
         this.project = project;
     }
 
     @Override
     public TaskCollection<T> matching(Spec<? super T> spec) {
-        return new DefaultTaskCollection<T>(getType(), project, storeWithSpec(spec));
+        return getClassGenerator().newInstance(DefaultTaskCollection.class, getType(), getClassGenerator(), project, storeWithSpec(spec));
+    }
+
+    @Override
+    public TaskCollection<T> matching(Closure spec) {
+        return matching(Specs.convertClosureToSpec(spec));
     }
 
     @Override
     public <S extends T> TaskCollection<S> withType(Class<S> type) {
-        return new DefaultTaskCollection<S>(type, project, storeWithType(type));
+        return getClassGenerator().newInstance(DefaultTaskCollection.class, type, getClassGenerator(), project, storeWithType(type));
     }
 
     public Action<? super T> whenTaskAdded(Action<? super T> action) {

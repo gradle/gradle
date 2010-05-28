@@ -36,6 +36,11 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectCollecti
     /**
      * {@inheritDoc}
      */
+    PluginCollection<T> matching(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     */
     <S extends T> PluginCollection<S> withType(Class<S> type);
 
     /**

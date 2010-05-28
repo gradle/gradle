@@ -36,7 +36,7 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
     private int detachedConfigurationDefaultNameCounter = 1;
 
     public DefaultConfigurationContainer(IvyService ivyService, ClassGenerator classGenerator, DomainObjectContext context) {
-        super(Configuration.class);
+        super(Configuration.class, classGenerator);
         this.ivyService = ivyService;
         this.classGenerator = classGenerator;
         this.context = context;

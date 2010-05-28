@@ -17,13 +17,11 @@ package org.gradle.api.internal;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.*;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.ReflectionUtil;
 
 import java.util.*;
 
@@ -31,22 +29,28 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
         implements NamedDomainObjectContainer<T> {
     private final DynamicObject dynamicObject = new ContainerDynamicObject();
     private final List<Rule> rules = new ArrayList<Rule>();
+    private final ClassGenerator classGenerator;
     private final NamedObjectStore<T> store;
     private final Class<T> type;
     private Set<String> applyingRulesFor = new HashSet<String>();
 
-    public DefaultNamedDomainObjectContainer(Class<T> type) {
-        this(type, new MapStore<T>());
+    public DefaultNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
+        this(type, classGenerator, new MapStore<T>());
     }
                                          
-    protected DefaultNamedDomainObjectContainer(Class<T> type, NamedObjectStore<T> store) {
+    public DefaultNamedDomainObjectContainer(Class<T> type, ClassGenerator classGenerator, NamedObjectStore<T> store) {
         super(store);
         this.type = type;
+        this.classGenerator = classGenerator;
         this.store = store;
     }
 
     protected Class<T> getType() {
         return type;
+    }
+
+    protected ClassGenerator getClassGenerator() {
+        return classGenerator;
     }
 
     /**
@@ -58,8 +62,6 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
     protected void addObject(String name, T object) {
         assert object != null && name != null;
         store.put(name, object);
-        ReflectionUtil.installGetter(this, name, new ContainerElementsDynamicObject());
-        ReflectionUtil.installConfigureMethod(this, name);
     }
 
     public String getDisplayName() {
@@ -79,17 +81,16 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
         return store.find(name);
     }
 
-    public NamedDomainObjectCollection<T> matching(final Spec<? super T> spec) {
-        return new DefaultNamedDomainObjectContainer<T>(type, storeWithSpec(spec));
+    public NamedDomainObjectCollection<T> matching(Spec<? super T> spec) {
+        return classGenerator.newInstance(DefaultNamedDomainObjectContainer.class, type, classGenerator, storeWithSpec(spec));
     }
 
     public NamedDomainObjectCollection<T> matching(Closure spec) {
-        return new DefaultNamedDomainObjectContainer<T>(type,
-                storeWithSpec((Spec<? super T>) DefaultGroovyMethods.asType(spec, Spec.class)));
+        return matching(Specs.convertClosureToSpec(spec));
     }
 
-    public <S extends T> NamedDomainObjectCollection<S> withType(final Class<S> type) {
-        return new DefaultNamedDomainObjectContainer<S>(type, storeWithType(type));
+    public <S extends T> NamedDomainObjectCollection<S> withType(Class<S> type) {
+        return classGenerator.newInstance(DefaultNamedDomainObjectContainer.class, type, classGenerator, storeWithType(type));
     }
 
     protected NamedObjectStore<T> storeWithSpec(Spec<? super T> spec) {

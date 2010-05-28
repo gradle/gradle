@@ -22,8 +22,8 @@ import org.gradle.util.ConfigureUtil;
 
 public abstract class AutoCreateDomainObjectContainer<T> extends DefaultNamedDomainObjectContainer<T> implements
         Configurable<AutoCreateDomainObjectContainer<T>> {
-    protected AutoCreateDomainObjectContainer(Class<T> type) {
-        super(type);
+    protected AutoCreateDomainObjectContainer(Class<T> type, ClassGenerator classGenerator) {
+        super(type, classGenerator);
     }
 
     protected abstract T create(String name);

@@ -49,8 +49,7 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
     }
 
     public DomainObjectCollection<T> matching(Closure spec) {
-        return new DefaultDomainObjectContainer<T>(type,
-                storeWithSpec(Specs.<T>convertClosureToSpec(spec)));
+        return matching(Specs.<T>convertClosureToSpec(spec));
     }
 
     public <S extends T> DomainObjectCollection<S> withType(final Class<S> type) {

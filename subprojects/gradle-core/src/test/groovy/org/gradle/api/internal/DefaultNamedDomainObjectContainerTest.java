@@ -22,6 +22,7 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.Rule;
 import org.gradle.api.UnknownDomainObjectException;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 import org.gradle.util.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -31,16 +32,15 @@ import org.junit.runner.RunWith;
 
 import java.util.Iterator;
 
-import static org.gradle.util.HelperUtil.call;
-import static org.gradle.util.HelperUtil.toClosure;
-import static org.gradle.util.WrapUtil.toLinkedSet;
-import static org.gradle.util.WrapUtil.toSet;
+import static org.gradle.util.HelperUtil.*;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultNamedDomainObjectContainerTest {
-    private final DefaultNamedDomainObjectContainer<Bean> container = new DefaultNamedDomainObjectContainer<Bean>(Bean.class);
+    private final ClassGenerator classGenerator = new AsmBackedClassGenerator();
+    private final DefaultNamedDomainObjectContainer<Bean> container = classGenerator.newInstance(DefaultNamedDomainObjectContainer.class, Bean.class, classGenerator);
     private final JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
@@ -483,6 +483,8 @@ public class DefaultNamedDomainObjectContainerTest {
         assertThat(container.getAsDynamicObject().getProperty("child"), sameInstance((Object) bean));
         assertThat(container.getAsDynamicObject().getProperties().get("child"), sameInstance((Object) bean));
         assertThat(call("{ it.child }", container), sameInstance((Object) bean));
+        assertThat(call("{ it.child }", container.withType(Bean.class)), sameInstance((Object) bean));
+        assertThat(call("{ it.child }", container.matching(Specs.satisfyAll())), sameInstance((Object) bean));
     }
 
     @Test

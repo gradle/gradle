@@ -18,12 +18,11 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.ReflectionUtil;
-import org.objectweb.asm.ClassWriter;
-import org.objectweb.asm.MethodVisitor;
-import org.objectweb.asm.Opcodes;
-import org.objectweb.asm.Type;
+import org.objectweb.asm.*;
 
+import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -433,8 +432,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                             String invokeMethodDesc = Type.getMethodDescriptor(Type.getType(Object.class), new Type[]{
                                     Type.getType(String.class), Type.getType(Object[].class)
                             });
+                            String objArrayDesc = Type.getType(Object[].class).getDescriptor();
 
-                            // GENERATE getAsDynamicObject().invokeMethod(name, (Object[])args)
+                            // GENERATE getAsDynamicObject().invokeMethod(name, (args instanceof Object[]) ? args : new Object[] { args })
 
                             methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
                             String getAsDynamicObjectDesc = Type.getMethodDescriptor(
@@ -443,9 +443,31 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                                     "getAsDynamicObject", getAsDynamicObjectDesc);
 
                             methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+
+                            // GENERATE (args instanceof Object[]) ? args : new Object[] { args }
                             methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
-                            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST, Type.getType(
-                                    Object[].class).getDescriptor());
+                            methodVisitor.visitTypeInsn(Opcodes.INSTANCEOF, objArrayDesc);
+                            Label end = new Label();
+                            Label notArray = new Label();
+                            methodVisitor.visitJumpInsn(Opcodes.IFEQ, notArray);
+
+                            // Generate args
+//                            methodVisitor.visitInsn(Opcodes.ACONST_NULL);
+                            methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
+                            methodVisitor.visitTypeInsn(Opcodes.CHECKCAST,  objArrayDesc);
+                            methodVisitor.visitJumpInsn(Opcodes.GOTO, end);
+
+                            // Generate new Object[] { args }
+                            methodVisitor.visitLabel(notArray);
+                            methodVisitor.visitInsn(Opcodes.ICONST_1);
+                            methodVisitor.visitTypeInsn(Opcodes.ANEWARRAY, Type.getType(Object.class).getInternalName());
+                            methodVisitor.visitInsn(Opcodes.DUP);
+                            methodVisitor.visitInsn(Opcodes.ICONST_0);
+                            methodVisitor.visitVarInsn(Opcodes.ALOAD, 2);
+                            methodVisitor.visitInsn(Opcodes.AASTORE);
+
+                            methodVisitor.visitLabel(end);
+
                             methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, dynamicObjectType.getInternalName(),
                                     "invokeMethod", invokeMethodDesc);
                         }
@@ -536,6 +558,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitEnd();
 
             byte[] bytecode = visitor.toByteArray();
+            GFileUtils.writeByteArrayToFile(new File("DeleteMe.class"), bytecode);
             return (Class<T>) ReflectionUtil.invoke(type.getClassLoader(), "defineClass", new Object[]{
                     typeName, bytecode, 0, bytecode.length
             });

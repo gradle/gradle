@@ -38,9 +38,11 @@ class DefaultConfigurationHandlerTest {
     private IvyService ivyService = context.mock(IvyService)
     private DomainObjectContext domainObjectContext = context.mock(DomainObjectContext.class)
 
-    private DefaultConfigurationContainer configurationHandler = new DefaultConfigurationContainer(ivyService, new AsmBackedClassGenerator(), { name -> name } as DomainObjectContext)
+    private ClassGenerator classGenerator = new AsmBackedClassGenerator()
+    private DefaultConfigurationContainer configurationHandler = classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, { name -> name } as DomainObjectContext)
 
-    @Test void addsNewConfigurationWhenConfiguringSelf() {
+    @Test
+    void addsNewConfigurationWhenConfiguringSelf() {
         configurationHandler.configure {
             newConf
         }
@@ -48,18 +50,21 @@ class DefaultConfigurationHandlerTest {
         assertThat(configurationHandler.newConf, notNullValue())
     }
 
-    @Test (expected = UnknownConfigurationException) void doesNotAddNewConfigurationWhenNotConfiguringSelf() {
+    @Test(expected = UnknownConfigurationException)
+    void doesNotAddNewConfigurationWhenNotConfiguringSelf() {
         configurationHandler.getByName('unknown')
     }
 
-    @Test void makesExistingConfigurationAvailableAsProperty() {
+    @Test
+    void makesExistingConfigurationAvailableAsProperty() {
         Configuration configuration = configurationHandler.add('newConf')
         assertThat(configuration, is(not(null)))
         assertThat(configurationHandler.getByName("newConf"), sameInstance(configuration))
         assertThat(configurationHandler.newConf, sameInstance(configuration))
     }
 
-    @Test void addsNewConfigurationWithClosureWhenConfiguringSelf() {
+    @Test
+    void addsNewConfigurationWithClosureWhenConfiguringSelf() {
         String someDesc = 'desc1'
         configurationHandler.configure {
             newConf {
@@ -69,7 +74,8 @@ class DefaultConfigurationHandlerTest {
         assertThat(configurationHandler.newConf.getDescription(), equalTo(someDesc))
     }
 
-    @Test void makesExistingConfigurationAvailableAsConfigureMethod() {
+    @Test
+    void makesExistingConfigurationAvailableAsConfigureMethod() {
         String someDesc = 'desc1'
         configurationHandler.add('newConf')
         Configuration configuration = configurationHandler.newConf {
@@ -78,7 +84,8 @@ class DefaultConfigurationHandlerTest {
         assertThat(configuration.getDescription(), equalTo(someDesc))
     }
 
-    @Test void makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
+    @Test
+    void makesExistingConfigurationAvailableAsConfigureMethodWhenConfiguringSelf() {
         String someDesc = 'desc1'
         Configuration configuration = configurationHandler.add('newConf')
         configurationHandler.configure {
@@ -89,7 +96,7 @@ class DefaultConfigurationHandlerTest {
         assertThat(configuration.getDescription(), equalTo(someDesc))
     }
 
-    @Test (expected = MissingMethodException)
+    @Test(expected = MissingMethodException)
     void newConfigurationWithNonClosureParametersShouldThrowMissingMethodEx() {
         configurationHandler.newConf('a', 'b')
     }

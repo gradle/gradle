@@ -21,6 +21,7 @@ import org.gradle.api.Plugin;
 import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
+import org.gradle.api.specs.Specs;
 
 public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectContainer<T>
         implements PluginCollection<T> {
@@ -34,6 +35,11 @@ public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObje
 
     public PluginCollection<T> matching(Spec<? super T> spec) {
         return new DefaultPluginCollection<T>(getType(), storeWithSpec(spec));
+    }
+
+    @Override
+    public PluginCollection<T> matching(Closure spec) {
+        return matching(Specs.convertClosureToSpec(spec));
     }
 
     public <S extends T> PluginCollection<S> withType(Class<S> type) {

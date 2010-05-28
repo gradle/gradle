@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.dsl
 
-import org.apache.ivy.plugins.resolver.DependencyResolver
 import org.apache.ivy.plugins.resolver.ResolverSettings
 import org.apache.maven.artifact.ant.RemoteRepository
 import org.gradle.api.InvalidUserDataException
@@ -27,8 +26,8 @@ import org.gradle.api.artifacts.maven.MavenResolver
 import org.gradle.api.internal.artifacts.DefaultResolverContainerTest
 import org.gradle.util.HashUtil
 import org.junit.Test
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertSame
+import static org.junit.Assert.*
+import org.gradle.api.internal.AsmBackedClassGenerator
 
 /**
  * @author Hans Dockter
@@ -39,7 +38,8 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
     private DefaultRepositoryHandler repositoryHandler
 
     public ResolverContainer createResolverContainer() {
-        repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock);
+        AsmBackedClassGenerator classGenerator = new AsmBackedClassGenerator()
+        repositoryHandler = classGenerator.newInstance(DefaultRepositoryHandler.class, resolverFactoryMock, classGenerator);
         return repositoryHandler;
     }
 
@@ -162,22 +162,6 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
       context.checking {
         one(resolverFactoryMock).createResolver(expectedResolver); will(returnValue(expectedResolver))
       }
-    }
-
-    @Test
-    void resolverAccess() {
-        DependencyResolver dependencyResolverStub = context.mock(DependencyResolver)
-        context.checking {
-            allowing(dependencyResolverStub).getName()
-            will(returnValue("resolverName"))
-
-            allowing(resolverFactoryMock).createResolver(dependencyResolverStub)
-            will(returnValue(dependencyResolverStub))
-        }
-        DefaultRepositoryHandler repositoryHandler = new DefaultRepositoryHandler(resolverFactoryMock)
-        repositoryHandler.add(dependencyResolverStub)
-
-        dependencyResolverStub == repositoryHandler.resolverName
     }
 
     @Test

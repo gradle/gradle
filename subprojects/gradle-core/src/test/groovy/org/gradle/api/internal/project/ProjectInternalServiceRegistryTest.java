@@ -22,6 +22,8 @@ import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.AsmBackedClassGenerator;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -91,6 +93,8 @@ public class ProjectInternalServiceRegistryTest {
             will(returnValue(dependencyFactory));
             allowing(parent).get(PluginRegistry.class);
             will(returnValue(pluginRegistry));
+            allowing(parent).get(ClassGenerator.class);
+            will(returnValue(new AsmBackedClassGenerator()));
         }});
     }
 

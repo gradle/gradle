@@ -34,6 +34,7 @@ import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.api.internal.file.FileResolver
+import org.gradle.api.internal.ClassGenerator
 
 /**
  * @author Hans Dockter
@@ -60,7 +61,7 @@ class DefaultResolverContainerTest {
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
     ResolverContainer createResolverContainer() {
-        return new DefaultResolverContainer(resolverFactoryMock)
+        return new DefaultResolverContainer(resolverFactoryMock, context.mock(ClassGenerator.class))
     }
 
     @Before public void setUp() {

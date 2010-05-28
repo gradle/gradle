@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal;
 
-class TestContainer extends AutoCreateDomainObjectContainer<TestObject> {
+public class TestContainer extends AutoCreateDomainObjectContainer<TestObject> {
 
-    TestContainer() {
-        super(TestObject.class);
+    public TestContainer(ClassGenerator classGenerator) {
+        super(TestObject.class, classGenerator);
     }
 
     protected TestObject create(String name) {

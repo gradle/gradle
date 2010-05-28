@@ -74,6 +74,6 @@ public class DefaultConfigurationContainerFactory implements ConfigurationContai
                                 dependencyResolver,
                                 dependencyPublisher,
                                 clientModuleRegistry)));
-        return new DefaultConfigurationContainer(ivyService, classGenerator, domainObjectContext);
+        return classGenerator.newInstance(DefaultConfigurationContainer.class, ivyService, classGenerator, domainObjectContext);
     }
 }

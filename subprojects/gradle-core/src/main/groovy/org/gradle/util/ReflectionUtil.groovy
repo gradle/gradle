@@ -15,9 +15,6 @@
  */
 package org.gradle.util
 
-import org.apache.commons.lang.StringUtils
-import org.gradle.api.internal.DynamicObject
-
 /**
  * @author Hans Dockter
  */
@@ -40,25 +37,5 @@ class ReflectionUtil {
 
     static boolean hasProperty(def object, String property) {
         return object.metaClass.hasProperty(object, property)
-    }
-
-    public static void installGetter(Object target, String name, DynamicObject object) {
-        String capName = name
-        // Groovy wants the first character to be lower case when the second char is upper case
-        if (name.length() == 1 || !Character.isUpperCase(name.charAt(1))) {
-            capName = StringUtils.capitalize(name)
-        }
-        target.metaClass."get$capName" = {
-            object.getProperty(name)
-        }
-    }
-
-    public static void installConfigureMethod(Object target, String name) {
-        if (target.metaClass.respondsTo(target, name, Closure)) {
-            return
-        }
-        target.metaClass."$name" << {
-            Closure cl -> ConfigureUtil.configure(cl, target[name])
-        }
     }
 }

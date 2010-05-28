@@ -21,6 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
@@ -31,8 +32,8 @@ import java.util.Map;
 public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements TaskContainerInternal {
     private final ITaskFactory taskFactory;
 
-    public DefaultTaskContainer(ProjectInternal project, ITaskFactory taskFactory) {
-        super(Task.class, project);
+    public DefaultTaskContainer(ProjectInternal project, ClassGenerator classGenerator, ITaskFactory taskFactory) {
+        super(Task.class, classGenerator, project);
         this.taskFactory = taskFactory;
     }
 

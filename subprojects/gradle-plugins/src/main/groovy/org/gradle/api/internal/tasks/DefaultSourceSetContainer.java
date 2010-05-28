@@ -27,7 +27,7 @@ public class DefaultSourceSetContainer extends AutoCreateDomainObjectContainer<S
     private final ClassGenerator generator;
 
     public DefaultSourceSetContainer(FileResolver fileResolver, TaskResolver taskResolver, ClassGenerator classGenerator) {
-        super(SourceSet.class);
+        super(SourceSet.class, classGenerator);
         this.fileResolver = fileResolver;
         this.taskResolver = taskResolver;
         this.generator = classGenerator;

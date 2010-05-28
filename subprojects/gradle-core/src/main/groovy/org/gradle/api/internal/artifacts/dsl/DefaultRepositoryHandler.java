@@ -22,6 +22,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.artifacts.DefaultResolverContainer;
 import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 import org.gradle.util.GUtil;
@@ -38,8 +39,8 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultRepositoryHandler extends DefaultResolverContainer implements RepositoryHandler {
-    public DefaultRepositoryHandler(ResolverFactory resolverFactory) {
-        super(resolverFactory);
+    public DefaultRepositoryHandler(ResolverFactory resolverFactory, ClassGenerator classGenerator) {
+        super(resolverFactory, classGenerator);
     }
 
     public FileSystemResolver flatDir(Map args) {

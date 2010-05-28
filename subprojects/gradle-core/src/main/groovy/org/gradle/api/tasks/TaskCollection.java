@@ -32,6 +32,11 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectCollect
     /**
      * {@inheritDoc}
      */
+    TaskCollection<T> matching(Closure closure);
+
+    /**
+     * {@inheritDoc}
+     */
     T getByName(String name, Closure configureClosure) throws UnknownTaskException;
 
     /**

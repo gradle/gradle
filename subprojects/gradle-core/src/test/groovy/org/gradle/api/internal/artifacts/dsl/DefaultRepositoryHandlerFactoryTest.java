@@ -48,7 +48,7 @@ public class DefaultRepositoryHandlerFactoryTest {
         final ConventionMapping conventionMappingMock = context.mock(ConventionMapping.class);
 
         context.checking(new Expectations() {{
-            one(classGeneratorMock).newInstance(DefaultRepositoryHandler.class, repositoryFactoryMock);
+            one(classGeneratorMock).newInstance(DefaultRepositoryHandler.class, repositoryFactoryMock, classGeneratorMock);
             will(returnValue(repositoryHandlerMock));
             allowing(repositoryHandlerMock).getConventionMapping();
             will(returnValue(conventionMappingMock));
@@ -63,8 +63,8 @@ public class DefaultRepositoryHandlerFactoryTest {
 
     public static abstract class ConventionAwareRepositoryHandler extends DefaultRepositoryHandler
             implements IConventionAware {
-        protected ConventionAwareRepositoryHandler(ResolverFactory resolverFactory) {
-            super(resolverFactory);
+        protected ConventionAwareRepositoryHandler(ResolverFactory resolverFactory, ClassGenerator classGenerator) {
+            super(resolverFactory, classGenerator);
         }
     }
 }
