@@ -18,11 +18,9 @@ package org.gradle.api.internal;
 import groovy.lang.*;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.plugins.Convention;
-import org.gradle.util.GFileUtils;
 import org.gradle.util.ReflectionUtil;
 import org.objectweb.asm.*;
 
-import java.io.File;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -558,7 +556,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             visitor.visitEnd();
 
             byte[] bytecode = visitor.toByteArray();
-            GFileUtils.writeByteArrayToFile(new File("DeleteMe.class"), bytecode);
             return (Class<T>) ReflectionUtil.invoke(type.getClassLoader(), "defineClass", new Object[]{
                     typeName, bytecode, 0, bytecode.length
             });
