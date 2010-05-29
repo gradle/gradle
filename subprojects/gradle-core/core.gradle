@@ -81,8 +81,6 @@ dependencies {
     testCompile libraries.xmlunit
 
     runtime libraries.ant_launcher
-    // TODO - this should be in the plugins project
-    runtime "org.apache.ant:ant-trax:1.8.0@jar"
 
     integTestCompile libraries.jetty_depends
 
