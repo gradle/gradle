@@ -97,6 +97,10 @@ public class DefaultSourceSet implements SourceSet {
         return getTaskName("compile", language);
     }
 
+    public String getCompileJavaTaskName() {
+        return getCompileTaskName("java");
+    }
+
     public String getProcessResourcesTaskName() {
         return getTaskName("process", "resources");
     }

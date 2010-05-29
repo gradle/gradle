@@ -110,7 +110,7 @@ configure(groovyProjects()) {
     checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
 
     sourceSets.allObjects { sourceSet ->
-        task "${sourceSet.getCompileTaskName('groovy').replaceAll('compile', 'checkstyle')}"(type: Checkstyle) {
+        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
             configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath

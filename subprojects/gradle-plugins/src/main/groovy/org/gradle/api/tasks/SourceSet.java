@@ -163,6 +163,13 @@ public interface SourceSet {
     String getProcessResourcesTaskName();
 
     /**
+     * Returns the name of the compile Java task for this source set.
+     *
+     * @return The task name. Never returns null.
+     */
+    String getCompileJavaTaskName();
+
+    /**
      * Returns the name of a compile task for this source set.
      *
      * @param language The language to be compiled.
