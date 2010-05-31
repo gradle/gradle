@@ -21,7 +21,6 @@ import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ResolveReport;
 import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.util.Message;
-import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraph;
