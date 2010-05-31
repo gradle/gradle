@@ -125,15 +125,15 @@ configure(groovyProjects()) {
 
 buildscript {
     repositories {
-        mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins-releases-local'
+        mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins'
     }
     dependencies {
-        classpath "org.gradle.plugins:gradle-intellij-plugin:0.1-20100528182239+0200"
+        classpath "org.gradle.plugins:gradle-intellij-plugin:0.1"
     }
 }
 
 allprojects {
-    apply plugin: org.gradle.plugins.idea.IdeaPlugin
+    apply plugin: 'org.gradle.intellij'
     def config = configurations.findByName('testRuntime')
     if (!config) {
         return

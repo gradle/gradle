@@ -1,0 +1,354 @@
+<!--
+  ~ Copyright 2010 the original author or authors.
+  ~
+  ~ Licensed under the Apache License, Version 2.0 (the "License");
+  ~ you may not use this file except in compliance with the License.
+  ~ You may obtain a copy of the License at
+  ~
+  ~      http://www.apache.org/licenses/LICENSE-2.0
+  ~
+  ~ Unless required by applicable law or agreed to in writing, software
+  ~ distributed under the License is distributed on an "AS IS" BASIS,
+  ~ WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+  ~ See the License for the specific language governing permissions and
+  ~ limitations under the License.
+  -->
+
+<chapter id="intellij_plugin">
+    <title>The Intellij Plugin</title>
+
+    <para>The Intellij plugin generates files that are used by <ulink url="http://www.jetbrains.com/idea/">IntelliJ Idea IDE</ulink>, thus
+        making it possible to open the project from IntelliJ (<guimenuitem>File</guimenuitem> - <guimenuitem>Open Project</guimenuitem>).
+        Both external (including associated source and javadoc files) and project dependencies are considered</para>
+
+    <para>The Intellij plugin will create different content depending on the other plugins used. If used together with
+        the <link linkend="java_plugin">Java plugin</link>, <filename>.project</filename> and <filename>.classpath</filename>
+        files will be generated. If used with the <link linkend="war_plugin">War plugin</link>, additional wtp files
+        will be generated.</para>
+    
+<section>
+        <title>Usage</title>
+    <para>To use the IntelliJ plugin, include in your build script:</para>
+    <sample id="useEclipsePlugin" dir="java/quickstart" title="Using the Eclipse plugin">
+        <sourcefile file="build.gradle" snippet="use-eclipse-plugin"/>
+    </sample>
+    <para>One quality of the IntelliJ tasks is to be open to customizations. It provides a couple of hooks to add or remove content from
+        the generated files.
+</para>
+    </section>
+    <section>
+        <title>Tasks</title>
+
+        <para>The IntelliJ plugin adds the tasks shown below to a project.</para>
+
+        <table id='intellijtasks'>
+            <title>IntelliJ plugin - Java tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>idea</literal>
+                </td>
+                <td><literal>ideaProject</literal>, <literal>ideaModule</literal></td>
+                <td><literal>-</literal></td>
+                <td>Generates all the intellij configuration files</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>cleanIdea</literal>
+                </td>
+                <td>
+                    <literal>cleanIdeaProject, cleanIdeaModule</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes all intellij configuration files</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>cleanIdeaProject</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes the intellij project file</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>cleanIdeaModule</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes the intellij module file</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>ideaProject</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><ulink url='http://twitter.com'>Twitter</ulink></td>
+                <td>Generates the <filename>.ipr</filename> file. The IntelliJ plugin adds this task only to the root project.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>ideaModule</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/></td>
+                <td>Generates the <filename>.iml</filename> file</td>
+            </tr>
+        </table>
+
+        <table id='idea-module'>
+            <title>IdeaModule task</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                    <td>Default Value with Java Plugin</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>moduleDir</literal>
+                </td>
+                <td>File</td>
+                <td><literal>projectDir</literal></td>
+                <td><literal>projectDir</literal></td>
+                <td>The content root directory of the module. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>outputFile</literal>
+                </td>
+                <td>File</td>
+                <td><replaceable>buildDir</replaceable>/<replaceable>project.name</replaceable>/<literal>.iml</literal></td>
+                <td>-</td>
+                <td>The iml file. Used to look for existing files as well as the target for generation. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>sourceDirs</literal>
+                </td>
+                <td>Set&lt;File&gt;</td>
+                <td>empty set</td>
+                <td><literal>project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()</literal></td>
+                <td>The dirs containing the production sources. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>testSourceDirs</literal>
+                </td>
+                <td>Set&lt;File&gt;</td>
+                <td>empty set</td>
+                <td><literal>project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten()</literal></td>
+                <td>The dirs containing the test sources. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>excludeDirs</literal>
+                </td>
+                <td>Set&lt;File&gt;</td>
+                <td>empty set</td>
+                <td>-</td>
+                <td>The dirs to be excluded by intellij. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>outputDir</literal>
+                </td>
+                <td>File</td>
+                <td>null</td>
+                <td><literal>project.sourceSets.main.classesDir</literal></td>
+                <td>The intellij output dir for the production sources. If null no entry for output dirs is created.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>testOutputDir</literal>
+                </td>
+                <td>File</td>
+                <td>null</td>
+                <td><literal>project.sourceSets.test.classesDir</literal></td>
+                <td>The intellij output dir for the test sources. If null no entry for test output dirs is created.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>downloadSources</literal>
+                </td>
+                <td>boolean</td>
+                <td>true</td>
+                <td>-</td>
+                <td>Whether to download and add source jars associated with the dependency jars. Defaults to true. </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>downloadJavadoc</literal>
+                </td>
+                <td>boolean</td>
+                <td>true</td>
+                <td>-</td>
+                <td>Whether to download and add javadoc jars associated with the dependency jars. Defaults to true. </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>scopes</literal>
+                </td>
+                <td>Map</td>
+                <td>[:]</td>
+                <td>COMPILE(compile), RUNTIME(runtime - compile), TEST(testRuntime - runtime)</td>
+                <td>The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
+                    The values of those keys are sets of <link linkend="sub:configurations">Configuration</link> objects. The files of the
+                    plus configurations are added minus the files from the minus configurations. </td>
+                </tr>
+        </table>
+
+        <table id='idea-project'>
+            <title>IdeaProject task</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                    <td>Default Value with Java Plugin</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>subprojects</literal>
+                </td>
+                <td>Set&lt;Project&gt;</td>
+                <td><literal>rootProject.allprojects</literal></td>
+                <td>-</td>
+                <td>The subprojects that should be mapped to modules in the <literal>ipr</literal>
+                    file. The subprojects will only be mapped, if the Idea plugin has been
+                    applied to them.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>outputFile</literal>
+                </td>
+                <td>File</td>
+                <td><replaceable>buildDir</replaceable>/<replaceable>project.name</replaceable>/<literal>.ipr</literal></td>
+                <td>-</td>
+                <td>The ipr file. Used to look for existing files as well as the target for generation. Must not be null.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>javaVersion</literal>
+                </td>
+                <td>String</td>
+                <td>1.5</td>
+                <td>-</td>
+                <td>The java version used for defining the project sdk.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>wildcards</literal>
+                </td>
+                <td>Set&lt;String&gt;</td>
+                <td>['!?*.java', '!?*.groovy']</td>
+                <td>-</td>
+                <td>The wildcard resource patterns. Must not be null.</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Customizing the generated files</title>
+        <para>Both, the <literal>intellijProject</literal> and the <literal>intellijModule</literal> task provide the
+            same hooks and behavior for customizing the generated content.</para>
+        <section>
+            <title>Merging</title>
+            <para>The first option to customize the IntelliJ files is to have an existing IntelliJ <literal>ipr</literal> or
+            <literal>iml</literal> file before the tasks are run.
+            Existing files will be merged together with the generated content.
+            Any section of the existing IntelliJ files that are not the target of generated content will neither be changed nor removed.</para>
+            <section id="sec:complete-overwrite">
+                <title>Disabling merging with a complete overwrite</title>
+                <para>If you want Gradle to completely overwrite existing IntelliJ files you can specify this on the command line by
+                    executing something like <userinput>gradle cleanIdea idea</userinput> or <userinput>gradle cleanIdeaModule ideaModule</userinput>.
+                    You can this also specify in the build script by making the generating tasks depending on the deleting tasks. You can tailor this
+                    to your needs. You can make the <literal>idea</literal> task dependent on the <literal>cleanIdea</literal> task. If you only want
+                    to overwrite for example the module files you simply make the <literal>intellijModule</literal> task dependent on the
+                    <literal>cleanIdeaModule</literal> task.
+                </para>
+            </section>
+        </section>
+        <section>
+            <title>Hooking into the generation lifecycle</title>
+            <para>The IntelliJ plugin provides a couple of domain classes that model IntelliJ project and module files.
+                But only the sections that are autogenerated by Gradle. The generation lifecycle is the following.
+                If there is an existing IntelliJ file its whole XML is parsed and stored in memory. Then the domain
+                objects are populated with the relevant content of the the existing XML. After that the build script information
+                is used to further populate those objects (e.g. add additional dependencies).
+                Then all sections of the XML in memory modelled by the domain objects is removed. After that the domain objects are used to inject
+                their content into the XML. Finally the XML is written to disk. The lifecycle provides hooks to modify the result according to your needs.
+            </para>
+            <section id="sec:partial-overwrite">
+                <title>Partial Overwrite</title>
+                <para>Doing a <link linkend="sec:complete-overwrite">complete overwrite</link> removes all your manual customizations.
+                    This might be not what you want.
+                    Therefore Gradle provides the option for a partial overwrite. You can hook into the phase just after the existing
+                    IntelliJ files have populated the domain objects. You could then for example remove all the dependencies
+                    from the <literal>module</literal> object.
+                    <sample id="partialOverwrites" dir="intellij"
+                            title="Partial Overwrite for Module">
+                        <sourcefile file="build.gradle" snippet="module-before-configured"/>
+                    </sample>
+                    The generated XML will have all sections of the existing IntelliJ module file,
+                    except for the dependencies, where only the information of the build script is used. You could do something
+                    similar for the project file.
+                    <sample id="partialOverwritesProject" dir="intellij"
+                            title="Partial Overwrite for Project">
+                        <sourcefile file="build.gradle" snippet="project-before-configured"/>
+                    </sample>
+                </para>
+            </section>
+            <section>
+                <title>Modifying the fully populated domain objects</title>
+                <para>You can also hook into the phase after the existing IntelliJ files and the build script metadata have
+                    populated the domain objects. You could then for example export all the dependencies
+                    of the <literal>module</literal> object.
+                    <sample id="exportDependencies" dir="intellij"
+                            title="Export Dependencies">
+                        <sourcefile file="build.gradle" snippet="module-when-configured"/>
+                    </sample>
+                    
+                </para>
+            </section>
+            <section>
+                <title>Modifying the XML</title>
+                <para>You can also hook into the phase after the XML DOM is fully populated but not written to disk.
+                    That hook provides total control over what is generated.
+                    <sample id="file-dependencies" dir="intellij"
+                            title="Customizing the XML">
+                        <sourcefile file="build.gradle" snippet="project-with-xml"/>
+                    </sample>
+                </para>
+            </section>
+        </section>
+    </section>
+    <section>
+        <title>Further things to consider</title>
+        <para>The paths of the dependencies in the IntelliJ files are absolute. If you manually define a path variable,
+            pointing to the gradle dependency cache, IntelliJ will automatically replace the absolute dependency paths with
+            this path variable. If you use such a path variable, merging dependencies won't work any more. The plugin
+            is not able to recognize yet, that the generated dependencies are the same as the ones automatically modified
+            by IntelliJ. We will address this issue in the future. Until then you can go for a
+            <link linkend="sec:partial-overwrite">partial overwrite</link>.</para>
+    </section>
+</chapter>
