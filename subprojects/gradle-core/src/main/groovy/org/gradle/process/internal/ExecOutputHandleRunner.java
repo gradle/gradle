@@ -16,16 +16,18 @@
 
 package org.gradle.process.internal;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.messaging.concurrent.CompositeStoppable;
 
-import java.io.*;
+import java.io.InputStream;
+import java.io.OutputStream;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExecOutputHandleRunner implements Runnable {
-    private final static Logger LOGGER = LoggerFactory.getLogger(ExecOutputHandleRunner.class);
+    private final static Logger LOGGER = Logging.getLogger(ExecOutputHandleRunner.class);
 
     private final String displayName;
     private final InputStream inputStream;
@@ -47,8 +49,7 @@ public class ExecOutputHandleRunner implements Runnable {
                 }
                 outputStream.write(buffer, 0, nread);
             }
-            inputStream.close();
-            outputStream.close();
+            new CompositeStoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {
             LOGGER.error(String.format("Could not %s.", displayName), t);
         }

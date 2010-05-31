@@ -17,7 +17,6 @@
 package org.gradle.messaging.actor.internal
 
 import org.gradle.messaging.actor.Actor
-import org.gradle.messaging.actor.StopMethod
 import org.gradle.messaging.dispatch.DispatchException
 import org.gradle.messaging.dispatch.MethodInvocation
 import org.gradle.util.JUnit4GroovyMockery
@@ -105,38 +104,16 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
             will {
                 throw failure
             }
-            one(target).stopDoingStuff()
         }
 
         run {
             proxy.doStuff('param')
             try {
-                proxy.stopDoingStuff()
+                actor.stop()
                 fail()
             } catch (DispatchException e) {
                 assertThat(e.message, startsWith('Failed to dispatch message'))
                 assertThat(e.cause, sameInstance(failure))
-            }
-        }
-    }
-
-    @Test
-    public void actorProxyStopMethodCallBlocksUntilAllMethodCallsComplete() {
-        Actor actor = factory.createActor(target)
-        TargetObject proxy = actor.getProxy(TargetObject.class)
-
-        context.checking {
-            one(target).doStuff('param')
-            one(target).stopDoingStuff()
-            will {
-                syncAt(1)
-            }
-        }
-
-        run {
-            proxy.doStuff('param')
-            expectBlocksUntil(1) {
-                proxy.stopDoingStuff()
             }
         }
     }
@@ -185,6 +162,5 @@ class DefaultActorFactoryTest extends MultithreadedTestCase {
 interface TargetObject {
     void doStuff(String param)
 
-    @StopMethod
     void stopDoingStuff()
 }

@@ -85,7 +85,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
                 String compileTaskName = sourceSet.getCompileTaskName("groovy");
                 GroovyCompile compile = project.getTasks().add(compileTaskName, GroovyCompile.class);
                 javaBasePlugin.configureForSourceSet(sourceSet, compile);
-                compile.dependsOn(sourceSet.getCompileTaskName("java"));
+                compile.dependsOn(sourceSet.getCompileJavaTaskName());
                 compile.setDescription(String.format("Compiles the %s Groovy source.", sourceSet.getName()));
                 compile.conventionMapping("defaultSource", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

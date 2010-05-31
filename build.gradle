@@ -41,11 +41,11 @@ startScriptsDir = new File("$buildDir/startScripts")
 archivesBaseName = 'gradle'
 
 libraries = [
-        ant: 'org.apache.ant:ant:1.8.0@jar',
-        ant_junit: 'org.apache.ant:ant-junit:1.8.0@jar',
-        ant_launcher: 'org.apache.ant:ant-launcher:1.8.0@jar',
-        ant_nodeps: 'org.apache.ant:ant-nodeps:1.8.0@jar',
-        ant_antlr: 'org.apache.ant:ant-antlr:1.8.0@jar',
+        ant: 'org.apache.ant:ant:1.8.1@jar',
+        ant_junit: 'org.apache.ant:ant-junit:1.8.1@jar',
+        ant_launcher: 'org.apache.ant:ant-launcher:1.8.1@jar',
+        ant_nodeps: 'org.apache.ant:ant-nodeps:1.8.1@jar',
+        ant_antlr: 'org.apache.ant:ant-antlr:1.8.1@jar',
         antlr: 'antlr:antlr:2.7.7@jar',
         asm_all: 'asm:asm-all:3.2@jar',
         commons_cli: 'commons-cli:commons-cli:1.2@jar',
@@ -110,7 +110,7 @@ configure(groovyProjects()) {
     checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
 
     sourceSets.allObjects { sourceSet ->
-        task "${sourceSet.getCompileTaskName('groovy').replaceAll('compile', 'checkstyle')}"(type: Checkstyle) {
+        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
             configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath

@@ -16,6 +16,9 @@
 
 package org.gradle.process.internal;
 
+import org.apache.commons.lang.StringUtils;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.listener.AsyncListenerBroadcast;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
@@ -58,6 +61,8 @@ import java.util.concurrent.locks.ReentrantLock;
  * @author Tom Eyckmans
  */
 public class DefaultExecHandle implements ExecHandle {
+    private static final Logger LOGGER = Logging.getLogger(DefaultExecHandle.class);
+    private final String displayName;
     /**
      * The working directory of the process.
      */
@@ -106,9 +111,10 @@ public class DefaultExecHandle implements ExecHandle {
 
     private final ExecHandleShutdownHookAction shutdownHookAction;
 
-    DefaultExecHandle(File directory, String command, List<String> arguments, Map<String, String> environment,
-                      OutputStream standardOutput, OutputStream errorOutput, InputStream standardInput,
-                      List<ExecHandleListener> listeners) {
+    DefaultExecHandle(String displayName, File directory, String command, List<String> arguments,
+                      Map<String, String> environment, OutputStream standardOutput, OutputStream errorOutput,
+                      InputStream standardInput, List<ExecHandleListener> listeners) {
+        this.displayName = displayName;
         this.directory = directory;
         this.command = command;
         this.arguments = arguments;
@@ -119,7 +125,7 @@ public class DefaultExecHandle implements ExecHandle {
         this.lock = new ReentrantLock();
         this.stateChange = lock.newCondition();
         this.state = ExecHandleState.INIT;
-        executor = new DefaultExecutorFactory().create(String.format("Run %s", command));
+        executor = new DefaultExecutorFactory().create(String.format("Run %s", displayName));
         shutdownHookAction = new ExecHandleShutdownHookAction(this);
         broadcast = new AsyncListenerBroadcast<ExecHandleListener>(ExecHandleListener.class, executor);
         broadcast.addAll(listeners);
@@ -131,6 +137,11 @@ public class DefaultExecHandle implements ExecHandle {
 
     public String getCommand() {
         return command;
+    }
+
+    @Override
+    public String toString() {
+        return displayName;
     }
 
     public List<String> getArguments() {
@@ -188,9 +199,11 @@ public class DefaultExecHandle implements ExecHandle {
         try {
             if (failureCause != null) {
                 if (this.state == ExecHandleState.STARTING) {
-                    this.failureCause = new ExecException(String.format("A problem occurred starting command '%s'.", command), failureCause);
+                    this.failureCause = new ExecException(String.format("A problem occurred starting %s.",
+                            displayName), failureCause);
                 } else {
-                    this.failureCause = new ExecException(String.format("A problem occurred waiting for command '%s' to complete.", command), failureCause);
+                    this.failureCause = new ExecException(String.format(
+                            "A problem occurred waiting for %s to complete.", displayName), failureCause);
                 }
             }
             setState(state);
@@ -198,6 +211,8 @@ public class DefaultExecHandle implements ExecHandle {
         } finally {
             lock.unlock();
         }
+
+        LOGGER.debug("Process finished for {}.", displayName);
 
         broadcast.getSource().executionFinished(this);
         broadcast.stop();
@@ -229,6 +244,8 @@ public class DefaultExecHandle implements ExecHandle {
             if (failureCause != null) {
                 throw failureCause;
             }
+
+            LOGGER.debug("Started {}.", displayName);
         } finally {
             lock.unlock();
         }
@@ -271,7 +288,7 @@ public class DefaultExecHandle implements ExecHandle {
 
             public ExecResult assertNormalExitValue() throws ExecException {
                 if (exitValue != 0) {
-                    throw new ExecException("Process finished with non-zero exit value.");
+                    throw new ExecException(String.format("%s finished with non-zero exit value.", StringUtils.capitalize(displayName)));
                 }
                 return this;
             }

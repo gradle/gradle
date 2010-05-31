@@ -19,9 +19,11 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    compile "org.codenarc:CodeNarc:0.8.1@jar",
-            libraries.log4j_to_slf4j,
-            libraries.slf4j_api
+    compile "org.codenarc:CodeNarc:0.9@jar"
+    compile libraries.slf4j_api
+ 
+    runtime libraries.log4j_to_slf4j,
+            "org.gmetrics:GMetrics:0.2@jar"
 
     def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", libraries.jcl_to_slf4j]
     runtime "checkstyle:checkstyle:5.1@jar",

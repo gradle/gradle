@@ -85,6 +85,77 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a('123')
+        }
+
+        statusBar.text = '123'
+
+        context.checking {
+            one(ansi).cursorLeft(3)
+            one(ansi).a('abc')
+        }
+
+        statusBar.text = 'abc'
+    }
+
+    @Test
+    public void redrawsStatusBarWhenTextChangesSuffix() {
+        def statusBar = console.addStatusBar()
+
+        context.checking {
+            one(ansi).a('text 1')
+        }
+
+        statusBar.text = 'text 1'
+
+        context.checking {
+            one(ansi).cursorLeft(1)
+            one(ansi).a('2')
+        }
+
+        statusBar.text = 'text 2'
+    }
+
+    @Test
+    public void redrawsStatusBarWhenTextAdded() {
+        def statusBar = console.addStatusBar()
+
+        context.checking {
+            one(ansi).a('text')
+        }
+
+        statusBar.text = 'text'
+
+        context.checking {
+            one(ansi).a(' 2')
+        }
+
+        statusBar.text = 'text 2'
+    }
+
+    @Test
+    public void redrawsStatusBarWhenTextRemoved() {
+        def statusBar = console.addStatusBar()
+
+        context.checking {
+            one(ansi).a('text 1')
+        }
+
+        statusBar.text = 'text 1'
+
+        context.checking {
+            one(ansi).cursorLeft(3)
+            one(ansi).eraseLine(Ansi.Erase.FORWARD)
+        }
+
+        statusBar.text = 'tex'
+    }
+    
+    @Test
+    public void redrawsStatusBarWhenTextSetToEmpty() {
+        def statusBar = console.addStatusBar()
+
+        context.checking {
             one(ansi).a('text')
         }
 
@@ -92,14 +163,6 @@ class AnsiConsoleTest {
 
         context.checking {
             one(ansi).cursorLeft(4)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).a('text 2')
-        }
-
-        statusBar.text = 'text 2'
-
-        context.checking {
-            one(ansi).cursorLeft(6)
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
         }
 

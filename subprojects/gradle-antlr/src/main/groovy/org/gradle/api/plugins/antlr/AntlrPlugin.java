@@ -113,7 +113,7 @@ public class AntlrPlugin implements Plugin<Project> {
 						sourceSet.getJava().srcDir( outputDirectory );
 
 						//		6) register fact that antlr should be run before compiling
-						project.getTasks().getByName( sourceSet.getCompileTaskName( "java" ) ).dependsOn( taskName );
+						project.getTasks().getByName( sourceSet.getCompileJavaTaskName() ).dependsOn( taskName );
 					}
 				}
 		);

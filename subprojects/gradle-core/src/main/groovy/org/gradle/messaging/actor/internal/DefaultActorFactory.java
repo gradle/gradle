@@ -19,7 +19,6 @@ package org.gradle.messaging.actor.internal;
 import org.gradle.api.logging.Logging;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.actor.StopMethod;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
@@ -94,9 +93,6 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
 
         public void dispatch(MethodInvocation message) {
             dispatch.dispatch(message);
-            if (message.getMethod().getAnnotation(StopMethod.class) != null) {
-                stop();
-            }
         }
     }
 }

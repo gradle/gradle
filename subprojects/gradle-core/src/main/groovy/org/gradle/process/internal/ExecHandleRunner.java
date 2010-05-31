@@ -17,17 +17,16 @@
 package org.gradle.process.internal;
 
 import java.util.concurrent.Executor;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 /**
  * @author Tom Eyckmans
  */
 public class ExecHandleRunner implements Runnable {
+    private static final Object START_LOCK = new Object();
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
     private final Executor threadPool;
-    private final Lock lock;
+    private final Object lock;
     private Process process;
     private boolean aborted;
 
@@ -37,19 +36,16 @@ public class ExecHandleRunner implements Runnable {
         }
         this.processBuilderFactory = new ProcessBuilderFactory();
         this.execHandle = execHandle;
-        this.lock = new ReentrantLock();
+        this.lock = new Object();
         this.threadPool = threadPool;
     }
 
     public void stopWaiting() {
-        lock.lock();
-        try {
+        synchronized (lock) {
             aborted = true;
             if (process != null) {
                 process.destroy();
             }
-        } finally {
-            lock.lock();
         }
     }
 
@@ -57,28 +53,31 @@ public class ExecHandleRunner implements Runnable {
         ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
         int exitCode;
         try {
-            Process process = processBuilder.start();
-            lock.lock();
-            try {
-                this.process = process;
-            } finally {
-                lock.unlock();
-            }
+            ExecOutputHandleRunner standardOutputRunner;
+            ExecOutputHandleRunner errorOutputRunner;
+            ExecOutputHandleRunner standardInputRunner;
+            Process process;
 
-            ExecOutputHandleRunner standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
-                    process.getInputStream(), execHandle.getStandardOutput());
-            ExecOutputHandleRunner errorOutputRunner = new ExecOutputHandleRunner("read process error output",
-                    process.getErrorStream(), execHandle.getErrorOutput());
-            ExecOutputHandleRunner standardInputRunner = new ExecOutputHandleRunner("write process standard input",
-                    execHandle.getStandardInput(), process.getOutputStream());
+            // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
+            // and stderr streams for some of the processes get stuck
+            synchronized (START_LOCK) {
+                process = processBuilder.start();
+
+                standardOutputRunner = new ExecOutputHandleRunner("read process standard output",
+                        process.getInputStream(), execHandle.getStandardOutput());
+                errorOutputRunner = new ExecOutputHandleRunner("read process error output", process.getErrorStream(),
+                        execHandle.getErrorOutput());
+                standardInputRunner = new ExecOutputHandleRunner("write process standard input",
+                        execHandle.getStandardInput(), process.getOutputStream());
+            }
+            synchronized (lock) {
+                this.process = process;
+            }
 
             threadPool.execute(standardInputRunner);
             threadPool.execute(standardOutputRunner);
             threadPool.execute(errorOutputRunner);
 
-            // signal started after all threads are started otherwise RejectedExecutionException may be thrown
-            // by the ExecutorService because shutdown may already be called on it
-            // especially when the startAndWaitForFinish method is used on the ExecHandle.
             execHandle.started();
 
             exitCode = process.waitFor();
@@ -86,7 +85,7 @@ public class ExecHandleRunner implements Runnable {
             execHandle.failed(t);
             return;
         }
-        
+
         if (aborted) {
             execHandle.aborted(exitCode);
         } else {

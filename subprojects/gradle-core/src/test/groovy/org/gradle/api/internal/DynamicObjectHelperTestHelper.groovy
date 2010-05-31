@@ -82,13 +82,12 @@ public class GroovyBean extends DynamicBean {
         ExpandoMetaClass metaClass = new ExpandoMetaClass(GroovyBean.class, false)
         metaClass.getDynamicGroovyProperty << {-> values.dynamicGroovyProperty }
         metaClass.setDynamicGroovyProperty << {value -> values.dynamicGroovyProperty = value}
-        metaClass.dynamicGroovyMethod << {a,b -> "dynamicGroovy:$a.$b".toString() }
+        metaClass.dynamicGroovyMethod << {a, b -> "dynamicGroovy:$a.$b".toString() }
         metaClass.initialize()
-        this.metaClass = metaClass
+        setMetaClass(metaClass)
     }
 
     def groovyMethod(a, b) {
         "groovy:$a.$b".toString()
     }
-
 }

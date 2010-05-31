@@ -87,7 +87,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                     }
                 });
 
-                String compileTaskName = sourceSet.getCompileTaskName("java");
+                String compileTaskName = sourceSet.getCompileJavaTaskName();
                 Compile compileJava = project.getTasks().add(compileTaskName, Compile.class);
                 configureForSourceSet(sourceSet, compileJava);
 

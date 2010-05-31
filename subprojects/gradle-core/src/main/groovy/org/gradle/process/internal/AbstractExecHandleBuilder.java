@@ -34,6 +34,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private OutputStream standardOutput;
     private OutputStream errorOutput;
     private InputStream input = new ByteArrayInputStream(new byte[0]);
+    private String displayName;
     private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
 
@@ -83,6 +84,14 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
+    public String getDisplayName() {
+        return displayName == null ? String.format("command '%s'", getExecutable()) : displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = displayName;
+    }
+
     public AbstractExecHandleBuilder listener(ExecHandleListener listener) {
         if (listeners == null) {
             throw new IllegalArgumentException("listeners == null!");
@@ -92,11 +101,12 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     }
     
     public ExecHandle build() {
-        if (StringUtils.isEmpty(getExecutable())) {
+        String executable = getExecutable();
+        if (StringUtils.isEmpty(executable)) {
             throw new IllegalStateException("execCommand == null!");
         }
 
-        return new DefaultExecHandle(getWorkingDir(), getExecutable(), getAllArguments(), getActualEnvironment(),
+        return new DefaultExecHandle(getDisplayName(), getWorkingDir(), executable, getAllArguments(), getActualEnvironment(),
                 standardOutput, errorOutput, input, listeners);
     }
 }

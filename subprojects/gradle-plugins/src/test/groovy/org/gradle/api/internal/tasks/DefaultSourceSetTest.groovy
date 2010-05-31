@@ -83,6 +83,7 @@ class DefaultSourceSetTest {
 
         assertThat(sourceSet.classesTaskName, equalTo('setNameClasses'))
         assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileSetNameJava'))
+        assertThat(sourceSet.compileJavaTaskName, equalTo('compileSetNameJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processSetNameResources'))
         assertThat(sourceSet.getTaskName('build', null), equalTo('buildSetName'))
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('setNameJar'))
@@ -94,6 +95,7 @@ class DefaultSourceSetTest {
 
         assertThat(sourceSet.classesTaskName, equalTo('classes'))
         assertThat(sourceSet.getCompileTaskName('java'), equalTo('compileJava'))
+        assertThat(sourceSet.compileJavaTaskName, equalTo('compileJava'))
         assertThat(sourceSet.processResourcesTaskName, equalTo('processResources'))
         assertThat(sourceSet.getTaskName('build', null), equalTo('buildMain'))
         assertThat(sourceSet.getTaskName(null, 'jar'), equalTo('jar'))
