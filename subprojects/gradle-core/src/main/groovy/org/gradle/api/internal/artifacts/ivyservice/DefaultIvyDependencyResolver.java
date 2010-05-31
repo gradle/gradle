@@ -123,10 +123,11 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             Set<File> files = new LinkedHashSet<File>();
             for (ResolvedArtifact artifact : artifacts) {
                 File depFile = artifact.getFile();
-                if (depFile == null) {
-                    throw new GradleException(String.format("Resolved artifact %s contains a null value.", artifact));
+                if (depFile != null) {
+                    files.add(depFile);
+                } else {
+                    logger.debug(String.format("Resolved artifact %s contains a null value.", artifact));
                 }
-                files.add(depFile);
             }
             return files;
         }
