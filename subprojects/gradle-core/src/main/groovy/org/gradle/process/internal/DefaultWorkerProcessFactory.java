@@ -93,6 +93,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             LOGGER.debug("Using implementation classpath {}", implementationClassPath);
 
             getJavaCommand().setStandardInput(new ByteArrayInputStream(config));
+            getJavaCommand().setDisplayName(displayName);
             ExecHandle execHandle = getJavaCommand().build();
 
             return new DefaultWorkerProcess(connection, execHandle);

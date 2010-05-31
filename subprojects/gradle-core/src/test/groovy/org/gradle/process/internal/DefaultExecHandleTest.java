@@ -43,6 +43,7 @@ public class DefaultExecHandleTest {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
 
         DefaultExecHandle execHandle = new DefaultExecHandle(
+                "display-name",
                 tmpDir.getDir(),
                 Jvm.current().getJavaExecutable().getAbsolutePath(),
                 Arrays.asList(
@@ -66,6 +67,7 @@ public class DefaultExecHandleTest {
     @Test
     public void testProcessCanHaveNonZeroExitCode() throws IOException {
         DefaultExecHandle execHandle = new DefaultExecHandle(
+                "display-name",
                 tmpDir.getDir(),
                 Jvm.current().getJavaExecutable().getAbsolutePath(),
                 Arrays.asList(
@@ -85,16 +87,17 @@ public class DefaultExecHandleTest {
             result.assertNormalExitValue();
             fail();
         } catch (ExecException e) {
-            assertEquals("Process finished with non-zero exit value.", e.getMessage());
+            assertEquals("Display-name finished with non-zero exit value.", e.getMessage());
         }
     }
 
     @Test
     public void testThrowsExceptionWhenProcessCannotBeStarted() throws IOException {
         DefaultExecHandle execHandle = new DefaultExecHandle(
+                "display-name",
                 tmpDir.getDir(),
                 "no_such_command",
-                Arrays.asList("arg"), 
+                Arrays.asList("arg"),
                 System.getenv(),
                 System.out,
                 System.err,
@@ -106,13 +109,14 @@ public class DefaultExecHandleTest {
             execHandle.start();
             fail();
         } catch (ExecException e) {
-            assertEquals("A problem occurred starting command 'no_such_command'.", e.getMessage());
+            assertEquals("A problem occurred starting display-name.", e.getMessage());
         }
     }
 
     @Test
     public void testAbort() throws IOException {
         DefaultExecHandle execHandle = new DefaultExecHandle(
+                "display-name",
                 tmpDir.getDir(),
                 Jvm.current().getJavaExecutable().getAbsolutePath(),
                 Arrays.asList(

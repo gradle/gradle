@@ -35,7 +35,7 @@ public class ProcessBuilderFactory {
         final List<String> commandWithArguments = new ArrayList<String>();
         final String command = execHandle.getCommand();
         if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("creating process builder for command {}", command);
+            LOGGER.debug("creating process builder for {}", execHandle);
         }
         commandWithArguments.add(command);
         final List<String> arguments = execHandle.getArguments();

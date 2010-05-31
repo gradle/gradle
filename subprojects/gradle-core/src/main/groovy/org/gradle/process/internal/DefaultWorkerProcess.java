@@ -36,6 +36,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         });
     }
 
+    @Override
+    public String toString() {
+        return execHandle.toString();
+    }
+
     public ObjectConnection getConnection() {
         return connection;
     }
