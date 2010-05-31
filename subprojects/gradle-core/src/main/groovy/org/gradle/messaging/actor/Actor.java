@@ -34,9 +34,7 @@ import org.gradle.messaging.dispatch.StoppableDispatch;
  */
 public interface Actor extends StoppableDispatch<MethodInvocation> {
     /**
-     * Creates a proxy which delivers method calls to the target object. A call to any method on the supplied interface
-     * marked with a {@link org.gradle.messaging.actor.StopMethod} annotation is equivalent to calling {@link #stop} on
-     * this actor.
+     * Creates a proxy which delivers method calls to the target object.
      *
      * @param type the type for the proxy.
      * @return The proxy.

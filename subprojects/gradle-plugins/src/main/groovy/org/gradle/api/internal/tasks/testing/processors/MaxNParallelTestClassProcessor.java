@@ -38,6 +38,7 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     private TestResultProcessor resultProcessor;
     private int pos;
     private List<TestClassProcessor> processors = new ArrayList<TestClassProcessor>();
+    private List<Actor> actors = new ArrayList<Actor>();
     private Actor resultProcessorActor;
 
     public MaxNParallelTestClassProcessor(int maxProcessors, TestClassProcessorFactory factory, ActorFactory actorFactory) {
@@ -55,7 +56,9 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
         TestClassProcessor processor;
         if (processors.size() < maxProcessors) {
             processor = factory.create();
-            processor = actorFactory.createActor(processor).getProxy(TestClassProcessor.class);
+            Actor actor = actorFactory.createActor(processor);
+            processor = actor.getProxy(TestClassProcessor.class);
+            actors.add(actor);
             processors.add(processor);
             processor.startProcessing(resultProcessor);
         } else {
@@ -66,6 +69,6 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     }
 
     public void stop() {
-        new CompositeStoppable(processors).add(resultProcessorActor).stop();
+        new CompositeStoppable(processors).add(actors).add(resultProcessorActor).stop();
     }
 }

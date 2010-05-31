@@ -81,6 +81,8 @@ class MaxNParallelTestClassProcessorTest extends Specification {
 
         then:
         1 * asyncProcessor1.stop()
+        1 * actor1.stop()
+        1 * resultProcessorActor.stop()
     }
 
     def startsMultipleProcessorsOnDemandAndStopsAtEnd() {

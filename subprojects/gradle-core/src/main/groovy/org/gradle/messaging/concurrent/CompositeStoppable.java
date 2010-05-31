@@ -45,13 +45,18 @@ public class CompositeStoppable implements Stoppable {
             add(element);
         }
     }
-   
+
+    public CompositeStoppable add(Iterable<? extends Stoppable> elements) {
+        GUtil.addToCollection(this.elements, elements);
+        return this;
+    }
+
     public CompositeStoppable add(Stoppable stoppable) {
         elements.add(stoppable);
         return this;
     }
 
-    public CompositeStoppable add(final Closeable closeable) {
+    public CompositeStoppable add(Closeable closeable) {
         elements.add(toStoppable(closeable));
         return this;
     }

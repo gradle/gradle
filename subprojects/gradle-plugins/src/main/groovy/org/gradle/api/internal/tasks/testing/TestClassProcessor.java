@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.testing;
 
-import org.gradle.messaging.actor.StopMethod;
 import org.gradle.messaging.concurrent.Stoppable;
 
 /**
@@ -45,6 +44,5 @@ public interface TestClassProcessor extends Stoppable {
      * not use the result processor provided to {@link #startProcessing(TestResultProcessor)} after this method has
      * returned.
      */
-    @StopMethod
     void stop();
 }
