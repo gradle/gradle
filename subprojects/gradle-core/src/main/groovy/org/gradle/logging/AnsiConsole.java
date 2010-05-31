@@ -16,6 +16,7 @@
 
 package org.gradle.logging;
 
+import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
@@ -111,7 +112,6 @@ public class AnsiConsole implements Console {
                 }
                 render(new Action<Ansi>() {
                     public void execute(Ansi ansi) {
-                        statusBar.removeFromLastLine(ansi);
                         drawOperation.execute(ansi);
                     }
                 });
@@ -144,7 +144,7 @@ public class AnsiConsole implements Console {
     private class LabelImpl implements Label, Widget {
         private final Container container;
         private String text = "";
-        private int width;
+        private String displayedText = "";
 
         public LabelImpl(Container container) {
             this.container = container;
@@ -167,17 +167,25 @@ public class AnsiConsole implements Console {
         }
 
         public void removeFromLastLine(Ansi ansi) {
-            if (width > 0) {
-                ansi.cursorLeft(width);
+            if (displayedText.length() > 0) {
+                ansi.cursorLeft(displayedText.length());
                 ansi.eraseLine(Ansi.Erase.FORWARD);
+                displayedText = "";
             }
         }
 
         public void draw(Ansi ansi) {
-            width = text.length();
-            if (width > 0) {
-                ansi.a(text);
+            String prefix = StringUtils.getCommonPrefix(new String[]{text, displayedText});
+            if (prefix.length() < displayedText.length()) {
+                ansi.cursorLeft(displayedText.length() - prefix.length());
             }
+            if (prefix.length() < text.length()) {
+                ansi.a(text.substring(prefix.length()));
+            }
+            if (displayedText.length() > text.length()) {
+                ansi.eraseLine(Ansi.Erase.FORWARD);
+            }
+            displayedText = text;
         }
     }
 
