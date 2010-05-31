@@ -108,7 +108,7 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         if (state.failure != null) {
             Element failure = testSuiteReport.createElement(XMLConstants.FAILURE);
             element.appendChild(failure);
-            failure.setAttribute(XMLConstants.ATTR_MESSAGE, state.failure.getMessage());
+            failure.setAttribute(XMLConstants.ATTR_MESSAGE, state.failure.toString());
             failure.setAttribute(XMLConstants.ATTR_TYPE, state.failure.getClass().getName());
             failure.appendChild(testSuiteReport.createTextNode(StringUtils.getStackTrace(state.failure)));
         }

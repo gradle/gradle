@@ -80,13 +80,14 @@ public class JUnitIntegrationTest {
                 'org.gradle.BrokenAfterClass',
                 'org.gradle.BrokenConstructor',
                 'org.gradle.Unloadable')
-        result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('failed'))
-        result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('failed'))
-        result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('failed'))
-        result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('failed'))
-        result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('failed'))
-        result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('failed'))
-        result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('failed'))
+        result.testClass('org.gradle.BrokenTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('java.lang.IllegalStateException'))
+        result.testClass('org.gradle.BrokenBeforeClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
     }
 
     @Test
