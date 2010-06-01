@@ -128,12 +128,12 @@ buildscript {
         mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins'
     }
     dependencies {
-        classpath "org.gradle.plugins:gradle-intellij-plugin:0.1"
+        classpath "org.gradle.plugins:gradle-idea-plugin:0.1"
     }
 }
 
 allprojects {
-    apply plugin: 'org.gradle.intellij'
+    apply plugin: 'org.gradle.idea'
     def config = configurations.findByName('testRuntime')
     if (!config) {
         return

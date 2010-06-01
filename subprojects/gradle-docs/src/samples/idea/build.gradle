@@ -4,31 +4,28 @@ buildscript {
         mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins'
     }
     dependencies {
-        classpath "org.gradle.plugins:gradle-intellij-plugin:0.1"
+        classpath "org.gradle.plugins:gradle-idea-plugin:0.1"
     }
 }
-// END SNIPPET use-plugin
-allprojects {
-// START SNIPPET use-plugin
-    apply plugin: 'org.gradle.intellij'
+
+apply plugin: 'org.gradle.idea'
 // END SNIPPET use-plugin
 // START SNIPPET module-before-configured
 // START SNIPPET module-when-configured
-    ideaModule {
+ideaModule {
 // END SNIPPET module-when-configured
-        beforeConfigured { module ->
-            module.dependencies.clear()    
-        }
-// END SNIPPET module-before-configured
-// START SNIPPET module-when-configured
-        whenConfigured { module ->
-            module.dependencies*.exported = true
-        }
-// START SNIPPET module-before-configured
+    beforeConfigured { module ->
+        module.dependencies.clear()
     }
 // END SNIPPET module-before-configured
-// END SNIPPET module-when-configured
+// START SNIPPET module-when-configured
+    whenConfigured { module ->
+        module.dependencies*.exported = true
+    }
+// START SNIPPET module-before-configured
 }
+// END SNIPPET module-before-configured
+// END SNIPPET module-when-configured
 
 // START SNIPPET project-before-configured
 // START SNIPPET project-with-xml
@@ -40,8 +37,7 @@ ideaProject {
 // END SNIPPET project-before-configured
 // START SNIPPET project-with-xml
     withXml { root ->
-        root.appendNode("VcsDirectoryMappings").appendNode("mapping", [directory: "", vcs: 'Git'])
-        root.encoding.@useUTFGuessing = "true"
+        root.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
     }
 // START SNIPPET project-before-configured
 }
