@@ -94,7 +94,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><ulink url='http://twitter.com'>Twitter</ulink></td>
+                <td>org.gradle.plugins.idea.IdeaProject</td>
                 <td>Generates the <filename>.ipr</filename> file. The Idea plugin adds this task only to the root project.</td>
             </tr>
             <tr>
@@ -104,7 +104,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/></td>
+                <td>org.gradle.plugins.idea.IdeaModule</td>
                 <td>Generates the <filename>.iml</filename> file</td>
             </tr>
         </table>
