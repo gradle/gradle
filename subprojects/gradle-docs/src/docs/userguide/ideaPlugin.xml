@@ -264,6 +264,44 @@
                 <td>The wildcard resource patterns. Must not be null.</td>
             </tr>
         </table>
+
+        <table id='idea-task-hooks'>
+            <title>Task Hooks</title>
+            <thead>
+                <tr>
+                    <td>Method</td>
+                    <td>Project Task Argument</td>
+                    <td>Module Task Argument</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal><code>beforeConfigured { arg -> }</code></literal>
+                </td>
+                <td><code>org.gradle.plugins.idea.model.Project</code></td>
+                <td><code>org.gradle.plugins.idea.model.Module</code></td>
+                <td>Gets called directly after the domain objects have been populated with the content of the
+                    existing XML file (if there is one).</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><code>whenConfigured { arg -> }</code></literal>
+                </td>
+                <td><code>org.gradle.plugins.idea.model.Project</code></td>
+                <td><code>org.gradle.plugins.idea.model.Module</code></td>
+                <td>Gets called after the domain objects have been populated with the content of the
+                    existing XML file and the content from the build script.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal><code>withXml { arg -> }</code></literal>
+                </td>
+                <td><code>groovy.util.Node</code></td>
+                <td><code>groovy.util.Node</code></td>
+                <td>The root node of the XML just before the XML is written to disk.</td>
+            </tr>
+        </table>
     </section>
     <section>
         <title>Customizing the generated files</title>
