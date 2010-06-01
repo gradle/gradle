@@ -115,8 +115,10 @@ public class MultithreadedTestCase {
         ThreadHandle threadHandle = start(closure);
         threadHandle.waitFor();
         Date end = new Date();
-        if (end.getTime() - start.getTime() > units.toMillis(value) + 300) {
-            throw new RuntimeException("Action did not complete within expected time.");
+        long actual = end.getTime() - start.getTime();
+        long expected = units.toMillis(value);
+        if (actual > expected + 300) {
+            throw new RuntimeException(String.format("Action did not complete within expected time. Expected <= %d ms, was %d ms.", expected, actual));
         }
         return threadHandle;
     }
