@@ -128,7 +128,7 @@ buildscript {
         mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins'
     }
     dependencies {
-        classpath "org.gradle.plugins:gradle-idea-plugin:0.1"
+        classpath "org.gradle.plugins:gradle-idea-plugin:0.2"
     }
 }
 
@@ -144,6 +144,7 @@ allprojects {
         from { config.copyRecursive {dep -> !(dep instanceof ProjectDependency)}.files }
     }
     ideaModule {
+        gradleCacheVariable = 'GRADLE_CACHE'
         outputDir = "$rootProject.projectDir/intellij/out" as File
         testOutputDir = "$rootProject.projectDir/intellij/testOut" as File
         whenConfigured { module ->

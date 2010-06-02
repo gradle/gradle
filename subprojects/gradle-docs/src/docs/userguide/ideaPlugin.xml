@@ -62,7 +62,7 @@
                     <literal>cleanIdea</literal>
                 </td>
                 <td>
-                    <literal>cleanIdeaProject, cleanIdeaModule</literal>
+                    <literal>cleanIdeaProject, cleanIdeaModule, cleanIdeaWorkspace</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
                 <td>Removes all idea configuration files</td>
@@ -86,6 +86,16 @@
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
                 <td>Removes the idea module file</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>cleanIdeaWorkspace</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes the idea workspace file</td>
             </tr>
             <tr>
                 <td>
@@ -134,9 +144,9 @@
                     <literal>outputFile</literal>
                 </td>
                 <td>File</td>
-                <td><replaceable>buildDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.iml</literal></td>
+                <td><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.iml</literal></td>
                 <td>-</td>
-                <td>The iml file. Used to look for existing files as well as the target for generation. Must not be null.</td>
+                <td>The iml file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
             <tr>
                 <td>
@@ -241,16 +251,16 @@
                     <literal>outputFile</literal>
                 </td>
                 <td>File</td>
-                <td><replaceable>buildDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.ipr</literal></td>
+                <td><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.ipr</literal></td>
                 <td>-</td>
-                <td>The ipr file. Used to look for existing files as well as the target for generation. Must not be null.</td>
+                <td>The ipr file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
             <tr>
                 <td>
                     <literal>javaVersion</literal>
                 </td>
                 <td>String</td>
-                <td>1.5</td>
+                <td>1.6</td>
                 <td>-</td>
                 <td>The java version used for defining the project sdk.</td>
             </tr>
@@ -265,6 +275,29 @@
             </tr>
         </table>
 
+        <table id='idea-workspace'>
+            <title>IdeaProject task</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                    <td>Default Value with Java Plugin</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>outputFile</literal>
+                </td>
+                <td>File</td>
+                <td><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.ipr</literal></td>
+                <td>-</td>
+                <td>The iws file. Used to look for existing files and as the target for generation. Must not be null.</td>
+            </tr>
+        </table>
+
+
         <table id='idea-task-hooks'>
             <title>Task Hooks</title>
             <thead>
@@ -272,6 +305,7 @@
                     <td>Method</td>
                     <td>Project Task Argument</td>
                     <td>Module Task Argument</td>
+                    <td>Workspace Task Argument</td>
                     <td>Description</td>
                 </tr>
             </thead>
@@ -281,6 +315,7 @@
                 </td>
                 <td><code>org.gradle.plugins.idea.model.Project</code></td>
                 <td><code>org.gradle.plugins.idea.model.Module</code></td>
+                <td>n/a</td>
                 <td>Gets called directly after the domain objects have been populated with the content of the
                     existing XML file (if there is one).</td>
             </tr>
@@ -290,6 +325,7 @@
                 </td>
                 <td><code>org.gradle.plugins.idea.model.Project</code></td>
                 <td><code>org.gradle.plugins.idea.model.Module</code></td>
+                <td>n/a</td>
                 <td>Gets called after the domain objects have been populated with the content of the
                     existing XML file and the content from the build script.</td>
             </tr>
@@ -299,14 +335,18 @@
                 </td>
                 <td><code>groovy.util.Node</code></td>
                 <td><code>groovy.util.Node</code></td>
+                <td><code>groovy.util.Node</code></td>
                 <td>The root node of the XML just before the XML is written to disk.</td>
             </tr>
         </table>
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>Both, the <literal>ideaProject</literal> and the <literal>ideaModule</literal> task provide the
-            same hooks and behavior for customizing the generated content.</para>
+        <para>Both, the <literal>IdeaProject</literal> and the <literal>IdeaModule</literal> task provide the
+            same hooks and behavior for customizing the generated content. The IdeaWorkspace only provides a hook
+            for direct XML manipulation.</para>
+        <para>The plugin recognizes existing idea files. If an idea module, project or workspace file does not exists,
+        a default one is used. Otherwise the existing ones are merged.</para>
         <section>
             <title>Merging</title>
             <para>The first option to customize the Idea files is to have an existing Idea <literal>ipr</literal> or
