@@ -276,7 +276,7 @@
         </table>
 
         <table id='idea-workspace'>
-            <title>IdeaProject task</title>
+            <title>IdeaWorkspace task</title>
             <thead>
                 <tr>
                     <td>Property</td>
