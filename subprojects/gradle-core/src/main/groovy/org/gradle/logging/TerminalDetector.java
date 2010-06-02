@@ -16,13 +16,28 @@
 
 package org.gradle.logging;
 
+import org.fusesource.jansi.WindowsAnsiOutputStream;
 import org.gradle.api.specs.Spec;
+import org.gradle.util.OperatingSystem;
 import org.gradle.util.PosixUtil;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileDescriptor;
+import java.io.IOException;
 
 public class TerminalDetector implements Spec<FileDescriptor> {
     public boolean isSatisfiedBy(FileDescriptor element) {
+        if (OperatingSystem.current().isWindows()) {
+            // Use Jansi's detection mechanism
+            try {
+                new WindowsAnsiOutputStream(new ByteArrayOutputStream());
+            } catch (IOException ignore) {
+                // Not attached to a console
+                return false;
+            }
+        }
+
+        // Use jna-posix
         return PosixUtil.current().isatty(element);
     }
 }
