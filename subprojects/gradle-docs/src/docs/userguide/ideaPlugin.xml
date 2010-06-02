@@ -420,11 +420,9 @@
     </section>
     <section>
         <title>Further things to consider</title>
-        <para>The paths of the dependencies in the Idea files are absolute. If you manually define a path variable,
+        <para>The paths of the dependencies in the generated Idea files are absolute. If you manually define a path variable,
             pointing to the gradle dependency cache, Idea will automatically replace the absolute dependency paths with
-            this path variable. If you use such a path variable, merging dependencies won't work any more. The plugin
-            is not able to recognize yet, that the generated dependencies are the same as the ones automatically modified
-            by Idea. We will address this issue in the future. Until then you can go for a
-            <link linkend="sec:partial-overwrite">partial overwrite</link>.</para>
+            this path variable. If you use such a path variable, you need to tell the ideaModule task the name of this variable,
+            so that it can do a proper merge without creating duplicates.</para>
     </section>
 </chapter>
