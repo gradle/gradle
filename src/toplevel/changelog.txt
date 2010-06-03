@@ -1,4 +1,4 @@
 
-Release Notes - Gradle - Version 0.9-preview-2
+Release Notes - Gradle - Version 0.9-preview-3
 
 See http://docs.codehaus.org/display/GRADLE/Gradle+0.9+Release+Notes
