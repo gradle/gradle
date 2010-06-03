@@ -32,12 +32,21 @@ import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.Matchers.isEmptyMap
 import static org.junit.Assert.*
+import org.junit.Before
 
 @RunWith(JMock.class)
 public class DefaultJavaForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FileResolver resolver = context.mock(FileResolver.class)
-    private DefaultJavaForkOptions options = new DefaultJavaForkOptions(resolver, Jvm.current())
+    private DefaultJavaForkOptions options
+
+    @Before
+    public void setup() {
+        context.checking {
+            allowing(resolver).resolveLater(new File('.').absoluteFile)
+        }
+        options = new DefaultJavaForkOptions(resolver, Jvm.current())
+    }
 
     @Test
     public void defaultValues() {

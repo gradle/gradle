@@ -16,6 +16,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.file.FileSource;
 import org.gradle.process.ProcessForkOptions;
 
 import java.io.File;
@@ -25,11 +26,12 @@ import java.util.Map;
 public class DefaultProcessForkOptions implements ProcessForkOptions {
     private final FileResolver resolver;
     private Object executable;
-    private Object workingDir = new File(".").getAbsoluteFile();
+    private FileSource workingDir;
     private final Map<String, Object> environment = new HashMap<String, Object>(System.getenv());
 
     public DefaultProcessForkOptions(FileResolver resolver) {
         this.resolver = resolver;
+        workingDir = resolver.resolveLater(new File(".").getAbsoluteFile());
     }
 
     protected FileResolver getResolver() {
@@ -50,11 +52,11 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     public File getWorkingDir() {
-        return resolver.resolve(workingDir);
+        return workingDir.get();
     }
 
     public void setWorkingDir(Object dir) {
-        this.workingDir = dir;
+        this.workingDir = resolver.resolveLater(dir);
     }
 
     public ProcessForkOptions workingDir(Object dir) {

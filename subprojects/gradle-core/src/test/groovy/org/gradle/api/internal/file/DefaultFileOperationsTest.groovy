@@ -287,6 +287,7 @@ public class DefaultFileOperationsTest extends Specification {
         if (OperatingSystem.current().isWindows()) {
             return
         }
+        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
 
         when:
         fileOperations.exec {
@@ -303,6 +304,7 @@ public class DefaultFileOperationsTest extends Specification {
         if (OperatingSystem.current().isWindows()) {
             return
         }
+        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
 
         when:
         ExecResult result = fileOperations.exec {

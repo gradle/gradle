@@ -30,10 +30,10 @@ import java.util.Map;
 
 public class JavaExecHandleBuilder extends AbstractExecHandleBuilder implements JavaExecSpec {
     private String mainClass;
-    private List<Object> applicationArgs = new ArrayList<Object>();
+    private final List<Object> applicationArgs = new ArrayList<Object>();
     private FileCollection classpath;
     private final JavaForkOptions javaOptions;
-    private FileResolver fileResolver;
+    private final FileResolver fileResolver;
 
     public JavaExecHandleBuilder(FileResolver fileResolver) {
         super(fileResolver);

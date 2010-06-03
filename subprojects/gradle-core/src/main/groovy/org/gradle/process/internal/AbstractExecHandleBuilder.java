@@ -35,7 +35,7 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
     private OutputStream errorOutput;
     private InputStream input = new ByteArrayInputStream(new byte[0]);
     private String displayName;
-    private List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
+    private final List<ExecHandleListener> listeners = new ArrayList<ExecHandleListener>();
     boolean ignoreExitValue;
 
     public AbstractExecHandleBuilder(FileResolver fileResolver) {

@@ -227,6 +227,10 @@ class BaseDirConverterTest {
         assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve({'relative'} as Callable))
     }
 
+    @Test public void testResolveFileSource() {
+        assertEquals(new File(baseDir, 'relative'), baseDirConverter.resolve(baseDirConverter.resolveLater('relative')))
+    }
+
     @Test public void testResolveNestedClosuresAndCallables() {
         Callable callable = {'relative'} as Callable
         Closure closure = {callable}
@@ -314,6 +318,14 @@ class BaseDirConverterTest {
         assertEquals('..', baseDirConverter.resolveAsRelativePath('..'))
     }
 
+    @Test public void testResolveLater() {
+        String src;
+        Closure cl = { src }
+        FileSource source = baseDirConverter.resolveLater(cl)
+        src = 'file1'
+        assertEquals(new File(baseDir, 'file1'), source.get())
+    }
+    
     @Test public void testCreateFileResolver() {
         File newBaseDir = new File(baseDir, 'subdir')
         assertEquals(new File(newBaseDir, 'file'), baseDirConverter.withBaseDir('subdir').resolve('file'))

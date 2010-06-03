@@ -26,32 +26,43 @@ import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
 import org.gradle.process.internal.DefaultProcessForkOptions
+import org.junit.Before
+import org.gradle.api.internal.file.FileSource
 
 @RunWith(JMock.class)
 public class DefaultProcessForkOptionsTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final FileResolver resolver = context.mock(FileResolver.class)
-    private final DefaultProcessForkOptions options = new DefaultProcessForkOptions(resolver)
+    private final FileSource workingDir = context.mock(FileSource.class)
+    private DefaultProcessForkOptions options
     private final File baseDir = new File("base-dir")
+
+    @Before
+    public void setup() {
+        context.checking {
+            allowing(resolver).resolveLater(new File('.').absoluteFile)
+            will(returnValue(workingDir))
+        }
+        options = new DefaultProcessForkOptions(resolver)
+    }
 
     @Test
     public void defaultValues() {
-        context.checking {
-            one(resolver).resolve(new File(".").absoluteFile)
-            will(returnValue(baseDir))
-        }
-
         assertThat(options.executable, nullValue())
-        assertThat(options.workingDir, equalTo(baseDir))
         assertThat(options.environment, not(isEmptyMap()))
     }
 
     @Test
     public void resolvesWorkingDirectoryOnGet() {
+        context.checking {
+            one(resolver).resolveLater(12)
+            will(returnValue(workingDir))
+        }
+
         options.workingDir = 12
 
         context.checking {
-            one(resolver).resolve(12)
+            one(workingDir).get()
             will(returnValue(baseDir))
         }
 
@@ -84,13 +95,12 @@ public class DefaultProcessForkOptionsTest {
     @Test
     public void canCopyToTargetOptions() {
         options.executable('executable')
-        options.workingDir('working dir')
         options.environment('key', 12)
 
         ProcessForkOptions target = context.mock(ProcessForkOptions.class)
         context.checking {
             one(target).setExecutable('executable')
-            one(target).setWorkingDir('working dir')
+            one(target).setWorkingDir(workingDir)
             one(target).setEnvironment(withParam(not(isEmptyMap())))
         }
 

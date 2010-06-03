@@ -51,6 +51,14 @@ public abstract class AbstractFileResolver implements FileResolver {
         return file;
     }
 
+    public FileSource resolveLater(final Object path) {
+        return new FileSource() {
+            public File get() {
+                return resolve(path);
+            }
+        };
+    }
+
     public URI resolveUri(Object path) {
         return convertObjectToURI(path);
     }
@@ -151,6 +159,8 @@ public abstract class AbstractFileResolver implements FileResolver {
                 } catch (Exception e) {
                     throw new RuntimeException(e);
                 }
+            } else if (current instanceof FileSource) {
+                return ((FileSource)current).get();
             } else {
                 return current;
             }
