@@ -177,6 +177,18 @@
             </tr>
             <tr>
                 <td>
+                    <link linkend='idea_plugin'><literal>idea</literal></link>
+                </td>
+                <td>-</td>
+                <td><literal>java</literal></td>
+                <td>
+                    <para>Generates files that are used by <ulink url="http://www.jetbrains.com/idea/index.html">Intellij IDEA IDE</ulink>,
+                        thus making it possible to import the project into IDEA.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend='project_reports_plugin'><literal>project-report</literal></link>
                 </td>
                 <td><literal>reporting-base</literal></td>
