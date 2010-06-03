@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -488,6 +488,7 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
 
         private void maybeMerge() throws Exception {
             if (parent == null) {
+                // This is the root block. Can have any number of children <= maxChildIndexEntries
                 if (entries.size() == 0 && !tailPos.isNull()) {
                     // This is an empty root block, discard it
                     header.index.setRootPos(tailPos);
@@ -495,37 +496,52 @@ public class BTreePersistentIndexedCache<K, V> implements PersistentIndexedCache
                 }
                 return;
             }
-            if (entries.size() < minIndexChildNodes) {
-                IndexBlock left = parent.getPrevious(this);
-                if (left != null) {
-                    if (left.entries.size() > minIndexChildNodes) {
-                        // Redistribute entries with lhs block
-                        left.mergeFrom(this);
-                        left.maybeSplit();
-                    } else if (left.entries.size() + entries.size() <= maxChildIndexEntries) {
-                        // Merge with the lhs block
-                        left.mergeFrom(this);
-                        parent.maybeMerge();
-                        return;
-                    }
-                }
-                IndexBlock right = parent.getNext(this);
-                if (right != null) {
-                    if (right.entries.size() > minIndexChildNodes) {
-                        // Redistribute entries with rhs block
-                        mergeFrom(right);
-                        maybeSplit();
-                        return;
-                    } else if (right.entries.size() + entries.size() <= maxChildIndexEntries) {
-                        // Merge with the rhs block
-                        mergeFrom(right);
-                        parent.maybeMerge();
-                        return;
-                    }
-                }
 
-                throw new UnsupportedOperationException("implement me");
+            // This is not the root block. Must have children >= minIndexChildNodes
+            if (entries.size() >= minIndexChildNodes) {
+                return;
             }
+
+            // Attempt to merge with the left sibling
+            IndexBlock left = parent.getPrevious(this);
+            if (left != null) {
+                assert entries.size() + left.entries.size() <= maxChildIndexEntries * 2;
+                if (left.entries.size() > minIndexChildNodes) {
+                    // There are enough entries in this block and the left sibling to make up 2 blocks, so redistribute
+                    // the entries evenly between them
+                    left.mergeFrom(this);
+                    left.maybeSplit();
+                    return;
+                } else {
+                    // There are only enough entries to make up 1 block, so move the entries of the left sibling into
+                    // this block and discard the left sibling. Might also need to merge the parent
+                    left.mergeFrom(this);
+                    parent.maybeMerge();
+                    return;
+                }
+            }
+
+            // Attempt to merge with the right sibling
+            IndexBlock right = parent.getNext(this);
+            if (right != null) {
+                assert entries.size() + right.entries.size() <= maxChildIndexEntries * 2;
+                if (right.entries.size() > minIndexChildNodes) {
+                    // There are enough entries in this block and the right sibling to make up 2 blocks, so redistribute
+                    // the entries evenly between them
+                    mergeFrom(right);
+                    maybeSplit();
+                    return;
+                } else {
+                    // There are only enough entries to make up 1 block, so move the entries of the right sibling into
+                    // this block and discard this block. Might also need to merge the parent
+                    mergeFrom(right);
+                    parent.maybeMerge();
+                    return;
+                }
+            }
+
+            // Should not happen
+            throw new IllegalStateException(String.format("%s does not have any siblings.", getBlock()));
         }
 
         private void mergeFrom(IndexBlock right) throws Exception {

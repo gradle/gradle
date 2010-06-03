@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -189,6 +189,42 @@ public class BTreePersistentIndexedCacheTest {
     @Test
     public void persistsRemovalOfEntriesOverMultipleIndexBlocks() {
         checkAddsAndRemoves(4, 12, 9, 1, 3, 10, 11, 7, 8, 2, 5, 6);
+        cache.verify();
+    }
+
+    @Test
+    public void removalRedistributesRemainingEntriesWithLeftSibling() {
+        // Ends up with: 1 2 3 -> 4 <- 5 6
+        checkAdds(1, 2, 5, 6, 4, 3);
+        cache.verify();
+        cache.remove("key_5");
+        cache.verify();
+    }
+
+    @Test
+    public void removalMergesRemainingEntriesIntoLeftSibling() {
+        // Ends up with: 1 2 -> 3 <- 4 5
+        checkAdds(1, 2, 4, 5, 3);
+        cache.verify();
+        cache.remove("key_4");
+        cache.verify();
+    }
+
+    @Test
+    public void removalRedistributesRemainingEntriesWithRightSibling() {
+        // Ends up with: 1 2 -> 3 <- 4 5 6
+        checkAdds(1, 2, 4, 5, 3, 6);
+        cache.verify();
+        cache.remove("key_2");
+        cache.verify();
+    }
+
+    @Test
+    public void removalMergesRemainingEntriesIntoRightSibling() {
+        // Ends up with: 1 2 -> 3 <- 4 5
+        checkAdds(1, 2, 4, 5, 3);
+        cache.verify();
+        cache.remove("key_2");
         cache.verify();
     }
 
