@@ -16,8 +16,6 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.process.internal.launcher.BootstrapClassLoaderWorker;
-import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
@@ -26,7 +24,6 @@ import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
 import java.io.File;
-import java.util.Arrays;
 
 /**
  * Provides access to a Gradle distribution for integration testing.
@@ -44,22 +41,12 @@ public class GradleDistribution implements MethodRule, TestFileContext {
     static {
         String workerId = System.getProperty("org.gradle.test.worker", "1");
         USER_HOME_DIR = file("integTest.gradleUserHomeDir", "intTestHomeDir").file(String.format("worker-%s", workerId));
-
-        TestFile workerJar = USER_HOME_DIR.file("worker-main-jar-exploded");
-        for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
-            String fileName = aClass.getName().replace('.', '/') + ".class";
-            workerJar.file(fileName).copyFrom(GradleDistribution.class.getClassLoader().getResource(fileName));
-        }
-
-        System.setProperty("gradle.core.worker.jar", workerJar.getAbsolutePath());
-
         GRADLE_HOME_DIR = file("integTest.gradleHomeDir", null);
         SAMPLES_DIR = file("integTest.samplesdir", new File(GRADLE_HOME_DIR, "samples").getAbsolutePath());
         USER_GUIDE_OUTPUT_DIR = file("integTest.userGuideOutputDir",
                 "subprojects/gradle-docs/src/samples/userguideOutput");
         USER_GUIDE_INFO_DIR = file("integTest.userGuideInfoDir", "subprojects/gradle-docs/build/src/docbook");
         DISTS_DIR = file("integTest.distsDir", "build/distributions");
-
     }
 
     public GradleDistribution() {

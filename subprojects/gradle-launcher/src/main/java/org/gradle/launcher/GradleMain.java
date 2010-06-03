@@ -21,12 +21,9 @@ import org.gradle.api.internal.DefaultClassPathRegistry;
 
 import java.io.File;
 import java.lang.reflect.Method;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLClassLoader;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 /**
  * @author Steven Devijver, Hans Dockter
@@ -83,13 +80,5 @@ public class GradleMain {
                 }
             }
         }
-    }
-
-    private static List<URL> toUrl(List<File> files) throws MalformedURLException {
-        List<URL> result = new ArrayList<URL>();
-        for (File file : files) {
-            result.add(file.toURI().toURL());
-        }
-        return result;
     }
 }

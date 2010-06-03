@@ -120,16 +120,6 @@ test {
     jvmArgs '-Xms128m', '-Xmx512m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
 }
 
-task workerJar(type: Jar) {
-    from sourceSets.main.classes
-    include 'org/gradle/process/internal/launcher/**'
-    baseName = "$jar.baseName-worker"
-}
-
-artifacts {
-    archives workerJar
-}
-
 class WriteVersionProperties extends DefaultTask {
     @Input
     String getVersion() { return project.version.toString() }

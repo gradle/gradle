@@ -63,6 +63,7 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
 import java.io.File;
@@ -115,6 +116,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new AutoCloseCacheFactory(parentFactory);
     }
 
+    protected ClassPathRegistry createClassPathRegistry() {
+        return new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(get(CacheRepository.class)));
+    }
+    
     protected ActorFactory createActorFactory() {
         return new DefaultActorFactory(get(ExecutorFactory.class));
     }

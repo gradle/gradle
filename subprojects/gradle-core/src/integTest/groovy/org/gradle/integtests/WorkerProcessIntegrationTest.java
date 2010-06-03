@@ -17,23 +17,29 @@
 package org.gradle.integtests;
 
 import org.apache.tools.ant.Project;
+import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.cache.DefaultCacheFactory;
+import org.gradle.cache.DefaultCacheRepository;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
 import org.gradle.process.internal.*;
+import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.LongIdGenerator;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -51,7 +57,8 @@ public class WorkerProcessIntegrationTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final TestListenerInterface listenerMock = context.mock(TestListenerInterface.class);
     private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
-    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
+    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
+    private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(new DefaultCacheRepository(tmpDir.getDir(), CacheUsage.ON, new DefaultCacheFactory())));
     private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new IdentityFileResolver(), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
