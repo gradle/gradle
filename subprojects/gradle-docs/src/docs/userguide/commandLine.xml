@@ -46,10 +46,6 @@
                 <xref linkend="init_scripts"/> for details.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-K</option>, <option>--default-import-file</option></term>
-            <listitem><para>Specifies the default import file.</para></listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>-P</option>, <option>--project-prop</option></term>
             <listitem><para>Sets a project property of the root project, for example
                 <literal>-Pmyprop=myvalue</literal>.
@@ -106,12 +102,6 @@
         <varlistentry>
             <term><option>-n</option>, <option>--dependencies</option></term>
             <listitem><para>Show list of all project dependencies.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>--no-imports</option></term>
-            <listitem><para>Disable usage of default imports for build script files. See
-                <xref linkend="sec:using_gradle_without_ide_support"/> for details.
             </para></listitem>
         </varlistentry>
         <varlistentry>

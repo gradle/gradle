@@ -20,16 +20,12 @@ import org.gradle.api.internal.resource.Resource;
 import org.gradle.groovy.scripts.DelegatingScriptSource;
 import org.gradle.groovy.scripts.ScriptSource;
 
-import java.io.File;
-
 public class ImportsScriptSource extends DelegatingScriptSource {
     private final ImportsReader importsReader;
-    private final File rootDir;
 
-    public ImportsScriptSource(ScriptSource source, ImportsReader importsReader, File rootDir) {
+    public ImportsScriptSource(ScriptSource source, ImportsReader importsReader) {
         super(source);
         this.importsReader = importsReader;
-        this.rootDir = rootDir;
     }
 
     @Override
@@ -49,7 +45,7 @@ public class ImportsScriptSource extends DelegatingScriptSource {
 
             String imports;
             if (text.length() > 0) {
-                imports = '\n' + importsReader.getImports(rootDir);
+                imports = '\n' + importsReader.getImports();
             } else {
                 imports = "";
             }

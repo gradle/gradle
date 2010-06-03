@@ -67,7 +67,7 @@ public class DefaultScriptPluginFactoryTest {
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));
 
-            one(importsReaderMock).withImports(scriptSourceMock, null);
+            one(importsReaderMock).withImports(scriptSourceMock);
             will(returnValue(sourceWithImportsMock));
 
             one(scriptCompilerFactoryMock).createCompiler(sourceWithImportsMock);
@@ -133,7 +133,7 @@ public class DefaultScriptPluginFactoryTest {
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));
 
-            one(importsReaderMock).withImports(scriptSourceMock, null);
+            one(importsReaderMock).withImports(scriptSourceMock);
             will(returnValue(sourceWithImportsMock));
 
             one(scriptCompilerFactoryMock).createCompiler(sourceWithImportsMock);

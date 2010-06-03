@@ -48,19 +48,11 @@
             and just type
             <literal>throw new StopExecutionException()</literal>
             instead. We do this by automatically adding a set of import statements to the Gradle scripts before Gradle
-            executes them. This set is defined by a properties file
-            <literal>gradle-imports</literal>
-            in the Gradle distribution. It has the following content.
+            executes them. Listed below are the imports added to each script.
         </para>
         <figure>
             <title>gradle-imports</title>
-            <programlisting><xi:include href='../../../../../src/toplevel/gradle-imports' parse='text'/></programlisting>
+            <programlisting><xi:include href='../../../../../subprojects/gradle-core/src/main/resources/org/gradle/configuration/default-imports.txt' parse='text'/></programlisting>
         </figure>
-        <para>You can define a project specific set of imports to be added to your build scripts. Just place a file
-            called
-            <literal>gradle-imports</literal>
-            in your root project directory. If you start Gradle with the {-I} option, the imports defined in the Gradle
-            distribution are disabled. The imports defined in your project directory are always used.
-        </para>
     </section>
 </appendix>

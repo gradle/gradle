@@ -87,7 +87,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ImportsReader createImportsReader() {
-        return new ImportsReader(startParameter.getDefaultImportsFile());
+        return new ImportsReader();
     }
     protected ClassGenerator createClassGenerator() {
         return new AsmBackedClassGenerator();

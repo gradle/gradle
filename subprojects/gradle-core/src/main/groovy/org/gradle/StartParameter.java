@@ -44,8 +44,6 @@ import java.util.*;
  * @see GradleLauncher
  */
 public class StartParameter {
-    public final static String IMPORTS_FILE_NAME = "gradle-imports";
-
     public enum ShowStacktrace {
         INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL
     }
@@ -64,7 +62,6 @@ public class StartParameter {
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
     private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME.getAbsolutePath()));
-    private File defaultImportsFile;
     private File gradleHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private ScriptSource buildScriptSource;
@@ -105,7 +102,6 @@ public class StartParameter {
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
         startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.defaultImportsFile = defaultImportsFile;
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
         startParameter.settingsScriptSource = settingsScriptSource;
@@ -132,7 +128,6 @@ public class StartParameter {
         StartParameter startParameter = new StartParameter();
         startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
-        startParameter.defaultImportsFile = defaultImportsFile;
         startParameter.cacheUsage = cacheUsage;
         startParameter.logLevel = logLevel;
         return startParameter;
@@ -179,9 +174,6 @@ public class StartParameter {
 
     public void setGradleHomeDir(File gradleHomeDir) {
         this.gradleHomeDir = GFileUtils.canonicalise(gradleHomeDir);
-        if (defaultImportsFile == null) {
-            defaultImportsFile = new File(this.gradleHomeDir, IMPORTS_FILE_NAME);
-        }
     }
 
     /**
@@ -373,14 +365,6 @@ public class StartParameter {
         this.gradleUserHomeDir = gradleUserHomeDir == null ? DEFAULT_GRADLE_USER_HOME : GFileUtils.canonicalise(gradleUserHomeDir);
     }
 
-    public File getDefaultImportsFile() {
-        return defaultImportsFile;
-    }
-
-    public void setDefaultImportsFile(File defaultImportsFile) {
-        this.defaultImportsFile = defaultImportsFile;
-    }
-
     public ProjectDependenciesBuildInstruction getProjectDependenciesBuildInstruction() {
         return projectDependenciesBuildInstruction;
     }
@@ -541,7 +525,6 @@ public class StartParameter {
                 ", projectProperties=" + projectProperties +
                 ", systemPropertiesArgs=" + systemPropertiesArgs +
                 ", gradleUserHomeDir=" + gradleUserHomeDir +
-                ", defaultImportsFile=" + defaultImportsFile +
                 ", gradleHomeDir=" + gradleHomeDir +
                 ", cacheUsage=" + cacheUsage +
                 ", buildScriptSource=" + buildScriptSource +

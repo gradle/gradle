@@ -95,7 +95,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
                 scriptAware.beforeCompile(this);
             }
             ScriptClassLoaderProvider classLoaderProvider = this.classLoaderProvider;
-            ScriptSource withImports = importsReader.withImports(scriptSource, null);
+            ScriptSource withImports = importsReader.withImports(scriptSource);
 
             if (classLoaderProvider == null) {
                 ScriptHandlerInternal defaultScriptHandler = scriptHandlerFactory.create(withImports, classLoader);

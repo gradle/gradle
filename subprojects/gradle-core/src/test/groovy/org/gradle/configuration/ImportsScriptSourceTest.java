@@ -24,15 +24,12 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import java.io.File;
-
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class ImportsScriptSourceTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final File rootDir = new File("rootDir");
     private ScriptSource backingSource;
     private ImportsReader importsReader;
     private ImportsScriptSource source;
@@ -44,7 +41,7 @@ public class ImportsScriptSourceTest {
         backingSource = context.mock(ScriptSource.class);
         importsReader = context.mock(ImportsReader.class);
         resource = context.mock(Resource.class);
-        source = new ImportsScriptSource(backingSource, importsReader, rootDir);
+        source = new ImportsScriptSource(backingSource, importsReader);
     }
     
     @Test
@@ -56,7 +53,7 @@ public class ImportsScriptSourceTest {
             one(resource).getText();
             will(returnValue("<content>"));
 
-            one(importsReader).getImports(rootDir);
+            one(importsReader).getImports();
             will(returnValue("<imports>"));
         }});
 

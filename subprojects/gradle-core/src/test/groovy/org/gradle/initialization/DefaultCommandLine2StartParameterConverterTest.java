@@ -47,13 +47,9 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 public class DefaultCommandLine2StartParameterConverterTest {
-    // This property has to be also set as system property gradle.home when running this test
-    private final static String TEST_GRADLE_HOME = "roadToNowhere";
-
     private String previousGradleHome;
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
-    private File expectedGradleImportsFile;
     private File expectedProjectDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
@@ -78,8 +74,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void setUp() throws IOException {
         previousGradleHome = System.getProperty("gradle.home");
         System.setProperty("gradle.home", "roadToNowhere");
-
-        expectedGradleImportsFile = new File(TEST_GRADLE_HOME, StartParameter.IMPORTS_FILE_NAME).getCanonicalFile();
         expectedProjectDir = new File("").getCanonicalFile();
     }
 
@@ -113,7 +107,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedProjectProperties, startParameter.getProjectProperties());
         assertEquals(expectedSystemProperties, startParameter.getSystemPropertiesArgs());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
-        assertEquals(expectedGradleImportsFile, startParameter.getDefaultImportsFile());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedDryRun, startParameter.isDryRun());
@@ -145,18 +138,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withSpecifiedProjectDirectory() {
         expectedProjectDir = testDir.getDir();
         checkConversion("-p", expectedProjectDir.getAbsoluteFile().toString());
-    }
-
-    @Test
-    public void withDisabledDefaultImports() {
-        expectedGradleImportsFile = null;
-        checkConversion("-no-imports");
-    }
-
-    @Test
-    public void withSpecifiedDefaultImportsFile() {
-        expectedGradleImportsFile = new File("somename");
-        checkConversion("-K", expectedGradleImportsFile.toString());
     }
 
     @Test

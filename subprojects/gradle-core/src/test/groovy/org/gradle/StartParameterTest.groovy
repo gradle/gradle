@@ -54,7 +54,6 @@ class StartParameterTest {
         testObj.projectProperties = [a: 'a']
         testObj.systemPropertiesArgs = [b: 'b']
         testObj.gradleUserHomeDir = new File('b')
-        testObj.defaultImportsFile = new File('imports')
         testObj.initScripts = [new File('init script'), new File("/path/to/another init script")]
         testObj.cacheUsage = CacheUsage.ON
 
@@ -204,13 +203,10 @@ class StartParameterTest {
         TestFile gradleHome = tmpDir.dir
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
-        assertThat(parameter.defaultImportsFile, equalTo(new File(gradleHome.canonicalFile, StartParameter.IMPORTS_FILE_NAME)))
 
         parameter = new StartParameter()
-        parameter.defaultImportsFile = new File("imports")
         parameter.gradleHomeDir = gradleHome
         assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
-        assertThat(parameter.defaultImportsFile, equalTo(new File("imports")))
     }
 
     @Test public void testSetNullUserHomeDir() {
@@ -237,7 +233,6 @@ class StartParameterTest {
         parameter.gradleHomeDir = tmpDir.dir
         parameter.gradleUserHomeDir = new File("home")
         parameter.cacheUsage = CacheUsage.REBUILD
-        parameter.defaultImportsFile = new File("imports")
         parameter.logLevel = LogLevel.DEBUG
 
         // Non-copied
@@ -256,7 +251,6 @@ class StartParameterTest {
         assertThat(newParameter.gradleHomeDir, equalTo(parameter.gradleHomeDir));
         assertThat(newParameter.gradleUserHomeDir, equalTo(parameter.gradleUserHomeDir));
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
-        assertThat(newParameter.defaultImportsFile, equalTo(parameter.defaultImportsFile));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
 
         assertThat(newParameter.buildFile, nullValue())

@@ -16,31 +16,17 @@
 
 package org.gradle.configuration
 
-import org.gradle.StartParameter
 import org.gradle.groovy.scripts.ScriptSource
 
 /**
  * @author Hans Dockter
  */
 class ImportsReader {
-    File defaultImportsFile
-
-    ImportsReader() {
-
+    String getImports() {
+        getClass().getResource('default-imports.txt').text
     }
 
-    ImportsReader(File defaultImportsFile) {
-        this.defaultImportsFile = defaultImportsFile
-    }
-
-    String getImports(File rootDir) {
-        File projectImportsFiles = rootDir ? new File(rootDir, StartParameter.IMPORTS_FILE_NAME) : null
-        String importsText = (defaultImportsFile ? defaultImportsFile.text : '') +
-        (projectImportsFiles && projectImportsFiles.isFile() ? projectImportsFiles.text : '')
-        importsText
-    }
-
-    ScriptSource withImports(ScriptSource source, File rootDir) {
-        new ImportsScriptSource(source, this, rootDir)
+    ScriptSource withImports(ScriptSource source) {
+        new ImportsScriptSource(source, this)
     }
 }

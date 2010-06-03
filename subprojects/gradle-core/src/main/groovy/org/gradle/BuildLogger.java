@@ -49,7 +49,6 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
         logger.debug("Settings file: " + startParameter.getSettingsScriptSource());
         logger.debug("Build file: " + startParameter.getBuildFile());
         logger.debug("Select default project: " + startParameter.getDefaultProjectSelector().getDisplayName());
-        logger.debug("Default imports file: " + startParameter.getDefaultImportsFile());
     }
 
     public void settingsEvaluated(Settings settings) {
