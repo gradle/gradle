@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -88,7 +88,6 @@ class DistributionIntegrationTest {
 
         // Libs
         assertIsGradleJar(contentsDir.file("lib/gradle-core-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/gradle-core-worker-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-ui-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar"))
