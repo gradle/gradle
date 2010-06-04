@@ -195,6 +195,17 @@
             </tr>
             <tr>
                 <td>
+                    <literal>javaVersion</literal>
+                </td>
+                <td>String</td>
+                <td>null</td>
+                <td>-</td>
+                <td>If this is null the value of the existing or default ipr XML (inherited) is used. If it is set
+                to <literal>inherited</literal>, the project SDK is used. Otherwise the SDK for the corresponding
+                value of java version is used for this module</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>downloadSources</literal>
                 </td>
                 <td>boolean</td>
@@ -222,8 +233,28 @@
                     The values of those keys are sets of <link linkend="sub:configurations">Configuration</link> objects. The files of the
                     plus configurations are added minus the files from the minus configurations. </td>
                 </tr>
+            <tr>
+                <td>
+                    <literal>gradleCacheVariable</literal>
+                </td>
+                <td>String</td>
+                <td>null</td>
+                <td>-</td>
+                <td>If this variable is set, dependencies in the existing iml file will be parsed for this variable. If they use it,
+                    it will be replaced with a path that has the $MODULE_DIR$ variable as a root and
+                    then a relative path to  {@link #gradleCacheHome} . That way Gradle can recognize equal dependencies.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>gradleCacheVariable</literal>
+                </td>
+                <td>File</td>
+                <td>null</td>
+                <td>The gradle cache dir</td>
+                <td>This property is used in conjunction with <code>gradleCacheVariable</code></td>
+            </tr>
         </table>
-
+     
         <table id='idea-project'>
             <title>IdeaProject task</title>
             <thead>
