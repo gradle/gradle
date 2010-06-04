@@ -147,9 +147,7 @@ allprojects {
         gradleCacheVariable = 'GRADLE_CACHE'
         outputDir = "$rootProject.projectDir/intellij/out" as File
         testOutputDir = "$rootProject.projectDir/intellij/testOut" as File
-        whenConfigured { module ->
-            module.dependencies*.exported = true
-        }
+        excludeDirs.add(buildDir)
     }
 }
 

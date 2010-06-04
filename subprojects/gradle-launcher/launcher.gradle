@@ -21,3 +21,13 @@ task startScripts << {
     ant.mkdir(dir: startScriptsDir)
     StartScriptsGenerator.generate(jar.archiveName, startScriptsDir, 'gradle')
 }
+
+ideaModule {
+    whenConfigured { module ->
+        def runtimeProjects = rootProject.groovyProjects() - ([project] +
+                configurations.runtime.getAllDependencies(ProjectDependency).collect { it.dependencyProject })
+        runtimeProjects.each { groovyProject ->
+            module.dependencies.add(new org.gradle.plugins.idea.model.ModuleDependency(groovyProject.name, "RUNTIME"))
+        }
+    }
+}
