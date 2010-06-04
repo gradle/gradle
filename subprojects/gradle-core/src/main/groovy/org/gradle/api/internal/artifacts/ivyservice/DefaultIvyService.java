@@ -131,7 +131,7 @@ public class DefaultIvyService implements IvyService {
     public ResolvedConfiguration resolve(final Configuration configuration) {
         Ivy ivy = ivyForResolve(resolverProvider.getResolvers(), metaDataProvider.getGradleUserHomeDir(),
                 clientModuleRegistry);
-        ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configuration.getHierarchy(),
+        ModuleDescriptor moduleDescriptor = resolveModuleDescriptorConverter.convert(configuration.getAll(),
                 metaDataProvider.getModule(), ivy.getSettings());
         return dependencyResolver.resolve(configuration, ivy, moduleDescriptor);
     }

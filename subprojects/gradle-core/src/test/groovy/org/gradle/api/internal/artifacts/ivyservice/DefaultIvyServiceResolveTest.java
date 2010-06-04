@@ -105,7 +105,7 @@ public class DefaultIvyServiceResolveTest {
             allowing(ivyFactoryStub).createIvy(ivySettingsDummy);
             will(returnValue(ivyStub));
 
-            allowing(configurationDummy).getHierarchy();
+            allowing(configurationDummy).getAll();
             will(returnValue(configurations));
 
             allowing(ivyStub).getSettings();
