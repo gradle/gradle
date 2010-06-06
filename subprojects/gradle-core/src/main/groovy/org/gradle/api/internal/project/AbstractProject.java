@@ -49,16 +49,18 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.util.*;
 import org.gradle.process.ExecResult;
+import org.gradle.util.Configurable;
+import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
+import org.gradle.util.PathHelper;
 
 import java.io.File;
 import java.net.URI;
 import java.util.*;
 
-import static java.util.Collections.singletonMap;
-import static org.gradle.util.GUtil.addMaps;
-import static org.gradle.util.GUtil.isTrue;
+import static java.util.Collections.*;
+import static org.gradle.util.GUtil.*;
 
 /**
  * @author Hans Dockter
@@ -104,7 +106,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private AntBuilder ant;
 
-    private String buildDirName = Project.DEFAULT_BUILD_DIR_NAME;
+    private Object buildDir = Project.DEFAULT_BUILD_DIR_NAME;
 
     private PluginContainer pluginContainer;
 
@@ -371,11 +373,12 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public String getBuildDirName() {
-        return buildDirName;
+        return buildDir.toString();
     }
 
     public void setBuildDirName(String buildDirName) {
-        this.buildDirName = buildDirName;
+        DeprecationLogger.nagUser("Project.setBuildDirName()", "setBuildDir()");
+        this.buildDir = buildDirName;
     }
 
     public Convention getConvention() {
@@ -584,7 +587,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public File getBuildDir() {
-        return GFileUtils.canonicalise(new File(getProjectDir(), buildDirName));
+        return file(buildDir);
+    }
+
+    public void setBuildDir(Object path) {
+        buildDir = path;
     }
 
     public void dependsOn(String path) {

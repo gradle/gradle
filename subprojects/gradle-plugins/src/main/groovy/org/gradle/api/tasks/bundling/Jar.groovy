@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -38,7 +38,7 @@ public class Jar extends Zip {
         // Add these as separate specs, so they are not affected by the changes to the root spec
         metaInf = getCopyAction().addNoInheritChild().into('META-INF')
         getCopyAction().addNoInheritChild().into('META-INF').from {
-            MapFileTree manifestSource = new MapFileTree(new File(project.buildDir, "tmp/$name"))
+            MapFileTree manifestSource = new MapFileTree(temporaryDir)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
                 DefaultManifest manifest = getManifest() ?: new DefaultManifest(null)
                 manifest.writeTo(new OutputStreamWriter(outstr))

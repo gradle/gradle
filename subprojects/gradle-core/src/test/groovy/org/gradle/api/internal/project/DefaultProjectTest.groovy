@@ -16,7 +16,6 @@
 
 
 
-
 package org.gradle.api.internal.project
 
 import java.awt.Point
@@ -117,7 +116,7 @@ class DefaultProjectTest {
     DependencyMetaDataProvider dependencyMetaDataProviderMock = context.mock(DependencyMetaDataProvider)
     Gradle build;
     Convention convention = new DefaultConvention();
-
+    FileOperations fileOperationsMock
     LoggingManager loggingManagerMock;
 
     @Before
@@ -153,12 +152,13 @@ class DefaultProjectTest {
 
         testTask = HelperUtil.createTask(DefaultTask)
 
-        projectEvaluator = context.mock(ProjectEvaluator)
+        projectEvaluator = context.mock(ProjectEvaluator.class)
         projectRegistry = new DefaultProjectRegistry()
 
-        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory, 'parent')
-        serviceRegistryMock = context.mock(ServiceRegistryFactory, 'project')
-        build = context.mock(GradleInternal)
+        projectServiceRegistryFactoryMock = context.mock(ServiceRegistryFactory.class, 'parent')
+        serviceRegistryMock = context.mock(ServiceRegistryFactory.class, 'project')
+        build = context.mock(GradleInternal.class)
+        fileOperationsMock = context.mock(FileOperations.class)
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
@@ -180,7 +180,8 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
-            allowing(serviceRegistryMock).get(FileOperations); will(returnValue([:] as FileOperations))
+            allowing(serviceRegistryMock).get(FileOperations);
+            will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([:] as ScriptPluginFactory))
             Object listener = context.mock(ProjectEvaluationListener)
             ignoring(listener)
@@ -808,6 +809,7 @@ def scriptMethod(Closure closure) {
     @Test void testProperties() {
         context.checking {
             allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue([:] as Module))
+            ignoring(fileOperationsMock)
         }
         project.additional = 'additional'
 
@@ -856,7 +858,19 @@ def scriptMethod(Closure closure) {
     }
 
     @Test void testBuildDir() {
-        assertEquals(new File(child1.projectDir, "${Project.DEFAULT_BUILD_DIR_NAME}").canonicalFile, child1.buildDir)
+        File dir = new File(rootDir, 'dir')
+        context.checking {
+            one(fileOperationsMock).file(Project.DEFAULT_BUILD_DIR_NAME)
+            will(returnValue(dir))
+        }
+        assertEquals(dir, child1.buildDir)
+
+        child1.buildDir = 12
+        context.checking {
+            one(fileOperationsMock).file(12)
+            will(returnValue(dir))
+        }
+        assertEquals(dir, child1.buildDir)
     }
 
     @Test public void testDir() {

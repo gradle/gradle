@@ -18,6 +18,7 @@ package org.gradle.util;
 
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
+import org.apache.tools.ant.taskdefs.Delete;
 import org.apache.tools.ant.taskdefs.Tar;
 import org.apache.tools.ant.taskdefs.Zip;
 import org.gradle.api.UncheckedIOException;
@@ -334,7 +335,9 @@ public class TestFile extends File implements TestFileContext {
     }
 
     public TestFile deleteDir() {
-        GradleUtil.deleteDir(this);
+        Delete delete = new Delete();
+        delete.setDir(this);
+        AntUtil.execute(delete);
         return this;
     }
 

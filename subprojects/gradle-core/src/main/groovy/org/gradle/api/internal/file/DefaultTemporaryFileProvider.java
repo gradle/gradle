@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.file;
 
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
-import org.gradle.util.UncheckedException;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 public class DefaultTemporaryFileProvider implements TemporaryFileProvider {
-    private final Callable<File> baseDir;
+    private final FileSource baseDir;
 
-    public DefaultTemporaryFileProvider(Callable<File> baseDir) {
+    public DefaultTemporaryFileProvider(FileSource baseDir) {
         this.baseDir = baseDir;
     }
 
     public File newTemporaryFile(String... path) {
-        try {
-            return GFileUtils.canonicalise(new File(baseDir.call(), GUtil.join(path, "/")));
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
+        return GFileUtils.canonicalise(new File(baseDir.get(), GUtil.join(path, "/")));
     }
 }

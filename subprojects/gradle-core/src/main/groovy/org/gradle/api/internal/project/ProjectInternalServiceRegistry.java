@@ -53,7 +53,6 @@ import org.gradle.api.plugins.PluginContainer;
 import org.gradle.logging.LoggingManagerFactory;
 
 import java.io.File;
-import java.util.concurrent.Callable;
 
 /**
  * Contains the services for a given project.
@@ -83,8 +82,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
-        return new DefaultTemporaryFileProvider(new Callable<File>() {
-            public File call() throws Exception {
+        return new DefaultTemporaryFileProvider(new FileSource() {
+            public File get() {
                 return new File(project.getBuildDir(), "tmp");
             }
         });

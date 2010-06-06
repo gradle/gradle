@@ -13,9 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.GradleUtil;
+import org.apache.commons.io.FilenameUtils;
 import org.gradle.util.TestFile;
 
 import java.io.File;
@@ -41,7 +42,7 @@ public class GradleBackedArtifactBuilder implements ArtifactBuilder {
         rootDir.file("build.gradle").writelns(
                 "apply plugin: 'java'",
                 "dependencies { compile gradleApi() }",
-                String.format("jar.destinationDir = file('%s')", GradleUtil.unbackslash(jarFile.getParentFile())),
+                String.format("jar.destinationDir = file('%s')", FilenameUtils.separatorsToUnix(jarFile.getParent())),
                 String.format("jar.archiveName = '%s'", jarFile.getName())
         );
         executer.inDirectory(rootDir).withTasks("clean", "jar").run();

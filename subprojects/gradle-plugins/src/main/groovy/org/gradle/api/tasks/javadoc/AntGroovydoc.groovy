@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.tasks.javadoc
 
-import org.gradle.api.internal.project.IsolatedAntBuilder
-import org.gradle.api.file.FileCollection
 import org.gradle.api.Project
-import org.gradle.util.GradleUtil
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ClassPathRegistry
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 /**
  * @author Hans Dockter
@@ -39,7 +40,7 @@ class AntGroovydoc {
                  List groovyClasspath, Project project) {
 
         File tmpDir = new File(project.buildDir, "tmp/groovydoc")
-        GradleUtil.deleteDir(tmpDir)
+        project.delete tmpDir
         project.copy {
             from source
             into tmpDir

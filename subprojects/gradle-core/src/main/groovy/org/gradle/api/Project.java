@@ -215,19 +215,32 @@ public interface Project extends Comparable<Project> {
     File getBuildDir();
 
     /**
+     * <p>Sets the build directory of this project. The build directory is the directory which all artifacts are
+     * generated into. The path parameter is evaluated as described for {@link #file(Object)}. This mean you can use,
+     * amongst other things, a relative or absolute path or File object to specify the build directory.
+     * </p>
+     *
+     * @param path The build directory. This is evaluated as for {@link #file(Object)}
+     */
+    void setBuildDir(Object path);
+
+    /**
      * <p>Returns the name of the build directory of this project. It is resolved relative to the project directory of
      * this project to determine the build directory. The default value is {@value #DEFAULT_BUILD_DIR_NAME}.</p> <p/>
      * <p>You can access this property in your build file using <code>buildDirName</code></p>
      *
      * @return The build dir name. Never returns null.
      */
+    @Deprecated
     String getBuildDirName();
 
     /**
      * <p>Sets the build directory name of this project.</p>
      *
      * @param buildDirName The build dir name. Should not be null.
+     * @deprecated Use {@link #setBuildDir(Object)} instead.
      */
+    @Deprecated
     void setBuildDirName(String buildDirName);
 
     /**

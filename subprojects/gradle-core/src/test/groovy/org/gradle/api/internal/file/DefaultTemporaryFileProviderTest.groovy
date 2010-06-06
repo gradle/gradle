@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.api.internal.file
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
 import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.runner.RunWith
-import org.junit.Test
-import org.junit.Rule
 import org.gradle.util.TemporaryFolder
-import java.util.concurrent.Callable
+import org.jmock.integration.junit4.JMock
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 public class DefaultTemporaryFileProviderTest {
@@ -35,7 +34,7 @@ public class DefaultTemporaryFileProviderTest {
 
     @Test
     public void allocatesTempFile() {
-        DefaultTemporaryFileProvider provider = new DefaultTemporaryFileProvider({tmpDir.getDir()} as Callable)
+        DefaultTemporaryFileProvider provider = new DefaultTemporaryFileProvider({tmpDir.getDir()} as FileSource)
         assertThat(provider.newTemporaryFile('a', 'b'), equalTo(tmpDir.file('a', 'b')))
     }
 }
