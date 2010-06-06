@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
@@ -39,6 +41,7 @@ import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.logging.StandardOutputRedirector
 import org.junit.BeforeClass
+import junit.extensions.TestSetup
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
@@ -275,7 +278,37 @@ class JUnitTestClassProcessorTest {
         processor.processTestClass(testClass(ATestClassWithBrokenSuiteMethod.class));
         processor.stop();
     }
-    
+
+    @Test
+    public void executesATestClassWithBrokenSetUp() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenSetUp.class.name))
+                assertThat(suite.className, equalTo(ATestClassWithBrokenSetUp.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.id, equalTo(2L))
+                assertThat(test.name, equalTo('classMethod'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenSetUp.class.name))
+            }
+            one(resultProcessor).failure(2L, ATestClassWithBrokenSetUp.failure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenSetUp.class));
+        processor.stop();
+    }
+
     @Test
     public void executesATestClassWithBrokenConstructor() {
         context.checking {
@@ -497,6 +530,23 @@ public static class ATestClassWithBrokenSuiteMethod {
 
     public static junit.framework.Test suite() {
         throw failure
+    }
+}
+
+public static class ATestClassWithBrokenSetUp extends TestSetup {
+    static RuntimeException failure = new RuntimeException('broken')
+
+
+    def ATestClassWithBrokenSetUp() {
+        super(null)
+    }
+
+    protected void setUp() {
+        throw failure
+    }
+
+    public static junit.framework.Test suite() {
+        return new ATestClassWithBrokenSetUp()
     }
 }
 

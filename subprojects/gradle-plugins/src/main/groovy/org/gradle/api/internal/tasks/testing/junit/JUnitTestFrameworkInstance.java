@@ -54,6 +54,7 @@ public class JUnitTestFrameworkInstance implements TestFrameworkInstance {
         return new Action<WorkerProcessBuilder>() {
             public void execute(WorkerProcessBuilder workerProcessBuilder) {
                 workerProcessBuilder.sharedPackages("junit.framework");
+                workerProcessBuilder.sharedPackages("junit.extensions");
                 workerProcessBuilder.sharedPackages("org.junit");
             }
         };

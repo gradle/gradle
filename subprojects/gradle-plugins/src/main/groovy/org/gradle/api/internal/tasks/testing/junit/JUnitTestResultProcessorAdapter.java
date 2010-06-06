@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import junit.extensions.TestSetup;
 import junit.framework.*;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
@@ -60,10 +61,8 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
         boolean needEndEvent = false;
         if (testInternal == null) {
             // this happens when @AfterClass fails, for example. Synthesise a start and end events
-            assert test instanceof TestSuite;
-            TestSuite suite = (TestSuite) test;
+            testInternal = convertForError(test);
             needEndEvent = true;
-            testInternal = new DefaultTestMethodDescriptor(idGenerator.generateId(), suite.getName(), "classMethod");
             doStartTest(test, testInternal);
         }
         resultProcessor.failure(testInternal.getId(), throwable);
@@ -71,6 +70,16 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
         if (needEndEvent) {
             endTest(test);
         }
+    }
+
+    private TestDescriptorInternal convertForError(Test test) {
+        if (test instanceof TestSetup) {
+            TestSetup testSetup = (TestSetup) test;
+            return new DefaultTestDescriptor(idGenerator.generateId(), testSetup.getClass().getName(), "classMethod");
+        }
+        assert test instanceof TestSuite : String.format("Should be TestSuite, is " + test.getClass());
+        TestSuite suite = (TestSuite) test;
+        return new DefaultTestMethodDescriptor(idGenerator.generateId(), suite.getName(), "classMethod");
     }
 
     public void addFailure(Test test, AssertionFailedError assertionFailedError) {
