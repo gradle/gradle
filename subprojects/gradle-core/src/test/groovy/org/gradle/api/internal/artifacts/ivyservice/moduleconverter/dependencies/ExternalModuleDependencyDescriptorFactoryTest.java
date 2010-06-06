@@ -17,10 +17,12 @@
 package org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies;
 
 import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
+import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.api.internal.artifacts.dsl.dependencies.ModuleFactoryHelper;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.hamcrest.Matchers;
 import static org.hamcrest.Matchers.equalTo;
@@ -77,6 +79,49 @@ public class ExternalModuleDependencyDescriptorFactoryTest extends AbstractDepen
         assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor(
                 dependency1, dependency2, externalModuleDependencyDescriptorFactory
         );
+    }
+
+    @Test
+    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndSameClassifiersShouldBePartOfSameDependencyDescriptor() {
+        ExternalDependency dependency1 = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF);
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency1, null, "jdk14");
+
+        ExternalDependency dependency2 = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_OTHER_DEP_CONF);
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency2, null, "jdk14");
+
+        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentConfsShouldBePartOfSameDependencyDescriptor(
+                dependency1, dependency2, externalModuleDependencyDescriptorFactory
+        );
+    }
+
+
+    @Test
+    public void addExternalModuleDependenciesWithSameModuleRevisionIdAndDifferentClassifiersShouldNotBePartOfSameDependencyDescriptor() {
+        ExternalDependency dependency1 = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_DEP_CONF);
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency1, null, "jdk14");
+
+        ExternalDependency dependency2 = new DefaultExternalModuleDependency("org.gradle", "gradle-core", "1.0", TEST_OTHER_DEP_CONF);
+        ModuleFactoryHelper.addExplicitArtifactsIfDefined(dependency2, null, "jdk15");
+
+        assertThataddDependenciesWithSameModuleRevisionIdAndDifferentClassifiersShouldNotBePartOfSameDependencyDescriptor(
+                dependency1, dependency2, externalModuleDependencyDescriptorFactory
+        );
+    }
+
+    private void assertThataddDependenciesWithSameModuleRevisionIdAndDifferentClassifiersShouldNotBePartOfSameDependencyDescriptor(
+            ModuleDependency dependency1, ModuleDependency dependency2, DependencyDescriptorFactoryInternal factoryInternal
+    ) {
+        factoryInternal.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency1);
+        factoryInternal.addDependencyDescriptor(TEST_CONF, moduleDescriptor, dependency2);
+        assertThat(moduleDescriptor.getDependencies().length, equalTo(2));
+
+        DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), Matchers.hasItemInArray(TEST_DEP_CONF));
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF).length, equalTo(1));
+
+        dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[1];
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF), Matchers.hasItemInArray(TEST_OTHER_DEP_CONF));
+        assertThat(dependencyDescriptor.getDependencyConfigurations(TEST_CONF).length, equalTo(1));
     }
 
 }

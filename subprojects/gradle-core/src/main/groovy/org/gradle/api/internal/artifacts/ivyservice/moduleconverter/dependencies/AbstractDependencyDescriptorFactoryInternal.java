@@ -28,6 +28,8 @@ import org.gradle.util.WrapUtil;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Set;
 
 /**
@@ -42,9 +44,11 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
 
     public void addDependencyDescriptor(String configuration, DefaultModuleDescriptor moduleDescriptor, ModuleDependency dependency) {
         ModuleRevisionId moduleRevisionId = createModuleRevisionId(dependency);
-        DefaultDependencyDescriptor existingDependencyDescriptor = findExistingDescriptor(moduleDescriptor, moduleRevisionId);
+        DependencyDescriptor newDescriptor = createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId);
+        DefaultDependencyDescriptor existingDependencyDescriptor = findExistingDescriptor(moduleDescriptor, newDescriptor);
+
         if (existingDependencyDescriptor == null) {
-            moduleDescriptor.addDependency(createDependencyDescriptor(dependency, configuration, moduleDescriptor, moduleRevisionId));
+            moduleDescriptor.addDependency(newDescriptor);
         } else {
             existingDependencyDescriptor.addDependencyConfiguration(configuration, dependency.getConfiguration());
         }
@@ -53,10 +57,18 @@ public abstract class AbstractDependencyDescriptorFactoryInternal implements Dep
     protected abstract DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration,
                                                             ModuleDescriptor moduleDescriptor, ModuleRevisionId moduleRevisionId);
 
-    private DefaultDependencyDescriptor findExistingDescriptor(DefaultModuleDescriptor moduleDescriptor, ModuleRevisionId moduleRevisionId) {
+    private DefaultDependencyDescriptor findExistingDescriptor(DefaultModuleDescriptor moduleDescriptor, DependencyDescriptor targetDescriptor) {
         for (DependencyDescriptor dependencyDescriptor : moduleDescriptor.getDependencies()) {
-            if (dependencyDescriptor.getDependencyRevisionId().equals(moduleRevisionId)) {
-                return (DefaultDependencyDescriptor) dependencyDescriptor;
+
+            if (dependencyDescriptor.getDependencyRevisionId().equals(targetDescriptor.getDependencyRevisionId())) {
+                HashSet<DependencyArtifactDescriptor> nextDependencies =
+                        new HashSet<DependencyArtifactDescriptor>(Arrays.asList(dependencyDescriptor.getAllDependencyArtifacts()));
+                HashSet<DependencyArtifactDescriptor> targetDependencies =
+                        new HashSet<DependencyArtifactDescriptor>(Arrays.asList(targetDescriptor.getAllDependencyArtifacts()));
+
+                if (nextDependencies.equals(targetDependencies)) {
+                    return (DefaultDependencyDescriptor) dependencyDescriptor;
+                }
             }
         }
         return null;
