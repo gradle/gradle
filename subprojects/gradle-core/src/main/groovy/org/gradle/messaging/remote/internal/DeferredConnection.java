@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.Stoppable;
@@ -72,7 +73,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
         }
 
         // Stopping - discard
-        connection.dispatch(new EndOfStream());
+        connection.dispatch(new EndOfStreamEvent());
         connection.stop();
     }
 
@@ -91,7 +92,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
             switch (receiveState) {
                 case Stopping:
                     setState(State.Stopped, dispatchState);
-                    return new EndOfStream();
+                    return new EndOfStreamEvent();
                 case Stopped:
                     return null;
                 case Connected:
@@ -111,14 +112,14 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
         } catch (Throwable throwable) {
             LOGGER.error(String.format("Could not receive next message using %s. Discarding connection.", receive),
                     throwable);
-            message = new EndOfStream();
+            message = new EndOfStreamEvent();
         }
         if (message == null) {
             LOGGER.warn("Received unexpected end-of-stream. Discarding connection");
-            message = new EndOfStream();
+            message = new EndOfStreamEvent();
         }
 
-        if (!(message instanceof EndOfStream)) {
+        if (!(message instanceof EndOfStreamEvent)) {
             return message;
         }
 
@@ -144,7 +145,7 @@ public class DeferredConnection implements Dispatch<Message>, Receive<Message> {
 
         lock.lock();
         try {
-            boolean endOfStream = message instanceof EndOfStream;
+            boolean endOfStream = message instanceof EndOfStreamEvent;
             while (!endOfStream && dispatchState == State.AwaitConnect) {
                 try {
                     condition.await();

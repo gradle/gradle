@@ -19,6 +19,7 @@ package org.gradle.messaging.remote.internal;
 import org.gradle.api.GradleException;
 import org.gradle.messaging.concurrent.*;
 import org.gradle.messaging.dispatch.AsyncDispatch;
+import org.gradle.messaging.dispatch.AsyncReceive;
 import org.gradle.messaging.dispatch.DiscardOnFailureDispatch;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.slf4j.LoggerFactory;
@@ -35,7 +36,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
     private final URI destinationAddress;
     private final EndOfStreamDispatch outgoingDispatch;
     private final AsyncDispatch<Message> outgoingQueue;
-    private final AsyncDispatch<Message> incomingQueue;
+    private final AsyncReceive<Message> incomingQueue;
     private final EndOfStreamFilter incomingDispatch;
     private final IncomingDemultiplex incomingDemux;
     private final DeferredConnection connection = new DeferredConnection();
@@ -59,8 +60,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
                 requestStop();
             }
         });
-        incomingQueue = new AsyncDispatch<Message>(executor);
-        incomingQueue.dispatchTo(wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
+        incomingQueue = new AsyncReceive<Message>(executor, wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
         incomingQueue.receiveFrom(connection);
     }
 
@@ -92,12 +92,12 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         connection.requestStop();
     }
 
-    public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
-        incomingDemux.addIncomingChannel(channel, wrapFailures(dispatch));
+    public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
+        incomingDemux.addIncomingChannel(channelKey, wrapFailures(dispatch));
     }
 
-    public Dispatch<Message> addOutgoingChannel(Object channel) {
-        return new OutgoingMultiplex(channel, outgoingDispatch);
+    public Dispatch<Message> addOutgoingChannel(Object channelKey) {
+        return new OutgoingMultiplex(channelKey, outgoingDispatch);
     }
 
     public void stop() {

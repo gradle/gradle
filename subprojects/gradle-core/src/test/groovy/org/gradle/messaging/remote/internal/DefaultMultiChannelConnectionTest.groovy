@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.messaging.remote.internal
 
 import org.gradle.messaging.dispatch.Dispatch
@@ -41,7 +43,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             }
             one(target).dispatch(new ChannelMetaInfo('channel1', 0))
             one(target).dispatch(new ChannelMessage(0, message))
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -69,7 +71,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
                 syncAt(1)
                 return null
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -119,7 +121,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             will {
                 return null
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -151,7 +153,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
                 syncAt(1)
                 return null
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -182,7 +184,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             will {
                 syncAt(1)
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -220,7 +222,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             will {
                 return null
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -249,7 +251,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             }
             one(target).receive()
             will(returnValue(null))
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 
@@ -279,7 +281,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             will {
                 syncAt(1)
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
             one(target).stop()
         }
 

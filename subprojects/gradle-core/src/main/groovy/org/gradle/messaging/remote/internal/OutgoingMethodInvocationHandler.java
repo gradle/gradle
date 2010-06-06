@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
@@ -24,8 +25,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OutgoingMethodInvocationHandler {
-    private final Map<Class<?>, ProxyDispatchAdapter<?>> outgoing
-            = new ConcurrentHashMap<Class<?>, ProxyDispatchAdapter<?>>();
+    private final Map<Class<?>, ProxyDispatchAdapter<?>> outgoing = new ConcurrentHashMap<Class<?>, ProxyDispatchAdapter<?>>();
     private final MultiChannelConnection<Message> connection;
 
     public OutgoingMethodInvocationHandler(MultiChannelConnection<Message> connection) {

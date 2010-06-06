@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
-public class EndOfStream extends Message {
+public class EndOfStreamEvent extends Message {
     @Override
     public boolean equals(Object obj) {
-        return obj instanceof EndOfStream;
+        return obj instanceof EndOfStreamEvent;
     }
 
     @Override

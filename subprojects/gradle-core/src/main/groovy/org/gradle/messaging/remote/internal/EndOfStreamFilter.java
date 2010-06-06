@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.Stoppable;
@@ -42,7 +43,7 @@ public class EndOfStreamFilter implements Dispatch<Message>, Stoppable {
                 throw new IllegalStateException(String.format(
                         "Cannot dispatch message %s, as this dispatch has been stopped.", message));
             }
-            if (message instanceof EndOfStream) {
+            if (message instanceof EndOfStreamEvent) {
                 endOfStreamReached = true;
                 condition.signalAll();
                 endOfStreamAction.run();

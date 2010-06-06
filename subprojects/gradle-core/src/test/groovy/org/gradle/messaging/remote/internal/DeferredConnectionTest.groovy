@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.messaging.remote.internal
 
 import org.gradle.util.JUnit4GroovyMockery
@@ -28,7 +30,7 @@ public class DeferredConnectionTest extends MultithreadedTestCase {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Connection<Message> target = context.mock(Connection.class)
     private final Message message = new Message() {}
-    private final EndOfStream endOfStream = new EndOfStream()
+    private final EndOfStreamEvent endOfStream = new EndOfStreamEvent()
     private final DeferredConnection connection = new DeferredConnection()
 
     @Test

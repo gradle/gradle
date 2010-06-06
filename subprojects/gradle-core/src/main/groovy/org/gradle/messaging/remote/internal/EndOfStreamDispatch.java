@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Dispatch;
@@ -50,7 +51,7 @@ public class EndOfStreamDispatch implements StoppableDispatch<Message> {
                 return;
             }
             stopped = true;
-            dispatch.dispatch(new EndOfStream());
+            dispatch.dispatch(new EndOfStreamEvent());
         } finally {
             lock.writeLock().unlock();
         }

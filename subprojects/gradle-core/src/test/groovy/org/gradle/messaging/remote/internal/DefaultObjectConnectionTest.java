@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
@@ -164,11 +165,11 @@ public class DefaultObjectConnectionTest {
 
         MultiChannelConnection<Message> getSender() {
             return new MultiChannelConnection<Message>() {
-                public Dispatch<Message> addOutgoingChannel(Object channel) {
-                    return channels.get(channel);
+                public Dispatch<Message> addOutgoingChannel(Object channelKey) {
+                    return channels.get(channelKey);
                 }
 
-                public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
+                public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
                     throw new UnsupportedOperationException();
                 }
 
@@ -192,12 +193,12 @@ public class DefaultObjectConnectionTest {
 
         MultiChannelConnection<Message> getReceiver() {
             return new MultiChannelConnection<Message>() {
-                public Dispatch<Message> addOutgoingChannel(Object channel) {
+                public Dispatch<Message> addOutgoingChannel(Object channelKey) {
                     throw new UnsupportedOperationException();
                 }
 
-                public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
-                    channels.put(channel, dispatch);
+                public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
+                    channels.put(channelKey, dispatch);
                 }
 
                 public void requestStop() {

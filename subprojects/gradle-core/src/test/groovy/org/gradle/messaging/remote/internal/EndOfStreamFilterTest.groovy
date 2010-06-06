@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.messaging.remote.internal
 
 import org.gradle.messaging.dispatch.Dispatch
@@ -44,7 +46,7 @@ public class EndOfStreamFilterTest extends MultithreadedTestCase {
 
         run {
             syncAt(1)
-            filter.dispatch(new EndOfStream())
+            filter.dispatch(new EndOfStreamEvent())
         }
     }
 
@@ -54,7 +56,7 @@ public class EndOfStreamFilterTest extends MultithreadedTestCase {
             one(action).run()
         }
 
-        filter.dispatch(new EndOfStream())
+        filter.dispatch(new EndOfStreamEvent())
 
         start {
             filter.stop()

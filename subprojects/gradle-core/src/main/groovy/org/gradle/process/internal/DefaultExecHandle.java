@@ -25,6 +25,7 @@ import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.shutdown.ShutdownHookActionRegister;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
 import java.io.InputStream;
@@ -238,7 +239,7 @@ public class DefaultExecHandle implements ExecHandle {
                 try {
                     stateChange.await();
                 } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
+                    throw new UncheckedException(e);
                 }
             }
             if (failureCause != null) {

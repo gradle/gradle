@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
@@ -23,13 +24,13 @@ public interface MultiChannelConnection<T> extends Addressable, AsyncStoppable {
     /**
      * Adds a destination for outgoing messages on the given channel. The returned value is thread-safe.
      */
-    Dispatch<T> addOutgoingChannel(Object channel);
+    Dispatch<T> addOutgoingChannel(Object channelKey);
 
     /**
      * Adds a handler for incoming messages on the given channel. The given dispatch is only ever used by a single
      * thread at any given time.
      */
-    void addIncomingChannel(Object channel, Dispatch<T> dispatch);
+    void addIncomingChannel(Object channelKey, Dispatch<T> dispatch);
 
     /**
      * Commences graceful stop of this connection. Stops accepting any more outgoing messages, and requests that the

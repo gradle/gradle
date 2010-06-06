@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.dispatch;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
@@ -33,7 +34,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
     private enum State {
-        Init, Stopping, Stopped
+        Init, Stopped
     }
 
     private static final int MAX_QUEUE_SIZE = 200;
@@ -43,7 +44,6 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
     private final Executor executor;
     private final int maxQueueSize;
     private int dispatchers;
-    private int receivers;
     private State state;
 
     public AsyncDispatch(Executor executor) {
@@ -63,19 +63,6 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
         }
     }
 
-    public void receiveFrom(final Receive<? extends T> receive) {
-        onReceiveThreadStart();
-        executor.execute(new Runnable() {
-            public void run() {
-                try {
-                    receiveMessages(receive);
-                } finally {
-                    onReceiveThreadExit();
-                }
-            }
-        });
-    }
-
     public void dispatchTo(final Dispatch<? super T> dispatch) {
         onDispatchThreadStart();
         executor.execute(new Runnable() {
@@ -87,28 +74,6 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
                 }
             }
         });
-    }
-
-    private void onReceiveThreadStart() {
-        lock.lock();
-        try {
-            if (state != State.Init) {
-                throw new IllegalStateException("This dispatch has been stopped.");
-            }
-            receivers++;
-        } finally {
-            lock.unlock();
-        }
-    }
-
-    private void onReceiveThreadExit() {
-        lock.lock();
-        try {
-            receivers--;
-            condition.signalAll();
-        } finally {
-            lock.unlock();
-        }
     }
 
     private void onDispatchThreadStart() {
@@ -130,34 +95,6 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
             condition.signalAll();
         } finally {
             lock.unlock();
-        }
-    }
-
-    private void receiveMessages(Receive<? extends T> receive) {
-        while (true) {
-            T message = receive.receive();
-            if (message == null) {
-                return;
-            }
-
-            lock.lock();
-            try {
-                while (state != State.Stopped && queue.size() >= maxQueueSize) {
-                    try {
-                        condition.await();
-                    } catch (InterruptedException e) {
-                        throw new UncheckedException(e);
-                    }
-                }
-                assert state != State.Stopped;
-                queue.add(message);
-                condition.signalAll();
-                if (state != State.Init) {
-                    return;
-                }
-            } finally {
-                lock.unlock();
-            }
         }
     }
 
@@ -228,23 +165,12 @@ public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
     }
 
     private void doRequestStop() {
-        if (receivers > 0) {
-            setState(State.Stopping);
-        }
-        else {
-            setState(State.Stopped);
-        }
+        setState(State.Stopped);
     }
 
     public void stop() {
         lock.lock();
         try {
-            doRequestStop();
-
-            while (receivers > 0) {
-                condition.await();
-            }
-
             setState(State.Stopped);
             while (dispatchers > 0) {
                 condition.await();

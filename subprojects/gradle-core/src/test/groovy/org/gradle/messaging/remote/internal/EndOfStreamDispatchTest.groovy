@@ -13,6 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
 package org.gradle.messaging.remote.internal
 
 import org.gradle.messaging.dispatch.Dispatch
@@ -32,7 +34,7 @@ public class EndOfStreamDispatchTest extends MultithreadedTestCase {
     @Test
     public void writesEndOfStreamMessageOnStop() {
         context.checking {
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
         }
 
         dispatch.stop()
@@ -48,7 +50,7 @@ public class EndOfStreamDispatchTest extends MultithreadedTestCase {
                 syncAt(1)
                 syncAt(2)
             }
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
         }
 
         start {
@@ -66,7 +68,7 @@ public class EndOfStreamDispatchTest extends MultithreadedTestCase {
     @Test
     public void cannotDispatchAfterStop() {
         context.checking {
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
         }
 
         dispatch.stop()
@@ -82,7 +84,7 @@ public class EndOfStreamDispatchTest extends MultithreadedTestCase {
     @Test
     public void canStopFromMultipleThreads() {
         context.checking {
-            one(target).dispatch(new EndOfStream())
+            one(target).dispatch(new EndOfStreamEvent())
         }
 
         start {
