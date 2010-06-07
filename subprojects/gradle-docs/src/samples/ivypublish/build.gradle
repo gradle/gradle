@@ -5,13 +5,8 @@ apply plugin: 'java'
 version = '1.0'
 group = 'org.gradle.test'
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'junit:junit:4.7'
-    }
+dependencies {
+   compile 'junit:junit:4.7'
 }
 
 ant {
@@ -49,13 +44,15 @@ uploadArchives {
     }
     doLast {
         File repoDir = new File("$buildDir/repo/ivypublish/1.0/")
-        Assert.assertEquals(["ivypublish.jar", "ivy.xml", "ivypublishSource.jar"] as Set,
-                repoDir.listFiles().collect { it.name } as Set)
-        Assert.assertEquals(jar.archivePath.size(), new File(repoDir, 'ivypublish.jar').size())
-        Assert.assertEquals(sourceJar.archivePath.size(), new File(repoDir, 'ivypublishSource.jar').size())
-        String descriptor = new File(repoDir, 'ivy.xml').text
-        Assert.assertTrue(descriptor.contains('m:classifier'))
-        Assert.assertTrue(descriptor.contains('xmlns:m="http://ant.apache.org/ivy/maven"'))
+        assert ["ivypublish.jar", "ivy.xml", "ivypublishSource.jar"] as Set == repoDir.listFiles().collect { it.name } as Set
+        assert jar.archivePath.size() == new File(repoDir, 'ivypublish.jar').size()
+        sourceJar.archivePath.size() == new File(repoDir, 'ivypublishSource.jar').size()
+
+        def ns = new groovy.xml.Namespace("http://ant.apache.org/ivy/maven", 'm')
+        def root = new XmlParser().parse(new File(repoDir, 'ivy.xml'))
+        assert root.publications.artifact.find { it.@name == 'ivypublishSource' }.attribute(ns.classifier) == 'src'
+        assert (root.configurations.conf.collect { it.@name } as Set) == ['archives', 'compile', 'default', 'runtime','testCompile', 'testRuntime']  as Set
+        assert root.dependencies.dependency.find { it.@org == 'junit' }.attributes() == [org: 'junit', name: 'junit', rev: '4.7', conf: 'compile->default']
     }
 }
 

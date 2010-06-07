@@ -114,11 +114,17 @@ public class DefaultIvyServicePublishTest {
             allowing(configurationStub1).getHierarchy();
             will(returnValue(WrapUtil.toLinkedSet(configurationStub1)));
 
+            allowing(configurationStub1).getAll();
+            will(returnValue(WrapUtil.toLinkedSet(configurationStub1, configurationStub2)));
+
             allowing(configurationStub2).getName();
             will(returnValue("conf2"));
 
             allowing(configurationStub2).getHierarchy();
             will(returnValue(WrapUtil.toLinkedSet(configurationStub2)));
+
+            allowing(configurationStub2).getAll();
+            will(returnValue(WrapUtil.toLinkedSet(configurationStub1, configurationStub2)));
         }});
         return WrapUtil.toSet(configurationStub1, configurationStub2);
     }

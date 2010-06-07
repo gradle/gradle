@@ -153,7 +153,9 @@ public class DefaultIvyService implements IvyService {
         if (descriptorDestination == null) {
             return;
         }
-        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(configurationsToPublish, metaDataProvider.getModule(), ivySettings);
+        assert configurationsToPublish.size() > 0;
+        Set<Configuration> allConfigurations = configurationsToPublish.iterator().next().getAll();
+        ModuleDescriptor moduleDescriptor = fileModuleDescriptorConverter.convert(allConfigurations, metaDataProvider.getModule(), ivySettings);
         try {
             moduleDescriptor.toIvyFile(descriptorDestination);
         } catch (ParseException e) {
