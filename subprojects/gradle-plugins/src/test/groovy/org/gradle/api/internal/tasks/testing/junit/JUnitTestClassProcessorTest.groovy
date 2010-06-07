@@ -284,16 +284,16 @@ class JUnitTestClassProcessorTest {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenSetUp.class.name))
-                assertThat(suite.className, equalTo(ATestClassWithBrokenSetUp.class.name))
+                assertThat(suite.name, equalTo(ATestSetUpWithBrokenSetUp.class.name))
+                assertThat(suite.className, equalTo(ATestSetUpWithBrokenSetUp.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
                 assertThat(test.id, equalTo(2L))
                 assertThat(test.name, equalTo('classMethod'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenSetUp.class.name))
+                assertThat(test.className, equalTo(ATestSetUpWithBrokenSetUp.class.name))
             }
-            one(resultProcessor).failure(2L, ATestClassWithBrokenSetUp.failure)
+            one(resultProcessor).failure(2L, ATestSetUpWithBrokenSetUp.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -305,7 +305,7 @@ class JUnitTestClassProcessorTest {
         }
 
         processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestClassWithBrokenSetUp.class));
+        processor.processTestClass(testClass(ATestSetUpWithBrokenSetUp.class));
         processor.stop();
     }
 
@@ -343,14 +343,14 @@ class JUnitTestClassProcessorTest {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenSetup.class.name))
+                assertThat(suite.name, equalTo(ATestClassWithBrokenBeforeMethod.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
                 assertThat(test.name, equalTo('test'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenSetup.class.name))
+                assertThat(test.className, equalTo(ATestClassWithBrokenBeforeMethod.class.name))
             }
-            one(resultProcessor).failure(2L, ATestClassWithBrokenSetup.failure)
+            one(resultProcessor).failure(2L, ATestClassWithBrokenBeforeMethod.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -362,7 +362,7 @@ class JUnitTestClassProcessorTest {
         }
 
         processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestClassWithBrokenSetup.class));
+        processor.processTestClass(testClass(ATestClassWithBrokenBeforeMethod.class));
         processor.stop();
     }
 
@@ -371,14 +371,14 @@ class JUnitTestClassProcessorTest {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite ->
-                assertThat(suite.name, equalTo(ATestClassWithBrokenClassSetup.class.name))
+                assertThat(suite.name, equalTo(ATestClassWithBrokenBeforeClassMethod.class.name))
             }
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal test ->
                 assertThat(test.name, equalTo('classMethod'))
-                assertThat(test.className, equalTo(ATestClassWithBrokenClassSetup.class.name))
+                assertThat(test.className, equalTo(ATestClassWithBrokenBeforeClassMethod.class.name))
             }
-            one(resultProcessor).failure(2L, ATestClassWithBrokenClassSetup.failure)
+            one(resultProcessor).failure(2L, ATestClassWithBrokenBeforeClassMethod.failure)
             one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
             will { id, TestCompleteEvent event ->
                 assertThat(event.resultType, nullValue())
@@ -390,7 +390,7 @@ class JUnitTestClassProcessorTest {
         }
 
         processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestClassWithBrokenClassSetup.class));
+        processor.processTestClass(testClass(ATestClassWithBrokenBeforeClassMethod.class));
         processor.stop();
     }
 
@@ -488,7 +488,7 @@ public static class ATestClassWithBrokenConstructor {
     }
 }
 
-public static class ATestClassWithBrokenSetup {
+public static class ATestClassWithBrokenBeforeMethod {
     static RuntimeException failure = new RuntimeException()
 
     @Before
@@ -501,7 +501,7 @@ public static class ATestClassWithBrokenSetup {
     }
 }
 
-public static class ATestClassWithBrokenClassSetup {
+public static class ATestClassWithBrokenBeforeClassMethod {
     static RuntimeException failure = new RuntimeException()
 
     @BeforeClass
@@ -533,11 +533,11 @@ public static class ATestClassWithBrokenSuiteMethod {
     }
 }
 
-public static class ATestClassWithBrokenSetUp extends TestSetup {
+public static class ATestSetUpWithBrokenSetUp extends TestSetup {
     static RuntimeException failure = new RuntimeException('broken')
 
 
-    def ATestClassWithBrokenSetUp() {
+    def ATestSetUpWithBrokenSetUp() {
         super(null)
     }
 
@@ -546,7 +546,7 @@ public static class ATestClassWithBrokenSetUp extends TestSetup {
     }
 
     public static junit.framework.Test suite() {
-        return new ATestClassWithBrokenSetUp()
+        return new ATestSetUpWithBrokenSetUp()
     }
 }
 
