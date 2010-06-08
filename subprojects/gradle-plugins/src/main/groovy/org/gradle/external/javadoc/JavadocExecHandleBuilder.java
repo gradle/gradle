@@ -19,6 +19,7 @@ package org.gradle.external.javadoc;
 import org.gradle.api.GradleException;
 import org.gradle.process.internal.DefaultExecAction;
 import org.gradle.process.internal.ExecAction;
+import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
 
 import java.io.File;
@@ -31,6 +32,7 @@ public class JavadocExecHandleBuilder {
     private File execDirectory;
     private MinimalJavadocOptions options;
     private File optionsFile;
+    private String executable;
 
     public JavadocExecHandleBuilder execDirectory(File directory) {
         if (directory == null) {
@@ -70,11 +72,19 @@ public class JavadocExecHandleBuilder {
 
         ExecAction execAction = new DefaultExecAction();
         execAction.workingDir(execDirectory);
-        execAction.executable(Jvm.current().getJavadocExecutable());
+        execAction.executable(GUtil.elvis(executable, Jvm.current().getJavadocExecutable()));
         execAction.args("@" + optionsFile.getAbsolutePath());
 
         options.contributeCommandLineOptions(execAction);
 
         return execAction;
+    }
+
+    public String getExecutable() {
+        return executable;
+    }
+
+    public void setExecutable(String executable) {
+        this.executable = executable;
     }
 }

@@ -54,6 +54,8 @@ public class Javadoc extends SourceTask {
 
     private FileCollection classpath;
 
+    private String executable;
+
     @TaskAction
     protected void generate() {
         final File destinationDir = getDestinationDir();
@@ -99,6 +101,7 @@ public class Javadoc extends SourceTask {
     }
 
     private void executeExternalJavadoc() {
+        javadocExecHandleBuilder.setExecutable(executable);
         javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
 
         ExecAction execAction = javadocExecHandleBuilder.getExecHandle();
@@ -217,5 +220,13 @@ public class Javadoc extends SourceTask {
 
     public File getOptionsFile() {
         return new File(getTemporaryDir(), "javadoc.options");
+    }
+
+    public String getExecutable() {
+        return executable;
+    }
+
+    public void setExecutable(String executable) {
+        this.executable = executable;
     }
 }

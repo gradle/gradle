@@ -53,12 +53,14 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private ExecAction execActionMock = context.mock(ExecAction.class);
     private Javadoc task;
     private FileCollection configurationMock = context.mock(FileCollection.class);
+    private String executable = "somepath";
 
     @Before
     public void setUp() {
         super.setUp();
         task = createTask(Javadoc.class);
         task.setClasspath(configurationMock);
+        task.setExecutable(executable);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
         context.checking(new Expectations() {{
             allowing(configurationMock).getFiles(); will(returnValue(classpath));
@@ -81,6 +83,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
             will(returnValue(javadocExecHandleBuilderMock));
             one(javadocExecHandleBuilderMock).getExecHandle();
             will(returnValue(execActionMock));
+            one(javadocExecHandleBuilderMock).setExecutable(executable);
         }});
     }
 

@@ -151,6 +151,10 @@ allprojects {
     }
 }
 
+ideaModule {
+    excludeDirs.add('intTestHomeDir')    
+}
+
 ideaProject {
     wildcards += ['?*.gradle']
     javaVersion = '1.6'
