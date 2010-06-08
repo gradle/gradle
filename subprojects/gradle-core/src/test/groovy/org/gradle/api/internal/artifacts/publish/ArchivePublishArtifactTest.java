@@ -62,6 +62,7 @@ public class ArchivePublishArtifactTest extends AbstractPublishArtifactTest {
         return getTestExt();
     }
 
+    @Test
     public void init() {
         ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) createPublishArtifact(getTestClassifier());
         assertThat((Set<AbstractArchiveTask>) publishArtifact.getBuildDependencies().getDependencies(null), equalTo(WrapUtil.toSet(archiveTask)));

@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.artifacts.dsl.ArtifactHandler
+import org.gradle.util.GUtil
+import org.gradle.util.ConfigureUtil
 
 /**
  * @author Hans Dockter
@@ -34,8 +36,7 @@ class DefaultArtifactHandler implements ArtifactHandler {
         this.publishArtifactFactory = publishArtifactFactory;
     }
 
-
-    private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation) {
+    private PublishArtifact pushArtifact(org.gradle.api.artifacts.Configuration configuration, Object notation, Closure configureClosure) {
         PublishArtifact publishArtifact
         if (notation instanceof PublishArtifact) {
             publishArtifact = notation
@@ -43,6 +44,7 @@ class DefaultArtifactHandler implements ArtifactHandler {
             publishArtifact = publishArtifactFactory.createArtifact(notation)
         }
         configuration.addArtifact(publishArtifact)
+        ConfigureUtil.configure(configureClosure, publishArtifact)
         return publishArtifact
     }
 
@@ -53,8 +55,12 @@ class DefaultArtifactHandler implements ArtifactHandler {
                 throw new MissingMethodException(name, this.getClass(), args);
             }
         }
+        Object[] normalizedArgs = GUtil.flatten(args as List, false)
+        if (normalizedArgs.length == 2 && normalizedArgs[1] instanceof Closure) {
+            return pushArtifact(configuration, normalizedArgs[0], (Closure) normalizedArgs[1])
+        } 
         args.each {notation ->
-            pushArtifact(configuration, notation)
+            pushArtifact(configuration, notation, null)
         }
     }
 }

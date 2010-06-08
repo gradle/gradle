@@ -13,71 +13,85 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
+
 package org.gradle.api.internal.artifacts.dsl
 
-import org.junit.Test
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.Configuration
-import org.junit.Before
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.util.JUnit4GroovyMockery
+import spock.lang.Specification
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 /**
  * @author Hans Dockter
  */
-class DefaultArtifactHandlerTest {
+class DefaultArtifactHandlerTest extends Specification {
 
     private static final String TEST_CONF_NAME = "someConf"
 
     private JUnit4GroovyMockery context = new JUnit4GroovyMockery()
 
-    private ConfigurationContainer configurationContainerStub = context.mock(ConfigurationContainer)
-    private PublishArtifactFactory artifactFactoryStub = context.mock(PublishArtifactFactory)
-    private Configuration configurationMock = context.mock(Configuration)
+    private ConfigurationContainer configurationContainerStub = Mock()
+    private PublishArtifactFactory artifactFactoryStub = Mock()
+    private Configuration configurationMock = Mock()
 
     private DefaultArtifactHandler artifactHandler = new DefaultArtifactHandler(configurationContainerStub, artifactFactoryStub)
 
-    @Before
-    void setUp() {
-      context.checking {
-        allowing(configurationContainerStub).findByName(TEST_CONF_NAME); will(returnValue(configurationMock))
-      }
+    void setup() {
+        configurationContainerStub.findByName(TEST_CONF_NAME) >> configurationMock
     }
 
-    @Test
     void pushOneDependency() {
-      String someNotation = "someNotation"
-      PublishArtifact artifactDummy = context.mock(PublishArtifact)
-      context.checking {
-        allowing(artifactFactoryStub).createArtifact(someNotation); will(returnValue(artifactDummy))
-        one(configurationMock).addArtifact(artifactDummy);
-      }
-      artifactHandler."$TEST_CONF_NAME"(someNotation)
+        String someNotation = "someNotation"
+        PublishArtifact artifactDummy = Mock()
+
+        when:
+        artifactFactoryStub.createArtifact(someNotation) >> artifactDummy
+        artifactHandler."$TEST_CONF_NAME"(someNotation)
+
+        then:
+        1 * configurationMock.addArtifact(artifactDummy)
     }
 
-    @Test
+    void pushOneDependencyWithClosure() {
+        String someNotation = "someNotation"
+        DefaultPublishArtifact artifact = new DefaultPublishArtifact("name", "ext", "jar", "classifier", null, new File(""))
+
+        when:
+        artifactFactoryStub.createArtifact(someNotation) >> artifact
+        artifactHandler."$TEST_CONF_NAME"(someNotation) { type = 'source' }
+
+        then:
+        artifact.type == 'source'
+        1 * configurationMock.addArtifact(artifact)
+    }
+
     void pushMultipleDependencies() {
-      String someNotation1 = "someNotation"
-      String someNotation2 = "someNotation2"
-      PublishArtifact artifactDummy1 = context.mock(PublishArtifact, "artifact1")
-      PublishArtifact artifactDummy2 = context.mock(PublishArtifact, "artifact2")
-      context.checking {
-        allowing(artifactFactoryStub).createArtifact(someNotation1); will(returnValue(artifactDummy1))
-        allowing(artifactFactoryStub).createArtifact(someNotation2); will(returnValue(artifactDummy2))
-        one(configurationMock).addArtifact(artifactDummy1);
-        one(configurationMock).addArtifact(artifactDummy2);
-      }
+        String someNotation1 = "someNotation"
+        String someNotation2 = "someNotation2"
+        PublishArtifact artifactDummy1 = Mock()
+        PublishArtifact artifactDummy2 = Mock()
 
-      artifactHandler."$TEST_CONF_NAME"(someNotation1, someNotation2)
+        when:
+        artifactFactoryStub.createArtifact(someNotation1) >> artifactDummy1
+        artifactFactoryStub.createArtifact(someNotation2) >> artifactDummy2
+        artifactHandler."$TEST_CONF_NAME"(someNotation1, someNotation2)
+
+        then:
+        1 * configurationMock.addArtifact(artifactDummy1)
+        1 * configurationMock.addArtifact(artifactDummy2)
+
     }
 
-    @Test(expected = MissingMethodException)
     void pushToUnknownConfiguration() {
-      String unknownConf = TEST_CONF_NAME + "delta"
-      context.checking {
-        allowing(configurationContainerStub).findByName(unknownConf); will(returnValue(null))
-      }
-      artifactHandler."$unknownConf"("someNotation")
+        String unknownConf = TEST_CONF_NAME + "delta"
+
+        when:
+        artifactHandler."$unknownConf"("someNotation")
+        configurationContainerStub.findByName(unknownConf) >> null
+
+        then:
+        thrown(MissingMethodException)
     }
 }

@@ -68,4 +68,28 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact {
     public Date getDate() {
         return date;
     }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
+    }
 }

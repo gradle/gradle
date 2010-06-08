@@ -15,41 +15,45 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact;
-import org.gradle.api.tasks.bundling.AbstractArchiveTask;
-import org.junit.Test;
-import static org.junit.Assert.assertThat;
-import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.hamcrest.Matchers;
 
-import java.awt.*;
+import java.awt.Point
+import org.gradle.api.InvalidUserDataException
+import org.gradle.api.internal.artifacts.publish.ArchivePublishArtifact
+import org.gradle.api.tasks.bundling.AbstractArchiveTask
+import org.hamcrest.Matchers
+import spock.lang.Specification
+import static org.junit.Assert.assertThat
 
 /**
  * @author Hans Dockter
  */
-public class DefaultPublishArtifactFactoryTest {
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
-    
+public class DefaultPublishArtifactFactoryTest extends Specification {
     private DefaultPublishArtifactFactory publishArtifactFactory = new DefaultPublishArtifactFactory();
 
-    @Test
-    public void createArtifact() {
-        AbstractArchiveTask archiveTaskMock = context.mock(AbstractArchiveTask.class);
+    def createArtifact() {
+        AbstractArchiveTask archiveTaskMock = Mock()
+        archiveTaskMock.getArchivePath() >> new File("")
+
+        when:
         ArchivePublishArtifact publishArtifact = (ArchivePublishArtifact) publishArtifactFactory.createArtifact(archiveTaskMock);
+
+        then:
         assertThat(publishArtifact.getArchiveTask(), Matchers.sameInstance(archiveTaskMock));
     }
 
-    @Test(expected = InvalidUserDataException.class)
     public void createArtifactWithNullNotationShouldThrowInvalidUserDataEx() {
+        when:
         publishArtifactFactory.createArtifact(null);
+
+        then:
+        thrown(InvalidUserDataException)
     }
 
-    @Test(expected = InvalidUserDataException.class)
     public void createArtifactWithUnknownNotationShouldThrowInvalidUserDataEx() {
+        when:
         publishArtifactFactory.createArtifact(new Point(1,2));
+
+        then:
+        thrown(InvalidUserDataException)
     }
 }

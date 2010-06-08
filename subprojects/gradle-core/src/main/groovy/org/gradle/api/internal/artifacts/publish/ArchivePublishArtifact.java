@@ -25,6 +25,13 @@ import java.util.Date;
  * @author Hans Dockter
  */
 public class ArchivePublishArtifact extends AbstractPublishArtifact {
+    private String name;
+    private String extension;
+    private String type;
+    private String classifier;
+    private Date date;
+    private File file;
+    
     private AbstractArchiveTask archiveTask;
 
     public ArchivePublishArtifact(AbstractArchiveTask archiveTask) {
@@ -33,27 +40,27 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
     }
 
     public String getName() {
-        return archiveTask.getBaseName() + (GUtil.isTrue(archiveTask.getAppendix()) ? "-" + archiveTask.getAppendix() : "");
+        return GUtil.elvis(name, archiveTask.getBaseName() + (GUtil.isTrue(archiveTask.getAppendix()) ? "-" + archiveTask.getAppendix() : ""));
     }
 
     public String getExtension() {
-        return archiveTask.getExtension();
+        return GUtil.elvis(extension, archiveTask.getExtension());
     }
 
     public String getType() {
-        return archiveTask.getExtension();
+        return GUtil.elvis(type, archiveTask.getExtension());
     }
 
     public String getClassifier() {
-        return archiveTask.getClassifier();
+        return GUtil.elvis(classifier, archiveTask.getClassifier());
     }
 
     public File getFile() {
-        return archiveTask.getArchivePath();
+        return GUtil.elvis(file, archiveTask.getArchivePath());
     }
 
     public Date getDate() {
-        return new Date(archiveTask.getArchivePath().lastModified());
+        return GUtil.elvis(date, new Date(archiveTask.getArchivePath().lastModified()));
     }
 
     public String toString() {
@@ -62,5 +69,29 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
 
     public AbstractArchiveTask getArchiveTask() {
         return archiveTask;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public void setExtension(String extension) {
+        this.extension = extension;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public void setClassifier(String classifier) {
+        this.classifier = classifier;
+    }
+
+    public void setDate(Date date) {
+        this.date = date;
+    }
+
+    public void setFile(File file) {
+        this.file = file;
     }
 }
