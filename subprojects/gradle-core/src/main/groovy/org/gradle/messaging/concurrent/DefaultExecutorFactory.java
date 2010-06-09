@@ -41,7 +41,7 @@ public class DefaultExecutorFactory implements ExecutorFactory, Stoppable {
         return executor;
     }
 
-    protected ExecutorService createExecutor(final String displayName) {
+    protected ExecutorService createExecutor(String displayName) {
         return Executors.newCachedThreadPool(new ThreadFactoryImpl(displayName));
     }
 

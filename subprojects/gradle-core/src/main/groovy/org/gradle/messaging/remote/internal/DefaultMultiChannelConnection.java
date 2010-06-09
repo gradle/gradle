@@ -18,10 +18,7 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
 import org.gradle.messaging.concurrent.*;
-import org.gradle.messaging.dispatch.AsyncDispatch;
-import org.gradle.messaging.dispatch.AsyncReceive;
-import org.gradle.messaging.dispatch.DiscardOnFailureDispatch;
-import org.gradle.messaging.dispatch.Dispatch;
+import org.gradle.messaging.dispatch.*;
 import org.slf4j.LoggerFactory;
 
 import java.net.URI;
@@ -36,13 +33,14 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
     private final URI destinationAddress;
     private final EndOfStreamDispatch outgoingDispatch;
     private final AsyncDispatch<Message> outgoingQueue;
-    private final AsyncReceive<Message> incomingQueue;
+    private final AsyncReceive<Message> incomingReceive;
     private final EndOfStreamFilter incomingDispatch;
     private final IncomingDemultiplex incomingDemux;
-    private final DeferredConnection connection = new DeferredConnection();
     private final StoppableExecutor executor;
+    private final Connection<Message> connection;
 
-    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, URI sourceAddress, URI destinationAddress) {
+    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, final Connection<Message> connection, URI sourceAddress, URI destinationAddress) {
+        this.connection = connection;
         this.executor = executorFactory.create(displayName);
 
         this.sourceAddress = sourceAddress;
@@ -53,24 +51,20 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         outgoingQueue.dispatchTo(wrapFailures(connection));
         outgoingDispatch = new EndOfStreamDispatch(new ChannelMessageMarshallingDispatch(outgoingQueue));
 
-        // Incoming pipeline: <connection> -> <async-queue> -> <ignore-failures> -> <end-of-stream-filter> -> <channel-demux> -> <channel-async-queue> -> <ignore-failures> -> <handler>
+        // Incoming pipeline: <connection> -> <async-receive> -> <ignore-failures> -> <end-of-stream-filter> -> <channel-demux> -> <channel-async-queue> -> <ignore-failures> -> <handler>
         incomingDemux = new IncomingDemultiplex();
         incomingDispatch = new EndOfStreamFilter(incomingDemux, new Runnable() {
             public void run() {
                 requestStop();
             }
         });
-        incomingQueue = new AsyncReceive<Message>(executor, wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
-        incomingQueue.receiveFrom(connection);
+        incomingReceive = new AsyncReceive<Message>(executor, wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
+        incomingReceive.receiveFrom(new EndOfStreamReceive(connection));
     }
 
     private Dispatch<Message> wrapFailures(Dispatch<Message> dispatch) {
         return new DiscardOnFailureDispatch<Message>(dispatch, LoggerFactory.getLogger(
                 DefaultMultiChannelConnector.class));
-    }
-
-    public void setConnection(Connection<Message> connection) {
-        this.connection.connect(connection);
     }
 
     public URI getLocalAddress() {
@@ -89,7 +83,6 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
 
     public void requestStop() {
         outgoingDispatch.stop();
-        connection.requestStop();
     }
 
     public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
@@ -108,10 +101,9 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
                 incomingDispatch.stop();
 
                 // Flush queues (should be empty)
-                incomingQueue.requestStop();
-                incomingDemux.requestStop();
+                incomingReceive.requestStop();
                 outgoingQueue.requestStop();
-                new CompositeStoppable(incomingQueue, incomingDemux, outgoingQueue).stop();
+                new CompositeStoppable(outgoingQueue, connection, incomingReceive, incomingDemux).stop();
             }
         });
         try {
@@ -121,7 +113,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         }
     }
 
-    private class IncomingDemultiplex implements Dispatch<Message>, AsyncStoppable {
+    private class IncomingDemultiplex implements Dispatch<Message>, Stoppable {
         private final Lock queueLock = new ReentrantLock();
         private final Map<Object, AsyncDispatch<Message>> incomingQueues
                 = new HashMap<Object, AsyncDispatch<Message>>();
@@ -150,12 +142,6 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
                 queueLock.unlock();
             }
             return queue;
-        }
-
-        public void requestStop() {
-            for (AsyncDispatch<Message> queue : incomingQueues.values()) {
-                queue.requestStop();
-            }
         }
 
         public void stop() {

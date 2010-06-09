@@ -23,6 +23,8 @@ import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.messaging.actor.Actor;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.dispatch.DispatchException;
+import org.gradle.util.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -69,6 +71,10 @@ public class MaxNParallelTestClassProcessor implements TestClassProcessor {
     }
 
     public void stop() {
-        new CompositeStoppable(processors).add(actors).add(resultProcessorActor).stop();
+        try {
+            new CompositeStoppable(processors).add(actors).add(resultProcessorActor).stop();
+        } catch (DispatchException e) {
+            throw UncheckedException.asUncheckedException(e.getCause());
+        }
     }
 }

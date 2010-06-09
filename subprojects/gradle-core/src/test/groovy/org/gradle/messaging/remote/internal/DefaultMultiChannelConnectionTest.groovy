@@ -16,6 +16,8 @@
 
 
 
+
+
 package org.gradle.messaging.remote.internal
 
 import org.gradle.messaging.dispatch.Dispatch
@@ -30,7 +32,7 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final Connection<Message> target = context.mock(Connection.class)
     private final TestMessage message = new TestMessage()
-    private final DefaultMultiChannelConnection connection = new DefaultMultiChannelConnection(executorFactory, 'connection', new URI('test:local'), new URI('test:remote'))
+    private DefaultMultiChannelConnection connection
 
     @Test
     public void dispatchesOutgoingMessageToTargetConnection() {
@@ -47,8 +49,8 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
         run {
-            connection.setConnection(target)
             connection.addOutgoingChannel('channel1').dispatch(message)
             syncAt(1)
         }
@@ -75,9 +77,10 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
+
         run {
             connection.addIncomingChannel('channel1', handler)
-            connection.setConnection(target)
 
             syncAt(1)
         }
@@ -125,8 +128,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
+
         run {
-            connection.setConnection(target)
             connection.addIncomingChannel('channel1', handler1)
             connection.addIncomingChannel('channel2', handler2)
 
@@ -157,43 +161,12 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
+
         run {
             connection.addIncomingChannel('channel1', handler)
-            connection.setConnection(target)
 
             syncAt(1)
-        }
-
-        connection.stop()
-    }
-
-    @Test
-    public void queuesOutgoingMessagesUntilConnected() {
-        TestMessage message2 = new TestMessage()
-
-        clockTick(1).hasParticipants(2)
-        context.checking {
-            one(target).receive()
-            will {
-                syncAt(1)
-                return null
-            }
-            one(target).dispatch(new ChannelMetaInfo('channel1', 0))
-            one(target).dispatch(new ChannelMessage(0, message))
-            one(target).dispatch(new ChannelMessage(0, message2))
-            will {
-                syncAt(1)
-            }
-            one(target).dispatch(new EndOfStreamEvent())
-            one(target).stop()
-        }
-
-        run {
-            Dispatch channel = connection.addOutgoingChannel('channel1')
-            channel.dispatch(message)
-            channel.dispatch(message2)
-
-            connection.setConnection(target)
         }
 
         connection.stop()
@@ -226,8 +199,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
+
         run {
-            connection.setConnection(target)
             syncAt(1)
             connection.addIncomingChannel('channel1', handler)
         }
@@ -255,8 +229,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
+
         run {
-            connection.setConnection(target)
             connection.addIncomingChannel('channel1', handler)
 
             expectBlocksUntil(1) {
@@ -285,8 +260,9 @@ public class DefaultMultiChannelConnectionTest extends MultithreadedTestCase {
             one(target).stop()
         }
 
+        connection = new DefaultMultiChannelConnection(executorFactory, 'connection', target, new URI('test:local'), new URI('test:remote'))
+
         run {
-            connection.setConnection(target)
             connection.addOutgoingChannel('channel1').dispatch(message)
 
             expectBlocksUntil(1) {

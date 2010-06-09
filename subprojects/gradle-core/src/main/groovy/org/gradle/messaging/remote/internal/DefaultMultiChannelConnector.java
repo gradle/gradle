@@ -32,9 +32,9 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
 
     public DefaultMultiChannelConnector(OutgoingConnector outgoingConnector, IncomingConnector incomingConnector,
                                         ExecutorFactory executorFactory) {
-        executorService = executorFactory.create("Incoming Connection Handler");
         this.outgoingConnector = new HandshakeOutgoingConnector(outgoingConnector);
         this.executorFactory = executorFactory;
+        executorService = executorFactory.create("Incoming Connection Handler");
         this.incomingConnector = new HandshakeIncomingConnector(incomingConnector, executorService);
     }
 
@@ -55,16 +55,14 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
         URI localAddress = event.getLocalAddress();
         URI remoteAddress = event.getRemoteAddress();
         DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
-                String.format("Incoming Connection %s", localAddress), localAddress, remoteAddress);
-        channelConnection.setConnection(event.getConnection());
+                String.format("Incoming Connection %s", localAddress), event.getConnection(), localAddress, remoteAddress);
         action.execute(new ConnectEvent<MultiChannelConnection<Message>>(channelConnection, localAddress, remoteAddress));
     }
 
     public MultiChannelConnection<Message> connect(URI destinationAddress) {
         Connection<Message> connection = outgoingConnector.connect(destinationAddress);
         DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
-                String.format("Outgoing Connection %s", destinationAddress), null, destinationAddress);
-        channelConnection.setConnection(connection);
+                String.format("Outgoing Connection %s", destinationAddress), connection, null, destinationAddress);
         return channelConnection;
     }
 }

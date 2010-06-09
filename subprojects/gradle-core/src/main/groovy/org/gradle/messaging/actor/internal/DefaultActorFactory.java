@@ -70,7 +70,7 @@ public class DefaultActorFactory implements ActorFactory, Stoppable {
     private class ActorImpl implements Actor {
         private final StoppableDispatch<MethodInvocation> dispatch;
         private final StoppableExecutor executor;
-        private ExceptionTrackingListener exceptionListener;
+        private final ExceptionTrackingListener exceptionListener;
 
         public ActorImpl(Object targetObject) {
             executor = executorFactory.create(String.format("Dispatch %s", targetObject));
