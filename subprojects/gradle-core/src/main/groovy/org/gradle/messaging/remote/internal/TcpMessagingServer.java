@@ -13,10 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 
@@ -38,8 +41,8 @@ public class TcpMessagingServer implements MessagingServer {
         server = new DefaultMessagingServer(connector, messageClassLoader);
     }
 
-    public ObjectConnection createUnicastConnection() {
-        return server.createUnicastConnection();
+    public URI accept(Action<ConnectEvent<ObjectConnection>> action) {
+        return server.accept(action);
     }
 
     public void stop() {

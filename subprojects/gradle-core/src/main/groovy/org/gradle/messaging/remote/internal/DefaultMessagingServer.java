@@ -13,13 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
+import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.AsyncStoppable;
 import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.ObjectConnection;
 
+import java.net.URI;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.atomic.AtomicReference;
@@ -34,30 +38,26 @@ public class DefaultMessagingServer implements MessagingServer {
         this.classLoader = classLoader;
     }
 
-    public ObjectConnection createUnicastConnection() {
-        final MultiChannelConnection<Message> messageConnection = connector.listen();
+    public URI accept(final Action<ConnectEvent<ObjectConnection>> action) {
+        return connector.accept(new Action<ConnectEvent<MultiChannelConnection<Message>>>() {
+            public void execute(ConnectEvent<MultiChannelConnection<Message>> connectEvent) {
+                finishConnect(connectEvent, action);
+            }
+        });
+    }
+
+    private void finishConnect(ConnectEvent<MultiChannelConnection<Message>> connectEvent,
+                               Action<ConnectEvent<ObjectConnection>> action) {
+        MultiChannelConnection<Message> messageConnection = connectEvent.getConnection();
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, messageConnection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageConnection);
-        final AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
-        AsyncStoppable stopControl = new AsyncStoppable() {
-            public void requestStop() {
-                messageConnection.requestStop();
-            }
+        AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
+        AsyncStoppable stopControl = new ConnectionAsyncStoppable(messageConnection, connectionRef);
 
-            public void stop() {
-                try {
-                    messageConnection.stop();
-                } finally {
-                    connections.remove(connectionRef.get());
-                }
-            }
-        };
-
-        DefaultObjectConnection connection = new DefaultObjectConnection(messageConnection, stopControl, outgoing,
-                incoming);
+        DefaultObjectConnection connection = new DefaultObjectConnection(messageConnection, stopControl, outgoing, incoming);
         connectionRef.set(connection);
         connections.add(connection);
-        return connection;
+        action.execute(new ConnectEvent<ObjectConnection>(connection, connectEvent.getLocalAddress(), connectEvent.getRemoteAddress()));
     }
 
     public void stop() {
@@ -68,6 +68,29 @@ public class DefaultMessagingServer implements MessagingServer {
             new CompositeStoppable(connections).stop();
         } finally {
             connections.clear();
+        }
+    }
+
+    private class ConnectionAsyncStoppable implements AsyncStoppable {
+        private final MultiChannelConnection<Message> messageConnection;
+        private final AtomicReference<ObjectConnection> connectionRef;
+
+        public ConnectionAsyncStoppable(MultiChannelConnection<Message> messageConnection,
+                                        AtomicReference<ObjectConnection> connectionRef) {
+            this.messageConnection = messageConnection;
+            this.connectionRef = connectionRef;
+        }
+
+        public void requestStop() {
+            messageConnection.requestStop();
+        }
+
+        public void stop() {
+            try {
+                messageConnection.stop();
+            } finally {
+                connections.remove(connectionRef.get());
+            }
         }
     }
 }

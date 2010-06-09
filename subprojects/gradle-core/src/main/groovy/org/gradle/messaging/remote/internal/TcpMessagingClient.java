@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.messaging.remote.MessagingClient;
 import org.gradle.messaging.remote.ObjectConnection;
 
@@ -46,11 +48,8 @@ public class TcpMessagingClient implements MessagingClient {
     }
 
     private static class NoOpIncomingConnector implements IncomingConnector {
-        public URI getLocalAddress() {
+        public URI accept(Action<ConnectEvent<Connection<Message>>> action) {
             throw new UnsupportedOperationException();
-        }
-
-        public void accept(Action<Connection<Message>> action) {
         }
     }
 }

@@ -31,8 +31,17 @@ public interface ExecResult {
 
     /**
      * Throws an {@link org.gradle.process.internal.ExecException} if the process did not exit with a 0 exit value.
+     *
      * @return this
      * @throws ExecException On non-zero exit value.
      */
     ExecResult assertNormalExitValue() throws ExecException;
+
+    /**
+     * Re-throws any failure executing this process.
+     *
+     * @return this
+     * @throws ExecException The execution failure
+     */
+    ExecResult rethrowFailure() throws ExecException;
 }

@@ -30,9 +30,9 @@ class TcpConnectorTest extends MultithreadedTestCase {
         TcpIncomingConnector incomingConnector = new TcpIncomingConnector(executorFactory, getClass().classLoader)
 
         Action action = { syncAt(1) } as Action
-        incomingConnector.accept(action)
+        def address = incomingConnector.accept(action)
 
-        def connection = outgoingConnector.connect(incomingConnector.getLocalAddress())
+        def connection = outgoingConnector.connect(address)
         assertNotNull(connection)
         run { syncAt(1) }
 

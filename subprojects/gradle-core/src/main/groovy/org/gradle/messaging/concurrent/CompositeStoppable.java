@@ -32,6 +32,9 @@ public class CompositeStoppable implements Stoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(CompositeStoppable.class);
     private final List<Stoppable> elements = new CopyOnWriteArrayList<Stoppable>();
 
+    public CompositeStoppable() {
+    }
+
     public CompositeStoppable(Stoppable... elements) {
         this(Arrays.asList(elements));
     }
@@ -58,6 +61,13 @@ public class CompositeStoppable implements Stoppable {
 
     public CompositeStoppable add(Closeable closeable) {
         elements.add(toStoppable(closeable));
+        return this;
+    }
+
+    public CompositeStoppable addCloseables(Iterable<? extends Closeable> closeables) {
+        for (Closeable closeable : closeables) {
+            add(closeable);
+        }
         return this;
     }
 

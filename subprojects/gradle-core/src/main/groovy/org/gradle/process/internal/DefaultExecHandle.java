@@ -105,8 +105,7 @@ public class DefaultExecHandle implements ExecHandle {
      */
     private ExecHandleRunner execHandleRunner;
 
-    private int exitCode;
-    private RuntimeException failureCause;
+    private ExecResultImpl execResult;
 
     private final ListenerBroadcast<ExecHandleListener> broadcast;
 
@@ -196,26 +195,29 @@ public class DefaultExecHandle implements ExecHandle {
     private void setEndStateInfo(ExecHandleState state, int exitCode, Throwable failureCause) {
         ShutdownHookActionRegister.removeAction(shutdownHookAction);
 
+        ExecResultImpl result;
         lock.lock();
         try {
+            ExecException wrappedException = null;
             if (failureCause != null) {
                 if (this.state == ExecHandleState.STARTING) {
-                    this.failureCause = new ExecException(String.format("A problem occurred starting %s.",
+                    wrappedException = new ExecException(String.format("A problem occurred starting %s.",
                             displayName), failureCause);
                 } else {
-                    this.failureCause = new ExecException(String.format(
+                    wrappedException = new ExecException(String.format(
                             "A problem occurred waiting for %s to complete.", displayName), failureCause);
                 }
             }
             setState(state);
-            this.exitCode = exitCode;
+            execResult = new ExecResultImpl(exitCode, wrappedException);
+            result = execResult;
         } finally {
             lock.unlock();
         }
 
         LOGGER.debug("Process finished for {}.", displayName);
 
-        broadcast.getSource().executionFinished(this);
+        broadcast.getSource().executionFinished(this, result);
         broadcast.stop();
         executor.requestStop();
     }
@@ -228,8 +230,7 @@ public class DefaultExecHandle implements ExecHandle {
             }
             setState(ExecHandleState.STARTING);
 
-            exitCode = -1;
-            failureCause = null;
+            execResult = null;
 
             execHandleRunner = new ExecHandleRunner(this, executor);
 
@@ -242,8 +243,9 @@ public class DefaultExecHandle implements ExecHandle {
                     throw new UncheckedException(e);
                 }
             }
-            if (failureCause != null) {
-                throw failureCause;
+
+            if (execResult != null) {
+                execResult.rethrowFailure();
             }
 
             LOGGER.debug("Started {}.", displayName);
@@ -271,29 +273,13 @@ public class DefaultExecHandle implements ExecHandle {
     public ExecResult waitForFinish() {
         executor.stop();
 
-        final int exitValue;
         lock.lock();
         try {
-            exitValue = exitCode;
-            if (failureCause != null) {
-                throw failureCause;
-            }
+            execResult.rethrowFailure();
+            return execResult;
         } finally {
             lock.unlock();
         }
-
-        return new ExecResult() {
-            public int getExitValue() {
-                return exitValue;
-            }
-
-            public ExecResult assertNormalExitValue() throws ExecException {
-                if (exitValue != 0) {
-                    throw new ExecException(String.format("%s finished with non-zero exit value.", StringUtils.capitalize(displayName)));
-                }
-                return this;
-            }
-        };
     }
 
     void started() {
@@ -329,5 +315,33 @@ public class DefaultExecHandle implements ExecHandle {
 
     public void removeListener(ExecHandleListener listener) {
         broadcast.remove(listener);
+    }
+
+    private class ExecResultImpl implements ExecResult {
+        private final int exitValue;
+        private final ExecException failure;
+
+        public ExecResultImpl(int exitValue, ExecException failure) {
+            this.exitValue = exitValue;
+            this.failure = failure;
+        }
+
+        public int getExitValue() {
+            return exitValue;
+        }
+
+        public ExecResult assertNormalExitValue() throws ExecException {
+            if (exitValue != 0) {
+                throw new ExecException(String.format("%s finished with non-zero exit value.", StringUtils.capitalize(displayName)));
+            }
+            return this;
+        }
+
+        public ExecResult rethrowFailure() throws ExecException {
+            if (failure != null) {
+                throw failure;
+            }
+            return this;
+        }
     }
 }

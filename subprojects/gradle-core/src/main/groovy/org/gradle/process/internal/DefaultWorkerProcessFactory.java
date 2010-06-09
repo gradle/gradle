@@ -20,7 +20,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.child.ApplicationClassesInIsolatedClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.ApplicationClassesInSystemClassLoaderWorkerFactory;
 import org.gradle.process.internal.child.WorkerFactory;
@@ -32,6 +31,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayInputStream;
+import java.net.URI;
 import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Callable;
@@ -45,7 +45,8 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
     private final IdGenerator<?> idGenerator;
 
     public DefaultWorkerProcessFactory(LogLevel workerLogLevel, MessagingServer server,
-                                       ClassPathRegistry classPathRegistry, FileResolver resolver, IdGenerator<?> idGenerator) {
+                                       ClassPathRegistry classPathRegistry, FileResolver resolver,
+                                       IdGenerator<?> idGenerator) {
         this.workerLogLevel = workerLogLevel;
         this.server = server;
         this.classPathRegistry = classPathRegistry;
@@ -70,7 +71,8 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
                 throw new IllegalStateException("No worker action specified for this worker process.");
             }
 
-            ObjectConnection connection = server.createUnicastConnection();
+            final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess();
+            URI localAddress = server.accept(workerProcess.getConnectAction());
 
             List<URL> implementationClassPath = ClasspathUtil.getClasspath(getWorker().getClass().getClassLoader());
             Object id = idGenerator.generateId();
@@ -78,9 +80,11 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
 
             WorkerFactory workerFactory;
             if (isLoadApplicationInSystemClassLoader()) {
-                workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
+                workerFactory = new ApplicationClassesInSystemClassLoaderWorkerFactory(id, displayName, this,
+                        implementationClassPath, localAddress, classPathRegistry);
             } else {
-                workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this, implementationClassPath, connection.getLocalAddress(), classPathRegistry);
+                workerFactory = new ApplicationClassesInIsolatedClassLoaderWorkerFactory(id, displayName, this,
+                        implementationClassPath, localAddress, classPathRegistry);
             }
             Callable<?> workerMain = workerFactory.create();
             getJavaCommand().classpath(workerFactory.getSystemClasspath());
@@ -96,7 +100,9 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
             getJavaCommand().setDisplayName(displayName);
             ExecHandle execHandle = getJavaCommand().build();
 
-            return new DefaultWorkerProcess(connection, execHandle);
+            workerProcess.setExecHandle(execHandle);
+
+            return workerProcess;
         }
     }
 }

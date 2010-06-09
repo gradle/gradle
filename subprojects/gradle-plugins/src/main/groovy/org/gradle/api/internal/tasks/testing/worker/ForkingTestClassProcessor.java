@@ -60,10 +60,11 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
             buildConfigAction.execute(builder);
             
             workerProcess = builder.build();
+            workerProcess.start();
+
             workerProcess.getConnection().addIncoming(TestResultProcessor.class, resultProcessor);
             remoteProcessor = workerProcess.getConnection().addOutgoing(RemoteTestClassProcessor.class);
 
-            workerProcess.start();
             remoteProcessor.startProcessing();
         }
 

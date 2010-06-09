@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+
+
 package org.gradle.messaging.concurrent
 
 import static org.hamcrest.Matchers.*
@@ -121,7 +123,7 @@ class DefaultExecutorFactoryTest extends MultithreadedTestCase {
         def executor = factory.create('<display-name>')
         executor.execute(runnable)
 
-        expectCompletesIn(500, TimeUnit.MILLISECONDS) {
+        expectTimesOut(500, TimeUnit.MILLISECONDS) {
             try {
                 executor.stop(500, TimeUnit.MILLISECONDS)
                 fail()

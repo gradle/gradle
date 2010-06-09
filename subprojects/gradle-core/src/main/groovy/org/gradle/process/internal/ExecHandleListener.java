@@ -16,11 +16,13 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.process.ExecResult;
+
 /**
  * @author Tom Eyckmans
  */
 public interface ExecHandleListener {
     void executionStarted(ExecHandle execHandle);
 
-    void executionFinished(ExecHandle execHandle);
+    void executionFinished(ExecHandle execHandle, ExecResult execResult);
 }

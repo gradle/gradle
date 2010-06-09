@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.concurrent.AsyncStoppable;
-import org.gradle.messaging.dispatch.Addressable;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.Receive;
 
-public interface Connection<T> extends Addressable, Dispatch<T>, Receive<T>, AsyncStoppable {
+public interface Connection<T> extends Dispatch<T>, Receive<T>, AsyncStoppable {
 }

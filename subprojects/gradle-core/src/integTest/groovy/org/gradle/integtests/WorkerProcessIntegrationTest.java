@@ -120,12 +120,12 @@ public class WorkerProcessIntegrationTest {
             atMost(1).of(listenerMock).send("message 2", 2);
         }});
 
-        execute(worker(new CrashingRemoteProcess()).expectFailure());
+        execute(worker(new CrashingRemoteProcess()).expectStopFailure());
     }
 
     @Test
     public void handlesWorkerActionWhichThrowsException() throws Throwable {
-        execute(worker(new BrokenRemoteProcess()).expectFailure());
+        execute(worker(new BrokenRemoteProcess()).expectStopFailure());
     }
 
     @Test
@@ -140,19 +140,12 @@ public class WorkerProcessIntegrationTest {
 
     @Test
     public void handlesWorkerProcessWhichNeverConnects() throws Throwable {
-        execute(worker(new NoConnectRemoteProcess()).onServer(new Action<ObjectConnection>() {
-            public void execute(ObjectConnection objectConnection) {
-                TestListenerInterface listener = objectConnection.addOutgoing(TestListenerInterface.class);
-                listener.send("one", 1);
-                listener.send("two", 1);
-                listener.send("three", 1);
-            }
-        }));
+        execute(worker(new NoConnectRemoteProcess()).expectStartFailure());
     }
 
     @Test
     public void handlesWorkerProcessWhenJvmFailsToStart() throws Throwable {
-        execute(mainClass("no-such-class").expectFailure());
+        execute(mainClass("no-such-class").expectStartFailure());
     }
 
     private ChildProcess worker(Action<WorkerProcessContext> action) {
@@ -175,7 +168,8 @@ public class WorkerProcessIntegrationTest {
     }
 
     private class ChildProcess {
-        private boolean fails;
+        private boolean stopFails;
+        private boolean startFails;
         private WorkerProcess proc;
         private Action<WorkerProcessContext> action;
         private String mainClass;
@@ -185,8 +179,13 @@ public class WorkerProcessIntegrationTest {
             this.action = action;
         }
 
-        ChildProcess expectFailure() {
-            fails = true;
+        ChildProcess expectStopFailure() {
+            stopFails = true;
+            return this;
+        }
+
+        ChildProcess expectStartFailure() {
+            startFails = true;
             return this;
         }
 
@@ -203,19 +202,28 @@ public class WorkerProcessIntegrationTest {
             }
 
             proc = builder.build();
+            try {
+                proc.start();
+                assertFalse(startFails);
+            } catch (ExecException e) {
+                assertTrue(startFails);
+                return;
+            }
             proc.getConnection().addIncoming(TestListenerInterface.class, exceptionListener);
-            proc.start();
             if (serverAction != null) {
                 serverAction.execute(proc.getConnection());
             }
         }
 
         public void waitForStop() {
+            if (startFails) {
+                return;
+            }
             try {
                 proc.waitForStop();
-                assertFalse("Expected process to fail", fails);
+                assertFalse("Expected process to fail", stopFails);
             } catch (ExecException e) {
-                assertTrue("Unexpected failure in worker process", fails);
+                assertTrue("Unexpected failure in worker process", stopFails);
             }
         }
 

@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.util;
 
 import groovy.lang.Closure;
@@ -60,7 +61,9 @@ public class MultithreadedTestCase {
     private final Map<Integer, ClockTickImpl> ticks = new HashMap<Integer, ClockTickImpl>();
     private ClockTickImpl currentTick = getTick(0);
     private boolean stopped;
-    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure = new ThreadLocal<Matcher<? extends Throwable>>();
+    private final ThreadLocal<Matcher<? extends Throwable>> expectedFailure
+            = new ThreadLocal<Matcher<? extends Throwable>>();
+    private final SyncPoint syncPoint = new SyncPoint();
 
     /**
      * Creates an Executor which the test can control.
@@ -76,7 +79,7 @@ public class MultithreadedTestCase {
      * Creates an ExecutorFactory for the test to use.
      */
     protected ExecutorFactory getExecutorFactory() {
-        return new DefaultExecutorFactory(){
+        return new DefaultExecutorFactory() {
             @Override
             protected ExecutorService createExecutor(String displayName) {
                 return getExecutor();
@@ -110,15 +113,20 @@ public class MultithreadedTestCase {
         return start(task).waitFor();
     }
 
-    protected ThreadHandle expectCompletesIn(int value, TimeUnit units, Closure closure) {
+    protected ThreadHandle expectTimesOut(int value, TimeUnit units, Closure closure) {
         Date start = new Date();
         ThreadHandle threadHandle = start(closure);
         threadHandle.waitFor();
         Date end = new Date();
         long actual = end.getTime() - start.getTime();
         long expected = units.toMillis(value);
+        if (actual < expected - 200) {
+            throw new RuntimeException(String.format(
+                    "Action did not block for expected time. Expected ~ %d ms, was %d ms.", expected, actual));
+        }
         if (actual > expected + 500) {
-            throw new RuntimeException(String.format("Action did not complete within expected time. Expected <= %d ms, was %d ms.", expected, actual));
+            throw new RuntimeException(String.format(
+                    "Action did not complete within expected time. Expected ~ %d ms, was %d ms.", expected, actual));
         }
         return threadHandle;
     }
@@ -151,16 +159,7 @@ public class MultithreadedTestCase {
 
         testThreadStarted(thread);
         thread.start();
-        return new ThreadHandle() {
-            public ThreadHandle waitFor() {
-                MultithreadedTestCase.this.waitFor(thread);
-                return this;
-            }
-
-            public boolean waitFor(Date expiry) {
-                return MultithreadedTestCase.this.waitFor(thread, expiry);
-            }
-        };
+        return new ThreadHandleImpl(thread);
     }
 
     private void testThreadStarted(Thread thread) {
@@ -204,38 +203,6 @@ public class MultithreadedTestCase {
         }
     }
 
-
-    private void waitFor(Thread thread) {
-        Date expiry = new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
-        if (!waitFor(thread, expiry)) {
-            throw new RuntimeException("timeout waiting for test thread to stop.");
-        }
-    }
-    
-    private boolean waitFor(Thread thread, Date expiry) {
-        if (Thread.currentThread() == thread) {
-            throw new RuntimeException("A test thread cannot wait for itself to complete.");
-        }
-
-        lock.lock();
-        try {
-            while (active.contains(thread)) {
-                try {
-                    boolean signalled = condition.awaitUntil(expiry);
-                    if (!signalled) {
-                        return false;
-                    }
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        } finally {
-            lock.unlock();
-        }
-
-        return true;
-    }
-
     /**
      * Waits for all asynchronous activity to complete. Applies a timeout, and re-throws any exceptions which occurred.
      */
@@ -252,11 +219,12 @@ public class MultithreadedTestCase {
                 while (!active.isEmpty()) {
                     boolean signaled = condition.awaitUntil(expiry);
                     if (!signaled) {
-                        throw new RuntimeException("Timeout waiting for threads to finish.");
+                        failures.add(new RuntimeException("Timeout waiting for threads to finish."));
+                        break;
                     }
                 }
             } catch (InterruptedException e) {
-                throw new RuntimeException(e);
+                throw UncheckedException.asUncheckedException(e);
             }
 
             LOGGER.debug("All test threads complete.");
@@ -434,6 +402,26 @@ public class MultithreadedTestCase {
         expectedFailure.set(matcher);
     }
 
+    /**
+     * Executes the given action in another thread, and asserts that the action blocks until all actions provided to
+     * {@link #expectUnblocks(groovy.lang.Closure)} have been executed.
+     *
+     * @param action The action to execute.
+     */
+    public void expectBlocks(Closure action) {
+        syncPoint.expectBlocks(action);
+    }
+
+    /**
+     * Executes the given action, asserting that it unblocks all actions provided to {@link
+     * #expectBlocks(groovy.lang.Closure)}
+     *
+     * @param action The action to execute.
+     */
+    public void expectUnblocks(Closure action) {
+        syncPoint.expectUnblocks(action);
+    }
+
     private class ExecutorImpl extends AbstractExecutorService {
         private final Set<ThreadHandle> threads = new CopyOnWriteArraySet<ThreadHandle>();
 
@@ -444,7 +432,7 @@ public class MultithreadedTestCase {
         public boolean awaitTermination(long timeout, TimeUnit unit) throws InterruptedException {
             Date expiry = new Date(System.currentTimeMillis() + unit.toMillis(timeout));
             for (ThreadHandle thread : threads) {
-                if (!thread.waitFor(expiry) ) {
+                if (!thread.waitUntil(expiry)) {
                     return false;
                 }
             }
@@ -470,7 +458,11 @@ public class MultithreadedTestCase {
     public interface ThreadHandle {
         ThreadHandle waitFor();
 
-        boolean waitFor(Date expiry);
+        boolean waitUntil(Date expiry);
+
+        boolean isCurrentThread();
+
+        void waitUntilBlocked();
     }
 
     public interface ClockTick {
@@ -504,6 +496,170 @@ public class MultithreadedTestCase {
 
         public boolean isImmediatelyAfter(ClockTickImpl other) {
             return number == other.number + 1;
+        }
+    }
+
+    private enum State {
+        Idle, Blocking, Blocked, Unblocking, Unblocked, Failed
+    }
+
+    private class SyncPoint {
+        private final Lock lock = new ReentrantLock();
+        private final Condition condition = lock.newCondition();
+        private State state = State.Idle;
+        private ThreadHandle blockingThread;
+
+        public void expectBlocks(Closure action) {
+            try {
+                setState(State.Idle, State.Blocking);
+                setBlockingThread(start(action));
+                setState(State.Blocking, State.Blocked);
+                waitForState(State.Unblocked, State.Failed);
+            } catch (InterruptedException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+        }
+
+        public void expectUnblocks(Closure action) {
+            try {
+                waitForState(State.Blocked);
+
+                ThreadHandle thread = getBlockingThread();
+                if (thread.isCurrentThread()) {
+                    throw new IllegalStateException("The blocking thread cannot unblock itself.");
+                }
+
+                setState(State.Blocked, State.Unblocking);
+                try {
+                    thread.waitUntilBlocked();
+                    action.call();
+                    boolean completed = thread.waitUntil(new Date(System.currentTimeMillis() + 500L));
+                    if (!completed) {
+                        throw new IllegalStateException("Expected blocking action to unblock, but it did not.");
+                    }
+                    setState(State.Unblocking, State.Unblocked);
+                } catch (Throwable e) {
+                    setState(State.Unblocking, State.Failed);
+                    throw UncheckedException.asUncheckedException(e);
+                } finally {
+                    setBlockingThread(null);
+                }
+            } catch (InterruptedException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+        }
+
+        private ThreadHandle getBlockingThread() {
+            lock.lock();
+            try {
+                return blockingThread;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private void setBlockingThread(ThreadHandle thread) {
+            lock.lock();
+            try {
+                blockingThread = thread;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private State waitForState(State... states) throws InterruptedException {
+            Date expiry = new Date(System.currentTimeMillis() + 4000L);
+            Collection<State> expectedStates = Arrays.asList(states);
+            lock.lock();
+            try {
+                while (!expectedStates.contains(state)) {
+                    if (!condition.awaitUntil(expiry)) {
+                        throw new IllegalStateException(String.format("Timeout waiting for one of: %s",
+                                expectedStates));
+                    }
+                }
+                return state;
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        private void setState(State expected, State newState) {
+            lock.lock();
+            try {
+                if (state != expected) {
+                    throw new IllegalStateException(String.format("In unexpected state. Expected %s, actual %s",
+                            expected, state));
+                }
+                state = newState;
+                condition.signalAll();
+            } finally {
+                lock.unlock();
+            }
+        }
+    }
+
+    private class ThreadHandleImpl implements ThreadHandle {
+        private final Thread thread;
+        private final Set<Thread.State> blockedStates = EnumSet.of(Thread.State.BLOCKED, Thread.State.TIMED_WAITING,
+                Thread.State.WAITING);
+
+        public ThreadHandleImpl(Thread thread) {
+            this.thread = thread;
+        }
+
+        public ThreadHandle waitFor() {
+            Date expiry = new Date(System.currentTimeMillis() + 2 * MAX_WAIT_TIME);
+            if (!waitUntil(expiry)) {
+                throw new RuntimeException("timeout waiting for test thread to stop.");
+            }
+            return this;
+        }
+
+        public boolean waitUntil(Date expiry) {
+            if (isCurrentThread()) {
+                throw new RuntimeException("A test thread cannot wait for itself to complete.");
+            }
+
+            lock.lock();
+            try {
+                while (active.contains(thread)) {
+                    try {
+                        boolean signalled = condition.awaitUntil(expiry);
+                        if (!signalled) {
+                            return false;
+                        }
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }
+                }
+            } finally {
+                lock.unlock();
+            }
+
+            return true;
+        }
+
+        public boolean isCurrentThread() {
+            return Thread.currentThread() == thread;
+        }
+
+        public boolean isBlocked() {
+            return blockedStates.contains(thread.getState());
+        }
+
+        public void waitUntilBlocked() {
+            long expiry = System.currentTimeMillis() + 2000L;
+            while (!isBlocked()) {
+                if (System.currentTimeMillis() > expiry) {
+                    throw new IllegalStateException("Timeout waiting for thread to block.");
+                }
+                try {
+                    Thread.sleep(200L);
+                } catch (InterruptedException e) {
+                    throw UncheckedException.asUncheckedException(e);
+                }
+            }
         }
     }
 }

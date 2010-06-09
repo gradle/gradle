@@ -13,116 +13,58 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
-import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Action;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.concurrent.StoppableExecutor;
-import org.gradle.util.UncheckedException;
+import org.gradle.messaging.remote.ConnectEvent;
 
 import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 public class DefaultMultiChannelConnector implements MultiChannelConnector, Stoppable {
     private final OutgoingConnector outgoingConnector;
-    private final IncomingConnector incomingConnector;
     private final ExecutorFactory executorFactory;
-    private final Lock lock = new ReentrantLock();
-    private int nextConnectionId;
-    private final Map<URI, DefaultMultiChannelConnection> pending = new HashMap<URI, DefaultMultiChannelConnection>();
     private final StoppableExecutor executorService;
+    private final HandshakeIncomingConnector incomingConnector;
 
-    public DefaultMultiChannelConnector(OutgoingConnector outgoingConnector, IncomingConnector incomingConnector, ExecutorFactory executorFactory) {
-        this.outgoingConnector = outgoingConnector;
-        this.incomingConnector = incomingConnector;
-        this.executorFactory = executorFactory;
+    public DefaultMultiChannelConnector(OutgoingConnector outgoingConnector, IncomingConnector incomingConnector,
+                                        ExecutorFactory executorFactory) {
         executorService = executorFactory.create("Incoming Connection Handler");
-        incomingConnector.accept(incomingConnectionAction());
-    }
-
-    private Action<Connection<Message>> incomingConnectionAction() {
-        return new Action<Connection<Message>>() {
-            public void execute(Connection<Message> connection) {
-                executorService.execute(new IncomingChannelHandler(connection));
-            }
-        };
+        this.outgoingConnector = new HandshakeOutgoingConnector(outgoingConnector);
+        this.executorFactory = executorFactory;
+        this.incomingConnector = new HandshakeIncomingConnector(incomingConnector, executorService);
     }
 
     public void stop() {
         executorService.stop();
     }
 
-    public MultiChannelConnection<Message> listen() {
-        lock.lock();
-        try {
-            URI localAddress;
-            try {
-                localAddress = new URI(String.format("channel:%s!%d", incomingConnector.getLocalAddress(),
-                        nextConnectionId++));
-            } catch (URISyntaxException e) {
-                throw new UncheckedException(e);
+    public URI accept(final Action<ConnectEvent<MultiChannelConnection<Message>>> action) {
+        return incomingConnector.accept(new Action<ConnectEvent<Connection<Message>>>() {
+            public void execute(ConnectEvent<Connection<Message>> event) {
+                finishConnect(event, action);
             }
-            DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory, String.format("Incoming Connection %s", localAddress), localAddress, null);
-            pending.put(localAddress, channelConnection);
-            return channelConnection;
-        } finally {
-            lock.unlock();
-        }
+        });
+    }
+
+    private void finishConnect(ConnectEvent<Connection<Message>> event,
+                               Action<ConnectEvent<MultiChannelConnection<Message>>> action) {
+        URI localAddress = event.getLocalAddress();
+        URI remoteAddress = event.getRemoteAddress();
+        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
+                String.format("Incoming Connection %s", localAddress), localAddress, remoteAddress);
+        channelConnection.setConnection(event.getConnection());
+        action.execute(new ConnectEvent<MultiChannelConnection<Message>>(channelConnection, localAddress, remoteAddress));
     }
 
     public MultiChannelConnection<Message> connect(URI destinationAddress) {
-        if (!destinationAddress.getScheme().equals("channel")) {
-            throw new IllegalArgumentException(String.format("Cannot create a connection to destination URI '%s'.",
-                    destinationAddress));
-        }
-        URI connectionAddress = toConnectionAddress(destinationAddress);
-        Connection<Message> connection = outgoingConnector.connect(connectionAddress);
-        connection.dispatch(new ConnectRequest(destinationAddress, null));
-        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory, String.format("Outgoing Connection %s", destinationAddress), null, destinationAddress);
+        Connection<Message> connection = outgoingConnector.connect(destinationAddress);
+        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
+                String.format("Outgoing Connection %s", destinationAddress), null, destinationAddress);
         channelConnection.setConnection(connection);
         return channelConnection;
-    }
-
-    private URI toConnectionAddress(URI destinationAddress) {
-        String content = destinationAddress.getSchemeSpecificPart();
-        URI connectionAddress;
-        try {
-            connectionAddress = new URI(StringUtils.substringBeforeLast(content, "!"));
-        } catch (URISyntaxException e) {
-            throw new UncheckedException(e);
-        }
-        return connectionAddress;
-    }
-
-    private class IncomingChannelHandler implements Runnable {
-
-        private final Connection<Message> connection;
-
-        public IncomingChannelHandler(Connection<Message> connection) {
-            this.connection = connection;
-        }
-
-        public void run() {
-            ConnectRequest request = (ConnectRequest) connection.receive();
-            DefaultMultiChannelConnection channelConnection;
-            lock.lock();
-            try {
-                channelConnection = pending.remove(request.getDestinationAddress());
-                if (channelConnection == null) {
-                    throw new IllegalStateException(String.format(
-                            "Request to connect received for unknown address '%s'.", request.getDestinationAddress()));
-                }
-            } finally {
-                lock.unlock();
-            }
-
-            channelConnection.setConnection(connection);
-        }
     }
 }

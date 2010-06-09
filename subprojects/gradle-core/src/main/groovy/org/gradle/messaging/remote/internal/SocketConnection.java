@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.GradleException;
@@ -56,14 +57,6 @@ public class SocketConnection implements Connection<Message> {
     @Override
     public String toString() {
         return String.format("socket connection at %s with %s", localAddress, remoteAddress);
-    }
-
-    public URI getRemoteAddress() {
-        return remoteAddress;
-    }
-
-    public URI getLocalAddress() {
-        return localAddress;
     }
 
     public Message receive() {

@@ -17,15 +17,15 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.messaging.concurrent.AsyncStoppable;
+import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.concurrent.StoppableExecutor;
+import org.gradle.messaging.remote.ConnectEvent;
 import org.gradle.util.UncheckedException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
@@ -33,44 +33,41 @@ import java.nio.channels.AsynchronousCloseException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpIncomingConnector.class);
     private final StoppableExecutor executor;
-    private final ServerSocketChannel serverSocket;
-    private final URI localAddress;
     private final ClassLoader classLoader;
     private final List<InetAddress> localAddresses;
+    private final List<ServerSocketChannel> serverSockets = new CopyOnWriteArrayList<ServerSocketChannel>();
 
     public TcpIncomingConnector(ExecutorFactory executorFactory, ClassLoader classLoader) {
         this.executor = executorFactory.create("Incoming TCP Connector");
         this.classLoader = classLoader;
 
         localAddresses = TcpOutgoingConnector.findLocalAddresses();
+    }
+
+    public URI accept(Action<ConnectEvent<Connection<Message>>> action) {
+        ServerSocketChannel serverSocket;
+        URI localAddress;
         try {
             serverSocket = ServerSocketChannel.open();
+            serverSockets.add(serverSocket);
             serverSocket.socket().bind(new InetSocketAddress(0));
             localAddress = new URI(String.format("tcp://localhost:%d", serverSocket.socket().getLocalPort()));
             LOGGER.debug("Listening on {}.", localAddress);
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }
-    }
 
-    public URI getLocalAddress() {
+        executor.execute(new Receiver(serverSocket, localAddress, action));
         return localAddress;
     }
 
-    public void accept(Action<Connection<Message>> action) {
-        executor.execute(new Receiver(action));
-    }
-
     public void requestStop() {
-        try {
-            serverSocket.close();
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        new CompositeStoppable().addCloseables(serverSockets).stop();
     }
 
     public void stop() {
@@ -79,9 +76,13 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     }
 
     private class Receiver implements Runnable {
-        private final Action<Connection<Message>> action;
+        private final ServerSocketChannel serverSocket;
+        private final URI localAddress;
+        private final Action<ConnectEvent<Connection<Message>>> action;
 
-        public Receiver(Action<Connection<Message>> action) {
+        public Receiver(ServerSocketChannel serverSocket, URI localAddress, Action<ConnectEvent<Connection<Message>>> action) {
+            this.serverSocket = serverSocket;
+            this.localAddress = localAddress;
             this.action = action;
         }
 
@@ -95,7 +96,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                     }
                     URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
                     LOGGER.debug("Accepted connection from {}.", remoteUri);
-                    action.execute(new SocketConnection(socket, localAddress, remoteUri, classLoader));
+                    action.execute(new ConnectEvent<Connection<Message>>(new SocketConnection(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
                 }
             } catch (AsynchronousCloseException e) {
                 // Ignore

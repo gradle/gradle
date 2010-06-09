@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.messaging.remote.internal;
 
 import java.net.URI;
 
 public class ConnectRequest extends Message {
     private final URI destinationAddress;
-    private final URI sourceAddress;
 
-    public ConnectRequest(URI destinationAddress, URI sourceAddress) {
+    public ConnectRequest(URI destinationAddress) {
         this.destinationAddress = destinationAddress;
-        this.sourceAddress = sourceAddress;
     }
 
     public URI getDestinationAddress() {
         return destinationAddress;
-    }
-
-    public URI getSourceAddress() {
-        return sourceAddress;
     }
 }

@@ -17,14 +17,16 @@
 package org.gradle.messaging.remote.internal;
 
 import org.gradle.api.Action;
+import org.gradle.messaging.remote.ConnectEvent;
 
 import java.net.URI;
 
 public interface IncomingConnector {
-    URI getLocalAddress();
-
     /**
-     * Registers an action to be executed when an incoming connection is received. The action must be thread-safe.
+     * Allocates a new incoming endpoint.
+     *
+     * @param action the action to execute on incoming connection.
+     * @return the address of the endpoint which the connector is listening on.
      */
-    void accept(Action<Connection<Message>> action);
+    URI accept(Action<ConnectEvent<Connection<Message>>> action);
 }

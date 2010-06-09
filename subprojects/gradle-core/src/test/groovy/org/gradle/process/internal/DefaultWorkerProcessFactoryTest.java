@@ -21,7 +21,6 @@ import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.MessagingServer;
-import org.gradle.messaging.remote.ObjectConnection;
 import org.gradle.process.internal.child.IsolatedApplicationClassLoaderWorker;
 import org.gradle.process.internal.launcher.GradleWorkerMain;
 import org.gradle.util.IdGenerator;
@@ -39,9 +38,8 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class DefaultWorkerProcessFactoryTest {
@@ -54,7 +52,7 @@ public class DefaultWorkerProcessFactoryTest {
             idGenerator);
 
     @Test
-    public void createsAWorkerProcess() throws Exception {
+    public void createsAndConfiguresAWorkerProcess() throws Exception {
         final Set<File> processClassPath = Collections.singleton(new File("something.jar"));
 
         context.checking(new Expectations() {{
@@ -72,13 +70,10 @@ public class DefaultWorkerProcessFactoryTest {
         builder.applicationClasspath(Arrays.asList(new File("app.jar")));
         builder.sharedPackages("package1", "package2");
 
-        final ObjectConnection connection = context.mock(ObjectConnection.class);
         final URI serverAddress = new URI("test:something");
 
         context.checking(new Expectations(){{
-            one(messagingServer).createUnicastConnection();
-            will(returnValue(connection));
-            one(connection).getLocalAddress();
+            one(messagingServer).accept(with(notNullValue(Action.class)));
             will(returnValue(serverAddress));
             one(idGenerator).generateId();
             will(returnValue("<id>"));
