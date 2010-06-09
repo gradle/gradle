@@ -30,6 +30,7 @@ import java.util.Set;
 
 public class WorkerProcessClassPathProvider extends AbstractClassPathProvider {
     private final CacheRepository cacheRepository;
+    private final Object lock = new Object();
     private Set<File> workerClassPath;
 
     public WorkerProcessClassPathProvider(CacheRepository cacheRepository) {
@@ -41,21 +42,24 @@ public class WorkerProcessClassPathProvider extends AbstractClassPathProvider {
         if (!name.equals("WORKER_MAIN")) {
             return super.findClassPath(name);
         }
-        if (workerClassPath == null) {
-            PersistentCache cache = cacheRepository.cache("workerMain").open();
-            File classesDir = new File(cache.getBaseDir(), "classes");
-            if (!cache.isValid()) {
-                for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
-                    String fileName = aClass.getName().replace('.', '/') + ".class";
-                    GFileUtils.copyURLToFile(WorkerProcessClassPathProvider.class.getClassLoader().getResource(fileName),
-                            new File(classesDir, fileName));
+
+        synchronized (lock) {
+            if (workerClassPath == null) {
+                PersistentCache cache = cacheRepository.cache("workerMain").open();
+                File classesDir = new File(cache.getBaseDir(), "classes");
+                if (!cache.isValid()) {
+                    for (Class<?> aClass : Arrays.asList(GradleWorkerMain.class, BootstrapClassLoaderWorker.class)) {
+                        String fileName = aClass.getName().replace('.', '/') + ".class";
+                        GFileUtils.copyURLToFile(WorkerProcessClassPathProvider.class.getClassLoader().getResource(fileName),
+                                new File(classesDir, fileName));
+                    }
+
+                    cache.markValid();
                 }
 
-                cache.markValid();
+                workerClassPath = Collections.singleton(classesDir);
             }
-
-            workerClassPath = Collections.singleton(classesDir);
+            return workerClassPath;
         }
-        return workerClassPath;
     }
 }
