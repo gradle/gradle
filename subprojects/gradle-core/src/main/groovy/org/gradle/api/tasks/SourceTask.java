@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileTree;
@@ -45,7 +46,7 @@ public class SourceTask extends ConventionTask implements PatternFilterable {
     @SkipWhenEmpty
     public FileTree getSource() {
         FileTree src = this.source.isEmpty() ? getDefaultSource() : getProject().files(new ArrayList<Object>(this.source)).getAsFileTree();
-        return src == null ? null : src.matching(patternSet);
+        return src == null ? getProject().files().getAsFileTree() : src.matching(patternSet);
     }
 
     /**

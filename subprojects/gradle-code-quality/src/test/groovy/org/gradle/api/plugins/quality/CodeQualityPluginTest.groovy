@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -115,13 +115,13 @@ class CodeQualityPluginTest {
         plugin.apply(project)
 
         def task = project.tasks.add('customCheckstyle', Checkstyle)
-        assertThat(task.source, nullValue())
+        assertThat(task.source, isEmpty())
         assertThat(task.configFile, equalTo(project.checkstyleConfigFile))
         assertThat(task.resultFile, nullValue())
         assertThat(task.classpath, nullValue())
 
         task = project.tasks.add('customCodeNarc', CodeNarc)
-        assertThat(task.source, nullValue())
+        assertThat(task.source, isEmpty())
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
         assertThat(task.reportFile, nullValue())
     }

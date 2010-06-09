@@ -13,6 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.tasks;
 
 import org.gradle.api.file.FileCollection;
@@ -42,7 +43,7 @@ public interface TaskInputs {
     /**
      * Registers some input files for this task.
      *
-     * @param paths The input files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object[])}.
+     * @param paths The input files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskInputs files(Object... paths);

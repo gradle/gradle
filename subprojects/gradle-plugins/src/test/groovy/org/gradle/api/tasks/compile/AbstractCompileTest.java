@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,15 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
-import static org.junit.Assert.*;
 import org.junit.Test;
 
 import java.io.File;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
+
+import static org.gradle.util.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -62,7 +64,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         assertNull(compile.getDestinationDir());
         assertNull(compile.getSourceCompatibility());
         assertNull(compile.getTargetCompatibility());
-        assertNull(compile.getSource());
+        assertThat(compile.getSource(), isEmpty());
     }
 
     @Test (expected = InvalidUserDataException.class) public void testExecuteWithUnspecifiedSourceCompatibility() {
