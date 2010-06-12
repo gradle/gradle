@@ -13,32 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-configurations {
-    testFixtures
-}
-
 dependencies {
     groovy libraries.groovy_depends
 
+    compile project(':scala')
     compile project(':core')
+    compile project(':plugins')
+    compile libraries.commons_io
+    compile libraries.slf4j_api, libraries.jaxen
+    compile 'dom4j:dom4j:1.6.1@jar'
 
-    compile libraries.slf4j_api,
-            libraries.commons_lang,
-            libraries.asm_all,
-            libraries.junit,
-            libraries.ant_junit,
-            libraries.ant,
-            'org.testng:testng:5.12.1'
-
-    testCompile libraries.xmlunit
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-    testFixtures sourceSets.test.classes
 }
 
-test {
-    exclude 'org/gradle/api/internal/tasks/testing/junit/ATestClass*.*'
-    jvmArgs '-Xms128m', '-Xmx256m', '-XX:+HeapDumpOnOutOfMemoryError'
-}

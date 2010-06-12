@@ -33,7 +33,7 @@ import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 
 public class EclipsePluginTest {
     private final Project project = HelperUtil.createRootProject()
-    private final EclipsePlugin plugin = new EclipsePlugin()
+    private final org.gradle.api.plugins.EclipsePlugin plugin = new org.gradle.api.plugins.EclipsePlugin()
 
     @Test
     public void canApplyToProject() {
@@ -43,21 +43,21 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenJavaPluginApplied() {
         plugin.apply(project)
-        project.plugins.apply(JavaPlugin)
+        project.plugins.apply(org.gradle.api.plugins.JavaPlugin)
 
-        def task = project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME]
-        assertThat(task, dependsOn(EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, EclipsePlugin.ECLIPSE_CP_TASK_NAME))
+        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_TASK_NAME]
+        assertThat(task, org.gradle.util.Matchers.dependsOn(org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CP_TASK_NAME))
 
-        task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
+        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
         assertThat(task, dependsOn())
         assertThat(task.projectName, equalTo(project.name))
         assertThat(task.natureNames, equalTo(ProjectType.JAVA.natureNames() as Set))
         assertThat(task.buildCommandNames, equalTo(ProjectType.JAVA.buildCommandNames() as Set))
 
-        task = project.tasks[EclipsePlugin.ECLIPSE_CP_TASK_NAME]
+        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CP_TASK_NAME]
         assertThat(task, dependsOn())
 
-        task = project.tasks[EclipsePlugin.ECLIPSE_CLEAN_TASK_NAME]
+        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CLEAN_TASK_NAME]
         assertThat(task, instanceOf(Delete.class))
         assertThat(task, dependsOn())
         assertThat(task.delete, equalTo([EclipseProject.PROJECT_FILE_NAME, EclipseClasspath.CLASSPATH_FILE_NAME, new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)] as Set))
@@ -66,9 +66,9 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenGroovyPluginApplied() {
         plugin.apply(project)
-        project.plugins.apply(GroovyPlugin)
+        project.plugins.apply(org.gradle.api.plugins.GroovyPlugin)
 
-        def task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
+        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
         assertThat(task, dependsOn())
         assertThat(task.projectName, equalTo(project.name))
         assertThat(task.natureNames, equalTo(ProjectType.GROOVY.natureNames() as Set))
@@ -78,9 +78,9 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenScalaPluginApplied() {
         plugin.apply(project)
-        project.plugins.apply(ScalaPlugin)
+        project.plugins.apply(org.gradle.api.plugins.scala.ScalaPlugin)
 
-        def task = project.tasks[EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
+        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
         assertThat(task, dependsOn())
         assertThat(task.projectName, equalTo(project.name))
         assertThat(task.natureNames, equalTo(ProjectType.SCALA.natureNames() as Set))
@@ -90,12 +90,12 @@ public class EclipsePluginTest {
     @Test
     public void addsTasksWhenWarPluginApplied() {
         plugin.apply(project)
-        project.plugins.apply(WarPlugin)
+        project.plugins.apply(org.gradle.api.plugins.WarPlugin)
 
-        def task = project.tasks[EclipsePlugin.ECLIPSE_TASK_NAME]
-        assertThat(task, dependsOn(EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, EclipsePlugin.ECLIPSE_CP_TASK_NAME, EclipsePlugin.ECLIPSE_WTP_TASK_NAME))
+        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_TASK_NAME]
+        assertThat(task, org.gradle.util.Matchers.dependsOn(org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CP_TASK_NAME, org.gradle.api.plugins.EclipsePlugin.ECLIPSE_WTP_TASK_NAME))
 
-        task = project.tasks[EclipsePlugin.ECLIPSE_WTP_TASK_NAME]
+        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_WTP_TASK_NAME]
         assertThat(task, dependsOn())
     }
 }
