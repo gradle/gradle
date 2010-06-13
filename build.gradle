@@ -152,7 +152,10 @@ allprojects {
 }
 
 ideaModule {
-    excludeDirs.add('intTestHomeDir')    
+    excludeDirs.add(file('intTestHomeDir'))
+    excludeDirs.add(file('.gradle'))
+    excludeDirs.add(file('buildSrc/build'))
+    excludeDirs.add(file('buildSrc/.gradle'))
 }
 
 ideaProject {
