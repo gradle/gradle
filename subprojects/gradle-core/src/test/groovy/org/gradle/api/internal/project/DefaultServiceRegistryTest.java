@@ -115,6 +115,13 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
+        ServiceRegistry registry = new SubType();
+        assertThat(registry.get(String.class), equalTo("12"));
+        assertThat(registry.get(Integer.class), equalTo(12));
+    }
+    
+    @Test
     public void closeInvokesCloseMethodOnEachService() {
         final TestCloseService service = context.mock(TestCloseService.class);
         registry.add(TestCloseService.class, service);
@@ -176,6 +183,9 @@ public class DefaultServiceRegistryTest {
         protected Integer createInt() {
             return 12;
         }
+    }
+
+    private static class SubType extends TestRegistry {
     }
 
     public interface TestCloseService {

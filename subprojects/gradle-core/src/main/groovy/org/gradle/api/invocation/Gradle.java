@@ -46,11 +46,13 @@ public interface Gradle {
     File getGradleUserHomeDir();
 
     /**
-     * <p>Returns the Gradle home directory. This directory is used to locate resources such as the default imports
-     * file.</p>
+     * <p>Returns the Gradle home directory, if any. This directory is the directory containing the Gradle distribution
+     * executing this build.</p>
      *
-     * @return The home directory. Never returns null.
+     * @return The home directory. May return null.
+     * @deprecated No replacement
      */
+    @Deprecated
     File getGradleHomeDir();
 
     /**

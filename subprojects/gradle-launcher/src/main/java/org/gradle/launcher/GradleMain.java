@@ -19,7 +19,6 @@ package org.gradle.launcher;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 
-import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
 import java.net.URLClassLoader;
@@ -34,7 +33,6 @@ public class GradleMain {
         String bootStrapDebugValue = System.getProperty("gradle.bootstrap.debug");
         boolean bootStrapDebug = bootStrapDebugValue != null && !bootStrapDebugValue.toUpperCase().equals("FALSE");
 
-        processGradleHome(bootStrapDebug);
         processGradleUserHome(bootStrapDebug);
 
         ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
@@ -49,24 +47,6 @@ public class GradleMain {
         Class mainClass = libClassLoader.loadClass("org.gradle.launcher.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
-    }
-
-    private static void processGradleHome(boolean bootStrapDebug) {
-        String gradleHome = System.getProperty("gradle.home");
-        if (gradleHome == null) {
-            gradleHome = System.getenv("GRADLE_HOME");
-            if (gradleHome == null) {
-                throw new RuntimeException("The gradle home must be set either via the system property gradle.home or via the environment variable GRADLE_HOME!");
-            }
-            if (bootStrapDebug) {
-                System.out.println("Gradle Home is declared by environment variable GRADLE_HOME to: " + gradleHome);
-            }
-        } else {
-            if (bootStrapDebug) {
-                System.out.println("Gradle Home is declared by system property gradle.home to: " + gradleHome);
-            }
-        }
-        System.setProperty("gradle.home", new File(gradleHome).getAbsolutePath());
     }
 
     private static void processGradleUserHome(boolean bootStrapDebug) {

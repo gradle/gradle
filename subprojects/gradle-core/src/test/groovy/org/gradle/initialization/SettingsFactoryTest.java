@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -46,7 +45,7 @@ public class SettingsFactoryTest {
         ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
         Map<String, String> expectedGradleProperties = WrapUtil.toMap("key", "myvalue");
         IProjectDescriptorRegistry expectedProjectDescriptorRegistry = new DefaultProjectDescriptorRegistry();
-        StartParameter expectedStartParameter = HelperUtil.dummyStartParameter();
+        StartParameter expectedStartParameter = new StartParameter();
         SettingsFactory settingsFactory = new SettingsFactory(expectedProjectDescriptorRegistry);
         final URLClassLoader urlClassLoader = new URLClassLoader(new URL[0]);
         GradleInternal gradle = context.mock(GradleInternal.class);

@@ -20,11 +20,9 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.internal.project.IProjectFactory;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
+import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
@@ -105,15 +103,12 @@ public class ProjectBuilder {
             }
         }
 
-        File homeDir = new File(projectDir, "gradleHome");
-        GFileUtils.touch(new File(homeDir, "gradle-imports"));
+        final File homeDir = new File(projectDir, "gradleHome");
 
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleHomeDir(homeDir);
         startParameter.setGradleUserHomeDir(new File(projectDir, "userHome"));
 
-        TopLevelBuildServiceRegistry topLevelRegistry = new TopLevelBuildServiceRegistry(GLOBAL_SERVICES,
-                startParameter);
+        ServiceRegistryFactory topLevelRegistry = new TestTopLevelBuildServiceRegistry(startParameter, homeDir);
         GradleInternal gradle = new DefaultGradle(null, startParameter, topLevelRegistry);
 
         DefaultProjectDescriptor projectDescriptor = new DefaultProjectDescriptor(null, "test", projectDir, new DefaultProjectDescriptorRegistry());
@@ -196,6 +191,23 @@ public class ProjectBuilder {
             return new LoggingManagerFactory() {
                 public LoggingManager create() {
                     return new NoOpLoggingManager();
+                }
+            };
+        }
+    }
+
+    private static class TestTopLevelBuildServiceRegistry extends TopLevelBuildServiceRegistry {
+        private final File homeDir;
+
+        public TestTopLevelBuildServiceRegistry(StartParameter startParameter, File homeDir) {
+            super(ProjectBuilder.GLOBAL_SERVICES, startParameter);
+            this.homeDir = homeDir;
+        }
+
+        protected GradleDistributionLocator createGradleDistributionLocator() {
+            return new GradleDistributionLocator() {
+                public File getGradleHome() {
+                    return homeDir;
                 }
             };
         }

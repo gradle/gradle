@@ -62,7 +62,6 @@ public class StartParameter {
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new File(System.getProperty("user.home") + "/.gradle");
     private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME.getAbsolutePath()));
-    private File gradleHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
@@ -100,7 +99,6 @@ public class StartParameter {
         startParameter.searchUpwards = searchUpwards;
         startParameter.projectProperties = projectProperties;
         startParameter.systemPropertiesArgs = systemPropertiesArgs;
-        startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
         startParameter.buildScriptSource = buildScriptSource;
@@ -126,7 +124,6 @@ public class StartParameter {
      */
     public StartParameter newBuild() {
         StartParameter startParameter = new StartParameter();
-        startParameter.gradleHomeDir = gradleHomeDir;
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
         startParameter.logLevel = logLevel;
@@ -166,14 +163,6 @@ public class StartParameter {
             currentDir = this.buildFile.getParentFile();
             defaultProjectSelector = new BuildFileProjectSpec(this.buildFile);
         }
-    }
-
-    public File getGradleHomeDir() {
-        return gradleHomeDir;
-    }
-
-    public void setGradleHomeDir(File gradleHomeDir) {
-        this.gradleHomeDir = GFileUtils.canonicalise(gradleHomeDir);
     }
 
     /**
@@ -525,7 +514,6 @@ public class StartParameter {
                 ", projectProperties=" + projectProperties +
                 ", systemPropertiesArgs=" + systemPropertiesArgs +
                 ", gradleUserHomeDir=" + gradleUserHomeDir +
-                ", gradleHomeDir=" + gradleHomeDir +
                 ", cacheUsage=" + cacheUsage +
                 ", buildScriptSource=" + buildScriptSource +
                 ", settingsScriptSource=" + settingsScriptSource +

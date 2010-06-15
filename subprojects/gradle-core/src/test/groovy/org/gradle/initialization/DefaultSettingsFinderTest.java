@@ -18,7 +18,6 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.util.GFileUtils;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -36,7 +35,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class DefaultSettingsFinderTest {
-    private static final StartParameter TEST_START_PARAMETER = HelperUtil.dummyStartParameter();
+    private static final StartParameter TEST_START_PARAMETER = new StartParameter();
     private static final File TEST_SETTINGSFILE = new File("parent", "testFile1");
     private DefaultSettingsFinder defaultSettingsFinder;
     private ISettingsFileSearchStrategy searchStrategyMock1;

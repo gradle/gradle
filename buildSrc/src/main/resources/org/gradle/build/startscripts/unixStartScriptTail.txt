@@ -105,7 +105,6 @@ if $useprofiler ; then
 else
     exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
-        -Dgradle.home="$GRADLE_HOME" \
         $STARTER_MAIN_CLASS \
         "$@"
 fi

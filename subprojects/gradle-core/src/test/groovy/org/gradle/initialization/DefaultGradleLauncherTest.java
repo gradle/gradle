@@ -359,7 +359,6 @@ public class DefaultGradleLauncherTest {
     @Test
     public void testNewInstanceFactory() {
         StartParameter startParameter = new StartParameter();
-        startParameter.setGradleHomeDir(tmpDir.createDir("gradleHome"));
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
         assertThat(gradleLauncher, notNullValue());
     }

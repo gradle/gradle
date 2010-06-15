@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
+import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.IProjectRegistry;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -27,6 +28,7 @@ import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.MultiParentClassLoader;
 
@@ -42,6 +44,7 @@ public class DefaultGradle implements GradleInternal {
     private IProjectRegistry<ProjectInternal> projectRegistry;
     private final ListenerManager listenerManager;
     private final ServiceRegistryFactory services;
+    private final GradleDistributionLocator distributionLocator;
 
     public DefaultGradle(Gradle parent, StartParameter startParameter, ServiceRegistryFactory parentRegistry) {
         this.parent = parent;
@@ -51,6 +54,7 @@ public class DefaultGradle implements GradleInternal {
         projectRegistry = services.get(IProjectRegistry.class);
         taskGraph = services.get(TaskGraphExecuter.class);
         scriptClassLoader = services.get(MultiParentClassLoader.class);
+        distributionLocator = services.get(GradleDistributionLocator.class);
     }
 
     public Gradle getParent() {
@@ -62,7 +66,8 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public File getGradleHomeDir() {
-        return startParameter.getGradleHomeDir();
+        DeprecationLogger.nagUser("Gradle.getGradleHomeDir()");
+        return distributionLocator.getGradleHome();
     }
 
     public File getGradleUserHomeDir() {

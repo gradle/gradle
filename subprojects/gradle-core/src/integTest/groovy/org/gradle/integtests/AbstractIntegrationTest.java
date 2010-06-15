@@ -41,8 +41,6 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
 
     private StartParameter startParameter() {
         StartParameter parameter = new StartParameter();
-        parameter.setGradleHomeDir(distribution.getGradleHomeDir());
-
         parameter.setGradleUserHomeDir(distribution.getUserHomeDir());
 
         parameter.setSearchUpwards(false);

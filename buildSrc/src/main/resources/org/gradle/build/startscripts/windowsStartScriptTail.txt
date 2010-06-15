@@ -2,7 +2,7 @@ set STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 
-set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS% -Dgradle.home="%GRADLE_HOME%"
+set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS%
 set GRADLE_OPTS=%GRADLE_OPTS%
 
 @rem Execute Gradle

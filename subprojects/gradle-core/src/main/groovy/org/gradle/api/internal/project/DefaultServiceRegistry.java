@@ -53,8 +53,10 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
     public DefaultServiceRegistry(ServiceRegistry parent) {
         this.parent = parent;
-        findFactoryMethods();
-        findDecoratorMethods();
+        for (Class<?> type = getClass(); type != Object.class; type = type.getSuperclass()) {
+            findFactoryMethods(type);
+            findDecoratorMethods(type);
+        }
     }
 
     @Override
@@ -62,8 +64,8 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         return getClass().getSimpleName();
     }
 
-    private void findFactoryMethods() {
-        for (Method method : getClass().getDeclaredMethods()) {
+    private void findFactoryMethods(Class<?> type) {
+        for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 0
                     && method.getReturnType() != Void.class) {
@@ -72,8 +74,8 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         }
     }
 
-    private void findDecoratorMethods() {
-        for (Method method : getClass().getDeclaredMethods()) {
+    private void findDecoratorMethods(Class<?> type) {
+        for (Method method : type.getDeclaredMethods()) {
             if (method.getName().startsWith("create")
                     && method.getParameterTypes().length == 1
                     && method.getReturnType() != Void.class

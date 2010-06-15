@@ -14,12 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
-
-
-
 package org.gradle.util
 
 import java.rmi.server.UID
@@ -34,7 +28,6 @@ import org.apache.ivy.plugins.matcher.ExactPatternMatcher
 import org.apache.ivy.plugins.matcher.PatternMatcher
 import org.codehaus.groovy.control.CompilerConfiguration
 import org.gradle.BuildResult
-import org.gradle.StartParameter
 import org.gradle.api.Task
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.ClassGenerator
@@ -98,12 +91,6 @@ class HelperUtil {
         parentProject.addChildProject project
         parentProject.projectRegistry.addProject project
         return project
-    }
-
-    static org.gradle.StartParameter dummyStartParameter() {
-        StartParameter parameter = new StartParameter()
-        parameter.gradleHomeDir = new File('gradle home')
-        return parameter
     }
 
     static def pureStringTransform(def collection) {

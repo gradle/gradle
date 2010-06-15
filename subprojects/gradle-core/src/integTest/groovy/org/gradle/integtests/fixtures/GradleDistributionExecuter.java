@@ -92,7 +92,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         }
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
-        parameter.setGradleHomeDir(dist.getGradleHomeDir());
         parameter.setSearchUpwards(false);
 
         InProcessGradleExecuter inProcessGradleExecuter = new InProcessGradleExecuter(parameter);

@@ -43,7 +43,6 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     public void buildStarted(Gradle gradle) {
         StartParameter startParameter = gradle.getStartParameter();
         logger.info("Starting Build");
-        logger.debug("Gradle home: " + startParameter.getGradleHomeDir());
         logger.debug("Gradle user home: " + startParameter.getGradleUserHomeDir());
         logger.debug("Current dir: " + startParameter.getCurrentDir());
         logger.debug("Settings file: " + startParameter.getSettingsScriptSource());

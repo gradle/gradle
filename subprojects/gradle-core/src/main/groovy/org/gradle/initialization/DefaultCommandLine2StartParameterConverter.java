@@ -29,23 +29,20 @@ import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.BuiltInTasksBuildExecuter;
-import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.Collections;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultCommandLine2StartParameterConverter implements CommandLine2StartParameterConverter {
-    public static final String GRADLE_HOME_PROPERTY_KEY = "gradle.home";
-
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
     private static final String PROJECT_DEPENDENCY_TASK_NAMES = "A";
@@ -145,14 +142,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
 
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
-
-        String gradleHome = System.getProperty(GRADLE_HOME_PROPERTY_KEY);
-        if (!GUtil.isTrue(gradleHome)) {
-            throw new CommandLineArgumentException(String.format(
-                    "The %s property is not set. Please set it and try again.", GRADLE_HOME_PROPERTY_KEY));
-        }
-        startParameter.setGradleHomeDir(new File(gradleHome));
-
         convert(args, startParameter);
         return startParameter;
     }

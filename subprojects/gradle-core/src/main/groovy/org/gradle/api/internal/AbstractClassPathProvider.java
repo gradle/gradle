@@ -27,24 +27,30 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
-public abstract class AbstractClassPathProvider implements ClassPathProvider {
+public abstract class AbstractClassPathProvider implements ClassPathProvider, GradleDistributionLocator {
     private final List<Pattern> all = Arrays.asList(Pattern.compile(".+"));
     private final Map<String, List<Pattern>> classPaths = new HashMap<String, List<Pattern>>();
     private final Scanner pluginLibs;
     private final Scanner runtimeLibs;
+    private final File gradleHome;
 
     protected AbstractClassPathProvider() {
         File codeSource = findThisClass();
         if (codeSource.isFile()) {
             // Loaded from a JAR - assume we're running from the distribution
-            File gradleHome = codeSource.getParentFile().getParentFile();
+            gradleHome = codeSource.getParentFile().getParentFile();
             runtimeLibs = new DirScanner(new File(gradleHome + "/lib"));
             pluginLibs = new DirScanner(new File(gradleHome + "/lib/plugins"));
         } else {
             // Loaded from a classes dir - assume we're running from the ide or tests
+            gradleHome = null;
             runtimeLibs = new ClassPathScanner(codeSource);
             pluginLibs = runtimeLibs;
         }
+    }
+
+    public File getGradleHome() {
+        return gradleHome;
     }
 
     protected void add(String name, List<Pattern> patterns) {

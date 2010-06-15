@@ -47,7 +47,6 @@ import static org.junit.Assert.*;
  * @author Hans Dockter
  */
 public class DefaultCommandLine2StartParameterConverterTest {
-    private String previousGradleHome;
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
     private File expectedProjectDir;
@@ -72,18 +71,11 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Before
     public void setUp() throws IOException {
-        previousGradleHome = System.getProperty("gradle.home");
-        System.setProperty("gradle.home", "roadToNowhere");
         expectedProjectDir = new File("").getCanonicalFile();
     }
 
     @After
     public void tearDown() {
-        if (previousGradleHome != null) {
-            System.setProperty("gradle.home", previousGradleHome);
-        } else {
-            System.getProperties().remove("gradle.home");
-        }
         GradleLauncher.injectCustomFactory(null);
     }
 
@@ -384,12 +376,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test(expected = CommandLineArgumentException.class)
     public void withUpperAAndLowerAParameter() {
         checkConversion("-a -Atask1");
-    }
-
-    @Test(expected = CommandLineArgumentException.class)
-    public void withMissingGradleHome() {
-        System.getProperties().remove(DefaultCommandLine2StartParameterConverter.GRADLE_HOME_PROPERTY_KEY);
-        checkConversion("clean");
     }
 
     @Test

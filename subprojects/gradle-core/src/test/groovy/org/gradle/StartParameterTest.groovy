@@ -16,23 +16,23 @@
 
 package org.gradle
 
+import static org.gradle.util.Matchers.*
+
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter
 import org.gradle.execution.DryRunBuildExecuter
-import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.groovy.scripts.StringScriptSource
+import org.gradle.groovy.scripts.UriScriptSource
 import org.gradle.initialization.BuildFileProjectSpec
 import org.gradle.initialization.DefaultProjectSpec
 import org.gradle.initialization.ProjectDirectoryProjectSpec
 import org.gradle.initialization.ProjectSpec
-import org.gradle.util.TestFile
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import org.junit.Test
-import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
@@ -198,17 +198,6 @@ class StartParameterTest {
         assertThat(parameter.searchUpwards, equalTo(false))
     }
 
-    @Test public void testSettingGradleHomeSetsDefaultLocationsIfNotAlreadySet() {
-        StartParameter parameter = new StartParameter()
-        TestFile gradleHome = tmpDir.dir
-        parameter.gradleHomeDir = gradleHome
-        assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
-
-        parameter = new StartParameter()
-        parameter.gradleHomeDir = gradleHome
-        assertThat(parameter.gradleHomeDir, equalTo(gradleHome.canonicalFile))
-    }
-
     @Test public void testSetNullUserHomeDir() {
         StartParameter parameter = new StartParameter()
         parameter.gradleUserHomeDir = null
@@ -230,7 +219,6 @@ class StartParameterTest {
         StartParameter parameter = new StartParameter()
 
         // Copied properties
-        parameter.gradleHomeDir = tmpDir.dir
         parameter.gradleUserHomeDir = new File("home")
         parameter.cacheUsage = CacheUsage.REBUILD
         parameter.logLevel = LogLevel.DEBUG
@@ -248,7 +236,6 @@ class StartParameterTest {
 
         assertThat(newParameter, not(equalTo(parameter)));
 
-        assertThat(newParameter.gradleHomeDir, equalTo(parameter.gradleHomeDir));
         assertThat(newParameter.gradleUserHomeDir, equalTo(parameter.gradleUserHomeDir));
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));

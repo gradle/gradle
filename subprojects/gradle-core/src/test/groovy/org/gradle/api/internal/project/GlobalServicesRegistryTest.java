@@ -17,7 +17,9 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.initialization.ClassLoaderFactory;
@@ -69,5 +71,10 @@ public class GlobalServicesRegistryTest {
     @Test
     public void providesAProgressLoggerFactory() {
         assertThat(registry.get(ProgressLoggerFactory.class), instanceOf(DefaultProgressLoggerFactory.class));
+    }
+    
+    @Test
+    public void providesAGradleDistributionLocator() {
+        assertThat(registry.get(GradleDistributionLocator.class), instanceOf(DefaultClassPathProvider.class));
     }
 }

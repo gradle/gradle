@@ -32,4 +32,11 @@ public class DeprecationLogger {
                     methodName, replacement));
         }
     }
+
+    public static void nagUser(String methodName) {
+        if (METHODS.add(methodName)) {
+            LOGGER.warn(String.format("The %s method is deprecated and will be removed in the next version of Gradle.",
+                    methodName));
+        }
+    }
 }

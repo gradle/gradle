@@ -17,7 +17,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.logging.LoggingConfigurer;
-import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
@@ -43,7 +42,7 @@ public class DefaultGradleLauncherFactoryTest {
 
     @Test
     public void newInstanceWithStartParameter() {
-        final StartParameter startParameter = HelperUtil.dummyStartParameter();
+        final StartParameter startParameter = new StartParameter();
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
         }});
@@ -52,7 +51,7 @@ public class DefaultGradleLauncherFactoryTest {
 
     @Test
     public void newInstanceWithCommandLineArgs() {
-        final StartParameter startParameter = HelperUtil.dummyStartParameter();
+        final StartParameter startParameter = new StartParameter();
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());
@@ -63,7 +62,7 @@ public class DefaultGradleLauncherFactoryTest {
 
     @Test
     public void createStartParameter() {
-        final StartParameter startParameter = HelperUtil.dummyStartParameter();
+        final StartParameter startParameter = new StartParameter();
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
         context.checking(new Expectations() {{
             one(loggingConfigurer).configure(startParameter.getLogLevel());

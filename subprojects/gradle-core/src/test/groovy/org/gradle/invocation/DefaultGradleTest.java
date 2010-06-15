@@ -20,6 +20,7 @@ import groovy.lang.Closure;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
@@ -59,6 +60,7 @@ public class DefaultGradleTest {
     private final ListenerManager listenerManager = context.mock(ListenerManager.class);
     private final Gradle parent = context.mock(Gradle.class, "parentBuild");
     private final MultiParentClassLoader scriptClassLoaderMock = context.mock(MultiParentClassLoader.class);
+    private final GradleDistributionLocator gradleDistributionLocatorMock = context.mock(GradleDistributionLocator.class);
     private DefaultGradle gradle;
 
     @Before
@@ -80,6 +82,8 @@ public class DefaultGradleTest {
             will(returnValue(listenerManager));
             allowing(gradleServiceRegistryMock).get(MultiParentClassLoader.class);
             will(returnValue(scriptClassLoaderMock));
+            allowing(gradleServiceRegistryMock).get(GradleDistributionLocator.class);
+            will(returnValue(gradleDistributionLocatorMock));
         }});
         gradle = new DefaultGradle(parent, parameter, serviceRegistryFactoryMock);
     }
@@ -98,11 +102,21 @@ public class DefaultGradleTest {
     }
 
     @Test
-    public void usesStartParameterForDirLocations() throws IOException {
-        parameter.setGradleHomeDir(new File("home"));
+    public void usesDistributionLocatorForGradleHomeDir() throws IOException {
+        final File gradleHome = new File("home");
+
+        context.checking(new Expectations() {{
+            one(gradleDistributionLocatorMock).getGradleHome();
+            will(returnValue(gradleHome));
+        }});
+
+        assertThat(gradle.getGradleHomeDir(), equalTo(gradleHome));
+    }
+
+    @Test
+    public void usesStartParameterForUserDir() throws IOException {
         parameter.setGradleUserHomeDir(new File("user"));
 
-        assertThat(gradle.getGradleHomeDir(), equalTo(new File("home").getCanonicalFile()));
         assertThat(gradle.getGradleUserHomeDir(), equalTo(new File("user").getCanonicalFile()));
     }
 
