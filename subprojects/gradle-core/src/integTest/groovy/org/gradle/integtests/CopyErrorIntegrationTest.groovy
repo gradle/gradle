@@ -69,5 +69,7 @@ class CopyErrorIntegrationTest extends AbstractIntegrationTest {
 
         ExecutionFailure failure = inTestDirectory().withTasks('copy').runWithFailure()
         failure.assertHasDescription("Could not list contents of directory '${dir}' as it is not readable.")
+
+        dir.permissions = 'rwxr--r--'
     }
 }
