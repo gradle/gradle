@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,17 +18,17 @@ package org.gradle.external.javadoc.optionfile;
 
 import org.gradle.util.GUtil;
 
+import java.io.IOException;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.HashMap;
-import java.io.IOException;
 
 /**
  * @author Tom Eyckmans
  */
 public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOption<Map<String, List<String>>> {
     public GroupsJavadocOptionFileOption(String option) {
-        super(option, new HashMap<String, List<String>>());
+        super(option, new LinkedHashMap<String, List<String>>());
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
