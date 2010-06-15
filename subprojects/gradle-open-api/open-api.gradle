@@ -37,3 +37,7 @@ task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
 
     doFirst { task -> systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
 }
+
+ideaModule {
+    testSourceDirs += project.sourceSets.integTest.groovy.srcDirs
+}
