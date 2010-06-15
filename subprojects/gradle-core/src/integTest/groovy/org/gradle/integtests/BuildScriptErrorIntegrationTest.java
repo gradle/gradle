@@ -81,7 +81,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(3);
         failure.assertHasDescription("Execution failed for task ':do-stuff'");
-        failure.assertHasCause("/ by zero");
+        failure.assertHasCause("Division by zero");
     }
 
     @Test

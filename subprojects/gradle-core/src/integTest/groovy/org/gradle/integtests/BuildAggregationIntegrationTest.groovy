@@ -85,7 +85,7 @@ class BuildAggregationIntegrationTest {
         failure.assertHasFileName("Build file '${other}'")
         failure.assertHasLineNumber(2)
         failure.assertHasDescription('A problem occurred evaluating root project')
-        failure.assertThatCause(containsString('/ by zero'))
+        failure.assertThatCause(containsString('Division by zero'))
     }
 
     @Test
