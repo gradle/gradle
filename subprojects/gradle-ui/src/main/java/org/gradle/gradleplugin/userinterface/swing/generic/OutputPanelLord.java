@@ -38,7 +38,7 @@ import java.util.List;
 /**
  * This class manages displaying the results of a gradle execution in a panel
  * inside a JTabbedPane. It can reuse existing tabs but creates new ones if you
- * run mutliple things concurrently.
+ * run multiple things concurrently.
  * @author mhunsicker
  */
 public class OutputPanelLord implements OutputUILord, GradlePluginLord.RequestObserver, OutputPanel.OutputPanelParent {

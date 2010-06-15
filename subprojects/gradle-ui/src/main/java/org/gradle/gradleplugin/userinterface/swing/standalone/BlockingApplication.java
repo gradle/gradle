@@ -15,11 +15,10 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.standalone;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.util.UncheckedException;
 
 import javax.swing.*;
+import java.lang.reflect.InvocationTargetException;
 
 /**
  * This is the same as Application, but this version blocks the calling thread until the Application shuts down.
@@ -27,11 +26,10 @@ import javax.swing.*;
  * @author mhunsicker
  */
 public class BlockingApplication {
-    private static final Logger LOGGER = Logging.getLogger(BlockingApplication.class);
 
     /**
      * This launches this application and blocks until it closes. Useful for being called from the gradle command line.
-     * We launch this in the Event Dispatch Thread and blocck the calling thread.
+     * We launch this in the Event Dispatch Thread and block the calling thread.
      */
     public static void launchAndBlock() {
         if (SwingUtilities.isEventDispatchThread()) {
@@ -41,8 +39,8 @@ public class BlockingApplication {
         //create a lock to wait on
         final WaitingLock waitingLock = new WaitingLock();
 
+        //instantiate the app in the Event Dispatch Thread
         try {
-            //instantiate the app in the Event Dispatch Thread
             SwingUtilities.invokeAndWait(new Runnable() {
                 public void run() {
                     new Application(new Application.LifecycleListener() {
@@ -64,9 +62,10 @@ public class BlockingApplication {
                     });
                 }
             });
-        } catch (Throwable t) {
-            LOGGER.error("Running blocking application.", t);
-            return;
+        } catch (InterruptedException e) {
+            throw UncheckedException.asUncheckedException(e);
+        } catch (InvocationTargetException e) {
+            throw UncheckedException.asUncheckedException(e.getCause());
         }
 
         //the calling thread will now block until the caller is complete.
