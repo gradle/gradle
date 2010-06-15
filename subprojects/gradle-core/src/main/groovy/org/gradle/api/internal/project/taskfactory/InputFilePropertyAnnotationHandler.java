@@ -16,13 +16,11 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.tasks.InputFile;
-import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.Callable;
 
 public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -34,25 +32,9 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
                         "File '%s' specified for property '%s' does not exist.", fileValue, propertyName));
             }
             if (!fileValue.isFile()) {
-                throw new InvalidUserDataException(String.format(
-                        "File '%s' specified for property '%s' is not a file.", fileValue, propertyName));
+                throw new InvalidUserDataException(String.format("File '%s' specified for property '%s' is not a file.",
+                        fileValue, propertyName));
             }
-        }
-    };
-    private final PropertyActions propertyActions = new PropertyActions() {
-        public ValidationAction getValidationAction() {
-            return inputFileValidation;
-        }
-
-        public ValidationAction getSkipAction() {
-            return null;
-        }
-
-        public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
-            inputs.files(futureValue);
-        }
-
-        public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
         }
     };
 
@@ -60,7 +42,12 @@ public class InputFilePropertyAnnotationHandler implements PropertyAnnotationHan
         return InputFile.class;
     }
 
-    public PropertyActions getActions(AnnotatedElement target, String propertyName) {
-        return propertyActions;
+    public void attachActions(PropertyActionContext context) {
+        context.setValidationAction(inputFileValidation);
+        context.setConfigureAction(new UpdateAction() {
+            public void update(Task task, Callable<Object> futureValue) {
+                task.getInputs().files(futureValue);
+            }
+        });
     }
 }

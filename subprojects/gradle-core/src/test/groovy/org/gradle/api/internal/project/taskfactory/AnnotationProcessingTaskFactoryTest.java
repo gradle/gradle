@@ -439,6 +439,25 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     @Test
+    public void validatesNestedBeans() {
+        TaskWithNestedBean task = expectTaskCreated(TaskWithNestedBean.class, new Object[]{null});
+        assertValidationFails(task, "Error validating task ':task': No value has been specified for property 'bean.inputFile'.");
+    }
+
+    @Test
+    public void validationFailsWhenNestedBeanIsNull() {
+        TaskWithNestedBean task = expectTaskCreated(TaskWithNestedBean.class, new Object[]{null});
+        task.bean = null;
+        assertValidationFails(task, "Error validating task ':task': No value has been specified for property 'bean'.");
+    }
+
+    @Test
+    public void validationSucceedsWhenNestedBeanIsNullAndMarkedOptional() {
+        TaskWithOptionalNestedBean task = expectTaskCreated(TaskWithOptionalNestedBean.class);
+        task.execute();
+    }
+
+    @Test
     public void canAttachAnnotationToGroovyProperty() {
         InputFileTask task = expectTaskCreated(InputFileTask.class);
         assertValidationFails(task, "Error validating task ':task': No value has been specified for property 'srcFile'.");
@@ -624,6 +643,35 @@ public class AnnotationProcessingTaskFactoryTest {
         @InputFile @Optional
         public File getInputFile() {
             return null;
+        }
+    }
+
+    public static class TaskWithNestedBean extends DefaultTask {
+        Bean bean = new Bean();
+
+        public TaskWithNestedBean(File inputFile) {
+            bean.inputFile = inputFile;
+        }
+
+        @Nested
+        public Bean getBean() {
+            return bean;
+        }
+    }
+
+    public static class TaskWithOptionalNestedBean extends DefaultTask {
+        @Nested @Optional
+        public Bean getBean() {
+            return null;
+        }
+    }
+
+    public static class Bean {
+        File inputFile;
+
+        @InputFile
+        public File getInputFile() {
+            return inputFile;
         }
     }
 }

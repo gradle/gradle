@@ -16,14 +16,12 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.tasks.OutputFile;
-import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.Callable;
 
 public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -42,28 +40,17 @@ public class OutputFilePropertyAnnotationHandler implements PropertyAnnotationHa
             }
         }
     };
-    private final PropertyActions propertyActions = new PropertyActions() {
-        public ValidationAction getValidationAction() {
-            return ouputFileValidation;
-        }
-
-        public ValidationAction getSkipAction() {
-            return null;
-        }
-
-        public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
-        }
-
-        public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
-            outputs.files(futureValue);
-        }
-    };
 
     public Class<? extends Annotation> getAnnotationType() {
         return OutputFile.class;
     }
 
-    public PropertyActions getActions(AnnotatedElement target, String propertyName) {
-        return propertyActions;
+    public void attachActions(PropertyActionContext context) {
+        context.setValidationAction(ouputFileValidation);
+        context.setConfigureAction(new UpdateAction() {
+            public void update(Task task, Callable<Object> futureValue) {
+                task.getOutputs().files(futureValue);
+            }
+        });
     }
 }

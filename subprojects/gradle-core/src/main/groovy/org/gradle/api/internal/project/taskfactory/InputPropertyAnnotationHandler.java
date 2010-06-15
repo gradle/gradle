@@ -15,12 +15,10 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Task;
 import org.gradle.api.tasks.Input;
-import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.Callable;
 
 public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -28,22 +26,11 @@ public class InputPropertyAnnotationHandler implements PropertyAnnotationHandler
         return Input.class;
     }
 
-    public PropertyActions getActions(AnnotatedElement target, final String propertyName) {
-        return new PropertyActions() {
-            public ValidationAction getValidationAction() {
-                return null;
+    public void attachActions(final PropertyActionContext context) {
+        context.setConfigureAction(new UpdateAction() {
+            public void update(Task task, Callable<Object> futureValue) {
+                task.getInputs().property(context.getName(), futureValue);
             }
-
-            public ValidationAction getSkipAction() {
-                return null;
-            }
-
-            public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
-                inputs.property(propertyName, futureValue);
-            }
-
-            public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
-            }
-        };
+        });
     }
 }

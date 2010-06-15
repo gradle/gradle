@@ -15,21 +15,10 @@
  */
 package org.gradle.api.internal.project.taskfactory;
 
-import java.lang.annotation.Annotation;
+import org.gradle.api.Task;
 
-/**
- * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
- */
-public interface PropertyAnnotationHandler {
-    /**
-     * The annotation type which this handler is responsible for.
-     *
-     * @return The annotation.
-     */
-    Class<? extends Annotation> getAnnotationType();
+import java.util.concurrent.Callable;
 
-    /**
-     * Attaches the actions for the given property.
-     */
-    void attachActions(PropertyActionContext context);
+public interface UpdateAction {
+    void update(Task task, Callable<Object> futureValue);
 }

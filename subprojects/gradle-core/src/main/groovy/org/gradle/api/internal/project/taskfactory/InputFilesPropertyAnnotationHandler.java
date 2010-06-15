@@ -16,14 +16,12 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.SkipWhenEmpty;
-import org.gradle.api.tasks.TaskInputs;
-import org.gradle.api.tasks.TaskOutputs;
 
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.Callable;
 
 public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -39,27 +37,14 @@ public class InputFilesPropertyAnnotationHandler implements PropertyAnnotationHa
         return InputFiles.class;
     }
 
-    public PropertyActions getActions(AnnotatedElement target, String propertyName) {
-        ValidationAction skipAction = null;
-        if (target.getAnnotation(SkipWhenEmpty.class) != null) {
-            skipAction = skipEmptyFileCollection;
+    public void attachActions(PropertyActionContext context) {
+        if (context.getTarget().getAnnotation(SkipWhenEmpty.class) != null) {
+            context.setSkipAction(skipEmptyFileCollection);
         }
-        final ValidationAction finalSkipAction = skipAction;
-        return new PropertyActions() {
-            public ValidationAction getValidationAction() {
-                return null;
+        context.setConfigureAction(new UpdateAction() {
+            public void update(Task task, Callable<Object> futureValue) {
+                task.getInputs().files(futureValue);
             }
-
-            public ValidationAction getSkipAction() {
-                return finalSkipAction;
-            }
-
-            public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
-                inputs.files(futureValue);
-            }
-
-            public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
-            }
-        };
+        });
     }
 }

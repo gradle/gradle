@@ -16,12 +16,14 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Task;
 import org.gradle.api.file.ConfigurableFileTree;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputDirectory;
+import org.gradle.api.tasks.SkipWhenEmpty;
+import org.gradle.api.tasks.StopExecutionException;
 
 import java.io.File;
 import java.lang.annotation.Annotation;
-import java.lang.reflect.AnnotatedElement;
 import java.util.concurrent.Callable;
 
 public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotationHandler {
@@ -51,25 +53,15 @@ public class InputDirectoryPropertyAnnotationHandler implements PropertyAnnotati
         return InputDirectory.class;
     }
 
-    public PropertyActions getActions(final AnnotatedElement target, String propertyName) {
-        return new PropertyActions() {
-            public ValidationAction getValidationAction() {
-                return inputDirValidation;
+    public void attachActions(PropertyActionContext context) {
+        context.setValidationAction(inputDirValidation);
+        if (context.getTarget().getAnnotation(SkipWhenEmpty.class) != null) {
+            context.setSkipAction(skipEmptyDirectoryAction);
+        }
+        context.setConfigureAction(new UpdateAction() {
+            public void update(Task task, Callable<Object> futureValue) {
+                task.getInputs().dir(futureValue);
             }
-
-            public ValidationAction getSkipAction() {
-                if (target.getAnnotation(SkipWhenEmpty.class) != null) {
-                    return skipEmptyDirectoryAction;
-                }
-                return null;
-            }
-
-            public void attachInputs(TaskInputs inputs, Callable<Object> futureValue) {
-                inputs.dir(futureValue);
-            }
-
-            public void attachOutputs(TaskOutputs outputs, Callable<Object> futureValue) {
-            }
-        };
+        });
     }
 }

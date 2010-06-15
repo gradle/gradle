@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
 package org.gradle.api.internal.project.taskfactory;
+
+import org.gradle.api.tasks.Nested;
 
 import java.lang.annotation.Annotation;
 
-/**
- * Handles validation, dependency handling, and skipping for a property marked with a given annotation.
- */
-public interface PropertyAnnotationHandler {
-    /**
-     * The annotation type which this handler is responsible for.
-     *
-     * @return The annotation.
-     */
-    Class<? extends Annotation> getAnnotationType();
+public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
+    public Class<? extends Annotation> getAnnotationType() {
+        return Nested.class;
+    }
 
-    /**
-     * Attaches the actions for the given property.
-     */
-    void attachActions(PropertyActionContext context);
+    public void attachActions(PropertyActionContext context) {
+        context.attachActions(context.getType());
+    }
 }
