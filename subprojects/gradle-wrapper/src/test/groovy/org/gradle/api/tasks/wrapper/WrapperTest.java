@@ -16,11 +16,13 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import org.apache.commons.io.FileUtils;
-import org.apache.tools.ant.taskdefs.Jar;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import org.gradle.util.*;
+import org.gradle.util.GUtil;
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
+import org.gradle.util.WrapUtil;
+import org.gradle.wrapper.GradleWrapperMain;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
@@ -33,7 +35,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Properties;
 
-import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 /**
@@ -46,8 +48,6 @@ public class WrapperTest extends AbstractTaskTest {
 
     private Wrapper wrapper;
     private WrapperScriptGenerator wrapperScriptGeneratorMock;
-    private File testDir;
-    private File sourceWrapperJar;
     private String distributionPath;
     private String targetWrapperJarPath;
     private Mockery context = new Mockery();
@@ -64,12 +64,6 @@ public class WrapperTest extends AbstractTaskTest {
         wrapperScriptGeneratorMock = context.mock(WrapperScriptGenerator.class);
         wrapper.setScriptDestinationPath("scriptDestination");
         wrapper.setGradleVersion("1.0");
-        testDir = tmpDir.getDir();
-        File testGradleHome = new File(testDir, "testGradleHome");
-        File testGradleHomeLib = new File(testGradleHome, "lib/plugins");
-        testGradleHomeLib.mkdirs();
-        createSourceWrapperJar(testGradleHomeLib);
-        getProject().getGradle().getStartParameter().setGradleHomeDir(testGradleHome);
         targetWrapperJarPath = "jarPath";
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR);
@@ -80,17 +74,6 @@ public class WrapperTest extends AbstractTaskTest {
         wrapper.setJarPath(targetWrapperJarPath);
         wrapper.setDistributionPath(distributionPath);
         wrapper.setUnixWrapperScriptGenerator(wrapperScriptGeneratorMock);
-    }
-
-    private void createSourceWrapperJar(File testGradleHomeLib) {
-        File sourceWrapperExplodedDir = new File(testGradleHomeLib, Wrapper.WRAPPER_JAR_BASE_NAME + "-" + getProject().getGradle().getGradleVersion());
-        sourceWrapperExplodedDir.mkdirs();
-        GFileUtils.writeStringToFile(new File(sourceWrapperExplodedDir, TEST_FILE_NAME), TEST_TEXT);
-        sourceWrapperJar = new File(testGradleHomeLib, sourceWrapperExplodedDir.getName() + ".jar");
-        Jar jarTask = new Jar();
-        jarTask.setBasedir(sourceWrapperExplodedDir);
-        jarTask.setDestFile(sourceWrapperJar);
-        AntUtil.execute(jarTask);
     }
 
     public AbstractTask getTask() {
@@ -148,9 +131,9 @@ public class WrapperTest extends AbstractTaskTest {
             }
         });
         wrapper.execute();
-        File unjarDir = tmpDir.createDir("unjar");
+        TestFile unjarDir = tmpDir.createDir("unjar");
         expectedTargetWrapperJar.unzipTo(unjarDir);
-        assertEquals(TEST_TEXT, FileUtils.readFileToString(new File(unjarDir, TEST_FILE_NAME)));
+        unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile();
         Properties properties = GUtil.loadProperties(expectedTargetWrapperProperties);
         assertEquals(properties.getProperty(Wrapper.URL_ROOT_PROPERTY), wrapper.getUrlRoot());
         assertEquals(properties.getProperty(Wrapper.DISTRIBUTION_BASE_PROPERTY), wrapper.getDistributionBase().toString());

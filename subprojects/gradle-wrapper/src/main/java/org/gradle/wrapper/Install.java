@@ -26,10 +26,6 @@ import java.util.zip.ZipFile;
  * @author Hans Dockter
  */
 public class Install {
-    public static final String WRAPPER_DIR = "gradle-wrapper";
-    public static final String WRAPPER_JAR = WRAPPER_DIR + ".jar";
-    public static final String WRAPPER_PROPERTIES = WRAPPER_DIR + ".properties";
-
     private IDownload download = new Download();
 
     private boolean alwaysDownload;
@@ -106,14 +102,6 @@ public class Install {
             return true;
         }
         return false;
-    }
-
-    public IDownload getDownload() {
-        return download;
-    }
-
-    public PathAssembler getPathAssembler() {
-        return pathAssembler;
     }
 
     private boolean deleteDir(File dir) {

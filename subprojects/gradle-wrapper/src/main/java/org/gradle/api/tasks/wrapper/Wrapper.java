@@ -16,16 +16,15 @@
 
 package org.gradle.api.tasks.wrapper;
 
-import org.apache.commons.io.FileUtils;
-import org.gradle.api.*;
 import org.gradle.api.DefaultTask;
-import org.gradle.api.invocation.Gradle;
+import org.gradle.api.GradleException;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URL;
 import java.util.Properties;
 
 /**
@@ -110,16 +109,14 @@ public class Wrapper extends DefaultTask {
         String wrapperPropertiesPath = wrapperDir + WRAPPER_PROPERTIES;
         File jarFileDestination = new File(getProject().getProjectDir(), wrapperJar);
         File propertiesFileDestination = new File(getProject().getProjectDir(), wrapperPropertiesPath);
-        Gradle gradle = getProject().getGradle();
-        File jarFileSource = new File(gradle.getGradleHomeDir(), "lib/plugins/" + WRAPPER_JAR_BASE_NAME + "-" + gradle.getGradleVersion() + ".jar");
+        URL jarFileSource = getClass().getResource("/" + WRAPPER_JAR_BASE_NAME + ".jar");
+        if (jarFileSource == null) {
+            throw new GradleException("Cannot locate wrapper JAR resource.");
+        }
         propertiesFileDestination.delete();
         jarFileDestination.delete();
         writeProperties(propertiesFileDestination);
-        try {
-            FileUtils.copyFile(jarFileSource, jarFileDestination);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+        GFileUtils.copyURLToFile(jarFileSource, jarFileDestination);
         File scriptDestinationDir = new File(getProject().getProjectDir(), scriptDestinationPath);
         wrapperScriptGenerator.generate(wrapperJar, wrapperPropertiesPath, scriptDestinationDir);
     }

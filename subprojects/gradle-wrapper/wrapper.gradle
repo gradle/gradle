@@ -25,18 +25,19 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
 
-manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
-
 jar {
-    include 'org/gradle/wrapper/**'
-}
-
-task taskJar(type: Jar) {
-    from sourceSets.main.classes
     exclude 'org/gradle/wrapper/**'
-    baseName = "$jar.baseName-tasks"
 }
 
-artifacts {
-    archives taskJar
+task wrapperJar(type: Jar) {
+    dependsOn compileJava, processResources
+    from sourceSets.main.classesDir
+    include 'org/gradle/wrapper/**'
+    archiveName = 'gradle-wrapper.jar'
+    destinationDir = sourceSets.main.classesDir
+    manifest.mainAttributes("Main-Class": 'org.gradle.wrapper.GradleWrapperMain')
+}
+
+classes {
+    dependsOn wrapperJar
 }

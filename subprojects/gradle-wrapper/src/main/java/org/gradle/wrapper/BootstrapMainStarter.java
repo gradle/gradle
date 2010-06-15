@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,6 @@ import java.net.URLClassLoader;
  */
 public class BootstrapMainStarter {
     public void start(String[] args, String gradleHome, String version) throws Exception {
-        System.setProperty("gradle.home", gradleHome);
         boolean debug = GradleWrapperMain.isDebug();
         File gradleJar = new File(gradleHome, "lib/gradle-launcher-" + version + ".jar");
         if (debug) {

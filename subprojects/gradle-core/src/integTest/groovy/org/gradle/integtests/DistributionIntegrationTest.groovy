@@ -94,7 +94,6 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-wrapper-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-wrapper-tasks-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
