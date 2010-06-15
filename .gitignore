@@ -5,13 +5,9 @@ out
 /intellij
 userguide-trunk.tmproj
 buildSrc/lib
-buildSrc/build
 buildSrc/.gradle
 subprojects/*/ide
-subprojects/gradle-core/build
-subprojects/gradle-open-api/build
-subprojects/gradle-ui/build
-subprojects/gradle-wrapper/build
+subprojects/*/build
 website/build
 website/.gradle
 website/ide
