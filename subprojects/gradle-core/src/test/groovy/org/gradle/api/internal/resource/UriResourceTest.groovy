@@ -37,7 +37,6 @@ class UriResourceTest {
         testDir = tmpDir.createDir('dir');
         file = new File(testDir, 'build.script');
         fileUri = file.toURI();
-        createJar();
     }
 
     private URI createJar() throws URISyntaxException {
@@ -134,7 +133,7 @@ class UriResourceTest {
     }
 
     @Test
-    public void hasNoContentWhenUsingJarUriAndFileDoesNotExist() {
+    public void hasNoContentWhenUsingJarUriAndFileDoesNotExistInJar() {
         URI jarUri = createJar()
         UriResource resource = new UriResource('<display-name>', jarUri);
         assertFalse(resource.exists)
