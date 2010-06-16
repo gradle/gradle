@@ -1,17 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright 2010 the original author or authors.  Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at       http://www.apache.org/licenses/LICENSE-2.0  Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
  */
 
 package org.gradle.api.tasks.bundling
@@ -31,15 +19,12 @@ class War extends Jar {
 
     private File webXml
 
-    private CopySpec webInf
-
     private FileCollection classpath
 
     War() {
         extension = WAR_EXTENSION
         // Add these as separate specs, so they are not affected by the changes to the root spec
-        webInf = getCopyAction().addNoInheritChild().into('WEB-INF')
-        CopySpec otherWebInf = getCopyAction().addNoInheritChild().into('WEB-INF')
+        CopySpec otherWebInf = getCopyAction().rootSpec.addChild().into('WEB-INF')
         otherWebInf.into('classes') {
             from {
                 def classpath = getClasspath()
@@ -63,12 +48,11 @@ class War extends Jar {
     }
 
     CopySpec getWebInf() {
-        return webInf
+        return getCopyAction().rootSpec.addChild().into('WEB-INF')
     }
 
     CopySpec webInf(Closure configureClosure) {
-        ConfigureUtil.configure(configureClosure, webInf)
-        return webInf
+        return ConfigureUtil.configure(configureClosure, getWebInf())
     }
 
     @InputFiles @Optional
