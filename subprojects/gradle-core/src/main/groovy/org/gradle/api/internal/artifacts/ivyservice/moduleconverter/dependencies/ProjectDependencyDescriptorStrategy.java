@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ProjectDependency;
 /**
  * @author Hans Dockter
  */
-public interface ProjectDependencyModuleRevisionIdStrategy {
+public interface ProjectDependencyDescriptorStrategy {
     ModuleRevisionId createModuleRevisionId(ProjectDependency dependency);
+    boolean isChanging();
 }

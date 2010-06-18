@@ -44,9 +44,9 @@ import static org.junit.Assert.*;
 public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDescriptorFactoryInternalTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private ProjectDependencyModuleRevisionIdStrategy moduleRevisionIdStrategyStub = context.mock(ProjectDependencyModuleRevisionIdStrategy.class);
+    private ProjectDependencyDescriptorStrategy descriptorStrategyStub = context.mock(ProjectDependencyDescriptorStrategy.class);
     private ProjectDependencyDescriptorFactory projectDependencyDescriptorFactory =
-            new ProjectDependencyDescriptorFactory(excludeRuleConverterStub, moduleRevisionIdStrategyStub);
+            new ProjectDependencyDescriptorFactory(excludeRuleConverterStub, descriptorStrategyStub);
 
     @Test
     public void canConvert() {
@@ -60,8 +60,10 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         final ProjectDependency projectDependency = createProjectDependency(TEST_DEP_CONF);
         setUpDependency(projectDependency);
         context.checking(new Expectations() {{
-            allowing(moduleRevisionIdStrategyStub).createModuleRevisionId(projectDependency);
+            allowing(descriptorStrategyStub).createModuleRevisionId(projectDependency);
             will(returnValue(someModuleRevisionId));
+            allowing(descriptorStrategyStub).isChanging();
+            will(returnValue(true));
         }});
         projectDependencyDescriptorFactory.addDependencyDescriptor(TEST_CONF, moduleDescriptor, projectDependency);
         DefaultDependencyDescriptor dependencyDescriptor = (DefaultDependencyDescriptor) moduleDescriptor.getDependencies()[0];
@@ -86,9 +88,11 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         final ProjectDependency dependency2 = createProjectDependency(TEST_OTHER_DEP_CONF);
 
         context.checking(new Expectations() {{
-            allowing(moduleRevisionIdStrategyStub).createModuleRevisionId(dependency1);
+            allowing(descriptorStrategyStub).isChanging();
+            will(returnValue(true));
+            allowing(descriptorStrategyStub).createModuleRevisionId(dependency1);
             will(returnValue(IvyUtil.createModuleRevisionId(dependency1)));
-            allowing(moduleRevisionIdStrategyStub).createModuleRevisionId(dependency2);
+            allowing(descriptorStrategyStub).createModuleRevisionId(dependency2);
             will(returnValue(IvyUtil.createModuleRevisionId(dependency2)));
         }});
         
@@ -102,7 +106,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
         Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModule();
         ModuleRevisionId moduleRevisionId =
-                ProjectDependencyDescriptorFactory.IVY_FILE_MODULE_REVISION_ID_STRATEGY.createModuleRevisionId(projectDependency);
+                ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY.createModuleRevisionId(projectDependency);
         assertThat(moduleRevisionId.getOrganisation(), equalTo(module.getGroup()));
         assertThat(moduleRevisionId.getName(), equalTo(module.getName()));
         assertThat(moduleRevisionId.getRevision(), equalTo(module.getVersion()));
@@ -114,7 +118,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         ProjectDependency projectDependency = createProjectDependency(TEST_CONF);
         Module module = ((ProjectInternal) projectDependency.getDependencyProject()).getModule();
         ModuleRevisionId moduleRevisionId =
-                ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY.createModuleRevisionId(projectDependency);
+                ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY.createModuleRevisionId(projectDependency);
         assertThat(moduleRevisionId.getOrganisation(), equalTo(module.getGroup()));
         assertThat(moduleRevisionId.getName(), equalTo(module.getName()));
         assertThat(moduleRevisionId.getRevision(), equalTo(module.getVersion()));

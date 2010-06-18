@@ -31,34 +31,40 @@ import org.gradle.util.WrapUtil;
  * @author Hans Dockter
  */
 public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescriptorFactoryInternal {
-    public final static ProjectDependencyModuleRevisionIdStrategy IVY_FILE_MODULE_REVISION_ID_STRATEGY =
-            new ProjectDependencyModuleRevisionIdStrategy() {
+    public final static ProjectDependencyDescriptorStrategy IVY_FILE_DESCRIPTOR_STRATEGY =
+            new ProjectDependencyDescriptorStrategy() {
                 public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
                     Module module = ((ProjectInternal) dependency.getDependencyProject()).getModule();
                     return IvyUtil.createModuleRevisionId(module);
                 }
+                public boolean isChanging() {
+                    return false;
+                }
             };
 
-    public final static ProjectDependencyModuleRevisionIdStrategy RESOLVE_MODULE_REVISION_ID_STRATEGY =
-            new ProjectDependencyModuleRevisionIdStrategy() {
+    public final static ProjectDependencyDescriptorStrategy RESOLVE_DESCRIPTOR_STRATEGY =
+            new ProjectDependencyDescriptorStrategy() {
                 public ModuleRevisionId createModuleRevisionId(ProjectDependency dependency) {
                     Module module = ((ProjectInternal) dependency.getDependencyProject()).getModule();
                     return IvyUtil.createModuleRevisionId(module, WrapUtil.toMap(DependencyDescriptorFactory.PROJECT_PATH_KEY,
                             dependency.getDependencyProject().getPath()));
                 }
+                public boolean isChanging() {
+                    return true;
+                }
             };
 
-    private ProjectDependencyModuleRevisionIdStrategy projectDependencyModuleRevisionIdStrategy;
+    private ProjectDependencyDescriptorStrategy projectDependencyDescriptorStrategy;
 
-    public ProjectDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ProjectDependencyModuleRevisionIdStrategy projectDependencyModuleRevisionIdStrategy) {
+    public ProjectDependencyDescriptorFactory(ExcludeRuleConverter excludeRuleConverter, ProjectDependencyDescriptorStrategy projectDependencyDescriptorStrategy) {
         super(excludeRuleConverter);
-        this.projectDependencyModuleRevisionIdStrategy = projectDependencyModuleRevisionIdStrategy;
+        this.projectDependencyDescriptorStrategy = projectDependencyDescriptorStrategy;
     }
 
     public DependencyDescriptor createDependencyDescriptor(ModuleDependency dependency, String configuration, ModuleDescriptor parent,
                                                            ModuleRevisionId moduleRevisionId) {
         DefaultDependencyDescriptor dependencyDescriptor = new DefaultDependencyDescriptor(parent,
-                moduleRevisionId, false, true, dependency.isTransitive());
+                moduleRevisionId, false, projectDependencyDescriptorStrategy.isChanging(), dependency.isTransitive());
         addExcludesArtifactsAndDependencies(configuration, dependency, dependencyDescriptor);
         return dependencyDescriptor;
     }
@@ -68,6 +74,6 @@ public class ProjectDependencyDescriptorFactory extends AbstractDependencyDescri
     }
 
     public ModuleRevisionId createModuleRevisionId(ModuleDependency dependency) {
-        return projectDependencyModuleRevisionIdStrategy.createModuleRevisionId((ProjectDependency) dependency);
+        return projectDependencyDescriptorStrategy.createModuleRevisionId((ProjectDependency) dependency);
     }
 }

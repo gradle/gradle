@@ -163,13 +163,17 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
     
     protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
+        return createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
+    }
+
+    protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
         DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
         DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
                 new ClientModuleDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
                 new ProjectDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
-                        ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY),
+                        projectDependencyStrategy),
                 get(ExternalModuleDependencyDescriptorFactory.class));
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
         return new ResolveModuleDescriptorConverter(
@@ -182,7 +186,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
         return new PublishModuleDescriptorConverter(
-                get(ResolveModuleDescriptorConverter.class),
+                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.RESOLVE_STRATEGY));
     }
 
@@ -195,11 +199,11 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
                 new ProjectDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class),
-                        ProjectDependencyDescriptorFactory.RESOLVE_MODULE_REVISION_ID_STRATEGY),
+                        ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
                 get(ExternalModuleDependencyDescriptorFactory.class));
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
         PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
-                get(ResolveModuleDescriptorConverter.class),
+                createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
 
         return new DefaultConfigurationContainerFactory(clientModuleRegistry,
