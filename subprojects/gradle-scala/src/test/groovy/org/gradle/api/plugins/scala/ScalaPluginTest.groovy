@@ -57,14 +57,14 @@ public class ScalaPluginTest {
         assertThat(task.description, equalTo('Compiles the main Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.main.compileClasspath))
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
-        assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_JAVA_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_JAVA_TASK_NAME))
 
         task = project.tasks['compileTestScala']
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the test Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.test.compileClasspath))
         assertThat(task.defaultSource, equalTo(project.sourceSets.test.scala))
-        assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME, JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.COMPILE_TEST_JAVA_TASK_NAME, JavaPlugin.CLASSES_TASK_NAME))
     }
 
     @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
@@ -82,7 +82,7 @@ public class ScalaPluginTest {
 
         def task = project.tasks[ScalaPlugin.SCALA_DOC_TASK_NAME]
         assertThat(task, instanceOf(ScalaDoc.class))
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME, ScalaBasePlugin.SCALA_DEFINE_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.defaultSource, equalTo(project.sourceSets.main.scala))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.classes))
@@ -94,7 +94,7 @@ public class ScalaPluginTest {
         scalaPlugin.apply(project)
 
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
-        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME, ScalaBasePlugin.SCALA_DEFINE_TASK_NAME))
+        assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.classes))
         assertThat(task.classpath.sourceCollections, hasItem(project.sourceSets.main.compileClasspath))
     }

@@ -16,13 +16,11 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.GUtil;
+import org.gradle.api.internal.project.AntBuilderFactory;
+import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.tasks.*;
 
 import java.io.File;
 
@@ -41,26 +39,22 @@ public class Compile extends SourceTask {
 
     private FileCollection classpath;
 
-    private CompileOptions options = new CompileOptions();
-
-    protected AntJavac antCompile = new AntJavac();
+    private JavaCompiler javaCompiler = new AntJavaCompiler(getServices().get(AntBuilderFactory.class));
 
     @TaskAction
     protected void compile() {
-        if (antCompile == null) {
-            throw new InvalidUserDataException("The ant compile command must be set!");
-        }
-        if (!GUtil.isTrue(getSourceCompatibility()) || !GUtil.isTrue(getTargetCompatibility())) {
-            throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
-        }
-
-        antCompile.execute(getSource(), getDestinationDir(), getDependencyCacheDir(), getClasspath(),
-                getSourceCompatibility(), getTargetCompatibility(), options, getProject().getAnt());
-        setDidWork(antCompile.getNumFilesCompiled() > 0);
+        javaCompiler.setSource(getSource());
+        javaCompiler.setDestinationDir(getDestinationDir());
+        javaCompiler.setClasspath(getClasspath());
+        javaCompiler.setDependencyCacheDir(getDependencyCacheDir());
+        javaCompiler.setSourceCompatibility(getSourceCompatibility());
+        javaCompiler.setTargetCompatibility(getTargetCompatibility());
+        WorkResult result = javaCompiler.execute();
+        setDidWork(result.getDidWork());
     }
 
     @InputFiles
-    public Iterable<File> getClasspath() {
+    public FileCollection getClasspath() {
         return classpath;
     }
 
@@ -86,6 +80,7 @@ public class Compile extends SourceTask {
         this.dependencyCacheDir = dependencyCacheDir;
     }
 
+    @Input
     public String getSourceCompatibility() {
         return sourceCompatibility;
     }
@@ -94,6 +89,7 @@ public class Compile extends SourceTask {
         this.sourceCompatibility = sourceCompatibility;
     }
 
+    @Input
     public String getTargetCompatibility() {
         return targetCompatibility;
     }
@@ -103,14 +99,14 @@ public class Compile extends SourceTask {
     }
 
     public CompileOptions getOptions() {
-        return options;
+        return javaCompiler.getCompileOptions();
     }
 
-    public void setOptions(CompileOptions options) {
-        this.options = options;
+    public JavaCompiler getJavaCompiler() {
+        return javaCompiler;
     }
 
-    public void setAntCompile(AntJavac antCompile) {
-        this.antCompile = antCompile;
+    public void setJavaCompiler(JavaCompiler javaCompiler) {
+        this.javaCompiler = javaCompiler;
     }
 }

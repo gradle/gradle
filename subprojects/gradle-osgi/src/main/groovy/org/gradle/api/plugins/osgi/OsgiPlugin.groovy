@@ -37,8 +37,8 @@ public class OsgiPlugin implements Plugin<Project> {
         project.plugins.withType(JavaPlugin.class).allPlugins {javaPlugin ->
             OsgiManifest osgiManifest = osgiConvention.osgiManifest {
                 from project.manifest
-                classesDir = project.convention.plugins.java.sourceSets."$SourceSet.MAIN_SOURCE_SET_NAME".classesDir
-                classpath = project.configurations."$JavaPlugin.RUNTIME_CONFIGURATION_NAME"
+                classesDir = project.convention.plugins.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].classesDir
+                classpath = project.configurations[JavaPlugin.RUNTIME_CONFIGURATION_NAME]
             }
             project.jar.manifest = osgiManifest
         }

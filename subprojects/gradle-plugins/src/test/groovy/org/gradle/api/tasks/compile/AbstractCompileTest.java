@@ -16,7 +16,6 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
@@ -59,26 +58,11 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
 
     @Test public void testDefaults() {
         Compile compile = getCompile();
-        assertNotNull(compile.getOptions());
-        assertNotNull(compile.antCompile);
+        assertNotNull(compile.getJavaCompiler());
         assertNull(compile.getDestinationDir());
         assertNull(compile.getSourceCompatibility());
         assertNull(compile.getTargetCompatibility());
         assertThat(compile.getSource(), isEmpty());
-    }
-
-    @Test (expected = InvalidUserDataException.class) public void testExecuteWithUnspecifiedSourceCompatibility() {
-        Compile compile = getCompile();
-        setUpMocksAndAttributes(compile);
-        compile.setSourceCompatibility(null);
-        compile.compile();
-    }
-
-    @Test (expected = InvalidUserDataException.class) public void testExecuteWithUnspecifiedTargetCompatibility() {
-        Compile compile = getCompile();
-        setUpMocksAndAttributes(compile);
-        compile.setTargetCompatibility(null);
-        compile.compile();
     }
 
     protected void setUpMocksAndAttributes(final Compile compile) {

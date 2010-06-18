@@ -13,20 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradle.api.plugins.scala
+package org.gradle.api.plugins.scala
+
+import static org.hamcrest.Matchers.*
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
 import org.gradle.api.plugins.JavaBasePlugin
-import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.api.tasks.scala.ScalaCompile
 import org.gradle.api.tasks.scala.ScalaDoc
 import org.gradle.util.HelperUtil
 import org.junit.Test
-import static org.gradle.util.Matchers.dependsOn
-import static org.gradle.util.WrapUtil.toLinkedSet
-import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
+import static org.gradle.util.WrapUtil.*
 import static org.junit.Assert.*
 
 public class ScalaBasePluginTest {
@@ -63,8 +62,9 @@ public class ScalaBasePluginTest {
         assertThat(task, instanceOf(ScalaCompile.class))
         assertThat(task.description, equalTo('Compiles the custom Scala source.'))
         assertThat(task.classpath, equalTo(project.sourceSets.custom.compileClasspath))
+        assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
         assertThat(task.defaultSource, equalTo(project.sourceSets.custom.scala))
-        assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME, 'compileCustomJava'))
+        assertThat(task, dependsOn('compileCustomJava'))
     }
     
     @Test public void dependenciesOfJavaPluginTasksIncludeScalaCompileTasks() {
@@ -80,7 +80,8 @@ public class ScalaBasePluginTest {
 
         def task = project.createTask('otherCompile', type: ScalaCompile)
         assertThat(task.defaultSource, nullValue())
-        assertThat(task, dependsOn(ScalaBasePlugin.SCALA_DEFINE_TASK_NAME))
+        assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
+        assertThat(task, dependsOn())
     }
 
     @Test public void configuresScalaDocTasksDefinedByTheBuildScript() {
@@ -89,5 +90,7 @@ public class ScalaBasePluginTest {
         def task = project.createTask('otherScaladoc', type: ScalaDoc)
         assertThat(task.destinationDir, equalTo(project.file("$project.docsDir/scaladoc")))
         assertThat(task.title, equalTo(project.apiDocTitle))
+        assertThat(task.scalaClasspath, equalTo(project.configurations[ScalaBasePlugin.SCALA_TOOLS_CONFIGURATION_NAME]))
+        assertThat(task, dependsOn())
     }
 }

@@ -24,15 +24,11 @@ import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPluginConvention
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.scala.ScalaCompile
-import org.gradle.api.tasks.scala.ScalaDefine
 import org.gradle.api.tasks.scala.ScalaDoc
 
 public class ScalaBasePlugin implements Plugin<Project> {
     // public configurations
     public static final String SCALA_TOOLS_CONFIGURATION_NAME = "scalaTools";
-
-    // tasks
-    public static final String SCALA_DEFINE_TASK_NAME = "defineScalaAnt";
 
     public void apply(Project project) {
         JavaBasePlugin javaPlugin = project.plugins.apply(JavaBasePlugin.class);
@@ -40,7 +36,6 @@ public class ScalaBasePlugin implements Plugin<Project> {
         project.configurations.add(SCALA_TOOLS_CONFIGURATION_NAME).setVisible(false).setTransitive(true).
                 setDescription("The Scala tools libraries to be used for this Scala project.");
 
-        configureDefine(project);
         configureCompileDefaults(project, javaPlugin)
         configureSourceSetDefaults(project, javaPlugin)
         configureScaladoc(project);
@@ -65,15 +60,9 @@ public class ScalaBasePlugin implements Plugin<Project> {
         }
     }
 
-    private void configureDefine(Project project) {
-        ScalaDefine define = project.tasks.add(SCALA_DEFINE_TASK_NAME, ScalaDefine.class);
-        define.conventionMapping.classpath = { project.configurations[SCALA_TOOLS_CONFIGURATION_NAME] }
-        define.description = "Defines the Scala ant tasks.";
-    }
-
     private void configureCompileDefaults(final Project project, JavaBasePlugin javaPlugin) {
         project.tasks.withType(ScalaCompile.class).allTasks {ScalaCompile compile ->
-            compile.dependsOn(SCALA_DEFINE_TASK_NAME)
+            compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
         }
     }
 
@@ -81,7 +70,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
         project.getTasks().withType(ScalaDoc.class).allTasks {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.apiDocTitle }
-            scalaDoc.dependsOn(SCALA_DEFINE_TASK_NAME)
+            scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
         }
     }
 }

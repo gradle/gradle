@@ -14,29 +14,44 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.compile
+package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
+import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.compile.CompileOptions
+import org.gradle.api.tasks.compile.AntDepend
+import org.gradle.api.internal.project.AntBuilderFactory
+
 /**
  * @author Hans Dockter
  */
-class AntJavac {
-    private static Logger logger = LoggerFactory.getLogger(AntJavac)
+class AntJavaCompiler implements JavaCompiler {
+    private static Logger logger = LoggerFactory.getLogger(AntJavaCompiler)
     static final String CLASSPATH_ID = 'compile.classpath'
+    FileCollection source;
+    File destinationDir;
+    File dependencyCacheDir;
+    Iterable<File> classpath;
+    String sourceCompatibility;
+    String targetCompatibility;
+    CompileOptions compileOptions = new CompileOptions()
+    final AntBuilderFactory antBuilderFactory
 
-    int numFilesCompiled;
+    def AntJavaCompiler(AntBuilderFactory antBuilderFactory) {
+        this.antBuilderFactory = antBuilderFactory
+    }
 
-    void execute(FileCollection source, File targetDir, File depCacheDir,
-                 Iterable classpath, String sourceCompatibility, String targetCompatibility,
-                 CompileOptions compileOptions, AntBuilder ant) {
+    WorkResult execute() {
+        def ant = antBuilderFactory.createAntBuilder()
+        
         createAntClassPath(ant, classpath)
         Map otherArgs = [
                 includeAntRuntime: false,
-                destdir: targetDir,
+                destdir: destinationDir,
                 classpathref: CLASSPATH_ID,
                 sourcepath: '',
                 target: targetCompatibility,
@@ -44,15 +59,13 @@ class AntJavac {
         ]
 
         Map dependArgs = [
-                destDir: targetDir
+                destDir: destinationDir
         ]
-
-        targetDir.mkdirs()
 
         if (compileOptions.useDepend) {
             Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
             if (compileOptions.dependOptions.useCache) {
-                dependOptions['cache'] = depCacheDir
+                dependOptions['cache'] = dependencyCacheDir
             }
             logger.debug("Running ant depend with the following options {}", dependOptions)
             ant.project.addTaskDefinition('gradleDepend', AntDepend.class)
@@ -70,7 +83,8 @@ class AntJavac {
             }
         }
 
-        numFilesCompiled = task.fileList.length;
+        int numFilesCompiled = task.fileList.length;
+        return { numFilesCompiled > 0 } as WorkResult
     }
 
     private void createAntClassPath(AntBuilder ant, Iterable classpath) {

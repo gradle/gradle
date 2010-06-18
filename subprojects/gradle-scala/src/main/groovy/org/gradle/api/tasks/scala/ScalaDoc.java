@@ -32,6 +32,7 @@ public class ScalaDoc extends SourceTask {
     private File destinationDir;
 
     private FileCollection classpath;
+    private FileCollection scalaClasspath;
     private AntScalaDoc antScalaDoc;
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
@@ -70,6 +71,15 @@ public class ScalaDoc extends SourceTask {
         this.classpath = classpath;
     }
 
+    @InputFiles
+    public FileCollection getScalaClasspath() {
+        return scalaClasspath;
+    }
+
+    public void setScalaClasspath(FileCollection scalaClasspath) {
+        this.scalaClasspath = scalaClasspath;
+    }
+
     public ScalaDocOptions getScalaDocOptions() {
         return scalaDocOptions;
     }
@@ -95,7 +105,7 @@ public class ScalaDoc extends SourceTask {
         if (!GUtil.isTrue(options.getWindowTitle())) {
             options.setWindowTitle(getTitle());
         }
-        getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), options);
+        getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), getScalaClasspath(), options);
     }
 
 }

@@ -17,15 +17,14 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.internal.tasks.scala.ScalaCompiler;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
-import org.gradle.api.tasks.compile.AntJavac;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.util.GFileUtils;
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -33,13 +32,15 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.gradle.util.Matchers.*;
+
 public class ScalaCompileTest extends AbstractCompileTest {
 
     private ScalaCompile scalaCompile;
 
-    private AntScalaCompile antScalaCompileMock;
-    private AntJavac antCompileMock;
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private ScalaCompiler scalaCompiler;
+    private JavaCompiler javaCompiler;
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
     public Compile getCompile() {
@@ -55,12 +56,11 @@ public class ScalaCompileTest extends AbstractCompileTest {
     @Before
     public void setUp() {
         super.setUp();
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         scalaCompile = createTask(ScalaCompile.class);
-        antScalaCompileMock = context.mock(AntScalaCompile.class);
-        antCompileMock = context.mock(AntJavac.class);
-        scalaCompile.setAntScalaCompile(antScalaCompileMock);
-        scalaCompile.setAntCompile(antCompileMock);
+        scalaCompiler = context.mock(ScalaCompiler.class);
+        javaCompiler = context.mock(JavaCompiler.class);
+        scalaCompile.setScalaCompiler(scalaCompiler);
+        scalaCompile.setJavaCompiler(javaCompiler);
 
         GFileUtils.touch(new File(srcDir, "incl/file.scala"));
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
@@ -70,11 +70,11 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void testExecuteDoingWork() {
         setUpMocksAndAttributes(scalaCompile);
         context.checking(new Expectations() {{
-            one(antScalaCompileMock).execute(
-                    with(hasSameItems(scalaCompile.getSource())),
-                    with(equalTo(scalaCompile.getDestinationDir())),
-                    with(equalTo(scalaCompile.getClasspath())),
-                    with(equalTo(scalaCompile.getScalaCompileOptions())));
+            one(scalaCompiler).setSource(with(hasSameItems(scalaCompile.getSource())));
+            one(scalaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
+            one(scalaCompiler).setClasspath(scalaCompile.getClasspath());
+            one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
+            one(scalaCompiler).execute();
 
             List<File> expectedClassPath = new ArrayList<File>();
             expectedClassPath.add(scalaCompile.getDestinationDir());
@@ -83,15 +83,13 @@ public class ScalaCompileTest extends AbstractCompileTest {
             }
 
             FileCollection javaSrc = scalaCompile.getJavaSrc();
-            one(antCompileMock).execute(
-                    with(hasSameItems(javaSrc)),
-                    with(equalTo(scalaCompile.getDestinationDir())),
-                    with(equalTo(scalaCompile.getDependencyCacheDir())),
-                    with(equalTo(expectedClassPath)),
-                    with(equalTo(scalaCompile.getSourceCompatibility())),
-                    with(equalTo(scalaCompile.getTargetCompatibility())),
-                    with(equalTo(scalaCompile.getOptions())),
-                    with(equalTo(scalaCompile.getAnt())));
+            one(javaCompiler).setSource(with(hasSameItems(javaSrc)));
+            one(javaCompiler).setClasspath(expectedClassPath);
+            one(javaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
+            one(javaCompiler).setDependencyCacheDir(scalaCompile.getDependencyCacheDir());
+            one(javaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
+            one(javaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
+            one(javaCompiler).execute();
         }});
 
         scalaCompile.compile();
@@ -105,6 +103,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
         compile.setDependencyCacheDir(depCacheDir);
+        compile.setScalaClasspath(context.mock(FileCollection.class));
 
         final FileCollection configuration = context.mock(FileCollection.class);
         context.checking(new Expectations(){{

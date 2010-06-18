@@ -17,11 +17,13 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.tasks.compile.AntGroovyCompiler;
+import org.gradle.api.internal.tasks.compile.GroovyCompiler;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.util.GUtil;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -32,34 +34,28 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class GroovyCompile extends Compile {
-    private AntGroovyc antGroovyCompile;
+    private GroovyCompiler groovyCompiler;
 
     private FileCollection groovyClasspath;
-
-    private GroovyCompileOptions groovyOptions = new GroovyCompileOptions();
 
     public GroovyCompile() {
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
         ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
-        antGroovyCompile = new AntGroovyc(antBuilder, classPathRegistry);
+        groovyCompiler = new AntGroovyCompiler(antBuilder, classPathRegistry);
     }
 
     protected void compile() {
-        if (getAntGroovyCompile() == null) {
-            throw new InvalidUserDataException("The ant groovy compile command must be set!");
-        }
-        if (getSourceCompatibility() == null || getTargetCompatibility() == null) {
-            throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
-        }
-
-        List<File> classpath = GUtil.addLists(getClasspath());
         // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-        antGroovyCompile.execute(getSource(), getDestinationDir(),
-                classpath, getSourceCompatibility(), getTargetCompatibility(), getGroovyOptions(), getOptions(),
-                taskClasspath);
-        setDidWork(antGroovyCompile.getNumFilesCompiled() > 0);
+        groovyCompiler.setSource(getSource());
+        groovyCompiler.setDestinationDir(getDestinationDir());
+        groovyCompiler.setClasspath(getClasspath());
+        groovyCompiler.setSourceCompatibility(getSourceCompatibility());
+        groovyCompiler.setTargetCompatibility(getTargetCompatibility());
+        groovyCompiler.setGroovyClasspath(taskClasspath);
+        WorkResult result = groovyCompiler.execute();
+        setDidWork(result.getDidWork());
     }
 
     private void throwExceptionIfTaskClasspathIsEmpty(Collection<File> taskClasspath) {
@@ -73,18 +69,12 @@ public class GroovyCompile extends Compile {
      * use {@link #getOptions()}.
      */
     public GroovyCompileOptions getGroovyOptions() {
-        return groovyOptions;
+        return groovyCompiler.getGroovyCompileOptions();
     }
 
-    /**
-     * Sets the options for the groovyc compilation. To set specific options for the nested javac compilation,
-     * use {@link #getOptions()}. Usually you don't set the options, but you modify the existing instance
-     * provided by {@link #getGroovyOptions()}  
-     * 
-     * @param groovyOptions
-     */
-    public void setGroovyOptions(GroovyCompileOptions groovyOptions) {
-        this.groovyOptions = groovyOptions;
+    @Override
+    public CompileOptions getOptions() {
+        return groovyCompiler.getCompileOptions();
     }
 
     @InputFiles
@@ -96,11 +86,11 @@ public class GroovyCompile extends Compile {
         this.groovyClasspath = groovyClasspath;
     }
 
-    public AntGroovyc getAntGroovyCompile() {
-        return antGroovyCompile;
+    public GroovyCompiler getGroovyCompiler() {
+        return groovyCompiler;
     }
 
-    public void setAntGroovyCompile(AntGroovyc antGroovyCompile) {
-        this.antGroovyCompile = antGroovyCompile;
+    public void setGroovyCompiler(GroovyCompiler groovyCompiler) {
+        this.groovyCompiler = groovyCompiler;
     }
 }

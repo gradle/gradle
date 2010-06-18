@@ -17,18 +17,19 @@
 package org.gradle.api.tasks.compile;
 
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
+
+import static org.gradle.util.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -37,16 +38,15 @@ import java.io.File;
 public class CompileTest extends AbstractCompileTest {
     private Compile compile;
 
-    private AntJavac antCompileMock;
+    private JavaCompiler compilerMock;
 
     private Mockery context = new Mockery();
 
     @Before public void setUp()  {
         super.setUp();
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         compile = createTask(Compile.class);
-        antCompileMock = context.mock(AntJavac.class);
-        compile.antCompile = antCompileMock;
+        compilerMock = context.mock(JavaCompiler.class);
+        compile.setJavaCompiler(compilerMock);
 
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
     }
@@ -58,16 +58,18 @@ public class CompileTest extends AbstractCompileTest {
     public void testExecute(final int numFilesCompiled) {
         setUpMocksAndAttributes(compile);
         context.checking(new Expectations() {{
-            one(antCompileMock).execute(
-                    with(hasSameItems(compile.getSource())),
-                    with(equalTo(compile.getDestinationDir())),
-                    with(equalTo(compile.getDependencyCacheDir())),
-                    with(equalTo(compile.getClasspath())),
-                    with(equalTo(compile.getSourceCompatibility())),
-                    with(equalTo(compile.getTargetCompatibility())),
-                    with(equalTo(compile.getOptions())),
-                    with(equalTo(compile.getAnt())));
-            one(antCompileMock).getNumFilesCompiled(); will(returnValue(numFilesCompiled));
+            WorkResult result = context.mock(WorkResult.class);
+
+            one(compilerMock).setSource(with(hasSameItems(compile.getSource())));
+            one(compilerMock).setClasspath(compile.getClasspath());
+            one(compilerMock).setDestinationDir(compile.getDestinationDir());
+            one(compilerMock).setDependencyCacheDir(compile.getDependencyCacheDir());
+            one(compilerMock).setSourceCompatibility(compile.getSourceCompatibility());
+            one(compilerMock).setTargetCompatibility(compile.getTargetCompatibility());
+            one(compilerMock).execute();
+            will(returnValue(result));
+            allowing(result).getDidWork();
+            will(returnValue(numFilesCompiled > 0));
         }});
         compile.execute();
     }

@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.api.internal.tasks.compile;
 
-package org.gradle.api.internal.file;
+import org.gradle.api.tasks.compile.CompileOptions;
+import org.gradle.api.tasks.compile.GroovyCompileOptions;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
-public class EmptyFileCollection extends AbstractFileCollection {
-    @Override
-    public String getDisplayName() {
-        return "empty file collection";
-    }
+public interface GroovyCompiler extends Compiler {
+    CompileOptions getCompileOptions();
 
-    public Set<File> getFiles() {
-        return Collections.emptySet();
-    }
+    GroovyCompileOptions getGroovyCompileOptions();
+
+    void setSourceCompatibility(String sourceCompatibility);
+
+    void setTargetCompatibility(String targetCompatibility);
+
+    void setGroovyClasspath(Iterable<File> classpath);
 }

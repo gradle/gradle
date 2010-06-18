@@ -38,9 +38,13 @@ class AntScalaDoc {
         this.extensionDirs = extensionDirs
     }
 
-    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, ScalaDocOptions docOptions) {
+    void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> scalaClasspath, ScalaDocOptions docOptions) {
 
-        ant.mkdir(dir: targetDir.absolutePath)
+        ant.taskdef(resource: 'scala/tools/ant/antlib.xml') {
+            scalaClasspath.each {file ->
+                classpath(location: file)
+            }
+        }
 
         Map options = ['destDir': targetDir] + docOptions.optionMap()
 

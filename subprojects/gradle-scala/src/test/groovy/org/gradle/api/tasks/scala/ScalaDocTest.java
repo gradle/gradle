@@ -18,28 +18,28 @@ package org.gradle.api.tasks.scala;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
-import static org.gradle.api.tasks.compile.AbstractCompileTest.*;
 import org.gradle.util.GFileUtils;
-import static org.gradle.util.Matchers.*;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.util.LinkedHashSet;
+
+import static org.gradle.api.tasks.compile.AbstractCompileTest.*;
+import static org.gradle.util.Matchers.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class ScalaDocTest extends AbstractTaskTest {
     private ScalaDoc scalaDoc;
     private AntScalaDoc antScalaDocMock;
-    private JUnit4Mockery context = new JUnit4Mockery();
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
     private File destDir;
     private File srcDir;
 
@@ -55,7 +55,6 @@ public class ScalaDocTest extends AbstractTaskTest {
         destDir = getProject().file("destDir");
         srcDir = getProject().file("src");
         GFileUtils.touch(new File(srcDir, "file.scala"));
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         scalaDoc = createTask(ScalaDoc.class);
         antScalaDocMock = context.mock(AntScalaDoc.class);
         scalaDoc.setAntScalaDoc(antScalaDocMock);
@@ -64,7 +63,7 @@ public class ScalaDocTest extends AbstractTaskTest {
     @Test
     public void testExecutesAntScalaDoc() {
         setUpMocksAndAttributes(scalaDoc);
-        scalaDoc.execute();
+        scalaDoc.generate();
     }
 
     @Test
@@ -90,7 +89,7 @@ public class ScalaDocTest extends AbstractTaskTest {
         setUpMocksAndAttributes(scalaDoc);
         scalaDoc.setTitle("title");
 
-        scalaDoc.execute();
+        scalaDoc.generate();
 
         assertThat(scalaDoc.getScalaDocOptions().getDocTitle(), equalTo("title"));
         assertThat(scalaDoc.getScalaDocOptions().getWindowTitle(), equalTo("title"));
@@ -99,19 +98,15 @@ public class ScalaDocTest extends AbstractTaskTest {
     private void setUpMocksAndAttributes(final ScalaDoc docTask) {
         docTask.source(srcDir);
         docTask.setDestinationDir(destDir);
-
-        final FileCollection classpath = context.mock(FileCollection.class);
-        context.checking(new Expectations(){{
-            allowing(classpath).getFiles();
-            will(returnValue(new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH)));
-        }});
-        docTask.setClasspath(classpath);
+        docTask.setScalaClasspath(context.mock(FileCollection.class));
+        docTask.setClasspath(context.mock(FileCollection.class));
 
         context.checking(new Expectations() {{
             one(antScalaDocMock).execute(
                     with(hasSameItems(scalaDoc.getSource())),
                     with(equalTo(scalaDoc.getDestinationDir())),
                     with(equalTo(scalaDoc.getClasspath())),
+                    with(equalTo(scalaDoc.getScalaClasspath())),
                     with(sameInstance(scalaDoc.getScalaDocOptions())));
         }});
     }

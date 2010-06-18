@@ -20,15 +20,13 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.tasks.compile.GroovyCompiler;
+import org.gradle.api.internal.tasks.compile.JavaCompiler;
+import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Assert;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -37,6 +35,10 @@ import java.io.File;
 import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.List;
+
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -47,7 +49,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     private GroovyCompile testObj;
 
-    AntGroovyc antGroovycCompileMock;
+    GroovyCompiler groovyCompilerMock;
 
     JUnit4Mockery context = new JUnit4Mockery();
 
@@ -58,11 +60,10 @@ public class GroovyCompileTest extends AbstractCompileTest {
     @Before
     public void setUp() {
         super.setUp();
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         testObj = createTask(GroovyCompile.class);
-        antGroovycCompileMock = context.mock(AntGroovyc.class);
-        testObj.setAntGroovyCompile(antGroovycCompileMock);
-        testObj.antCompile = context.mock(AntJavac.class);
+        groovyCompilerMock = context.mock(GroovyCompiler.class);
+        testObj.setGroovyCompiler(groovyCompilerMock);
+        testObj.setJavaCompiler(context.mock(JavaCompiler.class));
 
         GFileUtils.touch(new File(srcDir, "incl/file.groovy"));
     }
@@ -75,17 +76,18 @@ public class GroovyCompileTest extends AbstractCompileTest {
         final IsolatedAntBuilder ant = getProject().getServiceRegistryFactory().get(IsolatedAntBuilder.class);
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations(){{
-            one(antGroovycCompileMock).execute(
-                    with(hasSameItems(testObj.getSource())),
-                    with(equalTo(testObj.getDestinationDir())),
-                    with(equalTo(TEST_DEPENDENCY_MANAGER_CLASSPATH)),
-                    with(equalTo(testObj.getSourceCompatibility())),
-                    with(equalTo(testObj.getTargetCompatibility())),
-                    with(equalTo(testObj.getGroovyOptions())),
-                    with(equalTo(testObj.getOptions())),
-                    with(equalTo(TEST_GROOVY_CLASSPATH)));
-            
-            one(antGroovycCompileMock).getNumFilesCompiled();  will(returnValue(numFilesCompiled));
+            WorkResult result = context.mock(WorkResult.class);
+
+            one(groovyCompilerMock).setSource(with(hasSameItems(testObj.getSource())));
+            one(groovyCompilerMock).setDestinationDir(testObj.getDestinationDir());
+            one(groovyCompilerMock).setClasspath(testObj.getClasspath());
+            one(groovyCompilerMock).setSourceCompatibility(testObj.getSourceCompatibility());
+            one(groovyCompilerMock).setTargetCompatibility(testObj.getTargetCompatibility());
+            one(groovyCompilerMock).setGroovyClasspath(TEST_GROOVY_CLASSPATH);
+            one(groovyCompilerMock).execute();
+            will(returnValue(result));
+            allowing(result).getDidWork();
+            will(returnValue(numFilesCompiled > 0));
         }});
 
         testObj.execute();
