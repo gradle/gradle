@@ -157,8 +157,7 @@ public class JavaPlugin implements Plugin<Project> {
                         setDescription("Classpath for running the compiled sources.");
 
         Configuration compileTestsConfiguration = configurations.add(TEST_COMPILE_CONFIGURATION_NAME).setVisible(false)
-                .extendsFrom(compileConfiguration).
-                        setTransitive(false).setDescription("Classpath for compiling the test sources.");
+                .extendsFrom(compileConfiguration).setDescription("Classpath for compiling the test sources.");
 
         configurations.add(TEST_RUNTIME_CONFIGURATION_NAME).setVisible(false).extendsFrom(runtimeConfiguration,
                 compileTestsConfiguration).
