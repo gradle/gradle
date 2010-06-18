@@ -19,7 +19,7 @@ import org.gradle.api.file.FileCollection;
 
 public interface FileSnapshotter {
     /**
-     * Creates an empty snapshot.
+     * Creates an empty snapshot, which changes can be later merged into.
      *
      * @return The snapshot.
      */

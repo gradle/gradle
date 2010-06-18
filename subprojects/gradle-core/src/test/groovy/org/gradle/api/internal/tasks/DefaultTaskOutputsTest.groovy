@@ -18,6 +18,8 @@ package org.gradle.api.internal.tasks
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.file.FileResolver
 import spock.lang.Specification
+import org.gradle.api.internal.TaskExecutionHistory
+import org.gradle.api.file.FileCollection
 
 class DefaultTaskOutputsTest extends Specification {
     private final TaskInternal task = [toString: {'task'}] as TaskInternal
@@ -80,5 +82,29 @@ class DefaultTaskOutputsTest extends Specification {
 
         then:
         outputs.upToDateSpec.isSatisfiedBy(task)
+    }
+
+    public void getPreviousFilesDelegatesToTaskHistory() {
+        TaskExecutionHistory history = Mock()
+        FileCollection outputFiles = Mock()
+
+        setup:
+        outputs.history = history
+
+        when:
+        def f = outputs.previousFiles
+
+        then:
+        f == outputFiles
+        1 * history.outputFiles >> outputFiles
+    }
+    
+    public void getPreviousFilesFailsWhenNoTaskHistoryAvailable() {
+        when:
+        outputs.previousFiles
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == 'Task history is currently not available for this task.'
     }
 }

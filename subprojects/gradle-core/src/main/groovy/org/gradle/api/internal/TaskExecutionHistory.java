@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal;
 
-import org.gradle.api.internal.TaskExecutionHistory;
+import org.gradle.api.file.FileCollection;
 
-/**
- * Encapsulates the state of the task when its outputs were last generated.
- */
-public interface TaskArtifactState extends TaskExecutionHistory {
+public interface TaskExecutionHistory {
     /**
-     * Returns true if the task outputs were generated using the given task inputs.
+     * Returns the set of output files which the task produced.
      */
-    boolean isUpToDate();
-
-    /**
-     * Marks current state as valid.
-     */
-    void update();
+    FileCollection getOutputFiles();
 }

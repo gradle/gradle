@@ -83,6 +83,10 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
             this.filesSnapshot = filesSnapshot;
         }
 
+        public FileCollection getFiles() {
+            return filesSnapshot.getFiles();
+        }
+
         public Diff changesSince(final FileCollectionSnapshot oldSnapshot) {
             OutputFilesSnapshot other = (OutputFilesSnapshot) oldSnapshot;
             return new OutputFilesDiff(rootFileIds, other.rootFileIds, filesSnapshot.changesSince(other.filesSnapshot));

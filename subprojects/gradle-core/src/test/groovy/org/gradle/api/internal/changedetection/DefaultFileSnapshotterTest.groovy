@@ -40,6 +40,17 @@ public class DefaultFileSnapshotterTest {
     public final TemporaryFolder tmpDir = new TemporaryFolder()
 
     @Test
+    public void getFilesReturnsOnlyTheFilesWhichExisted() {
+        TestFile file = tmpDir.createFile('file1')
+        TestFile dir = tmpDir.createDir('file2')
+        TestFile noExist = tmpDir.file('file3')
+
+        FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file, dir, noExist))
+
+        assertThat(snapshot.files.files as List, equalTo([file]))
+    }
+    
+    @Test
     public void notifiesListenerWhenFileAdded() {
         TestFile file1 = tmpDir.createFile('file1')
         TestFile file2 = tmpDir.createFile('file2')
@@ -66,7 +77,7 @@ public class DefaultFileSnapshotterTest {
     }
 
     @Test
-    public void fileIsUpToDateWhenTypeAndHashHaveNotChanged() {
+    public void fileHasNotChangedWhenTypeAndHashHaveNotChanged() {
         TestFile file = tmpDir.createFile('file')
 
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
@@ -91,7 +102,7 @@ public class DefaultFileSnapshotterTest {
     }
 
     @Test
-    public void fileIsOutOfDateWhenHashHasChanged() {
+    public void fileHasChangedWhenHashHasChanged() {
         TestFile file = tmpDir.createFile('file')
 
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
@@ -105,7 +116,7 @@ public class DefaultFileSnapshotterTest {
     }
 
     @Test
-    public void directoryIsUpToDateWhenTypeHasNotChanged() {
+    public void directoryHasNotChangedWhenTypeHasNotChanged() {
         TestFile dir = tmpDir.createDir('dir')
 
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir))
@@ -114,7 +125,7 @@ public class DefaultFileSnapshotterTest {
     }
 
     @Test
-    public void directoryIsOutOfDateWhenTypeHasChanged() {
+    public void directoryHasChangedWhenTypeHasChanged() {
         TestFile dir = tmpDir.createDir('dir')
 
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(dir))
@@ -129,7 +140,7 @@ public class DefaultFileSnapshotterTest {
     }
 
     @Test
-    public void nonExistentFileIsUpToDateWhenTypeHasNotChanged() {
+    public void nonExistentFileUnchangedWhenTypeHasNotChanged() {
         TestFile file = tmpDir.file('unknown')
 
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))
@@ -138,7 +149,7 @@ public class DefaultFileSnapshotterTest {
     }
 
     @Test
-    public void nonExistentFileIsOutOfDateWhenTypeHasChanged() {
+    public void nonExistentFileIsChangedWhenTypeHasChanged() {
         TestFile file = tmpDir.file('unknown')
 
         FileCollectionSnapshot snapshot = snapshotter.snapshot(files(file))

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,21 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.changedetection;
+package org.gradle.api.internal.file
 
-import org.gradle.api.internal.TaskExecutionHistory;
+import spock.lang.Specification
 
-/**
- * Encapsulates the state of the task when its outputs were last generated.
- */
-public interface TaskArtifactState extends TaskExecutionHistory {
-    /**
-     * Returns true if the task outputs were generated using the given task inputs.
-     */
-    boolean isUpToDate();
+class SimpleFileCollectionTest extends Specification {
+    def collectionContainsFixedSetOfFiles() {
+        File file1 = new File('file1')
+        File file2 = new File('file2')
 
-    /**
-     * Marks current state as valid.
-     */
-    void update();
+        expect:
+        SimpleFileCollection collection = new SimpleFileCollection(file1, file2)
+        collection.files as List == [file1, file2]
+    }
 }

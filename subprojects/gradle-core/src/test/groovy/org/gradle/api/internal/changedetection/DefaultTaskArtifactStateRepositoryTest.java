@@ -25,6 +25,7 @@ import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.*;
+import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -36,7 +37,9 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.*;
 
+import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
@@ -170,36 +173,6 @@ public class DefaultTaskArtifactStateRepositoryTest {
         TaskInternal task = builder().withOutputFiles(outputFile, emptyOutputDir, missingOutputFile).task();
 
         TaskArtifactState state = repository.getStateFor(task);
-        assertFalse(state.isUpToDate());
-    }
-
-    @Test
-    public void artifactsAreNotUpToDateWhenTaskWithDifferentPathProducedAnyOutputFile() {
-        execute();
-
-        TaskInternal task = builder().withPath("other").withOutputFiles(outputFile).task();
-
-        TaskArtifactState state = repository.getStateFor(task);
-        state.isUpToDate();
-        outputFile.write("new content");
-        state.update();
-
-        state = repository.getStateFor(task());
-        assertFalse(state.isUpToDate());
-    }
-
-    @Test
-    public void artifactsAreNotUpToDateWhenTaskWithDifferentPathProducedAnyOutputDirFile() {
-        execute();
-
-        TaskInternal task = builder().withPath("other").withOutputFiles(outputDirFile).task();
-
-        TaskArtifactState state = repository.getStateFor(task);
-        state.isUpToDate();
-        outputDirFile.write("new content");
-        state.update();
-
-        state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
     }
 
@@ -363,6 +336,22 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
+    public void hasEmptyTaskHistoryWhenTaskHasNeverBeenExecuted() {
+        expectEmptyCacheLocated();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertThat(state.getOutputFiles().getFiles(), isEmpty());
+    }
+    
+    @Test
+    public void hasTaskHistoryFromPreviousExecution() {
+        execute();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertThat(state.getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputFile, outputDirFile, outputDirFile2)));
+    }
+
+    @Test
     public void multipleTasksCanProduceFilesIntoTheSameOutputDirectory() {
         TaskInternal task1 = task();
         TaskInternal task2 = builder().withPath("other").withOutputFiles(outputDir).createsFiles(outputDir.file("output2")).task();
@@ -411,6 +400,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
+        assertThat(state.getOutputFiles().getFiles(), (Matcher) not(hasItem(otherFile)));
     }
 
     @Test
@@ -432,6 +422,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());
+        assertThat(state.getOutputFiles().getFiles(), (Matcher) hasItem(otherFile));
     }
 
     @Test
@@ -448,6 +439,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         state = repository.getStateFor(task());
         assertTrue(state.isUpToDate());
+        assertThat(state.getOutputFiles().getFiles(), (Matcher) not(hasItem(outputDirFile)));
         state.update();
     }
 
@@ -472,6 +464,16 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(task);
         assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void taskHistoryIsEmptyWhenTaskDoesNotProduceAnyOutout() {
+        TaskInternal task = builder().doesNotProduceOutput().task();
+        execute(task);
+
+        TaskArtifactState state = repository.getStateFor(task);
+        assertFalse(state.isUpToDate());
+        assertThat(state.getOutputFiles(), isEmpty());
     }
 
     @Test
@@ -503,9 +505,11 @@ public class DefaultTaskArtifactStateRepositoryTest {
 
         TaskArtifactState state = repository.getStateFor(instance1);
         assertTrue(state.isUpToDate());
+        assertThat(state.getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputDirFile)));
 
         state = repository.getStateFor(instance2);
         assertTrue(state.isUpToDate());
+        assertThat(state.getOutputFiles().getFiles(), equalTo(toLinkedSet((File) outputDirFile2)));
     }
 
     private void execute() {

@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.changedetection;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.util.ChangeListener;
 
 import java.io.File;
@@ -28,6 +29,8 @@ public interface FileCollectionSnapshot extends Serializable {
     void changesSince(FileCollectionSnapshot oldSnapshot, ChangeListener<File> listener);
 
     Diff changesSince(FileCollectionSnapshot oldSnapshot);
+
+    FileCollection getFiles();
 
     public interface Diff {
         /**

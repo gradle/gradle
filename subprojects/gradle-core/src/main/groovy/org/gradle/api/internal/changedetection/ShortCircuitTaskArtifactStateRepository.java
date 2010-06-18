@@ -16,6 +16,7 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.StartParameter;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
 
 public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStateRepository {
@@ -32,6 +33,10 @@ public class ShortCircuitTaskArtifactStateRepository implements TaskArtifactStat
         return new TaskArtifactState() {
             public boolean isUpToDate() {
                 return !startParameter.isNoOpt() && task.getOutputs().getUpToDateSpec().isSatisfiedBy(task) && state.isUpToDate();
+            }
+
+            public FileCollection getOutputFiles() {
+                return state.getOutputFiles();
             }
 
             public void update() {

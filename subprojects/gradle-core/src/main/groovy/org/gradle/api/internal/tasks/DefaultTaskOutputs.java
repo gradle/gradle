@@ -19,6 +19,7 @@ package org.gradle.api.internal.tasks;
 import groovy.lang.Closure;
 import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.TaskExecutionHistory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -30,6 +31,7 @@ import org.gradle.api.tasks.TaskOutputs;
 public class DefaultTaskOutputs implements TaskOutputsInternal {
     private final PathResolvingFileCollection outputFiles;
     private AndSpec<TaskInternal> upToDateSpec = new AndSpec<TaskInternal>();
+    private TaskExecutionHistory history;
 
     public DefaultTaskOutputs(FileResolver resolver, TaskInternal task) {
         outputFiles = new PathResolvingFileCollection("task output files", resolver, null);
@@ -64,5 +66,16 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
     public TaskOutputs dir(Object path) {
         files(path);
         return this;
+    }
+
+    public FileCollection getPreviousFiles() {
+        if (history == null) {
+            throw new IllegalStateException("Task history is currently not available for this task.");
+        }
+        return history.getOutputFiles();
+    }
+
+    public void setHistory(TaskExecutionHistory history) {
+        this.history = history;
     }
 }

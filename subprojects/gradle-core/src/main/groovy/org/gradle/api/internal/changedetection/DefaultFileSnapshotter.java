@@ -17,15 +17,14 @@
 package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.NoOpChangeListener;
 
 import java.io.File;
 import java.io.Serializable;
 import java.math.BigInteger;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 public class DefaultFileSnapshotter implements FileSnapshotter {
     private final Hasher hasher;
@@ -95,6 +94,16 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
 
         public FileCollectionSnapshotImpl(Map<String, FileSnapshot> snapshots) {
             this.snapshots = snapshots;
+        }
+
+        public FileCollection getFiles() {
+            List<File> files = new ArrayList<File>();
+            for (Map.Entry<String, FileSnapshot> entry : snapshots.entrySet()) {
+                if (entry.getValue() instanceof FileHashSnapshot) {
+                    files.add(new File(entry.getKey()));
+                }
+            }
+            return new SimpleFileCollection(files);
         }
 
         public void changesSince(FileCollectionSnapshot oldSnapshot, final ChangeListener<File> listener) {

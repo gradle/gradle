@@ -90,12 +90,12 @@ public class PathResolvingFileCollection extends CompositeFileCollection impleme
 
     @Override
     protected void addSourceCollections(Collection<FileCollection> sources) {
-        for (final Object element : resolveToFilesAndFileCollections()) {
+        for (Object element : resolveToFilesAndFileCollections()) {
             if (element instanceof FileCollection) {
                 FileCollection collection = (FileCollection) element;
                 sources.add(collection);
             } else {
-                final File file = (File) element;
+                File file = (File) element;
                 sources.add(new SingletonFileCollection(file, buildDependency));
             }
         }

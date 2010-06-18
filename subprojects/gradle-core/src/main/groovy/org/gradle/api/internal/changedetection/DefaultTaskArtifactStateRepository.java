@@ -17,7 +17,9 @@
 package org.gradle.api.internal.changedetection;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
@@ -69,6 +71,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         List<String> isUpToDate();
 
         boolean snapshot();
+
+        FileCollection getPreviousOutputFiles();
     }
 
     private static class TaskHistory implements Serializable {
@@ -96,6 +100,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
 
         public boolean snapshot() {
             return false;
+        }
+
+        public FileCollection getPreviousOutputFiles() {
+            return new SimpleFileCollection();
         }
     }
 
@@ -127,6 +135,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
             FileCollectionSnapshot inputFilesSnapshot = inputFilesSnapshotter.snapshot(task.getInputs().getFiles());
             thisExecution = new TaskConfiguration(task, inputFilesSnapshot);
             outputFilesBefore = outputFilesSnapshotter.snapshot(task.getOutputs().getFiles());
+        }
+
+        public FileCollection getPreviousOutputFiles() {
+            return lastExecution != null ? lastExecution.outputFilesSnapshot.getFiles() : new SimpleFileCollection();
         }
 
         public List<String> isUpToDate() {
@@ -287,6 +299,10 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                 LOGGER.info(formatter.toString());
             }
             return false;
+        }
+
+        public FileCollection getOutputFiles() {
+            return execution.getPreviousOutputFiles();
         }
 
         private TaskHistory getHistory() {
