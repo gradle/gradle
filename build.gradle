@@ -134,6 +134,9 @@ buildscript {
 
 allprojects {
     apply plugin: 'org.gradle.idea'
+    ideaModule {
+        excludeDirs.add(buildDir)
+    }
     def config = configurations.findByName('testRuntime')
     if (!config) {
         return
@@ -147,7 +150,6 @@ allprojects {
         gradleCacheVariable = 'GRADLE_CACHE'
         outputDir = "$rootProject.projectDir/intellij/out" as File
         testOutputDir = "$rootProject.projectDir/intellij/testOut" as File
-        excludeDirs.add(buildDir)
     }
 }
 

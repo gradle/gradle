@@ -25,9 +25,5 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
 
-ideaModule {
-    downloadSources = false
-    downloadJavadoc = false
-}
 
 
