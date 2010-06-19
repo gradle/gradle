@@ -37,6 +37,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private static final boolean FORK;
     private GradleDistribution dist;
     private StartParameterModifier inProcessStartParameterModifier;
+    private boolean workingDirSet;
+    private boolean userHomeSet;
 
     static {
         FORK = System.getProperty(NOFORK_SYS_PROP, "false").equalsIgnoreCase("false");
@@ -61,9 +63,23 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     @Override
     public GradleExecuter reset() {
         super.reset();
-        inDirectory(dist.getTestDir());
-        withUserHomeDir(dist.getUserHomeDir());
-        return this;        
+        workingDirSet = false;
+        userHomeSet = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter inDirectory(File directory) {
+        super.inDirectory(directory);
+        workingDirSet = true;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter withUserHomeDir(File userHomeDir) {
+        super.withUserHomeDir(userHomeDir);
+        userHomeSet = true;
+        return this;
     }
 
     @Override
@@ -87,9 +103,17 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     }
 
     private GradleExecuter configureExecuter() {
+        if (!workingDirSet) {
+            inDirectory(dist.getTestDir());
+        }
+        if (!userHomeSet) {
+            withUserHomeDir(dist.getUserHomeDir());
+        }
+
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
+        
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setSearchUpwards(false);

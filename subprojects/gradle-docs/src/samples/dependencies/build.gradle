@@ -1,14 +1,4 @@
 import org.apache.ivy.plugins.resolver.FileSystemResolver
-import org.junit.Assert
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'junit:junit:4.7'
-    }
-}
 
 group = 'sealife'
 
@@ -136,7 +126,7 @@ def assertCorrectFilesForCompleteConfigurations() {
     ]
     expectedResults.each { configurationName, expectedFileNames ->
         Set resolvedFileNames = configurations[configurationName].files.collect { it.name }
-        Assert.assertEquals(expectedFileNames, resolvedFileNames)
+        assert expectedFileNames == resolvedFileNames
     }
 }
 
@@ -164,7 +154,7 @@ def assertFilesForDependencySubsets() {
 
 def assertSubsetFiles(configuration, spec, expectedFileNames) {
     Set resolvedFileNames = configuration.files(spec).collect { it.name }
-    Assert.assertEquals(expectedFileNames as Set, resolvedFileNames)
+    assert expectedFileNames as Set == resolvedFileNames
 }
 
 def assertFilesForConfigurationCopies() {
@@ -183,5 +173,5 @@ def assertFilesForConfigurationCopies() {
 def assertConfigurationCopyFiles(configuration, spec, expectedFileNames, recursive = false) {
     String method = recursive ? 'copyRecursive' : 'copy'
     Set resolvedFileNames = configuration."$method"(spec).collect { it.name }
-    Assert.assertEquals(expectedFileNames as Set, resolvedFileNames)
+    assert expectedFileNames as Set == resolvedFileNames
 }

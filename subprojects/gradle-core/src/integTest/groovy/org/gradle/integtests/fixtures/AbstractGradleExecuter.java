@@ -37,6 +37,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         taskList = false;
         searchUpwards = false;
         executable = null;
+        userHomeDir = null;
         environmentVars.clear();
         return this;
     }
