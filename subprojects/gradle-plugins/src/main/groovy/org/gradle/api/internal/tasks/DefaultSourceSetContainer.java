@@ -35,6 +35,6 @@ public class DefaultSourceSetContainer extends AutoCreateDomainObjectContainer<S
 
     @Override
     protected SourceSet create(String name) {
-        return generator.newInstance(GroovyDefaultSourceSet.class, name, fileResolver, taskResolver);
+        return generator.newInstance(DefaultSourceSet.class, name, fileResolver, taskResolver);
     }
 }
