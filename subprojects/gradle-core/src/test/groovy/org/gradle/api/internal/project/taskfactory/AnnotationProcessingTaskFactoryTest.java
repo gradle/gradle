@@ -667,9 +667,9 @@ public class AnnotationProcessingTaskFactoryTest {
     }
 
     public static class Bean {
+        @InputFile
         File inputFile;
 
-        @InputFile
         public File getInputFile() {
             return inputFile;
         }

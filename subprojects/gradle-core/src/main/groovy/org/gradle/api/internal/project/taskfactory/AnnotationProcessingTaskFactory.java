@@ -140,7 +140,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             for (final PropertyInfo property : properties) {
                 Callable<Object> futureValue = new Callable<Object>() {
                     public Object call() throws Exception {
-                        return ReflectionUtil.invoke(task, property.method.getName(), new Object[0]);
+                        return property.getValue(task).getValue();
                     }
                 };
 
@@ -177,13 +177,14 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                     continue;
                 }
 
-                String propertyName = StringUtils.uncapitalize(method.getName().substring(3));
+                String fieldName = StringUtils.uncapitalize(method.getName().substring(3));
+                String propertyName = fieldName;
                 if (parent != null) {
                     propertyName = parent.getName() + '.' + propertyName;
                 }
                 PropertyInfo propertyInfo = new PropertyInfo(this, parent, propertyName, method);
 
-                attachValidationActions(propertyInfo);
+                attachValidationActions(propertyInfo, fieldName);
 
                 if (propertyInfo.required) {
                     properties.add(propertyInfo);
@@ -191,29 +192,22 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             }
         }
 
-        private void attachValidationActions(PropertyInfo propertyInfo) {
+        private void attachValidationActions(PropertyInfo propertyInfo, String fieldName) {
             for (PropertyAnnotationHandler handler : handlers) {
-                attachValidationAction(handler, propertyInfo);
+                attachValidationAction(handler, propertyInfo, fieldName);
             }
         }
 
-        private void attachValidationAction(PropertyAnnotationHandler handler, PropertyInfo propertyInfo) {
+        private void attachValidationAction(PropertyAnnotationHandler handler, PropertyInfo propertyInfo, String fieldName) {
             final Method method = propertyInfo.method;
             Class<? extends Annotation> annotationType = handler.getAnnotationType();
-            if (!isGetter(method)) {
-                if (method.getAnnotation(annotationType) != null) {
-                    throw new GradleException(String.format("Cannot attach @%s to non-getter method %s().",
-                            annotationType.getSimpleName(), method.getName()));
-                }
-                return;
-            }
 
             AnnotatedElement annotationTarget = null;
             if (method.getAnnotation(annotationType) != null) {
                 annotationTarget = method;
             } else {
                 try {
-                    Field field = method.getDeclaringClass().getDeclaredField(propertyInfo.propertyName);
+                    Field field = method.getDeclaringClass().getDeclaredField(fieldName);
                     if (field.getAnnotation(annotationType) != null) {
                         annotationTarget = field;
                     }
@@ -283,6 +277,11 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
             this.parent = parent;
             this.propertyName = propertyName;
             this.method = method;
+        }
+
+        @Override
+        public String toString() {
+            return propertyName;
         }
 
         public String getName() {
