@@ -21,15 +21,39 @@ import org.gradle.util.*
 import org.gradle.api.internal.ClassPathRegistry
 
 class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
-    private final Map<List<File>, Map<String, Object>> classloaders = [:]
+    private final Map<List<File>, Map<String, Object>> classloaders
     private final ClassPathRegistry classPathRegistry
+    private final Iterable<File> groovyClasspath
+    private final Iterable<File> libClasspath
 
     def DefaultIsolatedAntBuilder(ClassPathRegistry classPathRegistry) {
         this.classPathRegistry = classPathRegistry
+        classloaders = [:]
+        groovyClasspath = classPathRegistry.getClassPathFiles("LOCAL_GROOVY")
+        libClasspath = []
     }
 
-    void execute(Iterable<File> classpath, Closure antClosure) {
-        List<File> normalisedClasspath = classpath as List
+    private DefaultIsolatedAntBuilder(DefaultIsolatedAntBuilder copy, Iterable<File> groovyClasspath, Iterable<File> libClasspath) {
+        this.classPathRegistry = copy.classPathRegistry
+        this.classloaders = copy.classloaders
+        this.groovyClasspath = groovyClasspath
+        this.libClasspath = libClasspath
+    }
+
+    IsolatedAntBuilder withGroovy(Iterable<File> classpath) {
+        return new DefaultIsolatedAntBuilder(this, classpath, libClasspath);
+    }
+
+    IsolatedAntBuilder withClasspath(Iterable<File> classpath) {
+        return new DefaultIsolatedAntBuilder(this, groovyClasspath, classpath);
+    }
+
+    void execute(Closure antClosure) {
+        List<File> normalisedClasspath = []
+        normalisedClasspath.addAll(classPathRegistry.getClassPathFiles("ANT"))
+        normalisedClasspath.addAll(groovyClasspath as List)
+        normalisedClasspath.addAll(libClasspath as List)
+
         Map<String, Object> classloadersForPath = classloaders[normalisedClasspath]
         ClassLoader antLoader
         ClassLoader gradleLoader

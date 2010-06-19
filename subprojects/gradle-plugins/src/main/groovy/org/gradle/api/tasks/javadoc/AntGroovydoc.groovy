@@ -57,7 +57,7 @@ class AntGroovydoc {
         addToMapIfNotNull(args, 'footer', footer)
         addToMapIfNotNull(args, 'overview', overview)
 
-        ant.execute(classPathRegistry.getClassPathFiles("ANT") + groovyClasspath) {
+        ant.withGroovy(groovyClasspath).execute {
             taskdef(name: 'groovydoc', classname: 'org.codehaus.groovy.ant.Groovydoc')
             groovydoc(args) {
                 links.each {gradleLink ->

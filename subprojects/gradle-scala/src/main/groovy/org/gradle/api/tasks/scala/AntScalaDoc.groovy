@@ -18,48 +18,45 @@ package org.gradle.api.tasks.scala
 import org.gradle.api.file.FileCollection
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.internal.project.IsolatedAntBuilder
 
 class AntScalaDoc {
     private static Logger logger = LoggerFactory.getLogger(AntScalaDoc)
 
-    private final AntBuilder ant
+    private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
 
-    def AntScalaDoc(AntBuilder ant) {
-        this.ant = ant
+    def AntScalaDoc(IsolatedAntBuilder antBuilder) {
+        this.antBuilder = antBuilder
         this.bootclasspathFiles = []
         this.extensionDirs = []
     }
 
-    def AntScalaDoc(AntBuilder ant, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
-        this.ant = ant
+    def AntScalaDoc(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
+        this.antBuilder = antBuilder
         this.bootclasspathFiles = bootclasspathFiles
         this.extensionDirs = extensionDirs
     }
 
     void execute(FileCollection source, File targetDir, Iterable<File> classpathFiles, Iterable<File> scalaClasspath, ScalaDocOptions docOptions) {
+        antBuilder.withClasspath(scalaClasspath).execute { ant ->
+            taskdef(resource: 'scala/tools/ant/antlib.xml')
 
-        ant.taskdef(resource: 'scala/tools/ant/antlib.xml') {
-            scalaClasspath.each {file ->
-                classpath(location: file)
-            }
-        }
+            Map options = ['destDir': targetDir] + docOptions.optionMap()
 
-        Map options = ['destDir': targetDir] + docOptions.optionMap()
-
-        ant.scaladoc(options) {
-            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            bootclasspathFiles.each {file ->
-                bootclasspath(location: file)
-            }
-            extensionDirs.each {dir ->
-                extdirs(location: dir)
-            }
-            classpathFiles.each {file ->
-                classpath(location: file)
+            scaladoc(options) {
+                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+                bootclasspathFiles.each {file ->
+                    bootclasspath(location: file)
+                }
+                extensionDirs.each {dir ->
+                    extdirs(location: dir)
+                }
+                classpathFiles.each {file ->
+                    classpath(location: file)
+                }
             }
         }
     }
-
 }

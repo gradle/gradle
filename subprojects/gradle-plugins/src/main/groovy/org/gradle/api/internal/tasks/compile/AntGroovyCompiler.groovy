@@ -57,9 +57,10 @@ class AntGroovyCompiler implements GroovyCompiler {
     public WorkResult execute() {
         int numFilesCompiled;
 
-        // Force a particular Ant version. Also add in commons-cli, as the Groovy POM does not.
-        Collection antBuilderClasspath = classPathRegistry.getClassPathFiles("ANT") + (groovyClasspath as List) + classPathRegistry.getClassPathFiles("COMMONS_CLI")
-        ant.execute(antBuilderClasspath) {
+        // Add in commons-cli, as the Groovy POM does not (for some versions of Groovy)
+        Collection antBuilderClasspath = (groovyClasspath as List) + classPathRegistry.getClassPathFiles("COMMONS_CLI")
+        
+        ant.withGroovy(antBuilderClasspath).execute {
             taskdef(name: 'groovyc', classname: 'org.codehaus.groovy.ant.Groovyc')
             def task = groovyc([includeAntRuntime: false, destdir: destinationDir, classpath: ((classpath as List) + antBuilderClasspath).join(File.pathSeparator)]
                     + groovyCompileOptions.optionMap()) {

@@ -40,7 +40,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Before
     public void attachAppender() {
-        classpath = registry.getClassPathFiles("ANT") + registry.getClassPathFiles("LOCAL_GROOVY")
+        classpath = registry.getClassPathFiles("LOCAL_GROOVY")
         helper.attachAppender()
         helper.setLevel(Level.INFO);
     }
@@ -54,7 +54,7 @@ class DefaultIsolatedAntBuilderTest {
     public void executesClosureAgainstDifferentVersionOfAntAndGroovy() {
         Object antBuilder = null
         Object antProject = null
-        builder.execute(classpath) {
+        builder.withGroovy(classpath).execute {
             antBuilder = delegate.builder
             antProject = delegate.antProject
         }
@@ -83,7 +83,7 @@ class DefaultIsolatedAntBuilderTest {
     public void executesNestedClosures() {
         String propertyValue = null
         Object task = null
-        builder.execute(classpath) {
+        builder.execute {
             property(name: 'message', value: 'a message')
             task = condition(property: 'prop', value: 'a message') {
                 isset(property: 'message')
@@ -98,7 +98,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Test
     public void attachesLogger() {
-        builder.execute(classpath) {
+        builder.execute {
             property(name: 'message', value: 'a message')
             echo('${message}')
         }
@@ -108,7 +108,7 @@ class DefaultIsolatedAntBuilderTest {
 
     @Test
     public void addsToolsJarToClasspath() {
-        builder.execute(classpath) {
+        builder.execute {
             delegate.builder.class.classLoader.loadClass('com.sun.tools.javac.Main')
         }
     }
@@ -116,11 +116,11 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void cachesClassloaderForGivenClassPath() {
         Object antBuilder1 = null
-        builder.execute(classpath) {
+        builder.execute {
             antBuilder1 = delegate.builder
         }
         Object antBuilder2 = null
-        builder.execute(classpath) {
+        builder.withGroovy(classpath).execute {
             antBuilder2 = delegate.builder
         }
 
@@ -133,7 +133,7 @@ class DefaultIsolatedAntBuilderTest {
         ClassLoader contextLoader = null
         Object antProject = null
 
-        builder.execute(classpath) {
+        builder.execute {
             antProject = delegate.antProject
             contextLoader = Thread.currentThread().contextClassLoader
         }
@@ -145,7 +145,7 @@ class DefaultIsolatedAntBuilderTest {
     @Test
     public void gradleClassesAreNotVisibleToAnt() {
         ClassLoader loader = null
-        builder.execute(classpath) {
+        builder.execute {
             loader = antProject.getClass().classLoader
         }
 

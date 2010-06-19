@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
@@ -33,14 +34,11 @@ public class ScalaDoc extends SourceTask {
 
     private FileCollection classpath;
     private FileCollection scalaClasspath;
-    private AntScalaDoc antScalaDoc;
+    private AntScalaDoc antScalaDoc = new AntScalaDoc(getServices().get(IsolatedAntBuilder.class));
     private ScalaDocOptions scalaDocOptions = new ScalaDocOptions();
     private String title;
 
     public AntScalaDoc getAntScalaDoc() {
-        if (antScalaDoc == null) {
-            antScalaDoc = new AntScalaDoc(getAnt());
-        }
         return antScalaDoc;
     }
 

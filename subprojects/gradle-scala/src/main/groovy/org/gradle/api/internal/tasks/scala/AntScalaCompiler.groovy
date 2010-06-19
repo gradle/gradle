@@ -15,18 +15,17 @@
  */
 package org.gradle.api.internal.tasks.scala
 
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
 import org.gradle.api.file.FileCollection
-
+import org.gradle.api.internal.project.IsolatedAntBuilder
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.scala.ScalaCompileOptions
-import org.gradle.api.internal.project.AntBuilderFactory
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 class AntScalaCompiler implements ScalaCompiler {
     private static Logger logger = LoggerFactory.getLogger(AntScalaCompiler)
 
-    private final AntBuilderFactory antBuilderFactory
+    private final IsolatedAntBuilder antBuilder
     private final Iterable<File> bootclasspathFiles
     private final Iterable<File> extensionDirs
     FileCollection source
@@ -35,14 +34,14 @@ class AntScalaCompiler implements ScalaCompiler {
     Iterable<File> scalaClasspath
     ScalaCompileOptions scalaCompileOptions = new ScalaCompileOptions()
     
-    def AntScalaCompiler(AntBuilderFactory antBuilderFactory) {
-        this.antBuilderFactory = antBuilderFactory
+    def AntScalaCompiler(IsolatedAntBuilder antBuilder) {
+        this.antBuilder = antBuilder
         this.bootclasspathFiles = []
         this.extensionDirs = []
     }
 
-    def AntScalaCompiler(AntBuilderFactory antBuilderFactory, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
-        this.antBuilderFactory = antBuilderFactory
+    def AntScalaCompiler(IsolatedAntBuilder antBuilder, Iterable<File> bootclasspathFiles, Iterable<File> extensionDirs) {
+        this.antBuilder = antBuilder
         this.bootclasspathFiles = bootclasspathFiles
         this.extensionDirs = extensionDirs
     }
@@ -51,24 +50,20 @@ class AntScalaCompiler implements ScalaCompiler {
         Map options = ['destDir': destinationDir] + scalaCompileOptions.optionMap()
         String taskName = scalaCompileOptions.useCompileDaemon ? 'fsc' : 'scalac'
 
-        def ant = antBuilderFactory.createAntBuilder()
-        
-        ant.taskdef(resource: 'scala/tools/ant/antlib.xml') {
-            scalaClasspath.each {file ->
-                classpath(location: file)
-            }
-        }
+        antBuilder.withClasspath(scalaClasspath).execute { ant ->
+            taskdef(resource: 'scala/tools/ant/antlib.xml')
 
-        ant."${taskName}"(options) {
-            source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            bootclasspathFiles.each {file ->
-                bootclasspath(location: file)
-            }
-            extensionDirs.each {dir ->
-                extdirs(location: dir)
-            }
-            classpath.each {file ->
-                classpath(location: file)
+            "${taskName}"(options) {
+                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
+                bootclasspathFiles.each {file ->
+                    bootclasspath(location: file)
+                }
+                extensionDirs.each {dir ->
+                    extdirs(location: dir)
+                }
+                classpath.each {file ->
+                    classpath(location: file)
+                }
             }
         }
 

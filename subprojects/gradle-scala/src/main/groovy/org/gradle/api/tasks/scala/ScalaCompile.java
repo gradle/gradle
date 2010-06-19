@@ -19,6 +19,8 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.AntBuilderFactory;
+import org.gradle.api.internal.project.IsolatedAntBuilder;
+import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.scala.AntScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaCompiler;
@@ -38,7 +40,11 @@ import java.util.List;
 public class ScalaCompile extends Compile {
     private FileCollection scalaClasspath;
 
-    private ScalaCompiler scalaCompiler = new AntScalaCompiler(getServices().get(AntBuilderFactory.class));
+    private ScalaCompiler scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
+
+    public ScalaCompile() {
+        setJavaCompiler(new AntJavaCompiler(getServices().get(AntBuilderFactory.class)));
+    }
 
     public ScalaCompiler getScalaCompiler() {
         return scalaCompiler;
