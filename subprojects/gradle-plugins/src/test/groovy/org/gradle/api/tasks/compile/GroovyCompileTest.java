@@ -19,7 +19,6 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.GroovyCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.WorkResult;
@@ -73,7 +72,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
     }
 
     public void testExecute(final int numFilesCompiled) {
-        final IsolatedAntBuilder ant = getProject().getServiceRegistryFactory().get(IsolatedAntBuilder.class);
         setUpMocksAndAttributes(testObj, TEST_GROOVY_CLASSPATH);
         context.checking(new Expectations(){{
             WorkResult result = context.mock(WorkResult.class);
@@ -90,7 +88,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
             will(returnValue(numFilesCompiled > 0));
         }});
 
-        testObj.execute();
+        testObj.compile();
     }
 
     @Test

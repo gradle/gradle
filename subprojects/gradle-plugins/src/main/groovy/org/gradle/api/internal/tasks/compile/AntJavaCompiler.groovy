@@ -23,7 +23,6 @@ import org.slf4j.LoggerFactory
 
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.tasks.compile.AntDepend
 import org.gradle.api.internal.project.AntBuilderFactory
 
 /**
@@ -34,7 +33,6 @@ class AntJavaCompiler implements JavaCompiler {
     static final String CLASSPATH_ID = 'compile.classpath'
     FileCollection source;
     File destinationDir;
-    File dependencyCacheDir;
     Iterable<File> classpath;
     String sourceCompatibility;
     String targetCompatibility;
@@ -43,6 +41,10 @@ class AntJavaCompiler implements JavaCompiler {
 
     def AntJavaCompiler(AntBuilderFactory antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory
+    }
+
+    void setDependencyCacheDir(File dir) {
+        // don't care
     }
 
     WorkResult execute() {
@@ -57,22 +59,6 @@ class AntJavaCompiler implements JavaCompiler {
                 target: targetCompatibility,
                 source: sourceCompatibility
         ]
-
-        Map dependArgs = [
-                destDir: destinationDir
-        ]
-
-        if (compileOptions.useDepend) {
-            Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
-            if (compileOptions.dependOptions.useCache) {
-                dependOptions['cache'] = dependencyCacheDir
-            }
-            logger.debug("Running ant depend with the following options {}", dependOptions)
-            ant.project.addTaskDefinition('gradleDepend', AntDepend.class)
-            ant.gradleDepend(dependOptions) {
-                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            }
-        }
 
         Map options = otherArgs + compileOptions.optionMap()
         logger.debug("Running ant javac with the following options {}", options)

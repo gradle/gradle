@@ -19,6 +19,7 @@ package org.gradle.api.tasks.compile;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
+import org.gradle.api.internal.tasks.compile.IncrementalJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.*;
 
@@ -39,7 +40,12 @@ public class Compile extends SourceTask {
 
     private FileCollection classpath;
 
-    private JavaCompiler javaCompiler = new AntJavaCompiler(getServices().get(AntBuilderFactory.class));
+    private JavaCompiler javaCompiler;
+
+    public Compile() {
+        AntBuilderFactory antBuilderFactory = getServices().get(AntBuilderFactory.class);
+        javaCompiler = new IncrementalJavaCompiler(new AntJavaCompiler(antBuilderFactory), antBuilderFactory, getOutputs());
+    }
 
     @TaskAction
     protected void compile() {
@@ -98,6 +104,7 @@ public class Compile extends SourceTask {
         this.targetCompatibility = targetCompatibility;
     }
 
+    @Nested
     public CompileOptions getOptions() {
         return javaCompiler.getCompileOptions();
     }

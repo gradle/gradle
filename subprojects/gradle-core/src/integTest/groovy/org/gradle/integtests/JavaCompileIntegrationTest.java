@@ -57,11 +57,9 @@ public class JavaCompileIntegrationTest extends AbstractIntegrationTest {
 
         inTestDirectory().withTasks("classes").run();
 
-        // Update interface, compile will pass even though build is broken
+        // Update interface, compile should fail
         writeLongInterface();
-        inTestDirectory().withTasks("classes").run();
-
-        ExecutionFailure failure = inTestDirectory().withTasks("clean", "classes").runWithFailure();
+        ExecutionFailure failure = inTestDirectory().withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
     }
 

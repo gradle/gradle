@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.tasks.Input
+
 /**
  * @author Hans Dockter
  */
@@ -28,6 +30,7 @@ class CompileOptions extends AbstractOptions {
     String encoding = null
     boolean optimize
 
+    @Input
     boolean debug = true
     DebugOptions debugOptions = new DebugOptions()
     boolean fork = false
@@ -55,7 +58,7 @@ class CompileOptions extends AbstractOptions {
     }
 
     /**
-     * Set the dependency options from a map.  See {@link DependOptions} for
+     * Set the dependency options from a map.  See  {@link DependOptions}  for
      * a list of valid properties.  Calling this method will enable use
      * of the depend task during a compile.
      */
@@ -88,6 +91,5 @@ class CompileOptions extends AbstractOptions {
     Map optionMap() {
         super.optionMap() + forkOptions.optionMap() + debugOptions.optionMap()
     }
-
 }
 
