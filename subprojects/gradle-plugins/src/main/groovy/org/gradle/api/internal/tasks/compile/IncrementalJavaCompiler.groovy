@@ -16,12 +16,14 @@
 package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.file.FileCollection
-import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.tasks.WorkResult
-import org.gradle.api.tasks.compile.AntDepend
-import org.gradle.api.internal.project.AntBuilderFactory
 import org.gradle.api.internal.TaskOutputsInternal
+import org.gradle.api.internal.project.AntBuilderFactory
+import org.gradle.api.tasks.WorkResult
+import org.gradle.api.tasks.compile.CompileOptions
 
+/**
+ * A dumb incremental compiler. Deletes stale classes before invoking the actual compiler
+ */
 class IncrementalJavaCompiler implements JavaCompiler {
     private final JavaCompiler compiler
     private final AntBuilderFactory antBuilderFactory
@@ -68,29 +70,17 @@ class IncrementalJavaCompiler implements JavaCompiler {
     }
 
     WorkResult execute() {
+        StaleClassCleaner cleaner
         if (compileOptions.useDepend) {
-            Map dependArgs = [
-                    destDir: destinationDir
-            ]
-
-            Map dependOptions = dependArgs + compileOptions.dependOptions.optionMap()
-            if (compileOptions.dependOptions.useCache) {
-                dependOptions['cache'] = dependencyCacheDir
-            }
-
-            def ant = antBuilderFactory.createAntBuilder()
-            ant.project.addTaskDefinition('gradleDepend', AntDepend.class)
-            ant.gradleDepend(dependOptions) {
-                source.addToAntBuilder(ant, 'src', FileCollection.AntType.MatchingTask)
-            }
+            cleaner = new AntDependsStaleClassCleaner(antBuilderFactory)
+            cleaner.dependencyCacheDir = dependencyCacheDir
         } else {
-            String prefix = destinationDir.absolutePath + File.separator
-            for (File f in taskOutputs.previousFiles) {
-                if (f.absolutePath.startsWith(prefix)) {
-                    f.delete()
-                }
-            }
+            cleaner = new SimpleStaleClassCleaner(taskOutputs)
         }
+        cleaner.destinationDir = destinationDir
+        cleaner.source = source
+        cleaner.compileOptions = compileOptions
+        cleaner.execute()
 
         return compiler.execute()
     }

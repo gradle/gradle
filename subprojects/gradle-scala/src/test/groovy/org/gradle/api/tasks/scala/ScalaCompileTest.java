@@ -19,8 +19,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaCompiler;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
-import org.gradle.api.tasks.compile.Compile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -43,7 +43,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
-    public Compile getCompile() {
+    public AbstractCompile getCompile() {
         return scalaCompile;
     }
 
@@ -86,7 +86,6 @@ public class ScalaCompileTest extends AbstractCompileTest {
             one(javaCompiler).setSource(with(hasSameItems(javaSrc)));
             one(javaCompiler).setClasspath(expectedClassPath);
             one(javaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
-            one(javaCompiler).setDependencyCacheDir(scalaCompile.getDependencyCacheDir());
             one(javaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
             one(javaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
             one(javaCompiler).execute();
@@ -102,7 +101,6 @@ public class ScalaCompileTest extends AbstractCompileTest {
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        compile.setDependencyCacheDir(depCacheDir);
         compile.setScalaClasspath(context.mock(FileCollection.class));
 
         final FileCollection configuration = context.mock(FileCollection.class);

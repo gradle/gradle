@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntGroovyCompiler;
 import org.gradle.api.internal.tasks.compile.GroovyCompiler;
 import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
@@ -33,7 +34,7 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class GroovyCompile extends Compile {
+public class GroovyCompile extends AbstractCompile {
     private GroovyCompiler groovyCompiler;
 
     private FileCollection groovyClasspath;
@@ -72,7 +73,7 @@ public class GroovyCompile extends Compile {
         return groovyCompiler.getGroovyCompileOptions();
     }
 
-    @Override
+    @Nested
     public CompileOptions getOptions() {
         return groovyCompiler.getCompileOptions();
     }

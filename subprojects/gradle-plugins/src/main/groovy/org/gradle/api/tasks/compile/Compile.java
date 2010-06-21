@@ -16,31 +16,25 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.IncrementalJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.WorkResult;
 
 import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-public class Compile extends SourceTask {
-
-    private File destinationDir;
-
-    private File dependencyCacheDir;
-
-    private String sourceCompatibility;
-
-    private String targetCompatibility;
-
-    private FileCollection classpath;
+public class Compile extends AbstractCompile {
 
     private JavaCompiler javaCompiler;
+
+    private File dependencyCacheDir;
 
     public Compile() {
         AntBuilderFactory antBuilderFactory = getServices().get(AntBuilderFactory.class);
@@ -59,24 +53,6 @@ public class Compile extends SourceTask {
         setDidWork(result.getDidWork());
     }
 
-    @InputFiles
-    public FileCollection getClasspath() {
-        return classpath;
-    }
-
-    public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
-    }
-
-    @OutputDirectory
-    public File getDestinationDir() {
-        return destinationDir;
-    }
-
-    public void setDestinationDir(File destinationDir) {
-        this.destinationDir = destinationDir;
-    }
-
     @OutputDirectory
     public File getDependencyCacheDir() {
         return dependencyCacheDir;
@@ -84,24 +60,6 @@ public class Compile extends SourceTask {
 
     public void setDependencyCacheDir(File dependencyCacheDir) {
         this.dependencyCacheDir = dependencyCacheDir;
-    }
-
-    @Input
-    public String getSourceCompatibility() {
-        return sourceCompatibility;
-    }
-
-    public void setSourceCompatibility(String sourceCompatibility) {
-        this.sourceCompatibility = sourceCompatibility;
-    }
-
-    @Input
-    public String getTargetCompatibility() {
-        return targetCompatibility;
-    }
-
-    public void setTargetCompatibility(String targetCompatibility) {
-        this.targetCompatibility = targetCompatibility;
     }
 
     @Nested

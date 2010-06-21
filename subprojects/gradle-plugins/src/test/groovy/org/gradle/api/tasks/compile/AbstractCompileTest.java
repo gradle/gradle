@@ -45,7 +45,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     protected File destDir;
     protected File depCacheDir;
 
-    protected abstract Compile getCompile();
+    protected abstract AbstractCompile getCompile();
 
     @Override
     public void setUp() {
@@ -57,22 +57,20 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testDefaults() {
-        Compile compile = getCompile();
-        assertNotNull(compile.getJavaCompiler());
+        AbstractCompile compile = getCompile();
         assertNull(compile.getDestinationDir());
         assertNull(compile.getSourceCompatibility());
         assertNull(compile.getTargetCompatibility());
         assertThat(compile.getSource(), isEmpty());
     }
 
-    protected void setUpMocksAndAttributes(final Compile compile) {
+    protected void setUpMocksAndAttributes(final AbstractCompile compile) {
         compile.source(srcDir);
         compile.setIncludes(TEST_INCLUDES);
         compile.setExcludes(TEST_EXCLUDES);
         compile.setSourceCompatibility("1.5");
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
-        compile.setDependencyCacheDir(depCacheDir);
 
         compile.setClasspath(new AbstractFileCollection() {
             @Override
@@ -87,7 +85,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testIncludes() {
-        Compile compile = getCompile();
+        AbstractCompile compile = getCompile();
 
         assertSame(compile.include(TEST_PATTERN_1, TEST_PATTERN_2), compile);
         assertEquals(compile.getIncludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));
@@ -97,7 +95,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
     }
 
     @Test public void testExcludes() {
-        Compile compile = getCompile();
+        AbstractCompile compile = getCompile();
 
         assertSame(compile.exclude(TEST_PATTERN_1, TEST_PATTERN_2), compile);
         assertEquals(compile.getExcludes(), WrapUtil.toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2));

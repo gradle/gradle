@@ -22,6 +22,7 @@ import org.gradle.api.internal.IConventionAware;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
@@ -100,7 +101,7 @@ public class JavaBasePlugin implements Plugin<Project> {
         });
     }
 
-    public void configureForSourceSet(final SourceSet sourceSet, Compile compile) {
+    public void configureForSourceSet(final SourceSet sourceSet, AbstractCompile compile) {
         ConventionMapping conventionMapping;
         compile.setDescription(String.format("Compiles the %s.", sourceSet.getJava()));
         conventionMapping = compile.getConventionMapping();
@@ -122,14 +123,9 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
-            public void execute(final Compile compile) {
+        project.getTasks().withType(AbstractCompile.class).allTasks(new Action<AbstractCompile>() {
+            public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
-                conventionMapping.map("dependencyCacheDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return javaConvention.getDependencyCacheDir();
-                    }
-                });
                 conventionMapping.map("sourceCompatibility", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return javaConvention.getSourceCompatibility().toString();
@@ -138,6 +134,16 @@ public class JavaBasePlugin implements Plugin<Project> {
                 conventionMapping.map("targetCompatibility", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                         return javaConvention.getTargetCompatibility().toString();
+                    }
+                });
+            }
+        });
+        project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
+            public void execute(final Compile compile) {
+                ConventionMapping conventionMapping = compile.getConventionMapping();
+                conventionMapping.map("dependencyCacheDir", new ConventionValue() {
+                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                        return javaConvention.getDependencyCacheDir();
                     }
                 });
             }

@@ -25,7 +25,9 @@ import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.internal.tasks.scala.AntScalaCompiler;
 import org.gradle.api.internal.tasks.scala.ScalaCompiler;
 import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.compile.Compile;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.compile.AbstractCompile;
+import org.gradle.api.tasks.compile.CompileOptions;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.GUtil;
@@ -37,18 +39,11 @@ import java.util.List;
 /**
  * Task to perform scala compilation.
  */
-public class ScalaCompile extends Compile {
+public class ScalaCompile extends AbstractCompile {
     private FileCollection scalaClasspath;
 
     private ScalaCompiler scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
-
-    public ScalaCompile() {
-        setJavaCompiler(new AntJavaCompiler(getServices().get(AntBuilderFactory.class)));
-    }
-
-    public ScalaCompiler getScalaCompiler() {
-        return scalaCompiler;
-    }
+    private JavaCompiler javaCompiler = new AntJavaCompiler(getServices().get(AntBuilderFactory.class));
 
     @InputFiles
     public FileCollection getScalaClasspath() {
@@ -59,12 +54,29 @@ public class ScalaCompile extends Compile {
         this.scalaClasspath = scalaClasspath;
     }
 
+    public ScalaCompiler getScalaCompiler() {
+        return scalaCompiler;
+    }
+
     public void setScalaCompiler(ScalaCompiler scalaCompiler) {
         this.scalaCompiler = scalaCompiler;
     }
 
+    public JavaCompiler getJavaCompiler() {
+        return javaCompiler;
+    }
+
+    public void setJavaCompiler(JavaCompiler javaCompiler) {
+        this.javaCompiler = javaCompiler;
+    }
+
     public ScalaCompileOptions getScalaCompileOptions() {
         return scalaCompiler.getScalaCompileOptions();
+    }
+
+    @Nested
+    public CompileOptions getOptions() {
+        return javaCompiler.getCompileOptions();
     }
 
     /**
@@ -95,10 +107,8 @@ public class ScalaCompile extends Compile {
         FileTree javaSource = getJavaSrc();
         List<File> classpath = GUtil.addLists(Collections.singleton(getDestinationDir()), getClasspath());
         javaSource.stopExecutionIfEmpty();
-        JavaCompiler javaCompiler = getJavaCompiler();
         javaCompiler.setSource(javaSource);
         javaCompiler.setDestinationDir(getDestinationDir());
-        javaCompiler.setDependencyCacheDir(getDependencyCacheDir());
         javaCompiler.setClasspath(classpath);
         javaCompiler.setSourceCompatibility(getSourceCompatibility());
         javaCompiler.setTargetCompatibility(getTargetCompatibility());

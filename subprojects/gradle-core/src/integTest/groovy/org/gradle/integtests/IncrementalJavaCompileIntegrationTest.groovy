@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Test
+import org.gradle.integtests.fixtures.ExecutionFailure
 
 class IncrementalJavaCompileIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -43,5 +44,70 @@ class IncrementalJavaCompileIntegrationTest {
         executer.withTasks('compileJava').run().assertTasksSkipped()
 
         executer.withTasks('compileJava').run().assertTasksSkipped(':compileJava')
+    }
+
+    @Test
+    public void recompilesDependentClasses() {
+        distribution.testFile("build.gradle").writelns("apply plugin: 'java'");
+        writeShortInterface();
+        writeTestClass();
+
+        executer.withTasks("classes").run();
+
+        // Update interface, compile should fail
+        writeLongInterface();
+        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
+        failure.assertHasDescription("Execution failed for task ':compileJava'.");
+    }
+
+    @Test
+    public void recompilesDependentClassesWhenUsingAntDepend() {
+        distribution.testFile("build.gradle").writelns(
+                "apply plugin: 'java'",
+                "compileJava.options.depend()"
+        );
+        writeShortInterface();
+        writeTestClass();
+
+        executer.withTasks("classes").run();
+
+        // file system time stamp may not see change without this wait
+        Thread.sleep(1000L);
+
+        // Update interface, compile should fail because depend deletes old class
+        writeLongInterface();
+        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
+        failure.assertHasDescription("Execution failed for task ':compileJava'.");
+
+        // assert that dependency caching is on
+        distribution.testFile("build/dependency-cache/dependencies.txt").assertExists();
+    }
+
+    private void writeShortInterface() {
+        distribution.testFile("src/main/java/IPerson.java").writelns(
+                "interface IPerson {",
+                "    String getName();",
+                "}"
+        );
+    }
+
+    private void writeLongInterface() {
+        distribution.testFile("src/main/java/IPerson.java").writelns(
+                "interface IPerson {",
+                "    String getName();",
+                "    String getAddress();",
+                "}"
+        );
+    }
+
+    private void writeTestClass() {
+        distribution.testFile("src/main/java/Person.java").writelns(
+                "public class Person implements IPerson {",
+                "    private final String name = \"never changes\";",
+                "    public String getName() {",
+                "        return name;\n" +
+                "    }",
+                "}"
+        );
     }
 }

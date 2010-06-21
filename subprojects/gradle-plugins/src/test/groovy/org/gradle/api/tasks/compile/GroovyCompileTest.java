@@ -20,7 +20,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.tasks.compile.GroovyCompiler;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.util.GFileUtils;
 import org.jmock.Expectations;
@@ -52,7 +51,7 @@ public class GroovyCompileTest extends AbstractCompileTest {
 
     JUnit4Mockery context = new JUnit4Mockery();
 
-    public Compile getCompile() {
+    public AbstractCompile getCompile() {
         return testObj;
     }
 
@@ -62,7 +61,6 @@ public class GroovyCompileTest extends AbstractCompileTest {
         testObj = createTask(GroovyCompile.class);
         groovyCompilerMock = context.mock(GroovyCompiler.class);
         testObj.setGroovyCompiler(groovyCompilerMock);
-        testObj.setJavaCompiler(context.mock(JavaCompiler.class));
 
         GFileUtils.touch(new File(srcDir, "incl/file.groovy"));
     }
