@@ -175,6 +175,17 @@ public class AnnotationProcessingTaskFactoryTest {
         }});
         task.execute();
     }
+    
+    @Test
+    public void taskActionWorksForOverriddenMethods() {
+        final Runnable action = context.mock(Runnable.class);
+        TaskWithOverriddenMethod task = expectTaskCreated(TaskWithOverriddenMethod.class, action);
+
+        context.checking(new Expectations() {{
+            one(action).run();
+        }});
+        task.execute();
+    }
 
     @Test
     public void taskActionWorksForProtectedMethods() {
@@ -489,6 +500,20 @@ public class AnnotationProcessingTaskFactoryTest {
     public static class TaskWithInheritedMethod extends TestTask {
         public TaskWithInheritedMethod(Runnable action) {
             super(action);
+        }
+    }
+
+    public static class TaskWithOverriddenMethod extends TestTask {
+        private final Runnable action;
+
+        public TaskWithOverriddenMethod(Runnable action) {
+            super(null);
+            this.action = action;
+        }
+
+        @Override @TaskAction
+        public void doStuff() {
+            action.run();
         }
     }
 

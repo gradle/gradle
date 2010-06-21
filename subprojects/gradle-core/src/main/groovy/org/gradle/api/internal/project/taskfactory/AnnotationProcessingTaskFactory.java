@@ -85,7 +85,7 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
 
     private List<Action<Task>> createActionsForType(Class<? extends Task> type) {
         List<Action<Task>> actions = new ArrayList<Action<Task>>();
-        findTaskAction(type, actions);
+        findTaskActions(type, actions);
         findProperties(type, actions);
         return actions;
     }
@@ -100,15 +100,16 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
         }
     }
 
-    private void findTaskAction(Class<? extends Task> type, List<Action<Task>> actions) {
+    private void findTaskActions(Class<? extends Task> type, List<Action<Task>> actions) {
+        Set<String> methods = new HashSet<String>();
         for (Class current = type; current != null; current = current.getSuperclass()) {
             for (Method method : current.getDeclaredMethods()) {
-                attachTaskAction(method, actions);
+                attachTaskAction(method, actions, methods);
             }
         }
     }
 
-    private void attachTaskAction(final Method method, Collection<Action<Task>> actions) {
+    private void attachTaskAction(final Method method, Collection<Action<Task>> actions, Collection<String> methods) {
         if (method.getAnnotation(TaskAction.class) == null) {
             return;
         }
@@ -121,6 +122,10 @@ public class AnnotationProcessingTaskFactory implements ITaskFactory {
                     "Cannot use @TaskAction annotation on method %s.%s() as this method takes parameters.",
                     method.getDeclaringClass().getSimpleName(), method.getName()));
         }
+        if (methods.contains(method.getName())) {
+            return;
+        }
+        methods.add(method.getName());
         actions.add(new Action<Task>() {
             public void execute(Task task) {
                 ReflectionUtil.invoke(task, method.getName(), new Object[0]);
