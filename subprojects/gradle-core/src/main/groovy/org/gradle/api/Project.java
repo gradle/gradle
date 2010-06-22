@@ -696,15 +696,15 @@ public interface Project extends Comparable<Project> {
      * interpreted relative to the project directory.</li>
      *
      * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as the file path. Currently, only
-     * 'file:' URLs are supported.
+     * {@code file:} URLs are supported.
      *
      * <li>{@link Closure}. The closure's return value is resolved recursively.</li>
      *
      * <li>{@link java.util.concurrent.Callable}. The callable's return value is resolved recursively.</li>
      *
      * <li>{@link Object}. The object's {@code toString()} value is interpreted as a path. If the path is a relative
-     * path, the project directory will be used as a base directory. A String starting with 'file:' is treated as a file
-     * URL.</li>
+     * path, the project directory will be used as a base directory. A String starting with {@code file:} is treated as
+     * a file URL.</li>
      *
      * </ul>
      *
@@ -747,8 +747,13 @@ public interface Project extends Comparable<Project> {
      * <p>Returns a {@link ConfigurableFileCollection} containing the given files. You can pass any of the following
      * types to this method:</p>
      *
-     * <ul> <li>A {@code String}. Interpreted relative to the project directory, as a call to {@link
-     * #file(Object)}.</li>
+     * <ul> <li>A {@code String}. Interpreted relative to the project directory, as for {@link #file(Object)}. A string
+     * that starts with {@code file:} is treated as a file URL.</li>
+     *
+     * <li>A {@code File}. Interpreted relative to the project directory, as for {@link #file(Object)}.</li>
+     *
+     * <li>{@link java.net.URI} or {@link java.net.URL}. The URL's path is interpreted as a file path. Currently, only
+     * {@code file:} URLs are supported.
      *
      * <li>A {@code Collection} or an array. May contain any of the types listed here. The elements of the collection
      * are recursively converted to files.</li>
@@ -763,7 +768,7 @@ public interface Project extends Comparable<Project> {
      * <li>A Closure. May return any of the types listed here. The return value of the closure is recursively converted
      * to files. A {@code null} return value is treated as an empty collection.</li>
      *
-     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as per a call to {@link
+     * <li>An Object. Its {@code toString()} value is treated the same way as a String, as for {@link
      * #file(Object)}.</li> </ul>
      *
      * <p>The returned file collection is lazy, so that the paths are evaluated only when the contents of the file

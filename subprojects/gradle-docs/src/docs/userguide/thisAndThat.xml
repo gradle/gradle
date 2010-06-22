@@ -169,9 +169,8 @@ systemProp.http.nonProxyHosts=*.nonproxyrepos.com|localhost
             <filename>.gradle</filename> directory in which it puts the compiled script. The next time you run this
             build, Gradle uses the compiled script, if the script has not changed since it was compiled.  Otherwise the
             script gets compiled and the new version is stored in the cache. If you run Gradle with the
-            <option>-C off</option> option, any existing cache is ignored and the build script is compiled and executed
-            on the fly. If you run Gradle with the <option>-C rebuild</option> option, the cached script is discarded
-            and the script is compiled and stored in the cache. This way you can force Gradle to rebuild the cache.
+            <option>-C rebuild</option> option, the cached script is discarded and the script is compiled and stored
+            in the cache. This way you can force Gradle to rebuild the cache.
         </para>
     </section>
 </chapter>
