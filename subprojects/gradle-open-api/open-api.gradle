@@ -39,5 +39,8 @@ task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
 }
 
 ideaModule {
-    testSourceDirs += project.sourceSets.integTest.groovy.srcDirs
+    testSourceDirs.addAll(project.sourceSets.integTest.groovy.srcDirs)
+    whenConfigured { module ->
+        module.dependencies.add(new org.gradle.plugins.idea.model.ModuleDependency('ui', null))
+    }
 }
