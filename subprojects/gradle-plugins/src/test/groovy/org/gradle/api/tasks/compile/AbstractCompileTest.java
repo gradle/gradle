@@ -16,15 +16,13 @@
 
 package org.gradle.api.tasks.compile;
 
-import org.gradle.api.internal.file.AbstractFileCollection;
+import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.util.WrapUtil;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Set;
 
 import static org.gradle.util.Matchers.*;
 import static org.junit.Assert.*;
@@ -72,16 +70,7 @@ public abstract class AbstractCompileTest extends AbstractConventionTaskTest {
         compile.setTargetCompatibility("1.5");
         compile.setDestinationDir(destDir);
 
-        compile.setClasspath(new AbstractFileCollection() {
-            @Override
-            public String getDisplayName() {
-                throw new UnsupportedOperationException();
-            }
-
-            public Set<File> getFiles() {
-                return new LinkedHashSet<File>(TEST_DEPENDENCY_MANAGER_CLASSPATH);
-            }
-        });
+        compile.setClasspath(new SimpleFileCollection(TEST_DEPENDENCY_MANAGER_CLASSPATH));
     }
 
     @Test public void testIncludes() {
