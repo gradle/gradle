@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.testing.junit;
 import org.apache.tools.ant.taskdefs.optional.junit.XMLConstants;
 import org.apache.tools.ant.util.DOMElementWriter;
 import org.apache.tools.ant.util.DateUtils;
-import org.apache.tools.ant.util.StringUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
 import org.gradle.api.internal.tasks.testing.TestOutputEvent;
@@ -108,9 +107,9 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         if (state.failure != null) {
             Element failure = testSuiteReport.createElement(XMLConstants.FAILURE);
             element.appendChild(failure);
-            failure.setAttribute(XMLConstants.ATTR_MESSAGE, state.failure.toString());
+            failure.setAttribute(XMLConstants.ATTR_MESSAGE, failureMessage(state));
             failure.setAttribute(XMLConstants.ATTR_TYPE, state.failure.getClass().getName());
-            failure.appendChild(testSuiteReport.createTextNode(StringUtils.getStackTrace(state.failure)));
+            failure.appendChild(testSuiteReport.createTextNode(stackTrace(state)));
         }
 
         if (state.equals(testSuite)) {
@@ -128,6 +127,31 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
 
             testSuite = null;
             outputs.clear();
+        }
+    }
+
+    private String stackTrace(TestState state) {
+        try {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter writer = new PrintWriter(stringWriter);
+            state.failure.printStackTrace(writer);
+            writer.close();
+            return stringWriter.toString();
+        } catch (Throwable t) {
+            StringWriter stringWriter = new StringWriter();
+            PrintWriter writer = new PrintWriter(stringWriter);
+            t.printStackTrace(writer);
+            writer.close();
+            return stringWriter.toString();
+        }
+    }
+
+    private String failureMessage(TestState state) {
+        try {
+            return state.failure.toString();
+        } catch (Throwable t) {
+            return String.format("Could not determine failure message for exception of type %s: %s",
+                    state.failure.getClass().getName(), t);
         }
     }
 

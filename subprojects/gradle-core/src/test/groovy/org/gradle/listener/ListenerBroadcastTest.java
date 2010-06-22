@@ -19,6 +19,7 @@ package org.gradle.listener;
 import org.gradle.api.Action;
 import org.gradle.messaging.dispatch.Dispatch;
 import org.gradle.messaging.dispatch.MethodInvocation;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.TestClosure;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
@@ -35,7 +36,7 @@ import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class ListenerBroadcastTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ListenerBroadcast<TestListener> broadcast = new ListenerBroadcast<TestListener>(TestListener.class);
 
     @Test
@@ -271,6 +272,56 @@ public class ListenerBroadcastTest {
             fail();
         } catch (ListenerNotificationException e) {
             assertThat(e.getMessage(), equalTo("Failed to notify test listener."));
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
+        }
+    }
+
+    @Test
+    public void attemptsToNotifyAllOtherListenersWhenOneThrowsException() {
+        final TestListener listener1 = context.mock(TestListener.class);
+        final TestListener listener2 = context.mock(TestListener.class);
+        final RuntimeException failure = new RuntimeException();
+
+        context.checking(new Expectations() {{
+            one(listener1).event1("param");
+            will(throwException(failure));
+            one(listener2).event1("param");
+        }});
+
+        broadcast.add(listener1);
+        broadcast.add(listener2);
+
+        try {
+            broadcast.getSource().event1("param");
+            fail();
+        } catch (ListenerNotificationException e) {
+            assertThat(e.getCause(), sameInstance((Throwable) failure));
+        }
+    }
+
+    @Test
+    public void attemptsToNotifyAllOtherListenersWhenMultipleThrowException() {
+        final TestListener listener1 = context.mock(TestListener.class);
+        final TestListener listener2 = context.mock(TestListener.class);
+        final TestListener listener3 = context.mock(TestListener.class);
+        final RuntimeException failure = new RuntimeException();
+
+        context.checking(new Expectations() {{
+            one(listener1).event1("param");
+            will(throwException(failure));
+            one(listener2).event1("param");
+            will(throwException(new RuntimeException()));
+            one(listener3).event1("param");
+        }});
+
+        broadcast.add(listener1);
+        broadcast.add(listener2);
+        broadcast.add(listener3);
+
+        try {
+            broadcast.getSource().event1("param");
+            fail();
+        } catch (ListenerNotificationException e) {
             assertThat(e.getCause(), sameInstance((Throwable) failure));
         }
     }

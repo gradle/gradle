@@ -69,6 +69,7 @@ public class JUnitIntegrationTest {
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBeforeClass FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfterClass FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenConstructor FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenException FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.Unloadable FAILED'));
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(testDir)
@@ -79,6 +80,7 @@ public class JUnitIntegrationTest {
                 'org.gradle.BrokenBeforeClass',
                 'org.gradle.BrokenAfterClass',
                 'org.gradle.BrokenConstructor',
+                'org.gradle.BrokenException',
                 'org.gradle.Unloadable')
         result.testClass('org.gradle.BrokenTest').assertTestFailed('failure', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenTest').assertTestFailed('broken', equalTo('java.lang.IllegalStateException'))
@@ -87,6 +89,7 @@ public class JUnitIntegrationTest {
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: '))
         result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
     }
 

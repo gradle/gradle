@@ -20,6 +20,8 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.listener.ListenerNotificationException;
 import org.gradle.util.UncheckedException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -28,8 +30,10 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 
 public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation> {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BroadcastDispatch.class);
     private final Class<T> type;
-    private final Map<Object, Dispatch<MethodInvocation>> handlers = new LinkedHashMap<Object, Dispatch<MethodInvocation>>();
+    private final Map<Object, Dispatch<MethodInvocation>> handlers
+            = new LinkedHashMap<Object, Dispatch<MethodInvocation>>();
 
     public BroadcastDispatch(Class<T> type) {
         this.type = type;
@@ -42,7 +46,7 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
     public void add(Dispatch<MethodInvocation> dispatch) {
         handlers.put(dispatch, dispatch);
     }
-    
+
     public void add(T listener) {
         handlers.put(listener, new ReflectionDispatch(listener));
     }
@@ -78,11 +82,17 @@ public class BroadcastDispatch<T> implements StoppableDispatch<MethodInvocation>
 
     public void dispatch(MethodInvocation invocation) {
         try {
+            ExceptionTrackingListener tracker = new ExceptionTrackingListener(LOGGER);
             for (Dispatch<MethodInvocation> handler : new ArrayList<Dispatch<MethodInvocation>>(handlers.values())) {
-                handler.dispatch(invocation);
+                try {
+                    handler.dispatch(invocation);
+                } catch (UncheckedException e) {
+                    tracker.execute(e.getCause());
+                } catch (Throwable t) {
+                    tracker.execute(t);
+                }
             }
-        } catch (UncheckedException e) {
-            throw new ListenerNotificationException(getErrorMessage(), e.getCause());
+            tracker.stop();
         } catch (Throwable t) {
             throw new ListenerNotificationException(getErrorMessage(), t);
         }
