@@ -15,16 +15,8 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.CompileOptions;
-
 import java.io.File;
 
-public interface JavaCompiler extends Compiler {
-    CompileOptions getCompileOptions();
-
+public interface JavaCompiler extends JavaSourceCompiler {
     void setDependencyCacheDir(File dir);
-    
-    void setSourceCompatibility(String sourceCompatibility);
-
-    void setTargetCompatibility(String targetCompatibility);
 }

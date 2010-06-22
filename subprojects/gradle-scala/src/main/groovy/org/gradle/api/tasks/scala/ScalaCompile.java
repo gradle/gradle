@@ -15,26 +15,17 @@
  */
 package org.gradle.api.tasks.scala;
 
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.project.AntBuilderFactory;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntJavaCompiler;
 import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.internal.tasks.scala.AntScalaCompiler;
-import org.gradle.api.internal.tasks.scala.ScalaCompiler;
+import org.gradle.api.internal.tasks.scala.*;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
-import org.gradle.api.tasks.util.PatternFilterable;
-import org.gradle.api.tasks.util.PatternSet;
-import org.gradle.util.GUtil;
-
-import java.io.File;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Task to perform scala compilation.
@@ -42,8 +33,13 @@ import java.util.List;
 public class ScalaCompile extends AbstractCompile {
     private FileCollection scalaClasspath;
 
-    private ScalaCompiler scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
-    private JavaCompiler javaCompiler = new AntJavaCompiler(getServices().get(AntBuilderFactory.class));
+    private ScalaJavaJointCompiler compiler;
+
+    public ScalaCompile() {
+        ScalaCompiler scalaCompiler = new AntScalaCompiler(getServices().get(IsolatedAntBuilder.class));
+        JavaCompiler javaCompiler = new AntJavaCompiler(getServices().get(AntBuilderFactory.class));
+        compiler = new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler), getOutputs());
+    }
 
     @InputFiles
     public FileCollection getScalaClasspath() {
@@ -54,64 +50,32 @@ public class ScalaCompile extends AbstractCompile {
         this.scalaClasspath = scalaClasspath;
     }
 
-    public ScalaCompiler getScalaCompiler() {
-        return scalaCompiler;
+    public ScalaJavaJointCompiler getCompiler() {
+        return compiler;
     }
 
-    public void setScalaCompiler(ScalaCompiler scalaCompiler) {
-        this.scalaCompiler = scalaCompiler;
-    }
-
-    public JavaCompiler getJavaCompiler() {
-        return javaCompiler;
-    }
-
-    public void setJavaCompiler(JavaCompiler javaCompiler) {
-        this.javaCompiler = javaCompiler;
+    public void setCompiler(ScalaJavaJointCompiler compiler) {
+        this.compiler = compiler;
     }
 
     public ScalaCompileOptions getScalaCompileOptions() {
-        return scalaCompiler.getScalaCompileOptions();
+        return compiler.getScalaCompileOptions();
     }
 
     @Nested
     public CompileOptions getOptions() {
-        return javaCompiler.getCompileOptions();
-    }
-
-    /**
-     * Returns the Java source for this task.
-     *
-     * @return The Java source.
-     */
-    public FileTree getJavaSrc() {
-        PatternFilterable patternSet = new PatternSet();
-        patternSet.include("**/*.java");
-        return getSource().matching(patternSet);
+        return compiler.getCompileOptions();
     }
 
     @Override
     protected void compile() {
-
-        if (!GUtil.isTrue(getSourceCompatibility()) || !GUtil.isTrue(getTargetCompatibility())) {
-            throw new InvalidUserDataException("The sourceCompatibility and targetCompatibility must be set!");
-        }
-
         FileTree source = getSource();
-        scalaCompiler.setSource(source);
-        scalaCompiler.setDestinationDir(getDestinationDir());
-        scalaCompiler.setClasspath(getClasspath());
-        scalaCompiler.setScalaClasspath(getScalaClasspath());
-        scalaCompiler.execute();
-
-        FileTree javaSource = getJavaSrc();
-        List<File> classpath = GUtil.addLists(Collections.singleton(getDestinationDir()), getClasspath());
-        javaSource.stopExecutionIfEmpty();
-        javaCompiler.setSource(javaSource);
-        javaCompiler.setDestinationDir(getDestinationDir());
-        javaCompiler.setClasspath(classpath);
-        javaCompiler.setSourceCompatibility(getSourceCompatibility());
-        javaCompiler.setTargetCompatibility(getTargetCompatibility());
-        javaCompiler.execute();
+        compiler.setSource(source);
+        compiler.setDestinationDir(getDestinationDir());
+        compiler.setClasspath(getClasspath());
+        compiler.setScalaClasspath(getScalaClasspath());
+        compiler.setSourceCompatibility(getSourceCompatibility());
+        compiler.setTargetCompatibility(getTargetCompatibility());
+        compiler.execute();
     }
 }

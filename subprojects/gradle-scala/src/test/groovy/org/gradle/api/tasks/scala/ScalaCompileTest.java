@@ -17,8 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.compile.JavaCompiler;
-import org.gradle.api.internal.tasks.scala.ScalaCompiler;
+import org.gradle.api.internal.tasks.scala.ScalaJavaJointCompiler;
 import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.AbstractCompileTest;
 import org.gradle.util.GFileUtils;
@@ -29,8 +28,6 @@ import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 
 import static org.gradle.util.Matchers.*;
 
@@ -38,8 +35,7 @@ public class ScalaCompileTest extends AbstractCompileTest {
 
     private ScalaCompile scalaCompile;
 
-    private ScalaCompiler scalaCompiler;
-    private JavaCompiler javaCompiler;
+    private ScalaJavaJointCompiler scalaCompiler;
     private JUnit4Mockery context = new JUnit4GroovyMockery();
 
     @Override
@@ -57,10 +53,8 @@ public class ScalaCompileTest extends AbstractCompileTest {
     public void setUp() {
         super.setUp();
         scalaCompile = createTask(ScalaCompile.class);
-        scalaCompiler = context.mock(ScalaCompiler.class);
-        javaCompiler = context.mock(JavaCompiler.class);
-        scalaCompile.setScalaCompiler(scalaCompiler);
-        scalaCompile.setJavaCompiler(javaCompiler);
+        scalaCompiler = context.mock(ScalaJavaJointCompiler.class);
+        scalaCompile.setCompiler(scalaCompiler);
 
         GFileUtils.touch(new File(srcDir, "incl/file.scala"));
         GFileUtils.touch(new File(srcDir, "incl/file.java"));
@@ -74,21 +68,9 @@ public class ScalaCompileTest extends AbstractCompileTest {
             one(scalaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
             one(scalaCompiler).setClasspath(scalaCompile.getClasspath());
             one(scalaCompiler).setScalaClasspath(scalaCompile.getScalaClasspath());
+            one(scalaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
+            one(scalaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
             one(scalaCompiler).execute();
-
-            List<File> expectedClassPath = new ArrayList<File>();
-            expectedClassPath.add(scalaCompile.getDestinationDir());
-            for (File file : scalaCompile.getClasspath()) {
-                expectedClassPath.add(file);
-            }
-
-            FileCollection javaSrc = scalaCompile.getJavaSrc();
-            one(javaCompiler).setSource(with(hasSameItems(javaSrc)));
-            one(javaCompiler).setClasspath(expectedClassPath);
-            one(javaCompiler).setDestinationDir(scalaCompile.getDestinationDir());
-            one(javaCompiler).setSourceCompatibility(scalaCompile.getSourceCompatibility());
-            one(javaCompiler).setTargetCompatibility(scalaCompile.getTargetCompatibility());
-            one(javaCompiler).execute();
         }});
 
         scalaCompile.compile();

@@ -5,7 +5,7 @@
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ *       http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.tasks.compile.GroovyCompileOptions;
+import org.gradle.api.tasks.compile.CompileOptions;
 
-import java.io.File;
+public interface JavaSourceCompiler extends Compiler {
+    CompileOptions getCompileOptions();
 
-public interface GroovyCompiler extends Compiler {
-    GroovyCompileOptions getGroovyCompileOptions();
+    void setSourceCompatibility(String sourceCompatibility);
 
-    void setGroovyClasspath(Iterable<File> classpath);
+    void setTargetCompatibility(String targetCompatibility);
 }

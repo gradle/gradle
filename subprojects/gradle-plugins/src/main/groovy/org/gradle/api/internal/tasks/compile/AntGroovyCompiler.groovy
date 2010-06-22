@@ -33,7 +33,7 @@ import org.gradle.api.tasks.compile.CompileOptions
  *
  * @author Hans Dockter
  */
-class AntGroovyCompiler implements GroovyCompiler {
+class AntGroovyCompiler implements GroovyJavaJointCompiler {
     private static Logger logger = LoggerFactory.getLogger(AntGroovyCompiler)
 
     private final IsolatedAntBuilder ant

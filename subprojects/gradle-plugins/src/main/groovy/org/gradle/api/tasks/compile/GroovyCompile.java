@@ -21,7 +21,8 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
 import org.gradle.api.internal.tasks.compile.AntGroovyCompiler;
-import org.gradle.api.internal.tasks.compile.GroovyCompiler;
+import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompiler;
+import org.gradle.api.internal.tasks.compile.IncrementalGroovyCompiler;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.WorkResult;
@@ -35,27 +36,27 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class GroovyCompile extends AbstractCompile {
-    private GroovyCompiler groovyCompiler;
+    private GroovyJavaJointCompiler compiler;
 
     private FileCollection groovyClasspath;
 
     public GroovyCompile() {
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
         ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
-        groovyCompiler = new AntGroovyCompiler(antBuilder, classPathRegistry);
+        compiler = new IncrementalGroovyCompiler(new AntGroovyCompiler(antBuilder, classPathRegistry), getOutputs());
     }
 
     protected void compile() {
         // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-        groovyCompiler.setSource(getSource());
-        groovyCompiler.setDestinationDir(getDestinationDir());
-        groovyCompiler.setClasspath(getClasspath());
-        groovyCompiler.setSourceCompatibility(getSourceCompatibility());
-        groovyCompiler.setTargetCompatibility(getTargetCompatibility());
-        groovyCompiler.setGroovyClasspath(taskClasspath);
-        WorkResult result = groovyCompiler.execute();
+        compiler.setSource(getSource());
+        compiler.setDestinationDir(getDestinationDir());
+        compiler.setClasspath(getClasspath());
+        compiler.setSourceCompatibility(getSourceCompatibility());
+        compiler.setTargetCompatibility(getTargetCompatibility());
+        compiler.setGroovyClasspath(taskClasspath);
+        WorkResult result = compiler.execute();
         setDidWork(result.getDidWork());
     }
 
@@ -70,12 +71,12 @@ public class GroovyCompile extends AbstractCompile {
      * use {@link #getOptions()}.
      */
     public GroovyCompileOptions getGroovyOptions() {
-        return groovyCompiler.getGroovyCompileOptions();
+        return compiler.getGroovyCompileOptions();
     }
 
     @Nested
     public CompileOptions getOptions() {
-        return groovyCompiler.getCompileOptions();
+        return compiler.getCompileOptions();
     }
 
     @InputFiles
@@ -87,11 +88,11 @@ public class GroovyCompile extends AbstractCompile {
         this.groovyClasspath = groovyClasspath;
     }
 
-    public GroovyCompiler getGroovyCompiler() {
-        return groovyCompiler;
+    public GroovyJavaJointCompiler getCompiler() {
+        return compiler;
     }
 
-    public void setGroovyCompiler(GroovyCompiler groovyCompiler) {
-        this.groovyCompiler = groovyCompiler;
+    public void setCompiler(GroovyJavaJointCompiler compiler) {
+        this.compiler = compiler;
     }
 }
