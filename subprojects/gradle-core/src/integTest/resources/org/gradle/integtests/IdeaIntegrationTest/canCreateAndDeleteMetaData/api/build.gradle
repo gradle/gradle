@@ -1,0 +1,13 @@
+package org.gradle.integtests.IdeaIntegrationTest.api
+dependencies {
+    runtime 'commons-collections:commons-collections:3.2@jar'
+}
+
+ideaModule.doLast {
+    compareXmlWithIgnoringOrder(rootProject.file('src/expectedApiModule.xml').text,
+            file("api.iml").text)
+}
+
+cleanIdea.doLast {
+    assert !file("api/api.iml").isFile()
+}

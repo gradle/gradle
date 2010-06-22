@@ -416,7 +416,9 @@ def runtimeProjects() {
 }
 
 def pluginProjects() {
-    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'eclipse', 'announce', 'scala'].collect { project(it) }
+    ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'eclipse', 'idea', 'announce', 'scala'].collect {
+        project(it)
+    }
 }
 
 class Version {

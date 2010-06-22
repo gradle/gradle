@@ -1,0 +1,9 @@
+<module relativePaths="true" type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager">
+    <exclude-output/>
+    <orderEntry type="inheritedJdk"/>
+    <content url="file://$MODULE_DIR$/"/>
+    <orderEntry type="sourceFolder" forTests="false"/>
+  </component>
+  <component name="ModuleRootManager"/>
+</module>

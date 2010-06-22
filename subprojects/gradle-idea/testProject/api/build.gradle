@@ -1,0 +1,24 @@
+apply plugin: 'groovy'
+
+configurations {
+   spi
+}
+
+dependencies {
+    compile project(':shared')
+    compile "org.springframework:spring-web:3.0.2.RELEASE"
+    compile module("commons-lang:commons-lang:2.4") {
+        dependency("commons-io:commons-io:1.2")
+    }
+}
+
+
+task spiJar(type: Jar) {
+    appendix = 'spi'
+    from sourceSets.main.classes
+    include 'org/gradle/api/'
+}
+
+artifacts {
+  spi spiJar
+}

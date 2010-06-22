@@ -1,14 +1,5 @@
 // START SNIPPET use-plugin
-buildscript {
-    repositories {
-        mavenRepo urls: 'http://gradle.artifactoryonline.com/gradle/plugins'
-    }
-    dependencies {
-        classpath "org.gradle.plugins:gradle-idea-plugin:0.3.1"
-    }
-}
-
-apply plugin: 'org.gradle.idea'
+apply plugin: 'idea'
 // END SNIPPET use-plugin
 // START SNIPPET module-before-configured
 // START SNIPPET module-when-configured
