@@ -27,9 +27,12 @@ import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.ByteArrayOutputStream;
-import java.io.File;
+import java.io.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.*;
 import static org.hamcrest.Matchers.*;
@@ -157,7 +160,21 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
-            throw new UnsupportedOperationException();
+            List<String> tasks = new ArrayList<String>();
+            BufferedReader reader = new BufferedReader(new StringReader(getOutput()));
+            String line;
+            try {
+                while ((line = reader.readLine()) != null) {
+                    java.util.regex.Matcher matcher = Pattern.compile("(:.+?)\\s+((SKIPPED)|(UP-TO-DATE))").matcher(line);
+                    if (matcher.matches()) {
+                        tasks.add(matcher.group(1));
+                    }
+                }
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+            assertThat(tasks, equalTo(Arrays.asList(taskPaths)));
+            return this;
         }
     }
 
