@@ -68,6 +68,9 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     XMLAssert.assertXMLEqual(diff, true);
 }
 
-void assertDoesNotExist(TestFile baseDir, boolean shouldExists, Object... path) {
-    baseDir.file(path).assertDoesNotExist()
+String getExpectedXml(Project subProject, String filename) {
+    def cache = new File(gradle.gradleUserHomeDir, "/cache")
+    def path = org.gradle.plugins.idea.model.Path.getRelativePath(subProject.projectDir, '$MODULE_DIR$', cache)
+    return rootProject.file("expectedFiles/$filename").text.replace('@CACHE_DIR@', path)
 }
+

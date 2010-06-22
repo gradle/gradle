@@ -54,12 +54,12 @@ class IdeaPlugin implements Plugin<Project> {
 
     private def configureIdeaModule(Project project) {
         project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: IdeaModule) {
-            outputFile = new File(project.projectDir, project.name + ".iml")
-            moduleDir = project.projectDir
-            sourceDirs = []
-            testSourceDirs = []
-            excludeDirs = []
-            gradleCacheHome = new File(project.gradle.gradleUserHomeDir, '/cache')
+            conventionMapping.outputFile = { new File(project.projectDir, project.name + ".iml") }
+            conventionMapping.moduleDir = { project.projectDir }
+            conventionMapping.sourceDirs = { [] as Set }
+            conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as Set }
+            conventionMapping.testSourceDirs = { [] as Set }
+            conventionMapping.gradleCacheHome = { new File(project.gradle.gradleUserHomeDir, '/cache') }
         }
         project.idea.dependsOn 'ideaModule'
 
@@ -97,10 +97,10 @@ class IdeaPlugin implements Plugin<Project> {
 
     private def configureIdeaModuleForJava(Project project) {
         project.ideaModule {
-            sourceDirs = project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()
-            testSourceDirs = project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten()
-            outputDir = project.sourceSets.main.classesDir
-            testOutputDir = project.sourceSets.test.classesDir
+            conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set }
+            conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set }
+            conventionMapping.outputDir = { project.sourceSets.main.classesDir } 
+            conventionMapping.testOutputDir = { project.sourceSets.test.classesDir }
             def configurations = project.configurations
             scopes = [
                     COMPILE: [plus: [configurations.compile], minus: []],

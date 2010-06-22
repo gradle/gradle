@@ -16,22 +16,18 @@
 package org.gradle.plugins.idea
 
 import org.gradle.api.Action
-import org.gradle.api.DefaultTask
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.listener.ListenerBroadcast
-import org.gradle.plugins.idea.model.Module
-import org.gradle.plugins.idea.model.ModuleDependency
-import org.gradle.plugins.idea.model.ModuleLibrary
-import org.gradle.plugins.idea.model.Path
 import org.gradle.api.artifacts.*
 import org.gradle.api.tasks.*
-import org.gradle.plugins.idea.model.VariableReplacement
+import org.gradle.plugins.idea.model.*
 
 /**
  * @author Hans Dockter
  */
-public class IdeaModule extends DefaultTask {
+public class IdeaModule extends ConventionTask {
     /**
      * The content root directory of the module. Must not be null.
      */
@@ -80,7 +76,7 @@ public class IdeaModule extends DefaultTask {
      * value of java version is used for this module
      */
     @Input @Optional
-    String javaVersion = Module.INHERITED
+    String javaVersion = org.gradle.plugins.idea.model.Module.INHERITED
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true. 
@@ -97,7 +93,7 @@ public class IdeaModule extends DefaultTask {
     /**
      * If this variable is set, dependencies in the existing iml file will be parsed for this variable.
      * If they use it, it will be replaced with a path that has the $MODULE_DIR$ variable as a root and
-     * then a relative path to  {@link #gradleCacheHome} . That way Gradle can recognize equal dependencies.
+     * then a relative path to  {@link #gradleCacheHome} . That way Gradle can recocknize equal dependencies.
      */
     @Input @Optional
     String gradleCacheVariable
@@ -125,10 +121,10 @@ public class IdeaModule extends DefaultTask {
 
     @TaskAction
     void updateXML() {
-        Reader xmlreader = outputFile.exists() ? new FileReader(outputFile) : null;
-        Module module = new Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
+        Reader xmlreader = getOutputFile().exists() ? new FileReader(getOutputFile()) : null;
+        org.gradle.plugins.idea.model.Module module = new org.gradle.plugins.idea.model.Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
                 getDependencies(), getVariableReplacement(), javaVersion, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
-        module.toXml(new FileWriter(outputFile))
+        module.toXml(new FileWriter(getOutputFile()))
     }
 
     protected Path getContentPath() {
@@ -136,23 +132,23 @@ public class IdeaModule extends DefaultTask {
     }
 
     protected Path getOutputPath() {
-        outputDir ? getPath(outputDir) : null
+        getOutputDir() ? getPath(getOutputDir()) : null
     }
 
     protected Path getTestOutputPath() {
-        testOutputDir ? getPath(testOutputDir) : null
+        getTestOutputDir() ? getPath(getTestOutputDir()) : null
     }
 
     protected Set getSourcePaths() {
-        sourceDirs.collect { getPath(it) }
+        getSourceDirs().collect { getPath(it) }
     }
 
     protected Set getTestSourcePaths() {
-        testSourceDirs.collect { getPath(it) }
+        getTestSourceDirs().collect { getPath(it) }
     }
 
     protected Set getExcludePaths() {
-        excludeDirs.collect { getPath(it) }
+        getExcludeDirs().collect { getPath(it) }
     }
 
     protected Set getDependencies() {
@@ -162,9 +158,9 @@ public class IdeaModule extends DefaultTask {
     }
 
     protected getVariableReplacement() {
-        if (gradleCacheHome && gradleCacheVariable) {
-            String replacer = org.gradle.plugins.idea.model.Path.getRelativePath(outputFile.parentFile, '$MODULE_DIR$', gradleCacheHome)
-            return new VariableReplacement(replacer: replacer, replacable: '$' + gradleCacheVariable + '$')
+        if (getGradleCacheHome() && getGradleCacheVariable()) {
+            String replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome())
+            return new VariableReplacement(replacer: replacer, replacable: '$' + getGradleCacheVariable() + '$')
         }
         return VariableReplacement.NO_REPLACEMENT
     }
@@ -174,7 +170,7 @@ public class IdeaModule extends DefaultTask {
             return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency}).collect { ProjectDependency projectDependency ->
                 projectDependency.dependencyProject
             }.collect { project ->
-                new ModuleDependency(project.name, scope)
+                new org.gradle.plugins.idea.model.ModuleDependency(project.name, scope)
             }
         }
         return []
@@ -289,7 +285,7 @@ public class IdeaModule extends DefaultTask {
     }
 
     protected Path getPath(File file) {
-        new Path(outputFile.parentFile, '$MODULE_DIR$', file)
+        new Path(getOutputFile().parentFile, '$MODULE_DIR$', file)
     }
 
     void withXml(Closure closure) {

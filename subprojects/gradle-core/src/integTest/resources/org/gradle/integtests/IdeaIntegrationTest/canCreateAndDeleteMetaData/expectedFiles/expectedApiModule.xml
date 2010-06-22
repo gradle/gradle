@@ -7,6 +7,8 @@
       <sourceFolder url="file://$MODULE_DIR$/src/main/resources" isTestSource="false"/>
       <sourceFolder url="file://$MODULE_DIR$/src/test/java" isTestSource="true"/>
       <sourceFolder url="file://$MODULE_DIR$/src/test/resources" isTestSource="true"/>
+      <excludeFolder url="file://$MODULE_DIR$/.gradle"/>
+      <excludeFolder url="file://$MODULE_DIR$/build"/>
     </content>
     <orderEntry type="sourceFolder" forTests="false"/>
     <output url="file://$MODULE_DIR$/build/classes/main"/>
@@ -14,22 +16,22 @@
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../.gradle/cache/commons-collections/commons-collections/jars/commons-collections-3.2.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/jars/commons-collections-3.2.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../.gradle/cache/commons-collections/commons-collections/sources/commons-collections-3.2-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/commons-collections/commons-collections/sources/commons-collections-3.2-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>
     <orderEntry type="module-library" scope="TEST">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../.gradle/cache/junit/junit/jars/junit-4.7.jar!/"/>
+          <root url="jar://@CACHE_DIR@/junit/junit/jars/junit-4.7.jar!/"/>
         </CLASSES>
         <JAVADOC/>
         <SOURCES>
-          <root url="jar://$MODULE_DIR$/../../../../../../../.gradle/cache/junit/junit/sources/junit-4.7-sources.jar!/"/>
+          <root url="jar://@CACHE_DIR@/junit/junit/sources/junit-4.7-sources.jar!/"/>
         </SOURCES>
       </library>
     </orderEntry>

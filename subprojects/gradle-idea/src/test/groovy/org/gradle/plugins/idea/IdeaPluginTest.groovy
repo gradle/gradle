@@ -78,10 +78,10 @@ class IdeaPluginTest extends Specification {
         project.ideaProject.javaVersion == project.sourceCompatibility.toString()
 
         IdeaModule ideaModuleTask = project.ideaModule
-        ideaModuleTask.sourceDirs = project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()
-        ideaModuleTask.testSourceDirs = project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten()
-        ideaModuleTask.outputDir = project.sourceSets.main.classesDir
-        ideaModuleTask.testOutputDir = project.sourceSets.test.classesDir
+        ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set
+        ideaModuleTask.testSourceDirs == project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set
+        ideaModuleTask.outputDir == project.sourceSets.main.classesDir
+        ideaModuleTask.testOutputDir == project.sourceSets.test.classesDir
         def configurations = project.configurations
         ideaModuleTask.scopes == [
                 COMPILE: [plus: [configurations.compile], minus: []],
@@ -97,9 +97,20 @@ class IdeaPluginTest extends Specification {
         assert ideaModuleTask.moduleDir == project.projectDir
         assert ideaModuleTask.sourceDirs == [] as Set
         assert ideaModuleTask.testSourceDirs == [] as Set
-        assert ideaModuleTask.excludeDirs == [] as Set
+        assert ideaModuleTask.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
         assert ideaModuleTask.gradleCacheHome == new File(project.gradle.gradleUserHomeDir, '/cache')
         assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
+    }
+
+    void shouldPickUpLateChangesToBuildDir() {
+        when:
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+        project.buildDir = project.file('target')
+
+        then:
+        project.ideaModule.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
+        project.ideaModule.outputDir == project.file('target/classes/main')
     }
 
     void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {

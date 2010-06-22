@@ -12,8 +12,7 @@ dependencies {
 }
 
 ideaModule.doLast {
-    compareXmlWithIgnoringOrder(rootProject.file('src/expectedWebserviceModule.xml').text,
-            file("webservice.iml").text)
+    compareXmlWithIgnoringOrder(getExpectedXml(project, 'expectedWebserviceModule.xml'), file("webservice.iml").text)
 }
 
 cleanIdea.doLast {

@@ -2,7 +2,10 @@
   <component name="NewModuleRootManager">
     <exclude-output/>
     <orderEntry type="inheritedJdk"/>
-    <content url="file://$MODULE_DIR$/"/>
+    <content url="file://$MODULE_DIR$/">
+      <excludeFolder url="file://$MODULE_DIR$/.gradle"/>
+      <excludeFolder url="file://$MODULE_DIR$/build"/>
+    </content>
     <orderEntry type="sourceFolder" forTests="false"/>
   </component>
   <component name="ModuleRootManager"/>
