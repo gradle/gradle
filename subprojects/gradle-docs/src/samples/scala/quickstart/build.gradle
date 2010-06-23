@@ -5,22 +5,18 @@ apply plugin: 'scala'
 
 // START SNIPPET declare-scala-version
 repositories {
-    mavenRepo urls: 'http://scala-tools.org/repo-releases/'
+    mavenCentral()
 }
 
 dependencies {
     // Libraries needed to run the scala tools
-    scalaTools 'org.scala-lang:scala-compiler:2.7.6'
-    scalaTools 'org.scala-lang:scala-library:2.7.6'
+    scalaTools 'org.scala-lang:scala-compiler:2.7.7'
+    scalaTools 'org.scala-lang:scala-library:2.7.7'
 
     // Libraries needed for scala api
-    compile 'org.scala-lang:scala-library:2.7.6'
+    compile 'org.scala-lang:scala-library:2.7.7'
 }
 // END SNIPPET declare-scala-version
-
-repositories {
-    mavenCentral()
-}
 
 dependencies {
     compile group: 'commons-collections', name: 'commons-collections', version: '3.2'

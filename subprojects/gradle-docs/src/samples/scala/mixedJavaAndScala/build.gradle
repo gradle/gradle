@@ -3,14 +3,13 @@ apply plugin: 'scala'
 version = 1.0
 
 repositories {
-    mavenRepo urls: 'http://scala-tools.org/repo-releases/'
     mavenCentral()
 }
 
 dependencies {
-    scalaTools 'org.scala-lang:scala-compiler:2.7.6'
-    scalaTools 'org.scala-lang:scala-library:2.7.6'
+    scalaTools 'org.scala-lang:scala-compiler:2.7.7'
+    scalaTools 'org.scala-lang:scala-library:2.7.7'
 
-    compile 'org.scala-lang:scala-library:2.7.6'
+    compile 'org.scala-lang:scala-library:2.7.7'
     testCompile group: 'junit', name: 'junit', version: '4.7'
 }
