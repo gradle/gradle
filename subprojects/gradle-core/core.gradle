@@ -102,15 +102,11 @@ ide.dependsOn ideVersionProperties
 
 ideaModule {
     dependsOn ideVersionProperties
-    sourceDirs += project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() +
-            project.sourceSets.integTest.groovy.srcDirs + new File(ideDir, "resources/test/")
-    testSourceDirs = []
-    scopes.COMPILE.plus.addAll(scopes.TEST.plus + configurations.detachedConfiguration(
-            new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs as File[]))))
-    scopes.COMPILE.plus.addAll([configurations.integTestCompile])
-    scopes.RUNTIME.plus.addAll([configurations.integTestRuntime])
-    scopes.RUNTIME.minus.addAll([configurations.integTestCompile])
-    scopes.remove('TEST')
+    testSourceDirs += project.sourceSets.integTest.groovy.srcDirs
+    scopes.COMPILE.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
+    scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs))))
+    scopes.TEST.plus.add(configurations.integTestCompile)
+    scopes.TEST.plus.add(configurations.integTestRuntime)
 }
 
 
