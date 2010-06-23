@@ -1,4 +1,3 @@
-import org.junit.Assert
 
 allprojects {
     apply plugin: 'java'
@@ -27,6 +26,7 @@ repositories {
         addIvyPattern(localPublicationsDir.absolutePath + ivyPattern)
         addArtifactPattern(localPublicationsDir.absolutePath + artifactPattern)
     }
+    mavenCentral()
 }
 
 task sourceJar(type: Jar) {
