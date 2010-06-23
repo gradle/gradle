@@ -62,11 +62,22 @@ public class SocketConnection implements Connection<Message> {
     public Message receive() {
         try {
             return Message.receive(instr, classLoader);
-        } catch (EOFException e) {
-            return null;
         } catch (Exception e) {
+            if (isEndOfStream(e)) {
+                return null;
+            }
             throw new GradleException(String.format("Could not read message from '%s'.", remoteAddress), e);
         }
+    }
+
+    private boolean isEndOfStream(Exception e) {
+        if (e instanceof EOFException) {
+            return true;
+        }
+        if (e instanceof IOException && e.getMessage().equals("An existing connection was forcibly closed by the remote host")) {
+            return true;
+        }
+        return false;
     }
 
     public void dispatch(Message message) {
