@@ -14,16 +14,13 @@
  * limitations under the License.
  */
 
-
-
-
-
 package org.gradle.api.internal.tasks
 
 import spock.lang.Specification
 import org.gradle.api.Task
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.Buildable
+import org.gradle.api.GradleException
 
 class CachingTaskDependencyResolveContextTest extends Specification {
     private final CachingTaskDependencyResolveContext context = new CachingTaskDependencyResolveContext()
@@ -111,8 +108,9 @@ class CachingTaskDependencyResolveContextTest extends Specification {
 
         then:
         1 * dependency.resolve(_) >> { args -> args[0].add('unknown') }
-        def e = thrown(IllegalArgumentException)
-        e.message == "Cannot resolve object of unknown type String to a Task."
+        def e = thrown(GradleException)
+        e.cause instanceof IllegalArgumentException
+        e.cause.message == "Cannot resolve object of unknown type String to a Task."
     }
 
     def cachesResultForTaskDependency() {
@@ -185,6 +183,19 @@ class CachingTaskDependencyResolveContextTest extends Specification {
         1 * buildable.getBuildDependencies() >> otherDependency2
         1 * otherDependency2.resolve(_) >> { args -> args[0].add(target) }
         tasks == [target] as LinkedHashSet
+    }
+
+    def wrapsFailureToResolveTask() {
+        def failure = new RuntimeException()
+
+        when:
+        context.getDependencies(task)
+
+        then:
+        1 * dependency.resolve(_) >> { throw failure }
+        def e = thrown(GradleException)
+        e.message == "Could not determine the dependencies of $task."
+        e.cause == failure
     }
 
     def failsWhenThereIsACyclicDependency() {

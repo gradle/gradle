@@ -28,10 +28,9 @@ import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.isEmpty
 import static org.gradle.util.WrapUtil.toList
 import static org.gradle.util.WrapUtil.toSet
-import static org.hamcrest.Matchers.equalTo
-import static org.hamcrest.Matchers.sameInstance
-import static org.junit.Assert.assertThat
-import static org.junit.Assert.fail
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
+import org.gradle.api.GradleException
 
 @RunWith (JMock.class)
 public class DefaultTaskDependencyTest {
@@ -154,8 +153,9 @@ public class DefaultTaskDependencyTest {
         try {
             dependency.getDependencies(task)
             fail()
-        } catch (UnsupportedOperationException e) {
-            assertThat(e.message, equalTo("Cannot convert $dep to a task." as String))
+        } catch (GradleException e) {
+            assertThat(e.cause, instanceOf(IllegalArgumentException))
+            assertThat(e.cause.message, equalTo("Cannot convert $dep to a task." as String))
         }
     }
     

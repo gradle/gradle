@@ -30,7 +30,7 @@ import java.util.concurrent.Callable;
 public class DefaultTaskDependency extends AbstractTaskDependency {
     private static final TaskResolver FAILING_RESOLVER = new TaskResolver() {
         public Task resolveTask(Object path) {
-            throw new UnsupportedOperationException(String.format("Cannot convert %s to a task.", path));
+            throw new IllegalArgumentException(String.format("Cannot convert %s to a task.", path));
         }
     };
     private final Set<Object> values = new HashSet<Object>();
