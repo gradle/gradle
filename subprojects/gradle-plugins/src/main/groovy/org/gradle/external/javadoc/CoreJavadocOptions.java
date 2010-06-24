@@ -49,7 +49,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
         overview = addStringOption("overview");
         memberLevel = addEnumOption("memberLevel");
         doclet = addStringOption("doclet");
-        docletClasspath = addPathOption("docletclasspath");
+        docletpath = addPathOption("docletpath");
         source = addStringOption("source");
         classpath = addPathOption("classpath");
         bootClasspath = addPathOption("bootclasspath");
@@ -191,18 +191,18 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
      *
      * For full, working examples of running a particular doclet, see Running the MIF Doclet.
      */
-    private final JavadocOptionFileOption<List<File>> docletClasspath;
+    private final JavadocOptionFileOption<List<File>> docletpath;
 
-    public List<File> getDocletClasspath() {
-        return docletClasspath.getValue();
+    public List<File> getDocletpath() {
+        return docletpath.getValue();
     }
 
-    public void setDocletClasspath(List<File> docletClasspath) {
-        this.docletClasspath.setValue(docletClasspath);
+    public void setDocletpath(List<File> docletpath) {
+        this.docletpath.setValue(docletpath);
     }
 
-    public MinimalJavadocOptions docletClasspath(File ... docletClasspath) {
-        this.docletClasspath.getValue().addAll(Arrays.asList(docletClasspath));
+    public MinimalJavadocOptions docletpath(File ... docletpath) {
+        this.docletpath.getValue().addAll(Arrays.asList(docletpath));
         return this;
     }
 

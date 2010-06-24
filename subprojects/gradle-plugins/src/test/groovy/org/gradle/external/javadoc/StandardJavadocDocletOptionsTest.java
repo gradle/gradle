@@ -51,7 +51,7 @@ public class StandardJavadocDocletOptionsTest {
         assertNull(options.getOverview());
         assertNull(options.getMemberLevel());
         assertNull(options.getDoclet());
-        assertEmpty(options.getDocletClasspath());
+        assertEmpty(options.getDocletpath());
         assertNull(options.getSource());
         assertEmpty(options.getClasspath());
         assertEmpty(options.getBootClasspath());
@@ -206,8 +206,8 @@ public class StandardJavadocDocletOptionsTest {
     @Test
     public void testFluentDocletClasspath() {
         final File[] docletClasspathValue = new File[]{new File("doclet.jar"), new File("doclet-dep.jar")};
-        assertEquals(options, options.docletClasspath(docletClasspathValue));
-        assertArrayEquals(docletClasspathValue, options.getDocletClasspath().toArray());
+        assertEquals(options, options.docletpath(docletClasspathValue));
+        assertArrayEquals(docletClasspathValue, options.getDocletpath().toArray());
     }
 
     @Test

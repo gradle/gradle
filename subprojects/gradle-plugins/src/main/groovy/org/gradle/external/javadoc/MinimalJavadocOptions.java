@@ -52,11 +52,11 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions doclet(String docletClass);
 
-    List<File> getDocletClasspath();
+    List<File> getDocletpath();
 
-    void setDocletClasspath(List<File> docletClasspath);
+    void setDocletpath(List<File> docletpath);
 
-    MinimalJavadocOptions docletClasspath(File ... docletClasspath);
+    MinimalJavadocOptions docletpath(File ... docletpath);
 
     String getSource();
 
