@@ -89,7 +89,8 @@ class BasePlugin implements Plugin<Project> {
                     }
                     Delete clean = project.tasks.add(taskName, Delete)
                     clean.delete(task.outputs.files)
-                }
+                },
+                toString: { "Rule: " + description }
         ] as Rule
 
         project.tasks.addRule(rule)
