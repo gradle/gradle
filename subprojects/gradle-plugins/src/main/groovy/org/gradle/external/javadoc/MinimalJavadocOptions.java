@@ -138,6 +138,12 @@ public interface MinimalJavadocOptions {
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
+    String getHeader();
+
+    void setHeader(String header);
+
+    StandardJavadocDocletOptions header(String header);
+
     void write(File outputFile) throws IOException;
 
     List<String> getSourceNames();

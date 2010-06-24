@@ -41,6 +41,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         version = addBooleanOption("version");
         author = addBooleanOption("author");
         splitIndex = addBooleanOption("splitindex");
+        header = addStringOption("header");
         windowTitle = addStringOption("windowtitle");
         docTitle = addStringOption("doctitle");
         footer = addStringOption("footer");
@@ -79,8 +80,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * As of 1.4, the destination directory is automatically created when javadoc is run.
      * For example, the following generates the documentation for the package com.mypackage and
      * saves the results in the C:/user/doc/ directory:
-     *
-     *   C:> javadoc -d /user/doc com.mypackage
+     * <p/>
+     * C:> javadoc -d /user/doc com.mypackage
      */
     private final JavadocOptionFileOption<File> destinationDirectory;
 
@@ -106,11 +107,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * For example, let's look at what might appear on the "Use" page for String.
      * The getName() method in the java.awt.Font class returns type String. Therefore, getName() uses String,
      * and you will find that method on the "Use" page for String.
-     *
+     * <p/>
      * Note that this documents only uses of the API, not the implementation.
      * If a method uses String in its implementation but does not take a string as an argument or return a string,
      * that is not considered a "use" of String.
-     *
+     * <p/>
      * You can access the generated "Use" page by first going to the class or package,
      * then clicking on the "Use" link in the navigation bar.
      */
@@ -211,7 +212,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * This title should not contain any HTML tags, as the browser will not properly interpret them.
      * Any internal quotation marks within title may have to be escaped. If -windowtitle is omitted,
      * the Javadoc tool uses the value of -doctitle for this option.
-     *   C:> javadoc -windowtitle "Java 2 Platform" com.mypackage
+     * C:> javadoc -windowtitle "Java 2 Platform" com.mypackage
      */
     private final JavadocOptionFileOption<String> windowTitle;
 
@@ -229,11 +230,34 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
+     * -header  header
+     * Specifies the header text to be placed at the top of each output file. The header will be placed to the right of
+     * the upper navigation bar. header may contain HTML tags and white space, though if it does, it must be enclosed
+     * in quotes. Any internal quotation marks within header may have to be escaped.
+     * C:> javadoc -header "<b>Java 2 Platform </b><br>v1.4" com.mypackage
+     */
+    private final JavadocOptionFileOption<String> header;
+
+    public String getHeader() {
+        return header.getValue();
+    }
+
+    public void setHeader(String header) {
+        this.header.setValue(header);
+    }
+
+    public StandardJavadocDocletOptions header(String header) {
+        setHeader(header);
+        return this;
+    }
+
+
+    /**
      * -doctitle  title
      * Specifies the title to be placed near the top of the overview summary file. The title will be placed as a centered,
      * level-one heading directly beneath the upper navigation bar. The title may contain html tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
-     *   C:> javadoc -doctitle "Java<sup><font size=\"-2\">TM</font></sup>" com.mypackage
+     * C:> javadoc -doctitle "Java<sup><font size=\"-2\">TM</font></sup>" com.mypackage
      */
     private final JavadocOptionFileOption<String> docTitle;
 
@@ -296,7 +320,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -link  extdocURL
      * Creates links to existing javadoc-generated documentation of external referenced classes. It takes one argument:
-     *
+     * <p/>
      * extdocURL is the absolute or relative URL of the directory containing the external javadoc-generated documentation
      * you want to link to. Examples are shown below.
      * The package-list file must be found in this directory (otherwise, use -linkoffline).
@@ -306,7 +330,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * You can use an absolute link for extdocURL to enable your docs to link to a document on any website,
      * or can use a relative link to link only to a relative location. If relative,
      * the value you pass in should be the relative path from the destination directory (specified with -d) to the directory containing the packages being linked to.
-     *
+     * <p/>
      * When specifying an absolute link you normally use an http: link. However,
      * if you want to link to a file system that has no web server, you can use a file: link -- however,
      * do this only if everyone wanting to access the generated documentation shares the same file system.
@@ -321,7 +345,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         this.links.setValue(links);
     }
 
-    public StandardJavadocDocletOptions links(String ... links) {
+    public StandardJavadocDocletOptions links(String... links) {
         this.links.getValue().addAll(Arrays.asList(links));
         return this;
     }
@@ -339,14 +363,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * does not exist at the extdocURL location but does exist at a different location,
      * which can be specified by packageListLoc (typically local). Thus, if extdocURL is accessible only on the World Wide Web,
      * -linkoffline removes the constraint that the Javadoc tool have a web connection when generating the documentation.
-     *
+     * <p/>
      * Another use is as a "hack" to update docs: After you have run javadoc on a full set of packages,
      * then you can run javadoc again on onlya smaller set of changed packages,
      * so that the updated files can be inserted back into the original set. Examples are given below.
-     *
+     * <p/>
      * The -linkoffline option takes two arguments -- the first for the string to be embedded in the <a href> links,
      * the second telling it where to find package-list:
-     *
+     * <p/>
      * extdocURL is the absolute or relative URL of the directory containing the external javadoc-generated documentation you want to link to.
      * If relative, the value should be the relative path from the destination directory (specified with -d) to the root of the packages being linked to.
      * For more details, see extdocURL in the -link option.
@@ -377,14 +401,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * -linksource
      * Creates an HTML version of each source file (with line numbers) and adds links to them from the standard HTML documentation. Links are created for classes, interfaces, constructors, methods and fields whose declarations are in a source file. Otherwise, links are not created, such as for default constructors and generated classes.
      * This option exposes all private implementation details in the included source files, including private classes, private fields, and the bodies of private methods, regardless of the -public, -package, -protected and -private options. Unless you also use the -private option, not all private classes or interfaces will necessarily be accessible via links.
-     *
+     * <p/>
      * Each link appears on the name of the identifier in its declaration. For example, the link to the source code of the Button class would be on the word "Button":
-     *
-     *     public class Button
-     *     extends Component
-     *     implements Accessible
+     * <p/>
+     * public class Button
+     * extends Component
+     * implements Accessible
      * and the link to the source code of the getLabel() method in the Button class would be on the word "getLabel":
-     *     public String getLabel()
+     * public String getLabel()
      */
     private final JavadocOptionFileOption<Boolean> linkSource;
 
@@ -421,14 +445,14 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * If you do not supply any -group option, all packages are placed in one group with the heading "Packages".
      * If the all groups do not include all documented packages,
      * any leftover packages appear in a separate group with the heading "Other Packages".
-     *
+     * <p/>
      * For example, the following option separates the four documented packages into core,
      * extension and other packages. Notice the trailing "dot" does not appear in "java.lang*" -- including the dot,
      * such as "java.lang.*" would omit the java.lang package.
-     *
-     *   C:> javadoc -group "Core Packages" "java.lang*:java.util"
-     *             -group "Extension Packages" "javax.*"
-     *             java.lang java.lang.reflect java.util javax.servlet java.new
+     * <p/>
+     * C:> javadoc -group "Core Packages" "java.lang*:java.util"
+     * -group "Extension Packages" "javax.*"
+     * java.lang java.lang.reflect java.util javax.servlet java.new
      * This results in the groupings:
      * Core Packages
      * java.lang
@@ -459,7 +483,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions group(String groupName, String ... packagePatterns) {
+    public StandardJavadocDocletOptions group(String groupName, String... packagePatterns) {
         return group(groupName, Arrays.asList(packagePatterns));
     }
 
@@ -641,9 +665,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -helpfile  path/filename
      * Specifies the path of an alternate help file path\filename that the HELP link in the top and bottom navigation bars link to. Without this option, the Javadoc tool automatically creates a help file help-doc.html that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to help-doc.html -- the Javadoc tool will adjust the links in the navigation bar accordingly. For example:
-     *
-     *   C:> javadoc -helpfile C:/user/myhelp.html java.awt
-     *
+     * <p/>
+     * C:> javadoc -helpfile C:/user/myhelp.html java.awt
      */
     private final JavadocOptionFileOption<File> helpFile;
 
@@ -663,9 +686,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -stylesheetfile  path\filename
      * Specifies the path of an alternate HTML stylesheet file. Without this option, the Javadoc tool automatically creates a stylesheet file stylesheet.css that is hard-coded in the Javadoc tool. This option enables you to override this default. The filename can be any name and is not restricted to stylesheet.css. For example:
-     *
-     *   C:> javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
-     *
+     * <p/>
+     * C:> javadoc -stylesheetfile C:/user/mystylesheet.css com.mypackage
      */
     private final JavadocOptionFileOption<File> stylesheetFile;
 
@@ -711,15 +733,15 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -charset  name
      * Specifies the HTML character set for this document. The name should be a preferred MIME name as given in the IANA Registry. For example:
-     *
-     *   C:> javadoc -charset "iso-8859-1" mypackage
-     *
+     * <p/>
+     * C:> javadoc -charset "iso-8859-1" mypackage
+     * <p/>
      * would insert the following line in the head of every generated page:
-     *
-     *    <META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
-     *
+     * <p/>
+     * <META http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+     * <p/>
      * This META tag is described in the HTML standard. (4197265 and 4137321)
-     *
+     * <p/>
      * Also see -encoding and -docencoding.
      */
     private final JavadocOptionFileOption<String> charSet;
@@ -740,9 +762,9 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     /**
      * -docencoding  name
      * Specifies the encoding of the generated HTML files. The name should be a preferred MIME name as given in the IANA Registry. If you omit this option but use -encoding, then the encoding of the generated HTML files is determined by -encoding. Example:
-     *
-     *   % javadoc -docencoding "ISO-8859-1" mypackage
-     *
+     * <p/>
+     * % javadoc -docencoding "ISO-8859-1" mypackage
+     * <p/>
      * Also see -encoding and -charset.
      */
     private final JavadocOptionFileOption<String> docEncoding;
@@ -801,11 +823,11 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions tags(String ... tags) {
+    public StandardJavadocDocletOptions tags(String... tags) {
         return tags(Arrays.asList(tags));
     }
 
-    public StandardJavadocDocletOptions taglets(String ... taglets) {
+    public StandardJavadocDocletOptions taglets(String... taglets) {
         return tags(Arrays.asList(taglets));
     }
 
@@ -831,7 +853,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions tagletPath(File ... tagletPath) {
+    public StandardJavadocDocletOptions tagletPath(File... tagletPath) {
         return tagletPath(Arrays.asList(tagletPath));
     }
 
@@ -875,7 +897,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions excludeDocFilesSubDir(String ... excludeDocFilesSubDir) {
+    public StandardJavadocDocletOptions excludeDocFilesSubDir(String... excludeDocFilesSubDir) {
         return excludeDocFilesSubDir(Arrays.asList(excludeDocFilesSubDir));
     }
 
@@ -897,7 +919,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return this;
     }
 
-    public StandardJavadocDocletOptions noQualifiers(String ... noQualifiers) {
+    public StandardJavadocDocletOptions noQualifiers(String... noQualifiers) {
         return noQualifier(Arrays.asList(noQualifiers));
     }
 
