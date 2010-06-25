@@ -94,7 +94,7 @@ public class ProjectBuilder {
     public Project build() {
         if (projectDir == null) {
             try {
-                projectDir = File.createTempFile("gradle", "projectDir");
+                projectDir = GFileUtils.canonicalise(File.createTempFile("gradle", "projectDir"));
                 projectDir.delete();
                 projectDir.mkdir();
                 projectDir.deleteOnExit();
