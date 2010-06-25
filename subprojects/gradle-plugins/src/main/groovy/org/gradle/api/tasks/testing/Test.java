@@ -47,6 +47,7 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.WrapUtil;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -57,6 +58,11 @@ import java.util.Set;
 
 /**
  * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
+ *
+ * By setting a system property <code>&lt;taskName&gt;.single=&lt;TestNamePattern&gt;</code> or
+ * <code>&lt;taskPath&gt;.single=&lt;TestNamePattern&gt;</code> only tests with the pattern
+ * <code>&#042;&#042;/&lt;TestNamePattern&gt;*.class</code> will be executed. If no tests with this pattern
+ * can be found, an exeption will be thrown.
  *
  * @author Hans Dockter
  */
@@ -320,6 +326,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
+        overwriteIncludesIfSinglePropertyIsSet();
         final WorkerProcessFactory workerFactory = getServices().get(WorkerProcessFactory.class);
 
         final TestFrameworkInstance testFrameworkInstance = getTestFramework();
@@ -352,6 +359,45 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         if (!isIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
+    }
+
+    private void overwriteIncludesIfSinglePropertyIsSet() {
+        String singleTest = getSingleTestProperty();
+        if (singleTest == null) {
+            return;
+        }
+        failIfNoTestIsExecuted(singleTest);
+        setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
+    }
+
+    private String getSingleTestProperty() {
+        String singleTest = System.getProperty(getPath() + ".single");
+        if (singleTest == null) {
+            return System.getProperty(getName() + ".single");
+        }
+        return singleTest;
+    }
+
+    private void failIfNoTestIsExecuted(final String pattern) {
+        addTestListener(new TestListener() {
+            public void beforeSuite(TestDescriptor suite) {
+                // do nothing
+            }
+
+            public void afterSuite(TestDescriptor suite, TestResult result) {
+                if (suite.getParent() == null && result.getTestCount() == 0) {
+                    throw new GradleException("Could not find matching test for pattern: " + pattern);
+                }
+            }
+
+            public void beforeTest(TestDescriptor testDescriptor) {
+                // do nothing
+            }
+
+            public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                // do nothing
+            }
+        });
     }
 
     /**

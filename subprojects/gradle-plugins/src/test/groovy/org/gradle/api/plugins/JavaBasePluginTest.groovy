@@ -25,92 +25,99 @@ import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.compile.Compile
 import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.util.HelperUtil
-import org.junit.Test
-import static org.gradle.util.Matchers.*
-import static org.gradle.util.WrapUtil.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
+import org.gradle.util.Matchers
+import spock.lang.Specification
+import static org.gradle.util.WrapUtil.toLinkedSet
 
 /**
  * @author Hans Dockter
  */
 
-class JavaBasePluginTest {
+class JavaBasePluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject()
     private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin()
 
-    @Test public void appliesBasePluginsAndAddsConventionObject() {
+    void appliesBasePluginsAndAddsConventionObject() {
+        when:
         javaBasePlugin.apply(project)
 
-        assertTrue(project.getPlugins().hasPlugin(ReportingBasePlugin))
-        assertTrue(project.getPlugins().hasPlugin(BasePlugin))
-
-        assertThat(project.convention.plugins.java, instanceOf(JavaPluginConvention))
+        then:
+        project.getPlugins().hasPlugin(ReportingBasePlugin)
+        project.getPlugins().hasPlugin(BasePlugin)
+        project.convention.plugins.java instanceof JavaPluginConvention
     }
 
-    @Test public void createsTasksAndAppliesMappingsForNewSourceSet() {
+    void createsTasksAndAppliesMappingsForNewSourceSet() {
+        when:
         javaBasePlugin.apply(project)
-
         project.sourceSets.add('custom')
+        
+        then:
         def set = project.sourceSets.custom
-        assertThat(set.java.srcDirs, equalTo(toLinkedSet(project.file('src/custom/java'))))
-        assertThat(set.resources.srcDirs, equalTo(toLinkedSet(project.file('src/custom/resources'))))
-        assertThat(set.classesDir, equalTo(new File(project.buildDir, 'classes/custom')))
-        assertThat(set.classes, builtBy('customClasses'))
+        set.java.srcDirs == toLinkedSet(project.file('src/custom/java'))
+        set.resources.srcDirs == toLinkedSet(project.file('src/custom/resources'))
+        set.classesDir == new File(project.buildDir, 'classes/custom')
+        Matchers.builtBy('customClasses').matches(set.classes)
 
         def task = project.tasks['processCustomResources']
-        assertThat(task.description, equalTo('Processes the custom resources.'))
-        assertThat(task, instanceOf(Copy))
-        assertThat(task, dependsOn())
-        assertThat(task.destinationDir, equalTo(project.sourceSets.custom.classesDir))
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.resources))
+        task.description == 'Processes the custom resources.'
+        task instanceof Copy
+        Matchers.dependsOn().matches(task)
+        task.destinationDir == project.sourceSets.custom.classesDir
+        task.defaultSource == project.sourceSets.custom.resources
 
         task = project.tasks['compileCustomJava']
-        assertThat(task.description, equalTo('Compiles the custom Java source.'))
-        assertThat(task, instanceOf(Compile))
-        assertThat(task, dependsOn())
-        assertThat(task.defaultSource, equalTo(project.sourceSets.custom.java))
-        assertThat(task.classpath, sameInstance(project.sourceSets.custom.compileClasspath))
-        assertThat(task.destinationDir, equalTo(project.sourceSets.custom.classesDir))
+        task.description == 'Compiles the custom Java source.'
+        task instanceof Compile
+        Matchers.dependsOn().matches(task)
+        task.defaultSource == project.sourceSets.custom.java
+        task.classpath.is(project.sourceSets.custom.compileClasspath)
+        task.destinationDir == project.sourceSets.custom.classesDir
 
         task = project.tasks['customClasses']
-        assertThat(task.description, equalTo('Assembles the custom classes.'))
-        assertThat(task, instanceOf(DefaultTask))
-        assertThat(task, dependsOn('processCustomResources', 'compileCustomJava'))
+        task.description == 'Assembles the custom classes.'
+        task instanceof DefaultTask
+        Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(task)
     }
 
-    @Test public void appliesMappingsToTasksDefinedByBuildScript() {
+    void appliesMappingsToTasksDefinedByBuildScript() {
+        when:
         javaBasePlugin.apply(project)
-
         def task = project.createTask('customCompile', type: Compile)
-        assertThat(task.sourceCompatibility, equalTo(project.sourceCompatibility.toString()))
+
+        then:
+        task.sourceCompatibility == project.sourceCompatibility.toString()
 
         task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
-        assertThat(task.workingDir, equalTo(project.projectDir))
+        task.workingDir == project.projectDir
 
         task = project.createTask('customJavadoc', type: Javadoc)
-        assertThat(task.destinationDir, equalTo((project.file("$project.docsDir/javadoc"))))
-        assertThat(task.title, equalTo(project.apiDocTitle))
+        task.destinationDir == project.file("$project.docsDir/javadoc")
+        task.title == project.apiDocTitle
     }
 
-    @Test public void appliesMappingsToCustomJarTasks() {
+    void appliesMappingsToCustomJarTasks() {
+        when:
         javaBasePlugin.apply(project)
-
         def task = project.createTask('customJar', type: Jar)
-        assertThat(task, dependsOn())
-        assertThat(task.destinationDir, equalTo(project.libsDir))
+
+        then:
+        Matchers.dependsOn().matches(task)
+        task.destinationDir == project.libsDir
     }
 
-    @Test public void createsLifecycleBuildTasks() {
+    void createsLifecycleBuildTasks() {
+        when:
         javaBasePlugin.apply(project)
-        
+
+        then:
         def build = project.tasks[JavaBasePlugin.BUILD_TASK_NAME]
-        assertThat(build, dependsOn(JavaBasePlugin.CHECK_TASK_NAME, BasePlugin.ASSEMBLE_TASK_NAME))
+        Matchers.dependsOn(JavaBasePlugin.CHECK_TASK_NAME, BasePlugin.ASSEMBLE_TASK_NAME).matches(build)
 
         def buildDependent = project.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME]
-        assertThat(buildDependent, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
+        Matchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildDependent)
 
         def buildNeeded = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
-        assertThat(buildNeeded, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
+        Matchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
     }
 }
