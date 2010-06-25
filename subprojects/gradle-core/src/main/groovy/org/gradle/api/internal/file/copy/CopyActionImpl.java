@@ -206,7 +206,7 @@ public class CopyActionImpl implements CopyAction {
         return mainContent.setIncludes(includes);
     }
 
-    public CopySpec with(CopySpec copySpec) {
-        return mainContent.with(copySpec);
+    public CopySpec with(CopySpec... copySpecs) {
+        return mainContent.with(copySpecs);
     }
 }

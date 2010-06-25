@@ -82,11 +82,11 @@ public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFil
     void setCaseSensitive(boolean caseSensitive);
 
     /**
-     * Adds the given spec as a child of this spec.
-     * @param sourceSpec The spec to add
+     * Adds the given specs as a child of this spec.
+     * @param sourceSpecs The specs to add
      * @return this
      */
-    CopySpec with(CopySpec sourceSpec);
+    CopySpec with(CopySpec... sourceSpecs);
 
     // CopySourceSpec overrides to broaden return type
 

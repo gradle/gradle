@@ -62,8 +62,10 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return resolver;
     }
 
-    public CopySpec with(CopySpec copySpec) {
-        childSpecs.add(new WrapperCopySpec(this, (ReadableCopySpec) copySpec));
+    public CopySpec with(CopySpec... copySpecs) {
+        for (CopySpec copySpec : copySpecs) {
+            childSpecs.add(new WrapperCopySpec(this, (ReadableCopySpec) copySpec));
+        }
         return this;
     }
 

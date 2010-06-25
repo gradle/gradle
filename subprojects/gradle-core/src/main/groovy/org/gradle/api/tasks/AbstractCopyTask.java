@@ -100,8 +100,8 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopyAct
     /**
      * {@inheritDoc}
      */
-    public CopySpec with(CopySpec sourceSpec) {
-        getRootSpec().with(sourceSpec);
+    public CopySpec with(CopySpec... sourceSpecs) {
+        getRootSpec().with(sourceSpecs);
         return this;
     }
 

@@ -92,11 +92,12 @@ public class CopySpecImplTest {
     }
 
     @Test public void testWithSpec() {
-        CopySpecImpl other = new CopySpecImpl(fileResolver)
+        CopySpecImpl other1 = new CopySpecImpl(fileResolver)
+        CopySpecImpl other2 = new CopySpecImpl(fileResolver)
 
-        spec.with other
+        spec.with other1, other2
         assertTrue(spec.sourcePaths.empty)
-        assertThat(spec.childSpecs.size(), equalTo(1))
+        assertThat(spec.childSpecs.size(), equalTo(2))
     }
 
     @Test public void testWithSpecInheritsDestinationPathFromParent() {
