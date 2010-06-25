@@ -81,6 +81,7 @@ dependencies {
     testCompile libraries.xmlunit
 
     runtime libraries.ant_launcher
+    testCompile libraries.ant_launcher
 
     integTestCompile libraries.jetty_depends
 
