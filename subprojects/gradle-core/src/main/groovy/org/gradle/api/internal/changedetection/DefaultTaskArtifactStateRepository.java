@@ -76,10 +76,15 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private static class TaskHistory implements Serializable {
+        private static final int MAX_HISTORY_ENTRIES = 3;
         private final List<TaskConfiguration> configurations = new ArrayList<TaskConfiguration>();
 
         public void addConfiguration(TaskConfiguration configuration) {
             configurations.add(0, configuration);
+            // Only keep a few of the most recent configurations
+            while (configurations.size() > MAX_HISTORY_ENTRIES) {
+                configurations.remove(MAX_HISTORY_ENTRIES);
+            }
         }
     }
 
