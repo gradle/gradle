@@ -44,17 +44,14 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
     }
 
     public void allObjects(Action<? super T> action) {
-        for (T t : store.getAll()) {
+        whenObjectAdded(action);
+        for (T t : new ArrayList<T>(store.getAll())) {
             action.execute(t);
         }
-        whenObjectAdded(action);
     }
 
     public void allObjects(Closure action) {
-        for (T t : store.getAll()) {
-            action.call(t);
-        }
-        whenObjectAdded(action);
+        allObjects(toAction(action));
     }
 
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
@@ -68,7 +65,11 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
     }
 
     public void whenObjectAdded(Closure action) {
-        whenObjectAdded((Action<? super T>) DefaultGroovyMethods.asType(action, Action.class));
+        whenObjectAdded(toAction(action));
+    }
+
+    private Action<? super T> toAction(Closure action) {
+        return (Action<? super T>) DefaultGroovyMethods.asType(action, Action.class);
     }
 
     protected interface Store<S> {

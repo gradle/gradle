@@ -20,7 +20,9 @@ import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
+import org.hamcrest.Description;
 import org.jmock.Expectations;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
@@ -294,6 +296,31 @@ public class DefaultDomainObjectContainerTest {
 
         container.allObjects(HelperUtil.toClosure(closure));
         container.addObject("a");
+    }
+
+    @Test
+    public void allObjectsCallsActionForEachNewObjectAddedByTheAction() {
+        final Action<CharSequence> action = context.mock(Action.class);
+
+        context.checking(new Expectations() {{
+            one(action).execute("a");
+            will(new org.jmock.api.Action() {
+                public Object invoke(Invocation invocation) throws Throwable {
+                    container.addObject("c");
+                    return null;
+                }
+
+                public void describeTo(Description description) {
+                    description.appendText("add 'c'");
+                }
+            });
+            one(action).execute("b");
+            one(action).execute("c");
+        }});
+
+        container.addObject("a");
+        container.addObject("b");
+        container.allObjects(action);
     }
 
 }
