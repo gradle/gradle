@@ -252,7 +252,6 @@ class DefaultProjectTest {
         assertSame project, child1.parent
         assertSame project, child1.rootProject
         checkProject(project, null, 'root', rootDir)
-        assertEquals(TEST_PROJECT_NAME, new DefaultProject(TEST_PROJECT_NAME).name)
     }
 
     private void checkProject(DefaultProject project, Project parent, String name, File projectDir) {

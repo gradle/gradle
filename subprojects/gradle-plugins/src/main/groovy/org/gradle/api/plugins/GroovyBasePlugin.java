@@ -34,7 +34,7 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
 import java.io.File;
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which extends the {@link org.gradle.api.plugins.JavaPlugin} to provide support for compiling and documenting Groovy
+ * <p>A {@link org.gradle.api.Plugin} which extends the {@link org.gradle.api.plugins.JavaBasePlugin} to provide support for compiling and documenting Groovy
  * source files.</p>
  *
  * @author Hans Dockter

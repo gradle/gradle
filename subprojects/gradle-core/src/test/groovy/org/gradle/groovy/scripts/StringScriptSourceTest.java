@@ -33,7 +33,7 @@ public class StringScriptSourceTest {
 
     @Test
     public void generatesClassNameAndSourceFileNameUsingHashOfText() {
-        assertThat(source.getClassName(), matchesRegexp(StringScriptSource.EMBEDDED_SCRIPT_ID + "[a-z0-9]+"));
+        assertThat(source.getClassName(), matchesRegexp("script_[a-z0-9]+"));
         assertThat(source.getFileName(), equalTo(source.getClassName()));
     }
 

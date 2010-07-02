@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.*;
@@ -74,8 +73,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private final GradleInternal gradle;
 
     private ProjectEvaluator projectEvaluator;
-
-    private Script buildScript;
 
     private ScriptSource buildScriptSource;
 
@@ -137,18 +134,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private LoggingManager loggingManager;
 
     private DynamicObjectHelper dynamicObjectHelper;
-
-    public AbstractProject(String name) {
-        this.name = name;
-        dynamicObjectHelper = new DynamicObjectHelper(this);
-        dynamicObjectHelper.setConvention(new DefaultConvention());
-        projectDir = null;
-        depth = 0;
-        path = Project.PATH_SEPARATOR;
-        rootProject = this;
-        parent = null;
-        gradle = null;
-    }
 
     public AbstractProject(String name,
                            ProjectInternal parent,
@@ -250,7 +235,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public void setScript(Script buildScript) {
-        this.buildScript = buildScript;
         dynamicObjectHelper.addObject(new BeanDynamicObject(buildScript).withNoProperties(),
                 DynamicObjectHelper.Location.BeforeConvention);
     }

@@ -20,7 +20,6 @@ import org.gradle.api.internal.resource.StringResource;
 import org.gradle.util.HashUtil;
 
 public class StringScriptSource implements ScriptSource {
-    public static final String EMBEDDED_SCRIPT_ID = "embedded_script_";
     private final Resource resource;
 
     public StringScriptSource(String description, String content) {
@@ -28,7 +27,7 @@ public class StringScriptSource implements ScriptSource {
     }
 
     public String getClassName() {
-        return EMBEDDED_SCRIPT_ID + HashUtil.createHash(resource.getText());
+        return "script_" + HashUtil.createHash(resource.getText());
     }
 
     public Resource getResource() {

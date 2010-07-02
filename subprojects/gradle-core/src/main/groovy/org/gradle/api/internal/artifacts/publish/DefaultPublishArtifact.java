@@ -42,7 +42,7 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact {
     }
 
     public String toString() {
-        return String.format("DefaultPublishArtifact $s:%s:%s:%s", name, type, extension, classifier);
+        return String.format("DefaultPublishArtifact %s:%s:%s:%s", name, type, extension, classifier);
     }
 
     public String getName() {
