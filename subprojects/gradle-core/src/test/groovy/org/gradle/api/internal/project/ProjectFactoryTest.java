@@ -172,7 +172,7 @@ public class ProjectFactoryTest {
 
     @Test
     public void testConstructsRootProjectWithEmbeddedBuildScript() {
-        ScriptSource expectedScriptSource = context.mock(ScriptSource.class);
+        ScriptSource expectedScriptSource = new StringScriptSource("script", "content");
 
         ProjectFactory projectFactory = new ProjectFactory(expectedScriptSource, classGeneratorMock);
 

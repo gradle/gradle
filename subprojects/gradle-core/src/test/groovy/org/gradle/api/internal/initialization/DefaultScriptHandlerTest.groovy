@@ -28,6 +28,7 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.util.ObservableUrlClassLoader
 
 @RunWith(JMock)
 public class DefaultScriptHandlerTest {
@@ -37,35 +38,32 @@ public class DefaultScriptHandlerTest {
     private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class)
     private final Configuration configuration = context.mock(Configuration.class)
     private final ScriptSource scriptSource = context.mock(ScriptSource.class)
-    private final ClassLoader parentClassLoader = [:] as ClassLoader
+    private final ObservableUrlClassLoader classLoader = context.mock(ObservableUrlClassLoader.class)
 
     @Test void addsClasspathConfiguration() {
         context.checking {
             one(configurationContainer).add('classpath')
         }
 
-        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
+        new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader)
     }
 
     @Test void createsAClassLoaderAndAddsContentsOfClassPathConfiguration() {
         DefaultScriptHandler handler = handler()
 
         ClassLoader classLoader = handler.classLoader
-        assertThat(classLoader, instanceOf(URLClassLoader))
-        assertThat(classLoader.parent, sameInstance(parentClassLoader))
-        assertThat(classLoader.getURLs(), isEmptyArray())
+        assertThat(classLoader, sameInstance(this.classLoader))
 
         File file1 = new File('a')
         File file2 = new File('b')
         context.checking {
             one(configuration).getFiles()
             will(returnValue(WrapUtil.toSet(file1, file2)))
+            one(classLoader).addURL(file1.toURI().toURL())
+            one(classLoader).addURL(file2.toURI().toURL())
         }
 
         handler.updateClassPath()
-
-        assertThat(handler.classLoader, sameInstance(classLoader))
-        assertThat(classLoader.getURLs(), equalTo([file1.toURI().toURL(), file2.toURI().toURL()] as URL[]))
     }
 
     @Test void canConfigureRepositories() {
@@ -97,7 +95,6 @@ public class DefaultScriptHandlerTest {
             one(configurationContainer).add('classpath')
             will(returnValue(configuration))
         }
-        DefaultScriptHandler handler = new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, parentClassLoader)
-        return handler
+        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer, classLoader)
     }
 }

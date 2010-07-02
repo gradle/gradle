@@ -21,7 +21,6 @@ import org.gradle.integtests.fixtures.ArtifactBuilder
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.util.TestFile
-import org.junit.Ignore
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
@@ -95,7 +94,7 @@ assert 'value' == doStuff.someProp
         assertThat(result.error, containsString('error message'))
         assertThat(result.error, not(containsString('quiet message')))
     }
-    
+
     @Test
     public void canExecuteExternalScriptFromSettingsScript() {
         testFile('settings.gradle') << ''' apply { from 'other.gradle' } '''
@@ -152,13 +151,13 @@ class ListenerImpl extends BuildAdapter {
         server.stop()
     }
 
-    @Test @Ignore
+    @Test
     public void cachesScriptClassForAGivenScript() {
         testFile('settings.gradle') << 'include \'a\', \'b\''
         testFile('external.gradle') << 'appliedScript = this'
         testFile('build.gradle') << '''
 allprojects {
-   apply script: rootProject.file('external.gradle') 
+   apply from: "$rootDir/external.gradle"
 }
 subprojects {
     assert appliedScript.class == rootProject.appliedScript.class

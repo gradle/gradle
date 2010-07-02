@@ -21,24 +21,13 @@ import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ObservableUrlClassLoader;
 
-import java.io.File;
-import java.net.MalformedURLException;
-
-public class DefaultScriptHandler extends AbstractScriptHandler {
-
-    public DefaultScriptHandler(ScriptSource scriptSource, RepositoryHandler repositoryHandler,
-                                DependencyHandler dependencyHandler, ConfigurationContainer configContainer,
-                                ObservableUrlClassLoader classLoader) {
+public class NoClassLoaderUpdateScriptHandler extends AbstractScriptHandler {
+    public NoClassLoaderUpdateScriptHandler(ObservableUrlClassLoader classLoader, RepositoryHandler repositoryHandler,
+                                            DependencyHandler dependencyHandler, ScriptSource scriptSource,
+                                            ConfigurationContainer configContainer) {
         super(classLoader, repositoryHandler, dependencyHandler, scriptSource, configContainer);
     }
 
     public void updateClassPath() {
-        for (File file : getClasspathConfiguration().getFiles()) {
-            try {
-                getClassLoader().addURL(file.toURI().toURL());
-            } catch (MalformedURLException e) {
-                throw new RuntimeException(e);
-            }
-        }
     }
 }

@@ -30,12 +30,19 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.util.ObservableUrlClassLoader;
+
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     private final RepositoryHandlerFactory repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final DependencyFactory dependencyFactory;
+    private final Map<Collection<Object>, ObservableUrlClassLoader> classLoaderCache = new HashMap<Collection<Object>, ObservableUrlClassLoader>();  
     private final ProjectFinder projectFinder = new ProjectFinder() {
         public Project getProject(String path) {
             throw new UnknownProjectException("Cannot use project dependencies in a script classpath definition.");
@@ -63,8 +70,16 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
                 repositoryHandler, dependencyMetaDataProvider, context);
         DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory,
                 projectFinder);
-        return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer,
-                parentClassLoader);
+        Collection<Object> key = Arrays.asList(scriptSource.getClassName(), parentClassLoader);
+        ObservableUrlClassLoader classLoader = classLoaderCache.get(key);
+        if (classLoader == null) {
+            classLoader = new ObservableUrlClassLoader(parentClassLoader);
+            classLoaderCache.put(key, classLoader);
+            return new DefaultScriptHandler(scriptSource, repositoryHandler, dependencyHandler, configurationContainer,
+                    classLoader);
+        }
+        
+        return new NoClassLoaderUpdateScriptHandler(classLoader, repositoryHandler, dependencyHandler, scriptSource, configurationContainer);
     }
 
     private static class BasicDomainObjectContext implements DomainObjectContext {
