@@ -14,20 +14,12 @@
  * limitations under the License.
  */
 <% if (subprojects.empty ) { %>
-usePlugin 'java'
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    testCompile 'junit:junit:4.5'
-}
+apply from: new File(rootDir, 'common.gradle')
 
 <% if (groovyProject) { %>
-usePlugin 'groovy'
+apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.6.4'
+    groovy 'org.codehaus.groovy:groovy-all:1.7.3'
 }
 <% } %>
 

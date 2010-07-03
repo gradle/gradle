@@ -7,11 +7,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath files(BootstrapUtil.gradleClasspath)
+        classpath gradleApi()
     }
 }
 
-usePlugin(BasePlugin)
+apply plugin: 'base'
 
 task small(type: GeneratorTask, description: 'Generates a small project') {
     destDir = new File(buildDir, 'small')
@@ -39,8 +39,11 @@ task all(dependsOn: {tasks.withType(GeneratorTask).all})
 class GeneratorTask extends DefaultTask {
     @OutputDirectory
     File destDir
+    @Input
     int sourceFiles = 1
+    @Input
     int projects = 1
+    @Input
     boolean groovyProject
 
     @TaskAction
@@ -68,7 +71,7 @@ class GeneratorTask extends DefaultTask {
                 files: subprojectNames.empty ? [] : ['settings.gradle'],
                 includeSource: subprojectNames.empty
 
-        DefaultExternalModuleDependency dependency = new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency('junit', 'junit', '4.5')
+        DefaultExternalModuleDependency dependency = new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency('junit', 'junit', '4.8.1')
         Configuration configuration = project.configurations.detachedConfiguration(dependency)
         configuration.each {
             ant.copy(file: it, toDir: new File(destDir, 'lib/test'))
@@ -86,6 +89,7 @@ class GeneratorTask extends DefaultTask {
 
         List files = args.files + [
                 'build.gradle',
+                'common.gradle',
                 'pom.xml',
                 'build.xml',
         ]
