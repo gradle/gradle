@@ -20,10 +20,11 @@ import groovy.lang.GroovyClassLoader;
 import groovy.lang.GroovyCodeSource;
 import groovy.lang.Script;
 import groovyjarjarasm.asm.ClassWriter;
-import org.codehaus.groovy.control.CompilationFailedException;
-import org.codehaus.groovy.control.CompilationUnit;
-import org.codehaus.groovy.control.CompilerConfiguration;
-import org.codehaus.groovy.control.MultipleCompilationErrorsException;
+import org.apache.commons.lang.StringUtils;
+import org.codehaus.groovy.ast.expr.ConstantExpression;
+import org.codehaus.groovy.ast.stmt.ReturnStatement;
+import org.codehaus.groovy.ast.stmt.Statement;
+import org.codehaus.groovy.control.*;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
@@ -36,35 +37,39 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
+import java.util.List;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultScriptCompilationHandler implements ScriptCompilationHandler {
     private Logger logger = LoggerFactory.getLogger(DefaultScriptCompilationHandler.class);
+    private static final String EMPTY_SCRIPT_MARKER_FILE_NAME = "emptyScript.txt";
 
-    public void compileToDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
+    public void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir,
                              Transformer transformer, Class<? extends Script> scriptBaseClass) {
         Clock clock = new Clock();
-        GFileUtils.deleteDirectory(scriptCacheDir);
-        scriptCacheDir.mkdirs();
+        GFileUtils.deleteDirectory(classesDir);
+        classesDir.mkdirs();
         CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
-        configuration.setTargetDirectory(scriptCacheDir);
+        configuration.setTargetDirectory(classesDir);
         try {
-            compileScript(source, classLoader, configuration, transformer);
+            compileScript(source, classLoader, configuration, classesDir, transformer);
         } catch (GradleException e) {
-            GFileUtils.deleteDirectory(scriptCacheDir);
+            GFileUtils.deleteDirectory(classesDir);
             throw e;
         }
 
-        logger.debug("Timing: Writing script to cache at {} took: {}", scriptCacheDir.getAbsolutePath(),
+        logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(),
                 clock.getTime());
     }
 
-    private Class compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
-                              final Transformer transformer) {
+    private void compileScript(final ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration,
+                               File classesDir, final Transformer transformer) {
         logger.info("Compiling {} using {}.", source.getDisplayName(), transformer != null ? transformer.getClass().getSimpleName() : "no transformer");
 
+        final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
+        final PackageStatementDetector packageDetector = new PackageStatementDetector();
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(CompilerConfiguration compilerConfiguration,
@@ -90,15 +95,17 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
                 if (transformer != null) {
                     transformer.register(compilationUnit);
                 }
+
+                compilationUnit.addPhaseOperation(packageDetector, Phases.CANONICALIZATION);
+                compilationUnit.addPhaseOperation(emptyScriptDetector, Phases.CANONICALIZATION);
                 return compilationUnit;
             }
         };
         String scriptText = source.getResource().getText();
         String scriptName = source.getClassName();
-        Class scriptClass;
         GroovyCodeSource codeSource = new GroovyCodeSource(scriptText == null ? "" : scriptText, scriptName, "/groovy/script");
         try {
-            scriptClass = groovyClassLoader.parseClass(codeSource, false);
+            groovyClassLoader.parseClass(codeSource, false);
         } catch (MultipleCompilationErrorsException e) {
             SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
             Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
@@ -108,17 +115,13 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
 
-        if (!hasScriptStatements(scriptName, scriptClass)) {
-            // Assume an empty script
-            String emptySource = String.format("class %s extends %s { public Object run() { return null } }",
-                    source.getClassName(), configuration.getScriptBaseClass().replaceAll("\\$", "."));
-            scriptClass = groovyClassLoader.parseClass(emptySource, scriptName);
+        if (packageDetector.hasPackageStatement) {
+            throw new UnsupportedOperationException(String.format("%s should not contain a package statement.",
+                    StringUtils.capitalize(source.getDisplayName())));
         }
-        return scriptClass;
-    }
-
-    private boolean hasScriptStatements(String scriptName, Class scriptClass) {
-        return scriptClass != null && scriptClass.getName().equals(scriptName);
+        if (emptyScriptDetector.isEmptyScript()) {
+            GFileUtils.touch(new File(classesDir, EMPTY_SCRIPT_MARKER_FILE_NAME));
+        }
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
@@ -129,12 +132,65 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
 
     public <T extends Script> Class<? extends T> loadFromDir(ScriptSource source, ClassLoader classLoader, File scriptCacheDir,
                                               Class<T> scriptBaseClass) {
+        if (new File(scriptCacheDir, EMPTY_SCRIPT_MARKER_FILE_NAME).isFile()) {
+            return new AsmBackedEmptyScriptGenerator().generate(scriptBaseClass);
+        }
+        
         try {
             URLClassLoader urlClassLoader = new URLClassLoader(WrapUtil.toArray(scriptCacheDir.toURI().toURL()),
                     classLoader);
             return urlClassLoader.loadClass(source.getClassName()).asSubclass(scriptBaseClass);
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not load compiled classes for %s from cache.", source.getDisplayName()), e);
+            throw new GradleException(String.format("Could not load compiled classes for %s from cache.",
+                    source.getDisplayName()), e);
+        }
+    }
+
+    private static class PackageStatementDetector extends CompilationUnit.SourceUnitOperation {
+        private boolean hasPackageStatement;
+
+        @Override
+        public void call(SourceUnit source) throws CompilationFailedException {
+            hasPackageStatement = source.getAST().getPackageName() != null;
+        }
+    }
+
+    private static class EmptyScriptDetector extends CompilationUnit.SourceUnitOperation {
+        private boolean emptyScript;
+
+        @Override
+        public void call(SourceUnit source) throws CompilationFailedException {
+            emptyScript = isEmpty(source);
+        }
+
+        private boolean isEmpty(SourceUnit source) {
+            if (!source.getAST().getMethods().isEmpty()) {
+                return false;
+            }
+            List<Statement> statements = source.getAST().getStatementBlock().getStatements();
+            if (statements.size() > 1) {
+                return false;
+            }
+            if (statements.isEmpty()) {
+                return true;
+            }
+
+            Statement statement = statements.get(0);
+            if (statement instanceof ReturnStatement) {
+                ReturnStatement returnStatement = (ReturnStatement) statement;
+                if (returnStatement.getExpression() instanceof ConstantExpression) {
+                    ConstantExpression constantExpression = (ConstantExpression) returnStatement.getExpression();
+                    if (constantExpression.getValue() == null) {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
+
+        public boolean isEmptyScript() {
+            return emptyScript;
         }
     }
 }

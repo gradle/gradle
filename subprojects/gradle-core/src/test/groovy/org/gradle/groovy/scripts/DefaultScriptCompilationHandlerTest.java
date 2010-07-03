@@ -128,11 +128,23 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
+    public void testCompileScriptToDirWithPackageDeclaration() throws Exception {
+        final ScriptSource scriptSource = scriptSource("package org.gradle.test\n" + scriptText);
+
+        try {
+            scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+            fail();
+        } catch (UnsupportedOperationException e) {
+            assertThat(e.getMessage(), equalTo("Script-display-name should not contain a package statement."));
+        }
+    }
+
+    @Test
     public void testCompileScriptToDirWithWhitespaceOnly() throws Exception {
         final ScriptSource scriptSource = scriptSource("// ignore me\n");
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
-        checkScriptClassesInCache();
+        checkEmptyScriptInCache();
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
@@ -144,7 +156,7 @@ public class DefaultScriptCompilationHandlerTest {
         final ScriptSource scriptSource = scriptSource("");
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
-        checkScriptClassesInCache();
+        checkEmptyScriptInCache();
 
         Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
                 expectedScriptClass).newInstance();
@@ -154,6 +166,30 @@ public class DefaultScriptCompilationHandlerTest {
     @Test
     public void testCompileScriptToDirWithClassDefinitionOnlyScript() throws Exception {
         final ScriptSource scriptSource = scriptSource("class SomeClass {}");
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+
+        checkEmptyScriptInCache();
+
+        Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass).newInstance();
+        assertThat(script, is(expectedScriptClass));
+    }
+
+    @Test
+    public void testCompileScriptToDirWithMethodOnlyScript() throws Exception {
+        final ScriptSource scriptSource = scriptSource("def method() { println 'hi' }");
+        scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
+
+        checkScriptClassesInCache();
+
+        Script script = scriptCompilationHandler.loadFromDir(scriptSource, classLoader, scriptCacheDir,
+                expectedScriptClass).newInstance();
+        assertThat(script, is(expectedScriptClass));
+    }
+
+    @Test
+    public void testCompileScriptToDirWithPropertiesOnlyScript() throws Exception {
+        final ScriptSource scriptSource = scriptSource("String a");
         scriptCompilationHandler.compileToDir(scriptSource, classLoader, scriptCacheDir, null, expectedScriptClass);
 
         checkScriptClassesInCache();
@@ -225,6 +261,12 @@ public class DefaultScriptCompilationHandlerTest {
     private void checkScriptClassesInCache() {
         assertTrue(scriptCacheDir.isDirectory());
         assertTrue(cachedFile.isFile());
+        assertFalse(new File(scriptCacheDir, "emptyScript.txt").exists());
+    }
+
+    private void checkEmptyScriptInCache() {
+        assertTrue(scriptCacheDir.isDirectory());
+        assertTrue(new File(scriptCacheDir, "emptyScript.txt").isFile());
     }
 
     private void checkScriptCacheEmpty() {
