@@ -360,7 +360,7 @@
                 </sample>
                 <para>Oops. Why does this not work? The
                     <literal>dependsOn</literal>
-                    command is created for projects with a common lifecycle. Provided you have two Java projects were
+                    command is created for projects with a common lifecycle. Provided you have two Java projects where
                     one depends on the other. If you trigger a compile for the dependent project you don't want that
                     <emphasis>all</emphasis>
                     tasks of the other project get executed. Therefore a
@@ -493,7 +493,7 @@
                 hacks which are hard to maintain and massively afflict your productivity as a build master.
             </para>
             <para>There is one more thing to note from the current example. We have used the command <literal>
-                dependOnChildren()</literal>. It is a convenience method and calls the
+                dependsOnChildren()</literal>. It is a convenience method and calls the
                 <literal>dependsOn</literal>
                 method of the parent project for every child project (not every sub project). It declares a
                 <literal>execution</literal>
@@ -516,8 +516,8 @@
     </section>
     <section id='sec:project_jar_dependencies'>
         <title>Project lib dependencies</title>
-        <para>What if one projects needs the jar produced by another project in its compile path. And not just the jar
-            but also the transitive dependencies of this jar. Obviously this is a very common use case for Java
+        <para>What if one projects needs the jar produced by another project in its compile path? And not just the jar
+            but also the transitive dependencies of this jar? Obviously this is a very common use case for Java
             multi-project builds. As already mentioned in <xref linkend='sub:project_dependencies'/>, Gradle
             offers project lib dependencies for this.
         </para>
@@ -569,9 +569,9 @@
             <literal>api</literal>
             directory and trigger a <userinput>gradle compile</userinput>. First
             <literal>shared</literal>
-            is build and then
+            is built and then
             <literal>api</literal>
-            is build. Project dependencies enable partial multi-project builds.
+            is built. Project dependencies enable partial multi-project builds.
         </para>
         <para>If you come from Maven land you might be perfectly happy with this. If you come from Ivy land, you might
             expect some more fine grained control. Gradle offers this to you:
@@ -673,7 +673,7 @@
             <emphasis>not</emphasis>
             difficult. There are six elements you need to remember: <literal>allproject</literal>, <literal>
             subprojects</literal>, <literal>dependsOn</literal>, <literal>childrenDependOnMe</literal>,
-            <literal>dependOnChildren</literal>
+            <literal>dependsOnChildren</literal>
             and project lib dependencies.
             <footnote>
                 <para>So we are well in the range of the

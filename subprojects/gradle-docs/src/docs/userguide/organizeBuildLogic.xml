@@ -61,7 +61,9 @@
         </listitem>
         <listitem>
             <para><link linkend="custom_plugins">Custom plugins</link>. Put your build build logic into a custom plugin,
-                and apply that plugin to multiple projects.
+                and apply that plugin to multiple projects. The plugin must be in the classpath of your build script.
+                You can achieve this either by using <link linkend="sec:build_sources"><filename>build sources</filename></link> or
+                by adding an <link linkend="sec:external_dependencies">external library</link> that contains the plugin. 
             </para>
         </listitem>
         <listitem>

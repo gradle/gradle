@@ -5,5 +5,5 @@ subprojects {
     hello << {println "- I depend on water"}
 }
 project(':bluewhale').hello << {
-    println "I'm the largest animal that has ever lived on this planet."
+    println "- I'm the largest animal that has ever lived on this planet."
 }
