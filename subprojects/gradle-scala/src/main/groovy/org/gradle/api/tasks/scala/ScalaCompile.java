@@ -58,6 +58,7 @@ public class ScalaCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
+    @Nested
     public ScalaCompileOptions getScalaCompileOptions() {
         return compiler.getScalaCompileOptions();
     }

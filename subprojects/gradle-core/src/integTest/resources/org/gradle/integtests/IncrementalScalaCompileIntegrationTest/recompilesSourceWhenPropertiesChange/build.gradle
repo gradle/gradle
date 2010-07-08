@@ -1,0 +1,12 @@
+apply plugin: 'scala'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    scalaTools 'org.scala-lang:scala-compiler:2.7.7'
+    scalaTools 'org.scala-lang:scala-library:2.7.7'
+
+    compile 'org.scala-lang:scala-library:2.7.7'
+}

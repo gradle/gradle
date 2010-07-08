@@ -310,7 +310,14 @@ public class TestFile extends File implements TestFileContext {
         assertIsDir();
         visit(actual, "", this);
         Set<String> expected = new TreeSet<String>(Arrays.asList(descendants));
-        assertEquals(expected, actual);
+
+        Set<String> extras = new TreeSet<String>(actual);
+        extras.removeAll(expected);
+        Set<String> missing = new TreeSet<String>(expected);
+        missing.removeAll(actual);
+
+        assertEquals(String.format("Extra files: %s, missing files: %s, expected: %s", extras, missing, expected), expected, actual);
+
         return this;
     }
 

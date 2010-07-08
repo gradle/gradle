@@ -13,7 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.compile;
+package org.gradle.api.tasks.compile
+
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional;
 
 /**
  * @author Hans Dockter
@@ -22,10 +25,11 @@ public class GroovyCompileOptions extends AbstractOptions {
     boolean failOnError = true
     boolean verbose = false
     boolean listFiles = false
+    @Input @Optional
     String encoding = null
     boolean fork = true
     GroovyForkOptions forkOptions = new GroovyForkOptions()
-
+    @Input
     boolean includeJavaRuntime = false
     boolean stacktrace
 

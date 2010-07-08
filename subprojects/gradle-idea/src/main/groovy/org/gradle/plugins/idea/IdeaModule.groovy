@@ -93,7 +93,7 @@ public class IdeaModule extends ConventionTask {
     /**
      * If this variable is set, dependencies in the existing iml file will be parsed for this variable.
      * If they use it, it will be replaced with a path that has the $MODULE_DIR$ variable as a root and
-     * then a relative path to  {@link #gradleCacheHome} . That way Gradle can recocknize equal dependencies.
+     * then a relative path to  {@link #gradleCacheHome} . That way Gradle can recognize equal dependencies.
      */
     @Input @Optional
     String gradleCacheVariable

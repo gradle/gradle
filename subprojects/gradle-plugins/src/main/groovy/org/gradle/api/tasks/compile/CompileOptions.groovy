@@ -17,33 +17,42 @@
 package org.gradle.api.tasks.compile
 
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Nested
+import org.gradle.api.tasks.Optional
 
 /**
  * @author Hans Dockter
  */
 class CompileOptions extends AbstractOptions {
+    @Input
     boolean failOnError = true
     boolean verbose = false
     boolean listFiles = false
     boolean deprecation = false
     boolean warnings = true
+    @Input @Optional
     String encoding = null
+    @Input
     boolean optimize
-
     @Input
     boolean debug = true
+    @Nested
     DebugOptions debugOptions = new DebugOptions()
     boolean fork = false
+    @Nested
     ForkOptions forkOptions = new ForkOptions()
     boolean useDepend = false
     DependOptions dependOptions = new DependOptions()
-
+    @Input @Optional
     String compiler = null
+    @Input
     boolean includeJavaRuntime = false
+    @Input @Optional
     String bootClasspath = null
+    @Input @Optional
     String extensionDirs = null
-
-    List compilerArgs
+    @Input
+    List compilerArgs = []
 
     CompileOptions fork(Map forkArgs) {
         fork = true

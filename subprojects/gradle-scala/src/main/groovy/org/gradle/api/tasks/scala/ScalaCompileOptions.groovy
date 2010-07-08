@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.scala
 
 import org.gradle.api.tasks.compile.AbstractOptions
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 
 public class ScalaCompileOptions extends AbstractOptions {
 
@@ -52,16 +54,19 @@ public class ScalaCompileOptions extends AbstractOptions {
      * Generate debugging information.
      * Legal values: none, source, line, vars, notailcalls
      */
+    @Input @Optional
     String debugLevel
 
     /**
      * Run optimisations.
      */
+    @Input
     boolean optimize = false
 
     /**
      * Encoding of source files.
      */
+    @Input @Optional
     String encoding = null
 
     /**
@@ -77,6 +82,7 @@ public class ScalaCompileOptions extends AbstractOptions {
      * Specifies which backend to use.
      * Legal values: 1.4, 1.5
      */
+    @Input
     String targetCompatibility = '1.5'
 
     /**

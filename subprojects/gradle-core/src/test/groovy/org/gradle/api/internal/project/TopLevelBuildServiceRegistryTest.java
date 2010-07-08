@@ -18,7 +18,9 @@ package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.internal.*;
+import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
@@ -186,12 +188,6 @@ public class TopLevelBuildServiceRegistryTest {
         expectListenerManagerCreated();
         assertThat(factory.get(ExceptionAnalyser.class), instanceOf(DefaultExceptionAnalyser.class));
         assertThat(factory.get(ExceptionAnalyser.class), sameInstance(factory.get(ExceptionAnalyser.class)));
-    }
-
-    @Test
-    public void providesAnIsolatedAntBuilder() {
-        assertThat(factory.get(IsolatedAntBuilder.class), instanceOf(DefaultIsolatedAntBuilder.class));
-        assertThat(factory.get(IsolatedAntBuilder.class), sameInstance(factory.get(IsolatedAntBuilder.class)));
     }
 
     @Test

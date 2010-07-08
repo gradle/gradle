@@ -68,4 +68,9 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     protected GradleDistributionLocator createGradleDistributionLocator() {
         return new DefaultClassPathProvider();
     }
+    
+    protected IsolatedAntBuilder createIsolatedAntBuilder() {
+        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
+    }
+    
 }

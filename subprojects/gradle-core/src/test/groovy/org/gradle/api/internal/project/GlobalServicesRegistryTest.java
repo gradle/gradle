@@ -77,4 +77,9 @@ public class GlobalServicesRegistryTest {
     public void providesAGradleDistributionLocator() {
         assertThat(registry.get(GradleDistributionLocator.class), instanceOf(DefaultClassPathProvider.class));
     }
+    
+    @Test
+    public void providesAnIsolatedAntBuilder() {
+        assertThat(registry.get(IsolatedAntBuilder.class), instanceOf(DefaultIsolatedAntBuilder.class));
+    }
 }

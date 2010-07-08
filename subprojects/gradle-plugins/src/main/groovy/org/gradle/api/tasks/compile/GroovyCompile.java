@@ -70,6 +70,7 @@ public class GroovyCompile extends AbstractCompile {
      * Gets the options for the groovyc compilation. To set specific options for the nested javac compilation,
      * use {@link #getOptions()}.
      */
+    @Nested
     public GroovyCompileOptions getGroovyOptions() {
         return compiler.getGroovyCompileOptions();
     }

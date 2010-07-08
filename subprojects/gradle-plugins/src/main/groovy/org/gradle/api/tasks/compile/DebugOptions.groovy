@@ -16,10 +16,14 @@
  
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+
 /**
  * @author Hans Dockter
  */
 class DebugOptions extends AbstractOptions {
+    @Input @Optional
     String debugLevel = null
 
     Map fieldName2AntMap() {

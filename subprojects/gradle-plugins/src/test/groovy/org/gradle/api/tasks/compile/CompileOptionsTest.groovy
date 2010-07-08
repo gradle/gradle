@@ -19,6 +19,8 @@ package org.gradle.api.tasks.compile
 import org.junit.Before
 import org.junit.Test
 import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*
+import static org.gradle.util.Matchers.*
 
 /**
  * @author Hans Dockter
@@ -47,7 +49,7 @@ class CompileOptionsTest {
         assertFalse(compileOptions.verbose)
         assertFalse(compileOptions.fork)
 
-        assertNull(compileOptions.compilerArgs)
+        assertThat(compileOptions.compilerArgs, isEmpty())
         assertNull(compileOptions.encoding)
         assertNull(compileOptions.compiler)
         assertNull(compileOptions.bootClasspath)

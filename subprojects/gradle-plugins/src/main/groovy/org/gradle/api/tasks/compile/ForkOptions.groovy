@@ -16,10 +16,14 @@
  
 package org.gradle.api.tasks.compile
 
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+
 /**
  * @author Hans Dockter
  */
 class ForkOptions extends AbstractOptions {
+    @Input @Optional
     String executable = null
     String memoryInitialSize = null
     String memoryMaximumSize = null

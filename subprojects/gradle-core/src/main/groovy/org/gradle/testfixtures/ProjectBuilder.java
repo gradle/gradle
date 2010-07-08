@@ -194,6 +194,10 @@ public class ProjectBuilder {
                 }
             };
         }
+
+        protected IsolatedAntBuilder createIsolatedAntBuilder() {
+            return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
+        }
     }
 
     private static class TestTopLevelBuildServiceRegistry extends TopLevelBuildServiceRegistry {

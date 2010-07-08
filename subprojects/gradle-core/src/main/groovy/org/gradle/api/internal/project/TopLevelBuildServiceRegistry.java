@@ -322,10 +322,6 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(DependencyFactory.class));
     }
 
-    protected IsolatedAntBuilder createIsolatedAntBuilder() {
-        return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
-    }
-
     protected WorkerProcessFactory createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
         return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
