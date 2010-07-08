@@ -299,7 +299,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.file('META-INF/MANIFEST.MF').assertContents(equalTo('Manifest-Version: 1.0\r\n\r\n'))
     }
 
-    @Test public void filtersDoNotAffectMetaInf() {
+    @Test public void metaInfSpecsAreIndependentOfOtherSpec() {
         createDir('test') {
             dir1 {
                 file 'ignored.xml'
@@ -312,6 +312,10 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 file 'file2.xml'
             }
         }
+        createDir('meta-inf2') {
+            file 'file2.txt'
+            file 'file2.xml'
+        }
 
         testFile('build.gradle') << '''
             task jar(type: Jar) {
@@ -320,6 +324,10 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 metaInf {
                     from 'meta-inf'
                     include '**/*.xml'
+                }
+                metaInf {
+                    from 'meta-inf2'
+                    into 'dir3'
                 }
                 destinationDir = buildDir
                 archiveName = 'test.jar'
@@ -330,7 +338,12 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
 
         TestFile expandDir = testFile('expanded')
         testFile('build/test.jar').unzipTo(expandDir)
-        expandDir.assertHasDescendants('META-INF/MANIFEST.MF', 'META-INF/dir2/file2.xml', 'dir1/file1.txt')
+        expandDir.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'META-INF/dir2/file2.xml',
+                'META-INF/dir3/file2.txt',
+                'META-INF/dir3/file2.xml',
+                'dir1/file1.txt')
     }
 
     @Test public void canCreateAWarArchiveWithNoWebXml() {
@@ -421,6 +434,43 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
                 'META-INF/MANIFEST.MF',
                 'WEB-INF/web.xml',
                 'WEB-INF/webinf1/file1.txt')
+    }
+
+    @Test public void canAddFilesToWebInfDir() {
+        createDir('web-inf') {
+            webinf1 {
+                file 'file1.txt'
+                file 'ignore.xml'
+            }
+        }
+        createDir('web-inf2') {
+            file 'file2.txt'
+        }
+
+        testFile('build.gradle') << '''
+            task war(type: War) {
+                webInf {
+                    from 'web-inf'
+                    exclude '**/*.xml'
+                }
+                webInf {
+                    from 'web-inf2'
+                    into 'dir2'
+                    include '**/file2*'
+                }
+                destinationDir = buildDir
+                archiveName = 'test.war'
+            }
+'''
+
+        inTestDirectory().withTasks('war').run()
+
+        TestFile expandDir = testFile('expanded')
+        testFile('build/test.war').unzipTo(expandDir)
+        expandDir.assertHasDescendants(
+                'META-INF/MANIFEST.MF',
+                'WEB-INF/webinf1/file1.txt',
+                'WEB-INF/dir2/file2.txt')
     }
 
     @Test public void canCreateArchivesAndExplodedImageFromSameSpec() {

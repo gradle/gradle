@@ -22,6 +22,7 @@ import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.Optional
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.copy.CopySpecImpl
 
 /**
  * @author Hans Dockter
@@ -32,24 +33,25 @@ class War extends Jar {
     private File webXml
 
     private FileCollection classpath
+    private final CopySpecImpl webInf
 
     War() {
         extension = WAR_EXTENSION
-        // Add these as separate specs, so they are not affected by the changes to the root spec
-        CopySpec otherWebInf = getCopyAction().rootSpec.addChild().into('WEB-INF')
-        otherWebInf.into('classes') {
+        // Add these as separate specs, so they are not affected by the changes to the main spec
+        webInf = getCopyAction().rootSpec.addChild().into('WEB-INF')
+        webInf.into('classes') {
             from {
                 def classpath = getClasspath()
                 classpath ? classpath.filter {File file -> file.isDirectory()} : []
             }
         }
-        otherWebInf.into('lib') {
+        webInf.into('lib') {
             from {
                 def classpath = getClasspath()
                 classpath ? classpath.filter {File file -> file.isFile()} : []
             }
         }
-        otherWebInf.into('') {
+        webInf.into('') {
             from {
                 getWebXml()
             }
@@ -60,7 +62,7 @@ class War extends Jar {
     }
 
     CopySpec getWebInf() {
-        return getCopyAction().rootSpec.addChild().into('WEB-INF')
+        return webInf.addChild()
     }
 
     CopySpec webInf(Closure configureClosure) {

@@ -20,6 +20,7 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.file.MapFileTree
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
+import org.gradle.api.internal.file.copy.CopySpecImpl
 
 /**
 * @author Hans Dockter
@@ -29,12 +30,14 @@ public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 
     private DefaultManifest manifest
+    private final CopySpecImpl metaInf
 
     Jar() {
         extension = DEFAULT_EXTENSION
         manifest = new DefaultManifest(project.fileResolver)
-        // Add these as separate specs, so they are not affected by the changes to the root spec
-        getCopyAction().rootSpec.addFirst().into('META-INF').from {
+        // Add these as separate specs, so they are not affected by the changes to the main spec
+        metaInf = copyAction.rootSpec.addFirst().into('META-INF')
+        metaInf.addChild().from {
             MapFileTree manifestSource = new MapFileTree(temporaryDir)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
                 DefaultManifest manifest = getManifest() ?: new DefaultManifest(null)
@@ -61,7 +64,7 @@ public class Jar extends Zip {
     }
 
     public CopySpec getMetaInf() {
-        return getCopyAction().rootSpec.addChild().into('META-INF')
+        return metaInf.addChild()
     }
 
     public CopySpec metaInf(Closure configureClosure) {

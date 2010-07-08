@@ -117,12 +117,12 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
         return result;
     }
 
-    public CopySpec into(Object destDir) {
+    public CopySpecImpl into(Object destDir) {
         this.destDir = destDir;
         return this;
     }
 
-    public CopySpec into(Object destPath, Closure configureClosure) {
+    public CopySpecImpl into(Object destPath, Closure configureClosure) {
         if (configureClosure == null) {
             into(destPath);
             return this;
