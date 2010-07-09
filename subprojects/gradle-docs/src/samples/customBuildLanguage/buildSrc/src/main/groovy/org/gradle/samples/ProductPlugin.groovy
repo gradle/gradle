@@ -26,6 +26,9 @@ class ProductPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.configure(project) {
             apply plugin: 'base'
+            repositories {
+                mavenCentral()
+            }
 
             def pluginConvention = new ProductPluginConvention()
             convention.plugins.product = pluginConvention

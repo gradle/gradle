@@ -201,6 +201,12 @@ class SamplesJavaMultiProjectIntegrationTest {
         executer.inDirectory(apiDir).withTasks('classes').withArguments("-A javadoc").run()
         assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
     }
+
+    @Test
+    public void shouldNotUseCacheForProjectDependencies() {
+        TestFile apiDir = javaprojectDir.file(API_NAME)
+        executer.inDirectory(apiDir).withTasks('checkProjectDependency').run()
+    }
            
     private static def checkPartialWebAppBuild(String packagePrefix, TestFile javaprojectDir, String testPackagePrefix) {
         assertExists(javaprojectDir, SHARED_NAME, packagePrefix, SHARED_NAME, 'Person.class')

@@ -28,7 +28,6 @@ class IdeaIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canCreateAndDeleteMetaData() {
         File buildFile = testFile("build.gradle");
-        println(buildFile.absolutePath)
         usingBuildFile(buildFile).run();
     }
 }

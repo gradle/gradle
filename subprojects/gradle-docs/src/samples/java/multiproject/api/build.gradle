@@ -53,3 +53,13 @@ task dist(type: Zip) {
 // We want to test if commons-math was properly added to the build script classpath
 org.apache.commons.math.fraction.Fraction lhs = new org.apache.commons.math.fraction.Fraction(1, 3);
 org.gradle.buildsrc.BuildSrcClass bsc = new org.gradle.buildsrc.BuildSrcClass()
+
+task checkProjectDependency(dependsOn: project(':shared').jar) << {
+    File cachedSharedJarDir = new File(gradle.gradleUserHomeDir, "cache/multiproject/shared/jars")
+    copy {
+        from project(':shared').jar.archivePath
+        into cachedSharedJarDir
+    }
+    File sharedJar = configurations.compile.files.find { File file -> file.name.startsWith('shared')}
+    assert sharedJar.absolutePath == project(':shared').jar.archivePath.absolutePath
+}

@@ -17,6 +17,8 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.IvyContext;
+import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
+import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -24,13 +26,18 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
+import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ClientModule;
+import org.gradle.api.artifacts.ResolverContainer;
+import org.gradle.util.DeleteOnExit;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.Collection;
 import java.util.Date;
 import java.util.Map;
@@ -46,6 +53,7 @@ public class ClientModuleResolver extends BasicResolver {
         setName(name);
         this.moduleRegistry = moduleRegistry;
         this.userResolver = userResolver;
+        setRepositoryCacheManager(createUseOriginCacheManager(name));
     }
 
     public ResolvedModuleRevision getDependency(DependencyDescriptor dde, ResolveData data) {
@@ -85,8 +93,34 @@ public class ClientModuleResolver extends BasicResolver {
     }
 
     protected Resource getResource(String s) {
-        return null; 
+        return null;
     }
 
-    public void publish(Artifact artifact, File src, boolean overwrite) {}
+    public void publish(Artifact artifact, File src, boolean overwrite) {
+    }
+
+    private RepositoryCacheManager createUseOriginCacheManager(String name) {
+        File tmpIvyCache = createTmpDir();
+        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
+        cacheManager.setBasedir(tmpIvyCache);
+        cacheManager.setName(name);
+        cacheManager.setUseOrigin(true);
+        cacheManager.setLockStrategy(new NoLockStrategy());
+        cacheManager.setIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
+        cacheManager.setArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
+        return cacheManager;
+    }
+
+    private File createTmpDir() {
+        File tmpFile;
+        try {
+            tmpFile = File.createTempFile("gradle_ivy_cache_" + getName(), "");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        tmpFile.delete();
+        tmpFile.mkdir();
+        DeleteOnExit.addFile(tmpFile);
+        return tmpFile;
+    }
 }
