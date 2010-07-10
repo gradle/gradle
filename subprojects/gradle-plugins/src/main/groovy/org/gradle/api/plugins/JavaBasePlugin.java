@@ -74,7 +74,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 sourceSet.getJava().srcDir(String.format("src/%s/java", sourceSet.getName()));
                 sourceSet.getResources().srcDir(String.format("src/%s/resources", sourceSet.getName()));
 
-                Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), Copy.class);
+                Copy processResources = project.getTasks().add(sourceSet.getProcessResourcesTaskName(), ProcessResources.class);
                 processResources.setDescription(String.format("Processes the %s.", sourceSet.getResources()));
                 conventionMapping = processResources.getConventionMapping();
                 conventionMapping.map("defaultSource", new ConventionValue() {

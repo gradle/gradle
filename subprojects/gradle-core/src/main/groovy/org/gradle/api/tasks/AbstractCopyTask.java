@@ -33,7 +33,7 @@ import java.util.regex.Pattern;
 public abstract class AbstractCopyTask extends ConventionTask implements CopyAction {
 
     @TaskAction
-    void copy() {
+    protected void copy() {
         configureRootSpec();
         getCopyAction().execute();
         setDidWork(getCopyAction().getDidWork());
