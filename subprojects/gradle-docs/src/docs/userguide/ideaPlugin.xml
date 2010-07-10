@@ -29,7 +29,6 @@
     <sample id="useIdeaPlugin" dir="idea" title="Using the Idea plugin">
         <sourcefile file="build.gradle" snippet="use-plugin"/>
     </sample>
-    <para>The source of the plugin can be found at <ulink url="http://github.com/gradle/gradle-idea-plugin">Github</ulink>.</para>
     <para>One focus of the Idea tasks is to be open to customizations. They provide a couple of hooks to add or remove content from
         the generated files.
 </para>
@@ -53,7 +52,7 @@
                 <td>
                     <literal>idea</literal>
                 </td>
-                <td><literal>ideaProject</literal>, <literal>ideaModule</literal></td>
+                <td><literal>ideaProject</literal>, <literal>ideaModule</literal>, <literal>ideaWorkspace</literal></td>
                 <td><literal>-</literal></td>
                 <td>Generates all the idea configuration files</td>
             </tr>
@@ -62,7 +61,7 @@
                     <literal>cleanIdea</literal>
                 </td>
                 <td>
-                    <literal>cleanIdeaProject, cleanIdeaModule, cleanIdeaWorkspace</literal>
+                    <literal>cleanIdeaProject</literal>, <literal>cleanIdeaModule</literal>, <literal>cleanIdeaWorkspace</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
                 <td>Removes all idea configuration files</td>
@@ -104,7 +103,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td>org.gradle.plugins.idea.IdeaProject</td>
+                <td><apilink class="org.gradle.plugins.idea.IdeaProject" lang="groovy"/></td>
                 <td>Generates the <filename>.ipr</filename> file. The Idea plugin adds this task only to the root project.</td>
             </tr>
             <tr>
@@ -114,8 +113,18 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td>org.gradle.plugins.idea.IdeaModule</td>
+                <td><apilink class="org.gradle.plugins.idea.IdeaModule" lang="groovy"/></td>
                 <td>Generates the <filename>.iml</filename> file</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>ideaWorkspace</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace" lang="groovy"/></td>
+                <td>Generates the <filename>.iws</filename> file</td>
             </tr>
         </table>
 
@@ -344,8 +353,8 @@
                 <td>
                     <literal><code>beforeConfigured { arg -> }</code></literal>
                 </td>
-                <td><code>org.gradle.plugins.idea.model.Project</code></td>
-                <td><code>org.gradle.plugins.idea.model.Module</code></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Project" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Module" lang="groovy"/></td>
                 <td>n/a</td>
                 <td>Gets called directly after the domain objects have been populated with the content of the
                     existing XML file (if there is one).</td>
@@ -354,8 +363,8 @@
                 <td>
                     <literal><code>whenConfigured { arg -> }</code></literal>
                 </td>
-                <td><code>org.gradle.plugins.idea.model.Project</code></td>
-                <td><code>org.gradle.plugins.idea.model.Module</code></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Project" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Module" lang="groovy"/></td>
                 <td>n/a</td>
                 <td>Gets called after the domain objects have been populated with the content of the
                     existing XML file and the content from the build script.</td>
@@ -374,7 +383,7 @@
     <section>
         <title>Customizing the generated files</title>
         <para>Both, the <literal>IdeaProject</literal> and the <literal>IdeaModule</literal> task provide the
-            same hooks and behavior for customizing the generated content. The IdeaWorkspace only provides a hook
+            same hooks and behavior for customizing the generated content. The <literal>IdeaWorkspace</literal> only provides a hook
             for direct XML manipulation.</para>
         <para>The plugin recognizes existing idea files. If an idea module, project or workspace file does not exists,
         a default one is used. Otherwise the existing ones are merged.</para>
