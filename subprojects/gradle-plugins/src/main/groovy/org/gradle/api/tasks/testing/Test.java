@@ -368,6 +368,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
         failIfNoTestIsExecuted(singleTest);
         setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
+        getLogger().info("Running single tests with pattern: {}", getIncludes());
     }
 
     private String getSingleTestProperty() {
