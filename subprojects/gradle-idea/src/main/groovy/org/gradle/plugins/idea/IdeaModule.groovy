@@ -148,6 +148,7 @@ public class IdeaModule extends ConventionTask {
     }
 
     protected Set getExcludePaths() {
+
         getExcludeDirs().collect { getPath(it) }
     }
 
@@ -193,7 +194,7 @@ public class IdeaModule extends ConventionTask {
             }
             Map javadocFiles = downloadJavadoc ? getFiles(javadocDependencies, "javadoc") : [:]
 
-            Set moduleLibraries = resolvedConfiguration.getFiles(Specs.SATISFIES_ALL).collect { File binaryFile ->
+            List moduleLibraries = resolvedConfiguration.getFiles(Specs.SATISFIES_ALL).collect { File binaryFile ->
                 File sourceFile = sourceFiles[binaryFile.name]
                 File javadocFile = javadocFiles[binaryFile.name]
                 new ModuleLibrary([getPath(binaryFile)] as Set, javadocFile ? [getPath(javadocFile)] as Set : [] as Set, sourceFile ? [getPath(sourceFile)] as Set : [] as Set, [] as Set, scope)
@@ -205,7 +206,7 @@ public class IdeaModule extends ConventionTask {
         return []
     }
 
-    private def getSelfResolvingFiles(Set dependencies, String scope) {
+    private def getSelfResolvingFiles(Collection dependencies, String scope) {
         dependencies.inject([] as LinkedHashSet) { result, SelfResolvingDependency selfResolvingDependency ->
             result.addAll(selfResolvingDependency.resolve().collect { File file ->
                 new ModuleLibrary([getPath(file)] as Set, [] as Set, [] as Set, [] as Set, scope)
@@ -215,9 +216,9 @@ public class IdeaModule extends ConventionTask {
     }
 
     private Set getScopeDependencies(Map configurations, Closure filter) {
-        Set firstLevelDependencies = []
+        Set firstLevelDependencies = new LinkedHashSet()
         configurations.plus.each { configuration ->
-            firstLevelDependencies += configuration.getAllDependencies().findAll(filter)
+            firstLevelDependencies.addAll(configuration.getAllDependencies().findAll(filter))
         }
         configurations.minus.each { configuration ->
             configuration.getAllDependencies().findAll(filter).each { minusDep ->
