@@ -35,11 +35,6 @@ import org.junit.runner.RunWith
 import org.gradle.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
-import org.gradle.cache.CacheRepository
-import org.gradle.util.TimeProvider
-import org.gradle.cache.CacheBuilder
-import org.gradle.cache.PersistentStateCache
-import org.gradle.cache.PersistentCache
 
 /**
  * @author Hans Dockter
@@ -51,10 +46,6 @@ class BuildSourceBuilderTest {
     GradleLauncher gradleMock
     Project rootProjectMock
     Configuration configurationMock
-    CacheInvalidationStrategy cacheInvalidationStrategyMock
-    CacheRepository cacheRepositoryMock
-    PersistentStateCache cacheMock
-    TimeProvider timeProviderMock
     File rootDir
     File testBuildSrcDir
     Set testDependencies
@@ -74,11 +65,7 @@ class BuildSourceBuilderTest {
         gradleMock = context.mock(GradleLauncher)
         rootProjectMock = context.mock(Project)
         configurationMock = context.mock(Configuration)
-        cacheInvalidationStrategyMock = context.mock(CacheInvalidationStrategy)
-        cacheRepositoryMock = context.mock(CacheRepository)
-        cacheMock = context.mock(PersistentStateCache)
-        timeProviderMock = context.mock(TimeProvider)
-        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, cacheInvalidationStrategyMock, context.mock(ClassLoaderFactory), cacheRepositoryMock, timeProviderMock)
+        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderFactory))
         expectedStartParameter = new StartParameter(
                 searchUpwards: false,
                 currentDir: testBuildSrcDir,
@@ -104,11 +91,10 @@ class BuildSourceBuilderTest {
         expectedBuildResult = new BuildResult(build, null)
     }
 
-    @Test public void testCreateDependencyWithExistingBuildSources() {
+    @Test public void testCreateDependencyWhenBuildSrcDirExistsAndContainsBuildScript() {
         StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
         expectTimestampFetchedFromCache()
         context.checking {
-            one(cacheInvalidationStrategyMock).isValid(expectedTimestamp, testBuildSrcDir); will(returnValue(false))
             one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
             one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
             one(gradleMock).run(); will(returnValue(expectedBuildResult))
@@ -120,43 +106,9 @@ class BuildSourceBuilderTest {
         assertEquals(testDependencies, actualClasspath)
     }
 
-    @Test public void testCreateDependencyWithCachedArtifactAndValidCache() {
-        expectedStartParameter.setCacheUsage(CacheUsage.ON)
-        StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
+    @Test public void testCreateDependencyWhenBuildSrcDirExistsAndDoesNotContainBuildScript() {
         expectTimestampFetchedFromCache()
         context.checking {
-            one(cacheInvalidationStrategyMock).isValid(expectedTimestamp, testBuildSrcDir); will(returnValue(true))
-            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
-            one(gradleMock).getBuildAnalysis(); will(returnValue(expectedBuildResult))
-        }
-        expectTimestampWrittenToCache()
-
-        createBuildFile()
-        Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(testDependencies, actualClasspath)
-    }
-
-    @Test public void testCreateDependencyWithCachedArtifactAndValidCacheWithRebuildCache() {
-        expectedStartParameter.setCacheUsage(CacheUsage.REBUILD)
-        StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        expectTimestampFetchedFromCache()
-        context.checking {
-            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
-            one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
-            one(gradleMock).run(); will(returnValue(expectedBuildResult))
-        }
-        expectTimestampWrittenToCache()
-
-        createBuildFile()
-        Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
-        assertEquals(testDependencies, actualClasspath)
-    }
-
-    @Test public void testCreateDependencyWithNonExistingBuildScript() {
-        expectTimestampFetchedFromCache()
-        context.checking {
-            one(cacheInvalidationStrategyMock).isValid(expectedTimestamp, testBuildSrcDir); will(returnValue(false))
             one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()))
             will { StartParameter param ->
                 assertThat(param.buildScriptSource, instanceOf(StringScriptSource.class))
@@ -173,44 +125,16 @@ class BuildSourceBuilderTest {
         assertEquals(testDependencies, actualClasspath)
     }
 
-    @Test public void testCreateDependencyWithNonExistingBuildSrcDir() {
+    @Test public void testCreateDependencyWhenBuildSrcDirDoesNotExist() {
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
         assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
     private expectTimestampFetchedFromCache() {
-        context.checking {
-            CacheBuilder cacheBuilder = context.mock(CacheBuilder)
-            PersistentCache cache = context.mock(PersistentCache)
-
-            one(cacheRepositoryMock).cache('buildSrc')
-            will(returnValue(cacheBuilder))
-
-            one(cacheBuilder).forObject(testBuildSrcDir)
-            will(returnValue(cacheBuilder))
-
-            one(cacheBuilder).invalidateOnVersionChange()
-            will(returnValue(cacheBuilder))
-
-            one(cacheBuilder).open()
-            will(returnValue(cache))
-
-            one(cache).openStateCache()
-            will(returnValue(cacheMock))
-
-            one(cacheMock).get()
-            will(returnValue(expectedTimestamp))
-        }
     }
 
     private expectTimestampWrittenToCache() {
-        context.checking {
-            allowing(timeProviderMock).getCurrentTime()
-            will(returnValue(6700L))
-
-            one(cacheMock).set(6700L)
-        }
     }
 
     private createBuildFile() {

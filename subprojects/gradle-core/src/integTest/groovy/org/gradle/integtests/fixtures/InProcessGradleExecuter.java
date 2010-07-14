@@ -144,7 +144,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         BuildListenerImpl buildListener = new BuildListenerImpl();
         try {
             doRun(outputListener, errorListener, buildListener).rethrowFailure();
-            throw new AssertionFailedError("expected build to fail.");
+            throw new AssertionFailedError("expected build to fail but it did not.");
         } catch (GradleException e) {
             return new InProcessExecutionFailure(buildListener.executedTasks, buildListener.skippedTasks,
                     outputListener.writer.toString(), errorListener.writer.toString(), e);

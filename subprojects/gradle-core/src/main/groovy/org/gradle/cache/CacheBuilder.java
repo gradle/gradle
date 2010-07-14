@@ -38,13 +38,6 @@ public interface CacheBuilder {
     CacheBuilder forObject(Object target);
 
     /**
-     * Invalidates this cache on Gradle version change. The default is to maintain a separate cache for each version.
-     *
-     * @return this
-     */
-    CacheBuilder invalidateOnVersionChange();
-
-    /**
      * Creates the cache.
      */
     PersistentCache open();

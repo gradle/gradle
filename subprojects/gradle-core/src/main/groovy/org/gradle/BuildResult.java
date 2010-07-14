@@ -41,12 +41,13 @@ public class BuildResult {
     /**
      * <p>Rethrows the build failure. Does nothing if there was no build failure.</p>
      */
-    public void rethrowFailure() {
+    public BuildResult rethrowFailure() {
         if (failure instanceof GradleException) {
             throw (GradleException) failure;
         }
         if (failure != null) {
             throw new GradleException("Build aborted because of an internal error.", failure);
         }
+        return this;
     }
 }

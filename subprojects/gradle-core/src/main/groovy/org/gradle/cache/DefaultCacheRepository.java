@@ -45,7 +45,6 @@ public class DefaultCacheRepository implements CacheRepository {
         private final String key;
         private Map<String, ?> properties = Collections.emptyMap();
         private Object target;
-        private boolean invalidateOnVersionChange;
 
         private PersistentCacheBuilder(String key) {
             this.key = key;
@@ -58,11 +57,6 @@ public class DefaultCacheRepository implements CacheRepository {
 
         public CacheBuilder forObject(Object target) {
             this.target = target;
-            return this;
-        }
-
-        public CacheBuilder invalidateOnVersionChange() {
-            invalidateOnVersionChange = true;
             return this;
         }
 
@@ -80,12 +74,7 @@ public class DefaultCacheRepository implements CacheRepository {
             } else {
                 throw new IllegalArgumentException(String.format("Cannot create cache for unrecognised domain object %s.", target));
             }
-            if (invalidateOnVersionChange) {
-                properties.put("gradle.version", version.getVersion());
-                cacheBaseDir = new File(cacheBaseDir, "noVersion");
-            } else {
-                cacheBaseDir = new File(cacheBaseDir, version.getVersion());
-            }
+            cacheBaseDir = new File(cacheBaseDir, version.getVersion());
             return factory.open(new File(cacheBaseDir, key), cacheUsage, properties);
         }
     }

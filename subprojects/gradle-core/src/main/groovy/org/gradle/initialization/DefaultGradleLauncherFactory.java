@@ -25,7 +25,6 @@ import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.cache.CacheRepository;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
@@ -33,7 +32,6 @@ import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.ProgressLoggingBridge;
-import org.gradle.util.TimeProvider;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -95,11 +93,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                new DefaultCacheInvalidationStrategy(),
-                                serviceRegistry.get(ClassLoaderFactory.class),
-                                serviceRegistry.get(CacheRepository.class),
-                                serviceRegistry.get(TimeProvider.class)
-                        )),
+                                serviceRegistry.get(ClassLoaderFactory.class))),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
                         serviceRegistry.get(IProjectFactory.class)

@@ -16,11 +16,9 @@
 package org.gradle.integtests;
 
 import org.gradle.integtests.fixtures.ArtifactBuilder;
-import org.gradle.util.TestFile;
+import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.junit.Ignore;
 import org.junit.Test;
-
-import java.util.Map;
 
 import static org.junit.Assert.*;
 
@@ -33,35 +31,22 @@ public class BuildScriptClasspathIntegrationTest extends AbstractIntegrationTest
     }
 
     @Test
-    public void cachesJarGeneratedByBuildSrc() {
-        testFile("buildSrc/src/main/java/BuildClass.java").writelns("public class BuildClass { }");
+    public void buildSrcProjectCanReferToSourceOutsideBuildSrcDir() {
+        testFile("gradle/src/BuildClass.java").writelns("public class BuildClass { }");
+        testFile("buildSrc/build.gradle").writelns(
+                "apply plugin: 'java'",
+                "sourceSets.main.java.srcDirs = ['../gradle/src']"
+        );
         testFile("build.gradle").writelns(
-                "new BuildClass()",
-                "task test"
+                "task test << { new BuildClass() }"
         );
 
         inTestDirectory().withTasks("test").run();
 
-        TestFile buildSrcJar = testFile("buildSrc/build/libs/buildSrc.jar");
-        buildSrcJar.assertIsFile();
-        TestFile.Snapshot snapshot = buildSrcJar.snapshot();
+        testFile("gradle/src/BuildClass.java").writelns("public class BuildClass { public BuildClass(String value) { throw new RuntimeException(\"broken\"); } }");
 
-        inTestDirectory().withTasks("test").run();
-
-        buildSrcJar.assertHasNotChangedSince(snapshot);
-
-        inTestDirectory().withArguments("-Crebuild").withTasks("test").run();
-
-        buildSrcJar.assertHasChangedSince(snapshot);
-        snapshot = buildSrcJar.snapshot();
-
-        TestFile cacheProps = testFile("buildSrc/.gradle/noVersion/buildSrc/cache.properties");
-        Map<String, String> properties = cacheProps.getProperties();
-        properties.put("gradle.version", "some-other-version");
-        cacheProps.writeProperties(properties);
-
-        inTestDirectory().withTasks("test").run();
-        buildSrcJar.assertHasChangedSince(snapshot);
+        ExecutionFailure failure = inTestDirectory().withTasks("test").runWithFailure();
+        failure.assertHasCause("broken");
     }
 
     @Test
