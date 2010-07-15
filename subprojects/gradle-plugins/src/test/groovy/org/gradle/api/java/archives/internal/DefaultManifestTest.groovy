@@ -46,8 +46,8 @@ class DefaultManifestTest extends Specification {
 
     def testInitWithPathFileResolver() {
         TestFile manifestFile = tmpDir.file('somefile')
-        def fileMap = [key2: 'value2File', key4: 'value4File', key6: 'value6File']
-        def fileSectionMap = [keysec2: 'value2Secfile', keysec4: 'value5Secfile', keysec6: 'value6Secfile']
+        def fileMap = [Key2: 'value2File', key4: 'value4File', key6: 'value6File']
+        def fileSectionMap = [Keysec2: 'value2Secfile', keysec4: 'value5Secfile', keysec6: 'value6Secfile']
         String content = ''
         fileMap.each {key, value ->
             content += String.format("%s: %s%n", key, value)

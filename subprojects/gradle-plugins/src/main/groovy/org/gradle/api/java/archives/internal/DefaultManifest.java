@@ -211,7 +211,8 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         Enumeration attributeKeys = antManifest.getMainSection().getAttributeKeys();
         while (attributeKeys.hasMoreElements()) {
             String key = (String) attributeKeys.nextElement();
-            attributes.put(key, antManifest.getMainSection().getAttributeValue(key));
+            String attributeKey = antManifest.getMainSection().getAttribute(key).getName();
+            attributes.put(attributeKey, antManifest.getMainSection().getAttributeValue(key));
         }
         attributes.put("Manifest-Version", antManifest.getManifestVersion());
     }
@@ -230,7 +231,8 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
         Enumeration attributeKeys = antManifest.getSection(sectionName).getAttributeKeys();
         while (attributeKeys.hasMoreElements()) {
             String key = (String) attributeKeys.nextElement();
-            attributes.put(key, antManifest.getSection(sectionName).getAttributeValue(key));
+            String attributeKey = antManifest.getSection(sectionName).getAttribute(key).getName();
+            attributes.put(attributeKey, antManifest.getSection(sectionName).getAttributeValue(key));
         }
     }
 }
