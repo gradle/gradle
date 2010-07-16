@@ -53,7 +53,7 @@ libraries = [
         commons_lang: 'commons-lang:commons-lang:2.5@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.7.3@jar',
-        ivy: 'org.apache.ivy:ivy:2.1.0@jar',
+        ivy: 'org.apache.ivy:ivy:2.2.0-rc1@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         jopt_simple: 'net.sf.jopt-simple:jopt-simple:3.2@jar',
         slf4j_api: 'org.slf4j:slf4j-api:1.6.0@jar',
