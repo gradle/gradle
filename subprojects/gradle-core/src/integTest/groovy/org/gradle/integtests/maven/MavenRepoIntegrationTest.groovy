@@ -14,7 +14,7 @@
  * limitations under the License.
  */
  
-package org.gradle.integtests
+package org.gradle.integtests.maven
 
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
@@ -23,6 +23,7 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.DistributionIntegrationTestRunner
 
 /**
  * @author Hans Dockter

@@ -108,7 +108,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     }
 
     public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {
-        IBiblioResolver iBiblioResolver = createIBiblioResolver(name, root);
+        GradleIBiblioResolver iBiblioResolver = createIBiblioResolver(name, root);
         if (jarRepoUrls.length == 0) {
             iBiblioResolver.setDescriptor(IBiblioResolver.DESCRIPTOR_OPTIONAL);
             return iBiblioResolver;
@@ -118,8 +118,8 @@ public class DefaultResolverFactory implements ResolverFactory {
         return createDualResolver(name, iBiblioResolver, urlResolver);
     }
 
-    private IBiblioResolver createIBiblioResolver(String name, String root) {
-        IBiblioResolver iBiblioResolver = new IBiblioResolver();
+    private GradleIBiblioResolver createIBiblioResolver(String name, String root) {
+        GradleIBiblioResolver iBiblioResolver = new GradleIBiblioResolver();
         iBiblioResolver.setUsepoms(true);
         iBiblioResolver.setName(name);
         iBiblioResolver.setRoot(root);
@@ -140,7 +140,7 @@ public class DefaultResolverFactory implements ResolverFactory {
         return urlResolver;
     }
 
-    private DualResolver createDualResolver(String name, IBiblioResolver iBiblioResolver, URLResolver urlResolver) {
+    private DualResolver createDualResolver(String name, GradleIBiblioResolver iBiblioResolver, URLResolver urlResolver) {
         DualResolver dualResolver = new DualResolver();
         dualResolver.setName(name);
         dualResolver.setIvyResolver(iBiblioResolver);

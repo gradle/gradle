@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.maven
 
 import groovy.text.SimpleTemplateEngine
 import org.custommonkey.xmlunit.Diff
@@ -31,6 +31,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.DistributionIntegrationTestRunner
 
 /**
  * @author Hans Dockter
