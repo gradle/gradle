@@ -28,6 +28,7 @@ import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.gradle.api.file.FileCollection
 import org.gradle.util.ChangeListener
+import org.gradle.api.file.FileTree
 
 @RunWith(JMock.class)
 public class DefaultFileSnapshotterTest {
@@ -316,8 +317,10 @@ public class DefaultFileSnapshotterTest {
     }
 
     private FileCollection files(File... files) {
-        FileCollection collection = context.mock(FileCollection.class, "collection ${counter++}")
+        FileTree collection = context.mock(FileTree.class)
         context.checking {
+            allowing(collection).getAsFileTree()
+            will(returnValue(collection))
             allowing(collection).iterator()
             will(returnIterator(files as List))
         }

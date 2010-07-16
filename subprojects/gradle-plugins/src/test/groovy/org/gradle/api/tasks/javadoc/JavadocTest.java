@@ -19,6 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
 import org.gradle.external.javadoc.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
@@ -52,7 +53,7 @@ public class JavadocTest extends AbstractConventionTaskTest {
     private JavadocExecHandleBuilder javadocExecHandleBuilderMock = context.mock(JavadocExecHandleBuilder.class);
     private ExecAction execActionMock = context.mock(ExecAction.class);
     private Javadoc task;
-    private FileCollection configurationMock = context.mock(FileCollection.class);
+    private FileCollection configurationMock = new SimpleFileCollection(classpath);
     private String executable = "somepath";
 
     @Before
@@ -62,10 +63,6 @@ public class JavadocTest extends AbstractConventionTaskTest {
         task.setClasspath(configurationMock);
         task.setExecutable(executable);
         task.setJavadocExecHandleBuilder(javadocExecHandleBuilderMock);
-        context.checking(new Expectations() {{
-            allowing(configurationMock).getFiles(); will(returnValue(classpath));
-        }});
-
         GFileUtils.touch(new File(srcDir, "file.java"));
     }
 

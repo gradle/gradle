@@ -306,12 +306,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return loggingManager;
     }
 
-    private void throwExceptionDuringExecutionTime(String operation) {
-        if (state.getExecuting()) {
-            throw new IllegalOperationAtExecutionTimeException("The operation " + operation + " must not be called at execution time.");
-        }
-    }
-
     public Map<String, Object> getAdditionalProperties() {
         return dynamicObjectHelper.getAdditionalProperties();
     }
@@ -329,10 +323,6 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public void setProperty(String name, Object value) {
-        dynamicObjectHelper.setProperty(name, value);
-    }
-
-    protected void defineProperty(String name, Object value) {
         dynamicObjectHelper.setProperty(name, value);
     }
 

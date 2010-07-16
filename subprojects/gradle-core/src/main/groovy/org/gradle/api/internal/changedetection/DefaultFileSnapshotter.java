@@ -39,7 +39,7 @@ public class DefaultFileSnapshotter implements FileSnapshotter {
 
     public FileCollectionSnapshot snapshot(FileCollection sourceFiles) {
         Map<String, FileSnapshot> snapshots = new HashMap<String, FileSnapshot>();
-        for (File file : sourceFiles) {
+        for (File file : sourceFiles.getAsFileTree()) {
             if (file.isFile()) {
                 snapshots.put(file.getAbsolutePath(), new FileHashSnapshot(hasher.hash(file)));
             } else if (file.isDirectory()) {

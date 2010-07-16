@@ -197,6 +197,10 @@ public class TestFile extends File implements TestFileContext {
         }
     }
 
+    public void copyFrom(File target) {
+        new TestFile(target).copyTo(this);
+    }
+    
     public void copyFrom(URL resource) {
         try {
             FileUtils.copyURLToFile(resource, this);

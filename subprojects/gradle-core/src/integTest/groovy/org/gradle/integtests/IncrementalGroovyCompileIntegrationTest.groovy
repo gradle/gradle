@@ -20,6 +20,7 @@ import org.junit.Rule
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.junit.Test
+import org.gradle.integtests.fixtures.ExecutionFailure
 
 class IncrementalGroovyCompileIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -37,5 +38,16 @@ class IncrementalGroovyCompileIntegrationTest {
         executer.withTasks('compileGroovy').run().assertTasksSkipped(':compileJava')
 
         executer.withTasks('compileGroovy').run().assertTasksSkipped(':compileJava', ':compileGroovy')
+    }
+
+    @Test
+    public void recompilesDependentClasses() {
+        executer.withTasks("classes").run();
+
+        // Update interface, compile should fail
+        distribution.testFile('src/main/groovy/IPerson.groovy').assertIsFile().copyFrom(distribution.testFile('NewIPerson.groovy'))
+
+        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
+        failure.assertHasDescription("Execution failed for task ':compileGroovy'.");
     }
 }

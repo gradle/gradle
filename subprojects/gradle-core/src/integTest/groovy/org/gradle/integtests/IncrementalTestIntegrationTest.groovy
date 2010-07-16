@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.junit.Test
 import static org.hamcrest.Matchers.*
+import org.junit.Assert
+import org.junit.Ignore
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -35,5 +37,39 @@ class IncrementalTestIntegrationTest {
         distribution.testFile('src/test/java/Broken.java').assertIsFile().delete()
 
         executer.withTasks('test').run()
+    }
+
+    @Test
+    public void executesTestsWhenSourceChanges() {
+        executer.withTasks('test').run()
+
+        // Change a production class
+        distribution.testFile('src/main/java/MainClass.java').assertIsFile().copyFrom(distribution.testFile('NewMainClass.java'))
+
+        executer.withTasks('test').run().assertTasksSkipped(':processResources', ':processTestResources')
+
+        executer.withTasks('test').run().assertTasksSkipped(':compileJava', ':processResources', ':classes', ':compileTestJava', ':processTestResources', ':testClasses', ':test')
+        
+        // Change a test class
+        distribution.testFile('src/test/java/Ok.java').assertIsFile().copyFrom(distribution.testFile('NewOk.java'))
+
+        executer.withTasks('test').run().assertTasksSkipped(':compileJava', ':processResources', ':classes', ':processTestResources')
+
+        executer.withTasks('test').run().assertTasksSkipped(':compileJava', ':processResources', ':classes', ':compileTestJava', ':processTestResources', ':testClasses', ':test')
+    }
+
+    @Test @Ignore
+    public void executesTestsWhenSelectedTestsChange() {
+        Assert.fail()
+    }
+
+    @Test @Ignore
+    public void executesTestsWhenPropertiesChange() {
+        Assert.fail()
+    }
+
+    @Test @Ignore
+    public void executesTestsWhenTestFrameworkChanges() {
+        Assert.fail()
     }
 }

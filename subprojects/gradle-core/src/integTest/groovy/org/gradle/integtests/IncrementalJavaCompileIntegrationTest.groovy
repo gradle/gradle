@@ -48,16 +48,24 @@ class IncrementalJavaCompileIntegrationTest {
 
     @Test
     public void recompilesDependentClasses() {
-        distribution.testFile("build.gradle").writelns("apply plugin: 'java'");
-        writeShortInterface();
-        writeTestClass();
-
         executer.withTasks("classes").run();
 
         // Update interface, compile should fail
-        writeLongInterface();
+        distribution.testFile('src/main/java/IPerson.java').assertIsFile().copyFrom(distribution.testFile('NewIPerson.java'))
+        
         ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
         failure.assertHasDescription("Execution failed for task ':compileJava'.");
+    }
+
+    @Test
+    public void recompilesDependentClassesAcrossProjectBoundaries() {
+        executer.withTasks("app:classes").run();
+
+        // Update interface, compile should fail
+        distribution.testFile('lib/src/main/java/IPerson.java').assertIsFile().copyFrom(distribution.testFile('NewIPerson.java'))
+
+        ExecutionFailure failure = executer.withTasks("app:classes").runWithFailure();
+        failure.assertHasDescription("Execution failed for task ':app:compileJava'.");
     }
 
     @Test

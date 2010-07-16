@@ -58,6 +58,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     private final TestFile missingOutputFile = tmpDir.file("missing-output-file");
     private final TestFile inputFile = tmpDir.createFile("input-file");
     private final TestFile inputDir = tmpDir.createDir("input-dir");
+    private final TestFile inputDirFile = inputDir.file("input-file2").createFile();
     private final TestFile missingInputFile = tmpDir.file("missing-input-file");
     private final Set<TestFile> inputFiles = toSet(inputFile, inputDir, missingInputFile);
     private final Set<TestFile> outputFiles = toSet(outputFile, outputDir, emptyOutputDir, missingOutputFile);
@@ -105,7 +106,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenAnyOutputDirFileNoLongerExists() {
+    public void artifactsAreNotUpToDateWhenAnyFileInOutputDirNoLongerExists() {
         execute();
 
         outputDirFile.delete();
@@ -126,7 +127,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenAnyOutputDirFileHasChangedType() {
+    public void artifactsAreNotUpToDateWhenAnyFileInOutputDirHasChangedType() {
         execute();
 
         outputDirFile.delete();
@@ -147,7 +148,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
     }
 
     @Test
-    public void artifactsAreNotUpToDateWhenAnyOutputDirFileHasChangedHash() {
+    public void artifactsAreNotUpToDateWhenAnyFileInOutputDirHasChangedHash() {
         execute();
 
         outputDirFile.write("new content");
@@ -231,6 +232,47 @@ public class DefaultTaskArtifactStateRepositoryTest {
         execute();
 
         inputFile.delete();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyFileCreatedInInputDir() {
+        execute();
+
+        inputDir.file("other-file").createFile();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyFileDeletedFromInputDir() {
+        execute();
+
+        inputDirFile.delete();
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyFileInInputDirChangesHash() {
+        execute();
+
+        inputDirFile.writelns("new content");
+
+        TaskArtifactState state = repository.getStateFor(task());
+        assertFalse(state.isUpToDate());
+    }
+    
+    @Test
+    public void artifactsAreNotUpToDateWhenAnyFileInInputDirChangesType() {
+        execute();
+
+        inputDirFile.delete();
+        inputDirFile.mkdir();
 
         TaskArtifactState state = repository.getStateFor(task());
         assertFalse(state.isUpToDate());

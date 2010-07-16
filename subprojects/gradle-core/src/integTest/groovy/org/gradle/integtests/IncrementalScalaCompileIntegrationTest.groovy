@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
+import org.gradle.integtests.fixtures.ExecutionFailure
 
 class IncrementalScalaCompileIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -37,5 +38,16 @@ class IncrementalScalaCompileIntegrationTest {
         executer.withTasks('compileScala').run().assertTasksSkipped(':compileJava')
 
         executer.withTasks('compileScala').run().assertTasksSkipped(':compileJava', ':compileScala')
+    }
+
+    @Test
+    public void recompilesDependentClasses() {
+        executer.withTasks("classes").run();
+
+        // Update interface, compile should fail
+        distribution.testFile('src/main/scala/IPerson.scala').assertIsFile().copyFrom(distribution.testFile('NewIPerson.scala'))
+
+        ExecutionFailure failure = executer.withTasks("classes").runWithFailure();
+        failure.assertHasDescription("Execution failed for task ':compileScala'.");
     }
 }

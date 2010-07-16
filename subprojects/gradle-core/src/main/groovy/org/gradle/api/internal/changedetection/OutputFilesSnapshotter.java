@@ -71,7 +71,7 @@ public class OutputFilesSnapshotter implements FileSnapshotter {
             }
             snapshotDirIds.put(file.getAbsolutePath(), dirId);
         }
-        return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files.getAsFileTree()));
+        return new OutputFilesSnapshot(snapshotDirIds, snapshotter.snapshot(files));
     }
 
     private static class OutputFilesSnapshot implements FileCollectionSnapshot {
