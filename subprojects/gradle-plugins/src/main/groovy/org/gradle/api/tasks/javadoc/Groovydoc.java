@@ -58,7 +58,7 @@ public class Groovydoc extends SourceTask {
     boolean includePrivate;
 
     public Groovydoc() {
-        captureStandardOutput(LogLevel.INFO);
+        getLogging().captureStandardOutput(LogLevel.INFO);
         IsolatedAntBuilder antBuilder = getServices().get(IsolatedAntBuilder.class);
         ClassPathRegistry classPathRegistry = getServices().get(ClassPathRegistry.class);
         antGroovydoc = new AntGroovydoc(antBuilder, classPathRegistry);
@@ -68,7 +68,6 @@ public class Groovydoc extends SourceTask {
     protected void generate() {
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
-        IsolatedAntBuilder builder = getServices().get(IsolatedAntBuilder.class);
         antGroovydoc.execute(getSource(), getDestinationDir(), isUse(), getWindowTitle(), getDocTitle(), getHeader(),
                 getFooter(), getOverview(), isIncludePrivate(), getLinks(), taskClasspath, getProject());
     }
