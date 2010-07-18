@@ -44,7 +44,7 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 
 import java.io.File;
@@ -67,9 +67,9 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     private Settings settings;
 
-    private LoggingManager loggingManager;
+    private LoggingManagerInternal loggingManager;
 
-    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManager loggingManager) {
+    public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         this.name = name;
         this.pomFilterContainer = pomFilterContainer;
         this.artifactPomContainer = artifactPomContainer;

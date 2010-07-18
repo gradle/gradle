@@ -20,7 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.api.tasks.StopActionException;
 import org.gradle.api.tasks.StopExecutionException;
 import org.gradle.api.tasks.TaskExecutionException;

@@ -22,9 +22,9 @@ import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.groovy.scripts.*;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ScriptCompilerFactory scriptCompilerFactory;
@@ -87,7 +87,7 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         public void apply(Object target) {
             DefaultServiceRegistry services = new DefaultServiceRegistry();
             services.add(ScriptPluginFactory.class, DefaultScriptPluginFactory.this);
-            services.add(LoggingManager.class, loggingManagerFactory.create());
+            services.add(LoggingManagerInternal.class, loggingManagerFactory.create());
 
             ScriptAware scriptAware = null;
             if (target instanceof ScriptAware) {

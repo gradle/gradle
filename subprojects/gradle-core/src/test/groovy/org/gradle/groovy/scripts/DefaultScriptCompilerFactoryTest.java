@@ -18,7 +18,7 @@ package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.resource.Resource;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.cache.CacheBuilder;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.PersistentCache;

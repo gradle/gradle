@@ -209,14 +209,14 @@ public abstract class AbstractTaskTest {
     @Test
     public void disableStandardOutCapture() {
         getTask().disableStandardOutputCapture();
-        assertFalse(getTask().getLoggingManager().isStandardOutputCaptureEnabled());
+        assertFalse(getTask().getLogging().isStandardOutputCaptureEnabled());
     }
 
     @Test
     public void captureStandardOut() {
         getTask().captureStandardOutput(LogLevel.DEBUG);
-        assertTrue(getTask().getLoggingManager().isStandardOutputCaptureEnabled());
-        assertEquals(LogLevel.DEBUG, getTask().getLoggingManager().getStandardOutputCaptureLevel());
+        assertTrue(getTask().getLogging().isStandardOutputCaptureEnabled());
+        assertEquals(LogLevel.DEBUG, getTask().getLogging().getStandardOutputCaptureLevel());
     }
 
     @Test

@@ -1,7 +1,7 @@
 
 buildscript {
     println('quietProject2ScriptClassPathOut')
-    captureStandardOutput LogLevel.INFO
+    logging.captureStandardOutput LogLevel.INFO
     logger.info('infoProject2ScriptClassPathOut')
 }
 

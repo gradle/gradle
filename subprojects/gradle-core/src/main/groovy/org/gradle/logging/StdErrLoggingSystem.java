@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.logging;
 
-import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.Logging;
 
-public interface StandardOutputRedirector extends StandardOutputCapture {
-    void redirectStandardOutputTo(StandardOutputListener stdOutDestination);
+import java.io.PrintStream;
 
-    void redirectStandardErrorTo(StandardOutputListener stdErrDestination);
+class StdErrLoggingSystem extends PrintStreamLoggingSystem {
+    public StdErrLoggingSystem() {
+        super(Logging.getLogger("system.err"));
+    }
+
+    @Override
+    protected PrintStream get() {
+        return System.err;
+    }
+
+    @Override
+    protected void set(PrintStream printStream) {
+        System.setErr(printStream);
+    }
 }

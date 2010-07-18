@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.logging.DefaultStandardOutputRedirector;
 
 import java.util.logging.ConsoleHandler;

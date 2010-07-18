@@ -26,10 +26,10 @@ import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.logging.LoggingConfigurer;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.hamcrest.BaseMatcher;
@@ -86,7 +86,7 @@ public class DefaultGradleLauncherTest {
 
     private ExceptionAnalyser exceptionAnalyserMock = context.mock(ExceptionAnalyser.class);
 
-    private LoggingManager loggingManagerMock = context.mock(LoggingManager.class);
+    private LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();

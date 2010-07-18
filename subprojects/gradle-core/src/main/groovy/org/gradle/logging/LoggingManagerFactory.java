@@ -16,8 +16,6 @@
 
 package org.gradle.logging;
 
-import org.gradle.api.logging.LoggingManager;
-
 public interface LoggingManagerFactory {
-    LoggingManager create();
+    LoggingManagerInternal create();
 }

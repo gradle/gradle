@@ -13,20 +13,30 @@ println 'A message which is logged at QUIET level'
 // END SNIPPET use-println
 
 // START SNIPPET capture-stdout
-captureStandardOutput LogLevel.INFO
+logging.captureStandardOutput LogLevel.INFO
 println 'A message which is logged at INFO level'
 // END SNIPPET capture-stdout
 
-task logLifecycle << {
-    println('A task message which is logged at LIFECYCLE level')
+System.err.println 'An error message which is logged at ERROR level'
+logging.captureStandardError LogLevel.LIFECYCLE
+System.err.println 'An error message which is logged at LIFECYCLE level'
+
+task logLifecycle {
+    logging.captureStandardOutput LogLevel.LIFECYCLE
+    logging.captureStandardError LogLevel.WARN
+    doFirst {
+        println('A task message which is logged at LIFECYCLE level')
+        System.err.println('A task error message which is logged at WARN level')
+    }
 }
-logLifecycle.captureStandardOutput(LogLevel.LIFECYCLE)
 
 // START SNIPPET task-capture-stdout
-task logInfo << {
-    println 'A task message which is logged at INFO level'
+task logInfo {
+    logging.captureStandardOutput LogLevel.INFO
+    doFirst {
+        println 'A task message which is logged at INFO level'
+    }
 }
-logInfo.captureStandardOutput(LogLevel.INFO)
 // END SNIPPET task-capture-stdout
 
 task nestedBuildLog << {

@@ -16,7 +16,7 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.GradleScriptException;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 import org.hamcrest.Description;
 import org.jmock.Expectations;
 import org.jmock.Sequence;

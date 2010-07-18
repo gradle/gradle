@@ -21,10 +21,10 @@ import org.gradle.GradleLauncher;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.execution.BuildExecuter;
+import org.gradle.logging.LoggingManagerInternal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -43,7 +43,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     private final ExceptionAnalyser exceptionAnalyser;
     private final BuildListener buildListener;
     private final InitScriptHandler initScriptHandler;
-    private final LoggingManager loggingManager;
+    private final LoggingManagerInternal loggingManager;
 
     /**
      * Creates a new instance.  Don't call this directly, use {@link #newInstance(org.gradle.StartParameter)} or {@link
@@ -52,7 +52,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
     public DefaultGradleLauncher(GradleInternal gradle, InitScriptHandler initScriptHandler, SettingsHandler settingsHandler,
                                  IGradlePropertiesLoader gradlePropertiesLoader, BuildLoader buildLoader,
                                  BuildConfigurer buildConfigurer, BuildListener buildListener,
-                                 ExceptionAnalyser exceptionAnalyser, LoggingManager loggingManager) {
+                                 ExceptionAnalyser exceptionAnalyser, LoggingManagerInternal loggingManager) {
         this.gradle = gradle;
         this.initScriptHandler = initScriptHandler;
         this.settingsHandler = settingsHandler;

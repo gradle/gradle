@@ -19,7 +19,7 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.logging.LoggingManager;
+import org.gradle.logging.LoggingManagerInternal;
 
 /**
  * @author Hans Dockter
@@ -27,7 +27,7 @@ import org.gradle.api.logging.LoggingManager;
 public class BaseMavenInstaller extends AbstractMavenResolver {
     private InstallTaskFactory installTaskFactory = new DefaultInstallTaskFactory();
 
-    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManager loggingManager) {
+    public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         super(name, pomFilterContainer, artifactPomContainer, loggingManager);
     }
 

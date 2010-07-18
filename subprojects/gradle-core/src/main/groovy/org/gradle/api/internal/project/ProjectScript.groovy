@@ -22,7 +22,8 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.Logger
 import org.gradle.groovy.scripts.DefaultScript
-import org.gradle.api.logging.StandardOutputCapture
+import org.gradle.logging.StandardOutputCapture
+import org.gradle.api.logging.LoggingManager
 
 abstract class ProjectScript extends DefaultScript {
 
@@ -52,6 +53,10 @@ abstract class ProjectScript extends DefaultScript {
 
     def StandardOutputCapture getStandardOutputCapture() {
         scriptTarget.standardOutputCapture
+    }
+
+    def LoggingManager getLogging() {
+        scriptTarget.logging
     }
 
     def Logger getLogger() {

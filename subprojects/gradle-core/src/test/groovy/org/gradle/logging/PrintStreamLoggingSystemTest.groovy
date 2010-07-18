@@ -16,20 +16,27 @@
 
 package org.gradle.logging
 
-import org.gradle.util.RedirectStdOutAndErr
-import org.junit.Rule
-import spock.lang.Specification
-import org.gradle.api.logging.LogLevel
+import ch.qos.logback.classic.Level
 import ch.qos.logback.classic.spi.ILoggingEvent
 import ch.qos.logback.core.Appender
-import ch.qos.logback.classic.Level
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.Logging
+import spock.lang.Specification
 
-class StandardOutputLoggingSystemTest extends Specification {
-    @Rule
-    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
+class PrintStreamLoggingSystemTest extends Specification {
     private final Appender<ILoggingEvent> appender = Mock()
     private final LoggingTestHelper helper = new LoggingTestHelper(appender)
-    private final StandardOutputLoggingSystem loggingSystem = new StandardOutputLoggingSystem()
+    private OutputStream original = new ByteArrayOutputStream()
+    private PrintStream stream = new PrintStream(original)
+    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(Logging.getLogger('logger')) {
+        protected PrintStream get() {
+            stream
+        }
+
+        protected void set(PrintStream printStream) {
+            stream = printStream
+        }
+    }
 
     def setup() {
         helper.attachAppender()
@@ -42,14 +49,11 @@ class StandardOutputLoggingSystemTest extends Specification {
     def onStartsCapturingWhenNotAlreadyCapturing() {
         when:
         loggingSystem.on(LogLevel.INFO)
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
         1 * appender.doAppend({ILoggingEvent event -> event.level == Level.INFO && event.message == 'info'})
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.ERROR && event.message == 'err'})
-        outputs.stdOut == ''
-        outputs.stdErr == ''
+        original.toString() == ''
         0 * appender._
     }
 
@@ -58,26 +62,21 @@ class StandardOutputLoggingSystemTest extends Specification {
 
         when:
         loggingSystem.on(LogLevel.DEBUG)
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
         1 * appender.doAppend({ILoggingEvent event -> event.level == Level.DEBUG && event.message == 'info'})
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.ERROR && event.message == 'err'})
-        outputs.stdOut == ''
-        outputs.stdErr == ''
+        original.toString() == ''
         0 * appender._
     }
 
     def offDoesNothingWhenNotAlreadyCapturing() {
         when:
         loggingSystem.off()
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
-        outputs.stdOut == String.format('info%n')
-        outputs.stdErr == String.format('err%n')
+        original.toString() == String.format('info%n')
         0 * appender._
     }
 
@@ -87,12 +86,10 @@ class StandardOutputLoggingSystemTest extends Specification {
         when:
         loggingSystem.off()
 
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
-        outputs.stdOut == String.format('info%n')
-        outputs.stdErr == String.format('err%n')
+        original.toString() == String.format('info%n')
         0 * appender._
     }
 
@@ -102,12 +99,10 @@ class StandardOutputLoggingSystemTest extends Specification {
 
         when:
         loggingSystem.restore(snapshot)
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
-        outputs.stdOut == String.format('info%n')
-        outputs.stdErr == String.format('err%n')
+        original.toString() == String.format('info%n')
         0 * appender._
     }
 
@@ -119,12 +114,10 @@ class StandardOutputLoggingSystemTest extends Specification {
 
         when:
         loggingSystem.restore(snapshot)
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
-        outputs.stdOut == String.format('info%n')
-        outputs.stdErr == String.format('err%n')
+        original.toString() == String.format('info%n')
         0 * appender._
     }
 
@@ -135,14 +128,11 @@ class StandardOutputLoggingSystemTest extends Specification {
 
         when:
         loggingSystem.restore(snapshot)
-        System.out.println('info')
-        System.err.println('err')
+        stream.println('info')
 
         then:
         1 * appender.doAppend({ILoggingEvent event -> event.level == Level.WARN && event.message == 'info'})
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.ERROR && event.message == 'err'})
-        outputs.stdOut == ''
-        outputs.stdErr == ''
+        original.toString() == ''
         0 * appender._
     }
 }

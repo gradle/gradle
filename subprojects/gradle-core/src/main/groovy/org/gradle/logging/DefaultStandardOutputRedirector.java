@@ -17,7 +17,6 @@
 package org.gradle.logging;
 
 import org.gradle.api.Action;
-import org.gradle.api.logging.StandardOutputCapture;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
 

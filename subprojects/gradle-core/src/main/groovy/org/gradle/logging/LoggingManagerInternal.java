@@ -13,13 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.logging;
 
-import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.LoggingManager;
 
-public interface StandardOutputRedirector extends StandardOutputCapture {
-    void redirectStandardOutputTo(StandardOutputListener stdOutDestination);
+public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture {
+    @Override
+    LoggingManagerInternal start();
 
-    void redirectStandardErrorTo(StandardOutputListener stdErrDestination);
+    @Override
+    LoggingManagerInternal stop();
+
+    @Override
+    LoggingManagerInternal captureStandardOutput(LogLevel level);
+
+    @Override
+    LoggingManagerInternal captureStandardError(LogLevel level);
+
+    @Override
+    LoggingManagerInternal setLevel(LogLevel logLevel);
 }

@@ -17,9 +17,10 @@
 package org.gradle.logging;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.Stoppable;
 
 import java.util.LinkedHashSet;
 import java.util.Set;
@@ -27,23 +28,21 @@ import java.util.Set;
 /**
  * @author Hans Dockter
  */
-public class DefaultLoggingManager implements LoggingManager {
-    private LogLevel stdOutCaptureLevel;
-    private LogLevel level;
-    private LoggingSystem.Snapshot originalStdOutState;
-    private LoggingSystem.Snapshot originalLoggingState;
+public class DefaultLoggingManager implements LoggingManagerInternal {
     private boolean started;
-    private final LoggingSystem loggingSystem;
-    private final LoggingSystem stdOutLoggingSystem;
+    private final StartableLoggingSystem loggingSystem;
+    private final StartableLoggingSystem stdOutLoggingSystem;
+    private final StartableLoggingSystem stdErrLoggingSystem;
     private final LoggingOutput loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
 
-    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem, LoggingOutput loggingOutput) {
-        this.loggingSystem = loggingSystem;
-        this.stdOutLoggingSystem = stdOutLoggingSystem;
+    public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem,
+                                 LoggingSystem stdErrLoggingSystem, LoggingOutput loggingOutput) {
         this.loggingOutput = loggingOutput;
-        stdOutCaptureLevel = LogLevel.QUIET;
+        this.loggingSystem = new StartableLoggingSystem(loggingSystem, null);
+        this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, LogLevel.QUIET);
+        this.stdErrLoggingSystem = new StartableLoggingSystem(stdErrLoggingSystem, LogLevel.ERROR);
     }
 
     public DefaultLoggingManager start() {
@@ -54,28 +53,16 @@ public class DefaultLoggingManager implements LoggingManager {
         for (StandardOutputListener stderrListener : stderrListeners) {
             loggingOutput.addStandardErrorListener(stderrListener);
         }
-        if (level != null) {
-            originalLoggingState = loggingSystem.on(level);
-        } else {
-            originalLoggingState = loggingSystem.snapshot();
-        }
-        if (stdOutCaptureLevel != null) {
-            originalStdOutState = stdOutLoggingSystem.on(stdOutCaptureLevel);
-        } else {
-            originalStdOutState = stdOutLoggingSystem.off();
-        }
+        loggingSystem.start();
+        stdOutLoggingSystem.start();
+        stdErrLoggingSystem.start();
 
         return this;
     }
 
     public DefaultLoggingManager stop() {
         try {
-            if (originalStdOutState != null) {
-                stdOutLoggingSystem.restore(originalStdOutState);
-            }
-            if (originalLoggingState != null) {
-                loggingSystem.restore(originalLoggingState);
-            }
+            new CompositeStoppable(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem).stop();
             for (StandardOutputListener stdoutListener : stdoutListeners) {
                 loggingOutput.removeStandardOutputListener(stdoutListener);
             }
@@ -83,53 +70,46 @@ public class DefaultLoggingManager implements LoggingManager {
                 loggingOutput.removeStandardErrorListener(stderrListener);
             }
         } finally {
-            originalStdOutState = null;
-            originalLoggingState = null;
             started = false;
         }
         return this;
     }
 
     public DefaultLoggingManager setLevel(LogLevel logLevel) {
-        if (this.level != logLevel) {
-            this.level = logLevel;
-            if (started) {
-                loggingSystem.on(logLevel);
-            }
-        }
+        loggingSystem.setLevel(logLevel);
         return this;
     }
 
     public LogLevel getLevel() {
-        return level;
+        return loggingSystem.level;
     }
 
     public LogLevel getStandardOutputCaptureLevel() {
-        return stdOutCaptureLevel;
+        return stdOutLoggingSystem.level;
     }
 
     public boolean isStandardOutputCaptureEnabled() {
-        return stdOutCaptureLevel != null;
+        return getStandardOutputCaptureLevel() != null;
     }
 
     public DefaultLoggingManager captureStandardOutput(LogLevel level) {
-        if (this.stdOutCaptureLevel != level) {
-            this.stdOutCaptureLevel = level;
-            if (started) {
-                stdOutLoggingSystem.on(level);
-            }
-        }
+        stdOutLoggingSystem.setLevel(level);
+        return this;
+    }
+
+    public DefaultLoggingManager captureStandardError(LogLevel level) {
+        stdErrLoggingSystem.setLevel(level);
         return this;
     }
 
     public DefaultLoggingManager disableStandardOutputCapture() {
-        if (stdOutCaptureLevel != null) {
-            stdOutCaptureLevel = null;
-            if (started) {
-                stdOutLoggingSystem.off();
-            }
-        }
+        stdOutLoggingSystem.disable();
+        stdErrLoggingSystem.disable();
         return this;
+    }
+
+    public LogLevel getStandardErrorCaptureLevel() {
+        return stdErrLoggingSystem.level;
     }
 
     public void addStandardOutputListener(StandardOutputListener listener) {
@@ -153,6 +133,60 @@ public class DefaultLoggingManager implements LoggingManager {
     public void removeStandardErrorListener(StandardOutputListener listener) {
         if (stderrListeners.remove(listener) && started) {
             loggingOutput.removeStandardErrorListener(listener);
+        }
+    }
+
+    private static class StartableLoggingSystem implements Stoppable {
+        private final LoggingSystem loggingSystem;
+        private LogLevel level;
+        private boolean disable;
+        private LoggingSystem.Snapshot originalState;
+
+        private StartableLoggingSystem(LoggingSystem loggingSystem, LogLevel level) {
+            this.loggingSystem = loggingSystem;
+            this.level = level;
+        }
+
+        public void start() {
+            if (disable) {
+                originalState = loggingSystem.off();
+            } else if (level != null) {
+                originalState = loggingSystem.on(level);
+            } else {
+                originalState = loggingSystem.snapshot();
+            }
+        }
+
+        public void setLevel(LogLevel logLevel) {
+            if (this.level == logLevel) {
+                return;
+            }
+
+            this.level = logLevel;
+            disable = false;
+
+            if (originalState == null) {
+                return;
+            }
+            loggingSystem.on(logLevel);
+        }
+
+        public void disable() {
+            level = null;
+            disable = true;
+            if (originalState != null) {
+                loggingSystem.off();
+            }
+        }
+
+        public void stop() {
+            try {
+                if (originalState != null) {
+                    loggingSystem.restore(originalState);
+                }
+            } finally {
+                originalState = null;
+            }
         }
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.logging.LoggingManager
-import org.gradle.api.logging.StandardOutputCapture
+import org.gradle.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock

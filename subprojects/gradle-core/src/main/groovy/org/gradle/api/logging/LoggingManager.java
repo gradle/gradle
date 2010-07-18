@@ -18,22 +18,12 @@ package org.gradle.api.logging;
 
 /**
  * <p>A {@code LoggingManager} provides access to and control over the Gradle logging system. Using this interface, you
- * can control the current logging level and standard output/error capture.</p>
+ * can control the current logging level and standard output and error capture.</p>
  */
-public interface LoggingManager extends StandardOutputCapture, LoggingOutput {
+public interface LoggingManager extends LoggingOutput {
     /**
-     * {@inheritDoc}
-     */
-    LoggingManager start();
-
-    /**
-     * {@inheritDoc}
-     */
-    LoggingManager stop();
-
-    /**
-     * Requests that output written to System.out and System.err be routed to Gradle's logging system. The default is
-     * that System.out is routed to {@link LogLevel#LIFECYCLE} and System.err is routed to {@link LogLevel#ERROR}.
+     * Requests that output written to System.out be routed to Gradle's logging system. The default is that System.out
+     * is routed to {@link LogLevel#QUIET}
      *
      * @param level The log level to route System.out to.
      * @return this
@@ -41,10 +31,20 @@ public interface LoggingManager extends StandardOutputCapture, LoggingOutput {
     LoggingManager captureStandardOutput(LogLevel level);
 
     /**
+     * Requests that output written to System.err be routed to Gradle's logging system. The default is that System.err
+     * is routed to {@link LogLevel#ERROR}.
+     *
+     * @param level The log level to route System.err to.
+     * @return this
+     */
+    LoggingManager captureStandardError(LogLevel level);
+
+    /**
      * Disables routing System.out and System.err to Gradle's logging system.
      *
      * @return this
      */
+    @Deprecated
     LoggingManager disableStandardOutputCapture();
 
     /**
@@ -52,6 +52,7 @@ public interface LoggingManager extends StandardOutputCapture, LoggingOutput {
      *
      * @return true when standard output capture is enabled.
      */
+    @Deprecated
     boolean isStandardOutputCaptureEnabled();
 
     /**
@@ -60,6 +61,13 @@ public interface LoggingManager extends StandardOutputCapture, LoggingOutput {
      * @return The log level. Returns null when standard output capture is disabled.
      */
     LogLevel getStandardOutputCaptureLevel();
+
+    /**
+     * Returns the log level that output written to System.err will be mapped to.
+     *
+     * @return The log level. Returns null when standard error capture is disabled.
+     */
+    LogLevel getStandardErrorCaptureLevel();
 
     /**
      * Sets the minimum logging level. All messages at a lower level are discarded.

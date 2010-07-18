@@ -23,13 +23,13 @@ import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.ProgressLoggingBridge;
 import org.gradle.util.WrapUtil;
@@ -68,7 +68,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public GradleLauncher newInstance(StartParameter startParameter) {
         TopLevelBuildServiceRegistry serviceRegistry = new TopLevelBuildServiceRegistry(sharedServices, startParameter);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
-        LoggingManager loggingManager = serviceRegistry.get(LoggingManagerFactory.class).create();
+        LoggingManagerInternal loggingManager = serviceRegistry.get(LoggingManagerFactory.class).create();
         loggingManager.setLevel(startParameter.getLogLevel());
 
         //this hooks up the ListenerManager and LoggingConfigurer so you can call Gradle.addListener() with a StandardOutputListener.

@@ -38,13 +38,15 @@ public class DefaultLoggingManagerTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery();
     private final LoggingSystem loggingSystem = context.mock(LoggingSystem.class);
     private final LoggingSystem stdOutLoggingSystem = context.mock(LoggingSystem.class);
+    private final LoggingSystem stdErrLoggingSystem = context.mock(LoggingSystem.class);
     private final LoggingOutput loggingOutput = context.mock(LoggingOutput.class);
-    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, stdOutLoggingSystem, loggingOutput);
+    private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
 
     @Test
     public void defaultValues() {
         assertTrue(loggingManager.isStandardOutputCaptureEnabled());
         assertEquals(LogLevel.QUIET, loggingManager.getStandardOutputCaptureLevel());
+        assertEquals(LogLevel.ERROR, loggingManager.getStandardErrorCaptureLevel());
         assertNull(loggingManager.getLevel());
     }
 
@@ -53,6 +55,12 @@ public class DefaultLoggingManagerTest {
         loggingManager.captureStandardOutput(LogLevel.ERROR);
         assertTrue(loggingManager.isStandardOutputCaptureEnabled());
         assertEquals(LogLevel.ERROR, loggingManager.getStandardOutputCaptureLevel());
+    }
+
+    @Test
+    public void canChangeStdErrCaptureLogLevel() {
+        loggingManager.captureStandardError(LogLevel.WARN);
+        assertEquals(LogLevel.WARN, loggingManager.getStandardErrorCaptureLevel());
     }
 
     @Test
@@ -72,17 +80,21 @@ public class DefaultLoggingManagerTest {
     public void startStopWithCaptureDisabled() {
         loggingManager.disableStandardOutputCapture();
 
-        final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdOutSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             one(stdOutLoggingSystem).off();
-            will(returnValue(snapshot));
+            will(returnValue(stdOutSnapshot));
+            one(stdErrLoggingSystem).off();
+            will(returnValue(stdErrSnapshot));
         }});
 
         loggingManager.start();
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).restore(snapshot);
+            one(stdOutLoggingSystem).restore(stdOutSnapshot);
+            one(stdErrLoggingSystem).restore(stdErrSnapshot);
         }});
 
         loggingManager.stop();
@@ -91,18 +103,23 @@ public class DefaultLoggingManagerTest {
     @Test
     public void startStopWithCaptureEnabled() {
         loggingManager.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardError(LogLevel.INFO);
 
-        final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdOutSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             one(stdOutLoggingSystem).on(LogLevel.DEBUG);
-            will(returnValue(snapshot));
+            will(returnValue(stdOutSnapshot));
+            one(stdErrLoggingSystem).on(LogLevel.INFO);
+            will(returnValue(stdErrSnapshot));
         }});
 
         loggingManager.start();
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).restore(snapshot);
+            one(stdOutLoggingSystem).restore(stdOutSnapshot);
+            one(stdErrLoggingSystem).restore(stdErrSnapshot);
         }});
 
         loggingManager.stop();
@@ -115,6 +132,7 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
             one(loggingSystem).on(LogLevel.DEBUG);
             will(returnValue(snapshot));
         }});
@@ -133,6 +151,7 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
             one(loggingSystem).snapshot();
             will(returnValue(snapshot));
         }});
@@ -148,26 +167,31 @@ public class DefaultLoggingManagerTest {
 
     @Test
     public void disableCaptureWhileStarted() {
-        final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdOutSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             one(stdOutLoggingSystem).on(LogLevel.DEBUG);
-            will(returnValue(snapshot));
+            will(returnValue(stdOutSnapshot));
+            one(stdErrLoggingSystem).on(LogLevel.INFO);
+            will(returnValue(stdErrSnapshot));
         }});
 
         loggingManager.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardError(LogLevel.INFO);
 
         loggingManager.start();
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).off();
-            will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
+            one(stdErrLoggingSystem).off();
         }});
 
         loggingManager.disableStandardOutputCapture();
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).restore(snapshot);
+            one(stdOutLoggingSystem).restore(stdOutSnapshot);
+            one(stdErrLoggingSystem).restore(stdErrSnapshot);
         }});
 
         loggingManager.stop();
@@ -175,11 +199,14 @@ public class DefaultLoggingManagerTest {
 
     @Test
     public void enableCaptureWhileStarted() {
-        final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdOutSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             one(stdOutLoggingSystem).off();
-            will(returnValue(snapshot));
+            will(returnValue(stdOutSnapshot));
+            one(stdErrLoggingSystem).off();
+            will(returnValue(stdErrSnapshot));
         }});
 
         loggingManager.disableStandardOutputCapture();
@@ -188,13 +215,15 @@ public class DefaultLoggingManagerTest {
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).on(LogLevel.DEBUG);
-            will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
+            one(stdErrLoggingSystem).on(LogLevel.INFO);
         }});
 
         loggingManager.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardError(LogLevel.INFO);
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).restore(snapshot);
+            one(stdOutLoggingSystem).restore(stdOutSnapshot);
+            one(stdErrLoggingSystem).restore(stdErrSnapshot);
         }});
 
         loggingManager.stop();
@@ -202,26 +231,30 @@ public class DefaultLoggingManagerTest {
 
     @Test
     public void changeCaptureLevelWhileStarted() {
-        final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdOutSnapshot = context.mock(LoggingSystem.Snapshot.class);
+        final LoggingSystem.Snapshot stdErrSnapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             one(stdOutLoggingSystem).on(LogLevel.DEBUG);
-            will(returnValue(snapshot));
+            will(returnValue(stdOutSnapshot));
+            one(stdErrLoggingSystem).on(LogLevel.DEBUG);
+            will(returnValue(stdErrSnapshot));
         }});
 
         loggingManager.captureStandardOutput(LogLevel.DEBUG);
+        loggingManager.captureStandardError(LogLevel.DEBUG);
 
         loggingManager.start();
 
         context.checking(new Expectations() {{
             one(stdOutLoggingSystem).on(LogLevel.WARN);
-            will(returnValue(context.mock(LoggingSystem.Snapshot.class)));
         }});
 
         loggingManager.captureStandardOutput(LogLevel.WARN);
 
         context.checking(new Expectations() {{
-            one(stdOutLoggingSystem).restore(snapshot);
+            one(stdOutLoggingSystem).restore(stdOutSnapshot);
+            one(stdErrLoggingSystem).restore(stdErrSnapshot);
         }});
 
         loggingManager.stop();
@@ -232,6 +265,7 @@ public class DefaultLoggingManagerTest {
         final LoggingSystem.Snapshot snapshot = context.mock(LoggingSystem.Snapshot.class);
         context.checking(new Expectations() {{
             ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
             one(loggingSystem).snapshot();
             will(returnValue(snapshot));
         }});
@@ -264,6 +298,7 @@ public class DefaultLoggingManagerTest {
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardOutputListener(stdoutListener);
             one(loggingOutput).addStandardErrorListener(stderrListener);
         }});
@@ -286,6 +321,7 @@ public class DefaultLoggingManagerTest {
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
         }});
 
         loggingManager.start();
@@ -310,6 +346,7 @@ public class DefaultLoggingManagerTest {
         context.checking(new Expectations() {{
             ignoring(loggingSystem);
             ignoring(stdOutLoggingSystem);
+            ignoring(stdErrLoggingSystem);
             one(loggingOutput).addStandardOutputListener(stdoutListener);
             one(loggingOutput).addStandardErrorListener(stderrListener);
         }});

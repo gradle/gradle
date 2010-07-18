@@ -19,7 +19,7 @@ package org.gradle.groovy.scripts
 
 import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.api.internal.file.FileOperations
-import org.gradle.api.logging.StandardOutputCapture
+import org.gradle.logging.StandardOutputCapture
 
 /**
  * @author Hans Dockter

@@ -25,7 +25,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
 

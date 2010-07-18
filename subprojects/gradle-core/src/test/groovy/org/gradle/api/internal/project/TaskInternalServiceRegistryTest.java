@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -65,7 +66,7 @@ public class TaskInternalServiceRegistryTest {
     @Test
     public void createsALoggingManagerAndStdOutputCapture() {
         final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
-        final LoggingManager loggingManager = context.mock(LoggingManager.class);
+        final LoggingManager loggingManager = context.mock(LoggingManagerInternal.class);
 
         context.checking(new Expectations(){{
             allowing(parent).get(LoggingManagerFactory.class);

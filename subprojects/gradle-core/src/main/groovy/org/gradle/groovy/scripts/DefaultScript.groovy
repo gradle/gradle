@@ -35,6 +35,7 @@ import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.util.ConfigureUtil
 import org.gradle.process.ExecResult
 import org.gradle.api.internal.file.*
+import org.gradle.util.DeprecationLogger
 
 abstract class DefaultScript extends BasicScript {
     private static final Logger LOGGER = Logging.getLogger(Script.class)
@@ -91,7 +92,7 @@ abstract class DefaultScript extends BasicScript {
         fileOperations.uri(path)
     }
 
-    ConfigurableFileCollection files(Object ... paths) {
+    ConfigurableFileCollection files(Object... paths) {
         fileOperations.files(paths)
     }
 
@@ -147,12 +148,18 @@ abstract class DefaultScript extends BasicScript {
         return fileOperations.exec(closure);
     }
 
+    LoggingManager getLogging() {
+        return loggingManager
+    }
+
     public void captureStandardOutput(LogLevel level) {
-        loggingManager.captureStandardOutput(level)
+        DeprecationLogger.nagUser('captureStandardOutput()', 'getLogging().captureStandardOutput()')
+        logging.captureStandardOutput(level)
     }
 
     public void disableStandardOutputCapture() {
-        loggingManager.disableStandardOutputCapture()
+        DeprecationLogger.nagUser('disableStandardOutputCapture')
+        logging.disableStandardOutputCapture()
     }
 
     public Logger getLogger() {

@@ -47,7 +47,6 @@ import org.gradle.api.internal.plugins.DefaultConvention
 import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.Convention
 import org.gradle.api.plugins.PluginContainer
 import org.gradle.api.tasks.Directory
@@ -55,12 +54,13 @@ import org.gradle.configuration.ProjectEvaluator
 import org.gradle.configuration.ScriptPluginFactory
 import org.gradle.groovy.scripts.EmptyScript
 import org.gradle.groovy.scripts.ScriptSource
+import org.gradle.logging.LoggingManagerInternal
+import org.gradle.logging.StandardOutputCapture
 import org.gradle.util.HelperUtil
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TestClosure
 import org.jmock.integration.junit4.JMock
 import org.jmock.lib.legacy.ClassImposteriser
-import org.gradle.api.logging.StandardOutputCapture
 import org.junit.Before
 import org.junit.Ignore
 import org.junit.Test
@@ -117,22 +117,22 @@ class DefaultProjectTest {
     Gradle build;
     Convention convention = new DefaultConvention();
     FileOperations fileOperationsMock
-    LoggingManager loggingManagerMock;
+    LoggingManagerInternal loggingManagerMock;
 
     @Before
     void setUp() {
         rootDir = new File("/path/root").absoluteFile
 
         context.imposteriser = ClassImposteriser.INSTANCE
-        dependencyFactoryMock = context.mock(DependencyFactory)
-        loggingManagerMock = context.mock(LoggingManager.class)
-        taskContainerMock = context.mock(TaskContainerInternal);
-        antBuilderFactoryMock = context.mock(AntBuilderFactory)
+        dependencyFactoryMock = context.mock(DependencyFactory.class)
+        loggingManagerMock = context.mock(LoggingManagerInternal.class)
+        taskContainerMock = context.mock(TaskContainerInternal.class);
+        antBuilderFactoryMock = context.mock(AntBuilderFactory.class)
         testAntBuilder = new DefaultAntBuilder()
         context.checking {
             allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
         }
-        configurationContainerMock = context.mock(DefaultConfigurationContainer)
+        configurationContainerMock = context.mock(DefaultConfigurationContainer.class)
         configurationContainerFactoryMock = [createConfigurationContainer: {
           resolverProvider, dependencyMetaDataProvider, projectDependenciesBuildInstruction ->
             assertSame(build.startParameter.projectDependenciesBuildInstruction, projectDependenciesBuildInstruction)
@@ -175,7 +175,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))
-            allowing(serviceRegistryMock).get(LoggingManager); will(returnValue(loggingManagerMock))
+            allowing(serviceRegistryMock).get(LoggingManagerInternal); will(returnValue(loggingManagerMock))
             allowing(serviceRegistryMock).get(StandardOutputCapture); will(returnValue(context.mock(StandardOutputCapture)))
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))

@@ -19,9 +19,9 @@ import org.gradle.api.internal.artifacts.dsl.ClasspathScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.groovy.scripts.*;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
@@ -62,7 +62,7 @@ public class DefaultScriptPluginFactoryTest {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
             ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
-            LoggingManager loggingManagerMock = context.mock(LoggingManager.class);
+            LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
 
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));
@@ -128,7 +128,7 @@ public class DefaultScriptPluginFactoryTest {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
             ScriptSource sourceWithImportsMock = context.mock(ScriptSource.class, "imports");
-            LoggingManager loggingManagerMock = context.mock(LoggingManager.class);
+            LoggingManagerInternal loggingManagerMock = context.mock(LoggingManagerInternal.class);
 
             one(loggingManagerFactoryMock).create();
             will(returnValue(loggingManagerMock));

@@ -44,6 +44,7 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
  * @author Hans Dockter
  */
 public abstract class GradleLauncher {
+
     private static GradleLauncherFactory factory = new DefaultGradleLauncherFactory();
 
     /**

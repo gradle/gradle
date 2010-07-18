@@ -43,30 +43,36 @@ class LoggingIntegrationTest {
             'quietProject2ScriptClassPathOut',
             'quietProject2CallbackOut',
             'settings quiet out',
-            'init quiet out',
+            'init QUIET out',
             'init callback quiet out',
             'buildSrc quiet',
             'nestedBuild/buildSrc quiet',
             'nestedBuild quiet',
             'nestedBuild task quiet',
-            'external quiet message'
+            'external QUIET message'
     ]
     List errorMessages = [
             'An error log message.',
+            'An error message which is logged at ERROR level',
+            'external ERROR error message',
             '[ant:echo] An error message logged from Ant',
-            'A severe log message logged using JUL'
+            'A severe log message logged using JUL',
+            'init ERROR err'
     ]
     List warningMessages = [
             'A warning log message.',
+            'A task error message which is logged at WARN level',
             '[ant:echo] A warn message logged from Ant',
             'A warning log message logged using JUL'
     ]
     List lifecycleMessages = [
             'A lifecycle info log message.',
+            'An error message which is logged at LIFECYCLE level',
             'A task message which is logged at LIFECYCLE level',
             'settings lifecycle log',
             'init lifecycle log',
-            'external lifecycle message',
+            'external LIFECYCLE error message',
+            'external LIFECYCLE log message',
             'LOGGER: evaluating :',
             'LOGGER: evaluating :project1',
             'LOGGER: evaluating :project2',
@@ -91,7 +97,8 @@ class LoggingIntegrationTest {
             'infoProject2ScriptClassPathOut',
             'settings info out',
             'settings info log',
-            'init info out',
+            'init INFO out',
+            'init INFO err',
             'init info log',
             'LOGGER: build finished',
             'LOGGER: evaluated project',
@@ -101,7 +108,7 @@ class LoggingIntegrationTest {
             'buildSrc info',
             'nestedBuild/buildSrc info',
             'nestedBuild info',
-            'external info message'
+            'external INFO message'
     ]
     List debugMessages = [
             'A debug log message.',

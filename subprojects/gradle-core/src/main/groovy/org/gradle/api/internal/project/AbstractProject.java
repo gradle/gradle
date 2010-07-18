@@ -48,6 +48,8 @@ import org.gradle.configuration.ScriptPlugin;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.listener.ListenerBroadcast;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
@@ -131,7 +133,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private ListenerBroadcast<ProjectEvaluationListener> evaluationListener = new ListenerBroadcast<ProjectEvaluationListener>(ProjectEvaluationListener.class);
 
-    private LoggingManager loggingManager;
+    private LoggingManagerInternal loggingManager;
 
     private DynamicObjectHelper dynamicObjectHelper;
 
@@ -173,7 +175,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         scriptHandler = services.get(ScriptHandler.class);
         scriptClassLoaderProvider = services.get(ScriptClassLoaderProvider.class);
         projectRegistry = services.get(IProjectRegistry.class);
-        loggingManager = services.get(LoggingManager.class);
+        loggingManager = services.get(LoggingManagerInternal.class);
 
         dynamicObjectHelper = new DynamicObjectHelper(this);
         dynamicObjectHelper.setConvention(services.get(Convention.class));
@@ -784,11 +786,18 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return loggingManager;
     }
 
+    @Override
+    public LoggingManager getLogging() {
+        return loggingManager;
+    }
+
     public void disableStandardOutputCapture() {
+        DeprecationLogger.nagUser("Project.disableStandardOutputCapture()");
         loggingManager.disableStandardOutputCapture();
     }
 
     public void captureStandardOutput(LogLevel level) {
+        DeprecationLogger.nagUser("Project.captureStandardOutput()", "getLogging().captureStandardOutput()");
         loggingManager.captureStandardOutput(level);
     }
 

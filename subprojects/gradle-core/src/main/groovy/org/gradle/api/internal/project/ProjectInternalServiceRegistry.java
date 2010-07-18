@@ -47,10 +47,10 @@ import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.tasks.DefaultTaskContainer;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
 
@@ -73,7 +73,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new BaseDirConverter(project.getProjectDir());
     }
 
-    protected LoggingManager createLoggingManager() {
+    protected LoggingManagerInternal createLoggingManager() {
         return get(LoggingManagerFactory.class).create();
     }
 

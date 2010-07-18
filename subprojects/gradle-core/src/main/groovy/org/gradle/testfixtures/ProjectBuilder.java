@@ -38,6 +38,7 @@ import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.GFileUtils;
 
@@ -120,10 +121,10 @@ public class ProjectBuilder {
         return project;
     }
 
-    private static class NoOpLoggingManager implements LoggingManager {
+    private static class NoOpLoggingManager implements LoggingManagerInternal {
         private LogLevel stdoutLevel = LogLevel.LIFECYCLE;
 
-        public LoggingManager captureStandardOutput(LogLevel level) {
+        public LoggingManagerInternal captureStandardOutput(LogLevel level) {
             stdoutLevel = level;
             return this;
         }
@@ -141,15 +142,24 @@ public class ProjectBuilder {
             return stdoutLevel;
         }
 
-        public LoggingManager setLevel(LogLevel logLevel) {
+        public LoggingManagerInternal captureStandardError(LogLevel level) {
             return this;
         }
 
-        public LoggingManager start() {
+        public LoggingManagerInternal setLevel(LogLevel logLevel) {
             return this;
         }
 
-        public LoggingManager stop() {
+        @Override
+        public LogLevel getStandardErrorCaptureLevel() {
+            return LogLevel.ERROR;
+        }
+
+        public LoggingManagerInternal start() {
+            return this;
+        }
+
+        public LoggingManagerInternal stop() {
             return this;
         }
 
@@ -189,7 +199,7 @@ public class ProjectBuilder {
 
         protected LoggingManagerFactory createLoggingManagerFactory() {
             return new LoggingManagerFactory() {
-                public LoggingManager create() {
+                public LoggingManagerInternal create() {
                     return new NoOpLoggingManager();
                 }
             };

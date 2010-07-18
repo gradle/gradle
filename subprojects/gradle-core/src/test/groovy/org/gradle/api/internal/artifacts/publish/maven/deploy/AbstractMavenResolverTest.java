@@ -30,7 +30,7 @@ import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.WrapUtil;
@@ -49,9 +49,8 @@ import java.io.IOException;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.assertSame;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -64,7 +63,7 @@ public abstract class AbstractMavenResolverTest {
     private static final Artifact TEST_ARTIFACT = new DefaultArtifact(ModuleRevisionId.newInstance("org", TEST_NAME, "1.0"), null, TEST_NAME, "jar", "jar");
     protected ArtifactPomContainer artifactPomContainerMock;
     protected PomFilterContainer pomFilterContainerMock;
-    protected LoggingManager loggingManagerMock;
+    protected LoggingManagerInternal loggingManagerMock;
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery() {
         {
@@ -87,7 +86,7 @@ public abstract class AbstractMavenResolverTest {
         artifactPomContainerMock = context.mock(ArtifactPomContainer.class);
         pomMock = context.mock(MavenPom.class);
         mavenSettingsMock = context.mock(Settings.class);
-        loggingManagerMock = context.mock(LoggingManager.class);
+        loggingManagerMock = context.mock(LoggingManagerInternal.class);
     }
 
     @Test

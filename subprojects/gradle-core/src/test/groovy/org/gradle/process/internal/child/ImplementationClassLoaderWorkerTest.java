@@ -18,8 +18,8 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.process.child.SerializableMockHelper;
-import org.gradle.api.logging.LoggingManager;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.ObservableUrlClassLoader;
 import org.jmock.Expectations;
@@ -39,7 +39,7 @@ import static org.gradle.util.WrapUtil.*;
 public class ImplementationClassLoaderWorkerTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ClassLoader applicationClassLoader = getClass().getClassLoader();
-    private final LoggingManager loggingManager = context.mock(LoggingManager.class);
+    private final LoggingManagerInternal loggingManager = context.mock(LoggingManagerInternal.class);
     private final ObservableUrlClassLoader implementationClassLoader = new ObservableUrlClassLoader(applicationClassLoader);
     private final WorkerContext workerContext = context.mock(WorkerContext.class);
     private final SerializableMockHelper helper = new SerializableMockHelper();
@@ -72,7 +72,7 @@ public class ImplementationClassLoaderWorkerTest {
         }
 
         @Override
-        protected LoggingManager createLoggingManager() {
+        protected LoggingManagerInternal createLoggingManager() {
             return loggingManager;
         }
 

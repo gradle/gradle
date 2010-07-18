@@ -1,7 +1,11 @@
 
-println 'init quiet out'
-captureStandardOutput(LogLevel.INFO)
-println 'init info out'
+println 'init QUIET out'
+logging.captureStandardOutput LogLevel.INFO
+println 'init INFO out'
+
+System.err.println 'init ERROR err'
+logging.captureStandardError LogLevel.INFO
+System.err.println 'init INFO err'
 
 logger.lifecycle('init lifecycle log')
 logger.info('init info log')

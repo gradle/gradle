@@ -35,7 +35,10 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskState;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.StandardOutputCapture;
 import org.gradle.util.ConfigureUtil;
+import org.gradle.util.DeprecationLogger;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -78,7 +81,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private final TaskStateInternal state;
 
-    private final LoggingManager loggingManager;
+    private final LoggingManagerInternal loggingManager;
 
     protected AbstractTask() {
         this(taskInfo());
@@ -103,7 +106,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         outputs = services.get(TaskOutputsInternal.class);
         inputs = services.get(TaskInputs.class);
         executer = services.get(TaskExecuter.class);
-        loggingManager = services.get(LoggingManager.class);
+        loggingManager = services.get(LoggingManagerInternal.class);
     }
 
     public static <T extends Task> T injectIntoNewInstance(ProjectInternal project, String name, Callable<T> factory) {
@@ -289,16 +292,18 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     }
 
     public Task disableStandardOutputCapture() {
+        DeprecationLogger.nagUser("Task.disableStandardOutputCapture()");
         loggingManager.disableStandardOutputCapture();
         return this;
     }
 
     public Task captureStandardOutput(LogLevel level) {
+        DeprecationLogger.nagUser("Task.captureStandardOutput()", "getLogging().captureStandardOutput()");
         loggingManager.captureStandardOutput(level);
         return this;
     }
 
-    public LoggingManager getLoggingManager() {
+    public LoggingManager getLogging() {
         return loggingManager;
     }
 

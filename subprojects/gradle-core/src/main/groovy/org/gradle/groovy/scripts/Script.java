@@ -17,7 +17,7 @@
 package org.gradle.groovy.scripts;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.logging.StandardOutputCapture;
+import org.gradle.logging.StandardOutputCapture;
 
 /**
  * The base class for all scripts executed by Gradle.
