@@ -201,7 +201,7 @@ public class IdeaModule extends ConventionTask {
             }
             moduleLibraries.addAll(getSelfResolvingFiles(getScopeDependencies(scopes[scope],
                     { it instanceof SelfResolvingDependency && !(it instanceof ProjectDependency)}), scope))
-            return moduleLibraries
+            return moduleLibraries as LinkedHashSet
         }
         return []
     }
