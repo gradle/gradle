@@ -327,6 +327,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     @TaskAction
     public void executeTests() {
         overwriteIncludesIfSinglePropertyIsSet();
+        overwriteDebugIfDebugPropertyIsSet();
         final WorkerProcessFactory workerFactory = getServices().get(WorkerProcessFactory.class);
 
         final TestFrameworkInstance testFrameworkInstance = getTestFramework();
@@ -361,6 +362,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         }
     }
 
+    private void overwriteDebugIfDebugPropertyIsSet() {
+        String debugProp = getTaskPrefixedProperty(".debug");
+        if (debugProp != null) {
+            getLogger().info("Running tests for remote debugging.");
+            setDebug(true);
+        }
+    }
+
     private void overwriteIncludesIfSinglePropertyIsSet() {
         String singleTest = getSingleTestProperty();
         if (singleTest == null) {
@@ -372,11 +381,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     private String getSingleTestProperty() {
-        String singleTest = System.getProperty(getPath() + ".single");
-        if (singleTest == null) {
-            return System.getProperty(getName() + ".single");
-        }
-        return singleTest;
+        return getTaskPrefixedProperty(".single");
     }
 
     private void failIfNoTestIsExecuted(final String pattern) {
@@ -399,6 +404,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
                 // do nothing
             }
         });
+    }
+
+    private String getTaskPrefixedProperty(String propName) {
+        String singleTest = System.getProperty(getPath() + propName);
+        if (singleTest == null) {
+            return System.getProperty(getName() + propName);
+        }
+        return singleTest;
     }
 
     /**
