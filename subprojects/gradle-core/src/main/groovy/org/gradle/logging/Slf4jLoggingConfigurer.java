@@ -156,7 +156,7 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
         levelFilter.setContext(lc);
         levelFilter.setOnMatch(onMatch);
         levelFilter.setOnMismatch(onMismatch);
-        levelFilter.setLevel(level.toString());
+        levelFilter.setLevel(level);
         levelFilter.start();
         return levelFilter;
     }
