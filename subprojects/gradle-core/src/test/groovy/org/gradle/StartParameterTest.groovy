@@ -64,7 +64,7 @@ class StartParameterTest {
     @Test public void testDefaultValues() {
         StartParameter parameter = new StartParameter();
         assertThat(parameter.gradleUserHomeDir, equalTo(StartParameter.DEFAULT_GRADLE_USER_HOME))
-        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
 
         assertThat(parameter.buildFile, nullValue())
         assertThat(parameter.settingsScriptSource, nullValue())
@@ -115,7 +115,7 @@ class StartParameterTest {
         parameter.buildFile = null
 
         assertThat(parameter.buildFile, nullValue())
-        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
         assertThat(parameter.initScripts, equalTo(Collections.emptyList()))
     }
@@ -134,7 +134,7 @@ class StartParameterTest {
         parameter.projectDir = new File('test/project dir')
         parameter.projectDir = null
 
-        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(parameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(parameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(parameter.currentDir)))
     }
 
@@ -243,7 +243,7 @@ class StartParameterTest {
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())
         assertThat(newParameter.excludedTaskNames, isEmpty())
-        assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir"))))
+        assertThat(newParameter.currentDir, equalTo(new File(System.getProperty("user.dir")).getCanonicalFile()))
         assertThat(newParameter.defaultProjectSelector, reflectionEquals(new DefaultProjectSpec(newParameter.currentDir)))
         assertFalse(newParameter.dryRun)
     }

@@ -37,8 +37,8 @@ public class JavaExecHandleBuilderTest extends Specification {
     }
 
     public void buildsCommandLineForJavaProcess() {
-        File jar1 = new File("file1.jar").absoluteFile
-        File jar2 = new File("file2.jar").absoluteFile
+        File jar1 = new File("file1.jar").canonicalFile
+        File jar2 = new File("file2.jar").canonicalFile
 
         FileCollection classpath = new PathResolvingFileCollection(fileResolver, null, jar1, jar2)
 

@@ -29,6 +29,7 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.net.URLClassLoader;
 
@@ -111,7 +112,11 @@ public class SettingsHandlerTest {
         }
 
         public boolean matchesSafely(StartParameter startParameter) {
-            return startParameter.getCurrentDir().getAbsoluteFile().equals(currentDir.getAbsoluteFile());
+            try {
+                return startParameter.getCurrentDir().getCanonicalFile().equals(currentDir.getCanonicalFile());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
         }
 
         public void describeTo(Description description) {

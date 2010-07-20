@@ -207,7 +207,7 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void canAddToBootstrapClasspath() {
-        def files = ['file1.jar', 'file2.jar'].collect { new File(it).absoluteFile }
+        def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         options = new DefaultJavaForkOptions(new IdentityFileResolver());
         options.bootstrapClasspath(files[0])
         options.bootstrapClasspath(files[1])
@@ -217,7 +217,7 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void allJvmArgsIncludeBootstrapClasspath() {
-        def files = ['file1.jar', 'file2.jar'].collect { new File(it).absoluteFile }
+        def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         options = new DefaultJavaForkOptions(new IdentityFileResolver());
         options.bootstrapClasspath(files)
 
@@ -231,7 +231,7 @@ public class DefaultJavaForkOptionsTest {
 
     @Test
     public void canSetBootstrapClasspathViaAllJvmArgs() {
-        def files = ['file1.jar', 'file2.jar'].collect { new File(it).absoluteFile }
+        def files = ['file1.jar', 'file2.jar'].collect { new File(it).canonicalFile }
         options = new DefaultJavaForkOptions(new IdentityFileResolver());
         options.bootstrapClasspath(files[0])
 

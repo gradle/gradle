@@ -134,7 +134,7 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveAbsolutePath() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.path))
     }
 
@@ -144,7 +144,7 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveFileWithAbsolutePath() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile))
     }
 
@@ -172,24 +172,24 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveAbsoluteFileURIString() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toString()))
     }
 
     @Test public void testResolveAbsoluteFileURI() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
     }
 
     @Test public void testResolveAbsoluteFileURL() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
     @Test public void testResolveFilePathWithURIEncodedAndReservedCharacters() {
-        File absoluteFile = new File('white%20space').absoluteFile
+        File absoluteFile = new File('white%20space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.absolutePath))
-        absoluteFile = new File('white space').absoluteFile
+        absoluteFile = new File('white space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.absolutePath))
     }
 
@@ -201,12 +201,12 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveURIWithReservedCharacters() {
-        File absoluteFile = new File('white space').absoluteFile
+        File absoluteFile = new File('white space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI()))
     }
 
     @Test public void testResolveURLWithReservedCharacters() {
-        File absoluteFile = new File('white space').absoluteFile
+        File absoluteFile = new File('white space').canonicalFile
         assertEquals(absoluteFile, baseDirConverter.resolve(absoluteFile.toURI().toURL()))
     }
 
@@ -250,7 +250,7 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveAbsolutePathToUri() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile.path))
     }
 
@@ -259,7 +259,7 @@ class BaseDirConverterTest {
     }
 
     @Test public void testResolveFileWithAbsolutePathToUri() {
-        File absoluteFile = new File('nonRelative').absoluteFile
+        File absoluteFile = new File('nonRelative').canonicalFile
         assertEquals(absoluteFile.toURI(), baseDirConverter.resolveUri(absoluteFile))
     }
 
