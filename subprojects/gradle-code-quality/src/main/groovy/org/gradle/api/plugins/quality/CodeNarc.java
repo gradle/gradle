@@ -15,6 +15,7 @@
  */
 package org.gradle.api.plugins.quality;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.api.tasks.*;
 
 import java.io.File;
@@ -28,6 +29,7 @@ public class CodeNarc extends SourceTask implements VerificationTask {
 
     @TaskAction
     public void check() {
+        getLogging().captureStandardOutput(LogLevel.INFO);
         antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile(), isIgnoreFailures());
     }
 
