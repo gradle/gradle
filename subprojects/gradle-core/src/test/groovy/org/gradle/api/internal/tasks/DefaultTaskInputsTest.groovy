@@ -22,6 +22,7 @@ import static org.gradle.util.Matchers.*
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.file.FileTree
 import java.util.concurrent.Callable
+import org.gradle.api.file.FileCollection
 
 class DefaultTaskInputsTest {
     private final File treeFile = new File('tree')
@@ -66,6 +67,22 @@ class DefaultTaskInputsTest {
     public void canRegisterInputPropertyUsingACallable() {
         inputs.property('a', { 'value' } as Callable)
         assertThat(inputs.properties, equalTo([a: 'value']))
+    }
+
+    @Test
+    public void canRegisterInputPropertyUsingAFileCollection() {
+        def files = [new File('file')] as Set
+        inputs.property('a', [getFiles: { files }] as FileCollection)
+        assertThat(inputs.properties, equalTo([a: files]))
+    }
+
+    @Test
+    public void inputPropertyCanBeNestedCallableAndClosure() {
+        def files = [new File('file')] as Set
+        def fileCollection = [getFiles: { files }] as FileCollection
+        def callable = {fileCollection} as Callable
+        inputs.property('a', { callable })
+        assertThat(inputs.properties, equalTo([a: files]))
     }
 
     @Test

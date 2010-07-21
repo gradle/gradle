@@ -57,7 +57,14 @@ public class DefaultTaskInputs implements TaskInputs {
     public Map<String, Object> getProperties() {
         Map<String, Object> actualProperties = new HashMap<String, Object>();
         for (Map.Entry<String, Object> entry : properties.entrySet()) {
-            Object value = entry.getValue();
+            Object value = unwrap(entry.getValue());
+            actualProperties.put(entry.getKey(), value);
+        }
+        return actualProperties;
+    }
+
+    private Object unwrap(Object value) {
+        while (true) {
             if (value instanceof Callable) {
                 Callable callable = (Callable) value;
                 try {
@@ -65,14 +72,16 @@ public class DefaultTaskInputs implements TaskInputs {
                 } catch (Exception e) {
                     throw UncheckedException.asUncheckedException(e);
                 }
-            }
-            if (value instanceof Closure) {
+            } else if (value instanceof Closure) {
                 Closure closure = (Closure) value;
                 value = closure.call();
+            } else if (value instanceof FileCollection) {
+                FileCollection fileCollection = (FileCollection) value;
+                return fileCollection.getFiles();
+            } else {
+                return value;
             }
-            actualProperties.put(entry.getKey(), value);
         }
-        return actualProperties;
     }
 
     public TaskInputs property(String name, Object value) {

@@ -16,16 +16,29 @@
 
 package org.gradle.api.internal.project.taskfactory;
 
+import org.gradle.api.Task;
 import org.gradle.api.tasks.Nested;
 
 import java.lang.annotation.Annotation;
+import java.util.concurrent.Callable;
 
 public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHandler {
     public Class<? extends Annotation> getAnnotationType() {
         return Nested.class;
     }
 
-    public void attachActions(PropertyActionContext context) {
+    public void attachActions(final PropertyActionContext context) {
         context.attachActions(context.getType());
+        context.setConfigureAction(new UpdateAction() {
+            public void update(Task task, final Callable<Object> futureValue) {
+                task.getInputs().property(context.getName() + ".class", new Callable<Object>() {
+                    @Override
+                    public Object call() throws Exception {
+                        Object bean = futureValue.call();
+                        return bean == null ? null : bean.getClass().getName();
+                    }
+                });
+            }
+        });
     }
 }

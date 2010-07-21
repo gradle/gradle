@@ -23,19 +23,14 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.*;
-import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.TestFile;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
 import org.gradle.util.TemporaryFolder;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -44,6 +39,11 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.Callable;
+
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 @RunWith(JMock.class)
 public class AnnotationProcessingTaskFactoryTest {
@@ -453,6 +453,18 @@ public class AnnotationProcessingTaskFactoryTest {
     public void validatesNestedBeans() {
         TaskWithNestedBean task = expectTaskCreated(TaskWithNestedBean.class, new Object[]{null});
         assertValidationFails(task, "Error validating task ':task': No value has been specified for property 'bean.inputFile'.");
+    }
+
+    @Test
+    public void registersInputPropertyForNestedBeanClass() {
+        TaskWithNestedBean task = expectTaskCreated(TaskWithNestedBean.class, new Object[]{null});
+        assertThat(task.getInputs().getProperties().get("bean.class"), equalTo((Object) Bean.class.getName()));
+    }
+
+    @Test
+    public void doesNotRegisterInputPropertyWhenNestedBeanIsNull() {
+        TaskWithOptionalNestedBean task = expectTaskCreated(TaskWithOptionalNestedBean.class);
+        assertThat(task.getInputs().getProperties().get("bean.class"), nullValue());
     }
 
     @Test
