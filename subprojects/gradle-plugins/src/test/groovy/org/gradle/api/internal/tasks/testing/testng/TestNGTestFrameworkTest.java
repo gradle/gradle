@@ -18,7 +18,7 @@ package org.gradle.api.internal.tasks.testing.testng;
 
 import org.gradle.api.JavaVersion;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkInstanceTest;
+import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.tasks.testing.testng.TestNGOptions;
 import org.gradle.util.IdGenerator;
@@ -33,9 +33,9 @@ import static org.junit.Assert.*;
 /**
  * @author Tom Eyckmans
  */
-public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstanceTest {
+public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
 
-    private TestNGTestFrameworkInstance testNGTestFrameworkInstance;
+    private TestNGTestFramework testNGTestFramework;
     private TestNGOptions testngOptionsMock;
     private IdGenerator<?> idGeneratorMock;
     private ServiceRegistry serviceRegistry;
@@ -54,20 +54,21 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
             allowing(projectMock).property("sourceCompatibility"); will(returnValue(sourceCompatibility));
             allowing(testMock).getTestClassesDir();will(returnValue(testClassesDir));
             allowing(testMock).getClasspath();will(returnValue(classpathMock));
+            allowing(testMock).getTemporaryDir(); will(returnValue(temporaryDir));
         }});
     }
 
     @org.junit.Test
     public void testInitialize() {
-        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock);
+        testNGTestFramework = new TestNGTestFramework(testMock);
         setMocks();
 
-        assertNotNull(testNGTestFrameworkInstance.getOptions());
+        assertNotNull(testNGTestFramework.getOptions());
     }
 
     @org.junit.Test
     public void testCreatesTestProcessor() {
-        testNGTestFrameworkInstance = new TestNGTestFrameworkInstance(testMock);
+        testNGTestFramework = new TestNGTestFramework(testMock);
         setMocks();
 
         context.checking(new Expectations() {{
@@ -75,14 +76,14 @@ public class TestNGTestFrameworkInstanceTest extends AbstractTestFrameworkInstan
             allowing(testMock).getTestReportDir(); will(returnValue(testReportDir));
             allowing(serviceRegistry).get(IdGenerator.class); will(returnValue(idGeneratorMock));
             one(testngOptionsMock).setTestResources(testSrcDirs);
-            one(testngOptionsMock).getSuites(testReportDir);
+            one(testngOptionsMock).getSuites(temporaryDir);
         }});
 
-        TestClassProcessor processor = testNGTestFrameworkInstance.getProcessorFactory().create(serviceRegistry);
+        TestClassProcessor processor = testNGTestFramework.getProcessorFactory().create(serviceRegistry);
         assertThat(processor, instanceOf(TestNGTestClassProcessor.class));
     }
 
     private void setMocks() {
-        testNGTestFrameworkInstance.setOptions(testngOptionsMock);
+        testNGTestFramework.setOptions(testngOptionsMock);
     }
 }

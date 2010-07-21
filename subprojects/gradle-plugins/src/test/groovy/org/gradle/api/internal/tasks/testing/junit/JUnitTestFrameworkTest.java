@@ -17,7 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkInstanceTest;
+import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.util.IdGenerator;
@@ -31,8 +31,8 @@ import static org.junit.Assert.*;
 /**
  * @author Tom Eyckmans
  */
-public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanceTest {
-    private JUnitTestFrameworkInstance jUnitTestFrameworkInstance;
+public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
+    private JUnitTestFramework jUnitTestFramework;
     private AntJUnitReport antJUnitReportMock;
     private JUnitOptions jUnitOptionsMock;
     private IdGenerator<?> idGenerator;
@@ -55,16 +55,16 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
 
     @org.junit.Test
     public void testInitialize() {
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
+        jUnitTestFramework = new JUnitTestFramework(testMock);
         setMocks();
 
-        assertNotNull(jUnitTestFrameworkInstance.getOptions());
-        assertNotNull(jUnitTestFrameworkInstance.getAntJUnitReport());
+        assertNotNull(jUnitTestFramework.getOptions());
+        assertNotNull(jUnitTestFramework.getAntJUnitReport());
     }
 
     @org.junit.Test
     public void testCreatesTestProcessor() {
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
+        jUnitTestFramework = new JUnitTestFramework(testMock);
         setMocks();
 
         context.checking(new Expectations() {{
@@ -72,13 +72,13 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             one(serviceRegistry).get(IdGenerator.class); will(returnValue(idGenerator));
         }});
 
-        TestClassProcessor testClassProcessor = jUnitTestFrameworkInstance.getProcessorFactory().create(serviceRegistry);
+        TestClassProcessor testClassProcessor = jUnitTestFramework.getProcessorFactory().create(serviceRegistry);
         assertThat(testClassProcessor, instanceOf(JUnitTestClassProcessor.class));
     }
 
     @org.junit.Test
     public void testReport() {
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
+        jUnitTestFramework = new JUnitTestFramework(testMock);
         setMocks();
 
         context.checking(new Expectations() {{
@@ -92,23 +92,23 @@ public class JUnitTestFrameworkInstanceTest extends AbstractTestFrameworkInstanc
             );
         }});
 
-        jUnitTestFrameworkInstance.report();
+        jUnitTestFramework.report();
     }
 
     @org.junit.Test
     public void testReportWithDisabledReport() {
-        jUnitTestFrameworkInstance = new JUnitTestFrameworkInstance(testMock);
+        jUnitTestFramework = new JUnitTestFramework(testMock);
         setMocks();
 
         context.checking(new Expectations() {{
             one(testMock).isTestReport(); will(returnValue(false));
         }});
 
-        jUnitTestFrameworkInstance.report();
+        jUnitTestFramework.report();
     }
 
     private void setMocks() {
-        jUnitTestFrameworkInstance.setAntJUnitReport(antJUnitReportMock);
-        jUnitTestFrameworkInstance.setOptions(jUnitOptionsMock);
+        jUnitTestFramework.setAntJUnitReport(antJUnitReportMock);
+        jUnitTestFramework.setOptions(jUnitOptionsMock);
     }
 }

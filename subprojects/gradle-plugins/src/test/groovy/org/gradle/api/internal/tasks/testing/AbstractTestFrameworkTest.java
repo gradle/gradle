@@ -34,7 +34,7 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 @RunWith(JMock.class)
-public abstract class AbstractTestFrameworkInstanceTest {
+public abstract class AbstractTestFrameworkTest {
 
     protected JUnit4GroovyMockery context = new JUnit4GroovyMockery();
 
@@ -46,6 +46,7 @@ public abstract class AbstractTestFrameworkInstanceTest {
     protected final List<File> testSrcDirs = Arrays.asList(new File("testSrcDirs"));
     protected final File testResultsDir = new File("testResultsDir");
     protected final File testReportDir = new File("testReportDir");
+    protected final File temporaryDir = new File("tempDir");
     protected AntBuilder antBuilderMock;
     protected FileCollection classpathMock;
     protected FileTree classpathAsFileTreeMock;

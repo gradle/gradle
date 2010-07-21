@@ -18,9 +18,7 @@
 package org.gradle.api.tasks.testing.testng
 
 import groovy.xml.MarkupBuilder
-import org.gradle.api.GradleException
 import org.gradle.api.JavaVersion
-import org.gradle.util.GFileUtils
 import org.gradle.api.tasks.testing.TestFrameworkOptions
 
 /**
@@ -144,21 +142,10 @@ public class TestNGOptions extends TestFrameworkOptions implements Serializable 
     List<File> getSuites(File testSuitesDir) {
         List<File> suites = []
 
-        // Suites need to be in one directory because the suites can only be passed to the testng ant task as an ant fileset.
-        suiteXmlFiles.each {File it ->
-            final File targetSuiteFile = new File(testSuitesDir, it.getName())
-
-            if (targetSuiteFile.exists() && !targetSuiteFile.delete()) {
-                throw new GradleException("Failed to delete TestNG suite XML file " + targetSuiteFile.absolutePath);
-            }
-
-            GFileUtils.copyFile(it, targetSuiteFile)
-
-            suites.add(targetSuiteFile)
-        }
+        suites.addAll(suiteXmlFiles)
 
         if (suiteXmlBuilder != null) {
-            final File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
+            File buildSuiteXml = new File(testSuitesDir.absolutePath, "build-suite.xml");
 
             if (buildSuiteXml.exists()) {
                 if (!buildSuiteXml.delete()) {

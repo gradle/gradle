@@ -17,23 +17,20 @@
 package org.gradle.api.tasks.testing;
 
 import org.gradle.api.GradleException;
+import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.internal.tasks.testing.TestFrameworkInstance;
-import org.gradle.api.internal.tasks.testing.detection.TestClassScannerFactory;
+import org.gradle.api.internal.file.SimpleFileCollection;
+import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
+import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
-import org.gradle.listener.ListenerNotificationException;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TestClosure;
-import org.gradle.util.WrapUtil;
-import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
-import org.hamcrest.Matcher;
 import org.jmock.Expectations;
 import org.jmock.api.Action;
 import org.jmock.api.Invocation;
@@ -46,6 +43,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.Collections;
 
+import static org.gradle.util.Matchers.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
@@ -69,12 +67,8 @@ public class TestTest extends AbstractConventionTaskTest {
     }};
 
     TestFramework testFrameworkMock = context.mock(TestFramework.class);
-    TestFrameworkInstance testFrameworkInstanceMock = context.mock(TestFrameworkInstance.class);
-    TestClassScannerFactory testClassScannerFactoryMock = context.mock(TestClassScannerFactory.class);
-    Runnable testClassScannerMock = context.mock(Runnable.class);
-    WorkerTestClassProcessorFactory testProcessorFactoryMock = context.mock(WorkerTestClassProcessorFactory.class);
-
-    private FileCollection classpathMock = context.mock(FileCollection.class);
+    TestExecuter testExecuterMock = context.mock(TestExecuter.class);
+    private FileCollection classpathMock = new SimpleFileCollection(new File("classpath"));
     private Test test;
 
     @Before
@@ -97,13 +91,13 @@ public class TestTest extends AbstractConventionTaskTest {
 
     @org.junit.Test
     public void testInit() {
-        assertNotNull(test.getTestFramework());
+        assertThat(test.getTestFramework(), instanceOf(JUnitTestFramework.class));
         assertNull(test.getTestClassesDir());
         assertNull(test.getClasspath());
         assertNull(test.getTestResultsDir());
         assertNull(test.getTestReportDir());
-        assertEquals(toLinkedSet(), test.getIncludes());
-        assertEquals(toLinkedSet(), test.getExcludes());
+        assertThat(test.getIncludes(), isEmpty());
+        assertThat(test.getExcludes(), isEmpty());
         assertFalse(test.isIgnoreFailures());
     }
 
@@ -128,7 +122,7 @@ public class TestTest extends AbstractConventionTaskTest {
     }
 
     @org.junit.Test
-    public void testExecuteWithTestFailuresAndContinueWithFailures() {
+    public void testExecuteWithTestFailuresAndIgnoreFailures() {
         configureTask();
         test.setIgnoreFailures(true);
         expectTestsFail();
@@ -136,90 +130,28 @@ public class TestTest extends AbstractConventionTaskTest {
     }
 
     @org.junit.Test
-    public void testExecuteSingleByNameViaSystemProperty() {
-        String singleProperty = test.getName() + ".single";
-        System.setProperty(singleProperty, "CustomTest");
-        try {
-            configureTask();
-            expectTestsExecuted();
-            test.executeTests();
-            assertThat(test.getIncludes(), equalTo(WrapUtil.toSet("**/CustomTest*.class")));
-        } finally {
-            System.clearProperty(singleProperty);
-        }
+    public void testScansForTestClassesInTheTestClassesDir() {
+        configureTask();
+        test.include("include");
+        test.exclude("exclude");
+
+        FileTree classFiles = test.getCandidateClassFiles();
+        assertThat(classFiles, instanceOf(ConfigurableFileTree.class));
+        ConfigurableFileTree files = (ConfigurableFileTree) classFiles;
+        assertThat(files.getDir(), equalTo(classesDir));
+        assertThat(files.getIncludes(), equalTo(toSet("include")));
+        assertThat(files.getExcludes(), equalTo(toSet("exclude")));
     }
 
     @org.junit.Test
-    public void testExecuteSingleByPathViaSystemProperty() {
-        String singleProperty = test.getPath() + ".single";
-        System.setProperty(singleProperty, "CustomTest");
-        try {
-            configureTask();
-            expectSingleTestRun(1, true);
-            test.executeTests();
-            assertThat(test.getIncludes(), equalTo(WrapUtil.toSet("**/CustomTest*.class")));
-        } finally {
-            System.clearProperty(singleProperty);
-        }
-    }
+    public void testAddsDefaultIncludeAndExcludePatternsWhenTestScanningIsOff() {
+        configureTask();
+        test.setScanForTestClasses(false);
 
-    @org.junit.Test
-    public void testExecuteSingleViaSystemPropertyShouldFailIfNoTestIsExecuted() {
-        String singleProperty = test.getPath() + ".single";
-        System.setProperty(singleProperty, "CustomTest");
-        try {
-            configureTask();
-            expectSingleTestRun(0, false);
-            test.executeTests();
-            fail("Test name pattern not found should throw exception.");
-        } catch (ListenerNotificationException e) {
-            assertThat(e.getCause(), instanceOf(GradleException.class));
-        } finally {
-            System.clearProperty(singleProperty);
-        }
-    }
-
-    private void expectSingleTestRun(final long testCount, final boolean expectReport) {
-        expectOptionsBuilt();
-
-        context.checking(new Expectations() {{
-            allowing(classpathMock).iterator();
-            will(returnIterator(new File("classpath.jar")));
-
-            one(testFrameworkInstanceMock).getProcessorFactory();
-            will(returnValue(testProcessorFactoryMock));
-
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)), with(notNullValue(TestListenerAdapter.class)));
-            will(returnValue(testClassScannerMock));
-
-            final TestResult result = context.mock(TestResult.class);
-            allowing(result).getTestCount();
-            will(returnValue(testCount));
-            ignoring(result);
-
-            final TestDescriptor testDescriptor = context.mock(TestDescriptor.class);
-            allowing(testDescriptor).getName();
-            will(returnValue("test"));
-            allowing(testDescriptor).getParent();
-            will(returnValue(null));
-
-            ignoring(testDescriptor);
-
-            one(testClassScannerMock).run();
-            will(new Action() {
-                public void describeTo(Description description) {
-                    description.appendText("fail tests");
-                }
-                public Object invoke(Invocation invocation) throws Throwable {
-                    TestTest.this.test.getTestListenerBroadcaster().getSource().beforeSuite(testDescriptor);
-                    TestTest.this.test.getTestListenerBroadcaster().getSource().afterSuite(testDescriptor, result);
-                    return null;
-                }
-            });
-            if (expectReport) {
-                one(testFrameworkInstanceMock).report();
-            }
-        }});
+        ConfigurableFileTree files = (ConfigurableFileTree) test.getCandidateClassFiles();
+        assertThat(files.getDir(), equalTo(classesDir));
+        assertThat(files.getIncludes(), equalTo(toSet("**/*Tests.class", "**/*Test.class")));
+        assertThat(files.getExcludes(), equalTo(toSet("**/Abstract*.class")));
     }
 
     @org.junit.Test
@@ -310,34 +242,19 @@ public class TestTest extends AbstractConventionTaskTest {
         assertEquals(toLinkedSet(TEST_PATTERN_1, TEST_PATTERN_2, TEST_PATTERN_3), test.getExcludes());
     }
 
-    private void expectTestsExecuted() {
-        expectOptionsBuilt();
-        expectTestsExecuted(forkingProcessor());
-    }
-
     private void expectOptionsBuilt() {
         context.checking(new Expectations() {{
             TestFrameworkOptions testOptions = context.mock(TestFrameworkOptions.class);
-            allowing(testFrameworkInstanceMock).getOptions();
+            allowing(testFrameworkMock).getOptions();
             will(returnValue(testOptions));
         }});
     }
 
-    private void expectTestsExecuted(final Matcher<TestClassProcessor> testClassProcessorMatcher) {
+    private void expectTestsExecuted() {
+        expectOptionsBuilt();
         context.checking(new Expectations() {{
-            allowing(classpathMock).iterator();
-            will(returnIterator(new File("classpath.jar")));
-
-            one(testFrameworkInstanceMock).getProcessorFactory();
-            will(returnValue(testProcessorFactoryMock));
-
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(testClassProcessorMatcher), with(notNullValue(
-                    TestListenerAdapter.class)));
-            will(returnValue(testClassScannerMock));
-
-            one(testClassScannerMock).run();
-
-            one(testFrameworkInstanceMock).report();
+            one(testExecuterMock).execute(with(sameInstance(test)), with(notNullValue(TestListenerAdapter.class)));
+            one(testFrameworkMock).report();
         }});
     }
 
@@ -345,15 +262,6 @@ public class TestTest extends AbstractConventionTaskTest {
         expectOptionsBuilt();
 
         context.checking(new Expectations() {{
-            allowing(classpathMock).iterator();
-            will(returnIterator(new File("classpath.jar")));
-
-            one(testFrameworkInstanceMock).getProcessorFactory();
-            will(returnValue(testProcessorFactoryMock));
-
-            one(testClassScannerFactoryMock).createTestClassScanner(with(sameInstance(test)), with(notNullValue(TestClassProcessor.class)), with(notNullValue(TestListenerAdapter.class)));
-            will(returnValue(testClassScannerMock));
-
             final TestResult result = context.mock(TestResult.class);
             allowing(result).getResultType();
             will(returnValue(TestResult.ResultType.FAILURE));
@@ -367,7 +275,7 @@ public class TestTest extends AbstractConventionTaskTest {
 
             ignoring(testDescriptor);
 
-            one(testClassScannerMock).run();
+            one(testExecuterMock).execute(with(sameInstance(test)), with(notNullValue(TestListenerAdapter.class)));
             will(new Action() {
                 public void describeTo(Description description) {
                     description.appendText("fail tests");
@@ -380,36 +288,18 @@ public class TestTest extends AbstractConventionTaskTest {
                 }
             });
 
-            one(testFrameworkInstanceMock).report();
+            one(testFrameworkMock).report();
         }});
     }
 
     private void configureTask() {
-        context.checking(new Expectations() {{
-            one(testFrameworkMock).getInstance(test);
-            will(returnValue(testFrameworkInstanceMock));
-        }});
-
         test.useTestFramework(testFrameworkMock);
-
-        test.setScanForTestClasses(false);
-        test.setTestClassScannerFactory(testClassScannerFactoryMock);
+        test.setTestExecuter(testExecuterMock);
+        
         test.setTestClassesDir(classesDir);
         test.setTestResultsDir(resultsDir);
         test.setTestReportDir(reportDir);
         test.setClasspath(classpathMock);
         test.setTestSrcDirs(Collections.<File>emptyList());
-    }
-
-    private Matcher<TestClassProcessor> forkingProcessor() {
-        return new BaseMatcher<TestClassProcessor>() {
-            public boolean matches(Object o) {
-                return o instanceof MaxNParallelTestClassProcessor;
-            }
-
-            public void describeTo(Description description) {
-                description.appendText("a forking test processor");
-            }
-        };
     }
 }

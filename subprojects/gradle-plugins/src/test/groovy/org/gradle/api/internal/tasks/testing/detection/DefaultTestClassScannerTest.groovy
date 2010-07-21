@@ -21,41 +21,35 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.runner.RunWith
 import org.junit.Test
-import org.junit.Rule
-import org.gradle.util.TemporaryFolder
 
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
 import org.jmock.Sequence
+import org.gradle.api.file.FileTree
+import static org.hamcrest.Matchers.*
+import org.gradle.api.file.FileVisitDetails
 
 @RunWith(JMock.class)
 public class DefaultTestClassScannerTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final TestFrameworkDetector detector = context.mock(TestFrameworkDetector.class)
     private final TestClassProcessor processor = context.mock(TestClassProcessor.class)
-    @Rule
-    public final TemporaryFolder tmpDir = new TemporaryFolder()
+    private final FileTree files = context.mock(FileTree.class)
 
     @Test
     public void passesEachClassFileToTestClassDetector() {
-        DefaultTestClassScanner scanner = new DefaultTestClassScanner(tmpDir.dir, ['**/Class*'] as Set, ['**/excluded*'] as Set, detector, processor)
-
-        tmpDir.dir.create {
-            dir1 {
-                file 'Class1.class'
-                file 'Class1.xml'
-            }
-            dir2 {
-                file 'Class2.class'
-                file 'excluded.class'
-            }
-        }
+        DefaultTestClassScanner scanner = new DefaultTestClassScanner(files, detector, processor)
 
         context.checking {
             Sequence sequence = context.sequence('seq')
+            one(files).visit(withParam(notNullValue()))
+            will { visitor ->
+                visitor.visitFile({new File('class1.class')} as FileVisitDetails)
+                visitor.visitFile({new File('class2.class')} as FileVisitDetails)
+            }
             one(detector).startDetection(processor)
             inSequence(sequence)
-            one(detector).processTestClass(tmpDir.file('dir1/Class1.class'))
-            one(detector).processTestClass(tmpDir.file('dir2/Class2.class'))
+            one(detector).processTestClass(new File('class1.class'))
+            one(detector).processTestClass(new File('class2.class'))
             inSequence(sequence)
         }
         

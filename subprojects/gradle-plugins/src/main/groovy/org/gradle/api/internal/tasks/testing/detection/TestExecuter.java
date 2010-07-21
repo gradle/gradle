@@ -16,13 +16,12 @@
 
 package org.gradle.api.internal.tasks.testing.detection;
 
-import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.testing.Test;
 
 /**
  * @author Tom Eyckmans
  */
-public interface TestClassScannerFactory {
-    Runnable createTestClassScanner(Test testTask, TestClassProcessor testClassProcessor, TestResultProcessor testResultProcessor);
+public interface TestExecuter {
+    void execute(Test testTask, TestResultProcessor testResultProcessor);
 }

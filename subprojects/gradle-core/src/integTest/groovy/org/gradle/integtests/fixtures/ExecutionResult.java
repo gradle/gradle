@@ -24,7 +24,18 @@ public interface ExecutionResult {
 
     void assertErrorHasNoStackTraces();
 
+    /**
+     * Asserts that exactly the given set of tasks have been executed
+     */
     ExecutionResult assertTasksExecuted(String... taskPaths);
 
+    /**
+     * Asserts that exactly the given set of tasks have been skipped
+     */
     ExecutionResult assertTasksSkipped(String... taskPaths);
+
+    /**
+     * Asserts that exactly the given set of tasks have not been skipped 
+     */
+    ExecutionResult assertTasksNotSkipped(String... taskPaths);
 }

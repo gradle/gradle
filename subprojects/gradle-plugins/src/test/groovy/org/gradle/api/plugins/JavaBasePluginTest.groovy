@@ -28,12 +28,17 @@ import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
 import static org.gradle.util.WrapUtil.toLinkedSet
+import org.gradle.api.tasks.testing.Test
+import org.gradle.util.SetSystemProperties
+import org.junit.Rule
 
 /**
  * @author Hans Dockter
  */
 
 class JavaBasePluginTest extends Specification {
+    @Rule
+    public SetSystemProperties sysProperties = new SetSystemProperties()
     private final Project project = HelperUtil.createRootProject()
     private final JavaBasePlugin javaBasePlugin = new JavaBasePlugin()
 
@@ -120,4 +125,30 @@ class JavaBasePluginTest extends Specification {
         def buildNeeded = project.tasks[JavaBasePlugin.BUILD_NEEDED_TASK_NAME]
         Matchers.dependsOn(JavaBasePlugin.BUILD_TASK_NAME).matches(buildNeeded)
     }
+
+    def configuresTestTaskWhenDebugSystemPropertyIsSet() {
+        javaBasePlugin.apply(project)
+        def task = project.tasks.add('test', Test.class)
+
+        when:
+        System.setProperty("test.debug", "true")
+        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
+
+        then:
+        task.debug
+    }
+
+    def configuresTestTaskWhenSingleTestSystemPropertyIsSet() {
+        javaBasePlugin.apply(project)
+        def task = project.tasks.add('test', Test.class)
+        task.include 'ignoreme'
+
+        when:
+        System.setProperty("test.single", "pattern")
+        project.projectEvaluationBroadcaster.afterEvaluate(project, null)
+
+        then:
+        task.includes == ['**/pattern*.class'] as Set
+    }
+
 }

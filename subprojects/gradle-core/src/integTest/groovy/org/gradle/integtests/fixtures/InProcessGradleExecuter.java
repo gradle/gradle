@@ -163,7 +163,11 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 parameter));
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
-        return gradleLauncher.run();
+        try {
+            return gradleLauncher.run();
+        } finally {
+            System.clearProperty("test.single");
+        }
     }
 
     public void assertCanExecute() {
@@ -264,6 +268,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
             List<String> expected = Arrays.asList(taskPaths);
             assertThat(skippedTasks, equalTo(expected));
+            return this;
+        }
+
+        public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
+            List<String> expected = Arrays.asList(taskPaths);
+            List<String> notSkipped = new ArrayList<String>(plannedTasks);
+            notSkipped.removeAll(skippedTasks);
+            assertThat(notSkipped, equalTo(expected));
             return this;
         }
     }

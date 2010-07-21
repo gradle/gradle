@@ -24,15 +24,29 @@ import org.gradle.process.internal.WorkerProcessBuilder;
 /**
  * @author Tom Eyckmans
  */
-public interface TestFrameworkInstance {
+public interface TestFramework {
 
+    /**
+     * Returns a detector which is used to determine which of the candidate class files correspond to test classes to be
+     * executed.
+     */
     TestFrameworkDetector getDetector();
 
     void report();
 
     TestFrameworkOptions getOptions();
 
+    /**
+     * Returns a factory which is used to create a {@link org.gradle.api.internal.tasks.testing.TestClassProcessor} in
+     * each worker process. This factory is serialized across to the worker process, and then it's {@link
+     * org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory#create(org.gradle.api.internal.project.ServiceRegistry)}
+     * method is called to create the test processor.
+     */
     WorkerTestClassProcessorFactory getProcessorFactory();
 
+    /**
+     * Returns an action which is used to perform some framework specific worker process configuration. This action is
+     * executed before starting each worker process.
+     */
     Action<WorkerProcessBuilder> getWorkerConfigurationAction();
 }

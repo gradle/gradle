@@ -142,6 +142,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     private static class ForkedExecutionResult extends AbstractExecutionResult {
         private final Map result;
+        private final Pattern skippedTaskPattern = Pattern.compile("(:.+?)\\s+((SKIPPED)|(UP-TO-DATE))");
+        private final Pattern notSkippedTaskPattern = Pattern.compile("(:.+?)");
 
         public ForkedExecutionResult(Map result) {
             this.result = result;
@@ -160,12 +162,24 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
+            List<String> tasks = findTasks(skippedTaskPattern);
+            assertThat(tasks, equalTo(Arrays.asList(taskPaths)));
+            return this;
+        }
+
+        public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
+            List<String> tasks = findTasks(notSkippedTaskPattern);
+            assertThat(tasks, equalTo(Arrays.asList(taskPaths)));
+            return this;
+        }
+
+        private List<String> findTasks(Pattern pattern) {
             List<String> tasks = new ArrayList<String>();
             BufferedReader reader = new BufferedReader(new StringReader(getOutput()));
             String line;
             try {
                 while ((line = reader.readLine()) != null) {
-                    java.util.regex.Matcher matcher = Pattern.compile("(:.+?)\\s+((SKIPPED)|(UP-TO-DATE))").matcher(line);
+                    java.util.regex.Matcher matcher = pattern.matcher(line);
                     if (matcher.matches()) {
                         tasks.add(matcher.group(1));
                     }
@@ -173,8 +187,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            assertThat(tasks, equalTo(Arrays.asList(taskPaths)));
-            return this;
+            return tasks;
         }
     }
 

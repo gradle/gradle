@@ -15,14 +15,15 @@
  */
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.junit.Test
-import static org.hamcrest.Matchers.*
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.TestResources
 import org.junit.Assert
 import org.junit.Ignore
+import org.junit.Rule
+import org.junit.Test
+import static org.hamcrest.Matchers.*
+import org.gradle.integtests.testng.TestNgExecutionResult
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -46,30 +47,49 @@ class IncrementalTestIntegrationTest {
         // Change a production class
         distribution.testFile('src/main/java/MainClass.java').assertIsFile().copyFrom(distribution.testFile('NewMainClass.java'))
 
-        executer.withTasks('test').run().assertTasksSkipped(':processResources', ':processTestResources')
-
-        executer.withTasks('test').run().assertTasksSkipped(':compileJava', ':processResources', ':classes', ':compileTestJava', ':processTestResources', ':testClasses', ':test')
+        executer.withTasks('test').run().assertTasksNotSkipped(':compileJava', ':classes', ':compileTestJava', ':testClasses', ':test')
+        executer.withTasks('test').run().assertTasksNotSkipped()
         
         // Change a test class
         distribution.testFile('src/test/java/Ok.java').assertIsFile().copyFrom(distribution.testFile('NewOk.java'))
 
-        executer.withTasks('test').run().assertTasksSkipped(':compileJava', ':processResources', ':classes', ':processTestResources')
-
-        executer.withTasks('test').run().assertTasksSkipped(':compileJava', ':processResources', ':classes', ':compileTestJava', ':processTestResources', ':testClasses', ':test')
+        executer.withTasks('test').run().assertTasksNotSkipped(':compileTestJava', ':testClasses', ':test')
+        executer.withTasks('test').run().assertTasksNotSkipped()
     }
 
-    @Test @Ignore
+    @Test
     public void executesTestsWhenSelectedTestsChange() {
-        Assert.fail()
+        executer.withTasks('test').run()
+
+        def result = new JUnitTestExecutionResult(distribution.testDir)
+        result.assertTestClassesExecuted('JUnitTest')
+
+        // Include more tests
+        distribution.testFile('build.gradle').append 'test.include "**/*Extra*"\n'
+
+        executer.withTasks('test').run().assertTasksNotSkipped(':test')
+        result.assertTestClassesExecuted('JUnitTest', 'JUnitExtra')
+
+        executer.withTasks('test').run().assertTasksNotSkipped()
+
+        // Use single test execution
+        executer.withTasks('test').withArguments('-Dtest.single=Ok').run().assertTasksNotSkipped(':test')
+        executer.withTasks('test').run().assertTasksNotSkipped(':test')
+        executer.withTasks('test').run().assertTasksNotSkipped()
+
+        // Switch test framework
+        distribution.testFile('build.gradle').append 'test.useTestNG()\n'
+
+        executer.withTasks('test').run().assertTasksNotSkipped(':test')
+
+        result = new TestNgExecutionResult(distribution.testDir)
+        result.assertTestClassesExecuted('TestNGTest')
+
+        executer.withTasks('test').run().assertTasksNotSkipped()
     }
 
     @Test @Ignore
     public void executesTestsWhenPropertiesChange() {
-        Assert.fail()
-    }
-
-    @Test @Ignore
-    public void executesTestsWhenTestFrameworkChanges() {
         Assert.fail()
     }
 }

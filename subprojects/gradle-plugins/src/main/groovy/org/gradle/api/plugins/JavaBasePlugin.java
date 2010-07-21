@@ -26,7 +26,10 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.Compile;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.api.tasks.testing.Test;
-import org.gradle.util.GUtil;
+import org.gradle.api.tasks.testing.TestDescriptor;
+import org.gradle.api.tasks.testing.TestListener;
+import org.gradle.api.tasks.testing.TestResult;
+import org.gradle.util.WrapUtil;
 
 import java.io.File;
 
@@ -194,21 +197,92 @@ public class JavaBasePlugin implements Plugin<Project> {
     private void configureTest(final Project project) {
         project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
             public void execute(Test test) {
-                test.getConventionMapping().map(GUtil.map("testResultsDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getTestResultsDir();
-                    }
-                }, "testReportDir", new ConventionValue() {
-                    public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                        return convention.getPlugin(JavaPluginConvention.class).getTestReportDir();
-                    }
-                }));
+                configureTestDefaults(test, project);
             }
         });
-        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
-            public void execute(Test test) {
-                test.workingDir(project.getProjectDir());
+        project.afterEvaluate(new Action<Project>() {
+            @Override
+            public void execute(Project project) {
+                project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
+                    public void execute(Test test) {
+                        overwriteIncludesIfSinglePropertyIsSet(test);
+                        overwriteDebugIfDebugPropertyIsSet(test);
+                    }
+                });
             }
         });
+    }
+
+    private void overwriteDebugIfDebugPropertyIsSet(Test test) {
+        String debugProp = getTaskPrefixedProperty(test, "debug");
+        if (debugProp != null) {
+            test.doFirst(new Action<Task>() {
+                @Override
+                public void execute(Task task) {
+                    task.getLogger().info("Running tests for remote debugging.");
+                }
+            });
+            test.setDebug(true);
+        }
+    }
+
+    private void overwriteIncludesIfSinglePropertyIsSet(final Test test) {
+        String singleTest = getTaskPrefixedProperty(test, "single");
+        if (singleTest == null) {
+            return;
+        }
+        test.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
+            }
+        });
+        test.setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
+        failIfNoTestIsExecuted(test, singleTest);
+    }
+
+    private void failIfNoTestIsExecuted(Test test, final String pattern) {
+        test.addTestListener(new TestListener() {
+            public void beforeSuite(TestDescriptor suite) {
+                // do nothing
+            }
+
+            public void afterSuite(TestDescriptor suite, TestResult result) {
+                if (suite.getParent() == null && result.getTestCount() == 0) {
+                    throw new GradleException("Could not find matching test for pattern: " + pattern);
+                }
+            }
+
+            public void beforeTest(TestDescriptor testDescriptor) {
+                // do nothing
+            }
+
+            public void afterTest(TestDescriptor testDescriptor, TestResult result) {
+                // do nothing
+            }
+        });
+    }
+
+    private String getTaskPrefixedProperty(Task task, String propertyName) {
+        String suffix = '.' + propertyName;
+        String value = System.getProperty(task.getPath() + suffix);
+        if (value == null) {
+            return System.getProperty(task.getName() + suffix);
+        }
+        return value;
+    }
+
+    private void configureTestDefaults(Test test, Project project) {
+        test.getConventionMapping().map("testResultsDir", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(JavaPluginConvention.class).getTestResultsDir();
+            }
+        });
+        test.getConventionMapping().map("testReportDir", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return convention.getPlugin(JavaPluginConvention.class).getTestReportDir();
+            }
+        });
+        test.workingDir(project.getProjectDir());
     }
 }

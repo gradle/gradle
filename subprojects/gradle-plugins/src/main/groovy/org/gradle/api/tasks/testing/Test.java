@@ -17,19 +17,17 @@
 package org.gradle.api.tasks.testing;
 
 import groovy.lang.Closure;
-import groovy.lang.MissingPropertyException;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.file.FileTree;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.api.internal.tasks.testing.*;
-import org.gradle.api.internal.tasks.testing.detection.DefaultTestClassScannerFactory;
-import org.gradle.api.internal.tasks.testing.detection.TestClassScannerFactory;
+import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.detection.DefaultTestExecuter;
+import org.gradle.api.internal.tasks.testing.detection.TestExecuter;
 import org.gradle.api.internal.tasks.testing.junit.JUnitTestFramework;
-import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
-import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
 import org.gradle.api.internal.tasks.testing.results.TestLogger;
 import org.gradle.api.internal.tasks.testing.results.TestSummaryListener;
@@ -47,7 +45,6 @@ import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
 import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.util.ConfigureUtil;
-import org.gradle.util.WrapUtil;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
@@ -59,16 +56,10 @@ import java.util.Set;
 /**
  * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
  *
- * By setting a system property <code>&lt;taskName&gt;.single=&lt;TestNamePattern&gt;</code> or
- * <code>&lt;taskPath&gt;.single=&lt;TestNamePattern&gt;</code> only tests with the pattern
- * <code>&#042;&#042;/&lt;TestNamePattern&gt;*.class</code> will be executed. If no tests with this pattern
- * can be found, an exeption will be thrown.
- *
  * @author Hans Dockter
  */
 public class Test extends ConventionTask implements JavaForkOptions, PatternFilterable, VerificationTask {
-    public static final String TEST_FRAMEWORK_DEFAULT_PROPERTY = "test.framework.default";
-    private TestClassScannerFactory testClassScannerFactory;
+    private TestExecuter testExecuter;
     private final DefaultJavaForkOptions options;
     private List<File> testSrcDirs = new ArrayList<File>();
     private File testClassesDir;
@@ -77,7 +68,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     private PatternFilterable patternSet = new PatternSet();
     private boolean ignoreFailures;
     private FileCollection classpath;
-    private TestFrameworkInstance testFrameworkInstance;
+    private TestFramework testFramework;
     private boolean testReport = true;
     private boolean scanForTestClasses = true;
     private long forkEvery;
@@ -87,13 +78,14 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
                 TestListener.class);
-        this.testClassScannerFactory = new DefaultTestClassScannerFactory();
+        this.testExecuter = new DefaultTestExecuter(getServices().get(WorkerProcessFactory.class), getServices().get(
+                ActorFactory.class));
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
         options.setEnableAssertions(true);
     }
 
-    void setTestClassScannerFactory(TestClassScannerFactory testClassScannerFactory) {
-        this.testClassScannerFactory = testClassScannerFactory;
+    void setTestExecuter(TestExecuter testExecuter) {
+        this.testExecuter = testExecuter;
     }
 
     /**
@@ -326,92 +318,18 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     @TaskAction
     public void executeTests() {
-        overwriteIncludesIfSinglePropertyIsSet();
-        overwriteDebugIfDebugPropertyIsSet();
-        final WorkerProcessFactory workerFactory = getServices().get(WorkerProcessFactory.class);
-
-        final TestFrameworkInstance testFrameworkInstance = getTestFramework();
-        final WorkerTestClassProcessorFactory testInstanceFactory = testFrameworkInstance.getProcessorFactory();
-        final TestClassProcessorFactory forkingProcessorFactory = new TestClassProcessorFactory() {
-            public TestClassProcessor create() {
-                return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, options, getClasspath(),
-                        testFrameworkInstance.getWorkerConfigurationAction());
-            }
-        };
-        TestClassProcessorFactory reforkingProcessorFactory = new TestClassProcessorFactory() {
-            public TestClassProcessor create() {
-                return new RestartEveryNTestClassProcessor(forkingProcessorFactory, getForkEvery());
-            }
-        };
-
-        TestClassProcessor processor = new MaxNParallelTestClassProcessor(getMaxParallelForks(),
-                reforkingProcessorFactory, getServices().get(ActorFactory.class));
-
         TestSummaryListener listener = new TestSummaryListener(LoggerFactory.getLogger(Test.class));
         addTestListener(listener);
         addTestListener(new TestLogger(getServices().get(ProgressLoggerFactory.class)));
 
         TestResultProcessor resultProcessor = new TestListenerAdapter(getTestListenerBroadcaster().getSource());
-        Runnable testClassScanner = testClassScannerFactory.createTestClassScanner(this, processor, resultProcessor);
-        testClassScanner.run();
+        testExecuter.execute(this, resultProcessor);
 
-        testFrameworkInstance.report();
+        testFramework.report();
 
         if (!isIgnoreFailures() && listener.hadFailures()) {
             throw new GradleException("There were failing tests. See the report at " + getTestReportDir() + ".");
         }
-    }
-
-    private void overwriteDebugIfDebugPropertyIsSet() {
-        String debugProp = getTaskPrefixedProperty(".debug");
-        if (debugProp != null) {
-            getLogger().info("Running tests for remote debugging.");
-            setDebug(true);
-        }
-    }
-
-    private void overwriteIncludesIfSinglePropertyIsSet() {
-        String singleTest = getSingleTestProperty();
-        if (singleTest == null) {
-            return;
-        }
-        failIfNoTestIsExecuted(singleTest);
-        setIncludes(WrapUtil.toSet(String.format("**/%s*.class", singleTest)));
-        getLogger().info("Running single tests with pattern: {}", getIncludes());
-    }
-
-    private String getSingleTestProperty() {
-        return getTaskPrefixedProperty(".single");
-    }
-
-    private void failIfNoTestIsExecuted(final String pattern) {
-        addTestListener(new TestListener() {
-            public void beforeSuite(TestDescriptor suite) {
-                // do nothing
-            }
-
-            public void afterSuite(TestDescriptor suite, TestResult result) {
-                if (suite.getParent() == null && result.getTestCount() == 0) {
-                    throw new GradleException("Could not find matching test for pattern: " + pattern);
-                }
-            }
-
-            public void beforeTest(TestDescriptor testDescriptor) {
-                // do nothing
-            }
-
-            public void afterTest(TestDescriptor testDescriptor, TestResult result) {
-                // do nothing
-            }
-        });
-    }
-
-    private String getTaskPrefixedProperty(String propName) {
-        String singleTest = System.getProperty(getPath() + propName);
-        if (singleTest == null) {
-            return System.getProperty(getName() + propName);
-        }
-        return singleTest;
     }
 
     /**
@@ -555,8 +473,6 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      *
      * @return All test class directories to be used.
      */
-    @InputDirectory
-    @SkipWhenEmpty
     public File getTestClassesDir() {
         return testClassesDir;
     }
@@ -663,93 +579,85 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return this;
     }
 
-    public TestFrameworkInstance getTestFramework() {
+    public TestFramework getTestFramework() {
         return testFramework(null);
     }
 
-    public TestFrameworkInstance testFramework(Closure testFrameworkConfigure) {
-        if (testFrameworkInstance == null) {
-            return useDefaultTestFramework(testFrameworkConfigure);
+    public TestFramework testFramework(Closure testFrameworkConfigure) {
+        if (testFramework == null) {
+            return useJUnit(testFrameworkConfigure);
         }
 
-        return testFrameworkInstance;
+        return testFramework;
     }
 
     /**
-     * Backwards compatible access to the TestFramework options. <p/> Be sure to call the appropriate
-     * useJUnit/useTestNG/useTestFramework function or set the default before using this function.
+     * <p>Returns the test options options.</p>
+     *
+     * <p>Be sure to call the appropriate {@link #useJUnit} or {@link #useTestNG} method before using this method.</p>
      *
      * @return The testframework options.
      */
+    @Nested
     public TestFrameworkOptions getOptions() {
         return options(null);
     }
 
     public TestFrameworkOptions options(Closure testFrameworkConfigure) {
         TestFrameworkOptions options = getTestFramework().getOptions();
-        ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
+        ConfigureUtil.configure(testFrameworkConfigure, testFramework.getOptions());
         return options;
     }
 
-    public TestFrameworkInstance useTestFramework(TestFramework testFramework) {
+    TestFramework useTestFramework(TestFramework testFramework) {
         return useTestFramework(testFramework, null);
     }
 
-    public TestFrameworkInstance useTestFramework(TestFramework testFramework, Closure testFrameworkConfigure) {
+    private TestFramework useTestFramework(TestFramework testFramework, Closure testFrameworkConfigure) {
         if (testFramework == null) {
             throw new IllegalArgumentException("testFramework is null!");
         }
 
-        this.testFrameworkInstance = testFramework.getInstance(this);
+        this.testFramework = testFramework;
 
         if (testFrameworkConfigure != null) {
-            ConfigureUtil.configure(testFrameworkConfigure, testFrameworkInstance.getOptions());
+            ConfigureUtil.configure(testFrameworkConfigure, this.testFramework.getOptions());
         }
 
-        return testFrameworkInstance;
+        return this.testFramework;
     }
 
-    public TestFrameworkInstance useJUnit() {
+    /**
+     * Specifies that JUnit should be used to execute the tests.
+     */
+    public TestFramework useJUnit() {
         return useJUnit(null);
     }
 
-    public TestFrameworkInstance useJUnit(Closure testFrameworkConfigure) {
-        return useTestFramework(new JUnitTestFramework(), testFrameworkConfigure);
+    /**
+     * Specifies that JUnit should be used to execute the tests.
+     *
+     * @param testFrameworkConfigure A closure used to configure the JUint options. This closure is passed an instance
+     * of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
+     */
+    public TestFramework useJUnit(Closure testFrameworkConfigure) {
+        return useTestFramework(new JUnitTestFramework(this), testFrameworkConfigure);
     }
 
-    public TestFrameworkInstance useTestNG() {
+    /**
+     * Specifies that TestNG should be used to execute the tests.
+     */
+    public TestFramework useTestNG() {
         return useTestNG(null);
     }
 
-    public TestFrameworkInstance useTestNG(Closure testFrameworkConfigure) {
-        return useTestFramework(new TestNGTestFramework(), testFrameworkConfigure);
-    }
-
-    public TestFrameworkInstance useDefaultTestFramework(Closure testFrameworkConfigure) {
-        try {
-            final String testFrameworkDefault = (String) getProject().property(TEST_FRAMEWORK_DEFAULT_PROPERTY);
-
-            if (testFrameworkDefault == null || "".equals(testFrameworkDefault) || "junit".equalsIgnoreCase(
-                    testFrameworkDefault)) {
-                return useJUnit(testFrameworkConfigure);
-            } else if ("testng".equalsIgnoreCase(testFrameworkDefault)) {
-                return useTestNG(testFrameworkConfigure);
-            } else {
-                try {
-                    final Class testFrameworkClass = Class.forName(testFrameworkDefault);
-
-                    return useTestFramework((TestFramework) testFrameworkClass.newInstance(), testFrameworkConfigure);
-                } catch (ClassNotFoundException e) {
-                    throw new GradleException(testFrameworkDefault + " could not be found on the classpath", e);
-                } catch (Exception e) {
-                    throw new GradleException(
-                            "Could not create an instance of the test framework class " + testFrameworkDefault
-                                    + ". Make sure that it has a public noargs constructor.", e);
-                }
-            }
-        } catch (MissingPropertyException e) {
-            return useJUnit(testFrameworkConfigure);
-        }
+    /**
+     * Specifies that TestNG should be used to execute the tests.
+     * @param testFrameworkConfigure A closure used to configure the JUint options. This closure is passed an instance
+     * of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
+     */
+    public TestFramework useTestNG(Closure testFrameworkConfigure) {
+        return useTestFramework(new TestNGTestFramework(this), testFrameworkConfigure);
     }
 
     @InputFiles
@@ -837,5 +745,25 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
             throw new IllegalArgumentException("Cannot set maxParallelForks to a value less than 1.");
         }
         this.maxParallelForks = maxParallelForks;
+    }
+
+    /**
+     * Returns the classes files to scan for test classes.
+     * @return The candidate class files.
+     */
+    @InputFiles
+    @Input // Also marked as input to force tests to run when the set of candidate class files changes 
+    public FileTree getCandidateClassFiles() {
+        PatternSet patterns = new PatternSet();
+        patterns.copyFrom(patternSet);
+        if (!isScanForTestClasses()) {
+            if (patterns.getIncludes().isEmpty()) {
+                patterns.include("**/*Tests.class", "**/*Test.class");
+            }
+            if (patterns.getExcludes().isEmpty()) {
+                patterns.exclude("**/Abstract*.class");
+            }
+        }
+        return getProject().fileTree(getTestClassesDir()).matching(patterns);
     }
 }

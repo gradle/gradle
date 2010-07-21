@@ -94,6 +94,22 @@ public class JUnitIntegrationTest {
     }
 
     @Test
+    public void canRunSingleTests() {
+        executer.withTasks('test').withArguments('-Dtest.single=Ok2').run()
+        def result = new JUnitTestExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('Ok2')
+
+        executer.withTasks('cleanTest', 'test').withArguments('-Dtest.single=Ok').run()
+        result.assertTestClassesExecuted('Ok', 'Ok2')
+
+        def failure = executer.withTasks('test').withArguments('-Dtest.single=DoesNotMatchAClass').runWithFailure()
+        failure.assertHasCause('Could not find matching test for pattern: DoesNotMatchAClass')
+
+        failure = executer.withTasks('test').withArguments('-Dtest.single=NotATest').runWithFailure()
+        failure.assertHasCause('Could not find matching test for pattern: NotATest')
+    }
+    
+    @Test
     public void canUseTestSuperClassesFromAnotherProject() {
         TestFile testDir = dist.getTestDir();
         testDir.file('settings.gradle').write("include 'a', 'b'");
