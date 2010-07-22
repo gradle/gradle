@@ -35,14 +35,25 @@ public class CachingDirectedGraphWalker<N, T> {
         this.graph = graph;
     }
 
-    public void add(N... values) {
+    /**
+     * Adds some start nodes.
+     */
+    public CachingDirectedGraphWalker<N, T> add(N... values) {
         add(Arrays.asList(values));
+        return this;
     }
 
-    public void add(Iterable<? extends N> values) {
+    /**
+     * Adds some start nodes.
+     */
+    public CachingDirectedGraphWalker add(Iterable<? extends N> values) {
         GUtil.addToCollection(startNodes, values);
+        return this;
     }
 
+    /**
+     * Calculates the set of values of nodes reachable from the start nodes.
+     */
     public Set<T> findValues() {
         try {
             return doSearch();

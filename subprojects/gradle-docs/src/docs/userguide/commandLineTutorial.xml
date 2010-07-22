@@ -97,44 +97,35 @@
         </para>
         <para>If a report option is used without additional parameters, the respective report is generated for the current project.
            If you add append <literal>?</literal> to the option the report is generated for the current project and all its subprojects.
-           If you add append a <link linkend="sec:project_and_task_paths">project path</link> the report will be generated for the specified project.
+           If you add append a <link linkend="sec:project_and_task_paths">project path</link> the report will be generated for the
+            specified project.
         </para>
-        <para>Running <userinput>gradle --tasks</userinput>
+        <para>Running <userinput>gradle --tasks</userinput> or <userinput>gradle -t</userinput>
             gives you a list of the tasks which make up the current project. This report shows the default
             tasks, if any, and the description and dependencies of each task. Below is an example of
             this report:
         </para>
         <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
-            <output args="-q --tasks"/>
+            <output args="-q -t"/>
         </sample>
-        <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies ?</userinput>
-            gives you a list of the dependencies of the build, broken down by project. This report shows the
-            configurations of each project. For each configuration, the direct and transitive dependencies of that
-            configuration are shown. Below is an example of this report:
+        <para>You can influence the contents of this report by using a couple of task properties:</para>
+        <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Changing the content of the task report">
+            <sourcefile file="build.gradle" snippet="add-task-to-report"/>
+        </sample>
+        <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
+            gives you a list of the dependencies of the current project, broken down by configuration.  For each
+            configuration, the direct and transitive dependencies of that configuration are shown. Below is an example
+            of this report:
         </para>
         <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
             <output args="-q --dependencies ?"/>
         </sample>
-        <para>Running <userinput>gradle --properties :api</userinput> gives you a list of the properties of the specified
-            project in the build. This is a snippet from the output:
+        <para>Running <userinput>gradle --properties</userinput> gives you a list of the properties of the current
+            project. This is a snippet from the output:
         </para>
-        <screen>
-------------------------------------------------------------
-Project :api
-------------------------------------------------------------
-additionalProperties: {gradle_installPath=/home/hd/java/gradle-SNAPSHOT}
-all: [task ':api:libs']
-allprojects: [project ':api']
-ant: org.gradle.api.internal.project.DefaultAntBuilder@75fc25e5
-antBuilderFactory: org.gradle.api.internal.project.DefaultAntBuilderFactory@7d1c19e6
-artifacts: org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler@3fe88b35
-asDynamicObject: org.gradle.api.internal.DynamicObjectHelper@3c0b655a
-asMap: {libs=task ':api:libs'}
-buildDir: /home/hd/gradle/subprojects/gradle-docs/build/samples/userguide/tutorial/projectReports/api/build        
-        </screen>
-        <!--<sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">-->
-            <!--<output args="-q - -properties"/>-->
-        <!--</sample>-->
+        <sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
+            <output args="-q --properties :api" ignoreExtraLines="true"/>
+        </sample>
         <para>You can also use the <link linkend="project_reports_plugin">project report plugin</link> to add a
             number of reporting tasks to your project.
         </para>

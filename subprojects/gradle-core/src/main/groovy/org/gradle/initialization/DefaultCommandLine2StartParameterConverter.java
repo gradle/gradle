@@ -15,11 +15,11 @@
  */
 package org.gradle.initialization;
 
+import com.google.common.collect.BiMap;
+import com.google.common.collect.HashBiMap;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
-import org.apache.commons.collections.BidiMap;
-import org.apache.commons.collections.bidimap.DualHashBidiMap;
 import org.gradle.CacheUsage;
 import org.gradle.CommandLineArgumentException;
 import org.gradle.StartParameter;
@@ -122,8 +122,8 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
         }};
 
-    private static BidiMap logLevelMap = new DualHashBidiMap();
-    private static BidiMap showStacktraceMap = new DualHashBidiMap();
+    private static BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
+    private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
 
     //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
     //object representation.
@@ -320,7 +320,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     */
 
     public LogLevel getLogLevel(String commandLineArgument) {
-        LogLevel logLevel = (LogLevel) logLevelMap.get(commandLineArgument);
+        LogLevel logLevel = logLevelMap.get(commandLineArgument);
         if (logLevel == null) {
             return null;
         }
@@ -338,7 +338,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     */
 
     public String getLogLevelCommandLine(LogLevel logLevel) {
-        String commandLine = (String) logLevelMap.getKey(logLevel);
+        String commandLine = logLevelMap.inverse().get(logLevel);
         if (commandLine == null) {
             return null;
         }
@@ -365,8 +365,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     */
 
     public StartParameter.ShowStacktrace getShowStacktrace(String commandLineArgument) {
-        StartParameter.ShowStacktrace showStacktrace = (StartParameter.ShowStacktrace) showStacktraceMap.get(
-                commandLineArgument);
+        StartParameter.ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
         if (showStacktrace == null) {
             return null;
         }
@@ -385,7 +384,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     */
 
     public String getShowStacktraceCommandLine(StartParameter.ShowStacktrace showStacktrace) {
-        String commandLine = (String) showStacktraceMap.getKey(showStacktrace);
+        String commandLine = showStacktraceMap.inverse().get(showStacktrace);
         if (commandLine == null) {
             return null;
         }

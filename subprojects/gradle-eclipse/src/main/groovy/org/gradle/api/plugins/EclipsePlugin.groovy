@@ -13,10 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
@@ -62,13 +58,17 @@ public class EclipsePlugin implements Plugin<Project> {
     }
 
     private void configureEclipseProjectAndClasspath(Project project) {
-        project.tasks.add(ECLIPSE_TASK_NAME).dependsOn(
+        Task eclipse = project.tasks.add(ECLIPSE_TASK_NAME)
+        eclipse.dependsOn(
                 configureEclipseProject(project),
                 configureEclipseClasspath(project)
-        ).setDescription("Generates an Eclipse .project and .classpath file.");
+        )
+        eclipse.description = "Generates the Eclipse project files (.project and .classpath).";
+        eclipse.taskGroup = 'IDE'
 
         Delete clean = project.tasks.add(ECLIPSE_CLEAN_TASK_NAME, Delete.class)
-        clean.description = "Deletes the Eclipse .project and .classpath files.";
+        clean.description = "Deletes the Eclipse project files (.project and .classpath).";
+        clean.taskGroup = 'IDE'
         clean.delete EclipseProject.PROJECT_FILE_NAME
         clean.delete EclipseClasspath.CLASSPATH_FILE_NAME
         clean.delete new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)

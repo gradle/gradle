@@ -83,5 +83,6 @@ public class ProjectReportsPlugin implements Plugin<Project> {
         Task projectReportTask = project.getTasks().add(PROJECT_REPORT);
         projectReportTask.dependsOn(TASK_REPORT, PROPERTY_REPORT, DEPENDENCY_REPORT);
         projectReportTask.setDescription("Generated a report about your project.");
+        projectReportTask.setTaskGroup("reporting");
     }
 }

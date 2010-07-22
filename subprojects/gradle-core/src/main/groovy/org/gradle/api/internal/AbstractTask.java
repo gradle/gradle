@@ -69,6 +69,8 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     private String description;
 
+    private String taskGroup;
+
     private AndSpec<Task> onlyIfSpec = new AndSpec<Task>(createNewOnlyIfSpec());
 
     private final TaskOutputsInternal outputs;
@@ -349,6 +351,14 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public String getTaskGroup() {
+        return taskGroup;
+    }
+
+    public void setTaskGroup(String taskGroup) {
+        this.taskGroup = taskGroup;
     }
 
     public TaskInputs getInputs() {

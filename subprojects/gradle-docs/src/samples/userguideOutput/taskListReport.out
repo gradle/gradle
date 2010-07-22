@@ -2,8 +2,10 @@
 ------------------------------------------------------------
 Root Project
 ------------------------------------------------------------
-Default Tasks: dists
+Default tasks: dists
 
+Build tasks
+-----------
 :clean - Deletes the build directory (build)
-:dists 
+:dists - Builds the distribution
    -> :api:libs, :webapp:libs

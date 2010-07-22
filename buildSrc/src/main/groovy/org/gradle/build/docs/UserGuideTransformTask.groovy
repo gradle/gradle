@@ -210,9 +210,10 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(programListingElement)
                         } else if (child.name() == 'output') {
                             String args = child.'@args'
-                            String outputFile = child.'@outputFile' ? child.'@outputFile' : "${sampleId}.out"
+                            String outputFile = child.'@outputFile' ?: "${sampleId}.out"
+                            boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
 
-                            xml.sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile)
+                            xml.sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile, ignoreExtraLines: ignoreExtraLines)
 
                             Element outputTitle = doc.createElement("para")
                             outputTitle.appendChild(doc.createTextNode("Output of "))

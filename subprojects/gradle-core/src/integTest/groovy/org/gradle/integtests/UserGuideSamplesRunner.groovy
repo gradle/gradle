@@ -99,7 +99,7 @@ class UserGuideSamplesRunner extends Runner {
             if (run.outputFile) {
                 String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
                 try {
-                    compareStrings(expectedResult, result.output)
+                    compareStrings(expectedResult, result.output, run.ignoreExtraLines)
                 } catch (AssertionFailedError e) {
                     println 'Expected Result:'
                     println expectedResult
@@ -114,8 +114,8 @@ class UserGuideSamplesRunner extends Runner {
         }
     }
 
-    private static def compareStrings(String expected, String actual) {
-        List actualLines = removePotentialBuildSuccessfulMessages(actual.readLines())
+    private def compareStrings(String expected, String actual, boolean ignoreExtraLines) {
+        List actualLines = normaliseOutput(actual.readLines())
         List expectedLines = expected.readLines()
         int pos = 0
         for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
@@ -135,7 +135,7 @@ class UserGuideSamplesRunner extends Runner {
         if (pos == actualLines.size() && pos < expectedLines.size()) {
             Assert.fail("Lines missing from actual result, starting at line ${pos + 1}.${NL}Expected: ${expectedLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
         }
-        if (pos < actualLines.size() && pos == expectedLines.size()) {
+        if (!ignoreExtraLines && pos < actualLines.size() && pos == expectedLines.size()) {
             Assert.fail("Extra lines in actual result, starting at line ${pos + 1}.${NL}Actual: ${actualLines[pos]}${NL}Actual output:${NL}$actual${NL}---")
         }
     }
@@ -146,15 +146,18 @@ class UserGuideSamplesRunner extends Runner {
         stringWriter.toString()
     }
 
-    static List<String> removePotentialBuildSuccessfulMessages(List<String> lines) {
+    List<String> normaliseOutput(List<String> lines) {
         lines.inject(new ArrayList<String>()) { List values, String line ->
             if (line.matches('Total time: .+ secs')) {
                 values << 'Total time: 1 secs'
-            } else if (line.matches('Download .+')) {
-                // Skip
-            }
-            else {
-                values << line.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
+            } else {
+                // Normalise default object toString() values
+                line = line.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
+                // Normalise $samplesDir
+                line = line.replaceAll(java.util.regex.Pattern.quote(dist.samplesDir.absolutePath), '/home/user/gradle/samples')
+                // Normalise file separators
+                line = line.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
+                values << line
             }
             values
         }
@@ -197,10 +200,13 @@ class UserGuideSamplesRunner extends Runner {
             String dir = sample.'@dir'
             String args = sample.'@args'
             String outputFile = sample.'@outputFile'
+            boolean ignoreExtraLines = Boolean.valueOf(sample.'@ignoreExtraLines')
             if (!samplesByDir[dir]) {
                 samplesByDir[dir] = []
             }
-            samplesByDir[dir] << new GradleRun(id: id, subDir: dir, args: args ? args.split('\\s+') as List: null, envs: [:], expectFailure: false, outputFile: outputFile)
+            GradleRun run = new GradleRun(id: id, subDir: dir, args: args ? args.split('\\s+') as List : null, envs: [:], expectFailure: false, outputFile: outputFile)
+            run.ignoreExtraLines = ignoreExtraLines as boolean
+            samplesByDir[dir] << run
         }
 
         // Some custom values
@@ -248,4 +254,5 @@ class GradleRun {
     Map envs = [:]
     String outputFile
     boolean expectFailure
+    boolean ignoreExtraLines
 }

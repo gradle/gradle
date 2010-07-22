@@ -15,13 +15,14 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
+import com.google.common.collect.Multimap;
+import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.Rule;
+import org.gradle.api.Task;
+import org.gradle.util.GUtil;
 
 import java.io.IOException;
-import java.util.Set;
-import java.util.TreeSet;
 
 /**
  * <p>The {@code TaskReportTask} prints out the list of tasks in the project, and its subprojects. It is used when you
@@ -40,10 +41,22 @@ public class TaskReportTask extends AbstractReportTask {
 
     public void generate(Project project) throws IOException {
         renderer.addDefaultTasks(project.getDefaultTasks());
-        Set<Task> tasks = new TreeSet<Task>(project.getTasks().getAll());
-        for (Task task : tasks) {
-            renderer.addTask(task);
+
+        Multimap<String, Task> groups = TreeMultimap.create();
+        for (Task task : project.getTasks().getAll()) {
+            if (GUtil.isTrue(task.getTaskGroup())) {
+                groups.put(task.getTaskGroup(), task);
+            }
         }
+
+        for (String taskGroup : groups.keySet()) {
+            renderer.startTaskGroup(taskGroup);
+            for (Task task : groups.get(taskGroup)) {
+                renderer.addTask(task);
+            }
+        }
+
+        renderer.completeTasks();
         for (Rule rule : project.getTasks().getRules()) {
             renderer.addRule(rule);
         }

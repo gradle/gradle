@@ -475,6 +475,22 @@ public interface Task extends Comparable<Task> {
     void setDescription(String description);
 
     /**
+     * Returns the task group which this task belongs to. The task group is used in reports and user interfaces to
+     * group related tasks together when presenting a list of tasks to the user.
+     *
+     * @return The task group for this task. Might be null.
+     */
+    String getTaskGroup();
+
+    /**
+     * Sets the task group which this task belongs to. The task group is used in reports and user interfaces to
+     * group related tasks together when presenting a list of tasks to the user.
+     *
+     * @param group The task group for this task. Can be null.
+     */
+    void setTaskGroup(String group);
+
+    /**
      * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>
      *
      * @return true if any task this task depends on did work.

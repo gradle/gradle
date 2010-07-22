@@ -16,6 +16,7 @@
 
 package org.gradle.api.tasks.diagnostics;
 
+import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.Rule;
@@ -31,7 +32,9 @@ import java.util.List;
  * @author Hans Dockter
  */
 public class TaskReportRenderer extends TextProjectReportRenderer {
-    private boolean currentProjectHasTasksOrRules;
+    private boolean currentProjectHasTasks;
+    private boolean currentProjectHasRules;
+    private boolean hasContent;
 
     public TaskReportRenderer() {
     }
@@ -42,16 +45,10 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
 
     @Override
     public void startProject(Project project) {
-        currentProjectHasTasksOrRules = false;
+        currentProjectHasTasks = false;
+        currentProjectHasRules = false;
+        hasContent = true;
         super.startProject(project);
-    }
-
-    @Override
-    public void completeProject(Project project) {
-        if (!currentProjectHasTasksOrRules) {
-            getFormatter().format("No tasks%n");
-        }
-        super.completeProject(project);
     }
 
     /**
@@ -61,8 +58,13 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void addDefaultTasks(List<String> defaultTaskNames) {
         if (defaultTaskNames.size() > 0) {
-            getFormatter().format("Default Tasks: %s%n%n", GUtil.join(defaultTaskNames, ", "));
+            getFormatter().format("Default tasks: %s%n", GUtil.join(defaultTaskNames, ", "));
+            hasContent = true;
         }
+    }
+
+    public void startTaskGroup(String taskGroup) {
+        addHeader(StringUtils.capitalize(taskGroup) + " tasks");
     }
 
     /**
@@ -75,15 +77,37 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
             sortedDependencies.add(dependency.getPath());
         }
-        getFormatter().format("%s %s%n", task.getPath(), getDescription(task));
+        getFormatter().format("%s%s%n", task.getPath(), getDescription(task));
         if (sortedDependencies.size() > 0) {
             getFormatter().format("   -> %s%n", GUtil.join(sortedDependencies, ", "));
         }
-        currentProjectHasTasksOrRules = true;
+        currentProjectHasTasks = true;
+    }
+
+    private void addHeader(String header) {
+        if (hasContent) {
+            getFormatter().format("%n");
+        }
+        hasContent = true;
+        getFormatter().format("%s%n", header);
+        for (int i = 0; i < header.length(); i++) {
+            getFormatter().format("-");
+        }
+        getFormatter().format("%n");
     }
 
     private String getDescription(Task task) {
-        return GUtil.isTrue(task.getDescription()) ? "- " + task.getDescription() : "";
+        return GUtil.isTrue(task.getDescription()) ? " - " + task.getDescription() : "";
+    }
+
+    /**
+     * Marks the end of the tasks for the current project.
+     */
+    public void completeTasks() {
+        if (!currentProjectHasTasks) {
+            getFormatter().format("No tasks%n");
+            hasContent = true;
+        }
     }
 
     /**
@@ -92,7 +116,10 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      * @param rule The rule
      */
     public void addRule(Rule rule) {
-        getFormatter().format("rule - %s%n", GUtil.elvis(rule.getDescription(), ""));
-        currentProjectHasTasksOrRules = true;
+        if (!currentProjectHasRules) {
+            addHeader("Rules");
+        }
+        getFormatter().format("%s%n", GUtil.elvis(rule.getDescription(), ""));
+        currentProjectHasRules = true;
     }
 }

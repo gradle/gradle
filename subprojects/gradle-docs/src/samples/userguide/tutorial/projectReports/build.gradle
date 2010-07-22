@@ -16,9 +16,22 @@
 
 defaultTasks 'dists'
 
-task clean(description: "Deletes the build directory ($buildDir.name)")
+allprojects {
+    task clean {
+        description = "Deletes the build directory ($buildDir.name)"
+        taskGroup = 'Build'
+    }
+}
 
-task dists(dependsOn: { subprojects*.libs })
+// START SNIPPET add-task-to-report
+task dists {
+// END SNIPPET add-task-to-report
+    dependsOn { subprojects*.libs }
+// START SNIPPET add-task-to-report
+    description = 'Builds the distribution'
+    taskGroup = 'Build'
+}
+// END SNIPPET add-task-to-report
 
 subprojects {
     configurations {
@@ -34,7 +47,13 @@ subprojects {
 			compile "junit:junit:4.7"
 		}
     }
-    task libs
+    task libs {
+        if (project.name == 'webapp') {
+            dependsOn ':api:libs' 
+        }
+        description = 'Builds the JAR'
+        taskGroup = 'Build'
+    }
     tasks.addRule(new TestRule())
 }
 

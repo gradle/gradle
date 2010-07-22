@@ -33,8 +33,12 @@ import org.gradle.api.plugins.JavaPlugin
 class IdeaPlugin implements Plugin<Project> {
     void apply(Project project) {
         project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
-        project.task('cleanIdea', description: 'Cleans IDEA project files (IML, IPR)')
-        project.task('idea', description: 'Generates IDEA project files (IML, IPR)')
+        def task = project.task('cleanIdea')
+        task.description = 'Cleans IDEA project files (IML, IPR)'
+        task.taskGroup = 'IDE'
+        task = project.task('idea')
+        task.description = 'Generates IDEA project files (IML, IPR, IWS)'
+        task.taskGroup = 'IDE'
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)

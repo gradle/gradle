@@ -20,6 +20,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.tasks.scala.ScalaDoc
+import org.gradle.api.plugins.JavaBasePlugin
 
 public class ScalaPlugin implements Plugin<Project> {
     // tasks
@@ -37,6 +38,8 @@ public class ScalaPlugin implements Plugin<Project> {
             scalaDoc.conventionMapping.classpath = { project.sourceSets.main.classes + project.sourceSets.main.compileClasspath }
             scalaDoc.conventionMapping.defaultSource = { project.sourceSets.main.scala }
         }
-        project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class).description = "Generates scaladoc for the source code.";
+        ScalaDoc scalaDoc = project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class)
+        scalaDoc.description = "Generates scaladoc for the source code.";
+        scalaDoc.taskGroup = JavaBasePlugin.DOCUMENTATION_GROUP
     }
 }

@@ -20,12 +20,15 @@ import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.WrapUtil.*;
+import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.Description;
+import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
+import org.jmock.api.Action;
+import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -33,9 +36,11 @@ import org.junit.runner.RunWith;
 import java.io.IOException;
 import java.util.List;
 
+import static org.gradle.util.WrapUtil.*;
+
 @RunWith(JMock.class)
 public class TaskReportTaskTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private TaskReportRenderer renderer;
     private Project project;
     private TaskReportTask task;
@@ -43,7 +48,6 @@ public class TaskReportTaskTest {
 
     @Before
     public void setup() {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         renderer = context.mock(TaskReportRenderer.class);
         project = context.mock(Project.class);
         taskContainer = context.mock(TaskContainer.class);
@@ -62,36 +66,43 @@ public class TaskReportTaskTest {
     }
 
     @Test
-    public void passesEachTaskToRenderer() throws IOException {
+    public void groupsTasksByTaskGroupAndPassesTasksToTheRenderer() throws IOException {
         context.checking(new Expectations() {{
-            Task task1 = context.mock(Task.class, "task1");
-            Task task2 = context.mock(Task.class, "task2");
+            Task task1 = task("a", "group a");
+            Task task2 = task("b", "group b");
+            Task task3 = task("c", "group b");
 
             List<String> testDefaultTasks = toList("defaultTask1", "defaultTask2");
             allowing(project).getDefaultTasks();
             will(returnValue(testDefaultTasks));
 
             one(taskContainer).getAll();
-            will(returnValue(toLinkedSet(task2, task1)));
+            will(returnValue(toLinkedSet(task2, task3, task1)));
 
             allowing(taskContainer).getRules();
             will(returnValue(toList()));
-
-            allowing(task2).compareTo(task1);
-            will(returnValue(1));
-
-            allowing(task1).compareTo(task2);
-            will(returnValue(-1));
 
             Sequence sequence = context.sequence("seq");
 
             one(renderer).addDefaultTasks(testDefaultTasks);
             inSequence(sequence);
 
+            one(renderer).startTaskGroup("group a");
+            inSequence(sequence);
+
             one(renderer).addTask(task1);
             inSequence(sequence);
 
+            one(renderer).startTaskGroup("group b");
+            inSequence(sequence);
+
             one(renderer).addTask(task2);
+            inSequence(sequence);
+
+            one(renderer).addTask(task3);
+            inSequence(sequence);
+
+            one(renderer).completeTasks();
             inSequence(sequence);
         }});
 
@@ -101,8 +112,8 @@ public class TaskReportTaskTest {
     @Test
     public void passesEachRuleToRenderer() throws IOException {
         context.checking(new Expectations() {{
-            Rule rule1 = context.mock(Rule.class, "rule1");
-            Rule rule2 = context.mock(Rule.class, "rule2");
+            Rule rule1 = context.mock(Rule.class);
+            Rule rule2 = context.mock(Rule.class);
 
             List<String> defaultTasks = toList();
             allowing(project).getDefaultTasks();
@@ -119,6 +130,9 @@ public class TaskReportTaskTest {
             one(renderer).addDefaultTasks(defaultTasks);
             inSequence(sequence);
 
+            one(renderer).completeTasks();
+            inSequence(sequence);
+
             one(renderer).addRule(rule1);
             inSequence(sequence);
 
@@ -127,5 +141,30 @@ public class TaskReportTaskTest {
         }});
 
         task.generate(project);
+    }
+
+    private Task task(final String name, final String taskGroup) {
+        final Task task = context.mock(Task.class);
+        context.checking(new Expectations() {{
+            allowing(task).getName();
+            will(returnValue(name));
+            allowing(task).getTaskGroup();
+            will(returnValue(taskGroup));
+            allowing(task).compareTo(with(Matchers.notNullValue(Task.class)));
+            will(new Action() {
+                @Override
+                public Object invoke(Invocation invocation) throws Throwable {
+                    Task other = (Task) invocation.getParameter(0);
+                    return name.compareTo(other.getName());
+                }
+
+                @Override
+                public void describeTo(Description description) {
+                    description.appendText("compare to");
+                }
+            });
+        }});
+
+        return task;
     }
 }

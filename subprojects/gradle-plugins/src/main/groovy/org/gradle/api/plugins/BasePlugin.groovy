@@ -34,8 +34,10 @@ import org.apache.commons.lang.StringUtils
  * <p>A  {@link org.gradle.api.Plugin}  which defines a basic project lifecycle and some common convention properties.</p>
  */
 class BasePlugin implements Plugin<Project> {
-    public static final String CLEAN_TASK_NAME = "clean"
-    public static final String ASSEMBLE_TASK_NAME = "assemble"
+    public static final String CLEAN_TASK_NAME = 'clean'
+    public static final String ASSEMBLE_TASK_NAME = 'assemble'
+    public static final String BUILD_GROUP = 'build'
+    public static final String UPLOAD_GROUP = 'upload'
 
     public void apply(Project project) {
         project.convention.plugins.base = new BasePluginConvention(project)
@@ -53,6 +55,7 @@ class BasePlugin implements Plugin<Project> {
     private Task addAssemble(Project project) {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Builds all Jar, War, Zip, and Tar archives.";
+        assembleTask.taskGroup = BUILD_GROUP
         assembleTask.dependsOn { project.tasks.withType(AbstractArchiveTask.class).all }
     }
 
@@ -71,12 +74,13 @@ class BasePlugin implements Plugin<Project> {
     private void addClean(final Project project) {
         Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete.class)
         clean.description = "Deletes the build directory.";
+        clean.taskGroup = BUILD_GROUP
         clean.delete { project.buildDir }
     }
 
     private void addCleanRule(Project project) {
         String prefix = 'clean'
-        String description = "Pattern: ${prefix}<TaskName>: Cleans the output files of the task."
+        String description = "Pattern: ${prefix}<TaskName>: Cleans the output files of a task."
         Rule rule = [
                 getDescription: { description },
                 apply: {String taskName ->
@@ -98,7 +102,7 @@ class BasePlugin implements Plugin<Project> {
 
     private void configureBuildConfigurationRule(Project project) {
         String prefix = "build";
-        String description = "Pattern: ${prefix}<ConfigurationName>: Builds the artifacts belonging to the configuration."
+        String description = "Pattern: ${prefix}<ConfigurationName>: Builds the artifacts belonging to a configuration."
         Rule rule = [
                 getDescription: {
                     description
@@ -149,7 +153,8 @@ class BasePlugin implements Plugin<Project> {
         upload.configuration = configuration
         upload.uploadDescriptor = true
         upload.descriptorDestination = new File(project.getBuildDir(), "ivy.xml")
-        upload.description = String.format("Uploads all artifacts belonging to %s.", configuration)
+        upload.description = "Uploads all artifacts belonging to $configuration."
+        upload.taskGroup = UPLOAD_GROUP
         return upload
     }
 

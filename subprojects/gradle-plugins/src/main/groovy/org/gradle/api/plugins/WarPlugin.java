@@ -41,6 +41,7 @@ public class WarPlugin implements Plugin<Project> {
     public static final String PROVIDED_COMPILE_CONFIGURATION_NAME = "providedCompile";
     public static final String PROVIDED_RUNTIME_CONFIGURATION_NAME = "providedRuntime";
     public static final String WAR_TASK_NAME = "war";
+    public static final String WEB_APP_GROUP = "web application";
 
     public void apply(final Project project) {
         project.getPlugins().apply(JavaPlugin.class);
@@ -74,6 +75,7 @@ public class WarPlugin implements Plugin<Project> {
         
         War war = project.getTasks().add(WAR_TASK_NAME, War.class);
         war.setDescription("Generates a war archive with all the compiled classes, the web-app content and the libraries.");
+        war.setTaskGroup(BasePlugin.BUILD_GROUP);
         Configuration archivesConfiguration = project.getConfigurations().getByName(Dependency.ARCHIVES_CONFIGURATION);
         disableJarTaskAndRemoveFromArchivesConfiguration(project, archivesConfiguration);
         archivesConfiguration.addArtifact(new ArchivePublishArtifact(war));

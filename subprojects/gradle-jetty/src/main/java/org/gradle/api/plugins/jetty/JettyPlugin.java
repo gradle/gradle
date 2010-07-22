@@ -74,11 +74,13 @@ public class JettyPlugin implements Plugin<Project> {
 
         JettyRunWar jettyRunWar = project.getTasks().add(JETTY_RUN_WAR, JettyRunWar.class);
         jettyRunWar.setDescription("Assembles the webapp into a war and deploys it to Jetty.");
+        jettyRunWar.setTaskGroup(WarPlugin.WEB_APP_GROUP);
     }
 
     private void configureJettyStop(Project project, final JettyPluginConvention jettyConvention) {
         JettyStop jettyStop = project.getTasks().add(JETTY_STOP, JettyStop.class);
         jettyStop.setDescription("Stops Jetty.");
+        jettyStop.setTaskGroup(WarPlugin.WEB_APP_GROUP);
         jettyStop.getConventionMapping().map("stopPort", new ConventionValue() {
             public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
                 return jettyConvention.getStopPort();
@@ -114,6 +116,7 @@ public class JettyPlugin implements Plugin<Project> {
 
         JettyRun jettyRun = project.getTasks().add(JETTY_RUN, JettyRun.class);
         jettyRun.setDescription("Uses your files as and where they are and deploys them to Jetty.");
+        jettyRun.setTaskGroup(WarPlugin.WEB_APP_GROUP);
     }
 
     private Object getWebXml(Project project) {

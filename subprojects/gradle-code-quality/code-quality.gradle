@@ -29,7 +29,7 @@ dependencies {
     runtime "checkstyle:checkstyle:5.1@jar",
             libraries.antlr,
             libraries.jcl_to_slf4j,
-            "com.google.collections:google-collections:1.0@jar",
+            libraries.google_collections,
             BEAN_UTILS
     
     testCompile project(path: ':core', configuration: 'testFixtures')

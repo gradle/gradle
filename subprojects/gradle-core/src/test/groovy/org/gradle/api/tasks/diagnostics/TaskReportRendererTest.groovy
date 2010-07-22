@@ -45,64 +45,65 @@ class TaskReportRendererTest {
         Rule rule1 = [getDescription: {rule1Description}] as Rule
         Rule rule2 = [getDescription: {rule2Description}] as Rule
 
-        List testDefaultTasks = ['task1, task2']
+        List testDefaultTasks = ['task1', 'task2']
         renderer.addDefaultTasks(testDefaultTasks)
+        renderer.startTaskGroup('group')
         renderer.addTask(task1)
         renderer.addTask(task2)
+        renderer.completeTasks()
         renderer.addRule(rule1)
         renderer.addRule(rule2)
 
-        List lines = new StringReader(writer.toString()).readLines()
-        assertThat(lines[0], containsString("Default Tasks: " + testDefaultTasks.join(', ')))
-        assertThat(lines[2], containsString(":task1 - $task1Description"))
-        assertThat(lines[3], containsString("-> :task11, :task12"))
-        assertThat(lines[4], containsString(":task2"))
-        assertThat(lines[4], not(containsString(":task2 -")))
-        assertThat(lines[5], containsString("rule - $rule1Description"))
-        assertThat(lines[6], containsString("rule - $rule2Description"))
-        assertThat(lines.size(), equalTo(7))
+        def expected = '''Default tasks: task1, task2
+
+Group tasks
+-----------
+:task1 - task1Description
+   -> :task11, :task12
+:task2
+
+Rules
+-----
+rule1Description
+rule2Description
+'''
+        assertEquals(expected, writer.toString())
     }
 
     @Test public void testWritesTaskAndDependenciesWithNoDefaultTasks() {
         TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
         Task task = [getPath: {':task1'}, getDescription: {null}, getTaskDependencies: {taskDependency}] as Task
         renderer.addDefaultTasks([])
+        renderer.startTaskGroup('group')
         renderer.addTask(task)
 
-        List lines = new StringReader(writer.toString()).readLines()
-        assertThat(lines[0], containsString(":task"))
-        assertThat(lines.size(), equalTo(1))
+        def expected = '''Group tasks
+-----------
+:task1
+'''
+        assertEquals(expected, writer.toString())
     }
 
     @Test public void testProjectWithNoTasksAndNoRules() {
-        Project project = [getPath: {':project'}, getRootProject: {null}] as Project
+        renderer.completeTasks()
 
-        renderer.startProject(project)
-        renderer.completeProject(project)
-
-        assertThat(writer.toString(), containsLine('No tasks'))
+        def expected = '''No tasks
+'''
+        assertEquals(expected, writer.toString())
     }
 
     @Test public void testProjectWithNoTasksButRules() {
-        Project project = [getPath: {':project'}, getRootProject: {null}] as Project
         String ruleDescription = "someDescription"
 
-        renderer.startProject(project)
+        renderer.completeTasks()
         renderer.addRule([getDescription: {ruleDescription}] as Rule)
-        renderer.completeProject(project)
 
-        assertThat(writer.toString(), containsLine("rule - $ruleDescription"))
-    }
-    
-    @Test public void testProjectWithTasks() {
-        TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
-        Task task = [getPath: {':task'}, getDescription: {null}, getTaskDependencies: {taskDependency}] as Task
-        Project project = [getPath: {':project'}, getRootProject: {null}] as Project
+        def expected = '''No tasks
 
-        renderer.startProject(project)
-        renderer.addTask(task)
-        renderer.completeProject(project)
-
-        assertThat(writer.toString(), not(containsString('No tasks')))
+Rules
+-----
+someDescription
+'''
+        assertEquals(expected, writer.toString())
     }
 }
