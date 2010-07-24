@@ -150,6 +150,8 @@ class UserGuideSamplesRunner extends Runner {
         lines.inject(new ArrayList<String>()) { List values, String line ->
             if (line.matches('Total time: .+ secs')) {
                 values << 'Total time: 1 secs'
+            } else if (line.matches('Download .+')) {
+                // ignore
             } else {
                 // Normalise default object toString() values
                 line = line.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')

@@ -142,8 +142,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     private static class ForkedExecutionResult extends AbstractExecutionResult {
         private final Map result;
-        private final Pattern skippedTaskPattern = Pattern.compile("(:.+?)\\s+((SKIPPED)|(UP-TO-DATE))");
-        private final Pattern notSkippedTaskPattern = Pattern.compile("(:.+?)");
+        private final Pattern skippedTaskPattern = Pattern.compile("(:\\w+(:\\w+)*)\\s+((SKIPPED)|(UP-TO-DATE))");
+        private final Pattern notSkippedTaskPattern = Pattern.compile("(:\\w+(:\\w+)*)");
 
         public ForkedExecutionResult(Map result) {
             this.result = result;
