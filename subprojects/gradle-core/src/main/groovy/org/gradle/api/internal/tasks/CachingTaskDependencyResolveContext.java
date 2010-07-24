@@ -98,9 +98,5 @@ public class CachingTaskDependencyResolveContext implements TaskDependencyResolv
                         node.getClass().getSimpleName()));
             }
         }
-
-        public void getEdgeValues(Object from, Object to, Collection<Task> values) {
-            // No edges
-        }
     }
 }

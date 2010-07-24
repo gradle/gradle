@@ -26,13 +26,7 @@ import org.gradle.util.GUtil;
 import java.util.*;
 
 public class TaskReportModel {
-    private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(CASE_INSENSITIVE_COMPARATOR, Ordering.natural());
-    public static final Comparator<String> CASE_INSENSITIVE_COMPARATOR = new Comparator<String>() {
-        @Override
-        public int compare(String o1, String o2) {
-            return o1.compareToIgnoreCase(o2);
-        }
-    };
+    private final SetMultimap<String, TaskDetails> groups = TreeMultimap.create(GUtil.emptyLast(GUtil.caseInsensitive()), Ordering.natural());
 
     public void calculate(final Collection<? extends Task> tasks) {
         Set<Task> topLevelTasks = new LinkedHashSet<Task>();
@@ -50,14 +44,10 @@ public class TaskReportModel {
                     }
                 }
             }
-
-            @Override
-            public void getEdgeValues(Task from, Task to, Collection<Object> values) {
-            }
         });
 
-        GraphAggregator.Result<Task> result = aggregator.group(topLevelTasks);
-        for (Task task : topLevelTasks) {
+        GraphAggregator.Result<Task> result = aggregator.group(topLevelTasks, tasks);
+        for (Task task : result.getTopLevelNodes()) {
             Set<Task> nodesForThisTask = new TreeSet<Task>(result.getNodes(task));
             Set<TaskDetails> children = new LinkedHashSet<TaskDetails>();
             Set<String> dependencies = new TreeSet<String>();
@@ -72,7 +62,9 @@ public class TaskReportModel {
                     }
                 }
             }
-            groups.put(task.getTaskGroup(), new TaskDetailsImpl(task, children, dependencies));
+
+            String taskGroup = topLevelTasks.contains(task) ? task.getTaskGroup() : "";
+            groups.put(taskGroup, new TaskDetailsImpl(task, children, dependencies));
         }
     }
 
@@ -81,6 +73,9 @@ public class TaskReportModel {
     }
 
     public Set<TaskDetails> getTasksForGroup(String group) {
+        if (!groups.containsKey(group)) {
+            throw new IllegalArgumentException(String.format("Unknown group '%s'", group));
+        }
         return groups.get(group);
     }
 

@@ -23,7 +23,7 @@ import org.apache.ivy.core.resolve.ResolveOptions;
 import org.apache.ivy.util.Message;
 import org.gradle.api.artifacts.*;
 import org.gradle.api.internal.CachingDirectedGraphWalker;
-import org.gradle.api.internal.DirectedGraph;
+import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.logging.IvyLoggingAdaper;
@@ -141,7 +141,7 @@ public class DefaultIvyDependencyResolver implements IvyDependencyResolver {
             return conversionResult.getResolvedArtifacts();
         }
 
-        private class ResolvedDependencyArtifactsGraph implements DirectedGraph<ResolvedDependency, ResolvedArtifact> {
+        private class ResolvedDependencyArtifactsGraph implements DirectedGraphWithEdgeValues<ResolvedDependency, ResolvedArtifact> {
             public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
                                       Collection<ResolvedDependency> connectedNodes) {
                 values.addAll(node.getModuleArtifacts());

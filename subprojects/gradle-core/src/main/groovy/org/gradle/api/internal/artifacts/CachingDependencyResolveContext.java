@@ -69,9 +69,5 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
                 throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s.", node.getClass().getSimpleName()));
             }
         }
-
-        public void getEdgeValues(Object from, Object to, Collection<FileCollection> values) {
-            // No edge values
-        }
     }
 }

@@ -23,7 +23,7 @@ class GraphAggregatorTest extends Specification {
 
     def groupsNodeWithTheEntryNodeItIsReachableFrom() {
         when:
-        def result = aggregator.group(['a'])
+        def result = aggregator.group(['a'], ['a', 'b'])
 
         then:
         1 * graph.getNodeValues('a', !null, !null) >> { args -> args[2].add('b') }
@@ -32,7 +32,7 @@ class GraphAggregatorTest extends Specification {
 
     def groupsNodeWithTheClosesEntryNodeItIsReachableFrom() {
         when:
-        def result = aggregator.group(['a', 'b'])
+        def result = aggregator.group(['a', 'b'], ['a', 'b', 'c'])
 
         then:
         1 * graph.getNodeValues('a', !null, !null) >> { args -> args[2].add('b') }
@@ -43,12 +43,23 @@ class GraphAggregatorTest extends Specification {
 
     def groupsNodeWithMultipleEntryNodesWhenTheNodeHasMultipleClosesNodes() {
         when:
-        def result = aggregator.group(['a', 'b'])
+        def result = aggregator.group(['a', 'b'], ['a', 'b', 'c'])
 
         then:
         1 * graph.getNodeValues('a', !null, !null) >> { args -> args[2].add('c') }
         1 * graph.getNodeValues('b', !null, !null) >> { args -> args[2].add('c') }
         result.getNodes('a') == ['a', 'c'] as Set
         result.getNodes('b') == ['b', 'c'] as Set
+    }
+
+    def groupsNodesWhichAreNotReachableFromStartNodes() {
+        when:
+        def result = aggregator.group(['a', 'b'], ['a', 'b', 'c', 'd'])
+
+        then:
+        1 * graph.getNodeValues('a', !null, !null) >> { args -> args[2].add('b') }
+        1 * graph.getNodeValues('c', !null, !null) >> { args -> args[2].add('d') }
+        result.topLevelNodes == ['a', 'b', 'c'] as Set
+        result.getNodes('c') == ['c', 'd'] as Set
     }
 }

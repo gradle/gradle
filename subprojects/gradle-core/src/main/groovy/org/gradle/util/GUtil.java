@@ -121,7 +121,7 @@ public class GUtil {
         return addToCollection(new ArrayList<T>(), lists);
     }
 
-    public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<V>... srcs) {
+    public static <V, T extends Collection<? super V>> T addToCollection(T dest, Iterable<? extends V>... srcs) {
         for (Iterable<? extends V> src : srcs) {
             for (V v : src) {
                 dest.add(v);
@@ -130,6 +130,35 @@ public class GUtil {
         return dest;
     }
 
+    public static Comparator<String> caseInsensitive() {
+        return new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                return o1.compareToIgnoreCase(o2);
+            }
+        };
+    }
+
+    public static Comparator<String> emptyLast(final Comparator<String> comparator) {
+        return new Comparator<String>() {
+            @Override
+            public int compare(String o1, String o2) {
+                boolean o1Empty = o1 == null || o1.isEmpty();
+                boolean o2Empty = o2 == null || o2.isEmpty();
+                if (o1Empty && o2Empty) {
+                    return 0;
+                }
+                if (o1Empty && !o2Empty) {
+                    return 1;
+                }
+                if (!o1Empty && o2Empty) {
+                    return -1;
+                }
+                return comparator.compare(o1, o2);
+            }
+        };
+    }
+    
     public static Map addMaps(Map map1, Map map2) {
         HashMap map = new HashMap();
         map.putAll(map1);

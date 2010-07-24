@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -60,14 +60,50 @@ rule2Description
         assertEquals(expected, writer.toString())
     }
 
-    @Test public void testWritesTaskAndDependenciesWithNoDefaultTasks() {
+    @Test public void testWritesTasksForSingleGroup() {
         TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
         renderer.addDefaultTasks([])
         renderer.startTaskGroup('group')
         renderer.addTask(task)
+        renderer.completeTasks()
 
         def expected = '''Group tasks
 -----------
+:task1
+'''
+        assertEquals(expected, writer.toString())
+    }
+
+    @Test public void testWritesTasksForMultipleGroups() {
+        TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+        TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+        renderer.addDefaultTasks([])
+        renderer.startTaskGroup('group')
+        renderer.addTask(task)
+        renderer.startTaskGroup('')
+        renderer.addTask(task2)
+        renderer.completeTasks()
+
+        def expected = '''Group tasks
+-----------
+:task1
+
+Other tasks
+-----------
+:task2
+'''
+        assertEquals(expected, writer.toString())
+    }
+
+    @Test public void testWritesTasksForDefaultGroup() {
+        TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+        renderer.addDefaultTasks([])
+        renderer.startTaskGroup('')
+        renderer.addTask(task)
+        renderer.completeTasks()
+
+        def expected = '''Tasks
+-----
 :task1
 '''
         assertEquals(expected, writer.toString())

@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal;
 
 import java.util.Collection;
 
 /**
- * A directed graph with nodes of type N. Each node has a collection of values of type V.
+ * A directed graph with nodes of type N. Each edge has a collection of values of type V
  */
-public interface DirectedGraph<N, V> {
-    void getNodeValues(N node, Collection<V> values, Collection<N> connectedNodes);
+public interface DirectedGraphWithEdgeValues<N, V> extends DirectedGraph<N, V> {
+    void getEdgeValues(N from, N to, Collection<V> values);
 }

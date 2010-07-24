@@ -27,11 +27,15 @@ import java.util.*;
  * Uses a variation of Tarjan's algorithm: http://en.wikipedia.org/wiki/Tarjan%27s_strongly_connected_components_algorithm
  */
 public class CachingDirectedGraphWalker<N, T> {
-    private final DirectedGraph<N, T> graph;
+    private final DirectedGraphWithEdgeValues<N, T> graph;
     private List<N> startNodes = new LinkedList<N>();
     private final Map<N, Set<T>> cachedNodeValues = new HashMap<N, Set<T>>();
 
     public CachingDirectedGraphWalker(DirectedGraph<N, T> graph) {
+        this.graph = new GraphWithEmpyEdges<N, T>(graph);
+    }
+
+    public CachingDirectedGraphWalker(DirectedGraphWithEdgeValues<N, T> graph) {
         this.graph = graph;
     }
 
@@ -152,6 +156,23 @@ public class CachingDirectedGraphWalker<N, T> {
             this.component = component;
             minSeen = component;
             strongComponentMembers.add(this);
+        }
+    }
+
+    private static class GraphWithEmpyEdges<N, T> implements DirectedGraphWithEdgeValues<N, T> {
+        private final DirectedGraph<N, T> graph;
+
+        public GraphWithEmpyEdges(DirectedGraph<N, T> graph) {
+            this.graph = graph;
+        }
+
+        @Override
+        public void getEdgeValues(N from, N to, Collection<T> values) {
+        }
+
+        @Override
+        public void getNodeValues(N node, Collection<T> values, Collection<N> connectedNodes) {
+            graph.getNodeValues(node, values, connectedNodes);
         }
     }
 }

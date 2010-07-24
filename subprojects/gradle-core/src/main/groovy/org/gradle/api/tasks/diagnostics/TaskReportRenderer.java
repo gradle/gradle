@@ -63,7 +63,12 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     }
 
     public void startTaskGroup(String taskGroup) {
-        addHeader(StringUtils.capitalize(taskGroup) + " tasks");
+        if (!GUtil.isTrue(taskGroup)) {
+            addHeader(currentProjectHasTasks ? "Other tasks" : "Tasks");
+        } else {
+            addHeader(StringUtils.capitalize(taskGroup) + " tasks");
+        }
+        currentProjectHasTasks = true;
     }
 
     /**
@@ -73,7 +78,6 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void addTask(TaskDetails task) {
         writeTask(task, "");
-        currentProjectHasTasks = true;
     }
 
     public void addChildTask(TaskDetails task) {

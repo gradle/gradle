@@ -13,15 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.internal
 
 import spock.lang.Specification
 
 class CachingDirectedGraphWalkerTest extends Specification {
-    private final DirectedGraph<Integer, String> graph = Mock()
+    private final DirectedGraphWithEdgeValues<Integer, String> graph = Mock()
     private final CachingDirectedGraphWalker walker = new CachingDirectedGraphWalker(graph)
 
     def collectsValuesForASingleNode() {

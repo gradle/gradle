@@ -21,44 +21,55 @@ import java.util.*;
  * Groups the nodes of a graph based on their reachability from a set of starting nodes.
  */
 public class GraphAggregator<N> {
-    private final DirectedGraph<N, N> graph;
+    private final CachingDirectedGraphWalker<N, N> graphWalker;
 
     public GraphAggregator(DirectedGraph<N, ?> graph) {
-        this.graph = new ConnectedNodesAsValuesDirectedGraph<N>(graph);
+        graphWalker = new CachingDirectedGraphWalker<N,N>(new ConnectedNodesAsValuesDirectedGraph<N>(graph));
     }
 
-    public Result<N> group(Iterable<? extends N> startNodes) {
+    public Result<N> group(Collection<? extends N> startNodes, Collection<? extends N> allNodes) {
+        Map<N, Set<N>> reachableByNode = new HashMap<N, Set<N>>();
+        Set<N> topLevelNodes = new LinkedHashSet<N>(allNodes);
+        for (N node : allNodes) {
+            Set<N> reachableNodes = graphWalker.add(node).findValues();
+            reachableByNode.put(node, reachableNodes);
+            topLevelNodes.removeAll(reachableNodes);
+        }
+        topLevelNodes.addAll(startNodes);
         Map<N, Set<N>> nodes = new HashMap<N, Set<N>>();
-        CachingDirectedGraphWalker<N, N> graphWalker = new CachingDirectedGraphWalker<N, N>(graph);
-        for (N node : startNodes) {
-            nodes.put(node, graphWalker.add(node).findValues());
+        for (N node : topLevelNodes) {
+            nodes.put(node, calculateReachableNodes(reachableByNode, node, topLevelNodes));
         }
-        for (N node : startNodes) {
-            calculateReachableNodes(nodes, node);
-        }
-        return new Result<N>(nodes);
+        return new Result<N>(nodes, topLevelNodes);
     }
 
-    private Set<N> calculateReachableNodes(Map<N, Set<N>> nodes, N node) {
+    private Set<N> calculateReachableNodes(Map<N, Set<N>> nodes, N node, Set<N> topLevelNodes) {
         Set<N> reachableNodes = nodes.get(node);
-        Set<N> reachableStartNodes = new LinkedHashSet<N>(nodes.keySet());
+        reachableNodes.add(node);
+        Set<N> reachableStartNodes = new LinkedHashSet<N>(topLevelNodes);
         reachableStartNodes.retainAll(reachableNodes);
         reachableStartNodes.remove(node);
         for (N startNode : reachableStartNodes) {
-            reachableNodes.removeAll(calculateReachableNodes(nodes, startNode));
+            reachableNodes.removeAll(calculateReachableNodes(nodes, startNode, topLevelNodes));
         }
         return reachableNodes;
     }
 
     public static class Result<N> {
         private final Map<N, Set<N>> nodes;
+        private final Set<N> topLevelNodes;
 
-        public Result(Map<N, Set<N>> nodes) {
+        public Result(Map<N, Set<N>> nodes, Set<N> topLevelNodes) {
             this.nodes = nodes;
+            this.topLevelNodes = topLevelNodes;
         }
 
         public Set<N> getNodes(N startNode) {
             return nodes.get(startNode);
+        }
+
+        public Set<N> getTopLevelNodes() {
+            return topLevelNodes;
         }
     }
 
@@ -73,13 +84,8 @@ public class GraphAggregator<N> {
         public void getNodeValues(N node, Collection<N> values, Collection<N> connectedNodes) {
             Set<N> edges = new LinkedHashSet<N>();
             graph.getNodeValues(node, new ArrayList(), edges);
-            values.add(node);
             values.addAll(edges);
             connectedNodes.addAll(edges);
-        }
-
-        @Override
-        public void getEdgeValues(N from, N to, Collection<N> values) {
         }
     }
 }

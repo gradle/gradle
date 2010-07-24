@@ -101,8 +101,37 @@ class TaskReportModelTest extends Specification {
         t.dependencies as List == [':task2']
     }
 
-    def addsAGroupOfUnreachableTasksWithNoGroup() {
+    def addsAGroupContainingTheTasksWithNoGroup() {
+        def task1 = task('task1')
+        def task2 = task('task2', 'group1', task1)
+        def task3 = task('task3')
+        def task4 = task('task4', task2)
+        def task5 = task('task5', task3, task4)
 
+        when:
+        model.calculate([task1, task2, task3, task4, task5])
+
+        then:
+        model.groups as List == ['group1', '']
+        def tasks = model.getTasksForGroup('') as List
+        tasks*.task == [task5]
+        def t = tasks.first()
+        t.task == task5
+        t.children*.task as List == [task3, task4]
+    }
+    
+    def addsAGroupWhenThereAreNoTasksWithAGroup() {
+        def task1 = task('task1')
+        def task2 = task('task2', task1)
+        def task3 = task('task3')
+
+        when:
+        model.calculate([task1, task2, task3])
+
+        then:
+        model.groups as List == ['']
+        def tasks = model.getTasksForGroup('') as List
+        tasks*.task == [task2, task3]
     }
 
     def ignoresReachableTasksOutsideTheProject() {
