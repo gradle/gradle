@@ -19,9 +19,12 @@ import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.tasks.TaskDependency;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
+import org.hamcrest.Matcher;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -70,14 +73,15 @@ public class TaskReportTaskTest {
         context.checking(new Expectations() {{
             Task task1 = task("a", "group a");
             Task task2 = task("b", "group b");
-            Task task3 = task("c", "group b");
+            Task task3 = task("c");
+            Task task4 = task("d", "group b", task3);
 
             List<String> testDefaultTasks = toList("defaultTask1", "defaultTask2");
             allowing(project).getDefaultTasks();
             will(returnValue(testDefaultTasks));
 
             one(taskContainer).getAll();
-            will(returnValue(toLinkedSet(task2, task3, task1)));
+            will(returnValue(toLinkedSet(task2, task3, task4, task1)));
 
             allowing(taskContainer).getRules();
             will(returnValue(toList()));
@@ -90,16 +94,19 @@ public class TaskReportTaskTest {
             one(renderer).startTaskGroup("group a");
             inSequence(sequence);
 
-            one(renderer).addTask(task1);
+            one(renderer).addTask(with(isTask(task1)));
             inSequence(sequence);
 
             one(renderer).startTaskGroup("group b");
             inSequence(sequence);
 
-            one(renderer).addTask(task2);
+            one(renderer).addTask(with(isTask(task2)));
             inSequence(sequence);
 
-            one(renderer).addTask(task3);
+            one(renderer).addTask(with(isTask(task4)));
+            inSequence(sequence);
+
+            one(renderer).addChildTask(with(isTask(task3)));
             inSequence(sequence);
 
             one(renderer).completeTasks();
@@ -143,11 +150,32 @@ public class TaskReportTaskTest {
         task.generate(project);
     }
 
-    private Task task(final String name, final String taskGroup) {
+    private Matcher<TaskDetails> isTask(final Task task) {
+        return new BaseMatcher<TaskDetails>() {
+            @Override
+            public boolean matches(Object o) {
+                TaskDetails other = (TaskDetails) o;
+                return other.getPath().equals(task.getPath());
+            }
+
+            @Override
+            public void describeTo(Description description) {
+                description.appendText("is ").appendValue(task);
+            }
+        };
+    }
+
+    private Task task(String name) {
+        return task(name, null);
+    }
+    
+    private Task task(final String name, final String taskGroup, final Task... dependencies) {
         final Task task = context.mock(Task.class);
         context.checking(new Expectations() {{
             allowing(task).getName();
             will(returnValue(name));
+            allowing(task).getPath();
+            will(returnValue(':' + name));
             allowing(task).getTaskGroup();
             will(returnValue(taskGroup));
             allowing(task).compareTo(with(Matchers.notNullValue(Task.class)));
@@ -163,6 +191,13 @@ public class TaskReportTaskTest {
                     description.appendText("compare to");
                 }
             });
+            
+            TaskDependency dependency = context.mock(TaskDependency.class);
+            allowing(task).getTaskDependencies();
+            will(returnValue(dependency));
+
+            allowing(dependency).getDependencies(task);
+            will(returnValue(toSet(dependencies)));
         }});
 
         return task;

@@ -110,7 +110,7 @@ public class JavaPlugin implements Plugin<Project> {
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Generates a jar archive with all the compiled classes.");
-        jar.setDescription(BasePlugin.BUILD_GROUP);
+        jar.setTaskGroup(BasePlugin.BUILD_GROUP);
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses());
         jar.getMetaInf().from(new Callable() {
             public Object call() throws Exception {

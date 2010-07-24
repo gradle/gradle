@@ -18,13 +18,12 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.Rule;
 import org.gradle.util.GUtil;
 
+import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
-import java.util.List;
 
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>
@@ -72,16 +71,25 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      *
      * @param task The task
      */
-    public void addTask(Task task) {
-        SortedSet<String> sortedDependencies = new TreeSet<String>();
-        for (Task dependency : task.getTaskDependencies().getDependencies(task)) {
-            sortedDependencies.add(dependency.getPath());
-        }
-        getFormatter().format("%s%s%n", task.getPath(), getDescription(task));
-        if (sortedDependencies.size() > 0) {
-            getFormatter().format("   -> %s%n", GUtil.join(sortedDependencies, ", "));
-        }
+    public void addTask(TaskDetails task) {
+        writeTask(task, "");
         currentProjectHasTasks = true;
+    }
+
+    public void addChildTask(TaskDetails task) {
+        writeTask(task, "    ");
+    }
+
+    private void writeTask(TaskDetails task, String prefix) {
+        SortedSet<String> sortedDependencies = new TreeSet<String>();
+        for (String dependency : task.getDependencies()) {
+            sortedDependencies.add(dependency);
+        }
+        getFormatter().format("%s%s%s", prefix, task.getPath(), getDescription(task));
+        if (sortedDependencies.size() > 0) {
+            getFormatter().format(" [%s]", GUtil.join(sortedDependencies, ", "));
+        }
+        getFormatter().format("%n");
     }
 
     private void addHeader(String header) {
@@ -96,7 +104,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         getFormatter().format("%n");
     }
 
-    private String getDescription(Task task) {
+    private String getDescription(TaskDetails task) {
         return GUtil.isTrue(task.getDescription()) ? " - " + task.getDescription() : "";
     }
 

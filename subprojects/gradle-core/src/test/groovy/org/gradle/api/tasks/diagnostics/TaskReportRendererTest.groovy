@@ -16,14 +16,9 @@
 
 package org.gradle.api.tasks.diagnostics
 
-import org.gradle.api.Project
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import static org.gradle.util.Matchers.*
-import org.junit.Test
 import org.gradle.api.Rule
+import org.junit.Test
+import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -33,23 +28,18 @@ class TaskReportRendererTest {
     private final TaskReportRenderer renderer = new TaskReportRenderer(writer)
 
     @Test public void testWritesTaskAndDependencies() {
-        Task task11 = [getPath: {':task11'}] as Task
-        Task task12 = [getPath: {':task12'}, getDescription: {null}] as Task
-        TaskDependency taskDependency1 = [getDependencies: {[task11, task12] as Set}] as TaskDependency
-        TaskDependency taskDependency2 = [getDependencies: {[] as Set}] as TaskDependency
-        String task1Description = 'task1Description'
-        Task task1 = [getPath: {':task1'}, getDescription: {task1Description}, getTaskDependencies: {taskDependency1}] as Task
-        Task task2 = [getPath: {':task2'}, getDescription: {null}, getTaskDependencies: {taskDependency2}] as Task
-        String rule1Description = "rule1Description"
-        String rule2Description = "rule2Description"
-        Rule rule1 = [getDescription: {rule1Description}] as Rule
-        Rule rule2 = [getDescription: {rule2Description}] as Rule
+        TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[':task11', ':task12'] as LinkedHashSet}] as TaskDetails
+        TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+        TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[':task1'] as Set}] as TaskDetails
+        Rule rule1 = [getDescription: {'rule1Description'}] as Rule
+        Rule rule2 = [getDescription: {'rule2Description'}] as Rule
 
         List testDefaultTasks = ['task1', 'task2']
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.startTaskGroup('group')
         renderer.addTask(task1)
-        renderer.addTask(task2)
+        renderer.addChildTask(task2)
+        renderer.addTask(task3)
         renderer.completeTasks()
         renderer.addRule(rule1)
         renderer.addRule(rule2)
@@ -58,9 +48,9 @@ class TaskReportRendererTest {
 
 Group tasks
 -----------
-:task1 - task1Description
-   -> :task11, :task12
-:task2
+:task1 - task1Description [:task11, :task12]
+    :task2
+:task3 [:task1]
 
 Rules
 -----
@@ -71,8 +61,7 @@ rule2Description
     }
 
     @Test public void testWritesTaskAndDependenciesWithNoDefaultTasks() {
-        TaskDependency taskDependency = [getDependencies: {[] as Set}] as TaskDependency
-        Task task = [getPath: {':task1'}, getDescription: {null}, getTaskDependencies: {taskDependency}] as Task
+        TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
         renderer.addDefaultTasks([])
         renderer.startTaskGroup('group')
         renderer.addTask(task)
@@ -92,7 +81,7 @@ rule2Description
         assertEquals(expected, writer.toString())
     }
 
-    @Test public void testProjectWithNoTasksButRules() {
+    @Test public void testProjectWithRulesAndNoTasks() {
         String ruleDescription = "someDescription"
 
         renderer.completeTasks()

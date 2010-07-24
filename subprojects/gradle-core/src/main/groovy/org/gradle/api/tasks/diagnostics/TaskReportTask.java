@@ -15,12 +15,8 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import com.google.common.collect.Multimap;
-import com.google.common.collect.TreeMultimap;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
-import org.gradle.api.Task;
-import org.gradle.util.GUtil;
 
 import java.io.IOException;
 
@@ -42,17 +38,16 @@ public class TaskReportTask extends AbstractReportTask {
     public void generate(Project project) throws IOException {
         renderer.addDefaultTasks(project.getDefaultTasks());
 
-        Multimap<String, Task> groups = TreeMultimap.create();
-        for (Task task : project.getTasks().getAll()) {
-            if (GUtil.isTrue(task.getTaskGroup())) {
-                groups.put(task.getTaskGroup(), task);
-            }
-        }
+        TaskReportModel model = new TaskReportModel();
+        model.calculate(project.getTasks().getAll());
 
-        for (String taskGroup : groups.keySet()) {
+        for (String taskGroup : model.getGroups()) {
             renderer.startTaskGroup(taskGroup);
-            for (Task task : groups.get(taskGroup)) {
+            for (TaskDetails task : model.getTasksForGroup(taskGroup)) {
                 renderer.addTask(task);
+                for (TaskDetails child : task.getChildren()) {
+                    renderer.addChildTask(child);
+                }
             }
         }
 
