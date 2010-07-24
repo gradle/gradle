@@ -19,6 +19,7 @@ package org.gradle.api.tasks.diagnostics
 import org.gradle.api.Rule
 import org.junit.Test
 import static org.junit.Assert.*
+import groovy.io.PlatformLineWriter
 
 /**
  * @author Hans Dockter
@@ -57,7 +58,7 @@ Rules
 rule1Description
 rule2Description
 '''
-        assertEquals(expected, writer.toString())
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
     }
 
     @Test public void testWritesTasksForSingleGroup() {
@@ -71,7 +72,7 @@ rule2Description
 -----------
 :task1
 '''
-        assertEquals(expected, writer.toString())
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
     }
 
     @Test public void testWritesTasksForMultipleGroups() {
@@ -92,7 +93,7 @@ Other tasks
 -----------
 :task2
 '''
-        assertEquals(expected, writer.toString())
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
     }
 
     @Test public void testWritesTasksForDefaultGroup() {
@@ -106,7 +107,7 @@ Other tasks
 -----
 :task1
 '''
-        assertEquals(expected, writer.toString())
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
     }
 
     @Test public void testProjectWithNoTasksAndNoRules() {
@@ -114,7 +115,7 @@ Other tasks
 
         def expected = '''No tasks
 '''
-        assertEquals(expected, writer.toString())
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
     }
 
     @Test public void testProjectWithRulesAndNoTasks() {
@@ -129,6 +130,12 @@ Rules
 -----
 someDescription
 '''
-        assertEquals(expected, writer.toString())
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+    }
+
+    String replaceWithPlatformNewLines(String text) {
+        StringWriter stringWriter = new StringWriter()
+        new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
+        stringWriter.toString()
     }
 }
