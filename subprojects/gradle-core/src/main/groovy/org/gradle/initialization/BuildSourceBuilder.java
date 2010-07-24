@@ -22,6 +22,8 @@ import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.plugins.EmbeddableJavaProject;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.cache.CacheRepository;
+import org.gradle.cache.PersistentStateCache;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.slf4j.Logger;
@@ -42,12 +44,14 @@ public class BuildSourceBuilder {
 
     private final GradleLauncherFactory gradleLauncherFactory;
     private final ClassLoaderFactory classLoaderFactory;
+    private final CacheRepository cacheRepository;
 
     private static final String DEFAULT_BUILD_SOURCE_SCRIPT_RESOURCE = "defaultBuildSourceScript.txt";
 
-    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderFactory classLoaderFactory) {
+    public BuildSourceBuilder(GradleLauncherFactory gradleLauncherFactory, ClassLoaderFactory classLoaderFactory, CacheRepository cacheRepository) {
         this.gradleLauncherFactory = gradleLauncherFactory;
         this.classLoaderFactory = classLoaderFactory;
+        this.cacheRepository = cacheRepository;
     }
 
     public URLClassLoader buildAndCreateClassLoader(StartParameter startParameter)
@@ -82,6 +86,12 @@ public class BuildSourceBuilder {
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
 
+        // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
+        // Otherwise, just to a regular build
+        PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(
+                startParameter.getCurrentDir()).invalidateOnVersionChange().open().openStateCache();
+        boolean rebuild = stateCache.get() == null;
+
         if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
             LOGGER.debug("Gradle script file does not exist. Using default one.");
             ScriptSource source = new StringScriptSource("default buildSrc build script", getDefaultScript());
@@ -89,9 +99,11 @@ public class BuildSourceBuilder {
         }
 
         GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameterArg);
-        BuildSrcBuildListener listener = new BuildSrcBuildListener();
+        BuildSrcBuildListener listener = new BuildSrcBuildListener(rebuild);
         gradleLauncher.addListener(listener);
         gradleLauncher.run().rethrowFailure();
+
+        stateCache.set(true);
 
         Set<File> buildSourceClasspath = new LinkedHashSet<File>();
         buildSourceClasspath.addAll(listener.getRuntimeClasspath());
@@ -112,12 +124,17 @@ public class BuildSourceBuilder {
     private static class BuildSrcBuildListener extends BuildAdapter {
         private EmbeddableJavaProject projectInfo;
         private Set<File> classpath;
+        private final boolean rebuild;
+
+        public BuildSrcBuildListener(boolean rebuild) {
+            this.rebuild = rebuild;
+        }
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
             projectInfo = gradle.getRootProject().getConvention().getPlugin(
                     EmbeddableJavaProject.class);
-            gradle.getStartParameter().setTaskNames(projectInfo.getRebuildTasks());
+            gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
             classpath = projectInfo.getRuntimeClasspath().getFiles();
         }
 

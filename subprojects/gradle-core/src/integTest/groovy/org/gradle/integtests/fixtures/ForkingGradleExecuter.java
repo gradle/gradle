@@ -59,11 +59,11 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
     }
 
     private Map doRun(boolean expectFailure) {
-        CommandBuilder builder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder() : new UnixCommandBuilder();
-        return executeInternal(builder, expectFailure);
-    }
+        gradleHomeDir.assertIsDir();
 
-    Map executeInternal(CommandBuilder commandBuilder, boolean expectFailure) {
+        CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()
+                : new UnixCommandBuilder();
+
         ByteArrayOutputStream outStream = new ByteArrayOutputStream();
         ByteArrayOutputStream errStream = new ByteArrayOutputStream();
 

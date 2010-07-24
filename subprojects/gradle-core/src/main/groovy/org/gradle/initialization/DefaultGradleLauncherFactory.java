@@ -24,6 +24,7 @@ import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.cache.CacheRepository;
 import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
@@ -93,7 +94,8 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                         serviceRegistry.get(SettingsProcessor.class),
                         new BuildSourceBuilder(
                                 this,
-                                serviceRegistry.get(ClassLoaderFactory.class))),
+                                serviceRegistry.get(ClassLoaderFactory.class),
+                                serviceRegistry.get(CacheRepository.class))),
                 new DefaultGradlePropertiesLoader(),
                 new BuildLoader(
                         serviceRegistry.get(IProjectFactory.class)

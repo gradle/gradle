@@ -108,4 +108,26 @@ public class DefaultCacheRepositoryTest {
 
         assertThat(repository.cache("a/b/c").forObject(dir).open(), sameInstance(cache));
     }
+
+    @Test
+    public void createsCrossVersionCache() {
+        context.checking(new Expectations() {{
+            one(cacheFactory).open(sharedCacheDir.file("noVersion", "a/b/c"), CacheUsage.ON, Collections.singletonMap(
+                    "gradle.version", version));
+            will(returnValue(cache));
+        }});
+
+        assertThat(repository.cache("a/b/c").invalidateOnVersionChange().open(), sameInstance(cache));
+    }
+
+    @Test
+    public void createsCrossVersionCacheForAGradleInstance() {
+        context.checking(new Expectations() {{
+            one(cacheFactory).open(buildRootDir.file(".gradle", "noVersion", "a/b/c"), CacheUsage.ON,
+                    Collections.singletonMap("gradle.version", version));
+            will(returnValue(cache));
+        }});
+
+        assertThat(repository.cache("a/b/c").invalidateOnVersionChange().forObject(gradle).open(), sameInstance(cache));
+    }
 }

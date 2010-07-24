@@ -25,5 +25,7 @@ import java.util.Collection;
 public interface EmbeddableJavaProject {
     Collection<String> getRebuildTasks();
 
+    Collection<String> getBuildTasks();
+
     FileCollection getRuntimeClasspath();
 }

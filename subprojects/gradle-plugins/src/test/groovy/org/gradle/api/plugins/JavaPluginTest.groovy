@@ -52,7 +52,8 @@ class JavaPluginTest {
         javaPlugin.apply(project)
 
         assertThat(project.convention.plugins.embeddedJavaProject, instanceOf(EmbeddableJavaProject))
-        assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
+        assertThat(project.convention.plugins.embeddedJavaProject.rebuildTasks, equalTo([BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME]))
+        assertThat(project.convention.plugins.embeddedJavaProject.buildTasks, equalTo([JavaBasePlugin.BUILD_TASK_NAME]))
         assertThat(project.convention.plugins.embeddedJavaProject.runtimeClasspath, sameInstance(project.sourceSets.main.runtimeClasspath))
     }
 

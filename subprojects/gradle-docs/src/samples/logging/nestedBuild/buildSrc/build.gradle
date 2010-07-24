@@ -12,6 +12,10 @@ class ProjectInfo implements org.gradle.api.internal.plugins.EmbeddableJavaProje
         return ['classes']
     }
 
+    Collection<String> getBuildTasks() {
+        return ['classes']
+    }
+
     FileCollection getRuntimeClasspath() {
         return project.files()
     }

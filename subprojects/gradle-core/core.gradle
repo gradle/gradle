@@ -14,8 +14,6 @@
  * limitations under the License.
  */
 
-
-
 import java.text.DateFormat
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 

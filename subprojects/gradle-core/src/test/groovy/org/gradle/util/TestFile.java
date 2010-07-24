@@ -47,6 +47,10 @@ public class TestFile extends File implements TestFileContext {
         this(new File(uri));
     }
 
+    public TestFile(String path) {
+        this(new File(path));
+    }
+
     public TestFile(URL url) {
         this(toUri(url));
     }

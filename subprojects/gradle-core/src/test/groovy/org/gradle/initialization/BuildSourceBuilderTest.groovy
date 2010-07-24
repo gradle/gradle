@@ -18,97 +18,91 @@
 
 package org.gradle.initialization
 
+import static org.junit.Assert.*
+
+import org.gradle.BuildResult
+import org.gradle.GradleLauncher
+import org.gradle.GradleLauncherFactory
+import org.gradle.StartParameter
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
+import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.plugins.EmbeddableJavaProject
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.Convention
+import org.gradle.cache.CacheBuilder
+import org.gradle.cache.CacheRepository
+import org.gradle.cache.PersistentCache
+import org.gradle.cache.PersistentStateCache
 import org.gradle.groovy.scripts.StringScriptSource
 import org.gradle.util.JUnit4GroovyMockery
 import org.gradle.util.TemporaryFolder
+import org.gradle.util.TestFile
 import org.jmock.api.Action
-import org.jmock.lib.legacy.ClassImposteriser
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.*
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
 @RunWith(org.jmock.integration.junit4.JMock)
 class BuildSourceBuilderTest {
+    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     BuildSourceBuilder buildSourceBuilder
-    GradleLauncherFactory gradleFactoryMock
-    GradleLauncher gradleMock
-    Project rootProjectMock
-    Configuration configurationMock
-    File rootDir
-    File testBuildSrcDir
+    GradleLauncherFactory gradleFactoryMock = context.mock(GradleLauncherFactory.class)
+    GradleLauncher gradleMock = context.mock(GradleLauncher.class)
+    Project rootProjectMock = context.mock(Project.class)
+    FileCollection configurationMock = context.mock(FileCollection.class)
+    TestFile rootDir = tmpDir.createDir('root')
+    File testBuildSrcDir = rootDir.file('buildSrc').createDir()
     Set testDependencies
     StartParameter expectedStartParameter
-    JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    Long expectedTimestamp
+    CacheRepository cacheRepository = context.mock(CacheRepository.class)
+    PersistentStateCache stateCache = context.mock(PersistentStateCache.class)
     BuildResult expectedBuildResult
-    Gradle build
-    @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
+    Gradle build = context.mock(Gradle.class)
+    EmbeddableJavaProject projectMetaInfo = context.mock(EmbeddableJavaProject.class)
 
     @Before public void setUp() {
-        context.setImposteriser(ClassImposteriser.INSTANCE)
-        File testDir = tmpDir.dir
-        (rootDir = new File(testDir, 'root')).mkdir()
-        (testBuildSrcDir = new File(rootDir, 'buildSrc')).mkdir()
-        gradleFactoryMock = context.mock(GradleLauncherFactory)
-        gradleMock = context.mock(GradleLauncher)
-        rootProjectMock = context.mock(Project)
-        configurationMock = context.mock(Configuration)
-        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderFactory))
-        expectedStartParameter = new StartParameter(
-                searchUpwards: false,
-                currentDir: testBuildSrcDir,
-                taskNames: ['clean', 'build'],
-                gradleUserHomeDir: new File('gradleUserHome'),
-                projectProperties: [:]
-        )
+        buildSourceBuilder = new BuildSourceBuilder(gradleFactoryMock, context.mock(ClassLoaderFactory.class), cacheRepository)
+        expectedStartParameter = new StartParameter(currentDir: testBuildSrcDir)
         testDependencies = ['dep1' as File, 'dep2' as File]
-        expectedTimestamp = 2000L
-        build = context.mock(Gradle)
         Convention convention = context.mock(Convention)
-        EmbeddableJavaProject projectMetaInfo = context.mock(EmbeddableJavaProject)
         context.checking {
             allowing(build).getRootProject(); will(returnValue(rootProjectMock))
             allowing(build).getStartParameter(); will(returnValue(expectedStartParameter))
             allowing(rootProjectMock).getConvention(); will(returnValue(convention))
             allowing(convention).getPlugin(EmbeddableJavaProject);
             will(returnValue(projectMetaInfo))
-            allowing(projectMetaInfo).getRebuildTasks(); will(returnValue(['clean', 'dostuff']))
             allowing(projectMetaInfo).getRuntimeClasspath(); will(returnValue(configurationMock))
             allowing(configurationMock).getFiles(); will(returnValue(testDependencies))
         }
         expectedBuildResult = new BuildResult(build, null)
     }
 
-    @Test public void testCreateDependencyWhenBuildSrcDirExistsAndContainsBuildScript() {
-        StartParameter modifiedStartParameter = expectedStartParameter.newInstance()
-        expectTimestampFetchedFromCache()
+    @Test public void testCreateClasspathWhenBuildSrcDirExistsAndContainsBuildScript() {
+        expectValueFetchedFromCache(null)
         context.checking {
-            one(gradleFactoryMock).newInstance(modifiedStartParameter); will(returnValue(gradleMock))
+            one(projectMetaInfo).getRebuildTasks(); will(returnValue(['clean', 'build']))
+            one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()));
+            will(returnValue(gradleMock))
             one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
             one(gradleMock).run(); will(returnValue(expectedBuildResult))
         }
-        expectTimestampWrittenToCache()
+        expectValueWrittenToCache()
         
         createBuildFile()
         Set<File> actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
         assertEquals(testDependencies, actualClasspath)
     }
 
-    @Test public void testCreateDependencyWhenBuildSrcDirExistsAndDoesNotContainBuildScript() {
-        expectTimestampFetchedFromCache()
+    @Test public void testCreateClasspathWhenBuildSrcDirExistsAndDoesNotContainBuildScript() {
+        expectValueFetchedFromCache(null)
         context.checking {
+            one(projectMetaInfo).getRebuildTasks(); will(returnValue(['clean', 'build']))
             one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()))
             will { StartParameter param ->
                 assertThat(param.buildScriptSource, instanceOf(StringScriptSource.class))
@@ -119,22 +113,66 @@ class BuildSourceBuilderTest {
             one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
             one(gradleMock).run(); will(returnValue(expectedBuildResult))
         }
-        expectTimestampWrittenToCache()
+        expectValueWrittenToCache()
 
         Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
         assertEquals(testDependencies, actualClasspath)
     }
 
-    @Test public void testCreateDependencyWhenBuildSrcDirDoesNotExist() {
+    @Test public void testCreateClasspathWhenBuildSrcDirExistsAndHasBeenBuiltBefore() {
+        expectValueFetchedFromCache(true)
+        context.checking {
+            one(projectMetaInfo).getBuildTasks(); will(returnValue(['build']))
+            one(gradleFactoryMock).newInstance((StartParameter) withParam(notNullValue()))
+            will { StartParameter param ->
+                assertThat(param.buildScriptSource, instanceOf(StringScriptSource.class))
+                assertThat(param.buildScriptSource.displayName, equalTo('default buildSrc build script'))
+                assertThat(param.buildScriptSource.resource.text, equalTo(BuildSourceBuilder.defaultScript))
+                return gradleMock
+            }
+            one(gradleMock).addListener(withParam(not(nullValue()))); will(notifyProjectsEvaluated())
+            one(gradleMock).run(); will(returnValue(expectedBuildResult))
+        }
+        expectValueWrittenToCache()
+
+        Set actualClasspath = buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter)
+        assertEquals(testDependencies, actualClasspath)
+    }
+
+    @Test public void testCreateClasspathWhenBuildSrcDirDoesNotExist() {
         expectedStartParameter = expectedStartParameter.newInstance()
         expectedStartParameter.setCurrentDir(new File('nonexisting'));
         assertEquals([] as Set, buildSourceBuilder.createBuildSourceClasspath(expectedStartParameter))
     }
 
-    private expectTimestampFetchedFromCache() {
+    private expectValueFetchedFromCache(def value) {
+        context.checking {
+            CacheBuilder builder = context.mock(CacheBuilder.class)
+            PersistentCache cache = context.mock(PersistentCache.class)
+            one(cacheRepository).cache('buildSrc')
+            will(returnValue(builder))
+
+            one(builder).forObject(testBuildSrcDir)
+            will(returnValue(builder))
+
+            one(builder).invalidateOnVersionChange()
+            will(returnValue(builder))
+
+            one(builder).open()
+            will(returnValue(cache))
+
+            one(cache).openStateCache()
+            will(returnValue(stateCache))
+
+            one(stateCache).get()
+            will(returnValue(value))
+        }
     }
 
-    private expectTimestampWrittenToCache() {
+    private expectValueWrittenToCache() {
+        context.checking {
+            one(stateCache).set(true)
+        }
     }
 
     private createBuildFile() {

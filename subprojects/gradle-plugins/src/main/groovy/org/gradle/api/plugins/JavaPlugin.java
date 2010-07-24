@@ -195,6 +195,10 @@ public class JavaPlugin implements Plugin<Project> {
         }
 
         public Collection<String> getRebuildTasks() {
+            return Arrays.asList(BasePlugin.CLEAN_TASK_NAME, JavaBasePlugin.BUILD_TASK_NAME);
+        }
+
+        public Collection<String> getBuildTasks() {
             return Arrays.asList(JavaBasePlugin.BUILD_TASK_NAME);
         }
 
