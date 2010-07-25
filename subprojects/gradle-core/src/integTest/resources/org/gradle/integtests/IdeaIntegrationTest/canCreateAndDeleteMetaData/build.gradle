@@ -38,16 +38,7 @@ ideaModule.doLast {
 }
 
 ideaProject.doLast {
-    def expectedXml = new XmlParser().parse(file('expectedFiles/expectedProjectFile.xml'))
-    expectedXml.component.find { it.@name == 'ProjectModuleManager' }.modules.
-            module.find { it.@fileurl == 'file://$PROJECT_DIR$/root.iml' }.replaceNode {
-        module(fileurl: 'file://$PROJECT_DIR$/' + "${project.name}.iml",
-                filepath: '$PROJECT_DIR$/' + "${project.name}.iml")
-    }
-    
-    StringWriter writer = new StringWriter()
-    new XmlNodePrinter(new PrintWriter(writer)).print(expectedXml)
-    compareXmlWithIgnoringOrder(writer.toString(),
+    compareXmlWithIgnoringOrder(file('expectedFiles/expectedProjectFile.xml').text,
             file("${project.name}.ipr").text)
 }
 

@@ -17,17 +17,24 @@
 
 package org.gradle.integtests
 
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
+import org.junit.runner.RunWith
 
-class IdeaIntegrationTest extends AbstractIntegrationTest {
+@RunWith(DistributionIntegrationTestRunner)
+class IdeaIntegrationTest {
+    @Rule
+    public final GradleDistribution dist = new GradleDistribution()
+    @Rule
+    public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule
     public final TestResources testResources = new TestResources()
 
     @Test
     public void canCreateAndDeleteMetaData() {
-        File buildFile = testFile("build.gradle");
-        usingBuildFile(buildFile).run();
+        executer.withTasks('idea', 'cleanIdea').run()
     }
 }
