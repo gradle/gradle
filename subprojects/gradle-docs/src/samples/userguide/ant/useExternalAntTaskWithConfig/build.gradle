@@ -4,18 +4,19 @@ repositories {
 
 // START SNIPPET define-classpath
 configurations {
-    checkstyle
+    pmd
 }
 
 dependencies {
-    checkstyle group: 'checkstyle', name: 'checkstyle', version: '5.0'
+    pmd group: 'pmd', name: 'pmd', version: '4.2.5'
 }
 // END SNIPPET define-classpath
 
 // START SNIPPET use-classpath
 task check << {
-    ant.taskdef(resource: 'checkstyletask.properties', classpath: configurations.checkstyle.asPath)
-    ant.checkstyle(config: 'checkstyle.xml') {
+    ant.taskdef(name: 'pmd', classname: 'net.sourceforge.pmd.ant.PMDTask', classpath: configurations.pmd.asPath)
+    ant.pmd(shortFilenames: 'true', failonruleviolation: 'true', rulesetfiles: file('pmd-rules.xml').toURI().toString()) {
+        formatter(type: 'text', toConsole: 'true')
         fileset(dir: 'src')
     }
 }
