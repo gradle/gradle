@@ -1,9 +1,8 @@
 <project>
     <property name="lib.dir" location="lib/test"/>
-    <echo>lib.dir = \${lib.dir}</echo>
 
 <% if (!subprojects.empty ) {
-    ['clean', 'jar'].each { target ->
+    ['clean', 'jar', 'build'].each { target ->
 %>
     <target name="$target">
         <% subprojects.each { subproject -> %>
@@ -54,10 +53,10 @@
             </batchtest>
             <formatter type="xml"/>
         </junit>
-        <junitreport toDir="\${build.dir}">
-            <fileset dir="\${test.reports.dir}" includes="*.xml"/>
-            <report todir="\${test.reports.dir}"/>
-        </junitreport>
+        <!--<junitreport toDir="\${build.dir}">-->
+            <!--<fileset dir="\${test.reports.dir}" includes="*.xml"/>-->
+            <!--<report todir="\${test.reports.dir}"/>-->
+        <!--</junitreport>-->
     </target>
 
     <target name="jar" depends="compile">

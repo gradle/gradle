@@ -11,6 +11,18 @@ buildscript {
     }
 }
 
+repositories {
+    mavenCentral()
+}
+
+configurations {
+    junit
+}
+
+dependencies {
+    junit 'junit:junit:4.8.1'
+}
+
 apply plugin: 'base'
 
 task small(type: GeneratorTask, description: 'Generates a small project') {
@@ -22,13 +34,13 @@ task largeSrc(type: GeneratorTask, description: 'Generates a single project with
     sourceFiles = 1000
 }
 
-task multi(type: GeneratorTask, description: 'Genetates a multi-project build') {
+task multi(type: GeneratorTask, description: 'Generates a multi-project build') {
     destDir = new File(buildDir, 'multi')
     projects = 25
-    sourceFiles = 1000
+    sourceFiles = 100
 }
 
-task multiGroovy(type: GeneratorTask, description: 'Genetates a multi-project groovy build') {
+task multiGroovy(type: GeneratorTask, description: 'Generates a multi-project groovy build') {
     destDir = new File(buildDir, 'multiGroovy')
     projects = 25
     groovyProject = true
@@ -45,6 +57,11 @@ class GeneratorTask extends DefaultTask {
     int projects = 1
     @Input
     boolean groovyProject
+
+
+    def GeneratorTask() {
+        outputs.upToDateWhen { false }
+    }
 
     @TaskAction
     void generate() {
@@ -71,8 +88,7 @@ class GeneratorTask extends DefaultTask {
                 files: subprojectNames.empty ? [] : ['settings.gradle'],
                 includeSource: subprojectNames.empty
 
-        DefaultExternalModuleDependency dependency = new org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency('junit', 'junit', '4.8.1')
-        Configuration configuration = project.configurations.detachedConfiguration(dependency)
+        Configuration configuration = project.configurations.junit
         configuration.each {
             ant.copy(file: it, toDir: new File(destDir, 'lib/test'))
         }
