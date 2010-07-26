@@ -145,6 +145,8 @@ public class GradleDaemon {
         LOGGER.lifecycle("Starting Gradle daemon");
         List<String> daemonArgs = new ArrayList<String>();
         daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
+        daemonArgs.add("-Xmx1024m");
+        daemonArgs.add("-XX:MaxPermSize=256m");
         daemonArgs.add("-cp");
         daemonArgs.add(GUtil.join(new DefaultClassPathRegistry().getClassPathFiles("GRADLE_RUNTIME"),
                 File.pathSeparator));
@@ -163,7 +165,7 @@ public class GradleDaemon {
             Thread.sleep(500L);
         } while (System.currentTimeMillis() < expiry.getTime());
 
-        throw new RuntimeException("Could not connect to Gradle daemon.");
+        throw new RuntimeException("Timeout waiting to connect to Gradle daemon.");
     }
 
     private static Socket maybeConnect() throws IOException {
