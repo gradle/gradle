@@ -15,20 +15,21 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.*;
+import org.gradle.StartParameter;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
+
+import java.io.File;
 
 /**
  * @author Hans Dockter
  */
 public class Main {
-    private static Logger logger = Logging.getLogger(Main.class);
+    private static final Logger LOGGER = Logging.getLogger(Main.class);
 
     private final String[] args;
     private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
@@ -51,8 +52,6 @@ public class Main {
     }
 
     public void execute() throws Exception {
-        Clock buildTimeClock = new Clock();
-
         StartParameter startParameter = null;
 
         try {
@@ -73,30 +72,21 @@ public class Main {
             buildCompleter.exit(null);
         }
 
-        if (startParameter.isLaunchGUI()) {
-            try {
-                BlockingApplication.launchAndBlock();
-            } catch (Throwable e) {
-                logger.error("Failed to run the UI.", e);
-                buildCompleter.exit(e);
-            }
-
-            buildCompleter.exit(null);
-        }
-
-        BuildListener resultLogger = new BuildLogger(logger, buildTimeClock, startParameter);
         try {
-            GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-
-            gradleLauncher.useLogger(resultLogger);
-
-            BuildResult buildResult = gradleLauncher.run();
-            if (buildResult.getFailure() != null) {
-                buildCompleter.exit(buildResult.getFailure());
+            if (startParameter.isLaunchGUI()) {
+                BlockingApplication.launchAndBlock();
+            } else if (startParameter.isForeground()) {
+                GradleDaemon.main(args);
+            } else if (startParameter.isNoDaemon()) {
+                GradleDaemon.build(new File(System.getProperty("user.dir")), args);
+            } else if (startParameter.isStopDaemon()) {
+                GradleDaemon.stop();
+            } else {
+                GradleDaemon.clientMain(new File(System.getProperty("user.dir")), args);
             }
-        } catch (Throwable e) {
-            resultLogger.buildFinished(new BuildResult(null, e));
-            buildCompleter.exit(e);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            buildCompleter.exit(throwable);
         }
         buildCompleter.exit(null);
     }

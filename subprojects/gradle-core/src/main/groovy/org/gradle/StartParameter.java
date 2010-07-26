@@ -74,6 +74,9 @@ public class StartParameter {
     private boolean showHelp;
     private boolean showVersion;
     private boolean launchGUI;
+    private boolean noDaemon;
+    private boolean foreground;
+    private boolean stopDaemon;
     private boolean dryRun;
     private boolean noOpt;
 
@@ -502,6 +505,30 @@ public class StartParameter {
 
     public void setLaunchGUI(boolean launchGUI) {
         this.launchGUI = launchGUI;
+    }
+
+    public boolean isForeground() {
+        return foreground;
+    }
+
+    public void setForeground(boolean foreground) {
+        this.foreground = foreground;
+    }
+
+    public boolean isNoDaemon() {
+        return noDaemon;
+    }
+
+    public void setNoDaemon(boolean noDaemon) {
+        this.noDaemon = noDaemon;
+    }
+
+    public boolean isStopDaemon() {
+        return stopDaemon;
+    }
+
+    public void setStopDaemon(boolean stopDaemon) {
+        this.stopDaemon = stopDaemon;
     }
 
     @Override
