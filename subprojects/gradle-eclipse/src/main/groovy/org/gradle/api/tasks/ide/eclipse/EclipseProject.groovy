@@ -33,9 +33,15 @@ import org.gradle.plugins.eclipse.model.internal.ModelFactory
 public class EclipseProject extends AbstractXmlGeneratorTask {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
+    /**
+     * The file that is merged into the to be produced project file. This file must not exist.
+     */
     File inputFile
 
     @OutputFile
+    /**
+     * The output file where to generate the project metadata to.
+     */
     File outputFile
 
     /**
@@ -76,26 +82,53 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
         project.toXml(getOutputFile())
     }
 
+    /**
+     * Adds natures entries to the eclipse project.
+     * @param natures the nature names
+     */
     void natures(String... natures) {
         assert natures != null
         this.natures.addAll(natures as List)
     }
 
+    /**
+     * Adds project references to the eclipse project.
+     *
+     * @param referencedProjects The name of the project references.
+     */
     void referencedProjects(String... referencedProjects) {
         assert referencedProjects != null
         this.referencedProjects.addAll(referencedProjects as List)
     }
 
+    /**
+     * Adds a build command with arguments to the eclipse project.
+     *
+     * @param args A map with arguments, where the key is the name of the argument and the value the value.
+     * @param buildCommand The name of the build command.
+     * @see #buildCommand(String) 
+     */
     void buildCommand(Map args, String buildCommand) {
         assert buildCommand != null
         this.buildCommands.add(new BuildCommand(buildCommand, args))
     }
 
+    /**
+     * Adds a build command to the eclipse project.
+     *
+     * @param buildCommand The name of the build command
+     * @see #buildCommand(Map, String) 
+     */
     void buildCommand(String buildCommand) {
         assert buildCommand != null
         this.buildCommands.add(new BuildCommand(buildCommand))
     }
 
+    /**
+     * Adds a link to the eclipse project.
+     *
+     * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
+     */
     void link(Map args) {
         def illegalArgs = LINK_ARGUMENTS - args.keySet()
         if (illegalArgs) {

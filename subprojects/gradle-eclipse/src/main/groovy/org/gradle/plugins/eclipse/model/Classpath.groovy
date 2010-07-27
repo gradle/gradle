@@ -19,9 +19,14 @@ import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
 import org.gradle.listener.ListenerBroadcast
 
 /**
+ * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
+ *
  * @author Hans Dockter
  */
 class Classpath {
+    /**
+     * The classpath entries (contains by default an output entry pointing to bin).
+     */
     List entries = [new Output('bin')]
 
     private Node xml

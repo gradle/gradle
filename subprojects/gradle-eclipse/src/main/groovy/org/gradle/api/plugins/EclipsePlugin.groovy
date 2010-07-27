@@ -28,8 +28,7 @@ import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.plugins.eclipse.model.BuildCommand
 
 /**
- * <p>A         {@link org.gradle.api.Plugin}         which generates Eclipse project files for projects that use the         {@link
- * org.gradle.api.plugins.JavaPlugin}         or the         {@link org.gradle.api.plugins.WarPlugin}        .</p>
+ * <p>A plugin which generates Eclipse files.</p>
  *
  * @author Hans Dockter
  */

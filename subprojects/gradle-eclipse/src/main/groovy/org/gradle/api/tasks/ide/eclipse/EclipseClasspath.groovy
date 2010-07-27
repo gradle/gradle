@@ -32,35 +32,50 @@ import org.gradle.plugins.eclipse.model.internal.ModelFactory
  * @author Hans Dockter
  */
 public class EclipseClasspath extends AbstractXmlGeneratorTask {
+    /**
+     * The file that is merged into the to be produced classpath file. This file must not exist.
+     */
     File inputFile
 
     @OutputFile
+    /**
+     * The output file where to generate the classpath to.
+     */
     File outputFile
 
     /**
-     * The referenced projects of this Eclipse project.
+     * The source sets to be added to the classpath.
      */
     NamedDomainObjectContainer sourceSets
 
     /**
-     * The natures to be added to this Eclipse project.
+     * The configurations which files are to be transformed into classpath entries.
      */
     Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>();
 
+    /**
+     * The configurations which files are to be excluded from the classpath entries.
+     */
     Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>();
 
     /**
-     * The natures to be added to this Eclipse project.
+     * The variables to be used for replacing absolute paths in classpath entries.
      */
     Map variables = [:]
 
     /**
-     * The natures to be added to this Eclipse project.
+     * Containers to be added to the classpath
      */
     Set<Container> containers = new LinkedHashSet<Container>();
 
+    /**
+     * Whether to download and add sources associated with the dependency jars. Defaults to true.
+     */
     boolean downloadSources = true
 
+    /**
+     * Whether to download and add javadocs associated with the dependency jars. Defaults to false.
+     */
     boolean downloadJavadoc = false
 
     protected ModelFactory modelFactory = new ModelFactory()
@@ -71,14 +86,18 @@ public class EclipseClasspath extends AbstractXmlGeneratorTask {
         classpath.toXml(getOutputFile())
     }
 
+    /**
+     * Adds containers to the .classpath.
+     *
+     * @param containers the container names to be added to the .classpath.
+     */
     void containers(String... containers) {
         assert containers != null
         this.containers.addAll(containers as List)
     }
 
     /**
-     * Adds variables to be used for replacing absolute path in dependent-module elements of
-     * the org.eclipse.wst.common.component file.
+     * Adds variables to be used for replacing absolute paths in classpath entries.
      *
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */

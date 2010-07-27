@@ -19,6 +19,8 @@ import org.gradle.api.tasks.ide.eclipse.EclipseProject
 import org.gradle.listener.ListenerBroadcast
 
 /**
+ * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
+ *
  * @author Hans Dockter
  */
 class Project {
