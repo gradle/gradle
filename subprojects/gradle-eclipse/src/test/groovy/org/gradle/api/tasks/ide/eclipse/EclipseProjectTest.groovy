@@ -1,0 +1,69 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.api.tasks.ide.eclipse
+
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.AbstractSpockTaskTest
+import org.gradle.plugins.eclipse.model.BuildCommand
+import org.gradle.plugins.eclipse.model.Project
+import org.gradle.plugins.eclipse.model.internal.ModelFactory
+
+/**
+ * @author Hans Dockter
+ */
+class EclipseProjectTest extends AbstractSpockTaskTest {
+    EclipseProject eclipseProject
+
+    ConventionTask getTask() {
+        return eclipseProject
+    }
+
+    def setup() {
+        eclipseProject = createTask(EclipseProject.class);
+    }
+
+    def natures_shouldAdd() {
+        when:
+        eclipseProject.natures 'nature1'
+        eclipseProject.natures 'nature2'
+
+        then:
+        eclipseProject.natures = ['nature1', 'nature2']
+    }
+
+    def buildCommands_shouldAdd() {
+        when:
+        eclipseProject.buildCommand 'command1', key1: 'value1'
+        eclipseProject.buildCommand 'command2'
+
+        then:
+        eclipseProject.buildCommands as List == [new BuildCommand('command1', [key1: 'value1']), new BuildCommand('command2')]
+    }
+
+    def generateXml() {
+        ModelFactory modelFactory = Mock()
+        Project project = Mock()
+        eclipseProject.modelFactory = modelFactory
+        eclipseProject.setOutputFile(new File('nonexisting'))
+        modelFactory.createProject(eclipseProject) >> project
+
+        when:
+        eclipseProject.generateXml()
+
+        then:
+        1 * project.toXml(eclipseProject.getOutputFile())
+    }
+}
