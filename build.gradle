@@ -126,6 +126,7 @@ configure(groovyProjects()) {
 
 allprojects {
     apply plugin: 'idea'
+    apply plugin: 'eclipse'
     def config = configurations.findByName('testRuntime')
     if (!config) {
         return

@@ -44,3 +44,9 @@ ideaModule {
         module.dependencies.add(new org.gradle.plugins.idea.model.ModuleDependency('ui', null))
     }
 }
+
+eclipseClasspath {
+    whenConfigured { classpath ->
+        classpath.entries.add(new org.gradle.plugins.eclipse.model.ProjectDependency('/ui', true, null, [] as Set))
+    }
+}
