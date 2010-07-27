@@ -13,209 +13,128 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+
+
+
 package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.ConfigurationContainer
-import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependency
-import org.gradle.api.artifacts.specs.DependencySpecs
-import org.gradle.api.artifacts.specs.Type
-import org.gradle.api.plugins.scala.ScalaPlugin
-import org.gradle.api.specs.Specs
-import org.gradle.api.tasks.GroovySourceSet
-import org.gradle.api.tasks.ScalaSourceSet
-import org.gradle.api.tasks.SourceSet
-import org.gradle.util.GUtil
-import org.gradle.util.WrapUtil
-import org.gradle.api.tasks.ide.eclipse.*
-import org.gradle.api.Task
-import org.gradle.api.tasks.Delete
+import org.gradle.api.plugins.scala.ScalaBasePlugin
+import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
+import org.gradle.api.tasks.ide.eclipse.EclipseProject
+import org.gradle.api.tasks.ide.eclipse.EclipseWtp
+import org.gradle.plugins.eclipse.model.BuildCommand
 
 /**
- * <p>A {@link org.gradle.api.Plugin} which generates Eclipse project files for projects that use the {@link
- * org.gradle.api.plugins.JavaPlugin} or the {@link org.gradle.api.plugins.WarPlugin}.</p>
+ * <p>A         {@link org.gradle.api.Plugin}         which generates Eclipse project files for projects that use the         {@link
+ * org.gradle.api.plugins.JavaPlugin}         or the         {@link org.gradle.api.plugins.WarPlugin}        .</p>
  *
  * @author Hans Dockter
  */
 public class EclipsePlugin implements Plugin<Project> {
     public static final String ECLIPSE_TASK_NAME = "eclipse";
-    public static final String ECLIPSE_CLEAN_TASK_NAME = "eclipseClean";
+    public static final String CLEAN_ECLIPSE_TASK_NAME = "cleanEclipse";
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
     public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
-    public static final String ECLIPSE_CP_TASK_NAME = "eclipseCp";
+    public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
     public static final String ECLIPSE_WTP_MODULE_TASK_NAME = "eclipseWtpModule";
 
     public void apply(final Project project) {
-        project.plugins.withType(JavaPlugin.class).allPlugins {
-            configureEclipseProjectAndClasspath(project);
-            configureEclipseWtpModuleForJavaProjects(project);
-        }
+        project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
+        project.task('cleanEclipse', description: 'Cleans the generated eclipse files.')
+        project.task('eclipse', description: 'Generates the Eclipse files.')
+        configureEclipseProject(project)
+        configureEclipseClasspath(project)
         project.plugins.withType(WarPlugin.class).allPlugins {
             configureEclipseWtpModuleForWarProjects(project);
         }
     }
 
-    private void configureEclipseProjectAndClasspath(Project project) {
-        Task eclipse = project.tasks.add(ECLIPSE_TASK_NAME)
-        eclipse.dependsOn(
-                configureEclipseProject(project),
-                configureEclipseClasspath(project)
-        )
-        eclipse.description = "Generates the Eclipse project files (.project and .classpath).";
-        eclipse.taskGroup = 'IDE'
-
-        Delete clean = project.tasks.add(ECLIPSE_CLEAN_TASK_NAME, Delete.class)
-        clean.description = "Deletes the Eclipse project files (.project and .classpath).";
-        clean.taskGroup = 'IDE'
-        clean.delete EclipseProject.PROJECT_FILE_NAME
-        clean.delete EclipseClasspath.CLASSPATH_FILE_NAME
-        clean.delete new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)
-    }
-
-    private EclipseProject configureEclipseProject(Project project) {
+    private void configureEclipseProject(Project project) {
         EclipseProject eclipseProject = project.tasks.add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
-        eclipseProject.setProjectName(project.getName());
-        eclipseProject.conventionMapping.natureNames = {
-            selectEclipseProjectType(project).natureNames() as LinkedHashSet
+        eclipseProject.setProjectName(project.name);
+        eclipseProject.setDescription("Generates an Eclipse .project file.")
+        eclipseProject.taskGroup = 'ide'
+        eclipseProject.setInputFile(project.file('.project'))
+        eclipseProject.setOutputFile(project.file('.project'))
+
+        project.plugins.withType(JavaBasePlugin.class).allPlugins {
+            project.configure(project.eclipseProject) {
+                buildCommands = [new BuildCommand("org.eclipse.jdt.core.javabuilder")]
+                natures = ["org.eclipse.jdt.core.javanature"]
+            }
         }
-        eclipseProject.conventionMapping.buildCommandNames = {
-            selectEclipseProjectType(project).buildCommandNames() as LinkedHashSet
+        project.plugins.withType(GroovyBasePlugin.class).allPlugins {
+            project.configure(project.eclipseProject) {
+                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
+            }
         }
-        eclipseProject.setDescription("Generates an Eclipse .project file.");
-        return eclipseProject;
+        project.plugins.withType(ScalaBasePlugin.class).allPlugins {
+            project.configure(project.eclipseProject) {
+                buildCommands = buildCommands.collect { command ->
+                    command.name == "org.eclipse.jdt.core.javabuilder" ? new BuildCommand("ch.epfl.lamp.sdt.core.scalabuilder") : command
+                }
+                natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
+            }
+        }
+        project.plugins.withType(WarPlugin.class).allPlugins {
+            project.configure(project.eclipseProject) {
+                buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
+                buildCommand 'org.eclipse.wst.validation.validationbuilder'
+                natures 'org.eclipse.wst.common.project.facet.core.nature', 'org.eclipse.wst.common.modulecore.ModuleCoreNature'
+            }
+        }
+
+        project."$ECLIPSE_TASK_NAME".dependsOn eclipseProject
+        project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseProject'
     }
 
-    private ProjectType selectEclipseProjectType(Project project) {
-        if (project.getPlugins().hasPlugin(GroovyPlugin.class)) {
-            return ProjectType.GROOVY;
+    private void configureEclipseClasspath(final Project project) {
+        project.plugins.withType(JavaBasePlugin.class).allPlugins {
+            EclipseClasspath eclipseClasspath = project.tasks.add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
+            project.configure(eclipseClasspath) {
+                description = "Generates an Eclipse .classpath file."
+                containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
+                sourceSets = project.sourceSets
+                inputFile = project.file('.classpath')
+                outputFile = project.file('.classpath')
+                variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
+                taskGroup = 'ide'
+            }
+            project."$ECLIPSE_TASK_NAME".dependsOn eclipseClasspath
+            project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseClasspath'
         }
-        if (project.getPlugins().hasPlugin(ScalaPlugin.class)) {
-            return ProjectType.SCALA;
+        project.plugins.withType(JavaPlugin.class).allPlugins {
+            project.configure(project.eclipseClasspath) {
+                plusConfigurations = [project.configurations.testRuntime]
+            }
         }
-
-        return ProjectType.JAVA;
-    }
-
-    private EclipseClasspath configureEclipseClasspath(final Project project) {
-        EclipseClasspath eclipseClasspath = project.getTasks().replace(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
-        eclipseClasspath.conventionMapping.srcDirs = {
-            return allLanguageSrcDirs(project, SourceSet.MAIN_SOURCE_SET_NAME);
-        }
-        eclipseClasspath.conventionMapping.testSrcDirs = {
-            return allLanguageSrcDirs(project, SourceSet.TEST_SOURCE_SET_NAME);
-        }
-        eclipseClasspath.conventionMapping.outputDirectory = {
-            return project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].getClassesDir();
-        }
-        eclipseClasspath.conventionMapping.testOutputDirectory = {
-            return project.sourceSets[SourceSet.TEST_SOURCE_SET_NAME].getClassesDir();
-        }
-        eclipseClasspath.conventionMapping.classpathLibs = {
-            ConfigurationContainer configurationContainer = project.getConfigurations();
-            configurationContainer[JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME].files {
-                return !(it instanceof ProjectDependency);
-            } as List
-        }
-        eclipseClasspath.conventionMapping.projectDependencies = {
-            return new ArrayList(project.configurations[JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME].getAllDependencies(
-                    ProjectDependency.class));
-        }
-        eclipseClasspath.setDescription("Generates an Eclipse .classpath file.");
-        return eclipseClasspath;
-    }
-
-    private void configureEclipseWtpModuleForJavaProjects(Project project) {
-        EclipseWtpModule eclipseWtpModule = project.tasks.add(ECLIPSE_WTP_MODULE_TASK_NAME, EclipseWtpModule.class);
-
-        eclipseWtpModule.conventionMapping.srcDirs = {
-            SourceSet sourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-            return GUtil.addLists(sourceSet.java.srcDirs, sourceSet.resources.srcDirs);
-        }
-        eclipseWtpModule.setDescription("Generates the Eclipse Wtp files.");
     }
 
     private void configureEclipseWtpModuleForWarProjects(final Project project) {
         final EclipseWtp eclipseWtp = project.getTasks().add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
 
-        eclipseWtp.conventionMapping.warResourceMappings = {
-            SourceSet sourceSet = project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME]
-            List allSrcDirs = sourceSet.java.srcDirs + sourceSet.resources.srcDirs as List
-            Map resourceMappings = WrapUtil.toMap("/WEB-INF/classes", allSrcDirs);
-            resourceMappings.put("/", WrapUtil.toList(war(project).webAppDir));
-            return resourceMappings;
-        }
-        eclipseWtp.conventionMapping.outputDirectory = {
-            return project.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].getClassesDir();
-        }
-        eclipseWtp.conventionMapping.deployName = {
-            return project.getName();
-        }
-        eclipseWtp.conventionMapping.warLibs = {
-            // This isn't quite true
-            Closure spec = {
-                return !(it instanceof ProjectDependency);
-            };
-            Set<File> provided = project.configurations[WarPlugin.PROVIDED_RUNTIME_CONFIGURATION_NAME].getFiles();
-            Set<File> runtime = project.configurations[JavaPlugin.RUNTIME_CONFIGURATION_NAME].copyRecursive(
-                    spec).getFiles();
-            runtime.removeAll(provided);
-            return runtime as List;
-        }
-        eclipseWtp.conventionMapping.projectDependencies = {
-           /*
-            * todo We return all project dependencies here, not just the one for runtime. We can't use Ivy here, as we
-            * request the project dependencies not via a resolve. We would have to filter the project dependencies
-            * ourselves. This is not completely trivial due to configuration inheritance.
-            */
-            return new ArrayList(Specs.filterIterable(
-                    project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getAllDependencies(),
-                    DependencySpecs.type(Type.PROJECT))
-            );
+        project.configure(eclipseWtp) {
+            deployName = project.name
+            facet name: "jst.web", version: "2.4"
+            facet name: "jst.java", version: "1.4"
+            sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
+            plusConfigurations = [project.configurations.runtime]
+            minusConfigurations = [project.configurations.providedRuntime]
+            variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
+            taskGroup = 'ide'
+            orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
+            orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
+            orgEclipseWstCommonProjectFacetCoreInputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+            orgEclipseWstCommonProjectFacetCoreOutputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         }
 
-        // todo: When we refactor the way we resolve project dependencies this step might become obsolete
-        createDependencyOnEclipseProjectTaskOfDependentProjects(project, eclipseWtp);
-
-        project.getTasks().getByName(ECLIPSE_TASK_NAME).dependsOn(eclipseWtp);
-    }
-
-    private void createDependencyOnEclipseProjectTaskOfDependentProjects(Project project, EclipseWtp eclipseWtp) {
-        Set<Dependency> projectDependencies = Specs.filterIterable(
-                project.getConfigurations().getByName(JavaPlugin.RUNTIME_CONFIGURATION_NAME).getDependencies(),
-                DependencySpecs.type(Type.PROJECT)
-        );
-
-        for (Dependency dependentProject : projectDependencies) {
-            eclipseWtp.dependsOn(((ProjectDependency) dependentProject).getDependencyProject().getPath() + ":eclipseProject");
+        project."$ECLIPSE_TASK_NAME".dependsOn eclipseWtp
+        project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseWtp'
+        project.cleanEclipseWtp {
+            delete project.file('.settings')
         }
-    }
-
-    protected JavaPluginConvention java(Convention convention) {
-        return convention.getPlugin(JavaPluginConvention.class);
-    }
-
-    private WarPluginConvention war(Project project) {
-        return project.convention.getPlugin(WarPluginConvention.class);
-    }
-
-    private Object allLanguageSrcDirs(Project project, String name) {
-        SourceSet sourceSet = project.sourceSets[name];
-
-        Set<Object> extraDirs = new TreeSet<Object>();
-        GroovySourceSet groovySourceSet = sourceSet.convention.findPlugin(GroovySourceSet.class);
-        if (groovySourceSet != null) {
-            extraDirs.addAll(groovySourceSet.getGroovy().getSrcDirs());
-        }
-        ScalaSourceSet scalaSourceSet = sourceSet.convention.findPlugin(ScalaSourceSet.class);
-        if (scalaSourceSet != null) {
-            extraDirs.addAll(scalaSourceSet.getScala().getSrcDirs());
-        }
-
-        return GUtil.addLists(
-            sourceSet.getJava().getSrcDirs(),
-            sourceSet.getResources().getSrcDirs(),
-            extraDirs);
     }
 }

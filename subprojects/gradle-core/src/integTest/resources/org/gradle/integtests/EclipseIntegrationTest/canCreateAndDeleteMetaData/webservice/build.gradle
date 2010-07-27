@@ -1,0 +1,25 @@
+apply plugin: 'war'
+
+version = '2.5'
+
+dependencies {
+    providedCompile 'org.slf4j:slf4j-api:1.5.8'
+    providedRuntime "commons-io:commons-io:1.2"
+    compile project(':api')
+    runtime "commons-lang:commons-lang:2.5"
+}
+
+eclipseWtp {
+    doLast {
+        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/webserviceWtpComponent.xml").text,
+                file(".settings/org.eclipse.wst.common.component.xml").text)
+        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/webserviceWtpFacet.xml").text,
+                file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
+    }
+}
+
+cleanEclipse {
+    doLast {
+        assert !file(".settings").isFile()
+    }
+}

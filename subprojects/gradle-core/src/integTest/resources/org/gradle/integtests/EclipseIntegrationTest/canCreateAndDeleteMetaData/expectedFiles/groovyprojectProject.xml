@@ -1,0 +1,24 @@
+<projectDescription>
+  <name>
+    eclipseProject
+  </name>
+  <comment/>
+  <projects/>
+  <natures>
+    <nature>
+      org.eclipse.jdt.groovy.core.groovyNature
+    </nature>
+    <nature>
+      org.eclipse.jdt.core.javanature
+    </nature>
+  </natures>
+  <buildSpec>
+    <buildCommand>
+      <name>
+        org.eclipse.jdt.core.javabuilder
+      </name>
+      <arguments/>
+    </buildCommand>
+  </buildSpec>
+  <links/>
+</projectDescription>

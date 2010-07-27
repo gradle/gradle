@@ -1,0 +1,9 @@
+dependencies {
+    runtime 'commons-collections:commons-collections:3.2@jar'
+}
+
+sourceSets {
+    integTest {
+        java.srcDirs = ['src/integTest/java']
+    }
+}

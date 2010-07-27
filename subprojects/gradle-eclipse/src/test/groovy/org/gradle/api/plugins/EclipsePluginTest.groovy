@@ -17,86 +17,146 @@
 
 package org.gradle.api.plugins
 
-
-import static org.junit.Assert.*
-import static org.hamcrest.Matchers.*
-import static org.gradle.util.Matchers.*
-import org.gradle.util.HelperUtil
 import org.gradle.api.Project
-import org.junit.Test
-import org.gradle.api.plugins.scala.ScalaPlugin
-import org.gradle.api.tasks.ide.eclipse.ProjectType
+import org.gradle.api.Task
+import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.ide.eclipse.EclipseProject
 import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
+import org.gradle.api.tasks.ide.eclipse.EclipseProject
 import org.gradle.api.tasks.ide.eclipse.EclipseWtp
+import org.gradle.plugins.eclipse.model.BuildCommand
+import org.gradle.plugins.eclipse.model.Facet
+import org.gradle.util.HelperUtil
+import spock.lang.Specification
 
-public class EclipsePluginTest {
-    private final Project project = HelperUtil.createRootProject()
-    private final org.gradle.api.plugins.EclipsePlugin plugin = new org.gradle.api.plugins.EclipsePlugin()
+/**
+ * @author Hans Dockter
+ */
+class EclipsePluginTest extends Specification {
+    private final DefaultProject project = HelperUtil.createRootProject()
+    private final EclipsePlugin eclipsePlugin = new EclipsePlugin()
 
-    @Test
-    public void canApplyToProject() {
-        plugin.apply(project)
+    def applyToBaseProject_shouldOnlyHaveEclipseProjectTask() {
+        when:
+        eclipsePlugin.apply(project)
+
+        then:
+        project.tasks.findByPath(':eclipseClasspath') == null
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
+        checkEclipseProjectTask([], [])
     }
 
-    @Test
-    public void addsTasksWhenJavaPluginApplied() {
-        plugin.apply(project)
-        project.plugins.apply(org.gradle.api.plugins.JavaPlugin)
+    def applyToJavaProject_shouldOnlyHaveProjectAndClasspathTaskForJava() {
+        when:
+        project.apply(plugin: 'java-base')
+        eclipsePlugin.apply(project)
 
-        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_TASK_NAME]
-        assertThat(task, org.gradle.util.Matchers.dependsOn(org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CP_TASK_NAME))
-
-        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
-        assertThat(task, dependsOn())
-        assertThat(task.projectName, equalTo(project.name))
-        assertThat(task.natureNames, equalTo(ProjectType.JAVA.natureNames() as Set))
-        assertThat(task.buildCommandNames, equalTo(ProjectType.JAVA.buildCommandNames() as Set))
-
-        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CP_TASK_NAME]
-        assertThat(task, dependsOn())
-
-        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CLEAN_TASK_NAME]
-        assertThat(task, instanceOf(Delete.class))
-        assertThat(task, dependsOn())
-        assertThat(task.delete, equalTo([EclipseProject.PROJECT_FILE_NAME, EclipseClasspath.CLASSPATH_FILE_NAME, new File(EclipseWtp.WTP_FILE_DIR, EclipseWtp.WTP_FILE_NAME)] as Set))
+        then:
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.core.javanature'])
+        checkEclipseClasspath([] as Set)
+        project.apply(plugin: 'java')
+        checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
-    @Test
-    public void addsTasksWhenGroovyPluginApplied() {
-        plugin.apply(project)
-        project.plugins.apply(org.gradle.api.plugins.GroovyPlugin)
+    def applyToWarProject_shouldHaveProjectForWebAndClasspathTask() {
+        when:
+        project.apply(plugin: 'war')
+        eclipsePlugin.apply(project)
 
-        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
-        assertThat(task, dependsOn())
-        assertThat(task.projectName, equalTo(project.name))
-        assertThat(task.natureNames, equalTo(ProjectType.GROOVY.natureNames() as Set))
-        assertThat(task.buildCommandNames, equalTo(ProjectType.GROOVY.buildCommandNames() as Set))
+        then:
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseWtp)
+        project.cleanEclipseWtp.targetFiles.contains(project.file('.settings'))
+        checkEclipseProjectTask([
+                new BuildCommand('org.eclipse.jdt.core.javabuilder'),
+                new BuildCommand('org.eclipse.wst.common.project.facet.core.builder'),
+                new BuildCommand('org.eclipse.wst.validation.validationbuilder')],
+                ['org.eclipse.jdt.core.javanature',
+                        'org.eclipse.wst.common.project.facet.core.nature',
+                        'org.eclipse.wst.common.modulecore.ModuleCoreNature'])
+        checkEclipseClasspath([project.configurations.testRuntime] as Set)
+        checkEclipseWtp()
     }
 
-    @Test
-    public void addsTasksWhenScalaPluginApplied() {
-        plugin.apply(project)
-        project.plugins.apply(org.gradle.api.plugins.scala.ScalaPlugin)
+    def applyToScalaProject_shouldHaveProjectAndClasspathTaskForScala() {
+        when:
+        project.apply(plugin: 'scala-base')
+        eclipsePlugin.apply(project)
 
-        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME]
-        assertThat(task, dependsOn())
-        assertThat(task.projectName, equalTo(project.name))
-        assertThat(task.natureNames, equalTo(ProjectType.SCALA.natureNames() as Set))
-        assertThat(task.buildCommandNames, equalTo(ProjectType.SCALA.buildCommandNames() as Set))
+        then:
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        checkEclipseProjectTask([new BuildCommand('ch.epfl.lamp.sdt.core.scalabuilder')],
+                ['ch.epfl.lamp.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
+        checkEclipseClasspath([] as Set)
+        project.apply(plugin: 'scala')
+        checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
-    
-    @Test
-    public void addsTasksWhenWarPluginApplied() {
-        plugin.apply(project)
-        project.plugins.apply(org.gradle.api.plugins.WarPlugin)
 
-        def task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_TASK_NAME]
-        assertThat(task, org.gradle.util.Matchers.dependsOn(org.gradle.api.plugins.EclipsePlugin.ECLIPSE_PROJECT_TASK_NAME, org.gradle.api.plugins.EclipsePlugin.ECLIPSE_CP_TASK_NAME, org.gradle.api.plugins.EclipsePlugin.ECLIPSE_WTP_TASK_NAME))
+    def applyToGroovyProject_shouldHaveProjectAndClasspathTaskForGroovy() {
+        when:
+        project.apply(plugin: 'groovy-base')
+        eclipsePlugin.apply(project)
 
-        task = project.tasks[org.gradle.api.plugins.EclipsePlugin.ECLIPSE_WTP_TASK_NAME]
-        assertThat(task, dependsOn())
+        then:
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
+        assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
+        checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.groovy.core.groovyNature',
+                'org.eclipse.jdt.core.javanature'])
+        checkEclipseClasspath([] as Set)
+        project.apply(plugin: 'groovy')
+        checkEclipseClasspath([project.configurations.testRuntime] as Set)
+    }
+
+    private void checkEclipseProjectTask(List buildCommands, List natures) {
+        EclipseProject eclipseProjectTask = project.eclipseProject
+        assert eclipseProjectTask instanceof EclipseProject
+        assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseProjectTask)
+        assert eclipseProjectTask.buildCommands == buildCommands
+        assert eclipseProjectTask.natures == natures
+        assert eclipseProjectTask.links == [] as Set
+        assert eclipseProjectTask.referencedProjects == [] as Set
+        assert eclipseProjectTask.comment == null
+        assert eclipseProjectTask.projectName == project.name
+        assert eclipseProjectTask.inputFile == project.file('.project')
+        assert eclipseProjectTask.outputFile == project.file('.project')
+    }
+
+    private void checkEclipseClasspath(def configurations) {
+        EclipseClasspath eclipseClasspath = project.eclipseClasspath
+        assert eclipseClasspath instanceof EclipseClasspath
+        assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseClasspath)
+        assert eclipseClasspath.sourceSets == project.sourceSets
+        assert eclipseClasspath.plusConfigurations == configurations
+        assert eclipseClasspath.minusConfigurations == [] as Set
+        assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
+        assert eclipseClasspath.inputFile == project.file('.classpath')
+        assert eclipseClasspath.outputFile == project.file('.classpath')
+        assert eclipseClasspath.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+    }
+
+    private void checkEclipseWtp() {
+        EclipseWtp eclipseWtp = project.eclipseWtp
+        assert eclipseWtp instanceof EclipseWtp
+        assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseWtp)
+        assert eclipseWtp.sourceSets.all == [project.sourceSets.main] as Set
+        assert eclipseWtp.plusConfigurations == [project.configurations.runtime] as Set
+        assert eclipseWtp.minusConfigurations == [project.configurations.providedRuntime] as Set
+        assert eclipseWtp.deployName == project.name
+        assert eclipseWtp.orgEclipseWstCommonComponentInputFile == project.file('.settings/org.eclipse.wst.common.component.xml')
+        assert eclipseWtp.orgEclipseWstCommonComponentOutputFile == project.file('.settings/org.eclipse.wst.common.component.xml')
+        assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreInputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+        assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreOutputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+        assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "1.4")]
+        assert eclipseWtp.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+    }
+
+    void assertThatCleanEclipseDependsOn(Project project, Task dependsOnTask) {
+        assert dependsOnTask instanceof Delete
+        assert project.cleanEclipse.taskDependencies.getDependencies(project.cleanEclipse).contains(dependsOnTask)
     }
 }
 
