@@ -11,4 +11,6 @@ ide
 *.iml
 *.ipr
 *.iws
+*.classpath
+*.project
 /intTestHomeDir
