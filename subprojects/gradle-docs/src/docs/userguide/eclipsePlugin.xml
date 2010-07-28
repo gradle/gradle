@@ -31,7 +31,10 @@
     <sample id="useEclipsePlugin" dir="eclipse" title="Using the Eclipse plugin">
         <sourcefile file="build.gradle" snippet="use-plugin"/>
     </sample>
-    <para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides, but you will probably use only the <literal>eclipse</literal> task by executing <userinput>gradle eclipse</userinput>.
+    <para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides. Some tasks
+        are preconfigured to use the <literal>GRADLE_CACHE</literal> eclipse classpath variable. To make use of this variable
+        you need to define it in Eclipse pointing to <literal>&lt;USER_HOME&gt;/.gradle/cache</literal>.
+        In a future release of Gradle this will be automated (<ulink url="http://jira.codehaus.org/browse/GRADLE-1074">Issue GRADLE-1074</ulink>).
 </para>
     </section>
     <section>
