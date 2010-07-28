@@ -220,16 +220,16 @@
                 <td>boolean</td>
                 <td>true</td>
                 <td>-</td>
-                <td>Whether to download and add source jars associated with the dependency jars. Defaults to true. </td>
+                <td>Whether to download and add source jars associated with the dependency jars.</td>
             </tr>
             <tr>
                 <td>
                     <literal>downloadJavadoc</literal>
                 </td>
                 <td>boolean</td>
-                <td>true</td>
+                <td>false</td>
                 <td>-</td>
-                <td>Whether to download and add javadoc jars associated with the dependency jars. Defaults to true. </td>
+                <td>Whether to download and add javadoc jars associated with the dependency jars. </td>
             </tr>
             <tr>
                 <td>

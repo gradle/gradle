@@ -85,10 +85,10 @@ public class IdeaModule extends ConventionTask {
     boolean downloadSources = true
 
     /**
-     * Whether to download and add javadoc associated with the dependency jars. Defaults to true.
+     * Whether to download and add javadoc associated with the dependency jars. Defaults to false.
      */
     @Input
-    boolean downloadJavadoc = true
+    boolean downloadJavadoc = false
 
     /**
      * If this variable is set, dependencies in the existing iml file will be parsed for this variable.

@@ -20,6 +20,10 @@ allprojects {
 subprojects {
     apply plugin: 'java'
 
+    ideaModule {
+        downloadJavadoc = true
+    }
+
     repositories {
         mavenCentral()
     }
