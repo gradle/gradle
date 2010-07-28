@@ -66,7 +66,7 @@ class Project {
         eclipseProjectTask.beforeConfiguredActions.source.execute(this)
 
         if (eclipseProjectTask.name) {
-            this.name = eclipseProjectTask.name
+            this.name = eclipseProjectTask.projectName
         }
         if (eclipseProjectTask.comment) {
             this.comment = eclipseProjectTask.comment
