@@ -1,12 +1,13 @@
 package org.gradle.launcher;
 
+import org.fusesource.jansi.AnsiConsole;
 import org.gradle.*;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.logging.TerminalDetector;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
@@ -35,51 +36,66 @@ public class GradleDaemon {
     }
 
     private static void run() throws Exception {
+        // Force logging to be initialised
+        GradleLauncher.createStartParameter();
+
         ServerSocket serverSocket = new ServerSocket(PORT);
         while (true) {
             LOGGER.lifecycle("Daemon running");
             Socket socket = serverSocket.accept();
-            Clock clock = new Clock();
-            final PrintStream std = new PrintStream(socket.getOutputStream(), true);
             try {
-                ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-                Command command = (Command) ois.readObject();
-                if (command instanceof Stop) {
-                    LOGGER.lifecycle("Daemon stopping");
-                    return;
-                }
-                build((BuildArgs) command, clock, new StandardOutputListener() {
-                    @Override
-                    public void onOutput(CharSequence output) {
-                        std.print(output);
+                Clock clock = new Clock();
+                PrintStream stdout = new PrintStream(socket.getOutputStream(), true);
+                try {
+                    ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+                    Command command = (Command) ois.readObject();
+                    if (command instanceof Stop) {
+                        LOGGER.lifecycle("Daemon stopping");
+                        return;
                     }
-                });
-            } catch (Throwable throwable) {
-                throwable.printStackTrace(std);
+                    PrintStream origOut = System.out;
+                    PrintStream origErr = System.err;
+                    System.setOut(stdout);
+                    System.setErr(stdout);
+                    try {
+                        build((BuildArgs) command, clock);
+                    } finally {
+                        System.setOut(origOut);
+                        System.setErr(origErr);
+                    }
+                } catch (Throwable throwable) {
+                    throwable.printStackTrace(stdout);
+                }
+                stdout.flush();
+            } finally {
+                socket.close();
             }
-            std.flush();
-            socket.close();
         }
     }
 
     public static void clientMain(File currentDir, String[] args) {
         try {
-            runClient(new BuildArgs(currentDir, args));
+            TerminalDetector detector = new TerminalDetector();
+            System.setOut(AnsiConsole.out());
+            System.setErr(AnsiConsole.err());
+            runClient(new BuildArgs(currentDir, args, detector.isSatisfiedBy(FileDescriptor.out), detector.isSatisfiedBy(
+                    FileDescriptor.err)));
         } catch (Throwable t) {
             t.printStackTrace();
         }
     }
 
-    private static void build(BuildArgs buildArgs, Clock clock, StandardOutputListener stdout) {
+    private static void build(BuildArgs buildArgs, Clock clock) {
         StartParameter startParameter = new StartParameter();
         startParameter.setCurrentDir(buildArgs.currentDir);
+        startParameter.setStdoutTerminal(buildArgs.stdoutIsTerminal);
+        startParameter.setStderrTerminal(buildArgs.stderrIsTerminal);
         CommandLine2StartParameterConverter converter = new DefaultCommandLine2StartParameterConverter();
         converter.convert(buildArgs.args, startParameter);
 
         BuildListener resultLogger = new BuildLogger(LOGGER, clock, startParameter);
         try {
             GradleLauncher launcher = GradleLauncher.newInstance(startParameter);
-            launcher.addListener(stdout);
             launcher.useLogger(resultLogger);
             launcher.run();
         } catch (Throwable e) {
@@ -88,11 +104,12 @@ public class GradleDaemon {
     }
 
     public static void build(File file, String[] args) {
-        build(new BuildArgs(file, args), new Clock(), new StandardOutputListener() {
-            @Override
-            public void onOutput(CharSequence output) {
-            }
-        });
+        GradleLauncher.createStartParameter();
+        TerminalDetector detector = new TerminalDetector();
+        System.setOut(new PrintStream(AnsiConsole.wrapOutputStream(new FileOutputStream(FileDescriptor.out)), true));
+        System.setErr(new PrintStream(AnsiConsole.wrapOutputStream(new FileOutputStream(FileDescriptor.err)), true));
+        build(new BuildArgs(file, args, detector.isSatisfiedBy(FileDescriptor.out), detector.isSatisfiedBy(
+                FileDescriptor.err)), new Clock());
     }
 
     public static void stop() {
@@ -112,10 +129,8 @@ public class GradleDaemon {
     }
 
     private static void runClient(BuildArgs args) throws Exception {
-        Clock clock = new Clock();
         Socket socket = connect();
         run(args, socket);
-        System.out.println("time: " + clock.getTime());
     }
 
     private static void run(Command command, Socket socket) throws IOException {
@@ -131,6 +146,7 @@ public class GradleDaemon {
                 break;
             }
             System.out.write(buffer, 0, nread);
+            System.out.flush();
         }
         System.out.flush();
         socket.close();
@@ -186,10 +202,14 @@ public class GradleDaemon {
     private static class BuildArgs extends Command {
         private final String[] args;
         private final File currentDir;
+        private final boolean stdoutIsTerminal;
+        private final boolean stderrIsTerminal;
 
-        public BuildArgs(File currentDir, String[] args) {
+        public BuildArgs(File currentDir, String[] args, boolean stdoutIsTerminal, boolean stderrIsTerminal) {
             this.currentDir = currentDir;
             this.args = args;
+            this.stdoutIsTerminal = stdoutIsTerminal;
+            this.stderrIsTerminal = stderrIsTerminal;
         }
     }
 }

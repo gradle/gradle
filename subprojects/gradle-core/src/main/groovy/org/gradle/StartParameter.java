@@ -20,11 +20,16 @@ import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.*;
-import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.execution.BuildExecuter;
+import org.gradle.execution.DefaultBuildExecuter;
+import org.gradle.execution.DryRunBuildExecuter;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
-import org.gradle.initialization.*;
+import org.gradle.groovy.scripts.UriScriptSource;
+import org.gradle.initialization.BuildFileProjectSpec;
+import org.gradle.initialization.DefaultProjectSpec;
+import org.gradle.initialization.ProjectDirectoryProjectSpec;
+import org.gradle.initialization.ProjectSpec;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 
@@ -79,6 +84,8 @@ public class StartParameter {
     private boolean stopDaemon;
     private boolean dryRun;
     private boolean noOpt;
+    private boolean stdoutTerminal;
+    private boolean stderrTerminal;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -529,6 +536,22 @@ public class StartParameter {
 
     public void setStopDaemon(boolean stopDaemon) {
         this.stopDaemon = stopDaemon;
+    }
+
+    public boolean isStderrTerminal() {
+        return stderrTerminal;
+    }
+
+    public void setStderrTerminal(boolean stderrTerminal) {
+        this.stderrTerminal = stderrTerminal;
+    }
+
+    public boolean isStdoutTerminal() {
+        return stdoutTerminal;
+    }
+
+    public void setStdoutTerminal(boolean stdoutTerminal) {
+        this.stdoutTerminal = stdoutTerminal;
     }
 
     @Override

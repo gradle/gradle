@@ -29,10 +29,7 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
-import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.ProgressLoggerFactory;
-import org.gradle.logging.ProgressLoggingBridge;
+import org.gradle.logging.*;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -68,6 +65,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
     public GradleLauncher newInstance(StartParameter startParameter) {
         TopLevelBuildServiceRegistry serviceRegistry = new TopLevelBuildServiceRegistry(sharedServices, startParameter);
+        if (tracker.getCurrentBuild() == null) {
+            serviceRegistry.get(TerminalLoggingConfigurer.class).configure(startParameter.isStdoutTerminal(), startParameter.isStderrTerminal());
+        }
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.get(LoggingManagerFactory.class).create();
         loggingManager.setLevel(startParameter.getLogLevel());

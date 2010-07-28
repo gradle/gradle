@@ -23,9 +23,13 @@ import org.gradle.api.internal.project.DefaultServiceRegistry;
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected LoggingManagerFactory createLoggingManagerFactory() {
-        Slf4jLoggingConfigurer slf4jLoggingConfigurer = new Slf4jLoggingConfigurer();
+        Slf4jLoggingConfigurer slf4jLoggingConfigurer = createSlf4jLoggingConfigurer();
         LoggingConfigurer loggingConfigurer = new DefaultLoggingConfigurer(slf4jLoggingConfigurer,
                 new JavaUtilLoggingConfigurer());
         return new DefaultLoggingManagerFactory(loggingConfigurer, slf4jLoggingConfigurer);
+    }
+
+    protected Slf4jLoggingConfigurer createSlf4jLoggingConfigurer() {
+        return new Slf4jLoggingConfigurer();
     }
 }
