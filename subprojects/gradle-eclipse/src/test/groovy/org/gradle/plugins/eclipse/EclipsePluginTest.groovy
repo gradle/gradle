@@ -25,7 +25,6 @@ import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
-import org.gradle.plugins.eclipse.EclipsePlugin
 
 /**
  * @author Hans Dockter

@@ -38,8 +38,14 @@ public class EclipsePlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
-        project.task('cleanEclipse', description: 'Cleans the generated eclipse files.')
-        project.task('eclipse', description: 'Generates the Eclipse files.')
+        project.task('cleanEclipse') {
+            description = 'Cleans the generated eclipse files.'
+            group = 'Ide'
+        }
+        project.task('eclipse') {
+            description = 'Generates the Eclipse files.'
+            group = 'Ide'
+        }
         configureEclipseProject(project)
         configureEclipseClasspath(project)
         project.plugins.withType(WarPlugin.class).allPlugins {

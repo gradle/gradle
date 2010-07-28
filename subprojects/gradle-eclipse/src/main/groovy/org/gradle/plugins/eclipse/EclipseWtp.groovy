@@ -88,6 +88,10 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
 
     protected ModelFactory modelFactory = new ModelFactory()
 
+    def EclipseWtp() {
+        outputs.upToDateWhen { false }
+    }
+
     @TaskAction
     protected void generateXml() {
         Wtp wtp = modelFactory.createWtp(this)

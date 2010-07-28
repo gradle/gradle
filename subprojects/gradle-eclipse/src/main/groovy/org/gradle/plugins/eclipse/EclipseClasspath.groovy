@@ -77,6 +77,10 @@ public class EclipseClasspath extends AbstractXmlGeneratorTask {
 
     protected ModelFactory modelFactory = new ModelFactory()
 
+    def EclipseClasspath() {
+        outputs.upToDateWhen { false }
+    }
+
     @TaskAction
     void generateXml() {
         Classpath classpath = modelFactory.createClasspath(this)

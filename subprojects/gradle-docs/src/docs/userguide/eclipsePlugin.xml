@@ -257,7 +257,7 @@
                     <literal>variables</literal>
                 </td>
                 <td>Map&lt;String,String&gt;</td>
-                <td>empty map</td>
+                <td><literal>[GRADLE_CACHE: &lt;path to gradle cache&gt;]</literal></td>
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>
@@ -312,7 +312,7 @@
                     <literal>variables</literal>
                 </td>
                 <td>Map&lt;String,String&gt;</td>
-                <td>empty map</td>
+                <td><literal>[GRADLE_CACHE: &lt;path to gradle cache&gt;]</literal></td>
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>
@@ -342,9 +342,9 @@
                 <td>
                     <literal><code>beforeConfigured { arg -> }</code></literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.eclipse.Project" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.Classpath" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.Wtp" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.Project" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.Classpath" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.Wtp" lang="groovy"/></td>
                 <td>Gets called directly after the domain objects have been populated with the content of the
                     existing XML file (if there is one).</td>
             </tr>
@@ -352,9 +352,9 @@
                 <td>
                     <literal><code>whenConfigured { arg -> }</code></literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.eclipse.Project" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.Classpath" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.Wtp" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.Project" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.Classpath" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.Wtp" lang="groovy"/></td>
                 <td>Gets called after the domain objects have been populated with the content of the
                     existing XML file and the content from the build script.</td>
             </tr>
@@ -364,7 +364,7 @@
                 </td>
                 <td><code>groovy.util.Node</code></td>
                 <td><code>groovy.util.Node</code></td>
-                <td><code>groovy.util.Node</code></td>
+                <td><code>['org.eclipse.wst.common.component': groovy.util.Node, 'org.eclipse.wst.common.project.facet.core': groovy.util.Node]</code></td>
                 <td>The root node of the XML just before the XML is written to disk.</td>
             </tr>
         </table>

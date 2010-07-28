@@ -75,6 +75,10 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
 
     protected ModelFactory modelFactory = new ModelFactory()
 
+    def EclipseProject() {
+        outputs.upToDateWhen { false }
+    }
+
     @TaskAction
     void generateXml() {
         Project project = modelFactory.createProject(this)
