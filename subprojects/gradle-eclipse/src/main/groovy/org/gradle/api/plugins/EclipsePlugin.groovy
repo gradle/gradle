@@ -38,7 +38,6 @@ public class EclipsePlugin implements Plugin<Project> {
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
     public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
-    public static final String ECLIPSE_WTP_MODULE_TASK_NAME = "eclipseWtpModule";
 
     public void apply(final Project project) {
         project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
@@ -54,8 +53,8 @@ public class EclipsePlugin implements Plugin<Project> {
     private void configureEclipseProject(Project project) {
         EclipseProject eclipseProject = project.tasks.add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.name);
-        eclipseProject.setDescription("Generates an Eclipse .project file.")
-        eclipseProject.taskGroup = 'ide'
+        eclipseProject.description = "Generates an Eclipse .project file."
+        eclipseProject.group = 'ide'
         eclipseProject.setInputFile(project.file('.project'))
         eclipseProject.setOutputFile(project.file('.project'))
 
@@ -100,7 +99,7 @@ public class EclipsePlugin implements Plugin<Project> {
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
                 variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
-                taskGroup = 'ide'
+                group = 'ide'
             }
             project."$ECLIPSE_TASK_NAME".dependsOn eclipseClasspath
             project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseClasspath'
@@ -123,7 +122,7 @@ public class EclipsePlugin implements Plugin<Project> {
             plusConfigurations = [project.configurations.runtime]
             minusConfigurations = [project.configurations.providedRuntime]
             variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
-            taskGroup = 'ide'
+            group = 'ide'
             orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
             orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
             orgEclipseWstCommonProjectFacetCoreInputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')

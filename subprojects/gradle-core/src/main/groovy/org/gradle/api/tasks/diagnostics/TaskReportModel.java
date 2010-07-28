@@ -31,7 +31,7 @@ public class TaskReportModel {
     public void calculate(final Collection<? extends Task> tasks) {
         Set<Task> topLevelTasks = new LinkedHashSet<Task>();
         for (final Task task : tasks) {
-            if (GUtil.isTrue(task.getTaskGroup())) {
+            if (GUtil.isTrue(task.getGroup())) {
                 topLevelTasks.add(task);
             }
         }
@@ -63,8 +63,8 @@ public class TaskReportModel {
                 }
             }
 
-            String taskGroup = topLevelTasks.contains(task) ? task.getTaskGroup() : "";
-            groups.put(taskGroup, new TaskDetailsImpl(task, children, dependencies));
+            String group = topLevelTasks.contains(task) ? task.getGroup() : "";
+            groups.put(group, new TaskDetailsImpl(task, children, dependencies));
         }
     }
 

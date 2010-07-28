@@ -22,7 +22,7 @@ import org.gradle.api.tasks.TaskDependency
 class TaskReportModelTest extends Specification {
     private final TaskReportModel model = new TaskReportModel()
 
-    def groupsTasksBasedOnTheirTaskGroup() {
+    def groupsTasksBasedOnTheirGroup() {
         def task1 = task('task1', 'group1')
         def task2 = task('task2', 'group2')
         def task3 = task('task3', 'group1')
@@ -52,7 +52,7 @@ class TaskReportModelTest extends Specification {
         model.getTasksForGroup('c')*.task == [task4]
     }
 
-    def tasksWithNoTaskGroupAreTreatedAsChildrenOfTheNearestTopLevelTaskTheyAreReachableFrom() {
+    def tasksWithNoGroupAreTreatedAsChildrenOfTheNearestTopLevelTaskTheyAreReachableFrom() {
         def task1 = task('task1')
         def task2 = task('task2')
         def task3 = task('task3', 'group1', task1, task2)
@@ -154,7 +154,7 @@ class TaskReportModelTest extends Specification {
         _ * task.toString() >> name
         _ * task.name >> name
         _ * task.path >> ":$name"
-        _ * task.taskGroup >> group
+        _ * task.group >> group
         _ * task.compareTo(!null) >> { args -> name.compareTo(args[0].name) }
         TaskDependency dep = Mock()
         _ * dep.getDependencies(task) >> {dependencies as Set}

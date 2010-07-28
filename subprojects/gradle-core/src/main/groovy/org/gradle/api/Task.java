@@ -480,7 +480,7 @@ public interface Task extends Comparable<Task> {
      *
      * @return The task group for this task. Might be null.
      */
-    String getTaskGroup();
+    String getGroup();
 
     /**
      * Sets the task group which this task belongs to. The task group is used in reports and user interfaces to
@@ -488,7 +488,7 @@ public interface Task extends Comparable<Task> {
      *
      * @param group The task group for this task. Can be null.
      */
-    void setTaskGroup(String group);
+    void setGroup(String group);
 
     /**
      * <p>Checks if any of the tasks that this task depends on {@link Task#getDidWork() didWork}.</p>

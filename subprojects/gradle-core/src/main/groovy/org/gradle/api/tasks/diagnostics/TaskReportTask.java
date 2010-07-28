@@ -41,9 +41,9 @@ public class TaskReportTask extends AbstractReportTask {
         TaskReportModel model = new TaskReportModel();
         model.calculate(project.getTasks().getAll());
 
-        for (String taskGroup : model.getGroups()) {
-            renderer.startTaskGroup(taskGroup);
-            for (TaskDetails task : model.getTasksForGroup(taskGroup)) {
+        for (String group : model.getGroups()) {
+            renderer.startTaskGroup(group);
+            for (TaskDetails task : model.getTasksForGroup(group)) {
                 renderer.addTask(task);
                 for (TaskDetails child : task.getChildren()) {
                     renderer.addChildTask(child);

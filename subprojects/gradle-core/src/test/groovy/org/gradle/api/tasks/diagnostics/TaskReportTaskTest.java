@@ -176,7 +176,7 @@ public class TaskReportTaskTest {
             will(returnValue(name));
             allowing(task).getPath();
             will(returnValue(':' + name));
-            allowing(task).getTaskGroup();
+            allowing(task).getGroup();
             will(returnValue(taskGroup));
             allowing(task).compareTo(with(Matchers.notNullValue(Task.class)));
             will(new Action() {
