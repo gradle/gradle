@@ -178,7 +178,7 @@ public class ProjectTest extends Specification {
         Map args = [name: null, comment: null, referencedProjects: [] as Set, natures: [], buildCommands: [],
                 links: [] as Set, reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: dummyBroadcast] + customArgs
         EclipseProject eclipseProjectStub = Mock()
-        eclipseProjectStub.getName() >> args.name
+        eclipseProjectStub.getProjectName() >> args.name
         eclipseProjectStub.getComment() >> args.comment
         eclipseProjectStub.getReferencedProjects() >> args.referencedProjects
         eclipseProjectStub.getNatures() >> args.natures
