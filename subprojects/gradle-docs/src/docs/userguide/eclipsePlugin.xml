@@ -74,7 +74,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath"/></td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseClasspath" lang="groovy"/></td>
                 <td>Generates the <filename>.classpath</filename> file</td>
             </tr>
             <tr>
@@ -84,7 +84,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject"/></td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseProject" lang="groovy"/></td>
                 <td>Generates the <filename>.project</filename> file</td>
             </tr>
         </table>
@@ -108,18 +108,8 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtp"/></td>
+                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtp" lang="groovy"/></td>
                 <td>Generates the <filename>.settings/org.eclipse.wst.common.component</filename> file</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>eclipseWtpModule</literal>
-                </td>
-                <td>
-                    <literal>-</literal>
-                </td>
-                <td><apilink class="org.gradle.api.tasks.ide.eclipse.EclipseWtpModule"/></td>
-                <td></td>
             </tr>
         </table>
     </section>
