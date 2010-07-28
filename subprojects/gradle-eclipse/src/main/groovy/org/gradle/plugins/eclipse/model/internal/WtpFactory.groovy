@@ -37,6 +37,8 @@ class WtpFactory {
         FileReader componentReader = componentInputFile != null && componentInputFile.exists() ? new FileReader(componentInputFile) : null
         FileReader facetReader = facetInputFile != null && facetInputFile.exists() ? new FileReader(facetInputFile) : null
         List entries = getEntriesFromSourceSets(eclipseWtp.sourceSets, eclipseWtp.project)
+        entries.addAll(eclipseWtp.resources)
+        entries.addAll(eclipseWtp.properties)
         entries.addAll(getEntriesFromConfigurations(eclipseWtp))
         return new Wtp(eclipseWtp, entries, componentReader, facetReader)
     }

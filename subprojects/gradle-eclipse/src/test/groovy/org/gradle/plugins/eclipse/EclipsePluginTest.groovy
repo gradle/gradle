@@ -25,6 +25,7 @@ import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+import org.gradle.plugins.eclipse.model.WbResource
 
 /**
  * @author Hans Dockter
@@ -149,6 +150,7 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreOutputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "1.4")]
         assert eclipseWtp.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+        assert eclipseWtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
     }
 
     void assertThatCleanEclipseDependsOn(Project project, Task dependsOnTask) {

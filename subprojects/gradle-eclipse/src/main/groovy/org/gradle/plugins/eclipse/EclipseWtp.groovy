@@ -22,6 +22,8 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.plugins.eclipse.model.Wtp
+import org.gradle.plugins.eclipse.model.WbResource
+import org.gradle.plugins.eclipse.model.WbProperty
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP.
@@ -84,7 +86,17 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
      * The variables to be used for replacing absolute path in dependent-module elements of
      * the org.eclipse.wst.common.component file.
      */
-    Map variables = [:]
+    Map<String, String> variables = [:]
+
+    /**
+     * Additional wb-resource elements.
+     */
+    List<WbResource> resources = []
+
+    /**
+     * Additional property elements.
+     */
+    List<WbProperty> properties = []
 
     protected ModelFactory modelFactory = new ModelFactory()
 
@@ -116,5 +128,23 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
     void variables(Map variables) {
         assert variables != null
         this.variables.putAll variables
+    }
+
+    /**
+     * Adds a property to be added to the org.eclipse.wst.common.component file.
+     *
+     * @param args A map that must contain a name and value key with corresponding values.
+     */
+    void property(Map args) {
+        properties.add(new WbProperty(args.name, args.value))
+    }
+
+    /**
+     * Adds a wb-resource to be added to the org.eclipse.wst.common.component file.
+     *
+     * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
+     */
+    void resource(Map args) {
+        resources.add(new WbResource(args.deployPath, args.sourcePath))
     }
 }

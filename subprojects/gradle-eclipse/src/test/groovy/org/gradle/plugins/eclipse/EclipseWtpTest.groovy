@@ -23,6 +23,8 @@ import org.gradle.plugins.eclipse.model.Wtp
 import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
+import org.gradle.plugins.eclipse.model.WbProperty
+import org.gradle.plugins.eclipse.model.WbResource
 
 /**
  * @author Hans Dockter
@@ -47,7 +49,25 @@ public class EclipseWtpTest extends AbstractSpockTaskTest {
         eclipseWtp.facet name: 'facet2', version: '2.0'
 
         then:
-        eclipseWtp.facets = [new Facet('facet1', '1.0'), new Facet('facet2', '2.0')]
+        eclipseWtp.facets == [new Facet('facet1', '1.0'), new Facet('facet2', '2.0')]
+    }
+
+    def property_shouldAdd() {
+        when:
+        eclipseWtp.property name: 'prop1', value: 'value1'
+        eclipseWtp.property name: 'prop2', value: 'value2'
+
+        then:
+        eclipseWtp.properties == [new WbProperty('prop1', 'value1'), new WbProperty('prop2', 'value2')]
+    }
+
+    def resource_shouldAdd() {
+        when:
+        eclipseWtp.resource deployPath: 'path1', sourcePath: 'sourcepath1'
+        eclipseWtp.resource deployPath: 'path2', sourcePath: 'sourcepath2'
+
+        then:
+        eclipseWtp.resources == [new WbResource('path1', 'sourcepath1'), new WbResource('path2', 'sourcepath2')]
     }
 
     def generateXml() {
