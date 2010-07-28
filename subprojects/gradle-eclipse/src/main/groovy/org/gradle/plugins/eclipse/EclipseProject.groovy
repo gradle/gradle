@@ -13,17 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.ide.eclipse;
+package org.gradle.plugins.eclipse;
 
 
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.eclipse.AbstractXmlGeneratorTask
 import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Link
-import org.gradle.plugins.eclipse.model.Project
 import org.gradle.plugins.eclipse.model.internal.ModelFactory
+import org.gradle.plugins.eclipse.model.Project
 
 /**
  * Generates an eclipse <i>.project</i> file.

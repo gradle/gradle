@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.eclipse.EclipseWtp
 
 /**
  * @author Hans Dockter

@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.api.tasks.ide.eclipse.EclipseProject
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.eclipse.EclipseProject
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).

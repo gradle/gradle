@@ -17,12 +17,12 @@ package org.gradle.plugins.eclipse.model;
 
 
 import org.gradle.api.Action
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.plugins.eclipse.EclipseWtp
 
 /**
  * @author Hans Dockter

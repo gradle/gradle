@@ -21,11 +21,11 @@ import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.plugins.eclipse.model.WbDependentModule
 import org.gradle.plugins.eclipse.model.WbProperty
 import org.gradle.plugins.eclipse.model.WbResource
 import org.gradle.plugins.eclipse.model.Wtp
+import org.gradle.plugins.eclipse.EclipseWtp
 
 /**
  * @author Hans Dockter

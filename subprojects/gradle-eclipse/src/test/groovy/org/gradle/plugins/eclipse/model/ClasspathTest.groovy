@@ -17,11 +17,11 @@ package org.gradle.plugins.eclipse.model;
 
 
 import org.gradle.api.Action
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.plugins.eclipse.EclipseClasspath
 
 /**
  * @author Hans Dockter

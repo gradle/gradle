@@ -19,9 +19,9 @@ import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
 import org.gradle.api.artifacts.*
 import org.gradle.plugins.eclipse.model.*
+import org.gradle.plugins.eclipse.EclipseClasspath
 
 /**
  * @author Hans Dockter

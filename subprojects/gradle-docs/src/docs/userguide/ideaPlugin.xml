@@ -39,7 +39,7 @@
         <para>The Idea plugin adds the tasks shown below to a project.</para>
 
         <table id='ideatasks'>
-            <title>Idea plugin - Java tasks</title>
+            <title>Idea plugin - Tasks</title>
             <thead>
                 <tr>
                     <td>Task name</td>
@@ -163,7 +163,7 @@
                 </td>
                 <td>Set&lt;File&gt;</td>
                 <td>empty set</td>
-                <td><literal>project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten()</literal></td>
+                <td>The source dirs of <literal>sourceSets.main</literal></td>
                 <td>The dirs containing the production sources. Must not be null.</td>
             </tr>
             <tr>
@@ -172,7 +172,7 @@
                 </td>
                 <td>Set&lt;File&gt;</td>
                 <td>empty set</td>
-                <td><literal>project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten()</literal></td>
+                <td>The source dirs of <literal>sourceSets.test</literal></td>
                 <td>The dirs containing the test sources. Must not be null.</td>
             </tr>
             <tr>
@@ -190,7 +190,7 @@
                 </td>
                 <td>File</td>
                 <td>null</td>
-                <td><literal>project.sourceSets.main.classesDir</literal></td>
+                <td><literal>sourceSets.main.classesDir</literal></td>
                 <td>The idea output dir for the production sources. If null no entry for output dirs is created.</td>
             </tr>
             <tr>
@@ -199,7 +199,7 @@
                 </td>
                 <td>File</td>
                 <td>null</td>
-                <td><literal>project.sourceSets.test.classesDir</literal></td>
+                <td><literal>sourceSets.test.classesDir</literal></td>
                 <td>The idea output dir for the test sources. If null no entry for test output dirs is created.</td>
             </tr>
             <tr>

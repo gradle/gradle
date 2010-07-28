@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.eclipse.EclipseClasspath
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).

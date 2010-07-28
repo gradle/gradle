@@ -15,12 +15,12 @@
  */
 package org.gradle.plugins.eclipse.model.internal
 
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
-import org.gradle.api.tasks.ide.eclipse.EclipseProject
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.plugins.eclipse.model.Classpath
 import org.gradle.plugins.eclipse.model.Project
 import org.gradle.plugins.eclipse.model.Wtp
+import org.gradle.plugins.eclipse.EclipseProject
+import org.gradle.plugins.eclipse.EclipseClasspath
+import org.gradle.plugins.eclipse.EclipseWtp
 
 /**
  * @author Hans Dockter

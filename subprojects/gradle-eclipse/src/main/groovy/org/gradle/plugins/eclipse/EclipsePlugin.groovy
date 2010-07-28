@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-package org.gradle.api.plugins
+package org.gradle.plugins.eclipse
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.GroovyBasePlugin
+import org.gradle.api.plugins.JavaBasePlugin
+import org.gradle.api.plugins.JavaPlugin
+import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
-import org.gradle.api.tasks.ide.eclipse.EclipseProject
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.plugins.eclipse.model.BuildCommand
 
 /**

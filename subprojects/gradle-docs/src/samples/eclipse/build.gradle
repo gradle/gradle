@@ -1,17 +1,35 @@
-subprojects {
-    apply plugin: 'java'
-    apply plugin: 'eclipse'
-
-    repositories {
-        mavenCentral()
+// START SNIPPET use-plugin
+apply plugin: 'eclipse'
+// END SNIPPET use-plugin
+// START SNIPPET module-before-configured
+// START SNIPPET module-when-configured
+eclipseClasspath {
+// END SNIPPET module-when-configured
+    beforeConfigured { classpath ->
+        classpath.entries.removeAll { entry -> entry.kind == 'lib' || entry.kind == 'var' }
     }
-
-    dependencies {
-        testCompile 'junit:junit:4.7'
+// END SNIPPET module-before-configured
+// START SNIPPET module-when-configured
+    whenConfigured { classpath ->
+        classpath.entries.findAll { entry -> entry.kind == 'lib' }*.exported = false
     }
-
-    eclipse.dependsOn(configurations.testRuntime.buildDependencies)
-
-    group = 'org.gradle'
-    version = '1.0'
+// START SNIPPET module-before-configured
 }
+// END SNIPPET module-before-configured
+// END SNIPPET module-when-configured
+
+// START SNIPPET project-before-configured
+eclipseProject {
+    beforeConfigured { project ->
+        project.natures.clear()
+    }
+}
+// END SNIPPET project-before-configured
+
+// START SNIPPET wtp-with-xml
+eclipseWtp {
+    withXml { root ->
+        root.fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
+    }
+}
+// END SNIPPET wtp-with-xml

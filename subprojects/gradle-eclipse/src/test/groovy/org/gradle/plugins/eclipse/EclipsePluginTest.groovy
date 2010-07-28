@@ -15,19 +15,17 @@
  */
 
 
-package org.gradle.api.plugins
+package org.gradle.plugins.eclipse
 
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.internal.project.DefaultProject
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.ide.eclipse.EclipseClasspath
-import org.gradle.api.tasks.ide.eclipse.EclipseProject
-import org.gradle.api.tasks.ide.eclipse.EclipseWtp
 import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+import org.gradle.plugins.eclipse.EclipsePlugin
 
 /**
  * @author Hans Dockter

@@ -13,18 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-package org.gradle.api.tasks.ide.eclipse;
-
+package org.gradle.plugins.eclipse
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.eclipse.AbstractXmlGeneratorTask
-import org.gradle.plugins.eclipse.model.Classpath
-import org.gradle.plugins.eclipse.model.Container
 import org.gradle.plugins.eclipse.model.internal.ModelFactory
+import org.gradle.plugins.eclipse.model.Container
+import org.gradle.plugins.eclipse.model.Classpath
 
 /**
  * Generates an eclipse <i>.classpath</i> file.
