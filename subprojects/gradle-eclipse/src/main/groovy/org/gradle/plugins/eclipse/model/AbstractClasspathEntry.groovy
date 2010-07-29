@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
+import org.gradle.plugins.eclipse.model.internal.PathUtil
+
 /**
  * @author Hans Dockter
  */
@@ -26,7 +28,7 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
     Set<AccessRule> accessRules
 
     def AbstractClasspathEntry(Node node) {
-        this.path = node.@path
+        this.path = normalizePath(node.@path)
         this.exported = node.@exported
         this.nativeLibraryLocation = readNativeLibraryLocation(node)
         this.accessRules = readAccessRules(node)
@@ -35,7 +37,7 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
 
     def AbstractClasspathEntry(String path, boolean exported, String nativeLibraryLocation, Set accessRules) {
         assert path != null && accessRules != null
-        this.path = path;
+        this.path = normalizePath(path);
         this.exported = exported
         this.nativeLibraryLocation = nativeLibraryLocation
         this.accessRules = accessRules
@@ -102,6 +104,10 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
         attributes.each { key, value ->
             attributesNode.appendNode('attribute', [name: key, value: value])
         }
+    }
+
+    String normalizePath(String path) {
+        PathUtil.normalizePath(path)
     }
 
     boolean equals(o) {

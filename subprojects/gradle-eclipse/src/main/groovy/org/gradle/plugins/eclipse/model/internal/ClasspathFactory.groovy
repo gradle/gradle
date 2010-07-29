@@ -63,10 +63,10 @@ class ClasspathFactory {
     }
 
     List getEntriesFromConfigurations(EclipseClasspath eclipseClasspath) {
-        (getModules(eclipseClasspath) as List) + (getLibraries(eclipseClasspath) as List)
+        getModules(eclipseClasspath) + getLibraries(eclipseClasspath) 
     }
 
-    protected Set getModules(EclipseClasspath eclipseClasspath) {
+    protected List getModules(EclipseClasspath eclipseClasspath) {
         return getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations, { it instanceof org.gradle.api.artifacts.ProjectDependency }).collect { projectDependency ->
             projectDependency.dependencyProject
         }.collect { dependencyProject ->
@@ -99,7 +99,7 @@ class ClasspathFactory {
         }
         moduleLibraries.addAll(getSelfResolvingFiles(getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations,
                 { it instanceof SelfResolvingDependency && !(it instanceof org.gradle.api.artifacts.ProjectDependency)}), eclipseClasspath.variables))
-        moduleLibraries as LinkedHashSet
+        moduleLibraries
     }
 
     private def getSelfResolvingFiles(Collection dependencies, Map variables) {

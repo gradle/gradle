@@ -24,15 +24,15 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
 
     def AbstractLibrary(node) {
         super(node)
-        javadocPath = node.attributes?.attribute?.find { it.@name == 'javadoc_location' }?.@value
-        sourcePath = node.@sourcepath
+        javadocPath = normalizePath(node.attributes?.attribute?.find { it.@name == 'javadoc_location' }?.@value)
+        sourcePath = normalizePath(node.@sourcepath)
     }
 
     def AbstractLibrary(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath,
                         String javadocPath) {
         super(path, exported, nativeLibraryLocation, accessRules)
-        this.sourcePath = sourcePath;
-        this.javadocPath = javadocPath;
+        this.sourcePath = normalizePath(sourcePath);
+        this.javadocPath = normalizePath(javadocPath);
     }
 
     void appendNode(Node node) {

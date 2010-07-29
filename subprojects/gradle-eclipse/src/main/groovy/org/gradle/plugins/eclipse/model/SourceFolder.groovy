@@ -25,7 +25,7 @@ class SourceFolder extends AbstractClasspathEntry {
 
     def SourceFolder(Node node) {
         super(node)
-        this.output = node.@output
+        this.output = normalizePath(node.@output)
         this.includes = node.@including?.split('\\|') ?: []
         this.excludes = node.@excluding?.split('\\|') ?: []
     }
@@ -33,7 +33,7 @@ class SourceFolder extends AbstractClasspathEntry {
     def SourceFolder(String path, String nativeLibraryLocation, Set accessRules, String output,
                      List includes, List excludes) {
         super(path, false, nativeLibraryLocation, accessRules)
-        this.output = output;
+        this.output = normalizePath(output);
         this.includes = includes ?: [];
         this.excludes = excludes ?: [];
     }

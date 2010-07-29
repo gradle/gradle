@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
+import org.gradle.plugins.eclipse.model.internal.PathUtil
+
 /**
  * @author Hans Dockter
  */
@@ -29,7 +31,7 @@ class WbDependentModule {
 
     def WbDependentModule(String deployPath, String handle) {
         assert deployPath != null && handle != null
-        this.deployPath = deployPath
+        this.deployPath = PathUtil.normalizePath(deployPath)
         this.handle = handle
     }
 

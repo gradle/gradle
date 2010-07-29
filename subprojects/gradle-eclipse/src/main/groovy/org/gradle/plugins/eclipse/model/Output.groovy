@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
+import org.gradle.plugins.eclipse.model.internal.PathUtil
+
 /**
  * @author Hans Dockter
  */
@@ -28,7 +30,7 @@ class Output implements ClasspathEntry {
 
     def Output(String path) {
         assert path != null
-        this.path = path;
+        this.path = PathUtil.normalizePath(path)
     }
 
     String getKind() {

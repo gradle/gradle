@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
+import org.gradle.plugins.eclipse.model.internal.PathUtil
+
 /**
  * @author Hans Dockter
  */
@@ -29,8 +31,8 @@ class WbResource {
 
     def WbResource(String deployPath, String sourcePath) {
         assert deployPath != null && sourcePath != null
-        this.deployPath = deployPath
-        this.sourcePath = sourcePath
+        this.deployPath = PathUtil.normalizePath(deployPath)
+        this.sourcePath = PathUtil.normalizePath(sourcePath)
     }
 
     void appendNode(Node node) {

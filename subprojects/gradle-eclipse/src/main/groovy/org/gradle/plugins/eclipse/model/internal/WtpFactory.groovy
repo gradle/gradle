@@ -46,7 +46,7 @@ class WtpFactory {
     List getEntriesFromSourceSets(def sourceSets, def project) {
         List entries = []
         sourceSets.each { SourceSet sourceSet ->
-            entries.add(new WbProperty('java-output-path', project.relativePath(sourceSet.classesDir)))
+            entries.add(new WbProperty('java-output-path', PathUtil.normalizePath(project.relativePath(sourceSet.classesDir))))
             sourceSet.allSource.sourceTrees.each { SourceDirectorySet sourceDirectorySet ->
                 sourceDirectorySet.srcDirs.each { dir ->
                     if (dir.isDirectory()) {

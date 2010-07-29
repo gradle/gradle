@@ -15,6 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
+import org.gradle.plugins.eclipse.model.internal.PathUtil
+
 /**
  * @author Hans Dockter
  */
@@ -31,7 +33,7 @@ class Link {
         assert !location || !locationUri 
         this.name = name;
         this.type = type;
-        this.location = location;
+        this.location = PathUtil.normalizePath(location);
         this.locationUri = locationUri;
     }
 
