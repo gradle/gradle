@@ -40,11 +40,11 @@ public class EclipsePlugin implements Plugin<Project> {
         project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
         project.task('cleanEclipse') {
             description = 'Cleans the generated eclipse files.'
-            group = 'Ide'
+            group = 'IDE'
         }
         project.task('eclipse') {
             description = 'Generates the Eclipse files.'
-            group = 'Ide'
+            group = 'IDE'
         }
         configureEclipseProject(project)
         configureEclipseClasspath(project)
@@ -57,7 +57,6 @@ public class EclipsePlugin implements Plugin<Project> {
         EclipseProject eclipseProject = project.tasks.add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.name);
         eclipseProject.description = "Generates an Eclipse .project file."
-        eclipseProject.group = 'ide'
         eclipseProject.setInputFile(project.file('.project'))
         eclipseProject.setOutputFile(project.file('.project'))
 
@@ -102,7 +101,6 @@ public class EclipsePlugin implements Plugin<Project> {
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
                 variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
-                group = 'ide'
             }
             project."$ECLIPSE_TASK_NAME".dependsOn eclipseClasspath
             project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseClasspath'
@@ -125,7 +123,6 @@ public class EclipsePlugin implements Plugin<Project> {
             plusConfigurations = [project.configurations.runtime]
             minusConfigurations = [project.configurations.providedRuntime]
             variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
-            group = 'ide'
             resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName
             orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
             orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
