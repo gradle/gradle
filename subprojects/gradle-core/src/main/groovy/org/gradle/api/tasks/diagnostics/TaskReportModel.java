@@ -36,7 +36,6 @@ public class TaskReportModel {
             }
         }
         GraphAggregator<Task> aggregator = new GraphAggregator<Task>(new DirectedGraph<Task, Object>() {
-            @Override
             public void getNodeValues(Task node, Collection<Object> values, Collection<Task> connectedNodes) {
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
                     if (tasks.contains(dep)) {
@@ -90,12 +89,10 @@ public class TaskReportModel {
             this.dependencies = dependencies;
         }
 
-        @Override
         public String getDescription() {
             return task.getDescription();
         }
 
-        @Override
         public String getPath() {
             return task.getPath();
         }
@@ -109,17 +106,14 @@ public class TaskReportModel {
             return task;
         }
 
-        @Override
         public Set<String> getDependencies() {
             return dependencies;
         }
 
-        @Override
         public Set<TaskDetails> getChildren() {
             return children;
         }
 
-        @Override
         public int compareTo(TaskDetails o) {
             return getPath().compareTo(o.getPath());
         }

@@ -28,7 +28,7 @@ class TaskReportRendererTest {
     private final StringWriter writer = new StringWriter()
     private final TaskReportRenderer renderer = new TaskReportRenderer(writer)
 
-    @Test public void testWritesTaskAndDependencies() {
+    @Test public void testWritesTaskAndDependenciesWithNoDetail() {
         TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[':task11', ':task12'] as LinkedHashSet}] as TaskDetails
         TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
         TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[':task1'] as Set}] as TaskDetails
@@ -36,6 +36,40 @@ class TaskReportRendererTest {
         Rule rule2 = [getDescription: {'rule2Description'}] as Rule
 
         List testDefaultTasks = ['task1', 'task2']
+        renderer.showDetail(false)
+        renderer.addDefaultTasks(testDefaultTasks)
+        renderer.startTaskGroup('group')
+        renderer.addTask(task1)
+        renderer.addChildTask(task2)
+        renderer.addTask(task3)
+        renderer.completeTasks()
+        renderer.addRule(rule1)
+        renderer.addRule(rule2)
+
+        def expected = '''Default tasks: task1, task2
+
+Group tasks
+-----------
+:task1 - task1Description
+:task3
+
+Rules
+-----
+rule1Description
+rule2Description
+'''
+        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+    }
+
+    @Test public void testWritesTaskAndDependenciesWithDetail() {
+        TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[':task11', ':task12'] as LinkedHashSet}] as TaskDetails
+        TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+        TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[':task1'] as Set}] as TaskDetails
+        Rule rule1 = [getDescription: {'rule1Description'}] as Rule
+        Rule rule2 = [getDescription: {'rule2Description'}] as Rule
+
+        List testDefaultTasks = ['task1', 'task2']
+        renderer.showDetail(true)
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.startTaskGroup('group')
         renderer.addTask(task1)

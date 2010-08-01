@@ -34,6 +34,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     private boolean currentProjectHasTasks;
     private boolean currentProjectHasRules;
     private boolean hasContent;
+    private boolean detail;
 
     public TaskReportRenderer() {
     }
@@ -47,9 +48,14 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         currentProjectHasTasks = false;
         currentProjectHasRules = false;
         hasContent = true;
+        detail = false;
         super.startProject(project);
     }
 
+    public void showDetail(boolean detail) {
+        this.detail = detail;
+    }
+    
     /**
      * Writes the default task names for the current project.
      *
@@ -81,17 +87,21 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     }
 
     public void addChildTask(TaskDetails task) {
-        writeTask(task, "    ");
+        if (detail) {
+            writeTask(task, "    ");
+        }
     }
 
     private void writeTask(TaskDetails task, String prefix) {
-        SortedSet<String> sortedDependencies = new TreeSet<String>();
-        for (String dependency : task.getDependencies()) {
-            sortedDependencies.add(dependency);
-        }
         getFormatter().format("%s%s%s", prefix, task.getPath(), getDescription(task));
-        if (sortedDependencies.size() > 0) {
-            getFormatter().format(" [%s]", GUtil.join(sortedDependencies, ", "));
+        if (detail) {
+            SortedSet<String> sortedDependencies = new TreeSet<String>();
+            for (String dependency : task.getDependencies()) {
+                sortedDependencies.add(dependency);
+            }
+            if (sortedDependencies.size() > 0) {
+                getFormatter().format(" [%s]", GUtil.join(sortedDependencies, ", "));
+            }
         }
         getFormatter().format("%n");
     }

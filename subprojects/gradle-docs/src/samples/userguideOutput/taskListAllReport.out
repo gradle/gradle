@@ -7,4 +7,5 @@ Default tasks: dists
 Build tasks
 -----------
 :clean - Deletes the build directory (build)
-:dists - Builds the distribution
+:dists - Builds the distribution [:api:libs, :webapp:libs]
+    :libs - Builds the JAR

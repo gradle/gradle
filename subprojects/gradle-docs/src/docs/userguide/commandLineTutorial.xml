@@ -75,7 +75,7 @@
         <para>You can also use these abbreviations with the <option>-x</option> command-line option.</para>
     </section>
 
-    <section>
+    <section id="sec:selecting_build">
         <title>Selecting which build to execute</title>
         <para>When you run the <command>gradle</command> command, it looks for a build file in the current directory.
             You can use the <option>-b</option> option to select another build file. For example:
@@ -100,35 +100,54 @@
            If you add append a <link linkend="sec:project_and_task_paths">project path</link> the report will be generated for the
             specified project.
         </para>
-        <para>Running <userinput>gradle --tasks</userinput> or <userinput>gradle -t</userinput>
-            gives you a list of the tasks which make up the current project. This report shows the default
-            tasks, if any, and the description and dependencies of each task. Below is an example of
-            this report:
+        <para>In addition to the command-line options shown below, you can also use the
+            <link linkend="project_reports_plugin">project report plugin</link> to add tasks to your project which will
+            generate these reports.
         </para>
-        <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
-            <output args="-q -t"/>
-        </sample>
-        <para>You can influence the contents of this report by using a couple of task properties:</para>
-        <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Changing the content of the task report">
-            <sourcefile file="build.gradle" snippet="add-task-to-report"/>
-        </sample>
-        <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
-            gives you a list of the dependencies of the current project, broken down by configuration.  For each
-            configuration, the direct and transitive dependencies of that configuration are shown. Below is an example
-            of this report:
-        </para>
-        <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
-            <output args="-q --dependencies ?"/>
-        </sample>
-        <para>Running <userinput>gradle --properties</userinput> gives you a list of the properties of the current
-            project. This is a snippet from the output:
-        </para>
-        <sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
-            <output args="-q --properties :api" ignoreExtraLines="true"/>
-        </sample>
-        <para>You can also use the <link linkend="project_reports_plugin">project report plugin</link> to add a
-            number of reporting tasks to your project.
-        </para>
+        <section id="sec:listing_tasks">
+            <title>Listing tasks</title>
+            <para>Running <userinput>gradle --tasks</userinput> or <userinput>gradle -t</userinput>
+                gives you a list of the main tasks which make up the selected project. This report shows the default
+                tasks for the project, if any, and a description for each task. Below is an example of this report:
+            </para>
+            <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
+                <output args="-q -t"/>
+            </sample>
+            <para>By default, this report shows only those tasks which have been assigned to a task group. You can do this
+                by setting the <literal>group</literal> property for the task. You can also set the <literal>description</literal>
+                property, to provide a description to be included in the report for the task.
+            </para>
+            <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Changing the content of the task report">
+                <sourcefile file="build.gradle" snippet="add-task-to-report"/>
+            </sample>
+            <para>You can obtain more information in the task listing by adding the <option>--all</option> option. With
+                this option, the task report lists all tasks in the project, grouped by main task, and the dependencies
+                for each task. Here is an example:
+            </para>
+            <sample id="taskListAllReport" dir="userguide/tutorial/projectReports" title="Obtaining more information about tasks">
+                <output args="-q -t --all"/>
+            </sample>
+        </section>
+        <section id="sec:listing_dependencies">
+            <title>Listing project dependencies</title>
+            <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
+                gives you a list of the dependencies of the selected project, broken down by configuration.  For each
+                configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below
+                is an example of this report:
+            </para>
+            <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
+                <output args="-q --dependencies ?"/>
+            </sample>
+        </section>
+        <section id="sec:listing_properties">
+            <title>Listing project properties</title>
+            <para>Running <userinput>gradle --properties</userinput> gives you a list of the properties of the selected
+                project. This is a snippet from the output:
+            </para>
+            <sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
+                <output args="-q --properties :api" ignoreExtraLines="true"/>
+            </sample>
+        </section>
     </section>
 
     <section>
@@ -137,7 +156,8 @@
             command line, but you don't want the tasks to be executed. You can use the <option>-m</option> option for this.
             For example <userinput>gradle -m clean compile</userinput> shows you all tasks to be executed as
             part of the <literal>clean</literal> and <literal>compile</literal> tasks.
-            This is complementary to the <option>-t</option>, which shows you all available tasks for execution.
+            This is complementary to the <option>-t</option> option, which shows you the tasks which are available for
+            execution.
         </para>
     </section>
 

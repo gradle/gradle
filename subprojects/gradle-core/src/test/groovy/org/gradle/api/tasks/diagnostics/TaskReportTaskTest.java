@@ -88,6 +88,9 @@ public class TaskReportTaskTest {
 
             Sequence sequence = context.sequence("seq");
 
+            one(renderer).showDetail(false);
+            inSequence(sequence);
+
             one(renderer).addDefaultTasks(testDefaultTasks);
             inSequence(sequence);
 
@@ -133,6 +136,9 @@ public class TaskReportTaskTest {
             will(returnValue(toList(rule1, rule2)));
 
             Sequence sequence = context.sequence("seq");
+
+            one(renderer).showDetail(false);
+            inSequence(sequence);
 
             one(renderer).addDefaultTasks(defaultTasks);
             inSequence(sequence);

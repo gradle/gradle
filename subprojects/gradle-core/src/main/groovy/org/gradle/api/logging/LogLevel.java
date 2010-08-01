@@ -19,31 +19,18 @@ package org.gradle.api.logging;
  * @author Hans Dockter
  */
 public enum LogLevel {
-    QUIET {
+    DEBUG {
         boolean isEnabled(Logger logger) {
-            return logger.isQuietEnabled();
+            return logger.isDebugEnabled();
         }
         void log(Logger logger, String message) {
-            logger.quiet(message);
+            logger.debug(message);
         }
         void log(Logger logger, String message, Object... objects) {
-            logger.quiet(message, objects);
+            logger.debug(message, objects);
         }
         void log(Logger logger, String message, Throwable throwable) {
-            logger.quiet(message, throwable);
-        }},
-    LIFECYCLE {
-        boolean isEnabled(Logger logger) {
-            return logger.isLifecycleEnabled();
-        }
-        void log(Logger logger, String message) {
-            logger.lifecycle(message);
-        }
-        void log(Logger logger, String message, Object... objects) {
-            logger.lifecycle(message, objects);
-        }
-        void log(Logger logger, String message, Throwable throwable) {
-            logger.lifecycle(message, throwable);
+            logger.debug(message, throwable);
         }},
     INFO {
         boolean isEnabled(Logger logger) {
@@ -58,18 +45,18 @@ public enum LogLevel {
         void log(Logger logger, String message, Throwable throwable) {
             logger.info(message, throwable);
         }},
-    DEBUG {
+    LIFECYCLE {
         boolean isEnabled(Logger logger) {
-            return logger.isDebugEnabled();
+            return logger.isLifecycleEnabled();
         }
         void log(Logger logger, String message) {
-            logger.debug(message);
+            logger.lifecycle(message);
         }
         void log(Logger logger, String message, Object... objects) {
-            logger.debug(message, objects);
+            logger.lifecycle(message, objects);
         }
         void log(Logger logger, String message, Throwable throwable) {
-            logger.debug(message, throwable);
+            logger.lifecycle(message, throwable);
         }},
     WARN {
         boolean isEnabled(Logger logger) {
@@ -83,6 +70,19 @@ public enum LogLevel {
         }
         void log(Logger logger, String message, Throwable throwable) {
             logger.warn(message, throwable);
+        }},
+    QUIET {
+        boolean isEnabled(Logger logger) {
+            return logger.isQuietEnabled();
+        }
+        void log(Logger logger, String message) {
+            logger.quiet(message);
+        }
+        void log(Logger logger, String message, Object... objects) {
+            logger.quiet(message, objects);
+        }
+        void log(Logger logger, String message, Throwable throwable) {
+            logger.quiet(message, throwable);
         }},
     ERROR {
         boolean isEnabled(Logger logger) {

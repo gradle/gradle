@@ -20,9 +20,6 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.tasks.diagnostics.AbstractReportTask;
-import org.gradle.api.tasks.diagnostics.DependencyReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
-import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.util.WrapUtil;
 
 import java.util.Collections;
@@ -33,63 +30,31 @@ import java.util.Set;
 /**
  * A {@link BuildExecuter} which executes the built-in tasks which are executable from the command-line.
  */
-public class BuiltInTasksBuildExecuter implements BuildExecuter {
+public abstract class BuiltInTaskBuildExecuter<T extends AbstractReportTask> implements BuildExecuter {
     private GradleInternal gradle;
     public static final String ALL_PROJECTS_WILDCARD = "?";
 
-    public enum Options {
-        TASKS {
-            @Override
-            public String toString() {
-                return "task list";
-            }
-            @Override
-            Class<? extends AbstractReportTask> getTaskType() {
-                return TaskReportTask.class;
-            }},
-        PROPERTIES {
-            @Override
-            public String toString() {
-                return "property list";
-            }
-            @Override
-            Class<? extends AbstractReportTask> getTaskType() {
-                return PropertyReportTask.class;
-            }},
-        DEPENDENCIES {
-            @Override
-            public String toString() {
-                return "dependency list";
-            }
-            @Override
-            Class<? extends AbstractReportTask> getTaskType() {
-                return DependencyReportTask.class;
-            }};
-
-        abstract Class<? extends AbstractReportTask> getTaskType();
-    }
-
-    private Options options;
-    private AbstractReportTask task;
+    private T task;
     private String path;
 
-    public BuiltInTasksBuildExecuter(Options options, String path) {
-        this.options = options;
+    public BuiltInTaskBuildExecuter(String path) {
         this.path = path;
     }
 
-    public void setOptions(Options options) {
-        this.options = options;
-    }
+    protected abstract Class<T> getTaskType();
 
     public void select(GradleInternal gradle) {
         this.gradle = gradle;
         ITaskFactory taskFactory = gradle.getServiceRegistryFactory().get(ITaskFactory.class);
         Map<String, Object> args = new HashMap<String, Object>();
         args.put(Task.TASK_NAME, "report");
-        args.put(Task.TASK_TYPE, options.getTaskType());
-        task = (AbstractReportTask) taskFactory.createTask(gradle.getDefaultProject(), args);
+        args.put(Task.TASK_TYPE, getTaskType());
+        task = getTaskType().cast(taskFactory.createTask(gradle.getDefaultProject(), args));
         task.setProjects(getProjectsForReport(path));
+        afterConfigure(task);
+    }
+
+    protected void afterConfigure(T task) {
     }
 
     private Set<Project> getProjectsForReport(String path) {
@@ -100,11 +65,7 @@ public class BuiltInTasksBuildExecuter implements BuildExecuter {
         return WrapUtil.<Project>toSet(gradle.getDefaultProject());
     }
 
-    public String getDisplayName() {
-        return options.toString();
-    }
-
-    public AbstractReportTask getTask() {
+    public T getTask() {
         return task;
     }
 

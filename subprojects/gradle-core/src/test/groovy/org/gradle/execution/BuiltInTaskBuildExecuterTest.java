@@ -21,8 +21,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.tasks.diagnostics.DependencyReportTask;
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import org.gradle.api.tasks.diagnostics.AbstractReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
@@ -36,18 +35,19 @@ import org.junit.runner.RunWith;
 import java.util.Collections;
 import java.util.Set;
 
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
-public class BuiltInTasksBuildExecuterTest {
+public class BuiltInTaskBuildExecuterTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ProjectInternal project = HelperUtil.createRootProject();
     private final TaskGraphExecuter taskExecuter = context.mock(TaskGraphExecuter.class);
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
-    private final BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, null);
+    private final BuiltInTaskBuildExecuter executer = new TestTaskBuildExecuter(null);
     private final ServiceRegistryFactory serviceRegistryFactory = context.mock(ServiceRegistryFactory.class);
 
     @Before
@@ -61,8 +61,8 @@ public class BuiltInTasksBuildExecuterTest {
     }
 
     @Test
-    public void executesTaskReportTask() {
-        expectTaskCreated(TaskReportTask.class);
+    public void executesReportTask() {
+        expectTaskCreated();
 
         executer.select(gradle);
         assertThat(executer.getTask(), instanceOf(TaskReportTask.class));
@@ -74,39 +74,8 @@ public class BuiltInTasksBuildExecuterTest {
     }
 
     @Test
-    public void executesPropertyReportTask() {
-        executer.setOptions(BuiltInTasksBuildExecuter.Options.PROPERTIES);
-
-        expectTaskCreated(PropertyReportTask.class);
-
-        executer.select(gradle);
-        assertThat(executer.getTask(), instanceOf(PropertyReportTask.class));
-        assertThat(executer.getDisplayName(), equalTo("property list"));
-
-        expectTaskExecuted();
-
-        executer.execute();
-    }
-
-    @Test
-    public void executesDependencyReportTask() {
-        executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
-
-        expectTaskCreated(DependencyReportTask.class);
-
-        executer.select(gradle);
-        assertThat(executer.getTask(), instanceOf(DependencyReportTask.class));
-        assertThat(executer.getDisplayName(), equalTo("dependency list"));
-
-        expectTaskExecuted();
-
-        executer.execute();
-    }
-
-    @Test
     public void executesAgainstDefaultProjectIfPathEmpty() {
-        executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
-        expectTaskCreated(DependencyReportTask.class);
+        expectTaskCreated();
 
         executer.select(gradle);
 
@@ -126,10 +95,9 @@ public class BuiltInTasksBuildExecuterTest {
             will(returnValue(someProject));
         }});
 
-        BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, somePath);
-        executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+        BuiltInTaskBuildExecuter executer = new TestTaskBuildExecuter(somePath);
 
-        expectTaskCreated(DependencyReportTask.class);
+        expectTaskCreated();
         executer.select(gradle);
 
         assertThat(executer.getTask().getProjects(), equalTo(toSet((Project) someProject)));
@@ -146,17 +114,15 @@ public class BuiltInTasksBuildExecuterTest {
             will(returnValue(allProjects));
         }});
 
-        BuiltInTasksBuildExecuter executer = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS,
-                BuiltInTasksBuildExecuter.ALL_PROJECTS_WILDCARD);
-        executer.setOptions(BuiltInTasksBuildExecuter.Options.DEPENDENCIES);
+        BuiltInTaskBuildExecuter executer = new TestTaskBuildExecuter(BuiltInTaskBuildExecuter.ALL_PROJECTS_WILDCARD);
 
-        expectTaskCreated(DependencyReportTask.class);
+        expectTaskCreated();
 
         executer.select(gradle);
         assertThat(executer.getTask().getProjects(), equalTo(allProjects));
     }
 
-    private void expectTaskCreated(final Class<? extends Task> taskType) {
+    private void expectTaskCreated() {
         context.checking(new Expectations(){{
             allowing(gradle).getServiceRegistryFactory();
             will(returnValue(serviceRegistryFactory));
@@ -164,8 +130,8 @@ public class BuiltInTasksBuildExecuterTest {
             allowing(serviceRegistryFactory).get(ITaskFactory.class);
             will(returnValue(taskFactory));
 
-            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "report", Task.TASK_TYPE, taskType));
-            will(returnValue(HelperUtil.createTask(taskType)));
+            one(taskFactory).createTask(project, GUtil.map(Task.TASK_NAME, "report", Task.TASK_TYPE, TaskReportTask.class));
+            will(returnValue(HelperUtil.createTask(TaskReportTask.class)));
         }});
     }
 
@@ -173,5 +139,20 @@ public class BuiltInTasksBuildExecuterTest {
         context.checking(new Expectations() {{
             one(taskExecuter).execute(Collections.singleton(executer.getTask()));
         }});
+    }
+    
+    private class TestTaskBuildExecuter extends BuiltInTaskBuildExecuter {
+        private TestTaskBuildExecuter(String path) {
+            super(path);
+        }
+
+        @Override
+        protected Class<? extends AbstractReportTask> getTaskType() {
+            return TaskReportTask.class;
+        }
+
+        public String getDisplayName() {
+            return "task list";
+        }
     }
 }

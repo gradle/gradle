@@ -45,13 +45,17 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
 
     @Override
     public <T> T mock(Class<T> typeToMock) {
-        String name = typeToMock.getSimpleName();
+        return mock(typeToMock, typeToMock.getSimpleName());
+    }
+
+    @Override
+    public <T> T mock(Class<T> typeToMock, String name) {
         names.putIfAbsent(name, new AtomicInteger());
         int count = names.get(name).getAndIncrement();
         if (count == 0) {
-            return mock(typeToMock, name);
+            return super.mock(typeToMock, name);
         } else {
-            return mock(typeToMock, name + count);
+            return super.mock(typeToMock, name + count);
         }
     }
 

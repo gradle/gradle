@@ -28,7 +28,9 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.BuiltInTasksBuildExecuter;
+import org.gradle.execution.DependencyReportBuildExecuter;
+import org.gradle.execution.PropertyReportBuildExecuter;
+import org.gradle.execution.TaskReportBuildExecuter;
 import org.gradle.util.WrapUtil;
 
 import java.io.File;
@@ -69,6 +71,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String EXCLUDE_TASK = "x";
     private static final String HELP = "h";
     private static final String GUI = "gui";
+    private static final String ALL = "all";
 
     private final OptionParser parser = new OptionParser() {
         {
@@ -86,8 +89,9 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                     "Print out the stacktrace also for user exceptions (e.g. compile error).");
             acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"),
                     "Print out the full (very verbose) stacktrace for any exceptions.");
-            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks and their dependencies.").
+            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks.").
                     withOptionalArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(ALL), "Show additional details in the task listing.");
             acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.").
                     withOptionalArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.").
@@ -258,14 +262,11 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         if (options.has(TASKS)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS,
-                    (String) options.valueOf(TASKS)));
+            startParameter.setBuildExecuter(new TaskReportBuildExecuter((String) options.valueOf(TASKS), options.has(ALL)));
         } else if (options.has(PROPERTIES)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES,
-                    (String) options.valueOf(PROPERTIES)));
+            startParameter.setBuildExecuter(new PropertyReportBuildExecuter((String) options.valueOf(PROPERTIES)));
         } else if (options.has(DEPENDENCIES)) {
-            startParameter.setBuildExecuter(new BuiltInTasksBuildExecuter(
-                    BuiltInTasksBuildExecuter.Options.DEPENDENCIES, (String) options.valueOf(DEPENDENCIES)));
+            startParameter.setBuildExecuter(new DependencyReportBuildExecuter((String) options.valueOf(DEPENDENCIES)));
         } else if (!options.nonOptionArguments().isEmpty()) {
             startParameter.setTaskNames(options.nonOptionArguments());
         }
