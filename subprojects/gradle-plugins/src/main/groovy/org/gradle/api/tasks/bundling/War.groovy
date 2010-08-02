@@ -38,7 +38,7 @@ class War extends Jar {
     War() {
         extension = WAR_EXTENSION
         // Add these as separate specs, so they are not affected by the changes to the main spec
-        webInf = getCopyAction().rootSpec.addChild().into('WEB-INF')
+        webInf = copyAction.rootSpec.addChild().into('WEB-INF')
         webInf.into('classes') {
             from {
                 def classpath = getClasspath()

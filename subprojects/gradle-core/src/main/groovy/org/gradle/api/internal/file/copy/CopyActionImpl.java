@@ -31,7 +31,7 @@ import java.util.regex.Pattern;
 /**
  * @author Steve Appling
  */
-public class CopyActionImpl implements CopyAction {
+public class CopyActionImpl implements CopyAction, CopySpecSource {
     private final CopySpecVisitor visitor;
     private final CopySpecImpl root;
     private final CopySpecImpl mainContent;
@@ -83,43 +83,53 @@ public class CopyActionImpl implements CopyAction {
     }
 
     public CopySpec eachFile(Action<? super FileCopyDetails> action) {
-        return mainContent.eachFile(action);
+        mainContent.eachFile(action);
+        return this;
     }
 
     public CopySpec eachFile(Closure closure) {
-        return mainContent.eachFile(closure);
+        mainContent.eachFile(closure);
+        return this;
     }
 
     public CopySpec exclude(Iterable<String> excludes) {
-        return mainContent.exclude(excludes);
+        mainContent.exclude(excludes);
+        return this;
     }
 
     public CopySpec exclude(String... excludes) {
-        return mainContent.exclude(excludes);
+        mainContent.exclude(excludes);
+        return this;
     }
 
     public CopySpec exclude(Closure excludeSpec) {
-        return mainContent.exclude(excludeSpec);
+        mainContent.exclude(excludeSpec);
+        return this;
     }
 
     public CopySpec exclude(Spec<FileTreeElement> excludeSpec) {
-        return mainContent.exclude(excludeSpec);
+        mainContent.exclude(excludeSpec);
+        return this;
     }
 
     public CopySpec expand(Map<String, ?> properties) {
-        return mainContent.expand(properties);
+        mainContent.expand(properties);
+        return this;
     }
 
     public CopySpec filter(Closure closure) {
-        return mainContent.filter(closure);
+        mainContent.filter(closure);
+        return this;
     }
 
     public CopySpec filter(Class<? extends FilterReader> filterType) {
-        return mainContent.filter(filterType);
+        mainContent.filter(filterType);
+        return this;
     }
 
     public CopySpec filter(Map<String, ?> properties, Class<? extends FilterReader> filterType) {
-        return mainContent.filter(properties, filterType);
+        mainContent.filter(properties, filterType);
+        return this;
     }
 
     public CopySpec from(Object sourcePath, Closure c) {
@@ -127,7 +137,8 @@ public class CopyActionImpl implements CopyAction {
     }
 
     public CopySpec from(Object... sourcePaths) {
-        return mainContent.from(sourcePaths);
+        mainContent.from(sourcePaths);
+        return this;
     }
 
     public Set<String> getExcludes() {
@@ -139,23 +150,28 @@ public class CopyActionImpl implements CopyAction {
     }
 
     public CopySpec include(Iterable<String> includes) {
-        return mainContent.include(includes);
+        mainContent.include(includes);
+        return this;
     }
 
     public CopySpec include(String... includes) {
-        return mainContent.include(includes);
+        mainContent.include(includes);
+        return this;
     }
 
     public CopySpec include(Closure includeSpec) {
-        return mainContent.include(includeSpec);
+        mainContent.include(includeSpec);
+        return this;
     }
 
     public CopySpec include(Spec<FileTreeElement> includeSpec) {
-        return mainContent.include(includeSpec);
+        mainContent.include(includeSpec);
+        return this;
     }
 
     public CopySpec into(Object destDir) {
-        return mainContent.into(destDir);
+        mainContent.into(destDir);
+        return this;
     }
 
     public CopySpec into(Object destPath, Closure configureClosure) {
@@ -167,15 +183,18 @@ public class CopyActionImpl implements CopyAction {
     }
 
     public CopySpec rename(Closure closure) {
-        return mainContent.rename(closure);
+        mainContent.rename(closure);
+        return this;
     }
 
     public CopySpec rename(Pattern sourceRegEx, String replaceWith) {
-        return mainContent.rename(sourceRegEx, replaceWith);
+        mainContent.rename(sourceRegEx, replaceWith);
+        return this;
     }
 
     public CopySpec rename(String sourceRegEx, String replaceWith) {
-        return mainContent.rename(sourceRegEx, replaceWith);
+        mainContent.rename(sourceRegEx, replaceWith);
+        return this;
     }
 
     public void setCaseSensitive(boolean caseSensitive) {
@@ -187,11 +206,13 @@ public class CopyActionImpl implements CopyAction {
     }
 
     public CopyProcessingSpec setDirMode(int mode) {
-        return mainContent.setDirMode(mode);
+        mainContent.setDirMode(mode);
+        return this;
     }
 
-    public CopySpecImpl setExcludes(Iterable<String> excludes) {
-        return mainContent.setExcludes(excludes);
+    public CopySpec setExcludes(Iterable<String> excludes) {
+        mainContent.setExcludes(excludes);
+        return this;
     }
 
     public int getFileMode() {
@@ -199,14 +220,17 @@ public class CopyActionImpl implements CopyAction {
     }
 
     public CopyProcessingSpec setFileMode(int mode) {
-        return mainContent.setFileMode(mode);
+        mainContent.setFileMode(mode);
+        return this;
     }
 
     public CopySpec setIncludes(Iterable<String> includes) {
-        return mainContent.setIncludes(includes);
+        mainContent.setIncludes(includes);
+        return this;
     }
 
     public CopySpec with(CopySpec... copySpecs) {
-        return mainContent.with(copySpecs);
+        mainContent.with(copySpecs);
+        return this;
     }
 }

@@ -64,7 +64,14 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
     public CopySpec with(CopySpec... copySpecs) {
         for (CopySpec copySpec : copySpecs) {
-            childSpecs.add(new WrapperCopySpec(this, (ReadableCopySpec) copySpec));
+            ReadableCopySpec readableCopySpec;
+            if (copySpec instanceof CopySpecSource) {
+                CopySpecSource copySpecSource = (CopySpecSource) copySpec;
+                readableCopySpec = copySpecSource.getRootSpec();
+            } else {
+                readableCopySpec = (ReadableCopySpec) copySpec;
+            }
+            childSpecs.add(new WrapperCopySpec(this, readableCopySpec));
         }
         return this;
     }
