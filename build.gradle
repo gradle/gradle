@@ -34,7 +34,7 @@ version = new Version(project)
 
 defaultTasks "clean", "assemble"
 
-apply plugin: 'base'
+apply plugin: 'java-base'
 
 startScriptsDir = new File("$buildDir/startScripts")
 
@@ -122,10 +122,18 @@ configure(groovyProjects()) {
     test {
         maxParallelForks = guessMaxForks()
     }
+
+    tasks.withType(Jar).each { jar ->
+        jar.manifest.mainAttributes([
+                (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
+                (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
+        ])
+    }
 }
 
 allprojects {
     apply plugin: 'idea'
+    apply plugin: 'eclipse'
     def config = configurations.findByName('testRuntime')
     if (!config) {
         return
@@ -179,17 +187,6 @@ clean.dependsOn subprojects.collect { "$it.path:clean" }
 
 task check(overwrite: true, dependsOn: groovyProjects()*.check)
 task test(overwrite: true, dependsOn: groovyProjects()*.test)
-
-gradle.taskGraph.whenReady {graph ->
-    configure(groovyProjects()) {
-        tasks.withType(Jar).each { jar ->
-            jar.manifest.mainAttributes([
-                    (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
-                    (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version.toString(),
-            ])
-        }
-    }
-}
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
@@ -318,14 +315,6 @@ private def isDevBuild() {
 def guessMaxForks() {
     int processors = Runtime.runtime.availableProcessors()
     return Math.max(2, (int) (processors / 2))
-}
-
-tasks.addRule("Pattern: integTestSingle<Name> will integ test **/<Name>.class") {String taskName ->
-    if (taskName.startsWith("integTestSingle")) {
-        tasks.add(taskName).dependsOn(integTest)
-        integTest.includes = ['**/' + taskName.substring(15) + '.class']
-        integTest.outputs.upToDateWhen { false }
-    }
 }
 
 task testedDists(dependsOn: [assemble, check, integTest])

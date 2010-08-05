@@ -5,5 +5,8 @@ repositories {
 }
 
 dependencies {
-    testCompile 'junit:junit:4.5'
+    testCompile 'junit:junit:4.8.1'
 }
+
+test.testReport = false
+// test.maxParallelForks = 4

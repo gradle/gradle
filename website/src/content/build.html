@@ -25,12 +25,12 @@ tree contains a Gradle binary distribution capable of building Gradle. With the 
 build Gradle via this internal Gradle distribution. Just go to the top level directory of the source tree and type:<br/><br/>
 Windows:
 <pre>
-    gradlew clean assemble
+    gradlew assemble
 </pre>
 
 *nix:
 <pre>
-    ./gradlew clean assemble
+    ./gradlew assemble
 </pre>
 <p>
 In the <code>build/distributions</code> folder you can find the generated Gradle distributions. Note that you will
@@ -47,7 +47,7 @@ the <a href="userguide.html">user guide</a>.
 <h2>Installing Gradle with the Build</h2>
 The Gradle build has an install task:
 <pre>
-    ./gradlew clean install -Pgradle_installPath=<i>someDir</i>
+    ./gradlew install -Pgradle_installPath=<i>someDir</i>
 </pre>
 <p>The install task deletes any existing Gradle distribution at the specified destination. You specify the install
 destination with the <code>gradle_installPath</code> property. This property is interpreted relative to the

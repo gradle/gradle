@@ -516,6 +516,45 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         expandDir.assertHasDescendants('prefix/lib/file1.txt', 'prefix/src/dir3/file2.txt')
     }
 
+    @Test public void canCreateExplodedImageFromArchiveTask() {
+        createDir('test') {
+            dir1 {
+                file 'file1.txt'
+                file 'ignored.xml'
+            }
+            dir2 {
+                dir3 { file 'file2.txt' }
+                file 'ignored.xml'
+            }
+        }
+
+        testFile('build.gradle') << '''
+            task zip(type: Zip) {
+                destinationDir = file('build')
+                archiveName = 'test.zip'
+                into 'prefix'
+                from 'test'
+                include '**/*.txt'
+            }
+            task explodedZip(type: Copy) {
+                into 'build/exploded'
+                with zip
+            }
+            task copyFromRootSpec(type: Copy) {
+                into 'build/copy'
+                with zip.rootSpec
+            }
+'''
+
+        inTestDirectory().withTasks('explodedZip', 'copyFromRootSpec').run()
+        testFile('build/exploded').assertHasDescendants(
+                'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
+        )
+        testFile('build/copy').assertHasDescendants(
+                'prefix/dir1/file1.txt', 'prefix/dir2/dir3/file2.txt'
+        )
+    }
+
     @Test public void canMergeArchivesIntoAnotherArchive() {
         createZip('test.zip') {
             shared {

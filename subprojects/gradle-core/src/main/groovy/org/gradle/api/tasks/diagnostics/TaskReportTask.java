@@ -26,6 +26,7 @@ import java.io.IOException;
  */
 public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
+    private boolean detail;
 
     public ProjectReportRenderer getRenderer() {
         return renderer;
@@ -35,15 +36,24 @@ public class TaskReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
+    public void setShowDetail(boolean detail) {
+        this.detail = detail;
+    }
+
+    public boolean isDetail() {
+        return detail;
+    }
+
     public void generate(Project project) throws IOException {
+        renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());
 
         TaskReportModel model = new TaskReportModel();
         model.calculate(project.getTasks().getAll());
 
-        for (String taskGroup : model.getGroups()) {
-            renderer.startTaskGroup(taskGroup);
-            for (TaskDetails task : model.getTasksForGroup(taskGroup)) {
+        for (String group : model.getGroups()) {
+            renderer.startTaskGroup(group);
+            for (TaskDetails task : model.getTasksForGroup(group)) {
                 renderer.addTask(task);
                 for (TaskDetails child : task.getChildren()) {
                     renderer.addChildTask(child);

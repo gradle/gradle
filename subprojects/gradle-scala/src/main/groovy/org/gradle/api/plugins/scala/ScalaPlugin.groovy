@@ -40,6 +40,6 @@ public class ScalaPlugin implements Plugin<Project> {
         }
         ScalaDoc scalaDoc = project.tasks.add(SCALA_DOC_TASK_NAME, ScalaDoc.class)
         scalaDoc.description = "Generates scaladoc for the source code.";
-        scalaDoc.taskGroup = JavaBasePlugin.DOCUMENTATION_GROUP
+        scalaDoc.group = JavaBasePlugin.DOCUMENTATION_GROUP
     }
 }

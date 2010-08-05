@@ -56,7 +56,7 @@ public class LinksOfflineJavadocOptionFileOptionTest {
         linksOfflineOption.getValue().add(new JavadocOfflineLink(extDocUrl, packageListLoc));
 
         context.checking(new Expectations() {{
-            one(writerContextMock).writeValueOption(optionName, extDocUrl + " " + packageListLoc);
+            one(writerContextMock).writeValueOption(optionName, extDocUrl + "' '" + packageListLoc);
         }});
 
         linksOfflineOption.write(writerContextMock);

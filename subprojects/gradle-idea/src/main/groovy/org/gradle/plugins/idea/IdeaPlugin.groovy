@@ -35,10 +35,10 @@ class IdeaPlugin implements Plugin<Project> {
         project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
         def task = project.task('cleanIdea')
         task.description = 'Cleans IDEA project files (IML, IPR)'
-        task.taskGroup = 'IDE'
+        task.group = 'IDE'
         task = project.task('idea')
         task.description = 'Generates IDEA project files (IML, IPR, IWS)'
-        task.taskGroup = 'IDE'
+        task.group = 'IDE'
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)

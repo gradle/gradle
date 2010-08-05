@@ -37,6 +37,7 @@ class SampleElementLocationHandler {
             textElement.appendChild(doc.createTextNode(' The code for this example can be found at '))
             Element filenameElement = doc.createElement('filename')
             textElement.appendChild(filenameElement)
+            textElement.appendChild(doc.createTextNode(' which is in both the binary and source distributions of Gradle.'))
             filenameElement.appendChild(doc.createTextNode("samples/$srcDir"))
 
             child.appendChild(tipElement)

@@ -14,12 +14,10 @@
  * limitations under the License.
  */
  
-package gradle.api.plugins
+package org.gradle.api.plugins
 
 import org.gradle.api.Project
 import org.gradle.api.internal.artifacts.configurations.Configurations
-import org.gradle.api.plugins.GroovyBasePlugin
-import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.tasks.compile.GroovyCompile
 import org.gradle.api.tasks.javadoc.Groovydoc
 import org.gradle.util.HelperUtil

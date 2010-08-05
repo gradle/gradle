@@ -1088,19 +1088,27 @@
                   will only execute tests that match the specified <replaceable>testNamePattern</replaceable>.
                   The <replaceable>taskName</replaceable> can be a full multi-project path like &quot;:sub1:sub2:test&quot;
                   or just the task name.  The <replaceable>testNamePattern</replaceable> will be used to form an include
-                  pattern of &quot;**/testNamePattern*.class&quot;.  Examples:
+                  pattern of &quot;**/testNamePattern*.class&quot;.
+                  If no tests with this pattern can be found an exception is thrown. This is to shield you from false security.
+                  If tests of more then one subproject are executed, the pattern is applied to each subproject. An exception
+                  is thrown if no tests can be found for a particular subproject. In such a case you can use the path notation of the
+                  pattern, so that the pattern is applied only to the test task of a specific subproject. Alternatively you can specify the fully
+                  qualified task name to be executed. You can also specify multiple patterns. Examples:
                   <itemizedlist>
                       <listitem>
-                          <para><literal>gradle test -Dtest.single=ThisUniquelyNamedTest</literal></para>
+                          <para><literal>gradle -Dtest.single=ThisUniquelyNamedTest test</literal></para>
                       </listitem>
                       <listitem>
-                          <para><literal>gradle test -Dtest.single=a/b/</literal></para>
+                          <para><literal>gradle -Dtest.single=a/b/ test</literal></para>
                       </listitem>
                       <listitem>
-                          <para><literal>gradle test -Dtest.single=*IntegrationTest</literal></para>
+                          <para><literal>gradle -DintegTest.single=*IntegrationTest integTest</literal></para>
                       </listitem>
                       <listitem>
-                          <para><literal>gradle integTest -D:proj1:integTest.single=c/d/</literal></para>
+                          <para><literal>gradle -Dtest.single=:proj1:test:Customer build</literal></para>
+                      </listitem>
+                      <listitem>
+                          <para><literal>gradle -DintegTest.single=c/d/ :proj1:integTest</literal></para>
                       </listitem>
                   </itemizedlist>
             </para>

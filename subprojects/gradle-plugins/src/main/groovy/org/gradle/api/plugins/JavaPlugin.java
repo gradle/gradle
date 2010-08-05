@@ -99,7 +99,7 @@ public class JavaPlugin implements Plugin<Project> {
         SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         Javadoc javadoc = project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class);
         javadoc.setDescription("Generates the javadoc for the source code.");
-        javadoc.setTaskGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
+        javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
         javadoc.setClasspath(mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath()));
         javadoc.setSource(mainSourceSet.getAllJava());
         addDependsOnTaskInOtherProjects(javadoc, true, JAVADOC_TASK_NAME, COMPILE_CONFIGURATION_NAME);
@@ -110,7 +110,7 @@ public class JavaPlugin implements Plugin<Project> {
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.getManifest().from(pluginConvention.getManifest());
         jar.setDescription("Generates a jar archive with all the compiled classes.");
-        jar.setTaskGroup(BasePlugin.BUILD_GROUP);
+        jar.setGroup(BasePlugin.BUILD_GROUP);
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses());
         jar.getMetaInf().from(new Callable() {
             public Object call() throws Exception {
@@ -132,7 +132,7 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
         Test test = project.getTasks().add(TEST_TASK_NAME, Test.class);
         test.setDescription("Runs the unit tests.");
-        test.setTaskGroup(JavaBasePlugin.VERIFICATION_GROUP);
+        test.setGroup(JavaBasePlugin.VERIFICATION_GROUP);
         test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
             public Object call() throws Exception {
                 return pluginConvention.getSourceSets().getByName(SourceSet.TEST_SOURCE_SET_NAME).getClassesDir();

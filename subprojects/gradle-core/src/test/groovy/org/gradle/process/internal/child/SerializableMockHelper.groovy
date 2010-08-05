@@ -16,7 +16,7 @@
 
 
 
-package org.gradle.process.child
+package org.gradle.process.internal.child
 
 import groovyjarjarasm.asm.ClassVisitor
 import groovyjarjarasm.asm.ClassWriter

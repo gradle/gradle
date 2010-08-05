@@ -100,6 +100,14 @@ public class CopySpecImplTest {
         assertThat(spec.childSpecs.size(), equalTo(2))
     }
 
+    @Test public void testWithSpecSource() {
+        CopyActionImpl source = new CopyActionImpl(fileResolver, null)
+
+        spec.with source
+        assertTrue(spec.sourcePaths.empty)
+        assertThat(spec.childSpecs.size(), equalTo(1))
+    }
+
     @Test public void testWithSpecInheritsDestinationPathFromParent() {
         CopySpecImpl other = new CopySpecImpl(fileResolver)
         other.into 'other'

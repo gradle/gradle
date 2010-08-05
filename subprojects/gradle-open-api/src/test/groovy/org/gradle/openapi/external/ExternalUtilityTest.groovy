@@ -13,12 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package gradle.openapi.external
+package org.gradle.openapi.external
 
 import spock.lang.Specification
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
-import org.gradle.openapi.external.ExternalUtility
 import org.gradle.util.TestFile
 
 public class ExternalUtilityTest extends Specification {

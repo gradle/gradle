@@ -31,12 +31,11 @@ public class TaskReportModel {
     public void calculate(final Collection<? extends Task> tasks) {
         Set<Task> topLevelTasks = new LinkedHashSet<Task>();
         for (final Task task : tasks) {
-            if (GUtil.isTrue(task.getTaskGroup())) {
+            if (GUtil.isTrue(task.getGroup())) {
                 topLevelTasks.add(task);
             }
         }
         GraphAggregator<Task> aggregator = new GraphAggregator<Task>(new DirectedGraph<Task, Object>() {
-            @Override
             public void getNodeValues(Task node, Collection<Object> values, Collection<Task> connectedNodes) {
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
                     if (tasks.contains(dep)) {
@@ -63,8 +62,8 @@ public class TaskReportModel {
                 }
             }
 
-            String taskGroup = topLevelTasks.contains(task) ? task.getTaskGroup() : "";
-            groups.put(taskGroup, new TaskDetailsImpl(task, children, dependencies));
+            String group = topLevelTasks.contains(task) ? task.getGroup() : "";
+            groups.put(group, new TaskDetailsImpl(task, children, dependencies));
         }
     }
 
@@ -90,12 +89,10 @@ public class TaskReportModel {
             this.dependencies = dependencies;
         }
 
-        @Override
         public String getDescription() {
             return task.getDescription();
         }
 
-        @Override
         public String getPath() {
             return task.getPath();
         }
@@ -109,17 +106,14 @@ public class TaskReportModel {
             return task;
         }
 
-        @Override
         public Set<String> getDependencies() {
             return dependencies;
         }
 
-        @Override
         public Set<TaskDetails> getChildren() {
             return children;
         }
 
-        @Override
         public int compareTo(TaskDetails o) {
             return getPath().compareTo(o.getPath());
         }

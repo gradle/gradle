@@ -23,8 +23,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.BuildExecuter;
-import org.gradle.execution.BuiltInTasksBuildExecuter;
+import org.gradle.execution.*;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.Matchers;
@@ -308,7 +307,14 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withShowTasks() {
         checkConversion(false, true, "-t");
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, null);
+        BuildExecuter expectedExecuter = new TaskReportBuildExecuter(null, false);
+        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+    }
+
+    @Test
+    public void withShowAllTasks() {
+        checkConversion(false, true, "-t", "--all");
+        BuildExecuter expectedExecuter = new TaskReportBuildExecuter(null, true);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
@@ -322,14 +328,14 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withShowTasksAndPath() {
         String somePath = ":SomeProject";
         checkConversion(false, true, "-t" + somePath);
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.TASKS, somePath);
+        BuildExecuter expectedExecuter = new TaskReportBuildExecuter(somePath, false);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
     @Test
     public void withShowProperties() {
         checkConversion(false, true, "-r");
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES, null);
+        BuildExecuter expectedExecuter = new PropertyReportBuildExecuter(null);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
@@ -337,14 +343,14 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withShowPropertiesAndPath() {
         String somePath = ":SomeProject";
         checkConversion(false, true, "-r" + somePath);
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.PROPERTIES, somePath);
+        BuildExecuter expectedExecuter = new PropertyReportBuildExecuter(somePath);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
     @Test
     public void withShowDependencies() {
         checkConversion(false, true, "-n");
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES, null);
+        BuildExecuter expectedExecuter = new DependencyReportBuildExecuter(null);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 
@@ -352,7 +358,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withShowDependenciesAndPath() {
         String somePath = ":SomeProject";
         checkConversion(false, true, "-n" + somePath);
-        BuildExecuter expectedExecuter = new BuiltInTasksBuildExecuter(BuiltInTasksBuildExecuter.Options.DEPENDENCIES, somePath);
+        BuildExecuter expectedExecuter = new DependencyReportBuildExecuter(somePath);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
 

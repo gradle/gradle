@@ -14,7 +14,16 @@
  * limitations under the License.
  */
 <% if (subprojects.empty ) { %>
-apply from: new File(rootDir, 'common.gradle')
+usePlugin('java')
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testCompile 'junit:junit:4.8.1'
+}
+test.testReport = false
 
 <% if (groovyProject) { %>
 apply plugin: 'groovy'

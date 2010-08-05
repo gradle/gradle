@@ -19,17 +19,22 @@ defaultTasks 'dists'
 allprojects {
     task clean {
         description = "Deletes the build directory ($buildDir.name)"
-        taskGroup = 'Build'
+        group = 'build'
     }
+}
+
+task libs {
+    dependsOn { subprojects*.libs }
+    description = 'Builds the JAR'
 }
 
 // START SNIPPET add-task-to-report
 task dists {
 // END SNIPPET add-task-to-report
-    dependsOn { subprojects*.libs }
+    dependsOn libs
 // START SNIPPET add-task-to-report
     description = 'Builds the distribution'
-    taskGroup = 'Build'
+    group = 'build'
 }
 // END SNIPPET add-task-to-report
 
@@ -52,7 +57,7 @@ subprojects {
             dependsOn ':api:libs' 
         }
         description = 'Builds the JAR'
-        taskGroup = 'Build'
+        group = 'build'
     }
     tasks.addRule(new TestRule())
 }

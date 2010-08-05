@@ -19,22 +19,20 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.internal.file.copy.CopyActionImpl;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class AbstractCopyTaskTest extends AbstractTaskTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private TestCopyTask task;
 
     @Before
@@ -70,6 +68,17 @@ public class AbstractCopyTaskTest extends AbstractTaskTest {
             will(returnValue(source));
         }});
         assertThat(task.getSource(), sameInstance((FileCollection) source));
+    }
+
+    @Test
+    public void copySpecMethodsDelegateToMainSpecOfCopyAction() {
+        context.checking(new Expectations() {{
+            one(task.action).include("include");
+            one(task.action).from("source");
+        }});
+
+        assertThat(task.include("include"), sameInstance((AbstractCopyTask) task));
+        assertThat(task.from("source"), sameInstance((AbstractCopyTask) task));
     }
 
     public static class TestCopyTask extends AbstractCopyTask {

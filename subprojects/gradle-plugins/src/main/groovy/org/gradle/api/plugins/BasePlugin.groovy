@@ -55,7 +55,7 @@ class BasePlugin implements Plugin<Project> {
     private Task addAssemble(Project project) {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Builds all Jar, War, Zip, and Tar archives.";
-        assembleTask.taskGroup = BUILD_GROUP
+        assembleTask.group = BUILD_GROUP
         assembleTask.dependsOn { project.tasks.withType(AbstractArchiveTask.class).all }
     }
 
@@ -74,7 +74,7 @@ class BasePlugin implements Plugin<Project> {
     private void addClean(final Project project) {
         Delete clean = project.tasks.add(CLEAN_TASK_NAME, Delete.class)
         clean.description = "Deletes the build directory.";
-        clean.taskGroup = BUILD_GROUP
+        clean.group = BUILD_GROUP
         clean.delete { project.buildDir }
     }
 
@@ -154,7 +154,7 @@ class BasePlugin implements Plugin<Project> {
         upload.uploadDescriptor = true
         upload.descriptorDestination = new File(project.getBuildDir(), "ivy.xml")
         upload.description = "Uploads all artifacts belonging to $configuration."
-        upload.taskGroup = UPLOAD_GROUP
+        upload.group = UPLOAD_GROUP
         return upload
     }
 

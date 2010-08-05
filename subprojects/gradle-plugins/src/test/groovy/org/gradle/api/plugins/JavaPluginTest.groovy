@@ -168,7 +168,7 @@ class JavaPluginTest {
         assertThat(task, instanceOf(Jar))
         assertThat(task, dependsOn(JavaPlugin.CLASSES_TASK_NAME))
         assertThat(task.destinationDir, equalTo(project.libsDir))
-        assertThat(task.rootSpec.mainSpec.sourcePaths, equalTo([project.sourceSets.main.classes] as Set))
+        assertThat(task.copyAction.mainSpec.sourcePaths, equalTo([project.sourceSets.main.classes] as Set))
         assertThat(task.manifest, notNullValue())
         assertThat(task.manifest, not(sameInstance(project.manifest)))
         assertThat(task.manifest.mergeSpecs.size(), equalTo(1))
