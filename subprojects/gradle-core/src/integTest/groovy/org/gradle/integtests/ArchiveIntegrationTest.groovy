@@ -19,6 +19,7 @@ package org.gradle.integtests
 
 import org.gradle.util.TestFile
 import org.junit.Test
+import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 
 public class ArchiveIntegrationTest extends AbstractIntegrationTest {
@@ -555,7 +556,7 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         )
     }
 
-    @Test public void canMergeArchivesIntoAnotherArchive() {
+    @Test public void canMergeArchivesIntoAnotherZip() {
         createZip('test.zip') {
             shared {
                 file 'zip.txt'
@@ -596,6 +597,47 @@ public class ArchiveIntegrationTest extends AbstractIntegrationTest {
         TestFile expandDir = testFile('expanded')
         testFile('build/test.zip').unzipTo(expandDir)
         expandDir.assertHasDescendants('shared/zip.txt', 'zipdir1/file1.txt', 'shared/tar.txt', 'tardir1/file1.txt', 'shared/dir.txt', 'dir1/file1.txt')
+    }
+
+    @Test public void usesManifestFromJarTaskWhenMergingJars() {
+        createDir('src1') {
+            dir1 { file 'file1.txt' }
+        }
+        createDir('src2') {
+            dir2 { file 'file2.txt' }
+        }
+        testFile('build.gradle') << '''
+        task jar1(type: Jar) {
+            from 'src1'
+            destinationDir = buildDir
+            archiveName = 'test1.zip'
+            manifest { attributes(attr: 'jar1') }
+        }
+        task jar2(type: Jar) {
+            from 'src2'
+            destinationDir = buildDir
+            archiveName = 'test2.zip'
+            manifest { attributes(attr: 'jar2') }
+        }
+        task jar(type: Jar) {
+            dependsOn jar1, jar2
+            from zipTree(jar1.archivePath), zipTree(jar2.archivePath)
+            manifest { attributes(attr: 'value') }
+            destinationDir = buildDir
+            archiveName = 'test.zip'
+        }
+        '''
+
+        inTestDirectory().withTasks('jar').run()
+        TestFile jar = testFile('build/test.zip')
+
+        def manifest = jar.manifest
+        println manifest.mainAttributes
+        assertThat(manifest.mainAttributes.getValue('attr'), equalTo('value'))
+
+        TestFile expandDir = testFile('expected')
+        jar.unzipTo(expandDir)
+        expandDir.assertHasDescendants('dir1/file1.txt', 'dir2/file2.txt', 'META-INF/MANIFEST.MF')
     }
 
     private def createZip(String name, Closure cl) {

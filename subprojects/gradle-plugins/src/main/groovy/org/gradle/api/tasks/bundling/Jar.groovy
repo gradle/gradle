@@ -21,6 +21,7 @@ import org.gradle.api.internal.file.MapFileTree
 import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.copy.CopySpecImpl
+import org.gradle.api.file.FileCopyDetails
 
 /**
 * @author Hans Dockter
@@ -44,6 +45,11 @@ public class Jar extends Zip {
                 manifest.writeTo(new OutputStreamWriter(outstr))
             }
             manifestSource
+        }
+        copyAction.mainSpec.eachFile { FileCopyDetails details ->
+            if (details.path.equalsIgnoreCase('META-INF/MANIFEST.MF')) {
+                details.exclude()
+            }
         }
     }
 
