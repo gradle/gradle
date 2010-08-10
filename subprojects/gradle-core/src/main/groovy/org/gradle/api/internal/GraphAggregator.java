@@ -80,7 +80,6 @@ public class GraphAggregator<N> {
             this.graph = graph;
         }
 
-        @Override
         public void getNodeValues(N node, Collection<N> values, Collection<N> connectedNodes) {
             Set<N> edges = new LinkedHashSet<N>();
             graph.getNodeValues(node, new ArrayList(), edges);

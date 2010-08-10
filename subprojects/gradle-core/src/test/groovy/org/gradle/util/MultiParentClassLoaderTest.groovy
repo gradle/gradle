@@ -21,7 +21,7 @@ import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.jmock.lib.legacy.ClassImposteriser
+import java.lang.reflect.Field
 
 @RunWith(JMock.class)
 class MultiParentClassLoaderTest {
@@ -32,9 +32,12 @@ class MultiParentClassLoaderTest {
 
     @Before
     public void setup() {
-        context.imposteriser = ClassImposteriser.INSTANCE
-        parent1 = context.mock(ClassLoader, 'parent1')
-        parent2 = context.mock(ClassLoader, 'parent2')
+        Field field = ClassLoader.getDeclaredFields().find { it.name == 'initialized' }
+        field.accessible = true
+        parent1 = context.mock(ClassLoader)
+        field.set(parent1, true)
+        parent2 = context.mock(ClassLoader)
+        field.set(parent2, true)
         loader = new MultiParentClassLoader(parent1, parent2)
     }
 

@@ -166,11 +166,9 @@ public class CachingDirectedGraphWalker<N, T> {
             this.graph = graph;
         }
 
-        @Override
         public void getEdgeValues(N from, N to, Collection<T> values) {
         }
 
-        @Override
         public void getNodeValues(N node, Collection<T> values, Collection<N> connectedNodes) {
             graph.getNodeValues(node, values, connectedNodes);
         }

@@ -786,7 +786,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return loggingManager;
     }
 
-    @Override
     public LoggingManager getLogging() {
         return loggingManager;
     }

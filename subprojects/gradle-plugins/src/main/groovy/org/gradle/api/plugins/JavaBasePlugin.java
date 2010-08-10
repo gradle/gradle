@@ -208,7 +208,6 @@ public class JavaBasePlugin implements Plugin<Project> {
             }
         });
         project.afterEvaluate(new Action<Project>() {
-            @Override
             public void execute(Project project) {
                 project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
                     public void execute(Test test) {
@@ -224,7 +223,6 @@ public class JavaBasePlugin implements Plugin<Project> {
         String debugProp = getTaskPrefixedProperty(test, "debug");
         if (debugProp != null) {
             test.doFirst(new Action<Task>() {
-                @Override
                 public void execute(Task task) {
                     task.getLogger().info("Running tests for remote debugging.");
                 }
@@ -239,7 +237,6 @@ public class JavaBasePlugin implements Plugin<Project> {
             return;
         }
         test.doFirst(new Action<Task>() {
-            @Override
             public void execute(Task task) {
                 test.getLogger().info("Running single tests with pattern: {}", test.getIncludes());
             }

@@ -30,7 +30,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
     private final ConfigurationContainerFactory configurationContainerFactory = Mock()
     private final DependencyMetaDataProvider metaDataProvider = Mock()
     private final DependencyFactory dependencyFactory = Mock()
-    private final ClassLoader parentClassLoader = Mock()
+    private final ClassLoader parentClassLoader = new ClassLoader() {}
     private final RepositoryHandler repositoryHandler = Mock()
     private final ConfigurationContainer configurationContainer = Mock()
     private final DefaultScriptHandlerFactory factory = new DefaultScriptHandlerFactory(repositoryHandlerFactory, configurationContainerFactory, metaDataProvider, dependencyFactory)
