@@ -16,12 +16,11 @@
 package org.gradle.util
 
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import java.lang.reflect.Field
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class MultiParentClassLoaderTest {
@@ -32,12 +31,8 @@ class MultiParentClassLoaderTest {
 
     @Before
     public void setup() {
-        Field field = ClassLoader.getDeclaredFields().find { it.name == 'initialized' }
-        field.accessible = true
         parent1 = context.mock(ClassLoader)
-        field.set(parent1, true)
         parent2 = context.mock(ClassLoader)
-        field.set(parent2, true)
         loader = new MultiParentClassLoader(parent1, parent2)
     }
 
