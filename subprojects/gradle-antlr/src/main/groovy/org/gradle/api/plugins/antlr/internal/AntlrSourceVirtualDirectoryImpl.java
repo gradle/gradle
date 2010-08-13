@@ -13,19 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.antlr;
+package org.gradle.api.plugins.antlr.internal;
 
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.file.UnionFileTree;
 import org.gradle.api.internal.file.DefaultSourceDirectorySet;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.util.ConfigureUtil;
 import groovy.lang.Closure;
 
 /**
- * The implementation of the {@link AntlrSourceVirtualDirectory} contract.
+ * The implementation of the {@link org.gradle.api.plugins.antlr.AntlrSourceVirtualDirectory} contract.
  *
  * @author Steve Ebersole
  */

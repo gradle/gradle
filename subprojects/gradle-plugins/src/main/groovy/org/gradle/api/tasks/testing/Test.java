@@ -54,7 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
+ * Executes tests. Supports JUnit (3.8.x or 4.x) or TestNG tests.
  *
  * @author Hans Dockter
  */

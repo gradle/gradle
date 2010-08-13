@@ -28,7 +28,7 @@ import org.gradle.plugins.idea.model.Project
 import org.gradle.plugins.idea.model.ModulePath
 
 /**
- * A task that generates and Idea ipr file.
+ * Generates an IDEA project file.
  *
  * @author Hans Dockter
  */

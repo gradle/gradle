@@ -23,7 +23,7 @@ import org.gradle.api.internal.file.copy.FileCopySpecVisitor;
 import java.io.File;
 
 /**
- * Task for copying files.  This task can also rename and filter files as it copies.
+ * Copies files into a destination directory.  This task can also rename and filter files as it copies.
  * The task implements {@link org.gradle.api.file.CopySpec CopySpec} for specifying
  * what to copy.
  * <p>

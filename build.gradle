@@ -91,7 +91,6 @@ def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:ham
 
 configure(groovyProjects()) {
     apply plugin: 'groovy'
-    apply plugin: 'code-quality'
     apply plugin: 'eclipse'
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
@@ -105,20 +104,6 @@ configure(groovyProjects()) {
         testCompile 'org.jmock:jmock-legacy:2.5.1@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
     }
 
-    checkstyleConfigDir = "$rootDir/config/checkstyle"
-    checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
-    codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
-    checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
-
-    sourceSets.allObjects { sourceSet ->
-        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
-            configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
-            source sourceSet.allGroovy
-            classpath = sourceSet.compileClasspath
-            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}.xml")
-        }
-    }
-
     test {
         maxParallelForks = guessMaxForks()
     }
@@ -128,6 +113,25 @@ configure(groovyProjects()) {
                 (Attributes.Name.IMPLEMENTATION_TITLE.toString()): 'Gradle',
                 (Attributes.Name.IMPLEMENTATION_VERSION.toString()): version,
         ])
+    }
+}
+
+allprojects {
+    apply plugin: 'code-quality'
+
+    checkstyleConfigDir = "$rootDir/config/checkstyle"
+    checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
+    codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
+    checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
+}
+configure(groovyProjects()) {
+    sourceSets.allObjects { sourceSet ->
+        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
+            configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
+            source sourceSet.allGroovy
+            classpath = sourceSet.compileClasspath
+            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}.xml")
+        }
     }
 }
 
@@ -186,6 +190,7 @@ evaluationDependsOn(':core')
 clean.dependsOn subprojects.collect { "$it.path:clean" }
 
 task check(overwrite: true, dependsOn: groovyProjects()*.check)
+check.dependsOn ':docs:checkstyleApi'
 task test(overwrite: true, dependsOn: groovyProjects()*.test)
 
 zipRootFolder = "$archivesBaseName-${-> version}"

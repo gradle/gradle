@@ -23,6 +23,8 @@ import org.gradle.listener.ListenerBroadcast
 import org.gradle.plugins.idea.model.Workspace
 
 /**
+ * Generates an IDEA workspace file.
+ *
  * @author Hans Dockter
  */
 public class IdeaWorkspace extends DefaultTask {

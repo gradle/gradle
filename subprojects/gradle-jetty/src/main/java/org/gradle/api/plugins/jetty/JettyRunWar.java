@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins.jetty;
 
+import org.gradle.api.plugins.jetty.internal.Jetty6PluginServer;
 import org.mortbay.util.Scanner;
+import org.mortbay.xml.XmlConfiguration;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.gradle.api.tasks.InputFile;
@@ -26,12 +28,12 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * <p>The {@code JettyRunWar} deploys a WAR to an embedded Jetty web container.</p>
+ * <p>Deploys a WAR to an embedded Jetty web container.</p>
  *
  * <p> Once started, the web container can be configured to run continuously, scanning for changes to the war file and
  * automatically performing a hot redeploy when necessary. </p>
  */
-public class JettyRunWar extends AbstractJettyRunWarTask {
+public class JettyRunWar extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRunWar.class);
 
     /**
@@ -113,5 +115,23 @@ public class JettyRunWar extends AbstractJettyRunWarTask {
 
     public void setWebApp(File webApp) {
         this.webApp = webApp;
+    }
+
+    public void applyJettyXml() throws Exception {
+
+        if (getJettyConfig() == null) {
+            return;
+        }
+
+        logger.info("Configuring Jetty from xml configuration file = {}", getJettyConfig());
+        XmlConfiguration xmlConfiguration = new XmlConfiguration(getJettyConfig().toURI().toURL());
+        xmlConfiguration.configure(getServer().getProxiedObject());
+    }
+
+    /**
+     * @see org.gradle.api.plugins.jetty.AbstractJettyRunTask#createServer()
+     */
+    public org.gradle.api.plugins.jetty.internal.JettyPluginServer createServer() throws Exception {
+        return new Jetty6PluginServer();
     }
 }

@@ -194,6 +194,13 @@ task javadoc(type: Javadoc) {
     }
 }
 
+task checkstyleApi(type: Checkstyle) {
+    source javadoc.source
+    configFile = file("$checkstyleConfigDir/checkstyle-api.xml")
+    classpath = files()
+    resultFile = file("$checkstyleResultsDir/checkstyle-api.xml")
+}
+
 task groovydoc(type: Groovydoc) {
     source groovyProjects().collect {project -> project.sourceSets.main.groovy }
     destinationDir = new File(docsDir, 'groovydoc')

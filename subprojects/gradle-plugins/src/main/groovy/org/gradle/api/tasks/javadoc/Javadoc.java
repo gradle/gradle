@@ -36,7 +36,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * <p>Generates Javadoc from Java source.</p>
+ * <p>Generates HTML API documentation for Java classes.</p>
  *
  * @author Hans Dockter
  */

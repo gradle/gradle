@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.artifacts.indexing;
+package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.GradleException;
 

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A task for executing a Java main class.
+ * Executes a Java application.
  *
  * @author Hans Dockter
  */

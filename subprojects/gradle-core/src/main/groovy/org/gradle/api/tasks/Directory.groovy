@@ -20,6 +20,8 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
 
 /**
+ * Creates a directory.
+ *
  * @author Hans Dockter
  */
 public class Directory extends DefaultTask {

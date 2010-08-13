@@ -27,6 +27,9 @@ import java.net.ConnectException;
 import java.net.InetAddress;
 import java.net.Socket;
 
+/**
+ * Stops the embedded Jetty web container.
+ */
 public class JettyStop extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(JettyStop.class);
 

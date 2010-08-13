@@ -24,7 +24,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * A {@code GradleBuild} task executes another Gradle build.
+ * Executes a Gradle build.
  */
 public class GradleBuild extends ConventionTask {
     private StartParameter startParameter;

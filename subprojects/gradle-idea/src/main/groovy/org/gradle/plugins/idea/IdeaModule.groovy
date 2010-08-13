@@ -25,6 +25,8 @@ import org.gradle.api.tasks.*
 import org.gradle.plugins.idea.model.*
 
 /**
+ * Generates an IDEA module file.
+ *
  * @author Hans Dockter
  */
 public class IdeaModule extends ConventionTask {

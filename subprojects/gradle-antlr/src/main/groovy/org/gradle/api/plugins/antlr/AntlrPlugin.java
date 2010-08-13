@@ -30,6 +30,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.JavaPlugin;
 import static org.gradle.api.plugins.JavaPlugin.COMPILE_CONFIGURATION_NAME;
 import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.antlr.internal.AntlrSourceVirtualDirectoryImpl;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 

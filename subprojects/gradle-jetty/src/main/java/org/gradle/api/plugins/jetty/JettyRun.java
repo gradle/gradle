@@ -42,8 +42,8 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * <p>The {@code JettyRun} task deploys an exploded web application to an embedded Jetty web container, without first
- * requiring that the web application be assembled into a war, saving time during the development cycle.</p>
+ * <p>Deploys an exploded web application to an embedded Jetty web container. Does not require that the web application
+ * be assembled into a war, saving time during the development cycle.</p>
  *
  * <p>Once started, the web container can be configured to run continuously, scanning for changes in the project and
  * automatically performing a hot redeploy when necessary. This allows the developer to concentrate on coding changes to

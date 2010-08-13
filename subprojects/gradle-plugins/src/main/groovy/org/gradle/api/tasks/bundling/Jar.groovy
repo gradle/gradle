@@ -24,9 +24,10 @@ import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.file.FileCopyDetails
 
 /**
-* @author Hans Dockter
-*/
-
+ * Assembles a JAR archive.
+ *
+ * @author Hans Dockter
+ */
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 

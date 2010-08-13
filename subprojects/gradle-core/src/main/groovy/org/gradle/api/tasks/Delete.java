@@ -23,7 +23,7 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 /**
- * <p>Deletes the specified target files or directories.</p>
+ * <p>Deletes files or directories.</p>
  *
  * @author Hans Dockter
  */

@@ -122,6 +122,9 @@ public class UserGuideTransformTask extends DefaultTask {
             xml.links {
                 doc.documentElement.depthFirst().findAll { it.name() == 'apilink' }.each {Element element ->
                     String className = element.'@class'
+                    if (!className) {
+                        throw new RuntimeException('No "class" attribute specified for <apilink> element.')
+                    }
                     String methodName = element.'@method'
                     String lang = element.'@lang' ?: 'java'
 

@@ -27,7 +27,7 @@ import org.gradle.api.internal.NoConventionMapping;
  * @author Hans Dockter
  */
 @NoConventionMapping
-public class DefaultTask extends AbstractTask implements Task {
+public class DefaultTask extends AbstractTask {
     public DefaultTask() {
         if (this instanceof GroovyObject) {
             GroovyObject groovyObject = (GroovyObject) this;

@@ -25,7 +25,7 @@ import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.plugins.eclipse.model.Project
 
 /**
- * Generates an eclipse <i>.project</i> file.
+ * Generates an Eclipse <i>.project</i> file.
  *
  * @author Hans Dockter
  */

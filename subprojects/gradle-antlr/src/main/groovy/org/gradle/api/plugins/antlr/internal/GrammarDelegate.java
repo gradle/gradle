@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.antlr.metadata;
+package org.gradle.api.plugins.antlr.internal;
 
 import java.lang.reflect.Method;
 import java.util.Enumeration;

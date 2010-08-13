@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that the
+ * Generates HTML API documentation for Groovy and Java classes. It uses Groovy's Groovydoc tool for this. Please note that the
  * Groovydoc tool has some severe limitations at the moment (for example no doc for properties comments). The version of
  * the Groovydoc that is used, is the one from the Groovy defined in the build script. Please note also, that the
  * Groovydoc tool prints to System.out for many of its statements and does circumvents our logging currently.
