@@ -126,7 +126,7 @@ public class IdeaModule extends ConventionTask {
         Reader xmlreader = getOutputFile().exists() ? new FileReader(getOutputFile()) : null;
         org.gradle.plugins.idea.model.Module module = new org.gradle.plugins.idea.model.Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
                 getDependencies(), getVariableReplacement(), javaVersion, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
-        module.toXml(new FileWriter(getOutputFile()))
+        getOutputFile().withWriter {Writer writer -> module.toXml(writer)}
     }
 
     protected Path getContentPath() {

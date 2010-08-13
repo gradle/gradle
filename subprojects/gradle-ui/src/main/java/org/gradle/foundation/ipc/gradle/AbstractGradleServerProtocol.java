@@ -444,8 +444,12 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
       try
       {
          fileOutputStream = new FileOutputStream( file );
-         IOUtils.write( bytes, fileOutputStream );
-         return true;
+          try {
+              IOUtils.write( bytes, fileOutputStream );
+          } finally {
+              fileOutputStream.close();
+          }
+          return true;
       }
       catch( IOException e )
       {

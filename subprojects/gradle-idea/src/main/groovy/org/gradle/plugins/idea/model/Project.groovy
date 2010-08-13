@@ -99,7 +99,9 @@ class Project {
 
         withXmlActions.source.execute(xml)
 
-        new XmlNodePrinter(new PrintWriter(writer)).print(xml)
+        PrintWriter printWriter = new PrintWriter(writer)
+        new XmlNodePrinter(printWriter).print(xml)
+        printWriter.flush()
     }
 
     private def findProjectRootManager() {

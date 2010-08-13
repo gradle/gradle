@@ -44,7 +44,7 @@ public class IdeaWorkspace extends DefaultTask {
     void updateXML() {
         Reader xmlreader = outputFile.exists() ? new FileReader(outputFile) : null;
         Workspace workspace = new Workspace(xmlreader, withXmlActions)
-        workspace.toXml(new FileWriter(outputFile))
+        outputFile.withWriter { Writer writer -> workspace.toXml(writer) }
     }
 
     void withXml(Closure closure) {

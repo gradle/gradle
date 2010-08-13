@@ -75,7 +75,7 @@ public class IdeaProject extends DefaultTask {
             }
         }
         Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
-        ideaProject.toXml(new FileWriter(outputFile))
+        outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
     }
 
     /**
