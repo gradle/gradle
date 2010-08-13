@@ -13,16 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.plugins.announce.internal;
 
-import java.util.Set;
+import org.gradle.api.plugins.announce.Announcer;
 
-public interface TaskDetails extends Comparable<TaskDetails> {
-    String getPath();
-
-    String getDescription();
-
-    Set<String> getDependencies();
-
-    Set<TaskDetails> getChildren();
+/**
+ * @author Hans Dockter
+ */
+public interface AnnouncerFactory {
+    Announcer createAnnouncer(String type);
 }

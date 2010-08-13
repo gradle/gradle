@@ -20,6 +20,8 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.util.WrapUtil;
 import org.gradle.util.HelperUtil;
 import static org.hamcrest.Matchers.instanceOf;

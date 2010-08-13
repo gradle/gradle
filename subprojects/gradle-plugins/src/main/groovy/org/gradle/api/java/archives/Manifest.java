@@ -20,6 +20,9 @@ import groovy.lang.Closure;
 import java.io.Writer;
 import java.util.Map;
 
+/**
+ * Represents the manifest file of a JAR file.
+ */
 public interface Manifest {
     /**
      * Returns the main attributes of the manifest.

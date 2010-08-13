@@ -13,29 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.tasks.diagnostics.internal;
 
-import static org.gradle.util.Matchers.*;
-import static org.junit.Assert.*;
-import org.junit.Before;
-import org.junit.Test;
+/**
+ * <p>A {@code PropertyReportRenderer} is responsible for rendering the model of a property report.</p>
+ */
+public class PropertyReportRenderer extends TextProjectReportRenderer {
 
-import java.io.StringWriter;
-
-public class PropertyReportRendererTest {
-    private StringWriter out;
-    private PropertyReportRenderer renderer;
-
-    @Before
-    public void setUp() {
-        out = new StringWriter();
-        renderer = new PropertyReportRenderer(out);
+    public PropertyReportRenderer() {
     }
 
-    @Test
-    public void writesProperty() {
-        renderer.addProperty("prop", "value");
+    public PropertyReportRenderer(Appendable out) {
+        super(out);
+    }
 
-        assertThat(out.toString(), containsLine("prop: value"));
+    /**
+     * Writes a property for the current project.
+     *
+     * @param name The name of the property
+     * @param value The value of the property
+     */
+    public void addProperty(String name, Object value) {
+        getFormatter().format("%s: %s%n", name, value);
     }
 }

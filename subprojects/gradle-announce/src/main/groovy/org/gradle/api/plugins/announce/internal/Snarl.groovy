@@ -14,7 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.announce
+package org.gradle.api.plugins.announce.internal
+
+import org.gradle.api.plugins.announce.Announcer
 
 class Snarl implements Announcer {
   private static final float SNP_VERSION = 1.1f

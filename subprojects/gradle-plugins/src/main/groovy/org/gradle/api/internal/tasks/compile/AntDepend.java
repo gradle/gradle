@@ -13,20 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.util;
+package org.gradle.api.internal.tasks.compile;
 
-import org.gradle.api.file.FileTreeElement;
-import org.gradle.api.file.RelativePath;
-import org.gradle.api.specs.Spec;
+import org.apache.tools.ant.taskdefs.optional.depend.Depend;
+import org.apache.tools.ant.types.Path;
+import org.apache.tools.ant.BuildException;
 
-class RelativePathSpec implements Spec<FileTreeElement> {
-    private final Spec<? super RelativePath> pathSpec;
+public class AntDepend extends Depend {
+    private Path src;
 
-    public RelativePathSpec(Spec<? super RelativePath> pathSpec) {
-        this.pathSpec = pathSpec;
+    public Path createSrc() {
+        if (src == null) {
+            src = new Path(getProject());
+        }
+        return src.createPath();
     }
 
-    public boolean isSatisfiedBy(FileTreeElement element) {
-        return pathSpec.isSatisfiedBy(element.getRelativePath());
+    @Override
+    public void execute() throws BuildException {
+        setSrcdir(src);
+        super.execute();
     }
 }

@@ -17,6 +17,10 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
+import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
+import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
+import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 
 import java.io.IOException;
 

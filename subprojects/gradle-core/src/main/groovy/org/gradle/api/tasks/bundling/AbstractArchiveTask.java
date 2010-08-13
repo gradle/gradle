@@ -135,7 +135,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * Returns the extension part of the archive name
+     * Returns the extension part of the archive name.
      */
     public String getExtension() {
         return extension;

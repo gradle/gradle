@@ -15,6 +15,9 @@
  */
 package org.gradle.api.java.archives;
 
+/**
+ * Details of a value being merged from two different manifests.
+ */
 public interface ManifestMergeDetails {
     /**
      * Returns the section this merge details belongs to.
@@ -22,7 +25,7 @@ public interface ManifestMergeDetails {
     String getSection();
 
     /**
-     * Returns the key that is to be merged
+     * Returns the key that is to be merged.
      */
     String getKey();
 

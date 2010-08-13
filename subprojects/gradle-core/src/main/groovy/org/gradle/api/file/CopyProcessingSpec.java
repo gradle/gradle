@@ -20,6 +20,9 @@ import org.gradle.api.Action;
 
 import java.util.regex.Pattern;
 
+/**
+ * Specifies the destination of a copy.
+ */
 public interface CopyProcessingSpec extends ContentFilterable {
     /**
      * Specifies the destination directory for a copy. The destination is evaluated as for {@link

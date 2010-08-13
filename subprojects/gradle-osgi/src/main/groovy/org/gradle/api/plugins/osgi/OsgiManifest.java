@@ -78,7 +78,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     void setSymbolicName(String symbolicName);
 
     /**
-     * Returns the name
+     * Returns the name.
      *
      * @see #setName(String)
      */
@@ -92,7 +92,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     void setName(String name);
 
     /**
-     * Returns the version
+     * Returns the version.
      *
      * @see #setVersion(String) 
      */
@@ -120,7 +120,7 @@ public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {
     void setDescription(String description);
 
     /**
-     * Returns the license
+     * Returns the license.
      * @see #setLicense(String) 
      */
     String getLicense();

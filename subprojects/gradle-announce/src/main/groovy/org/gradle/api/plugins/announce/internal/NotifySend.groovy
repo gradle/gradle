@@ -14,10 +14,11 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.announce;
+package org.gradle.api.plugins.announce.internal;
 
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
+import org.gradle.api.plugins.announce.Announcer
 
 /**
  * This class wraps the Ubuntu Notify Send functionality.

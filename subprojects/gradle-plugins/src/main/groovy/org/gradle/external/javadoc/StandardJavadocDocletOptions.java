@@ -923,9 +923,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noQualifier(Arrays.asList(noQualifiers));
     }
 
-    /**
-     * -notimestamp
-     */
     public final JavadocOptionFileOption<Boolean> noTimestamp;
 
     public boolean isNoTimestamp() {

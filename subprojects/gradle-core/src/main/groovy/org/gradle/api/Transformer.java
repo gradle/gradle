@@ -17,6 +17,8 @@ package org.gradle.api;
 
 /**
  * <p>A {@code Transformer} transforms objects of type T.</p>
+ *
+ * @param <T> The type of object which this transformer can transform.
  */
 public interface Transformer<T> {
     /**

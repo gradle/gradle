@@ -20,6 +20,9 @@ import groovy.lang.Closure;
 import java.io.FilterReader;
 import java.util.Map;
 
+/**
+ * Represents some binary resource whose content can be filtered.
+ */
 public interface ContentFilterable {
     /**
      * <p>Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the

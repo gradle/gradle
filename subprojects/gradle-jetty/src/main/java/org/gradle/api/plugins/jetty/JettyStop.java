@@ -62,14 +62,14 @@ public class JettyStop extends ConventionTask {
     }
 
     /**
-     * Returns port to listen to stop jetty on sending stop command
+     * Returns port to listen to stop jetty on sending stop command.
      */
     public Integer getStopPort() {
         return stopPort;
     }
 
     /**
-     * Sets port to listen to stop jetty on sending stop command
+     * Sets port to listen to stop jetty on sending stop command.
      */
     public void setStopPort(Integer stopPort) {
         this.stopPort = stopPort;
@@ -85,8 +85,7 @@ public class JettyStop extends ConventionTask {
     }
 
     /**
-     * Sets key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt; -DSTOP.PORT=&lt;stopPort&gt;
-     * -jar start.jar --stop
+     * Sets key to provide when stopping jetty.
      */
     public void setStopKey(String stopKey) {
         this.stopKey = stopKey;

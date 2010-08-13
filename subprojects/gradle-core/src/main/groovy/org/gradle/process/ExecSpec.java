@@ -65,7 +65,7 @@ public interface ExecSpec extends BaseExecSpec {
     ExecSpec setArgs(Iterable<?> args);
 
     /**
-     * Returns the args for the command to be executed
+     * Returns the args for the command to be executed.
      */
     List<String> getArgs();
 }

@@ -18,7 +18,7 @@ package org.gradle;
 
 import org.apache.commons.lang.builder.EqualsBuilder;
 import org.apache.commons.lang.builder.HashCodeBuilder;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.*;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -44,6 +44,9 @@ import java.util.*;
  * @see GradleLauncher
  */
 public class StartParameter {
+    /**
+     * Specifies the detail to include in stacktraces.
+     */
     public enum ShowStacktrace {
         INTERNAL_EXCEPTIONS, ALWAYS, ALWAYS_FULL
     }

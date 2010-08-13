@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.tasks.diagnostics;
+package org.gradle.api.tasks.diagnostics.internal;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;

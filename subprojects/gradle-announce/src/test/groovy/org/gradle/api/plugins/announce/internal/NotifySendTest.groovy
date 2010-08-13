@@ -15,7 +15,7 @@
  */
 package org.gradle.api.plugins.announce
 
-import org.junit.Ignore
+import org.gradle.api.plugins.announce.internal.NotifySend
 
 class NotifySendTest extends GroovyTestCase {
 

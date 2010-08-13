@@ -77,7 +77,7 @@ public interface PomFilterContainer {
     MavenPom addFilter(String name, PublishFilter publishFilter);
 
     /**
-     * Returns a filter added with {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}
+     * Returns a filter added with {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}.
      *
      * @param name The name of the filter
      */

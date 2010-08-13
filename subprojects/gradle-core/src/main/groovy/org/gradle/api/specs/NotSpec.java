@@ -17,6 +17,7 @@ package org.gradle.api.specs;
 
 /**
  * @author Hans Dockter
+ * @param <T> The target type for this Spec
  */
 public class NotSpec<T> implements Spec<T> {
     private Spec<? super T> sourceSpec;

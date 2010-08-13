@@ -18,6 +18,8 @@ package org.gradle;
 import org.gradle.api.GradleException;
 
 /**
+ * A {@code CommandLineArgumentException} is thrown when command-line arguments cannot be parsed.
+ * 
  * @author Hans Dockter
  */
 public class CommandLineArgumentException extends GradleException {

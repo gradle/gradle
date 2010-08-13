@@ -18,6 +18,8 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
 import static org.gradle.util.HelperUtil.*;
+
+import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;

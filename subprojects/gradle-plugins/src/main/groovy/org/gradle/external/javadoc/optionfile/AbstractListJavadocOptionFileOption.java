@@ -21,6 +21,7 @@ import java.io.IOException;
 
 /**
  * @author Tom Eyckmans
+ * @param <T> The type which this option represents.
  */
 public abstract class AbstractListJavadocOptionFileOption<T extends List> extends AbstractJavadocOptionFileOption<T> {
     protected String joinBy;

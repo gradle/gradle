@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
+package org.gradle.api.tasks.diagnostics.internal;
 
-import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
-import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
-import org.gradle.api.tasks.Copy;
+import java.util.Set;
 
-public class ProcessResources extends Copy {
-    @Override
-    protected void copy() {
-        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
-        cleaner.setDestinationDir(getDestinationDir());
-        cleaner.execute();
-        super.copy();
-    }
+public interface TaskDetails extends Comparable<TaskDetails> {
+    String getPath();
+
+    String getDescription();
+
+    Set<String> getDependencies();
+
+    Set<TaskDetails> getChildren();
 }

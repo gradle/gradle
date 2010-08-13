@@ -64,7 +64,7 @@ public interface MavenPom {
     String getGroupId();
 
     /**
-     * org.apache.maven.model.Model#getGroupId
+     * @see org.apache.maven.model.Model#getGroupId
      * @return this
      */
     MavenPom setGroupId(String groupId);

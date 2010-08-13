@@ -15,11 +15,55 @@
  */
 package org.gradle.api.artifacts.specs;
 
+import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.specs.Spec;
+
 /**
  * @author Hans Dockter
  */
 public class DependencySpecs {
-    public static DependencyTypeSpec type(Type type) {
-        return new DependencyTypeSpec(type);
+    public static Spec<Dependency> type(Type type) {
+        return new DependencyTypeSpec<Dependency>(type);
     }
+
+    private static class DependencyTypeSpec<T extends Dependency> implements Spec<T> {
+
+        private Type type;
+
+        public DependencyTypeSpec(Type type) {
+            this.type = type;
+        }
+
+        public boolean isSatisfiedBy(Dependency dependency) {
+            return type.isOf(dependency);
+        }
+
+        public Type getType() {
+            return type;
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            DependencyTypeSpec typeSpec = (DependencyTypeSpec) o;
+
+            if (type != typeSpec.type) {
+                return false;
+            }
+
+            return true;
+        }
+
+        @Override
+        public int hashCode() {
+            return type != null ? type.hashCode() : 0;
+        }
+    }
+
 }

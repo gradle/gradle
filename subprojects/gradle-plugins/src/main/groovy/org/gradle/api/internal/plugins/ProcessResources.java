@@ -13,16 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce
+package org.gradle.api.internal.plugins;
 
-import org.gradle.process.internal.DefaultExecAction
-import org.gradle.process.internal.ExecAction
+import org.gradle.api.internal.tasks.compile.SimpleStaleClassCleaner;
+import org.gradle.api.internal.tasks.compile.StaleClassCleaner;
+import org.gradle.api.tasks.Copy;
 
-class Growl implements Announcer {
-    void send(String title, String message) {
-        ExecAction execAction = new DefaultExecAction()
-        execAction.executable('growlnotify')
-        execAction.args('-m', message, title)
-        execAction.execute()
+public class ProcessResources extends Copy {
+    @Override
+    protected void copy() {
+        StaleClassCleaner cleaner = new SimpleStaleClassCleaner(getOutputs());
+        cleaner.setDestinationDir(getDestinationDir());
+        cleaner.execute();
+        super.copy();
     }
 }

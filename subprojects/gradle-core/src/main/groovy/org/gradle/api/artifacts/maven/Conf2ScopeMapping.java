@@ -41,14 +41,14 @@ public class Conf2ScopeMapping {
     }
 
     /**
-     * Returns the priority
+     * Returns the priority.
      */
     public Integer getPriority() {
         return priority;
     }
 
     /**
-     * Returns the dependency configuration name
+     * Returns the dependency configuration name.
      */
     public Configuration getConfiguration() {
         return configuration;

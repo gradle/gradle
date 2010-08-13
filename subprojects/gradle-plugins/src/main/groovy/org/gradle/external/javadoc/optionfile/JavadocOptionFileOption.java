@@ -18,6 +18,7 @@ package org.gradle.external.javadoc.optionfile;
 
 /**
  * @author Tom Eyckmans
+ * @param <T> The type which this option represents.
  */
 public interface JavadocOptionFileOption<T> extends OptionLessJavadocOptionFileOption<T> {
 

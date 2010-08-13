@@ -13,11 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce
+package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+import org.gradle.api.plugins.announce.AnnouncePluginConvention
 
 /**
  * @author Hans Dockter

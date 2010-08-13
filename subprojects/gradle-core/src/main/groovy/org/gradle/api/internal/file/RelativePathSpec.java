@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,11 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce;
+package org.gradle.api.internal.file;
 
-/**
- * @author Hans Dockter
- */
-public interface AnnouncerFactory {
-    Announcer createAnnouncer(String type);
+import org.gradle.api.file.FileTreeElement;
+import org.gradle.api.file.RelativePath;
+import org.gradle.api.specs.Spec;
+
+public class RelativePathSpec implements Spec<FileTreeElement> {
+    private final Spec<? super RelativePath> pathSpec;
+
+    public RelativePathSpec(Spec<? super RelativePath> pathSpec) {
+        this.pathSpec = pathSpec;
+    }
+
+    public boolean isSatisfiedBy(FileTreeElement element) {
+        return pathSpec.isSatisfiedBy(element.getRelativePath());
+    }
 }

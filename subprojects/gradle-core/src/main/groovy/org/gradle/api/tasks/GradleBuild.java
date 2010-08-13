@@ -79,7 +79,7 @@ public class GradleBuild extends ConventionTask {
     }
 
     /**
-     * Sets the build file that should be used for this build
+     * Sets the build file that should be used for this build.
      *
      * @param file The build file. May be null to use the default build file for the build.
      */

@@ -34,14 +34,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Generates parsers from Antlr grammars.  Wrapper around the Ant {@link ANTLR} task.
- * <p/>
- * Most properties here are self-evident, but I wanted to highlight one in particular:
- * {@link #setAntlrClasspath} is used to define the classpath that should be passed along to the
- * Ant {@link ANTLR} task as its classpath.  That is the classpath it uses to perform generation
- * execution.  This <b>should<b> really only require the antlr jar.  In {@link AntlrPlugin}
- * usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
- * created and exposed by the {@link AntlrPlugin} itself.
+ * <p>Generates parsers from Antlr grammars.  Wrapper around the Ant {@link ANTLR} task.</p>
+ *
+ * <p>Most properties here are self-evident, but I wanted to highlight one in particular: {@link #setAntlrClasspath} is
+ * used to define the classpath that should be passed along to the Ant {@link ANTLR} task as its classpath.  That is the
+ * classpath it uses to perform generation execution.  This <b>should</b> really only require the antlr jar.  In {@link
+ * AntlrPlugin} usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
+ * created and exposed by the {@link AntlrPlugin} itself.</p>
  *
  * @author Steve Ebersole
  */

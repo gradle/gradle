@@ -20,6 +20,9 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.artifacts.ExternalDependency;
 
+/**
+ * Dependency types.
+ */
 public enum Type {
     EXTERNAL {public boolean isOf(Dependency dependency) {return dependency instanceof ExternalDependency;}},
     PROJECT {public boolean isOf(Dependency dependency) {return dependency instanceof ProjectDependency;}};

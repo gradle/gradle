@@ -21,6 +21,8 @@ import org.gradle.api.specs.Spec;
 
 /**
  * A {@code TaskCollection} contains a set of {@link Task} instances, and provides a number of query methods.
+ *
+ * @param <T> The type of tasks which this collection contains.
  */
 public interface TaskCollection<T extends Task> extends NamedDomainObjectCollection<T> {
 

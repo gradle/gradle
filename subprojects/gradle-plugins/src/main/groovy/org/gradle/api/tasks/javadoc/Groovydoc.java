@@ -228,14 +228,14 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns links to groovydoc/javadoc output at the given URL
+     * Returns links to groovydoc/javadoc output at the given URL.
      */
     public Set<Link> getLinks() {
         return Collections.unmodifiableSet(links);
     }
 
     /**
-     * Sets links to groovydoc/javadoc output at the given URL
+     * Sets links to groovydoc/javadoc output at the given URL.
      *
      * @param links The links to set
      * @see #link(String, String[])
@@ -245,7 +245,7 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Add links to groovydoc/javadoc output at the given URL
+     * Add links to groovydoc/javadoc output at the given URL.
      *
      * @param url Base URL of external site
      * @param packages list of package prefixes

@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.announce;
+package org.gradle.api.plugins.announce.internal;
 
 
 
 import org.slf4j.LoggerFactory
 import sun.misc.BASE64Encoder
 import org.slf4j.Logger
+import org.gradle.api.plugins.announce.Announcer
 
 /**
  * This class allows to send announce messages to twitter.

@@ -71,7 +71,7 @@ public class JettyRun extends AbstractJettyRunTask {
     private File webXml;
 
     /**
-     * Root directory for all html/jsp etc files
+     * Root directory for all html/jsp etc files.
      */
     private File webAppSourceDirectory;
 
@@ -449,7 +449,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     /**
-     * Set the classpath for the web application
+     * Set the classpath for the web application.
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;

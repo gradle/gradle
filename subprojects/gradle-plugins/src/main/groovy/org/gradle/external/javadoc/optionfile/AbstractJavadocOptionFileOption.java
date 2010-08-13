@@ -18,6 +18,7 @@ package org.gradle.external.javadoc.optionfile;
 
 /**
  * @author Tom Eyckmans
+ * @param <T> The type which this option represents.
  */
 public abstract class AbstractJavadocOptionFileOption<T> implements JavadocOptionFileOption<T> {
     protected final String option;

@@ -19,6 +19,8 @@ package org.gradle.api.plugins.announce;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.plugins.announce.internal.AnnouncerFactory
+import org.gradle.api.plugins.announce.internal.DefaultAnnouncerFactory
 
 /**
  * This plugin allows to send announce messages to twitter.

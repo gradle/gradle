@@ -50,7 +50,7 @@ import java.util.Map;
  *
  * <h2>External Modules</h2>
  *
- * There are 3 notations supported for declaring a dependency on an external module. One is a string notation:</p>
+ * <p>There are 3 notations supported for declaring a dependency on an external module. One is a string notation:</p>
  *
  * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
  *
@@ -103,7 +103,7 @@ public interface DependencyHandler {
     Dependency add(String configurationName, Object dependencyNotation);
 
     /**
-     * Adds a dependency to the given configuration, and configures the dependency using the given closure/
+     * Adds a dependency to the given configuration, and configures the dependency using the given closure.
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency notation, in one of the notations described above.

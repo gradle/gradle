@@ -23,10 +23,20 @@
     <module name="JavadocPackage"/>
 
     <module name="TreeWalker">
+        <module name="JavadocStyle">
+            <property name="scope" value="package"/>
+            <!-- TODO - this should be true -->
+            <property name="checkEmptyJavadoc" value="false"/>
+        </module>
 
+        <module name="JavadocType">
+            <property name="scope" value="package"/>
+                        
+        </module>
+
+        <!-- TODO - switch this on -->
         <!--<module name="JavadocMethod">-->
-        <!--<property name="scope" value="public"/>-->
-        <!--<property name="allowMissingReturnTag" value="true"/>-->
+            <!--<property name="scope" value="package"/>-->
         <!--</module>-->
 
     </module>

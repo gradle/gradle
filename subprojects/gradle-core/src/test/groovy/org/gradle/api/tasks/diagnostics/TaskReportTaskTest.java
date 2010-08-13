@@ -20,6 +20,8 @@ import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
+import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;

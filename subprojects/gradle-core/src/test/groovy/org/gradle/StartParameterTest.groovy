@@ -18,7 +18,7 @@ package org.gradle
 
 import static org.gradle.util.Matchers.*
 
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction
 import org.gradle.api.logging.LogLevel
 import org.gradle.execution.BuildExecuter
 import org.gradle.execution.DefaultBuildExecuter

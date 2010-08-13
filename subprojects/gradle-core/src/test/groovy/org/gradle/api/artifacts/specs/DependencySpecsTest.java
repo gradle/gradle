@@ -18,29 +18,26 @@ package org.gradle.api.artifacts.specs;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Test;
+
+import static org.gradle.util.Matchers.strictlyEqual;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
-public class DependencyTypeSpecTest {
+public class DependencySpecsTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
     @Test
-    public void init() {
-        assertSame(Type.PROJECT, new DependencyTypeSpec(Type.PROJECT).getType());
-    }
-
-    @Test
     public void testIsSatisfiedBy() {
-        assertTrue(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ProjectDependency.class)));
-        assertFalse(new DependencyTypeSpec(Type.PROJECT).isSatisfiedBy(context.mock(ExternalModuleDependency.class)));
+        assertTrue(DependencySpecs.type(Type.PROJECT).isSatisfiedBy(context.mock(ProjectDependency.class)));
+        assertFalse(DependencySpecs.type(Type.PROJECT).isSatisfiedBy(context.mock(ExternalModuleDependency.class)));
     }
 
     @Test
     public void equality() {
-        assertTrue(new DependencyTypeSpec(Type.PROJECT).equals(new DependencyTypeSpec(Type.PROJECT)));
-        assertFalse(new DependencyTypeSpec(Type.PROJECT).equals(new DependencyTypeSpec(Type.EXTERNAL)));
+        assertThat(DependencySpecs.type(Type.PROJECT), strictlyEqual(DependencySpecs.type(Type.PROJECT)));
+        assertFalse(DependencySpecs.type(Type.PROJECT).equals(DependencySpecs.type(Type.EXTERNAL)));
     }
 }

@@ -28,7 +28,7 @@ public interface LoggingOutput {
     void addStandardOutputListener(StandardOutputListener listener);
 
     /**
-     * Removes a listener on standard output
+     * Removes a listener from standard output.
      *
      * @param listener The listener to remove.
      */
@@ -42,7 +42,7 @@ public interface LoggingOutput {
     void addStandardErrorListener(StandardOutputListener listener);
 
     /**
-     * Removes a listener on standard error
+     * Removes a listener from standard error.
      *
      * @param listener The listener to remove.
      */

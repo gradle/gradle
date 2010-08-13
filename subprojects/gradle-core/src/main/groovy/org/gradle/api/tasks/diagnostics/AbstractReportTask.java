@@ -23,6 +23,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
 
 import java.io.File;
 import java.io.IOException;

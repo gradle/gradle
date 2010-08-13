@@ -16,7 +16,9 @@
 
 package org.gradle.api.plugins.announce;
 
-
+/**
+ * An {@code Announcer} allows messages to be sent.
+ */
 public interface Announcer {
   void send(String title, String message); 
 }

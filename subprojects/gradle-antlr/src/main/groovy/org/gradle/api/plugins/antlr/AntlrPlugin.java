@@ -36,7 +36,7 @@ import org.gradle.api.tasks.SourceSet;
 
 
 /**
- * A plugin for adding Antlr support to {@link JavaPlugin java projects}
+ * A plugin for adding Antlr support to {@link JavaPlugin java projects}.
  *
  * @author Steve Ebersole
  */

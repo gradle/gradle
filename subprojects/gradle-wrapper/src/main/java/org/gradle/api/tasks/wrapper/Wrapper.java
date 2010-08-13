@@ -57,6 +57,9 @@ public class Wrapper extends DefaultTask {
     public static final String DEFAULT_ARCHIVE_NAME = "gradle";
     public static final String DEFAULT_ARCHIVE_CLASSIFIER = "bin";
 
+    /**
+     * Specifies how the wrapper path should be interpreted.
+     */
     public enum PathBase { PROJECT, GRADLE_USER_HOME }
 
     @Input
@@ -219,7 +222,7 @@ public class Wrapper extends DefaultTask {
 
     /**
      * A URL where to download the gradle distribution from. The pattern used by the wrapper for downloading is:
-     * <code>{@link #getUrlRoot()}</i>/{@link #getArchiveName()}-{@link #getArchiveClassifier()}-{@link #getGradleVersion()}.zip</code>.
+     * <code>{@link #getUrlRoot()}/{@link #getArchiveName()}-{@link #getArchiveClassifier()}-{@link #getGradleVersion()}.zip</code>.
      * The default for the URL root is {@link #DEFAULT_URL_ROOT}.
      *
      * The wrapper downloads a certain distribution only ones and caches it.
@@ -303,7 +306,7 @@ public class Wrapper extends DefaultTask {
     /**
      * Specifies the name of the archive as part of the download URL. The download URL is assembled by the pattern:
      *
-     * <code>{@link #getUrlRoot()}</i>/{@link #getArchiveName()}-{@link #getArchiveClassifier()}-{@link #getGradleVersion()}.zip</code>
+     * <code>{@link #getUrlRoot()}/{@link #getArchiveName()}-{@link #getArchiveClassifier()}-{@link #getGradleVersion()}.zip</code>
      *
      * The default for the archive name is {@link #DEFAULT_ARCHIVE_NAME}.
      *
@@ -325,7 +328,7 @@ public class Wrapper extends DefaultTask {
     /**
      * Specifies the classifier of the archive as part of the download URL. The download URL is assembled by the pattern:
      *
-     * <code>{@link #getUrlRoot()}</i>/{@link #getArchiveName()}-{@link #getArchiveClassifier()}-{@link #getGradleVersion()}.zip</code>
+     * <code>{@link #getUrlRoot()}/{@link #getArchiveName()}-{@link #getArchiveClassifier()}-{@link #getGradleVersion()}.zip</code>
      *
      * The default for the archive classifier is {@link #DEFAULT_ARCHIVE_CLASSIFIER}.
      *

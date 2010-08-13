@@ -63,7 +63,7 @@ import java.util.Set;
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
  * {@link #doLast(groovy.lang.Closure)}  or using the left-shift &lt;&lt; operator.</p>
  *
- * There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
+ * <p>There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
  * {@link org.gradle.api.tasks.StopActionException}. A task action can abort execution of the task and continue to the
  * next task by throwing a {@link org.gradle.api.tasks.StopExecutionException}. Using these exceptions allows you to
@@ -143,7 +143,7 @@ public interface Task extends Comparable<Task> {
     public static final String TASK_ACTION = "action";
 
     /**
-     * </p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
+     * <p>Returns the name of this task. The name uniquely identifies the task within its {@link Project}.</p>
      *
      * @return The name of the task. Never returns null.
      */
@@ -400,7 +400,7 @@ public interface Task extends Comparable<Task> {
     Task captureStandardOutput(LogLevel level);
 
     /**
-     * Returns the value of the given property of this task.  This method locates a property as follows:</p>
+     * <p>Returns the value of the given property of this task.  This method locates a property as follows:</p>
      *
      * <ol>
      *

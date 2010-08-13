@@ -21,7 +21,7 @@ import org.gradle.CommandLineArgumentException;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.*;
 import org.gradle.groovy.scripts.UriScriptSource;

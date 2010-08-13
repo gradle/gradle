@@ -16,7 +16,10 @@
 package org.gradle.api.specs;
 
 /**
+ * Represents some predicate against objects of type T.
+ *
  * @author Hans Dockter
+ * @param <T> The target type for this Spec
  */
 public interface Spec<T> {
     boolean isSatisfiedBy(T element);

@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,25 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.compile;
+package org.gradle.api.plugins.announce.internal
 
-import org.apache.tools.ant.taskdefs.optional.depend.Depend;
-import org.apache.tools.ant.types.Path;
-import org.apache.tools.ant.BuildException;
+import org.gradle.process.internal.DefaultExecAction
+import org.gradle.process.internal.ExecAction
+import org.gradle.api.plugins.announce.Announcer
 
-public class AntDepend extends Depend {
-    private Path src;
-
-    public Path createSrc() {
-        if (src == null) {
-            src = new Path(getProject());
-        }
-        return src.createPath();
-    }
-
-    @Override
-    public void execute() throws BuildException {
-        setSrcdir(src);
-        super.execute();
+class Growl implements Announcer {
+    void send(String title, String message) {
+        ExecAction execAction = new DefaultExecAction()
+        execAction.executable('growlnotify')
+        execAction.args('-m', message, title)
+        execAction.execute()
     }
 }

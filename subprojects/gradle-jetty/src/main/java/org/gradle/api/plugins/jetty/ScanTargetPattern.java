@@ -20,6 +20,9 @@ import java.io.File;
 import java.util.Collections;
 import java.util.List;
 
+/**
+ * Patterns for scanning for file changes.
+ */
 public class ScanTargetPattern
 {
     private File directory;
