@@ -28,7 +28,7 @@
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.Copy'/></td>
-            <td>Copies files into a destination directory.</td>
+            <td>Copies files into a destination directory. See <xref linkend="sec:copying_files"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.Delete'/></td>
@@ -36,7 +36,7 @@
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.Directory' lang='groovy'/></td>
-            <td>Creates a directory.</td>
+            <td>Creates a directory. See <xref linkend="sec:directory_creation"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.diagnostics.DependencyReportTask'/></td>
@@ -60,7 +60,7 @@
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.GradleBuild'/></td>
-            <td>Executes a Gradle build.</td>
+            <td>Executes a Gradle build. See <xref linkend="sec:external_build"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.compile.GroovyCompile'/></td>
@@ -84,7 +84,7 @@
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.bundling.Jar' lang='groovy'/></td>
-            <td>Assembles a JAR archive.</td>
+            <td>Assembles a JAR archive. See <xref linkend="sec:archives"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.javadoc.Javadoc'/></td>
@@ -120,11 +120,11 @@
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.Sync'/></td>
-            <td>Synchronises the contents of a destination directory with some source.</td>
+            <td>Synchronises the contents of a destination directory with some source. See <xref linkend="sec:sync_task"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.bundling.Tar'/></td>
-            <td>Assembles a TAR archive.</td>
+            <td>Assembles a TAR archive. See <xref linkend="sec:archives"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.diagnostics.TaskReportTask'/></td>
@@ -140,15 +140,16 @@
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.bundling.War' lang='groovy'/></td>
-            <td>Assembles a WAR archive.</td>
+            <td>Assembles a WAR archive. See <xref linkend="sec:archives"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.wrapper.Wrapper'/></td>
-            <td>Generates scripts (for *nix and windows) which enable you to build your project with Gradle, without having to install Gradle.</td>
+            <td>Generates scripts (for *nix and windows) which enable you to build your project with Gradle, without
+                having to install Gradle. See <xref linkend="gradle_wrapper"/>.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.bundling.Zip'/></td>
-            <td>Assembles a ZIP archive.</td>
+            <td>Assembles a ZIP archive. See <xref linkend="sec:archives"/>.</td>
         </tr>
     </table>
 </chapter>

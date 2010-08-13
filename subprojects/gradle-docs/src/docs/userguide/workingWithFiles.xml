@@ -224,12 +224,19 @@
         </section>
     </section>
 
-    <section>
+    <section id="sec:sync_task">
         <title>Using the <literal>Sync</literal> task</title>
         <para>The <apilink class="org.gradle.api.tasks.Sync"/> task extends the <literal>Copy</literal> task. When it
             executes, it copies the source files into the destination directory, and then removes any files from the
-            destination directory which it did not copy.
+            destination directory which it did not copy. This can be useful for doing things such as installing your
+            application, creating an exploded copy of your archives, or maintaining a copy of the project's dependencies.
         </para>
+        <para>Here is an example which maintains a copy of the project's runtime dependencies in the <filename>build/libs</filename>
+            directory.</para>
+        <sample id="syncDependencies" dir="userguide/files/sync" title="Using the Sync task to copy dependencies">
+            <sourcefile file="build.gradle" snippet="copy-dependencies"/>
+            <test args="libs"/>
+        </sample>
     </section>
 
     <section id="sec:archives">
