@@ -51,7 +51,12 @@ public class SystemPropertiesHandler {
         }
         Properties properties = new Properties();
         try {
-            properties.load(new FileInputStream(propertiesFile));
+            FileInputStream inStream = new FileInputStream(propertiesFile);
+            try {
+                properties.load(inStream);
+            } finally {
+                inStream.close();
+            }
         } catch (IOException e) {
             throw new RuntimeException("Error when loading properties file=" + propertiesFile, e);
         }

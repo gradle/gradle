@@ -202,7 +202,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     private void read(Object manifestPath) {
         File manifestFile = fileResolver.resolve(manifestPath);
         try {
-            Manifest antManifest = new Manifest(new FileReader(manifestFile));
+            FileReader reader = new FileReader(manifestFile);
+            Manifest antManifest;
+            try {
+                antManifest = new Manifest(reader);
+            } finally {
+                reader.close();
+            }
             addAntManifestToAttributes(antManifest);
             addAntManifestToSections(antManifest);
         } catch (ManifestException e) {

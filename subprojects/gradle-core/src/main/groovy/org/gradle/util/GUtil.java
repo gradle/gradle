@@ -174,8 +174,13 @@ public class GUtil {
 
     public static Properties loadProperties(File propertyFile) {
         try {
-            return loadProperties(new FileInputStream(propertyFile));
-        } catch (FileNotFoundException e) {
+            FileInputStream inputStream = new FileInputStream(propertyFile);
+            try {
+                return loadProperties(inputStream);
+            } finally {
+                inputStream.close();
+            }
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
