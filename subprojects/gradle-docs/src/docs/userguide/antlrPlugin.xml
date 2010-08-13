@@ -130,7 +130,52 @@
 
     <section>
         <title>Convention properties</title>
-        <para>TBD</para>
+        <para>The Antlr plugin does not add any convention properties.</para>
     </section>
-    
+
+    <section>
+        <title>Source set properties</title>
+        <para>The Antlr plugin adds the following properties to each source set in the project.</para>
+        <table>
+            <title>Antlr plugin - source set properties</title>
+            <thead>
+                <tr>
+                    <td>Property name</td>
+                    <td>Type</td>
+                    <td>Default value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>antlr</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.file.SourceDirectorySet"/> (read-only)
+                </td>
+                <td>
+                    Not null
+                </td>
+                <td>
+                    The Antlr grammar files of this source set. Contains all <filename>.g</filename> found in the Antlr
+                    source directories, and excludes all other types of files.
+                </td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>antlr.srcDirs</literal>
+                </td>
+                <td>
+                    <classname>Set&lt;File></classname>. Can set using anything described in <xref linkend="sec:specifying_multiple_files"/>.
+                </td>
+                <td>
+                    <literal>[<replaceable>projectDir</replaceable>/src/<replaceable>name</replaceable>/antlr]</literal>
+                </td>
+                <td>
+                    The source directories containing the Antlr grammar files of this source set.
+                </td>
+            </tr>
+        </table>
+    </section>
+
 </chapter>
