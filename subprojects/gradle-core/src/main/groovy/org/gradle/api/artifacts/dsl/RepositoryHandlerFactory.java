@@ -18,6 +18,8 @@ package org.gradle.api.artifacts.dsl;
 import org.gradle.api.plugins.Convention;
 
 /**
+ * A factory for creating {@link org.gradle.api.artifacts.dsl.RepositoryHandler} instances.
+ *
  * @author Hans Dockter
  */
 public interface RepositoryHandlerFactory {

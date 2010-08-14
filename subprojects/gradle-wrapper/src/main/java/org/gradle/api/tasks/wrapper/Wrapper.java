@@ -20,6 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
 

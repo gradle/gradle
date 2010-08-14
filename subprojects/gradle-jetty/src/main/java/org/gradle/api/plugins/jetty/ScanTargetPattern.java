@@ -29,17 +29,11 @@ public class ScanTargetPattern
     private List includes = Collections.EMPTY_LIST;
     private List excludes = Collections.EMPTY_LIST;
 
-    /**
-     * @return the _directory
-     */
     public File getDirectory()
     {
         return directory;
     }
 
-    /**
-     * @param directory the _directory to set
-     */
     public void setDirectory(File directory)
     {
         this.directory = directory;

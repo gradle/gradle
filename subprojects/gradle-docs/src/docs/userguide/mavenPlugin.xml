@@ -343,7 +343,7 @@
                 </sample>
                 <para>You need to declare a filter for each artifact you want to publish. This filter defines a boolean expression for
                     which Gradle artifact it accepts. Each filter has a POM associated with it which you can configure.
-                    To learn more about this have a look at <apilink class="org.gradle.api.artifacts.maven.GroovyPomFilterContainer"/>
+                    To learn more about this have a look at <apilink class="org.gradle.api.artifacts.maven.PomFilterContainer"/>
                     and its associated classes.
                 </para>
             </section>

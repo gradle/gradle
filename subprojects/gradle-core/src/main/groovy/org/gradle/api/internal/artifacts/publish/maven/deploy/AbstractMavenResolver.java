@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
+import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.ivy.core.cache.ArtifactOrigin;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
@@ -252,12 +253,28 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         return pomFilterContainer.addFilter(name, publishFilter);
     }
 
+    public MavenPom addFilter(String name, Closure filter) {
+        return pomFilterContainer.addFilter(name, filter);
+    }
+
+    public void filter(Closure filter) {
+        pomFilterContainer.filter(filter);
+    }
+
     public PublishFilter filter(String name) {
         return pomFilterContainer.filter(name);
     }
 
     public MavenPom pom(String name) {
         return pomFilterContainer.pom(name);
+    }
+
+    public MavenPom pom(Closure configureClosure) {
+        return pomFilterContainer.pom(configureClosure);
+    }
+
+    public MavenPom pom(String name, Closure configureClosure) {
+        return pomFilterContainer.pom(name, configureClosure);
     }
 
     public Iterable<PomFilter> getActivePomFilters() {

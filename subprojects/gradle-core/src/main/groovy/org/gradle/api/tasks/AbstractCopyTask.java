@@ -32,7 +32,7 @@ import java.util.regex.Pattern;
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
  */
-public abstract class AbstractCopyTask extends ConventionTask implements CopyAction, CopySpecSource {
+public abstract class AbstractCopyTask extends ConventionTask implements CopySpec, CopySpecSource {
 
     @TaskAction
     protected void copy() {

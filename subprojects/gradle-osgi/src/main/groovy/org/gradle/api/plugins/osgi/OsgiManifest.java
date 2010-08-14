@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * Represents a manifest file for a JAR containing an OSGi bundle.
+ * 
  * @author Hans Dockter
  */
 public interface OsgiManifest extends org.gradle.api.java.archives.Manifest {

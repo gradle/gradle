@@ -20,7 +20,6 @@ import org.gradle.StartParameter
 import org.gradle.api.GradleException
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.ProjectDescriptor
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.DefaultProject
@@ -57,14 +56,12 @@ class BuildLoaderTest {
     ProjectInternal rootProject
     ProjectDescriptor childDescriptor
     ProjectInternal childProject
-    InternalRepository internalRepository
     GradleInternal build
     JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     @Rule public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before public void setUp()  {
         projectFactory = context.mock(IProjectFactory)
-        internalRepository = context.mock(InternalRepository)
         buildLoader = new BuildLoader(projectFactory)
         testDir = tmpDir.dir
         (rootProjectDir = new File(testDir, 'root')).mkdirs()

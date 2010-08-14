@@ -22,7 +22,9 @@ package org.gradle.api.tasks.testing;
  */
 public interface TestDescriptor {
     /**
-     * @return The name of the test.  Not guaranteed to be unique.
+     * Returns the name of the test.  Not guaranteed to be unique.
+     *
+     * @return The test name
      */
     String getName();
 

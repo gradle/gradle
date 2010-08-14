@@ -18,6 +18,8 @@ package org.gradle.plugins.idea.model;
 import groovy.util.Node;
 
 /**
+ * Represents a dependency of an IDEA module.
+ *
  * @author Hans Dockter
  */
 public interface Dependency {

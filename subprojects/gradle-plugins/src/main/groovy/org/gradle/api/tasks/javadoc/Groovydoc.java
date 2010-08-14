@@ -262,6 +262,8 @@ public class Groovydoc extends SourceTask {
         private String url;
 
         /**
+         * Constructs a {@code Link}.
+         *
          * @param url Base URL of external site
          * @param packages list of package prefixes
          */

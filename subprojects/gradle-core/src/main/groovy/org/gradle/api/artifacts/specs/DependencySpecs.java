@@ -19,6 +19,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.specs.Spec;
 
 /**
+ * Various {@link Spec} implementations for selecting {@link Dependency} instances.
+ *
  * @author Hans Dockter
  */
 public class DependencySpecs {

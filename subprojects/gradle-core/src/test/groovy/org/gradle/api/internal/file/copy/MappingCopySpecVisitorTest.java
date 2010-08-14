@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.Action;
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileCopyDetails;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;

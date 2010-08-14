@@ -16,6 +16,8 @@
 package org.gradle.api.specs;
 
 /**
+ * A {@link Spec} implementation which negates another {@code Spec}.
+ * 
  * @author Hans Dockter
  * @param <T> The target type for this Spec
  */

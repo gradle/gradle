@@ -30,6 +30,8 @@ public class Conf2ScopeMapping {
     private String scope;
 
     /**
+     * Constructs a {@code Conf2ScopeMapping}.
+     *
      * @param priority The priority of this mapping
      * @param configuration The configuration name
      * @param scope The Maven scope name

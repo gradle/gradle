@@ -27,15 +27,16 @@ import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
+import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultExcludeRuleConverter;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultPomDependenciesConverter;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenInstaller;
+import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
-import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyPomFilterContainer;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.util.DeleteOnExit;
@@ -154,7 +155,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     public GroovyMavenDeployer createMavenDeployer(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
                                                    ConfigurationContainer configurationContainer,
                                                    Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
-        DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
+        PomFilterContainer pomFilterContainer = new BasePomFilterContainer(
                 new DefaultMavenPomFactory(configurationContainer, scopeMapping, new DefaultPomDependenciesConverter(
                         new DefaultExcludeRuleConverter()), fileResolver));
         return new DefaultGroovyMavenDeployer(name, pomFilterContainer, new DefaultArtifactPomContainer(
@@ -166,7 +167,7 @@ public class DefaultResolverFactory implements ResolverFactory {
     public MavenResolver createMavenInstaller(String name, MavenPomMetaInfoProvider pomMetaInfoProvider,
                                               ConfigurationContainer configurationContainer,
                                               Conf2ScopeMappingContainer scopeMapping, FileResolver fileResolver) {
-        DefaultGroovyPomFilterContainer pomFilterContainer = new DefaultGroovyPomFilterContainer(
+        PomFilterContainer pomFilterContainer = new BasePomFilterContainer(
                 new DefaultMavenPomFactory(configurationContainer, scopeMapping, new DefaultPomDependenciesConverter(
                         new DefaultExcludeRuleConverter()), fileResolver));
         return new BaseMavenInstaller(name, pomFilterContainer, new DefaultArtifactPomContainer(pomMetaInfoProvider,

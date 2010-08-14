@@ -49,9 +49,6 @@ public class JettyRunWar extends AbstractJettyRunTask {
     }
 
 
-    /**
-     * @see AbstractJettyRunTask#validateConfiguration()
-     */
     public void validateConfiguration() {
     }
 
@@ -102,9 +99,6 @@ public class JettyRunWar extends AbstractJettyRunTask {
     }
 
 
-    /**
-     * @see AbstractJettyRunTask#finishConfigurationBeforeStart()
-     */
     public void finishConfigurationBeforeStart() {
     }
 
@@ -128,9 +122,6 @@ public class JettyRunWar extends AbstractJettyRunTask {
         xmlConfiguration.configure(getServer().getProxiedObject());
     }
 
-    /**
-     * @see org.gradle.api.plugins.jetty.AbstractJettyRunTask#createServer()
-     */
     public org.gradle.api.plugins.jetty.internal.JettyPluginServer createServer() throws Exception {
         return new Jetty6PluginServer();
     }

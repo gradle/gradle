@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
 

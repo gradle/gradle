@@ -15,9 +15,12 @@
  */
 package org.gradle.api.artifacts.maven;
 
+import groovy.lang.Closure;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.PomFilter;
 
 /**
+ * Manages a set of {@link MavenPom} instances and their associated {@link PublishFilter} instances.
+ *
  * @author Hans Dockter
  */
 public interface PomFilterContainer {
@@ -77,6 +80,17 @@ public interface PomFilterContainer {
     MavenPom addFilter(String name, PublishFilter publishFilter);
 
     /**
+     * Adds a publish filter.
+     *
+     * @param name   The name of the filter
+     * @param filter The filter
+     * @return The Maven pom associated with the closure
+     * @see PublishFilter
+     * @see PomFilterContainer#addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)
+     */
+    MavenPom addFilter(String name, Closure filter);
+
+    /**
      * Returns a filter added with {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}.
      *
      * @param name The name of the filter
@@ -84,11 +98,39 @@ public interface PomFilterContainer {
     PublishFilter filter(String name);
 
     /**
+     * Sets the default publish filter.
+     *
+     * @param filter The filter to be set
+     * @see PublishFilter
+     * @see PomFilterContainer#setFilter(org.gradle.api.artifacts.maven.PublishFilter)
+     */
+    void filter(Closure filter);
+
+    /**
      * Returns the pom associated with a filter added with {@link #addFilter(String, org.gradle.api.artifacts.maven.PublishFilter)}.
      *
      * @param name The name of the filter.
      */
     MavenPom pom(String name);
+
+    /**
+     * Configures a pom by a closure. The closure statements are delegated to the pom object associated with the given name.
+     *
+     * @param name
+     * @param configureClosure
+     * @return The pom object associated with the given name.
+     * @see PomFilterContainer#pom(String)
+     */
+    MavenPom pom(String name, Closure configureClosure);
+
+    /**
+     * Configures the default pom by a closure. The closure statements are delegated to the default pom.
+     *
+     * @param configureClosure
+     * @return The default pom.
+     * @see PomFilterContainer#getPom()
+     */
+    MavenPom pom(Closure configureClosure);
 
     Iterable<PomFilter> getActivePomFilters();
 }

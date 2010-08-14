@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Set;
 
 /**
+ * Provides a number of {@link Spec} implementations.
+ *
  * @author Hans Dockter
  */
 public class Specs {

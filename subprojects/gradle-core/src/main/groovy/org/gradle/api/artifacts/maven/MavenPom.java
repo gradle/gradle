@@ -59,56 +59,76 @@ public interface MavenPom {
     MavenPom project(Closure pom);
 
     /**
+     * Returns the group id for this POM.
+     *
      * @see org.apache.maven.model.Model#setGroupId(String)
      */
     String getGroupId();
 
     /**
+     * Sets the group id for this POM.
+     *
      * @see org.apache.maven.model.Model#getGroupId
      * @return this
      */
     MavenPom setGroupId(String groupId);
 
     /**
+     * Returns the artifact id for this POM.
+     * 
      * @see org.apache.maven.model.Model#getArtifactId()
      */
     String getArtifactId();
 
     /**
+     * Sets the artifact id for this POM.
+     *
      * @see org.apache.maven.model.Model#setArtifactId(String)
      * @return this
      */
     MavenPom setArtifactId(String artifactId);
 
     /**
+     * Returns the version for this POM.
+     *
      * @see org.apache.maven.model.Model#getVersion()
      */
     String getVersion();
 
     /**
+     * Sets the version for this POM.
+     *
      * @see org.apache.maven.model.Model#setVersion(String)
      * @return this
      */
     MavenPom setVersion(String version);
 
     /**
+     * Returns the packaging for this POM.
+     *
      * @see org.apache.maven.model.Model#getPackaging()
      */
     String getPackaging();
 
     /**
+     * Sets the packaging for this POM.
+     *
      * @see org.apache.maven.model.Model#setPackaging(String)
      * @return this
      */
     MavenPom setPackaging(String packaging);
 
     /**
+     * Sets the dependencies for this POM.
+     *
      * @see org.apache.maven.model.Model#setDependencies(java.util.List)
      * @return this
      */
     MavenPom setDependencies(List<Dependency> dependencies);
 
     /**
+     * Returns the dependencies for this POM.
+     * 
      * @see org.apache.maven.model.Model#getDependencies()
      */
     List<Dependency> getDependencies();

@@ -26,7 +26,9 @@ public interface TestResult {
     public enum ResultType {SUCCESS, FAILURE, SKIPPED}
 
     /**
-     * @return The type of result.  Generally one wants it to be SUCCESS!
+     * Returns the type of result.  Generally one wants it to be SUCCESS!
+     *
+     * @return The result type.
      */
     ResultType getResultType();
 

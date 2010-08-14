@@ -18,7 +18,7 @@ package org.gradle.api.internal.file.archive;
 import org.apache.tools.zip.*;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.CopyAction;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.internal.file.copy.ArchiveCopyAction;
 import org.gradle.api.internal.file.copy.EmptyCopySpecVisitor;

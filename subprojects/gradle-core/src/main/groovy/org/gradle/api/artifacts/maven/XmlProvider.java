@@ -16,6 +16,8 @@
 package org.gradle.api.artifacts.maven;
 
 /**
+ * Provides various ways to access the content of an XML document.
+ *
  * @author Hans Dockter
  */
 public interface XmlProvider {
