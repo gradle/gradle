@@ -39,6 +39,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.openapi.external.foundation.*
 import org.gradle.openapi.external.ui.*
+import org.hamcrest.Matchers
 
 /**
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
@@ -57,7 +58,7 @@ public class OpenApiUiTest {
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
   @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-  @Rule public final Sample sample = new Sample('java/quickstart')
+  @Rule public final Sample sample = new Sample('java/multiproject')
 
   @Before
   void setUp() {
@@ -354,7 +355,7 @@ public class OpenApiUiTest {
 
       //add a request observer so we can observe when the command is finished. This allows us to
       //see what was actually executed.
-      TestRequestObserver testRequestObserver = new TestRequestObserver( RequestVersion1.EXECUTION_TYPE )
+      BlockingRequestObserver testRequestObserver = new BlockingRequestObserver( RequestVersion1.EXECUTION_TYPE )
       ((GradleInterfaceVersion2)singlePane.getGradleInterfaceVersion1()).addRequestObserver( testRequestObserver )
 
       //now execute both favorites
@@ -379,13 +380,11 @@ public class OpenApiUiTest {
       GradleInterfaceVersion2 gradleInterface = (GradleInterfaceVersion2) dualPane.getGradleInterfaceVersion1()
 
       //make sure our samples directory exists
-      if( !gradleInterface.getCurrentDirectory().exists() ) {
-        throw new AssertionFailedError('sample project missing. Expected it at: ' + gradleInterface.getCurrentDirectory())
-      }
+      Assert.assertTrue( gradleInterface.getCurrentDirectory().isDirectory() )
 
       //add a request observer so we can observe when the command is finished. This allows us to
       //see what was actually executed.
-      TestRequestObserver testRequestObserver = new TestRequestObserver( RequestVersion1.REFRESH_TYPE )
+      BlockingRequestObserver testRequestObserver = new BlockingRequestObserver( RequestVersion1.REFRESH_TYPE )
       gradleInterface.addRequestObserver( testRequestObserver )
 
       //this starts the execution queue
@@ -393,23 +392,7 @@ public class OpenApiUiTest {
 
       gradleInterface.refreshTaskTree()
 
-      //now we'll wait up to x seconds (arbitrary) for the refresh to occur. This is ugly, but its just a test.
-      int maximumWaitTime = 40;
-      int totalWaitTime = 0;
-      while ( testRequestObserver.request == null && totalWaitTime <= maximumWaitTime ) {
-          try {
-              Thread.sleep(1000);
-          }
-          catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-
-          totalWaitTime += 1;
-      }
-
-      if( totalWaitTime > maximumWaitTime ) {
-        throw new AssertionFailedError("Waited " + totalWaitTime + " seconds and failed to get root projects. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + gradleInterface.getCurrentDirectory() + "'\ngradle home: '" + gradleInterface.getGradleHomeDirectory() + "'")
-      }
+      testRequestObserver.waitForRequestExecutionComplete()
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -418,6 +401,7 @@ public class OpenApiUiTest {
 
       ProjectVersion1 rootProject = rootProjects.get( 0 );
       Assert.assertNotNull( rootProject );
+      Assert.assertThat( rootProject.getSubProjects().size(), Matchers.equalTo(3))
 
       //Quick check to make sure there are tasks on each of the sub projects.
       //The exact task names will change over time, so I don't want to try
@@ -496,7 +480,7 @@ public class OpenApiUiTest {
 
       //add a request observer so we can observe when the command is finished. This allows us to
       //see what was actually executed.
-      TestRequestObserver testRequestObserver = new TestRequestObserver( RequestVersion1.REFRESH_TYPE )
+      BlockingRequestObserver testRequestObserver = new BlockingRequestObserver( RequestVersion1.REFRESH_TYPE )
       gradleInterface.addRequestObserver( testRequestObserver )
 
       RequestVersion1 request = gradleInterface.refreshTaskTree2("-xtest")
@@ -505,23 +489,7 @@ public class OpenApiUiTest {
       //(this line is really what we're trying to test)
       Assert.assertEquals( "-t -xtest", request.getFullCommandLine() )
 
-      //now we'll wait up to x seconds (arbitrary) for the refresh to occur. This is ugly, but its just a test.
-      int maximumWaitTime = 20;
-      int totalWaitTime = 0;
-      while ( testRequestObserver.request == null && totalWaitTime <= maximumWaitTime ) {
-          try {
-              Thread.sleep(1000);
-          }
-          catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-
-          totalWaitTime += 1;
-      }
-
-      if( totalWaitTime > maximumWaitTime ) {
-        throw new AssertionFailedError("Waited " + totalWaitTime + " seconds and failed to complete refresh. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + gradleInterface.getCurrentDirectory() + "'\ngradle home: '" + gradleInterface.getGradleHomeDirectory() + "'")
-      }
+      testRequestObserver.waitForRequestExecutionComplete()
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -750,84 +718,33 @@ public class OpenApiUiTest {
             throw new AssertionFailedError( "Failed to extract single pane: Caused by " + e.getMessage() )
         }
 
-        File illegalDirectory = createTempDirectory( "non-existant" );
+        File illegalDirectory = dist.testFile( "non-existant" ).createDir();
+        if( illegalDirectory.equals( singlePane.getCurrentDirectory() ) ) {
+          throw new AssertionFailedError( "Directory already set to 'test' directory. The test is not setup correctly." );
+        }
+
+        //this is required to get the ball rolling
+        singlePane.aboutToShow();
+
+        //set the current directory after calling aboutToShow (otherwise, it'll stomp over us when it restores its default settings)
+        singlePane.setCurrentDirectory( illegalDirectory );
+
+        //close the UI. This saves the current settings.
+        singlePane.close();
+
+        //now instantiate it again
+        testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1( new TestAlternateUIInteractionVersion1(), settingsNode );
         try {
-            if( illegalDirectory.equals( singlePane.getCurrentDirectory() ) ) {
-              throw new AssertionFailedError( "Directory already set to 'test' directory. The test is not setup correctly." );
-            }
-
-            //this is required to get the ball rolling
-            singlePane.aboutToShow();
-
-            //set the current directory after calling aboutToShow (otherwise, it'll stomp over us when it restores its default settings)
-            singlePane.setCurrentDirectory( illegalDirectory );
-
-            //close the UI. This saves the current settings.
-            singlePane.close();
-
-            //now instantiate it again
-            testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1( new TestAlternateUIInteractionVersion1(), settingsNode );
-            try {
-                singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false );
-            } catch (Exception e) {
-                throw new AssertionFailedError( "Failed to extract single pane (second time): Caused by " + e.getMessage() )
-            }
-
-            //this should restore the previous settings
-            singlePane.aboutToShow();
-
-            Assert.assertEquals( illegalDirectory, singlePane.getCurrentDirectory() );
-        } finally {
-            deleteTempDirectory( illegalDirectory );
+            singlePane = UIFactory.createSinglePaneUI(getClass().getClassLoader(), dist.getGradleHomeDir(), testSingleDualPaneUIInteractionVersion1, false );
+        } catch (Exception e) {
+            throw new AssertionFailedError( "Failed to extract single pane (second time): Caused by " + e.getMessage() )
         }
+
+        //this should restore the previous settings
+        singlePane.aboutToShow();
+
+        Assert.assertEquals( illegalDirectory, singlePane.getCurrentDirectory() );
     }
-
-    /**
-      Call this to create a temporary directory with the specified name.
-
-      <!      Name       Description>
-      @param  baseName   the base name. We may append a number to it.
-      @return the directory.
-      @author mhunsicker
-   */
-   public static File createTempDirectory( String baseName )
-   {
-      String systemTemporaryDirectory = System.getProperty( "java.io.tmpdir" );
-
-      File file = new File( systemTemporaryDirectory, baseName );
-      int index = 2;
-      while( file.exists() )
-      {
-         file = new File( systemTemporaryDirectory, baseName + "_" + index );
-         index++;
-      }
-
-      file.mkdirs(); //create it
-      return file;
-   }
-
-   /**
-      This deletes the contents of a temporary directory (created with the above
-      function) and hopefully the directory itself. BUt this doesn't work very
-      well on Windows. Sun says it's officially a Windows issue. I tend to agree
-      since Windows mysteriously locks files and won't let you delete them and
-      only Explorer has a handle to them (verified using process explorer).
-
-      @author mhunsicker
-   */
-   public static void deleteTempDirectory( File temporaryDirectory )
-   {
-      File[] files = temporaryDirectory.listFiles();
-      if( files != null ) {
-        for (int index = 0; index < files.length; index++) {
-          File file = files[index];
-          file.delete();
-        }
-      }
-
-
-     temporaryDirectory.deleteOnExit();
-   }
 
     /**
      * This tests that the command line altering mechanism works. This adds additional
@@ -852,7 +769,7 @@ public class OpenApiUiTest {
 
       //add a request observer so we can observe when the command is finished. This allows us to
       //see what was actually executed.
-      TestRequestObserver testRequestObserver = new TestRequestObserver( RequestVersion1.EXECUTION_TYPE )
+      BlockingRequestObserver testRequestObserver = new BlockingRequestObserver( RequestVersion1.EXECUTION_TYPE )
       gradleInterface.addRequestObserver( testRequestObserver )
 
       //now that we know that command is illegal by itself, try it again but the listener will append 'build'
@@ -866,23 +783,7 @@ public class OpenApiUiTest {
       //can try changing the command line to something that's illegal by itself (we don't care what).
       RequestVersion1 request = gradleInterface.executeCommand2("-s", "test command")
 
-      //now we'll wait up to x seconds (arbitrary) for the task to execute. This is ugly, but its just a test.
-      int maximumWaitTime = 80;
-      int totalWaitTime = 0;
-      while ( testRequestObserver.request == null && totalWaitTime <= maximumWaitTime ) {
-          try {
-              Thread.sleep(1000);
-          }
-          catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-
-          totalWaitTime += 1;
-      }
-
-      if( totalWaitTime > maximumWaitTime ) {
-        throw new AssertionFailedError("Waited " + totalWaitTime + " seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + gradleInterface.getCurrentDirectory() + "'\ngradle home: '" + gradleInterface.getGradleHomeDirectory() + "'\nOutput:\n" + testRequestObserver.output)
-      }
+      testRequestObserver.waitForRequestExecutionComplete()
 
       Assert.assertEquals( "Incorrect request", "-s build", testRequestObserver.request.getFullCommandLine() )
 
@@ -1010,7 +911,7 @@ public class OpenApiUiTest {
       dualPane.aboutToShow()
 
       //add a request observer so we can observe when the command is finished.
-      TestRequestObserver testRequestObserver = new TestRequestObserver( RequestVersion1.EXECUTION_TYPE )
+      BlockingRequestObserver testRequestObserver = new BlockingRequestObserver( RequestVersion1.EXECUTION_TYPE )
       gradleInterface.addRequestObserver( testRequestObserver )
 
       gradleInterface.executeCommand("build", "test command")
@@ -1026,23 +927,7 @@ public class OpenApiUiTest {
       //since we just asked to close and we're busy, make sure we prompted the user
       Assert.assertTrue( testCloseInteraction.wasPromptedToConfirmClose )
 
-      //now we'll wait up to x seconds (arbitrary) for the task to execute. This is ugly, but its just a test.
-      int maximumWaitTime = 80;
-      int totalWaitTime = 0;
-      while ( testRequestObserver.request == null && totalWaitTime <= maximumWaitTime ) {
-          try {
-              Thread.sleep(1000);
-          }
-          catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-
-          totalWaitTime += 1;
-      }
-
-      if( totalWaitTime > maximumWaitTime ) {
-        throw new AssertionFailedError("Waited " + totalWaitTime + " seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + gradleInterface.getCurrentDirectory() + "'\ngradle home: '" + gradleInterface.getGradleHomeDirectory() + "'\nOutput:\n" + testRequestObserver.output)
-      }
+      testRequestObserver.waitForRequestExecutionComplete()
 
       Assert.assertEquals( "Incorrect request", "build", testRequestObserver.request.getFullCommandLine() )
 
@@ -1088,7 +973,7 @@ public class OpenApiUiTest {
       Assert.assertEquals( gradleExecutor, dualPane.getCustomGradleExecutable() ) //just another way to get it
 
       //add a request observer so we can observe when the command is finished.
-      TestRequestObserver testRequestObserver = new TestRequestObserver( RequestVersion1.REFRESH_TYPE )
+      BlockingRequestObserver testRequestObserver = new BlockingRequestObserver( RequestVersion1.REFRESH_TYPE )
       gradleInterface.addRequestObserver( testRequestObserver )
 
       //this starts the execution queue
@@ -1096,23 +981,7 @@ public class OpenApiUiTest {
 
       dualPane.refreshTaskTree()
 
-      //now we'll wait up to x seconds (arbitrary) for the task to execute. This is ugly, but its just a test.
-      int maximumWaitTime = 80;
-      int totalWaitTime = 0;
-      while ( testRequestObserver.request == null && totalWaitTime <= maximumWaitTime ) {
-          try {
-              Thread.sleep(1000);
-          }
-          catch (InterruptedException e) {
-              e.printStackTrace();
-          }
-
-          totalWaitTime += 1;
-      }
-
-      if( totalWaitTime > maximumWaitTime ) {
-        throw new AssertionFailedError("Waited " + totalWaitTime + " seconds and failed to finish executing command. This is taking too long, so assuming something is wrong.\nCurrent project directory: '" + gradleInterface.getCurrentDirectory() + "'\ngradle home: '" + gradleInterface.getGradleHomeDirectory() + "'\nOutput:\n" + testRequestObserver.output)
-      }
+      testRequestObserver.waitForRequestExecutionComplete()
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )
@@ -1213,35 +1082,6 @@ public class OpenApiUiTest {
     void aboutToShow() {
       informedAboutToShow = true;
     }
-  }
-
-  /**
-  * This allows us to get a copy of hte request that was executed so we can inspect it when its done
-    */
-  private class TestRequestObserver implements RequestObserverVersion1
-  {
-    private String typeOfInterest;  //either RequestVersion1.EXECUTION_TYPE or RequestVersion1.REFRESH_TYPE
-    private RequestVersion1 request
-    private int result = -98 //means it hasn't been set to anything. 0 means success, so we have to initialize it to something else
-    private String output
-
-
-    def TestRequestObserver(typeOfInterest) {
-      this.typeOfInterest = typeOfInterest;
-    }
-
-    void executionRequestAdded(RequestVersion1 request) { }
-    void refreshRequestAdded(RequestVersion1 request) { }
-    void aboutToExecuteRequest(RequestVersion1 request) { }
-
-    void requestExecutionComplete(RequestVersion1 request, int result, String output) {
-      if( this.typeOfInterest.equals( request.getType() ) ) {  //refreshes will come through here. We're ignoring those
-        this.request = request
-        this.result = result
-        this.output = output
-      }
-    }
-
   }
 
   /**

@@ -47,7 +47,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
 
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final Sample sample = new Sample('java/quickstart')
+    @Rule public final Sample sample = new Sample('java/multiproject')
 
     @Before
     void setUp() {
