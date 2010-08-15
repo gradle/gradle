@@ -11,7 +11,7 @@
 /subprojects/gradle-core/ide
 *.iml
 *.ipr
-*.iws
+gradle.iws
 *.classpath
 *.project
 /intTestHomeDir
