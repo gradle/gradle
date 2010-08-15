@@ -18,30 +18,18 @@ import java.text.DateFormat
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 apply plugin: 'groovy'
+apply from: "$rootDir/gradle/integTest.gradle"
 
 configurations {
     testFixtures
     testFixturesRuntime {
         extendsFrom testFixtures, testRuntime
     }
-    integTestCompile {
-        extendsFrom testCompile
-    }
-    integTestRuntime {
-        extendsFrom intTestCompile, testRuntime
-    }
     integTestFixtures {
         extendsFrom testFixtures
     }
     integTestFixturesRuntime {
         extendsFrom integTestFixtures, integTestRuntime
-    }
-}
-
-sourceSets {
-    integTest {
-        compileClasspath = sourceSets.test.classes + sourceSets.main.classes + configurations.integTestCompile
-        runtimeClasspath = classes + compileClasspath + configurations.integTestRuntime
     }
 }
 
@@ -79,8 +67,7 @@ dependencies {
 
     testCompile libraries.xmlunit
 
-    runtime libraries.ant_launcher
-    testCompile libraries.ant_launcher
+    compile libraries.ant_launcher
 
     integTestCompile libraries.jetty_depends
 
@@ -102,25 +89,17 @@ ide.dependsOn ideVersionProperties
 
 ideaModule {
     dependsOn ideVersionProperties
-    testSourceDirs += project.sourceSets.integTest.groovy.srcDirs
     scopes.COMPILE.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-    scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs))))
-    scopes.TEST.plus.add(configurations.integTestCompile)
-    scopes.TEST.plus.add(configurations.integTestRuntime)
 }
 
 eclipseClasspath {
     dependsOn ideVersionProperties
     plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
     plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs))))
-    plusConfigurations.add(configurations.integTestCompile)
-    plusConfigurations.add(configurations.integTestRuntime)
 	whenConfigured { classpath ->
 		classpath.entries.removeAll { entry -> entry.kind == 'src' && entry.path.startsWith('src/integTest/resources')}
 	}
 }
-
-
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')
 

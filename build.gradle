@@ -17,8 +17,10 @@
 import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.gradle.api.artifacts.repositories.WebdavResolver
+import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 import org.gradle.build.samples.WrapperProjectCreator
+import java.util.regex.Pattern
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -152,17 +154,58 @@ allprojects {
         outputDir = "$rootProject.projectDir/intellij/out" as File
         testOutputDir = "$rootProject.projectDir/intellij/testOut" as File
     }
+    eclipseClasspath {
+        variables = [:]
+    }
 }
 
 ideaModule {
     excludeDirs += file('intTestHomeDir')
     excludeDirs += file('buildSrc/build')
     excludeDirs += file('buildSrc/.gradle')
+    excludeDirs += file('performanceTest/.gradle')
+    excludeDirs += file('performanceTest/build')
+    excludeDirs += file('website/.gradle')
+    excludeDirs += file('website/build')
 }
 
 ideaProject {
     wildcards += ['?*.gradle']
     javaVersion = '1.6'
+    withXml { node ->
+        // Use git
+        def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
+        vcsConfig.mapping[0].'@vcs' = 'Git'
+
+        // Set gradle home
+        def gradleSettings = node.appendNode('component', [name: 'GradleSettings'])
+        gradleSettings.appendNode('option', [name: 'SDK_HOME', value: gradle.gradleHomeDir.absolutePath])
+    }
+
+    whenConfigured { project ->
+        project.jdk.languageLevel = 'JDK_1_5'
+    }
+}
+
+// Exclude resource directories from compilation and add them back in as classpath resources
+
+ideaProject {
+    withXml { node ->
+        def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
+        def exclude = compilerConfig.appendNode('excludeFromCompile')
+        Collection resourceDirs = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
+        resourceDirs.each {
+            exclude.appendNode('directory', [url: "file://\$PROJECT_DIR\$/${rootProject.relativePath(it)}", includeSubdirectories: true])
+        }
+    }
+}
+
+configure(groovyProjects()) {
+    ideaModule {
+        sourceSets.each { sourceSet ->
+            scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(sourceSet.resources.srcDirs))))
+        }
+    }
 }
 
 configurations {
@@ -278,7 +321,6 @@ task intTestImage(type: Sync) {
 
 task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook']) {
     integTestUserDir = file('intTestHomeDir')
-    systemProperties['integTest.srcDir'] = file('src').absolutePath
     systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
     systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
     systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
@@ -322,7 +364,7 @@ def guessMaxForks() {
     return Math.max(2, (int) (processors / 2))
 }
 
-task testedDists(dependsOn: [assemble, check, integTest])
+task testedDists(dependsOn: [assemble, check, integTest, 'openApi:integTest', ':ui:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 

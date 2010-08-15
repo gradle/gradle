@@ -1,52 +1,22 @@
 apply plugin: 'groovy'
+apply from: "$rootDir/gradle/integTest.gradle"
 
 dependencies {
     groovy libraries.groovy_depends
+
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 
-    testCompile project(path: ':core', configuration: 'integTestFixtures')
-    testRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
-}
-
-//define our integration tests
-configurations {
-    integTestCompile {
-        extendsFrom testCompile
-    }
-    integTestRuntime {
-        extendsFrom integTestCompile, testRuntime
-    }
-}
-
-//define the source sets for our integration tests
-sourceSets {
-    integTest {
-        compileClasspath = sourceSets.test.classes + sourceSets.main.classes + configurations.integTestCompile + project(':ui').sourceSets.main.classes
-        runtimeClasspath = classes + compileClasspath + configurations.integTestRuntime
-    }
+    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 
 //create a task for running the integration tests
 task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
     systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-    systemProperties['integTest.srcDir'] = file('src').absolutePath
     systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTest.integTestUserDir.absolutePath
     testClassesDir = sourceSets.integTest.classesDir
     classpath = sourceSets.integTest.runtimeClasspath + configurations.integTestRuntime
 
     doFirst { task -> systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
-}
-
-ideaModule {
-    testSourceDirs.addAll(project.sourceSets.integTest.groovy.srcDirs)
-    whenConfigured { module ->
-        module.dependencies.add(new org.gradle.plugins.idea.model.ModuleDependency('ui', null))
-    }
-}
-
-eclipseClasspath {
-    whenConfigured { classpath ->
-        classpath.entries.add(new org.gradle.plugins.eclipse.model.ProjectDependency('/ui', true, null, [] as Set))
-    }
 }
