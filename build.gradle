@@ -202,9 +202,8 @@ ideaProject {
 
 configure(groovyProjects()) {
     ideaModule {
-        sourceSets.each { sourceSet ->
-            scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(sourceSet.resources.srcDirs))))
-        }
+        scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
+        scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
     }
 }
 
@@ -293,6 +292,7 @@ task srcZip(type: Zip) {
                 spec.include "$it/src/"
             }
             include 'config/'
+            include 'gradle/'
             include 'src/'
             include '*.gradle'
             include 'gradle.properties'
