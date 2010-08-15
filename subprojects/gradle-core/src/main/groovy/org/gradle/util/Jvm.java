@@ -28,6 +28,11 @@ public class Jvm {
     Jvm() {
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s (%s %s)", System.getProperty("java.version"), System.getProperty("java.vm.vendor"), System.getProperty("java.vm.version"));
+    }
+
     public File getJavaExecutable() {
         return new File(JavaEnvUtils.getJdkExecutable("java"));
     }

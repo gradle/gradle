@@ -61,6 +61,11 @@ public class OperatingSystem {
         return CURRENT;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s %s %s", System.getProperty("os.name"), System.getProperty("os.version"), System.getProperty("os.arch"));
+    }
+
     public boolean isWindows() {
         return false;
     }

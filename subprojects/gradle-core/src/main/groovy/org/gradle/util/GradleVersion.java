@@ -16,11 +16,11 @@
 
 package org.gradle.util ;
 
-import org.codehaus.groovy.runtime.InvokerHelper ;
-import org.apache.ivy.Ivy ;
-import org.apache.tools.ant.Main ;
+import groovy.lang.GroovySystem;
+import org.apache.ivy.Ivy;
+import org.apache.tools.ant.Main;
 
-import java.util.Properties ;
+import java.util.Properties;
 
 /**
  * @author Hans Dockter
@@ -50,22 +50,18 @@ public class GradleVersion {
     final StringBuilder sb = new StringBuilder ( ) ;
     sb.append ( "\n------------------------------------------------------------\nGradle " ) ;
     sb.append ( getVersion ( ) ) ;
-    sb.append ( "\n------------------------------------------------------------\n\nGradle buildtime: " ) ;
+    sb.append ( "\n------------------------------------------------------------\n\nGradle build time: " ) ;
     sb.append ( getBuildTime ( ) ) ;
     sb.append ( "\nGroovy: " ) ;
-    sb.append ( InvokerHelper.getVersion ( ) ) ;
+    sb.append ( GroovySystem.getVersion ( ) ) ;
     sb.append ( "\nAnt: " ) ;
     sb.append ( Main.getAntVersion ( ) ) ;
     sb.append ( "\nIvy: " ) ;
     sb.append ( Ivy.getIvyVersion ( ) ) ;
-    sb.append ( "\nJava: " ) ;
-    sb.append ( System.getProperty ( "java.version" ) ) ;
     sb.append ( "\nJVM: " ) ;
-    sb.append ( System.getProperty ( "java.vm.version" ) ) ;
-    sb.append ( "\nJVM Vendor: " ) ;
-    sb.append ( System.getProperty ( "java.vm.vendor" ) ) ;
-    sb.append ( "\nOS Name: " ) ;
-    sb.append ( System.getProperty ( "os.name" ) ) ;
+    sb.append ( Jvm.current() ) ;
+    sb.append ( "\nOS: " ) ;
+    sb.append ( OperatingSystem.current() ) ;
     sb.append ( "\n" ) ;
     return sb.toString ( ) ;
   }
