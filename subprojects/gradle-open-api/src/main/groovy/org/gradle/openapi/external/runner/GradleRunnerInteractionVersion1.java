@@ -32,8 +32,8 @@ public interface GradleRunnerInteractionVersion1
    */
    public File getWorkingDirectory();
 
-   public enum LogLevel { Quiet, Lifecycle, Debug };
-   public enum StackTraceLevel { InternalExceptions, Always, AlwaysFull };
+   public enum LogLevel { Quiet, Lifecycle, Debug }
+   public enum StackTraceLevel { InternalExceptions, Always, AlwaysFull }
 
    /*
       @return the log level. This determines the detail level of information

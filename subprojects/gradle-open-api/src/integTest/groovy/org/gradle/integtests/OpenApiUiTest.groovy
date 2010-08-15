@@ -31,7 +31,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.ExternalUtility
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.gradle.openapi.wrappers.UIWrapperFactory
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -87,28 +86,10 @@ public class OpenApiUiTest {
     }
 
   /**
-   * This is the same as testSinglePaneBasic but uses the UIWrapperFactory directly;
-   * which is what the UIFactory uses via reflection to instantiate the UI. Just
-   * making sure this is working normally and not throwing any exceptions.
-   */
-   @Test
-   public void testUIWrapperSinglePane()
-   {
-     TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1( new TestAlternateUIInteractionVersion1(), new TestSettingsNodeVersion1() )
-     SinglePaneUIVersion1 singlePane = UIWrapperFactory.createSinglePaneUI(testSingleDualPaneUIInteractionVersion1, false)
-
-     //tell it we're about to show it, so it'll create a component
-     singlePane.aboutToShow();
-
-     //make sure we now have that component
-     Assert.assertNotNull( singlePane.getComponent() )
-   }
-
-  /**
    * This tests to see if we can call the UIFactory to create a dual pane UI.
       This is only testing that extracting the UI returns something without giving
       errors and that it has its dual components. This is just a good general-case test
-      to make sure teh basics are working.
+      to make sure the basics are working.
    */
     @Test
     public void testDualPaneBasic()
@@ -127,25 +108,6 @@ public class OpenApiUiTest {
         //and the output component
         Assert.assertNotNull( dualPane.getOutputPanel() )
     }
-
-  /**
-   * This is the same as testDualPaneBasic but uses the UIWrapperFactory directly;
-   * which is what the UIFactory uses via reflection to instantiate the UI. Just
-   * making sure this is working normally and not throwing any exceptions.
-   */
-   @Test
-   public void testUIWrapperDualPane()
-   {
-     TestSingleDualPaneUIInteractionVersion1 testSingleDualPaneUIInteractionVersion1 = new TestSingleDualPaneUIInteractionVersion1( new TestAlternateUIInteractionVersion1(), new TestSettingsNodeVersion1() )
-     DualPaneUIVersion1 dualPane = UIWrapperFactory.createDualPaneUI(testSingleDualPaneUIInteractionVersion1, false)
-
-     //tell it we're about to show it, so it'll create a component
-     dualPane.aboutToShow();
-
-     //make sure we now have that component
-     Assert.assertNotNull( dualPane.getMainComponent() )
-     Assert.assertNotNull( dualPane.getOutputPanel() )
-   }
 
    /**
    * Helper function that creates a single pane UI

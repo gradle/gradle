@@ -22,7 +22,6 @@ import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
-import org.gradle.openapi.wrappers.RunnerWrapperFactory
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
@@ -170,19 +169,6 @@ class GradleRunnerTest {
 
     //it should have finished
     Assert.assertTrue( "Execution did not report finished", interaction.executionFinished )
-  }
-   /**
-    * This directly verifies that our wrapper factory is working. We just want to use it to
-    * instantiate a runner.
-   */
-  @Test
-  public void testRunnerWrapperFactory()
-  {
-    TestGradleRunnerInteractionVersion1 interaction = new TestGradleRunnerInteractionVersion1( javaprojectDir )
-
-    GradleRunnerVersion1 runner = RunnerWrapperFactory.createGradleRunner( dist.getGradleHomeDir(), interaction, true)
-
-    Assert.assertNotNull( "Failed to instantiate runner", runner )
   }
 }
 
