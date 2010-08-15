@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce
-
-import org.gradle.api.plugins.announce.internal.NotifySend
+package org.gradle.api.plugins.announce.internal
 
 class NotifySendTest extends GroovyTestCase {
 
@@ -43,13 +41,13 @@ class NotifySendTest extends GroovyTestCase {
 }
 
 
-private static class ExceptionCategory {
+private class ExceptionCategory {
   void execute(List list) {
     throw new IOException()
   }
 }
 
-private static class MockCategory {
+private class MockCategory {
   def static capture
 
   void execute(List list) {
