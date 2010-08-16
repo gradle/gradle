@@ -39,6 +39,9 @@ import org.junit.runner.RunWith
 import org.gradle.openapi.external.foundation.*
 import org.gradle.openapi.external.ui.*
 import org.hamcrest.Matchers
+import org.junit.rules.TestName
+import org.junit.After
+import java.util.concurrent.TimeUnit
 
 /**
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
@@ -46,43 +49,48 @@ import org.hamcrest.Matchers
  */
 @RunWith(DistributionIntegrationTestRunner.class)
 public class OpenApiUiTest {
-  static final String JAVA_PROJECT_NAME = 'javaproject'
-  static final String SHARED_NAME = 'shared'
-  static final String API_NAME = 'api'
-  static final String WEBAPP_NAME = 'webservice'
-  static final String SERVICES_NAME = 'services'
-  static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
+    static final String JAVA_PROJECT_NAME = 'javaproject'
+    static final String SHARED_NAME = 'shared'
+    static final String API_NAME = 'api'
+    static final String WEBAPP_NAME = 'webservice'
+    static final String SERVICES_NAME = 'services'
+    static final String WEBAPP_PATH = "$SERVICES_NAME/$WEBAPP_NAME" as String
 
-  private File javaprojectDir
+    @Rule public final GradleDistribution dist = new GradleDistribution()
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final Sample sample = new Sample('java/multiproject')
+    @Rule public final TestName testName = new TestName()
+    private File javaprojectDir
 
-  @Rule public final GradleDistribution dist = new GradleDistribution()
-  @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-  @Rule public final Sample sample = new Sample('java/multiproject')
+    @Before
+    void setUp() {
+        println "start $testName.methodName"
+        javaprojectDir = sample.dir
+    }
 
-  @Before
-  void setUp() {
-      javaprojectDir = sample.dir
-  }
+    @After
+    void tearDown() {
+        println "finish $testName.methodName"
+    }
 
-     /**
-      This tests to see if we can call the UIFactory to create a single pane UI.
-      This is only testing that extracting the UI returns something without giving
-      errors and that it has a component. This is just a good general-case test
-      to make sure teh basics are working.
-      */
+    /**
+     This tests to see if we can call the UIFactory to create a single pane UI.
+     This is only testing that extracting the UI returns something without giving
+     errors and that it has a component. This is just a good general-case test
+     to make sure teh basics are working.
+     */
     @Test
-    public void testSinglePaneBasic()
-    {
+    public void testSinglePaneBasic() {
         SinglePaneUIVersion1 singlePane = createSinglePaneUI()
 
         //make sure we got something
-        Assert.assertNotNull( singlePane )
+        Assert.assertNotNull(singlePane)
 
         //tell it we're about to show it, so it'll create a component
         singlePane.aboutToShow();
 
         //make sure we now have that component
-        Assert.assertNotNull( singlePane.getComponent() )
+        Assert.assertNotNull(singlePane.getComponent())
     }
 
   /**
@@ -354,7 +362,7 @@ public class OpenApiUiTest {
 
       gradleInterface.refreshTaskTree()
 
-      testRequestObserver.waitForRequestExecutionComplete()
+      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -451,7 +459,7 @@ public class OpenApiUiTest {
       //(this line is really what we're trying to test)
       Assert.assertEquals( "-t -xtest", request.getFullCommandLine() )
 
-      testRequestObserver.waitForRequestExecutionComplete()
+      testRequestObserver.waitForRequestExecutionComplete(40, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -736,7 +744,7 @@ public class OpenApiUiTest {
 
       //now that we know that command is illegal by itself, try it again but the listener will append 'build'
       //to the command line which makes it legal (again, we don't really care what we execute.
-      TestCommandLineArgumentAlteringListenerVersion1 commandLineArgumentAlteringListener = new TestCommandLineArgumentAlteringListenerVersion1("build")
+      TestCommandLineArgumentAlteringListenerVersion1 commandLineArgumentAlteringListener = new TestCommandLineArgumentAlteringListenerVersion1("classes")
       gradleInterface.addCommandLineArgumentAlteringListener( commandLineArgumentAlteringListener )
 
       //execute this before we do our test. This is not legal by itself. It should fail. That means our
@@ -745,9 +753,9 @@ public class OpenApiUiTest {
       //can try changing the command line to something that's illegal by itself (we don't care what).
       RequestVersion1 request = gradleInterface.executeCommand2("-s", "test command")
 
-      testRequestObserver.waitForRequestExecutionComplete()
+      testRequestObserver.waitForRequestExecutionComplete(40, TimeUnit.SECONDS)
 
-      Assert.assertEquals( "Incorrect request", "-s build", testRequestObserver.request.getFullCommandLine() )
+      Assert.assertEquals( "Incorrect request", "-s classes", testRequestObserver.request.getFullCommandLine() )
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )
@@ -889,7 +897,7 @@ public class OpenApiUiTest {
       //since we just asked to close and we're busy, make sure we prompted the user
       Assert.assertTrue( testCloseInteraction.wasPromptedToConfirmClose )
 
-      testRequestObserver.waitForRequestExecutionComplete()
+      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Incorrect request", "build", testRequestObserver.request.getFullCommandLine() )
 
@@ -943,7 +951,7 @@ public class OpenApiUiTest {
 
       dualPane.refreshTaskTree()
 
-      testRequestObserver.waitForRequestExecutionComplete()
+      testRequestObserver.waitForRequestExecutionComplete(40, TimeUnit.SECONDS)
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )

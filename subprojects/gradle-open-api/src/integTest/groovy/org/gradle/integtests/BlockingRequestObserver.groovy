@@ -21,8 +21,12 @@ import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.Condition
 import junit.framework.AssertionFailedError
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
+import java.util.concurrent.TimeUnit
 
 public class BlockingRequestObserver implements RequestObserverVersion1 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(BlockingRequestObserver)
     private String typeOfInterest;  //either RequestVersion1.EXECUTION_TYPE or RequestVersion1.REFRESH_TYPE
     private RequestVersion1 request
     private Integer result
@@ -35,13 +39,20 @@ public class BlockingRequestObserver implements RequestObserverVersion1 {
         this.typeOfInterest = typeOfInterest;
     }
 
-    void executionRequestAdded(RequestVersion1 request) { }
+    void executionRequestAdded(RequestVersion1 request) {
+        LOGGER.info "Execution request added: $request.displayName"
+    }
 
-    void refreshRequestAdded(RequestVersion1 request) { }
+    void refreshRequestAdded(RequestVersion1 request) {
+        LOGGER.info "Refresh request added: $request.displayName"
+    }
 
-    void aboutToExecuteRequest(RequestVersion1 request) { }
+    void aboutToExecuteRequest(RequestVersion1 request) {
+        LOGGER.info "About to execute request: $request.displayName"
+    }
 
     void requestExecutionComplete(RequestVersion1 request, int result, String output) {
+        LOGGER.info "Request completed: $request.displayName"
         //refreshes will come through here. We're ignoring those
         if (this.typeOfInterest.equals(request.getType())) {
             lock.lock()
@@ -60,10 +71,10 @@ public class BlockingRequestObserver implements RequestObserverVersion1 {
         }
     }
 
-    void waitForRequestExecutionComplete() {
+    void waitForRequestExecutionComplete(int timeOutValue, TimeUnit timeOutUnits) {
         lock.lock()
         try {
-            Date expiry = new Date(System.currentTimeMillis() + 20000)
+            Date expiry = new Date(System.currentTimeMillis() + timeOutUnits.toMillis(timeOutValue))
             while (failure == null && !request) {
                 if (!condition.awaitUntil(expiry)) {
                     throw new AssertionFailedError("Timeout waiting for request to complete.")
