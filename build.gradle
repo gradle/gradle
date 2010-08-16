@@ -403,6 +403,11 @@ gradle.taskGraph.whenReady {graph ->
 
 task developerBuild(dependsOn: [clean, testedDists])
 task ciBuild(dependsOn: [clean, testedDists])
+gradle.taskGraph.whenReady {graph ->
+    if (graph.hasTask(ciBuild)) {
+        subprojects { reportsDirName = "$rootProject.reportsDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
+    }
+}
 
 task release(dependsOn: [uploadDists, ':docs:uploadDocs']) << {
     // Update the version properties in gradle.properties
