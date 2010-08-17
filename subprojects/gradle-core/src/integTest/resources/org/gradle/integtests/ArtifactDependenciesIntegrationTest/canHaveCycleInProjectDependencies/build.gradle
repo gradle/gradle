@@ -1,4 +1,3 @@
-import org.junit.Assert
 
 subprojects {
     apply plugin: 'base'
@@ -19,7 +18,7 @@ project('a') {
         dependsOn configurations['default']
         doFirst {
             def jars = configurations['default'].collect { it.name } as Set
-            Assert.assertEquals(['b.jar', 'c.jar'] as Set, jars)
+            assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
         }
     }
 }
@@ -32,6 +31,6 @@ project('b') {
 
 project('c') {
     dependencies {
-        'default' project(':b')
+        'default' project(':a')
     }
 }

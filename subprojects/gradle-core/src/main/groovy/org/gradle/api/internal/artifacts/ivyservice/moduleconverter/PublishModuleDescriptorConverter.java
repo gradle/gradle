@@ -49,7 +49,7 @@ public class PublishModuleDescriptorConverter implements ModuleDescriptorConvert
         Clock clock = new Clock();
         DefaultModuleDescriptor moduleDescriptor = (DefaultModuleDescriptor) resolveModuleDescriptorConverter.convert(configurations, module, settings);
         moduleDescriptor.addExtraAttributeNamespace(IVY_MAVEN_NAMESPACE_PREFIX, IVY_MAVEN_NAMESPACE);
-        artifactsToModuleDescriptorConverter.addArtifacts((DefaultModuleDescriptor) moduleDescriptor, configurations);
+        artifactsToModuleDescriptorConverter.addArtifacts(moduleDescriptor, configurations);
         logger.debug("Timing: Ivy convert for publish took {}", clock.getTime());
         return moduleDescriptor;
     }
