@@ -137,7 +137,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
     }
 
     /**
-     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferrable to ask the
+     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferable to ask the
      * thread to stop. However, gradle has no way to do that, so we'll be killing it.
      */
     public synchronized void killProcess() {

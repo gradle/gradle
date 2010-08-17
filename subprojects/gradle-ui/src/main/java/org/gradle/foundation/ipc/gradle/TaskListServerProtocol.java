@@ -53,7 +53,6 @@ public class TaskListServerProtocol extends AbstractGradleServerProtocol {
         * @param  wasSuccessful true if gradle was successful (returned 0)
         * @param  message       the output of gradle if it ran. If it didn't, an error message.
         * @param  throwable     an exception if one occurred
-        * @param  projects      a hierachical list of projects. This is the final result.
         */
         void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable);
 

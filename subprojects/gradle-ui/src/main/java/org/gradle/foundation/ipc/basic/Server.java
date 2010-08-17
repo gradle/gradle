@@ -65,7 +65,7 @@ public class Server<P extends Server.Protocol, O extends Server.ServerObserver>
         public void connectionAccepted();
 
         /**
-         * @return true if we should keep the connection alive. False if we should stop communicaiton.
+         * @return true if we should keep the connection alive. False if we should stop communication.
          */
         public boolean continueConnection();
 

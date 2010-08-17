@@ -20,6 +20,7 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.event.HierarchyEvent
 import java.awt.event.HierarchyListener
+import java.util.concurrent.TimeUnit
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JPanel
@@ -29,19 +30,18 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.openapi.external.ExternalUtility
+import org.gradle.openapi.external.foundation.GradleInterfaceVersion2
+import org.gradle.openapi.external.foundation.ProjectVersion1
+import org.gradle.openapi.external.foundation.RequestVersion1
+import org.gradle.openapi.external.foundation.TaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1
 import org.gradle.openapi.external.foundation.favorites.FavoritesEditorVersion1
-import org.junit.Assert
-import org.junit.Before
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.gradle.openapi.external.foundation.*
-import org.gradle.openapi.external.ui.*
-import org.hamcrest.Matchers
+import org.gradle.util.OperatingSystem
+import static org.hamcrest.Matchers.*
 import org.junit.rules.TestName
-import org.junit.After
-import java.util.concurrent.TimeUnit
+import org.junit.runner.RunWith
+import org.gradle.openapi.external.ui.*
+import org.junit.*
 
 /**
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
@@ -129,6 +129,7 @@ public class OpenApiUiTest {
      Assert.assertNotNull( singlePane )
 
      singlePane.setCurrentDirectory( javaprojectDir )
+     singlePane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.userHomeDir))
 
      return singlePane
    }
@@ -145,6 +146,7 @@ public class OpenApiUiTest {
      Assert.assertNotNull( dualPane )
 
      dualPane.setCurrentDirectory( javaprojectDir )
+     dualPane.addCommandLineArgumentAlteringListener(new ExtraTestCommandLineOptionsListener(dist.userHomeDir))
 
      return dualPane
    }
@@ -335,7 +337,7 @@ public class OpenApiUiTest {
       Assert.assertNotNull( request )
 
       //verify that the actual command that was executed is a concatenation of both favorites
-      Assert.assertEquals( "build clean", request.getFullCommandLine() )
+      Assert.assertThat( request.getFullCommandLine(), startsWith("build clean") )
     }
 
     /**
@@ -362,7 +364,7 @@ public class OpenApiUiTest {
 
       gradleInterface.refreshTaskTree()
 
-      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -371,7 +373,7 @@ public class OpenApiUiTest {
 
       ProjectVersion1 rootProject = rootProjects.get( 0 );
       Assert.assertNotNull( rootProject );
-      Assert.assertThat( rootProject.getSubProjects().size(), Matchers.equalTo(3))
+      Assert.assertThat( rootProject.getSubProjects().size(), equalTo(3))
 
       //Quick check to make sure there are tasks on each of the sub projects.
       //The exact task names will change over time, so I don't want to try
@@ -457,9 +459,9 @@ public class OpenApiUiTest {
 
       //make sure that the actual request is the normal refresh request with our
       //(this line is really what we're trying to test)
-      Assert.assertEquals( "-t -xtest", request.getFullCommandLine() )
+      Assert.assertThat( request.getFullCommandLine(), startsWith("-t -xtest") )
 
-      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -753,9 +755,10 @@ public class OpenApiUiTest {
       //can try changing the command line to something that's illegal by itself (we don't care what).
       RequestVersion1 request = gradleInterface.executeCommand2("-s", "test command")
 
-      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 
-      Assert.assertEquals( "Incorrect request", "-s classes", testRequestObserver.request.getFullCommandLine() )
+      Assert.assertThat( testRequestObserver.request.getFullCommandLine(), startsWith( "-s " ) )
+      Assert.assertThat( testRequestObserver.request.getFullCommandLine(), endsWith( " classes" ) )
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )
@@ -897,9 +900,9 @@ public class OpenApiUiTest {
       //since we just asked to close and we're busy, make sure we prompted the user
       Assert.assertTrue( testCloseInteraction.wasPromptedToConfirmClose )
 
-      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 
-      Assert.assertEquals( "Incorrect request", "build", testRequestObserver.request.getFullCommandLine() )
+      Assert.assertThat( testRequestObserver.request.getFullCommandLine(), startsWith( "build" ) )
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )
@@ -951,14 +954,13 @@ public class OpenApiUiTest {
 
       dualPane.refreshTaskTree()
 
-      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )
 
       gradleInterface.removeRequestObserver( testRequestObserver )
     }
-
 
    /**
     * This gets a gradle executable. That is, a way to launch gradle (shell script or batch file).
@@ -967,18 +969,9 @@ public class OpenApiUiTest {
     {
       //now let's set it to a custom gradle executable. We'll just point it to the regular
       //gradle file (but it'll be the custom one.
-      String name;
-      String osName = System.getProperty("os.name").toLowerCase(Locale.US);
-      if (osName.toLowerCase().indexOf("windows") > -1)
-      {
-        name = "gradle.bat"
-      }
-      else
-      {
-        name = "gradle"
-      }
+      String name = OperatingSystem.current().getScriptName("bin/gradle");
 
-      File gradleExecutor = new File( dist.getGradleHomeDir(), "bin/" + name )
+      File gradleExecutor = new File( dist.getGradleHomeDir(), name )
 
       //make sure the executable exists
       Assert.assertTrue( "Missing gradle executable at: " + gradleExecutor, gradleExecutor.exists() )
@@ -1010,8 +1003,6 @@ public class OpenApiUiTest {
          }
        }
      }
-
-
 
  /**
  * A class that manages a dummy gradle tab. It just consists of a label,
@@ -1080,14 +1071,14 @@ public class OpenApiUiTest {
    */
   private class TestCommandLineArgumentAlteringListenerVersion1 implements CommandLineArgumentAlteringListenerVersion1
   {
-    private String additionalArguments;
+    private final String additionalArguments;
 
     def TestCommandLineArgumentAlteringListenerVersion1(additionalArguments) {
       this.additionalArguments = additionalArguments;
     }
 
     String getAdditionalCommandLineArguments(String commandLineArguments) {
-      if( commandLineArguments.equals( "-s" ) ) {  //we're only interested in altering this one command
+      if( commandLineArguments.startsWith( "-s " ) ) {  //we're only interested in altering this one command
         return additionalArguments;
       }
 
@@ -1095,4 +1086,14 @@ public class OpenApiUiTest {
     }
   }
 
+private class ExtraTestCommandLineOptionsListener implements CommandLineArgumentAlteringListenerVersion1 {
+    private final File gradleUserHomeDir
 
+    def ExtraTestCommandLineOptionsListener(File gradleUserHomeDir) {
+        this.gradleUserHomeDir = gradleUserHomeDir;
+    }
+
+    String getAdditionalCommandLineArguments(String commandLineArguments) {
+        return "--no-search-upward --gradle-user-home \'$gradleUserHomeDir\'"
+    }
+}
