@@ -459,7 +459,7 @@ public class OpenApiUiTest {
       //(this line is really what we're trying to test)
       Assert.assertEquals( "-t -xtest", request.getFullCommandLine() )
 
-      testRequestObserver.waitForRequestExecutionComplete(40, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Execution Failed: " + testRequestObserver.output, 0, testRequestObserver.result)
 
@@ -753,7 +753,7 @@ public class OpenApiUiTest {
       //can try changing the command line to something that's illegal by itself (we don't care what).
       RequestVersion1 request = gradleInterface.executeCommand2("-s", "test command")
 
-      testRequestObserver.waitForRequestExecutionComplete(40, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
 
       Assert.assertEquals( "Incorrect request", "-s classes", testRequestObserver.request.getFullCommandLine() )
 
@@ -951,7 +951,7 @@ public class OpenApiUiTest {
 
       dualPane.refreshTaskTree()
 
-      testRequestObserver.waitForRequestExecutionComplete(40, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(60, TimeUnit.SECONDS)
 
       //make sure it completed execution correctly
       Assert.assertEquals( "Execution failed with return code: " + testRequestObserver.result + "\nOutput:\n" + testRequestObserver.output , 0, testRequestObserver.result )
