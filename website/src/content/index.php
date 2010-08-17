@@ -38,9 +38,10 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradle.biz/training.html">July 22, London</a></li>
-        <li><a href="http://gradle.biz/training.html">September 6, Paris</a></li>
-        <li><a href="http://gradle.biz/training.html">October 25, London</a></li>
+        <li><a href="http://gradle.biz/training.html">October 11-12, Atlanta</a></li>
+        <li><a href="http://gradle.biz/training.html">October 13-14, Boston</a></li>
+        <li><a href="http://gradle.biz/training.html">October 25-26, London</a></li>
+        <li><a href="http://gradle.biz/training.html">November 8-9, Paris</a></li>
     </ul>
     <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
 </div>
