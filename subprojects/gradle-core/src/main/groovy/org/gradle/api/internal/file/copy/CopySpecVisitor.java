@@ -16,7 +16,6 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.FileVisitor;
-import org.gradle.api.file.CopyAction;
 import org.gradle.api.tasks.WorkResult;
 
 public interface CopySpecVisitor extends FileVisitor, WorkResult {

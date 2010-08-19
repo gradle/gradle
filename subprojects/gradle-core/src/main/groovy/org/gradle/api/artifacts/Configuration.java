@@ -291,7 +291,7 @@ public interface Configuration extends FileCollection {
     <T extends Dependency> Set<T> getAllDependencies(Class<T> type);
 
     /**
-     * Adds a dependency to this configuration
+     * Adds a dependency to this configuration.
      *
      * @param dependency The dependency to be added.
      */

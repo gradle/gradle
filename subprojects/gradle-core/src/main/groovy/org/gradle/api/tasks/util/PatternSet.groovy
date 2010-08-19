@@ -27,6 +27,7 @@ import org.gradle.api.specs.NotSpec
 import org.gradle.api.specs.OrSpec
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.api.file.FileTreeElement
+import org.gradle.api.internal.file.RelativePathSpec
 
 /**
  * @author Hans Dockter

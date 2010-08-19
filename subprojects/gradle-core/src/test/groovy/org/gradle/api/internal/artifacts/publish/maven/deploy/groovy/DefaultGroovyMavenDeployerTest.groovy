@@ -18,18 +18,19 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy
 
 import java.lang.reflect.Proxy
 import org.gradle.api.artifacts.maven.MavenPom
+import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.artifacts.maven.PublishFilter
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterContainerTest
 import org.hamcrest.BaseMatcher
 import org.hamcrest.Description
+import org.hamcrest.Factory
 import org.hamcrest.Matcher
 import org.jmock.integration.junit4.JMock
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.assertSame
-import org.hamcrest.Factory
 
 /**
  * @author Hans Dockter
@@ -37,8 +38,7 @@ import org.hamcrest.Factory
 @RunWith(JMock)
 class DefaultGroovyPomFilterContainerTest extends BasePomFilterContainerTest {
     static final String TEST_NAME = "somename"
-    DefaultGroovyPomFilterContainer groovyPomFilterContainer
-
+    PomFilterContainer groovyPomFilterContainer
 
     @Before
     public void setUp() {
@@ -46,7 +46,7 @@ class DefaultGroovyPomFilterContainerTest extends BasePomFilterContainerTest {
     }
 
     protected BasePomFilterContainer createPomFilterContainer() {
-        return groovyPomFilterContainer = new DefaultGroovyPomFilterContainer(mavenPomFactoryMock);
+        return groovyPomFilterContainer = new BasePomFilterContainer(mavenPomFactoryMock);
     }
 
     @Test
@@ -68,7 +68,7 @@ class DefaultGroovyPomFilterContainerTest extends BasePomFilterContainerTest {
         context.checking {
             one(pomFilterMock).setFilter(withParam(FilterMatcher.equalsFilter(closureFilter)))
         }
-        MavenPom pom = groovyPomFilterContainer.filter(closureFilter)
+        groovyPomFilterContainer.filter(closureFilter)
     }
 
     @Test

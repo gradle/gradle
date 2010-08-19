@@ -97,7 +97,11 @@ class Wtp {
     }
 
     void toXml(File orgEclipseWstCommonComponentXmlFile, File orgEclipseWstCommonProjectFacetCoreXmlFile) {
-        toXml(new FileWriter(orgEclipseWstCommonComponentXmlFile), new FileWriter(orgEclipseWstCommonProjectFacetCoreXmlFile))
+        orgEclipseWstCommonComponentXmlFile.withWriter {Writer componentWriter ->
+            orgEclipseWstCommonProjectFacetCoreXmlFile.withWriter {Writer facetWriter ->
+                toXml(componentWriter, facetWriter)
+            }
+        }
     }
 
     def toXml(Writer orgEclipseWstCommonComponentXmlWriter, Writer orgEclipseWstCommonProjectFacetCoreXmlWriter) {
@@ -113,8 +117,13 @@ class Wtp {
                 'org.eclipse.wst.commons.component': orgEclipseWstCommonComponentXml,
                 'org.eclipse.wst.commons.project.facet.core': orgEclipseWstCommonProjectFacetCoreXml])
 
-        new XmlNodePrinter(new PrintWriter(orgEclipseWstCommonComponentXmlWriter)).print(orgEclipseWstCommonComponentXml)
-        new XmlNodePrinter(new PrintWriter(orgEclipseWstCommonProjectFacetCoreXmlWriter)).print(orgEclipseWstCommonProjectFacetCoreXml)
+        PrintWriter printWriter = new PrintWriter(orgEclipseWstCommonComponentXmlWriter)
+        new XmlNodePrinter(printWriter).print(orgEclipseWstCommonComponentXml)
+        printWriter.flush()
+
+        printWriter = new PrintWriter(orgEclipseWstCommonProjectFacetCoreXmlWriter)
+        new XmlNodePrinter(printWriter).print(orgEclipseWstCommonProjectFacetCoreXml)
+        printWriter.flush()
     }
 
     private def removeConfigurableDataFromXml() {

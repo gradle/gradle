@@ -25,6 +25,8 @@ import java.io.File;
 import java.util.concurrent.Callable;
 
 /**
+ * Assembles a TAR archive.
+ *
  * @author Hans Dockter
  */
 public class Tar extends AbstractArchiveTask {
@@ -32,11 +34,8 @@ public class Tar extends AbstractArchiveTask {
 
     private Compression compression;
 
-    private LongFile longFile;
-
     public Tar() {
         compression = Compression.NONE;
-        longFile = LongFile.WARN;
         action = new TarCopyActionImpl(getServices().get(FileResolver.class));
         getConventionMapping().map("extension", new Callable<Object>(){
             public Object call() throws Exception {
@@ -55,14 +54,6 @@ public class Tar extends AbstractArchiveTask {
 
     public void setCompression(Compression compression) {
         this.compression = compression;
-    }
-
-    public LongFile getLongFile() {
-        return longFile;
-    }
-
-    public void setLongFile(LongFile longFile) {
-        this.longFile = longFile;
     }
 
     private class TarCopyActionImpl extends CopyActionImpl implements TarCopyAction {

@@ -192,7 +192,12 @@ public class DefaultMavenPom implements MavenPom {
             if (file.getParentFile() != null) {
                 file.getParentFile().mkdirs();
             }
-            return writeTo(new FileWriter(file));
+            FileWriter writer = new FileWriter(file);
+            try {
+                return writeTo(writer);
+            } finally {
+                writer.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

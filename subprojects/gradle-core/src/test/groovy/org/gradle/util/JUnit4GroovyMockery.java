@@ -30,6 +30,7 @@ import org.jmock.api.Invocation;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.jmock.lib.legacy.ClassImposteriser;
 
+import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
@@ -52,11 +53,26 @@ public class JUnit4GroovyMockery extends JUnit4Mockery {
     public <T> T mock(Class<T> typeToMock, String name) {
         names.putIfAbsent(name, new AtomicInteger());
         int count = names.get(name).getAndIncrement();
+        T mock;
         if (count == 0) {
-            return super.mock(typeToMock, name);
+            mock = super.mock(typeToMock, name);
         } else {
-            return super.mock(typeToMock, name + count);
+            mock = super.mock(typeToMock, name + count);
         }
+        if (mock instanceof ClassLoader) {
+            for (Field field : ClassLoader.class.getDeclaredFields()) {
+                if (field.getName().equals("initialized")) {
+                    field.setAccessible(true);
+                    try {
+                        field.set(mock, true);
+                    } catch (IllegalAccessException e) {
+                        throw UncheckedException.asUncheckedException(e);
+                    }
+                    break;
+                }
+            }
+        }
+        return mock;
     }
 
     class ClosureExpectations extends Expectations {

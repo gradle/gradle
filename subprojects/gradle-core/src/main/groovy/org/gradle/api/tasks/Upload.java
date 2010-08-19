@@ -28,8 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 /**
- * An upload task uploads files to the repositories assigned to it.  The files that get uploaded are the artifacts
- * of your project, if they belong to the configuration associated with the upload task.
+ * Uploads the artifacts of a configuration to a set of repositories.
  * 
  * @author Hans Dockter
  */

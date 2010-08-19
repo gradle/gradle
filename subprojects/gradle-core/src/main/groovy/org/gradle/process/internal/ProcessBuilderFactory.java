@@ -34,14 +34,13 @@ public class ProcessBuilderFactory {
     public ProcessBuilder createProcessBuilder(ExecHandle execHandle) {
         final List<String> commandWithArguments = new ArrayList<String>();
         final String command = execHandle.getCommand();
-        if (LOGGER.isDebugEnabled()) {
-            LOGGER.debug("creating process builder for {}", execHandle);
-        }
         commandWithArguments.add(command);
         final List<String> arguments = execHandle.getArguments();
         if (LOGGER.isDebugEnabled()) {
+            LOGGER.debug("creating process builder for {}", execHandle);
+            LOGGER.debug("in directory {}", execHandle.getDirectory());
             int argumentIndex = 0;
-            for ( String argument : arguments ) {
+            for (String argument : arguments) {
                 LOGGER.debug("with argument#{} = {}", argumentIndex, argument);
                 argumentIndex++;
             }

@@ -19,6 +19,8 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.maven.settings.Settings;
 
 /**
+ * A {@link org.apache.ivy.plugins.resolver.DependencyResolver} which resolves dependencies from Maven repositories.
+ * 
  * @author Hans Dockter
  */
 public interface MavenResolver extends DependencyResolver, PomFilterContainer {

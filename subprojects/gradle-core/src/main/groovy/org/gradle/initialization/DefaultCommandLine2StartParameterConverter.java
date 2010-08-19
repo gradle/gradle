@@ -25,7 +25,7 @@ import org.gradle.CommandLineArgumentException;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.DependencyReportBuildExecuter;

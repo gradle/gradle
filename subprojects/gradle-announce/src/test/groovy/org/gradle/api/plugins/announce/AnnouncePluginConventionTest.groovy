@@ -18,6 +18,7 @@ package org.gradle.api.plugins.announce
 import org.gradle.api.Project
 import org.gradle.util.HelperUtil
 import spock.lang.Specification
+import org.gradle.api.plugins.announce.internal.AnnouncerFactory
 
 /**
  * @author Hans Dockter

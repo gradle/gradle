@@ -32,7 +32,6 @@ public class NestedBeanPropertyAnnotationHandler implements PropertyAnnotationHa
         context.setConfigureAction(new UpdateAction() {
             public void update(Task task, final Callable<Object> futureValue) {
                 task.getInputs().property(context.getName() + ".class", new Callable<Object>() {
-                    @Override
                     public Object call() throws Exception {
                         Object bean = futureValue.call();
                         return bean == null ? null : bean.getClass().getName();

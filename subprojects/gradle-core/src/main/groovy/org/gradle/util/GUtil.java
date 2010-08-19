@@ -132,7 +132,6 @@ public class GUtil {
 
     public static Comparator<String> caseInsensitive() {
         return new Comparator<String>() {
-            @Override
             public int compare(String o1, String o2) {
                 return o1.compareToIgnoreCase(o2);
             }
@@ -141,10 +140,9 @@ public class GUtil {
 
     public static Comparator<String> emptyLast(final Comparator<String> comparator) {
         return new Comparator<String>() {
-            @Override
             public int compare(String o1, String o2) {
-                boolean o1Empty = o1 == null || o1.isEmpty();
-                boolean o2Empty = o2 == null || o2.isEmpty();
+                boolean o1Empty = o1 == null || o1.length() == 0;
+                boolean o2Empty = o2 == null || o2.length() == 0;
                 if (o1Empty && o2Empty) {
                     return 0;
                 }
@@ -176,8 +174,13 @@ public class GUtil {
 
     public static Properties loadProperties(File propertyFile) {
         try {
-            return loadProperties(new FileInputStream(propertyFile));
-        } catch (FileNotFoundException e) {
+            FileInputStream inputStream = new FileInputStream(propertyFile);
+            try {
+                return loadProperties(inputStream);
+            } finally {
+                inputStream.close();
+            }
+        } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
     }
@@ -204,8 +207,11 @@ public class GUtil {
     public static void saveProperties(Properties properties, File propertyFile) {
         try {
             FileOutputStream propertiesFileOutputStream = new FileOutputStream(propertyFile);
-            properties.store(propertiesFileOutputStream, null);
-            propertiesFileOutputStream.close();
+            try {
+                properties.store(propertiesFileOutputStream, null);
+            } finally {
+                propertiesFileOutputStream.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }

@@ -36,7 +36,7 @@ public class RelativePath {
     private final String[] segments;
 
     /**
-     * CTOR
+     * Creates a {@code RelativePath}.
      *
      * @param endsWithFile - if true, the path ends with a file, otherwise a directory
      */

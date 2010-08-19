@@ -18,6 +18,8 @@ package org.gradle.api.plugins;
 import org.gradle.api.InvalidUserDataException;
 
 /**
+ * A {@code UnknownPluginException} is thrown when an unknown plugin id is provided. 
+ *
  * @author Hans Dockter
  */
 public class UnknownPluginException extends InvalidUserDataException {

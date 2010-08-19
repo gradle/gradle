@@ -28,6 +28,8 @@ import org.gradle.api.tasks.WorkResult;
 import java.io.File;
 
 /**
+ * Compiles Java source files.
+ * 
  * @author Hans Dockter
  */
 public class Compile extends AbstractCompile {

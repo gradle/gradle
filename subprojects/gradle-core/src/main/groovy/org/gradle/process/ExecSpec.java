@@ -18,6 +18,8 @@ package org.gradle.process;
 import java.util.List;
 
 /**
+ * Specified the options for executing some command.
+ *
  * @author Hans Dockter
  */
 public interface ExecSpec extends BaseExecSpec {
@@ -65,7 +67,7 @@ public interface ExecSpec extends BaseExecSpec {
     ExecSpec setArgs(Iterable<?> args);
 
     /**
-     * Returns the args for the command to be executed
+     * Returns the args for the command to be executed.
      */
     List<String> getArgs();
 }

@@ -16,7 +16,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;

@@ -24,7 +24,7 @@ import org.gradle.plugins.eclipse.model.Container
 import org.gradle.plugins.eclipse.model.Classpath
 
 /**
- * Generates an eclipse <i>.classpath</i> file.
+ * Generates an Eclipse <i>.classpath</i> file.
  *
  * @author Hans Dockter
  */

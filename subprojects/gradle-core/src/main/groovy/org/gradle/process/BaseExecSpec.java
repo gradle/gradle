@@ -20,6 +20,8 @@ import java.io.OutputStream;
 import java.util.List;
 
 /**
+ * Specifies options for launching a child process.
+ *
  * @author Hans Dockter
  */
 public interface BaseExecSpec extends ProcessForkOptions {

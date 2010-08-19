@@ -26,7 +26,7 @@ import org.gradle.util.GUtil;
 import java.io.File;
 
 /**
- * Task to generate Scala API documentation.
+ * Generates HTML API documentation for Scala source files.
  */
 public class ScalaDoc extends SourceTask {
 

@@ -22,7 +22,7 @@ import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolvedConfiguration;
-import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.util.HelperUtil;

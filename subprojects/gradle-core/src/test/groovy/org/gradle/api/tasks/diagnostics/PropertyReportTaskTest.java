@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.jmock.Expectations;

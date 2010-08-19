@@ -15,8 +15,6 @@
  */
 package org.gradle.api.internal.file.copy;
 
-import org.gradle.api.file.CopyAction;
-
 import java.io.File;
 
 public interface ArchiveCopyAction extends CopyAction {

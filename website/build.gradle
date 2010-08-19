@@ -16,6 +16,7 @@
 import groovy.text.SimpleTemplateEngine
 import groovy.text.Template
 import groovy.text.TemplateEngine
+import java.util.regex.Matcher
 
 // we only need a test source set
 apply plugin: 'groovy-base'
@@ -249,4 +250,9 @@ class PhpIncludes {
 class Release {
     def String title
     def String version
+    def String getReleaseNoteVersion() {
+        Matcher matcher = version =~ /(\d+\.\d+).*/
+        matcher.matches()
+        return matcher.group(1)
+    }
 }

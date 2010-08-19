@@ -17,7 +17,6 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.project.AntBuilderFactory
-import org.gradle.api.tasks.compile.AntDepend
 
 class AntDependsStaleClassCleaner extends StaleClassCleaner {
     private final AntBuilderFactory antBuilderFactory

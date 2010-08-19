@@ -1,0 +1,155 @@
+<chapter id="standard_tasks">
+    <title>Standard Gradle tasks</title>
+    <para>There are a number of tasks included in the Gradle distribution. These are listed below.
+    </para>
+    <table>
+        <title>Standard tasks</title>
+        <thead>
+            <tr>
+                <td>Task class</td>
+                <td>Description</td>
+            </tr>
+        </thead>
+        <tr>
+            <td><apilink class='org.gradle.api.plugins.antlr.AntlrTask'/></td>
+            <td>Generates parsers from Antlr grammars.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.plugins.quality.Checkstyle'/></td>
+            <td>Runs Checkstyle against some source files.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.plugins.quality.CodeNarc'/></td>
+            <td>Runs CodeNarc against some source files.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.compile.Compile'/></td>
+            <td>Compiles Java source files.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.Copy'/></td>
+            <td>Copies files into a destination directory. See <xref linkend="sec:copying_files"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.Delete'/></td>
+            <td>Deletes files or directories.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.Directory' lang='groovy'/></td>
+            <td>Creates a directory. See <xref linkend="sec:directory_creation"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.diagnostics.DependencyReportTask'/></td>
+            <td>Displays the dependency tree for a project.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.plugins.eclipse.EclipseClasspath' lang="groovy"/></td>
+            <td>Generates an Eclipse .classpath file.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.plugins.eclipse.EclipseProject' lang="groovy"/></td>
+            <td>Generates an Eclipse .project file.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.plugins.eclipse.EclipseWtp' lang="groovy"/></td>
+            <td>Generates Eclipse configuration files for Eclipse WTP.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.Exec'/></td>
+            <td>Executes a command line process.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.GradleBuild'/></td>
+            <td>Executes a Gradle build. See <xref linkend="sec:external_build"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.compile.GroovyCompile'/></td>
+            <td>Compiles Groovy and Java source files.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.javadoc.Groovydoc'/></td>
+            <td>Generates HTML API documentation for Groovy and Java classes.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.plugins.idea.IdeaModule' lang="groovy"/></td>
+            <td>Generates an IDEA module file.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.plugins.idea.IdeaProject' lang="groovy"/></td>
+            <td>Generates an IDEA project file.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.plugins.idea.IdeaWorkspace' lang="groovy"/></td>
+            <td>Generates an IDEA workspace file.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.bundling.Jar' lang='groovy'/></td>
+            <td>Assembles a JAR archive. See <xref linkend="sec:archives"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.javadoc.Javadoc'/></td>
+            <td>Generates HTML API documentation for Java classes.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.JavaExec'/></td>
+            <td>Executes a Java application.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.plugins.jetty.JettyRun'/></td>
+            <td>Deploys an exploded web application to an embedded Jetty web container.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.plugins.jetty.JettyRunWar'/></td>
+            <td>Deploys a WAR to an embedded Jetty web container.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.plugins.jetty.JettyStop'/></td>
+            <td>Stops the embedded Jetty web container.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.diagnostics.PropertyReportTask'/></td>
+            <td>Displays the properties of a project.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.scala.ScalaCompile'/></td>
+            <td>Compiles Scala and Java source files.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.scala.ScalaDoc'/></td>
+            <td>Generates HTML API documentation for Scala source files.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.Sync'/></td>
+            <td>Synchronises the contents of a destination directory with some source. See <xref linkend="sec:sync_task"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.bundling.Tar'/></td>
+            <td>Assembles a TAR archive. See <xref linkend="sec:archives"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.diagnostics.TaskReportTask'/></td>
+            <td>Displays a list of tasks in the project.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.testing.Test'/></td>
+            <td>Executes tests.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.Upload'/></td>
+            <td>Uploads the artifacts of a configuration to a set of repositories.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.bundling.War' lang='groovy'/></td>
+            <td>Assembles a WAR archive. See <xref linkend="sec:archives"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.wrapper.Wrapper'/></td>
+            <td>Generates scripts (for *nix and windows) which enable you to build your project with Gradle, without
+                having to install Gradle. See <xref linkend="gradle_wrapper"/>.</td>
+        </tr>
+        <tr>
+            <td><apilink class='org.gradle.api.tasks.bundling.Zip'/></td>
+            <td>Assembles a ZIP archive. See <xref linkend="sec:archives"/>.</td>
+        </tr>
+    </table>
+</chapter>

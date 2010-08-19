@@ -16,7 +16,5 @@
 
 /**
  * Classes to run Javadoc.
- *
- * 
  */
 package org.gradle.external.javadoc;

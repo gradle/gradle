@@ -20,6 +20,8 @@ import org.gradle.api.Rule;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
+import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.hamcrest.BaseMatcher;
@@ -158,13 +160,11 @@ public class TaskReportTaskTest {
 
     private Matcher<TaskDetails> isTask(final Task task) {
         return new BaseMatcher<TaskDetails>() {
-            @Override
             public boolean matches(Object o) {
                 TaskDetails other = (TaskDetails) o;
                 return other.getPath().equals(task.getPath());
             }
 
-            @Override
             public void describeTo(Description description) {
                 description.appendText("is ").appendValue(task);
             }
@@ -186,13 +186,11 @@ public class TaskReportTaskTest {
             will(returnValue(taskGroup));
             allowing(task).compareTo(with(Matchers.notNullValue(Task.class)));
             will(new Action() {
-                @Override
                 public Object invoke(Invocation invocation) throws Throwable {
                     Task other = (Task) invocation.getParameter(0);
                     return name.compareTo(other.getName());
                 }
 
-                @Override
                 public void describeTo(Description description) {
                     description.appendText("compare to");
                 }

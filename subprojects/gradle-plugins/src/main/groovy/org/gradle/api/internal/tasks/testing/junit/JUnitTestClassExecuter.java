@@ -60,21 +60,19 @@ public class JUnitTestClassExecuter {
         Class<?> testClass;
         try {
             testClass = Class.forName(testClassName, true, applicationClassLoader);
+
+            // Look for a static suite method
+            try {
+                Method suiteMethod = testClass.getMethod("suite", new Class[0]);
+                return (Test) suiteMethod.invoke(null);
+            } catch (NoSuchMethodException e) {
+                // Ignore
+            } catch (InvocationTargetException e) {
+                return new BrokenTest(Description.createTestDescription(testClass, "suite"), e.getCause());
+            }
         } catch (Throwable e) {
             return new BrokenTest(
                     Description.createSuiteDescription(String.format("initializationError(%s)", testClassName)), e);
-        }
-
-        // Look for a static suite method
-        try {
-            Method suiteMethod = testClass.getMethod("suite", new Class[0]);
-            return (Test) suiteMethod.invoke(null);
-        } catch (NoSuchMethodException e) {
-            // Ignore
-        } catch (InvocationTargetException e) {
-            return new BrokenTest(Description.createTestDescription(testClass, "suite"), e.getCause());
-        } catch (IllegalAccessException e) {
-            return new BrokenTest(Description.createTestDescription(testClass, "suite"), e);
         }
 
         return new JUnit4TestAdapter(testClass);

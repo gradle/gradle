@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy
 
-import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
 import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployerTest
@@ -34,7 +33,7 @@ class DefaultGroovyMavenDeployerTest extends BaseMavenDeployerTest {
     private DefaultGroovyPomFilterContainerTest groovyMavenResolverHelper
 
     protected PomFilterContainer createPomFilterContainerMock() {
-        context.mock(GroovyPomFilterContainer.class);
+        context.mock(PomFilterContainer.class);
     }
 
     protected BaseMavenDeployer createMavenDeployer() {

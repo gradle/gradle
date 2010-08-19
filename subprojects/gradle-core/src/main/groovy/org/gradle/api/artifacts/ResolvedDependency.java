@@ -18,16 +18,18 @@ package org.gradle.api.artifacts;
 import java.util.Set;
 
 /**
+ * Information about a resolved dependency.
+ *
  * @author Hans Dockter
  */
 public interface ResolvedDependency {
     /**
-     * Returns the name of the resolved dependency
+     * Returns the name of the resolved dependency.
      */
     String getName();
 
     /**
-     * Returns the module group of the resolved dependency
+     * Returns the module group of the resolved dependency.
      */
     String getModuleGroup();
 

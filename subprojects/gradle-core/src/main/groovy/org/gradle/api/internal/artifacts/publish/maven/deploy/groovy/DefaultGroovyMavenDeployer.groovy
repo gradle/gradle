@@ -17,8 +17,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy.groovy
 
 import org.codehaus.groovy.runtime.InvokerHelper
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer
-import org.gradle.api.artifacts.maven.GroovyPomFilterContainer
-import org.gradle.api.artifacts.maven.MavenPom
+import org.gradle.api.artifacts.maven.PomFilterContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.ArtifactPomContainer
 import org.gradle.api.internal.artifacts.publish.maven.deploy.BaseMavenDeployer
 import org.gradle.logging.LoggingManagerInternal
@@ -26,13 +25,13 @@ import org.gradle.logging.LoggingManagerInternal
 /**
  * @author Hans Dockter
  */
-class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMavenDeployer, GroovyPomFilterContainer {
+class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMavenDeployer, PomFilterContainer {
     public static final String REPOSITORY_BUILDER = "repository"
     public static final String SNAPSHOT_REPOSITORY_BUILDER = 'snapshotRepository'
     
     private RepositoryBuilder repositoryBuilder = new RepositoryBuilder()
 
-    DefaultGroovyMavenDeployer(String name, GroovyPomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
+    DefaultGroovyMavenDeployer(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         super(name, pomFilterContainer, artifactPomContainer, loggingManager)
     }
     
@@ -49,21 +48,4 @@ class DefaultGroovyMavenDeployer extends BaseMavenDeployer implements GroovyMave
             throw new MissingMethodException(name, this.class, args)
         }
     }
-
-    void filter(Closure filter) {
-        getPomFilterContainer().filter(filter)
-    }
-
-    MavenPom addFilter(String name, Closure filter) {
-        getPomFilterContainer().addFilter(name, filter)
-    }
-
-    MavenPom pom(Closure configureClosure) {
-        getPomFilterContainer().pom(configureClosure)
-    }
-
-    MavenPom pom(String name, Closure configureClosure) {
-        getPomFilterContainer().pom(name, configureClosure)
-    }
-
 }

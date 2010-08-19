@@ -27,7 +27,7 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler
 import org.gradle.api.artifacts.dsl.DependencyHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
-import org.gradle.api.artifacts.repositories.InternalRepository
+import org.gradle.api.internal.artifacts.repositories.InternalRepository
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.internal.AsmBackedClassGenerator
 import org.gradle.api.internal.BeanDynamicObject

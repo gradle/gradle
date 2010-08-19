@@ -18,7 +18,7 @@ package org.gradle.api.file;
 import groovy.lang.Closure;
 
 /**
- * Specifies sources for a file copy
+ * Specifies sources for a file copy.
  *
  * @author Steve Appling
  */

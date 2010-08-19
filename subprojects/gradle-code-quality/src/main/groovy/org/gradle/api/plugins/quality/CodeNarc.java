@@ -20,6 +20,9 @@ import org.gradle.api.tasks.*;
 
 import java.io.File;
 
+/**
+ * Runs CodeNarc against some source files.
+ */
 public class CodeNarc extends SourceTask implements VerificationTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 

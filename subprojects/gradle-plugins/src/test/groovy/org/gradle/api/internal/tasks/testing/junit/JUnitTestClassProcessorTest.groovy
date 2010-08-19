@@ -466,7 +466,7 @@ class JUnitTestClassProcessorTest {
     }
 }
 
-public static class ATestClass {
+public class ATestClass {
     @Test
     public void ok() {
     }
@@ -476,7 +476,7 @@ public static class ATestClass {
     }
 }
 
-public static class ATestClassWithBrokenConstructor {
+public class ATestClassWithBrokenConstructor {
     static RuntimeException failure = new RuntimeException()
 
     def ATestClassWithBrokenConstructor() {
@@ -488,7 +488,7 @@ public static class ATestClassWithBrokenConstructor {
     }
 }
 
-public static class ATestClassWithBrokenBeforeMethod {
+public class ATestClassWithBrokenBeforeMethod {
     static RuntimeException failure = new RuntimeException()
 
     @Before
@@ -501,7 +501,7 @@ public static class ATestClassWithBrokenBeforeMethod {
     }
 }
 
-public static class ATestClassWithBrokenBeforeClassMethod {
+public class ATestClassWithBrokenBeforeClassMethod {
     static RuntimeException failure = new RuntimeException()
 
     @BeforeClass
@@ -514,18 +514,18 @@ public static class ATestClassWithBrokenBeforeClassMethod {
     }
 }
 
-public static class AJunit3TestClass extends TestCase {
+public class AJunit3TestClass extends TestCase {
     public void testOk() {
     }
 }
 
-public static class ATestClassWithSuiteMethod {
+public class ATestClassWithSuiteMethod {
     public static junit.framework.Test suite() {
         return new junit.framework.TestSuite(AJunit3TestClass.class, AJunit3TestClass.class);
     }
 }
 
-public static class ATestClassWithBrokenSuiteMethod {
+public class ATestClassWithBrokenSuiteMethod {
     static RuntimeException failure = new RuntimeException('broken')
 
     public static junit.framework.Test suite() {
@@ -533,7 +533,7 @@ public static class ATestClassWithBrokenSuiteMethod {
     }
 }
 
-public static class ATestSetUpWithBrokenSetUp extends TestSetup {
+public class ATestSetUpWithBrokenSetUp extends TestSetup {
     static RuntimeException failure = new RuntimeException('broken')
 
 
@@ -551,9 +551,9 @@ public static class ATestSetUpWithBrokenSetUp extends TestSetup {
 }
 
 @RunWith(CustomRunner.class)
-public static class ATestClassWithRunner {}
+public class ATestClassWithRunner {}
 
-public static class CustomRunner extends Runner {
+public class CustomRunner extends Runner {
     static RuntimeException failure = new RuntimeException('broken')
     Class<?> type
 
@@ -583,9 +583,9 @@ public static class CustomRunner extends Runner {
 }
 
 @RunWith(CustomRunnerWithBrokenConstructor.class)
-public static class ATestClassWithUnconstructableRunner {}
+public class ATestClassWithUnconstructableRunner {}
 
-public static class CustomRunnerWithBrokenConstructor extends Runner {
+public class CustomRunnerWithBrokenConstructor extends Runner {
     static RuntimeException failure = new RuntimeException()
 
     def CustomRunnerWithBrokenConstructor(Class<?> type) {
@@ -601,7 +601,7 @@ public static class CustomRunnerWithBrokenConstructor extends Runner {
     }
 }
 
-public static class ATestClassWhichCannotBeLoaded {
+public class ATestClassWhichCannotBeLoaded {
     static {
         throw new NoClassDefFoundError()
     }

@@ -28,7 +28,7 @@ import java.io.File;
 import java.util.List;
 
 /**
- * This represents a reques to gradle that is executed in a separate process using the ProcessLauncherServer. This is a
+ * This represents a request to gradle that is executed in a separate process using the ProcessLauncherServer. This is a
  * special request where the results are to build up a project/task tree.
  *
  * @author mhunsicker
@@ -87,7 +87,6 @@ public class RefreshTaskListRequest extends AbstractRequest {
          * @param wasSuccessful true if gradle was successful (returned 0)
          * @param message       the output of gradle if it ran. If it didn't, an error message.
          * @param throwable     an exception if one occurred
-         * @param projects      a hierachical list of projects. This is the final result.
          */
         public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
             executionInteraction.reportExecutionFinished(wasSuccessful, message, throwable);

@@ -42,8 +42,8 @@ import java.io.IOException;
 import java.util.*;
 
 /**
- * <p>The {@code JettyRun} task deploys an exploded web application to an embedded Jetty web container, without first
- * requiring that the web application be assembled into a war, saving time during the development cycle.</p>
+ * <p>Deploys an exploded web application to an embedded Jetty web container. Does not require that the web application
+ * be assembled into a war, saving time during the development cycle.</p>
  *
  * <p>Once started, the web container can be configured to run continuously, scanning for changes in the project and
  * automatically performing a hot redeploy when necessary. This allows the developer to concentrate on coding changes to
@@ -71,7 +71,7 @@ public class JettyRun extends AbstractJettyRunTask {
     private File webXml;
 
     /**
-     * Root directory for all html/jsp etc files
+     * Root directory for all html/jsp etc files.
      */
     private File webAppSourceDirectory;
 
@@ -87,17 +87,17 @@ public class JettyRun extends AbstractJettyRunTask {
     private ScanTargetPattern[] scanTargetPatterns;
 
     /**
-     * jetty-env.xml as a File
+     * jetty-env.xml as a File.
      */
     private File jettyEnvXmlFile;
 
     /**
-     * List of files on the classpath for the webapp
+     * List of files on the classpath for the webapp.
      */
     private List<File> classPathFiles;
 
     /**
-     * Extra scan targets as a list
+     * Extra scan targets as a list.
      */
     private List<File> extraScanTargets;
 
@@ -351,9 +351,6 @@ public class JettyRun extends AbstractJettyRunTask {
         xmlConfiguration.configure(getServer().getProxiedObject());
     }
 
-    /**
-     * @see JettyRun#createServer()
-     */
     public JettyPluginServer createServer() {
         return new Jetty6PluginServer();
     }
@@ -429,9 +426,6 @@ public class JettyRun extends AbstractJettyRunTask {
         this.scanTargetPatterns = scanTargetPatterns;
     }
 
-    /**
-     * @return Returns the contextHandlers.
-     */
     public ContextHandler[] getConfiguredContextHandlers() {
         return this.contextHandlers;
     }
@@ -449,7 +443,7 @@ public class JettyRun extends AbstractJettyRunTask {
     }
 
     /**
-     * Set the classpath for the web application
+     * Set the classpath for the web application.
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;

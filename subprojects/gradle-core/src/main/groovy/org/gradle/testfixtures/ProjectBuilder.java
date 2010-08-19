@@ -150,7 +150,6 @@ public class ProjectBuilder {
             return this;
         }
 
-        @Override
         public LogLevel getStandardErrorCaptureLevel() {
             return LogLevel.ERROR;
         }

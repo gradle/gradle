@@ -54,7 +54,7 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * A task for executing JUnit (3.8.x or 4.x) or TestNG tests.
+ * Executes tests. Supports JUnit (3.8.x or 4.x) or TestNG tests.
  *
  * @author Hans Dockter
  */
@@ -333,8 +333,8 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     }
 
     /**
-     * @return The {@link org.gradle.api.tasks.testing.TestListener} broadcaster.  This broadcaster will send messages
-     *         to all listeners that have been registered with the ListenerManager.
+     * Returns the {@link org.gradle.api.tasks.testing.TestListener} broadcaster.  This broadcaster will send messages
+     * to all listeners that have been registered with the ListenerManager.
      */
     ListenerBroadcast<TestListener> getTestListenerBroadcaster() {
         return testListenerBroadcaster;
@@ -653,6 +653,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Specifies that TestNG should be used to execute the tests.
+     *
      * @param testFrameworkConfigure A closure used to configure the JUint options. This closure is passed an instance
      * of type {@link org.gradle.api.tasks.testing.junit.JUnitOptions}.
      */
@@ -749,6 +750,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
 
     /**
      * Returns the classes files to scan for test classes.
+     *
      * @return The candidate class files.
      */
     @InputFiles

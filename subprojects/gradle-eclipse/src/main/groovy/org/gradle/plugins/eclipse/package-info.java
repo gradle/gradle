@@ -15,6 +15,6 @@
  */
 
 /**
- * The eclipse project generation {@link org.gradle.api.Task} implementations.
+ * A {link org.gradle.api.Plugin} for generating Eclipse files. 
  */
 package org.gradle.plugins.eclipse;

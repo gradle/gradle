@@ -19,6 +19,8 @@ import org.apache.ivy.plugins.resolver.RepositoryResolver;
 import org.gradle.api.internal.artifacts.repositories.WebdavRepository;
 
 /**
+ * A {@link org.apache.ivy.plugins.resolver.RepositoryResolver} for webdav based repositories.
+ *
  * @author Hans Dockter
  */
 public class WebdavResolver extends RepositoryResolver {

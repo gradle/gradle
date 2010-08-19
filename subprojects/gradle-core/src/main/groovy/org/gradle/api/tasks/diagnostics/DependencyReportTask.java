@@ -17,6 +17,9 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -25,7 +28,7 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * The {@code DependencyReportTask} displays the dependency tree for a project. Can be configured to output to a file,
+ * Displays the dependency tree for a project. Can be configured to output to a file,
  * and to optionally output a graphviz compatible "dot" graph. This task is used when you execute the dependency list
  * command-line option.
  *

@@ -17,7 +17,7 @@ package org.gradle.api.internal.file.archive;
 
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.file.CopyAction;
+import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.file.FileVisitDetails;
 import org.apache.tools.tar.TarOutputStream;
 import org.apache.tools.tar.TarEntry;

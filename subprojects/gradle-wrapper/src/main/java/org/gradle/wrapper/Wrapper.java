@@ -17,6 +17,7 @@ package org.gradle.wrapper;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -37,7 +38,12 @@ public class Wrapper {
 
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception {
         Properties wrapperProperties = new Properties();
-        wrapperProperties.load(new FileInputStream(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY))));
+        InputStream inStream = new FileInputStream(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY)));
+        try {
+            wrapperProperties.load(inStream);
+        } finally {
+            inStream.close();
+        }
         if (GradleWrapperMain.isDebug()) {
             System.out.println("wrapperProperties = " + wrapperProperties);
         }

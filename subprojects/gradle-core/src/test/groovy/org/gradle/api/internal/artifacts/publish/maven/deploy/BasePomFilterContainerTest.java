@@ -77,12 +77,12 @@ public class BasePomFilterContainerTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void getFilterWithNullName() {
-        pomFilterContainer.filter(null);
+        pomFilterContainer.filter((String) null);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void getPomWithNullName() {
-        pomFilterContainer.pom(null);
+        pomFilterContainer.pom((String) null);
     }
 
     @Test(expected = InvalidUserDataException.class)
@@ -92,7 +92,7 @@ public class BasePomFilterContainerTest {
 
     @Test(expected = InvalidUserDataException.class)
     public void addFilterWithNullFilter() {
-        pomFilterContainer.addFilter("somename", null);
+        pomFilterContainer.addFilter("somename", (PublishFilter) null);
     }
 
     @Test

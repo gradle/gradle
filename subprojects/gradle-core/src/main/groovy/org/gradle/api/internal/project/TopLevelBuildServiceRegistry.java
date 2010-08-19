@@ -22,7 +22,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -36,6 +35,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.*;
 import org.gradle.api.internal.artifacts.ivyservice.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.*;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.*;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.changedetection.*;
 import org.gradle.api.internal.file.IdentityFileResolver;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
@@ -55,12 +55,12 @@ import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.messaging.actor.ActorFactory;
+import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.TcpMessagingServer;
-import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.messaging.actor.internal.DefaultActorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
 import org.gradle.process.internal.WorkerProcessFactory;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
@@ -162,13 +162,19 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
         return new DefaultConfigurationsToModuleDescriptorConverter();
     }
     
-    protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter() {
-        return createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
+    private ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(projectDependencyStrategy);
+        return new ResolveModuleDescriptorConverter(
+                get(ModuleDescriptorFactory.class),
+                get(ConfigurationsToModuleDescriptorConverter.class),
+                new DefaultDependenciesToModuleDescriptorConverter(
+                        dependencyDescriptorFactoryDelegate,
+                        get(ExcludeRuleConverter.class)));
     }
 
-    protected ResolveModuleDescriptorConverter createResolveModuleDescriptorConverter(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
+    private DependencyDescriptorFactory createDependencyDescriptorFactory(ProjectDependencyDescriptorStrategy projectDependencyStrategy) {
         DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
-        DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
                 new ClientModuleDependencyDescriptorFactory(
                         get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
                 new ProjectDependencyDescriptorFactory(
@@ -176,12 +182,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                         projectDependencyStrategy),
                 get(ExternalModuleDependencyDescriptorFactory.class));
         clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
-        return new ResolveModuleDescriptorConverter(
-                get(ModuleDescriptorFactory.class),
-                get(ConfigurationsToModuleDescriptorConverter.class),
-                new DefaultDependenciesToModuleDescriptorConverter(
-                        dependencyDescriptorFactoryDelegate,
-                        get(ExcludeRuleConverter.class)));
+        return dependencyDescriptorFactoryDelegate;
     }
 
     protected PublishModuleDescriptorConverter createPublishModuleDescriptorConverter() {
@@ -191,17 +192,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     }
 
     protected ConfigurationContainerFactory createConfigurationContainerFactory() {
-        // todo this creation is duplicate. When we improve our service registry to allow multiple instances for same type
-        // we should consolidate.
-        DefaultModuleDescriptorFactoryForClientModule clientModuleDescriptorFactory = new DefaultModuleDescriptorFactoryForClientModule();
-        DependencyDescriptorFactoryDelegate dependencyDescriptorFactoryDelegate = new DependencyDescriptorFactoryDelegate(
-                new ClientModuleDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class), clientModuleDescriptorFactory, clientModuleRegistry),
-                new ProjectDependencyDescriptorFactory(
-                        get(ExcludeRuleConverter.class),
-                        ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY),
-                get(ExternalModuleDependencyDescriptorFactory.class));
-        clientModuleDescriptorFactory.setDependencyDescriptorFactory(dependencyDescriptorFactoryDelegate);
+        DependencyDescriptorFactory dependencyDescriptorFactoryDelegate = createDependencyDescriptorFactory(ProjectDependencyDescriptorFactory.RESOLVE_DESCRIPTOR_STRATEGY);
         PublishModuleDescriptorConverter fileModuleDescriptorConverter = new PublishModuleDescriptorConverter(
                 createResolveModuleDescriptorConverter(ProjectDependencyDescriptorFactory.IVY_FILE_DESCRIPTOR_STRATEGY),
                 new DefaultArtifactsToModuleDescriptorConverter(DefaultArtifactsToModuleDescriptorConverter.IVY_FILE_STRATEGY));
@@ -210,7 +201,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 new DefaultSettingsConverter(
                         get(ProgressLoggerFactory.class)
                 ),
-                get(ResolveModuleDescriptorConverter.class),
+                get(PublishModuleDescriptorConverter.class),
                 get(PublishModuleDescriptorConverter.class),
                 fileModuleDescriptorConverter,
                 new DefaultIvyFactory(),

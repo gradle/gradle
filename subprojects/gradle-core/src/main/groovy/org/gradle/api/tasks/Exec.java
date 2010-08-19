@@ -30,7 +30,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * A task for executing a command line process.
+ * Executes a command line process.
  * 
  * @author Hans Dockter
  */

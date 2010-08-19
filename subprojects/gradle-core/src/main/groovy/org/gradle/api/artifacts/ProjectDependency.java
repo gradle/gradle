@@ -24,7 +24,7 @@ import org.gradle.api.Project;
  */
 public interface ProjectDependency extends ModuleDependency, SelfResolvingDependency {
     /**
-     * Returns the project associated with this project dependency
+     * Returns the project associated with this project dependency.
      */
     Project getDependencyProject();
 

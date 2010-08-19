@@ -151,6 +151,9 @@ public interface FileCollection extends Iterable<File>, AntBuilderAware, Buildab
      */
     FileTree getAsFileTree();
 
+    /**
+     * Ant types which a {@code FileCollection} can be mapped to.
+     */
     enum AntType {
         MatchingTask, FileSet, ResourceCollection
     }

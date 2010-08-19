@@ -27,14 +27,14 @@ package org.gradle.openapi.external.ui;
 public interface GradleUIInteractionVersion1
 {
    /*
-      This is only called once and is how we get ahold of the AlternateUIInteraction.
+      This is only called once and is how we get a hold of the AlternateUIInteraction.
       @return an AlternateUIInteraction object. This cannot be null.
       @author mhunsicker
    */
    public AlternateUIInteractionVersion1 instantiateAlternateUIInteraction();
 
    /*
-      This is only called once and is how we get ahold of how the owner wants
+      This is only called once and is how we get a hold of how the owner wants
       to store preferences.
       @return a settings object. This cannot be null.
       @author mhunsicker

@@ -28,7 +28,7 @@ import org.gradle.api.tasks.compile.AbstractCompile;
 import org.gradle.api.tasks.compile.CompileOptions;
 
 /**
- * Task to perform scala compilation.
+ * Compiles Scala and Java source files.
  */
 public class ScalaCompile extends AbstractCompile {
     private FileCollection scalaClasspath;

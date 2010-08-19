@@ -45,9 +45,21 @@ public abstract class Message implements Serializable {
         private ExceptionPlaceholder cause;
         private StackTraceElement[] stackTrace;
 
-        public ExceptionPlaceholder(Throwable throwable) throws IOException {
+        public ExceptionPlaceholder(final Throwable throwable) throws IOException {
             ByteArrayOutputStream outstr = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(outstr);
+            ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outstr) {
+                @Override
+                protected Object replaceObject(Object obj) throws IOException {
+                    if (obj == throwable) {
+                        return throwable;
+                    }
+                    // Don't serialize the cause - we'll serialize it separately later 
+                    if (obj == throwable.getCause()) {
+                        return new CausePlaceholder();
+                    }
+                    return super.replaceObject(obj);
+                }
+            };
             try {
                 oos.writeObject(throwable);
                 oos.close();
@@ -65,19 +77,28 @@ public abstract class Message implements Serializable {
         }
 
         public Throwable read(ClassLoader classLoader) throws IOException {
+            final Throwable causeThrowable = getCause(classLoader);
+            Throwable throwable = null;
             if (serializedException != null) {
                 try {
-                    return (Throwable) new ClassLoaderObjectInputStream(new ByteArrayInputStream(serializedException),
-                            classLoader).readObject();
+                    final ExceptionReplacingObjectInputStream ois = new ExceptionReplacingObjectInputStream(new ByteArrayInputStream(serializedException), classLoader) {
+                        @Override
+                        protected Object resolveObject(Object obj) throws IOException {
+                            if (obj instanceof CausePlaceholder) {
+                                return causeThrowable;
+                            }
+                            return super.resolveObject(obj);
+                        }
+                    };
+                    throwable = (Throwable) ois.readObject();
                 } catch (ClassNotFoundException e) {
                     // Ignore
                 } catch (InvalidClassException e) {
                     try {
                         Constructor<?> constructor = classLoader.loadClass(type).getConstructor(String.class);
-                        Throwable throwable = (Throwable) constructor.newInstance(message);
-                        throwable.initCause(getCause(classLoader));
+                        throwable = (Throwable) constructor.newInstance(message);
+                        throwable.initCause(causeThrowable);
                         throwable.setStackTrace(stackTrace);
-                        return throwable;
                     } catch (ClassNotFoundException e1) {
                         // Ignore
                     } catch (NoSuchMethodException e1) {
@@ -88,15 +109,20 @@ public abstract class Message implements Serializable {
                 }
             }
 
-            PlaceholderException exception = new PlaceholderException(String.format("%s: %s", type, message), getCause(
-                    classLoader));
-            exception.setStackTrace(stackTrace);
-            return exception;
+            if (throwable == null) {
+                throwable = new PlaceholderException(String.format("%s: %s", type, message), causeThrowable);
+                throwable.setStackTrace(stackTrace);
+            }
+
+            return throwable;
         }
 
         private Throwable getCause(ClassLoader classLoader) throws IOException {
             return cause != null ? cause.read(classLoader) : null;
         }
+    }
+
+    private static class CausePlaceholder implements Serializable {
     }
 
     private static class TopLevelExceptionPlaceholder extends ExceptionPlaceholder {

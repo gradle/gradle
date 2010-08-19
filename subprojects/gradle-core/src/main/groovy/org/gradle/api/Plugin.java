@@ -21,6 +21,7 @@ package org.gradle.api;
  * objects.</p>
  *
  * @author Hans Dockter
+ * @param <T> The type of object which this plugin can configure. 
  */
 public interface Plugin<T> {
     /**

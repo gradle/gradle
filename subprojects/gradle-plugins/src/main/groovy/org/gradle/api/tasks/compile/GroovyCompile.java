@@ -33,6 +33,8 @@ import java.util.Collection;
 import java.util.List;
 
 /**
+ * Compiles Groovy and Java source files.
+ *
  * @author Hans Dockter
  */
 public class GroovyCompile extends AbstractCompile {

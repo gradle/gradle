@@ -16,6 +16,8 @@
 package org.gradle.api.logging;
 
 /**
+ * The log levels supported by Gradle.
+ *
  * @author Hans Dockter
  */
 public enum LogLevel {

@@ -1,9 +1,9 @@
-import org.junit.Assert
 
 subprojects {
     apply plugin: 'base'
     configurations {
         'default'
+        other
     }
     task jar(type: Jar)
     artifacts {
@@ -14,12 +14,17 @@ subprojects {
 project('a') {
     dependencies {
         'default' project(':b')
+        other project(':b')
     }
     task listJars {
-        dependsOn configurations['default']
+        dependsOn configurations.default
+        dependsOn configurations.other
         doFirst {
-            def jars = configurations['default'].collect { it.name } as Set
-            Assert.assertEquals(['b.jar', 'c.jar'] as Set, jars)
+            def jars = configurations.default.collect { it.name } as Set
+            assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
+
+            jars = configurations.other.collect { it.name } as Set
+            assert jars == ['a.jar', 'b.jar', 'c.jar'] as Set
         }
     }
 }
@@ -32,6 +37,6 @@ project('b') {
 
 project('c') {
     dependencies {
-        'default' project(':b')
+        'default' project(':a')
     }
 }

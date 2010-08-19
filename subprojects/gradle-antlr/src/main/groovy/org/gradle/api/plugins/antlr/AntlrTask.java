@@ -22,26 +22,25 @@ import java.util.List;
 import org.apache.tools.ant.taskdefs.optional.ANTLR;
 import org.apache.tools.ant.types.Path;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.plugins.antlr.internal.GenerationPlan;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.SourceTask;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.plugins.antlr.metadata.MetadataExtracter;
-import org.gradle.api.plugins.antlr.metadata.XRef;
-import org.gradle.api.plugins.antlr.plan.GenerationPlan;
-import org.gradle.api.plugins.antlr.plan.GenerationPlanBuilder;
+import org.gradle.api.plugins.antlr.internal.MetadataExtracter;
+import org.gradle.api.plugins.antlr.internal.XRef;
+import org.gradle.api.plugins.antlr.internal.GenerationPlanBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Gradle task for executing Antlr generations.  Wrapper around the Ant {@link ANTLR} task.
- * <p/>
- * Most properties here are self-evident, but I wanted to highlight one in particular:
- * {@link #setAntlrClasspath} is used to define the classpath that should be passed along to the
- * Ant {@link ANTLR} task as its classpath.  That is the classpath it uses to perform generation
- * execution.  This <b>should<b> really only require the antlr jar.  In {@link AntlrPlugin}
- * usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
- * created and exposed by the {@link AntlrPlugin} itself.
+ * <p>Generates parsers from Antlr grammars.  Wrapper around the Ant {@link ANTLR} task.</p>
+ *
+ * <p>Most properties here are self-evident, but I wanted to highlight one in particular: {@link #setAntlrClasspath} is
+ * used to define the classpath that should be passed along to the Ant {@link ANTLR} task as its classpath.  That is the
+ * classpath it uses to perform generation execution.  This <b>should</b> really only require the antlr jar.  In {@link
+ * AntlrPlugin} usage, this would happen simply by adding your antlr jar into the 'antlr' dependency configuration
+ * created and exposed by the {@link AntlrPlugin} itself.</p>
  *
  * @author Steve Ebersole
  */

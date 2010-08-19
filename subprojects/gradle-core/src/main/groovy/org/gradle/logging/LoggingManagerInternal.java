@@ -19,18 +19,13 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
 
 public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture {
-    @Override
     LoggingManagerInternal start();
 
-    @Override
     LoggingManagerInternal stop();
 
-    @Override
     LoggingManagerInternal captureStandardOutput(LogLevel level);
 
-    @Override
     LoggingManagerInternal captureStandardError(LogLevel level);
 
-    @Override
     LoggingManagerInternal setLevel(LogLevel logLevel);
 }

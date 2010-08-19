@@ -16,12 +16,11 @@
 package org.gradle.util
 
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.jmock.lib.legacy.ClassImposteriser
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class MultiParentClassLoaderTest {
@@ -32,9 +31,8 @@ class MultiParentClassLoaderTest {
 
     @Before
     public void setup() {
-        context.imposteriser = ClassImposteriser.INSTANCE
-        parent1 = context.mock(ClassLoader, 'parent1')
-        parent2 = context.mock(ClassLoader, 'parent2')
+        parent1 = context.mock(ClassLoader)
+        parent2 = context.mock(ClassLoader)
         loader = new MultiParentClassLoader(parent1, parent2)
     }
 

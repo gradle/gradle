@@ -28,7 +28,7 @@ import org.gradle.plugins.idea.model.Project
 import org.gradle.plugins.idea.model.ModulePath
 
 /**
- * A task that generates and Idea ipr file.
+ * Generates an IDEA project file.
  *
  * @author Hans Dockter
  */
@@ -68,14 +68,15 @@ public class IdeaProject extends DefaultTask {
     @TaskAction
     void updateXML() {
         Reader xmlreader = outputFile.exists() ? new FileReader(outputFile) : null;
-        Set modules = subprojects.collect { subproject ->
+        Set modules = subprojects.inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile
-                new ModulePath(outputFile.parentFile, '$PROJECT_DIR$', imlFile)
+                result << new ModulePath(outputFile.parentFile, '$PROJECT_DIR$', imlFile)
             }
+            result
         }
         Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
-        ideaProject.toXml(new FileWriter(outputFile))
+        outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
     }
 
     /**

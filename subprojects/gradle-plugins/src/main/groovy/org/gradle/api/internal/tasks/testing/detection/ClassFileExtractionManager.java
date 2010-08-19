@@ -17,8 +17,6 @@ package org.gradle.api.internal.tasks.testing.detection;
 
 import org.apache.commons.lang.text.StrBuilder;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.indexing.JarFilePackageListener;
-import org.gradle.api.artifacts.indexing.JarFilePackageLister;
 import org.gradle.util.JarUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

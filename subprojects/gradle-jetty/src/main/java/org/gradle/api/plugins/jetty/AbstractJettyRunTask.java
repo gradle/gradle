@@ -36,18 +36,21 @@ import java.io.File;
 import java.net.URLClassLoader;
 import java.util.*;
 
+/**
+ * Base class for all tasks which deploy a web application to an embedded Jetty web container.
+ */
 public abstract class AbstractJettyRunTask extends ConventionTask {
     private static Logger logger = LoggerFactory.getLogger(AbstractJettyRunTask.class);
 
     private Iterable<File> additionalRuntimeJars = new ArrayList<File>();
 
     /**
-     * The proxy for the Server object
+     * The proxy for the Server object.
      */
     private JettyPluginServer server;
 
     /**
-     * The "virtual" webapp created by the plugin
+     * The "virtual" webapp created by the plugin.
      */
     private JettyPluginWebAppContext webAppConfig;
 
@@ -86,14 +89,12 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private File jettyConfig;
 
     /**
-     * Port to listen to stop jetty on executing -DSTOP.PORT=&lt;stopPort&gt; -DSTOP.KEY=&lt;stopKey&gt; -jar start.jar
-     * --stop
+     * Port to listen to stop jetty on.
      */
     private Integer stopPort;
 
     /**
-     * Key to provide when stopping jetty on executing java -DSTOP.KEY=&lt;stopKey&gt; -DSTOP.PORT=&lt;stopPort&gt; -jar
-     * start.jar --stop
+     * Key to provide when stopping jetty.
      */
     private String stopKey;
 
@@ -124,17 +125,17 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     private RequestLog requestLog;
 
     /**
-     * A scanner to check for changes to the webapp
+     * A scanner to check for changes to the webapp.
      */
     private Scanner scanner = new Scanner();
 
     /**
-     * List of Listeners for the scanner
+     * List of Listeners for the scanner.
      */
     protected ArrayList scannerListeners;
 
     /**
-     * A scanner to check ENTER hits on the console
+     * A scanner to check ENTER hits on the console.
      */
     protected Thread consoleScanner;
 
@@ -147,7 +148,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     public abstract void applyJettyXml() throws Exception;
 
     /**
-     * create a proxy that wraps a particular jetty version Server object
+     * create a proxy that wraps a particular jetty version Server object.
      *
      * @return The Jetty Plugin Server
      */
@@ -273,7 +274,7 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     public abstract void restartWebApp(boolean reconfigureScanner) throws Exception;
 
     /**
-     * Subclasses should invoke this to setup basic info on the webapp
+     * Subclasses should invoke this to setup basic info on the webapp.
      */
     public void configureWebApplication() throws Exception {
         //use EITHER a <webAppConfig> element or the now deprecated <contextPath>, <webDefaultXml>, <overrideWebXml>

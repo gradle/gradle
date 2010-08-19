@@ -568,6 +568,7 @@ public class GradlePluginLord {
 
         final RefreshTaskListRequest request = new RefreshTaskListRequest( getNextRequestID(), fullCommandLine, executionQueue, this);
         executionQueue.addRequestToQueue(request);
+        // TODO - fix this race condition - request may already have completed
         requestObserverLord.notifyObservers( new ObserverLord.ObserverNotification<RequestObserver>()
         {
            public void notify( RequestObserver observer )

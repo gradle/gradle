@@ -36,7 +36,7 @@ import java.io.ByteArrayOutputStream;
 public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol, ProcessLauncherServer.ServerObserver> {
     private volatile ExecHandle externalProcess;
 
-    private final Logger logger = Logging.getLogger(ProcessLauncherServer.class);
+    private static final Logger LOGGER = Logging.getLogger(ProcessLauncherServer.class);
 
     /**
      * Implement this to define the behavior of the communication on the server side.
@@ -108,13 +108,14 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                     execHandle.start();
                 }
                 catch (Throwable e) {
-                    logger.error("Starting external process", e);
+                    LOGGER.error("Starting external process", e);
                     notifyClientExited( -1, e.getMessage() );
                     setExternalProcess(null);
                     return;
                 }
 
                 ExecResult result = execHandle.waitForFinish();
+                LOGGER.debug("External process completed with exit code {}", result.getExitValue());
 
                 setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
@@ -136,7 +137,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
     }
 
     /**
-     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferrable to ask the
+     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferable to ask the
      * thread to stop. However, gradle has no way to do that, so we'll be killing it.
      */
     public synchronized void killProcess() {

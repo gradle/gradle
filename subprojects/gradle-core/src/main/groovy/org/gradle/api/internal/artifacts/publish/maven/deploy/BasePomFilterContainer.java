@@ -15,11 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
+import groovy.lang.Closure;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomFactory;
+import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
 import java.util.HashMap;
@@ -53,6 +56,26 @@ public class BasePomFilterContainer implements PomFilterContainer {
 
     public void setPom(MavenPom defaultPom) {
         getDefaultPomFilter().setPomTemplate(defaultPom);
+    }
+
+    public void filter(Closure filter) {
+        setFilter(toFilter(filter));
+    }
+
+    public MavenPom addFilter(String name, Closure filter) {
+        return addFilter(name, toFilter(filter));
+    }
+
+    private PublishFilter toFilter(final Closure filter) {
+        return (PublishFilter) DefaultGroovyMethods.asType(filter, PublishFilter.class);
+    }
+
+    public MavenPom pom(Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, getPom());
+    }
+
+    public MavenPom pom(String name, Closure configureClosure) {
+        return ConfigureUtil.configure(configureClosure, pom(name));
     }
 
     public MavenPom addFilter(String name, PublishFilter publishFilter) {

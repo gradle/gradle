@@ -25,6 +25,8 @@ import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.copy.CopySpecImpl
 
 /**
+ * Assembles a WAR archive.
+ * 
  * @author Hans Dockter
  */
 class War extends Jar {

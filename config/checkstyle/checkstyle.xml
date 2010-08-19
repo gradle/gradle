@@ -47,11 +47,6 @@
         <module name="RedundantImport"/>
         <module name="UnusedImports"/>
 
-        <!--<module name="JavadocMethod">-->
-        <!--<property name="scope" value="public"/>-->
-        <!--<property name="allowMissingReturnTag" value="true"/>-->
-        <!--</module>-->
-
         <!-- Naming -->
         <module name="ClassTypeParameterName"/>
         <module name="ConstantName"/>

@@ -16,15 +16,16 @@
 
 package org.gradle.external.javadoc;
 
-import org.gradle.external.javadoc.optionfile.JavadocOptionFileOption;
-import org.gradle.external.javadoc.optionfile.GroupsJavadocOptionFileOption;
-import org.gradle.external.javadoc.optionfile.LinksOfflineJavadocOptionFileOption;
-import org.gradle.external.javadoc.optionfile.JavadocOptionFile;
+import org.gradle.external.javadoc.internal.JavadocOptionFile;
+import org.gradle.external.javadoc.internal.GroupsJavadocOptionFileOption;
+import org.gradle.external.javadoc.internal.LinksOfflineJavadocOptionFileOption;
 
 import java.io.File;
 import java.util.*;
 
 /**
+ * Provides the options for the standard Javadoc doclet.
+ * 
  * @author Tom Eyckmans
  */
 public class StandardJavadocDocletOptions extends CoreJavadocOptions implements MinimalJavadocOptions {
@@ -257,7 +258,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * Specifies the title to be placed near the top of the overview summary file. The title will be placed as a centered,
      * level-one heading directly beneath the upper navigation bar. The title may contain html tags and white space,
      * though if it does, it must be enclosed in quotes. Any internal quotation marks within title may have to be escaped.
-     * C:> javadoc -doctitle "Java<sup><font size=\"-2\">TM</font></sup>" com.mypackage
+     * C:> javadoc -doctitle "Java&lt;sup>&lt;font size=\"-2\">TM&lt;/font>&lt;/sup>" com.mypackage
      */
     private final JavadocOptionFileOption<String> docTitle;
 
@@ -325,7 +326,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * you want to link to. Examples are shown below.
      * The package-list file must be found in this directory (otherwise, use -linkoffline).
      * The Javadoc tool reads the package names from the package-list file and then links to those packages at that URL.
-     * When the Javadoc tool is run, the extdocURL value is copied literally into the <A HREF> links that are created.
+     * When the Javadoc tool is run, the extdocURL value is copied literally into the &lt;A HREF> links that are created.
      * Therefore, extdocURL must be the URL to the directory, not to a file.
      * You can use an absolute link for extdocURL to enable your docs to link to a document on any website,
      * or can use a relative link to link only to a relative location. If relative,
@@ -368,7 +369,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
      * then you can run javadoc again on onlya smaller set of changed packages,
      * so that the updated files can be inserted back into the original set. Examples are given below.
      * <p/>
-     * The -linkoffline option takes two arguments -- the first for the string to be embedded in the <a href> links,
+     * The -linkoffline option takes two arguments -- the first for the string to be embedded in the &lt;a href> links,
      * the second telling it where to find package-list:
      * <p/>
      * extdocURL is the absolute or relative URL of the directory containing the external javadoc-generated documentation you want to link to.
@@ -783,7 +784,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
-     * -keywords
+     * -keywords.
      */
     private final JavadocOptionFileOption<Boolean> keyWords;
 
@@ -805,8 +806,8 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
-     * -tag  tagname:Xaoptcmf:"taghead"
-     * -taglet  class
+     * -tag  tagname:Xaoptcmf:"taghead".
+     * -taglet  class.
      */
     private final JavadocOptionFileOption<List<String>> tags;
 
@@ -836,7 +837,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
-     * -tagletpath  tagletpathlist
+     * -tagletpath  tagletpathlist.
      */
     private final JavadocOptionFileOption<List<File>> tagletPath;
 
@@ -858,7 +859,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
-     * -docfilessubdirs
+     * -docfilessubdirs.
      */
     private final JavadocOptionFileOption<Boolean> docFilesSubDirs;
 
@@ -923,9 +924,6 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
         return noQualifier(Arrays.asList(noQualifiers));
     }
 
-    /**
-     * -notimestamp
-     */
     public final JavadocOptionFileOption<Boolean> noTimestamp;
 
     public boolean isNoTimestamp() {
@@ -946,7 +944,7 @@ public class StandardJavadocDocletOptions extends CoreJavadocOptions implements 
     }
 
     /**
-     * -nocomment
+     * -nocomment.
      */
     private final JavadocOptionFileOption<Boolean> noComment;
 

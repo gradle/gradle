@@ -13,6 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+
+apply from: "$rootDir/gradle/integTest.gradle"
+
 dependencies {
     compile project(':core')
     compile project(':openApi')
@@ -27,27 +30,20 @@ dependencies {
     runtime libraries.jaxen
 
     testCompile project(path: ':core', configuration: 'testFixtures')
-    testCompile project(path: ':core', configuration: 'integTestFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
-    testRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
+    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 
 task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
     systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-    systemProperties['integTest.srcDir'] = file('src').absolutePath
     systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTest.integTestUserDir.absolutePath
-    include 'org/gradle/integtests/**/*IntegrationTest.*'
-    testClassesDir = sourceSets.test.classesDir
-    classpath = sourceSets.test.runtimeClasspath
+    testClassesDir = sourceSets.integTest.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
 
     doFirst { task -> systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
 }
 
-compileJava.options.depend()
-
-//this is just to exclude integration tests
 test {
     jvmArgs '-Xms128m', '-Xmx256m', '-XX:MaxPermSize=128m', '-XX:+HeapDumpOnOutOfMemoryError'
-
-    exclude 'org/gradle/integtests/**/*.*'
 }

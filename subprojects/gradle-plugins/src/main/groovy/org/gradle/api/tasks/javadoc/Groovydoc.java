@@ -27,7 +27,7 @@ import java.io.File;
 import java.util.*;
 
 /**
- * This task generates html api doc for Groovy classes. It uses Groovy's Groovydoc tool for this. Please note that the
+ * Generates HTML API documentation for Groovy and Java classes. It uses Groovy's Groovydoc tool for this. Please note that the
  * Groovydoc tool has some severe limitations at the moment (for example no doc for properties comments). The version of
  * the Groovydoc that is used, is the one from the Groovy defined in the build script. Please note also, that the
  * Groovydoc tool prints to System.out for many of its statements and does circumvents our logging currently.
@@ -228,14 +228,14 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Returns links to groovydoc/javadoc output at the given URL
+     * Returns links to groovydoc/javadoc output at the given URL.
      */
     public Set<Link> getLinks() {
         return Collections.unmodifiableSet(links);
     }
 
     /**
-     * Sets links to groovydoc/javadoc output at the given URL
+     * Sets links to groovydoc/javadoc output at the given URL.
      *
      * @param links The links to set
      * @see #link(String, String[])
@@ -245,7 +245,7 @@ public class Groovydoc extends SourceTask {
     }
 
     /**
-     * Add links to groovydoc/javadoc output at the given URL
+     * Add links to groovydoc/javadoc output at the given URL.
      *
      * @param url Base URL of external site
      * @param packages list of package prefixes
@@ -262,6 +262,8 @@ public class Groovydoc extends SourceTask {
         private String url;
 
         /**
+         * Constructs a {@code Link}.
+         *
          * @param url Base URL of external site
          * @param packages list of package prefixes
          */

@@ -294,14 +294,14 @@ public class ATestNGClassWithGroups {
     }
 }
 
-public static class ATestNGFactoryClass {
+public class ATestNGFactoryClass {
     @Factory
     public Object[] suite() {
         return [new ATestNGClass()] as Object[]
     }
 }
 
-public static class ATestNGClassWithBrokenConstructor {
+public class ATestNGClassWithBrokenConstructor {
     static RuntimeException failure = new RuntimeException()
 
     def ATestNGClassWithBrokenConstructor() {
@@ -313,7 +313,7 @@ public static class ATestNGClassWithBrokenConstructor {
     }
 }
 
-public static class ATestNGClassWithBrokenSetupMethod {
+public class ATestNGClassWithBrokenSetupMethod {
     static RuntimeException failure = new RuntimeException()
 
     @BeforeMethod

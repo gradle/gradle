@@ -31,7 +31,7 @@ public interface ProjectEvaluationListener {
     void beforeEvaluate(Project project);
 
     /**
-     * This method is called when a project has been evaluated, and before the evaluated project is made available to
+     * <p>This method is called when a project has been evaluated, and before the evaluated project is made available to
      * other projects.</p>
      *
      * @param project The project which was evaluated. Never null.

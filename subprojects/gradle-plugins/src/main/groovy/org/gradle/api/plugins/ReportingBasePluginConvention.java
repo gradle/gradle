@@ -22,7 +22,7 @@ import java.io.File;
 
 /**
  * <p>A {@code BasePluginConvention} defines the convention properties and methods used by the {@link
- * ReportingBasePlugin}</p>
+ * ReportingBasePlugin}.</p>
  */
 public class ReportingBasePluginConvention {
     private String reportsDirName = "reports";
@@ -51,7 +51,7 @@ public class ReportingBasePluginConvention {
     }
 
     /**
-     * Returns the directory containing all reports for this project
+     * Returns the directory containing all reports for this project.
      *
      * @return The reports directory. Never returns null.
      */

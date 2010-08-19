@@ -7,10 +7,11 @@
 /buildSrc/build
 /subprojects/*/build
 /website/build
+/performanceTest/build
 /subprojects/gradle-core/ide
 *.iml
 *.ipr
-*.iws
+gradle.iws
 *.classpath
 *.project
 /intTestHomeDir

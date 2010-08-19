@@ -76,7 +76,7 @@ class Classpath {
     }
 
     void toXml(File file) {
-        toXml(new FileWriter(file))
+        file.withWriter { Writer writer -> toXml(writer) }
     }
 
     def toXml(Writer writer) {
@@ -86,7 +86,9 @@ class Classpath {
         }
         withXmlActions.source.execute(xml)
 
-        new XmlNodePrinter(new PrintWriter(writer)).print(xml)
+        PrintWriter printWriter = new PrintWriter(writer)
+        new XmlNodePrinter(printWriter).print(xml)
+        printWriter.flush()
     }
     
     boolean equals(o) {

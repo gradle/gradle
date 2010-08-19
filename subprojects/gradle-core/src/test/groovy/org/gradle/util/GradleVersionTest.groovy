@@ -39,14 +39,12 @@ class GradleVersionTest {
 Gradle $version.version
 ------------------------------------------------------------
 
-Gradle buildtime: $version.buildTime
+Gradle build time: $version.buildTime
 Groovy: $InvokerHelper.version
 Ant: $Main.antVersion
 Ivy: ${Ivy.ivyVersion}
-Java: ${System.getProperty("java.version")}
-JVM: ${System.getProperty("java.vm.version")}
-JVM Vendor: ${System.getProperty("java.vm.vendor")}
-OS Name: ${System.getProperty("os.name")}
+JVM: ${Jvm.current()}
+OS: ${OperatingSystem.current()}
 """
         assertEquals(expectedText, version.prettyPrint())
     }

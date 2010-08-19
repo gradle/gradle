@@ -16,7 +16,7 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.repositories.InternalRepository;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 
 import java.io.File;
 

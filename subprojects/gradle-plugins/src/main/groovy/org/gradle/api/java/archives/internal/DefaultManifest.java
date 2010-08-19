@@ -163,7 +163,12 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
             if (file.getParentFile() != null) {
                 file.getParentFile().mkdirs();
             }
-            return writeTo(new FileWriter(file));
+            FileWriter writer = new FileWriter(file);
+            try {
+                return writeTo(writer);
+            } finally {
+                writer.close();
+            }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
@@ -197,7 +202,13 @@ public class DefaultManifest implements org.gradle.api.java.archives.Manifest {
     private void read(Object manifestPath) {
         File manifestFile = fileResolver.resolve(manifestPath);
         try {
-            Manifest antManifest = new Manifest(new FileReader(manifestFile));
+            FileReader reader = new FileReader(manifestFile);
+            Manifest antManifest;
+            try {
+                antManifest = new Manifest(reader);
+            } finally {
+                reader.close();
+            }
             addAntManifestToAttributes(antManifest);
             addAntManifestToSections(antManifest);
         } catch (ManifestException e) {

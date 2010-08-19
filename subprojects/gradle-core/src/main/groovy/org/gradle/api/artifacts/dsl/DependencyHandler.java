@@ -48,9 +48,14 @@ import java.util.Map;
  * way, a {@link Dependency} object is created. You can use this object to query or further configure the
  * dependency.</p>
  *
+ * <p>You can also always add instances of
+ * {@link org.gradle.api.artifacts.Dependency} directly:</p>
+ *
+ * <code><i>configurationName</i> &lt;instance&gt;</code>
+ *
  * <h2>External Modules</h2>
  *
- * There are 3 notations supported for declaring a dependency on an external module. One is a string notation:</p>
+ * <p>There are 2 notations supported for declaring a dependency on an external module. One is a string notation:</p>
  *
  * <code><i>configurationName</i> "<i>group</i>:<i>name</i>:<i>version</i>:<i>classifier</i>"</code>
  *
@@ -59,7 +64,9 @@ import java.util.Map;
  * <code><i>configurationName</i> group: <i>group</i>:, name: <i>name</i>, version: <i>version</i>, classifier:
  * <i>classifier</i></code>
  *
- * <p>In both notations, all properties, except name, are optional. External dependencies are represented using a {@link
+ * <p>In both notations, all properties, except name, are optional.</p>
+ *
+ * <p>External dependencies are represented by a {@link
  * org.gradle.api.artifacts.ExternalModuleDependency}.</p>
  *
  * <h2>Client Modules</h2>
@@ -103,7 +110,7 @@ public interface DependencyHandler {
     Dependency add(String configurationName, Object dependencyNotation);
 
     /**
-     * Adds a dependency to the given configuration, and configures the dependency using the given closure/
+     * Adds a dependency to the given configuration, and configures the dependency using the given closure.
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency notation, in one of the notations described above.

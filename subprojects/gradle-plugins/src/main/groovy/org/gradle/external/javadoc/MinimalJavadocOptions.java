@@ -23,6 +23,8 @@ import java.io.IOException;
 import java.util.List;
 
 /**
+ * Provides the core Javadoc options.
+ *
  * @author Tom Eyckmans
  */
 public interface MinimalJavadocOptions {

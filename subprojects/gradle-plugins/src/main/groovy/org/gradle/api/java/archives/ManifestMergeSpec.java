@@ -18,6 +18,9 @@ package org.gradle.api.java.archives;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 
+/**
+ * Specifies how the entries of multiple manifests should be merged together.
+ */
 public interface ManifestMergeSpec {
     /**
      * Adds a merge path to a manifest that should be merged into the base manifest. A merge path can be either another

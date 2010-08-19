@@ -21,7 +21,7 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.tasks.AbstractConventionTaskTest;
-import org.gradle.external.javadoc.JavadocExecHandleBuilder;
+import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.process.internal.ExecAction;
 import org.gradle.process.internal.ExecException;

@@ -20,6 +20,9 @@ import org.gradle.api.tasks.*;
 
 import java.io.File;
 
+/**
+ * The base class for all JVM-based language compilation tasks.
+ */
 public abstract class AbstractCompile extends SourceTask {
     private File destinationDir;
     private String sourceCompatibility;

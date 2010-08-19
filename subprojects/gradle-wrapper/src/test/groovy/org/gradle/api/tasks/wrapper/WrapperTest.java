@@ -18,6 +18,7 @@ package org.gradle.api.tasks.wrapper;
 
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
+import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;

@@ -21,6 +21,8 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import java.io.File;
 
 /**
+ * A filter for artifacts to be published.
+ *
  * @author Hans Dockter
  */
 public interface PublishFilter {

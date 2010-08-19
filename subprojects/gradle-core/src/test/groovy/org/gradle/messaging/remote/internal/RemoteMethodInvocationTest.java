@@ -16,19 +16,14 @@
 
 package org.gradle.messaging.remote.internal;
 
-import groovy.lang.GroovyClassLoader;
 import org.junit.Test;
 
-import java.io.*;
-
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.Matchers.strictlyEqual;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 
 public class RemoteMethodInvocationTest {
-    private final GroovyClassLoader source = new GroovyClassLoader(getClass().getClassLoader());
-    private final GroovyClassLoader dest = new GroovyClassLoader(getClass().getClassLoader());
-
     @Test
     public void equalsAndHashCode() throws Exception {
         RemoteMethodInvocation invocation = new RemoteMethodInvocation(1, new Object[]{"param"});
@@ -39,140 +34,4 @@ public class RemoteMethodInvocationTest {
         assertThat(invocation, not(equalTo(differentMethod)));
         assertThat(invocation, not(equalTo(differentArgs)));
     }
-
-    @Test
-    public void replacesUnserializableExceptionWithPlaceholder() throws Exception {
-        RuntimeException cause = new RuntimeException("nested");
-        UnserializableException original = new UnserializableException("message", cause);
-        Object transported = transport(original);
-
-        assertThat(transported, instanceOf(PlaceholderException.class));
-        PlaceholderException e = (PlaceholderException) transported;
-        assertThat(e.getMessage(), equalTo(UnserializableException.class.getName() + ": " + original.getMessage()));
-        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-
-        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
-        assertThat(e.getCause().getMessage(), equalTo("nested"));
-        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
-    }
-
-    @Test
-    public void replacesNestedUnserializableExceptionWithPlaceholder() throws Exception {
-        Exception cause = new IOException("nested");
-        UnserializableException original = new UnserializableException("message", cause);
-        Object transported = transport(new RuntimeException(original));
-
-        assertThat(transported, instanceOf(RuntimeException.class));
-        PlaceholderException e = (PlaceholderException) ((RuntimeException) transported).getCause();
-        assertThat(e.getMessage(), equalTo(UnserializableException.class.getName() + ": " + original.getMessage()));
-        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-
-        assertThat(e.getCause().getClass(), equalTo((Object) IOException.class));
-        assertThat(e.getCause().getMessage(), equalTo("nested"));
-        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
-    }
-
-    @Test
-    public void replacesUndeserializableExceptionWithPlaceholder() throws Exception {
-        RuntimeException cause = new RuntimeException("nested");
-        UndeserializableException original = new UndeserializableException("message", cause);
-        Object transported = transport(original);
-
-        assertThat(transported, instanceOf(RuntimeException.class));
-        PlaceholderException e = (PlaceholderException) transported;
-        assertThat(e.getMessage(), equalTo(UndeserializableException.class.getName() + ": " + original.getMessage()));
-        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-
-        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
-        assertThat(e.getCause().getMessage(), equalTo("nested"));
-        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
-    }
-
-    @Test
-    public void replacesNestedUndeserializableExceptionWithPlaceholder() throws Exception {
-        RuntimeException cause = new RuntimeException("nested");
-        UndeserializableException original = new UndeserializableException("message", cause);
-        Object transported = transport(new RuntimeException(original));
-
-        assertThat(transported, instanceOf(RuntimeException.class));
-        PlaceholderException e = (PlaceholderException) ((RuntimeException) transported).getCause();
-        assertThat(e.getMessage(), equalTo(UndeserializableException.class.getName() + ": " + original.getMessage()));
-        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-
-        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
-        assertThat(e.getCause().getMessage(), equalTo("nested"));
-        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
-    }
-
-    @Test
-    public void replacesIncompatibleExceptionWithLocalVersion() throws Exception {
-        RuntimeException cause = new RuntimeException("nested");
-        Class<? extends RuntimeException> sourceExceptionType = source.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
-        Class<? extends RuntimeException> destExceptionType = dest.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { private String someField; public TestException(String msg) { super(msg); } }");
-
-        RuntimeException original = sourceExceptionType.getConstructor(String.class, Throwable.class).newInstance("message", cause);
-        Object transported = transport(original);
-
-        assertThat(transported, instanceOf(destExceptionType));
-        RuntimeException e = (RuntimeException) transported;
-        assertThat(e.getMessage(), equalTo(original.getMessage()));
-        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-
-        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
-        assertThat(e.getCause().getMessage(), equalTo("nested"));
-        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
-    }
-
-    @Test
-    public void usesPlaceholderWhenLocalExceptionCannotBeConstructed() throws Exception {
-        RuntimeException cause = new RuntimeException("nested");
-        Class<? extends RuntimeException> sourceExceptionType = source.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { public TestException(String msg, Throwable cause) { super(msg, cause); } }");
-        Class<? extends RuntimeException> destExceptionType = dest.parseClass(
-                "package org.gradle; public class TestException extends RuntimeException { private String someField; }");
-
-        RuntimeException original = sourceExceptionType.getConstructor(String.class, Throwable.class).newInstance("message", cause);
-        Object transported = transport(original);
-
-        assertThat(transported, instanceOf(PlaceholderException.class));
-        RuntimeException e = (RuntimeException) transported;
-        assertThat(e.getMessage(), equalTo(original.toString()));
-        assertThat(e.getStackTrace(), equalTo(original.getStackTrace()));
-
-        assertThat(e.getCause().getClass(), equalTo((Object) RuntimeException.class));
-        assertThat(e.getCause().getMessage(), equalTo("nested"));
-        assertThat(e.getCause().getStackTrace(), equalTo(cause.getStackTrace()));
-    }
-
-    private Object transport(Object arg) throws Exception {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        new RemoteMethodInvocation(1, new Object[]{arg}).send(outputStream);
-
-        ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
-        RemoteMethodInvocation invocation = (RemoteMethodInvocation) Message.receive(inputStream, dest);
-        return invocation.getArguments()[0];
-    }
-
-    private static class UnserializableException extends RuntimeException {
-        public UnserializableException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-        private void writeObject(ObjectOutputStream outstr) throws IOException {
-            outstr.writeObject(new Object());
-        }
-    }
-
-    private static class UndeserializableException extends RuntimeException {
-        public UndeserializableException(String message, Throwable cause) {
-            super(message, cause);
-        }
-
-        private void readObject(ObjectInputStream outstr) throws ClassNotFoundException {
-            throw new ClassNotFoundException();
-        }
-    }
-
 }
