@@ -37,4 +37,14 @@ class IdeaIntegrationTest {
     public void canCreateAndDeleteMetaData() {
         executer.withTasks('idea', 'cleanIdea').run()
     }
+
+    @Test
+    public void worksWithAnEmptyProject() {
+        executer.withTasks('idea').run()
+    }
+
+    @Test
+    public void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
+        executer.withTasks('idea').run()
+    }
 }

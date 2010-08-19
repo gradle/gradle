@@ -68,11 +68,12 @@ public class IdeaProject extends DefaultTask {
     @TaskAction
     void updateXML() {
         Reader xmlreader = outputFile.exists() ? new FileReader(outputFile) : null;
-        Set modules = subprojects.collect { subproject ->
+        Set modules = subprojects.inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile
-                new ModulePath(outputFile.parentFile, '$PROJECT_DIR$', imlFile)
+                result << new ModulePath(outputFile.parentFile, '$PROJECT_DIR$', imlFile)
             }
+            result
         }
         Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
         outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
