@@ -387,7 +387,7 @@ class Xhtml2Pdf extends DefaultTask {
     FileCollection classpath
 
     def Xhtml2Pdf() {
-        onlyIf { !System.getProperty("os.name").toLowerCase().contains('windows') }
+        onlyIf { !OperatingSystem.current().isWindows() }
     }
 
     @TaskAction
