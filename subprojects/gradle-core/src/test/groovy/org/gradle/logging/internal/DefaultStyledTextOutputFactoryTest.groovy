@@ -13,22 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.logging.internal
 
-import java.io.PrintStream;
+import spock.lang.Specification
 
-class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(StyledTextOutputFactory factory) {
-        super(factory.create("system.out"));
-    }
+class DefaultStyledTextOutputFactoryTest extends Specification {
+    private final DefaultStyledTextOutputFactory factory = new DefaultStyledTextOutputFactory()
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
+    def createsAStyledTextOutputImplementation() {
+        when:
+        def output = factory.create('category')
 
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+        then:
+        output instanceof LoggingBackedStyledTextOutput
     }
 }

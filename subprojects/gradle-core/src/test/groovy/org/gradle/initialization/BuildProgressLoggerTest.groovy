@@ -41,7 +41,7 @@ class BuildProgressLoggerTest extends Specification {
         logger.buildStarted(gradle)
 
         then:
-        1 * progressLoggerFactory.start() >> progressLogger
+        1 * progressLoggerFactory.start(BuildProgressLogger.name) >> progressLogger
         1 * progressLogger.progress('Loading')
 
         when:

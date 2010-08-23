@@ -57,7 +57,7 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            one(progressLoggerFactory).start(":path");
+            one(progressLoggerFactory).start(TaskExecutionLogger.class.getName(), ":path");
             will(returnValue(progressLogger));
             one(progressLogger).progress(":path");
         }});
@@ -85,7 +85,7 @@ public class TaskExecutionLoggerTest {
             allowing(rootProject).getName();
             will(returnValue("build"));
 
-            one(progressLoggerFactory).start(":build:path");
+            one(progressLoggerFactory).start(TaskExecutionLogger.class.getName(), ":build:path");
             will(returnValue(progressLogger));
             one(progressLogger).progress(":build:path");
         }});
@@ -106,7 +106,7 @@ public class TaskExecutionLoggerTest {
         context.checking(new Expectations() {{
             allowing(gradle).getParent();
             will(returnValue(null));
-            one(progressLoggerFactory).start(":path");
+            one(progressLoggerFactory).start(TaskExecutionLogger.class.getName(), ":path");
             will(returnValue(progressLogger));
             one(progressLogger).progress(":path");
         }});

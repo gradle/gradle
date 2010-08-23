@@ -40,6 +40,7 @@ import org.gradle.logging.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.internal.ProgressListener;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -193,7 +194,7 @@ public class ProjectBuilder {
         }
 
         protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(get(ListenerManager.class));
+            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class));
         }
 
         protected LoggingManagerFactory createLoggingManagerFactory() {

@@ -13,22 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.logging.internal;
 
-import java.io.PrintStream;
+import org.gradle.logging.StyledTextOutput;
 
-class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(StyledTextOutputFactory factory) {
-        super(factory.create("system.out"));
-    }
+public abstract class AbstractStyledTextOutput implements StyledTextOutput {
+    private static final String EOL = System.getProperty("line.separator");
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+    public StyledTextOutput endLine() {
+        text(EOL);
+        return this;
     }
 }

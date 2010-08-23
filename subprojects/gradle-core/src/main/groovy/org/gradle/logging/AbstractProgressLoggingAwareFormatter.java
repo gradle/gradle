@@ -16,56 +16,65 @@
 
 package org.gradle.logging;
 
-import ch.qos.logback.classic.Level;
-import ch.qos.logback.classic.PatternLayout;
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Context;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.internal.*;
 
 import java.io.IOException;
 import java.util.LinkedList;
 
-public abstract class AbstractProgressLoggingAwareFormatter implements LogEventFormatter {
+public abstract class AbstractProgressLoggingAwareFormatter implements OutputEventListener {
     public static final String EOL = System.getProperty("line.separator");
-    private final PatternLayout layout;
     private final LinkedList<Operation> pendingOperations = new LinkedList<Operation>();
+    private boolean debugOutput;
 
-    protected AbstractProgressLoggingAwareFormatter(Context context) {
-        this.layout = new PatternLayout();
-        layout.setContext(context);
-        layout.setPattern("%msg%n%ex");
-        layout.start();
-    }
-
-    public void format(ILoggingEvent event) {
+    public void onOutput(OutputEvent event) {
         try {
-            if (event.getMarker() == Logging.PROGRESS_STARTED) {
+            if (event instanceof ProgressStartEvent) {
+                ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
                 Operation operation = new Operation();
-                operation.description = event.getFormattedMessage();
+                operation.description = progressStartEvent.getDescription();
                 operation.status = "";
                 pendingOperations.addFirst(operation);
                 onStart(operation);
-            } else if (event.getMarker() == Logging.PROGRESS) {
+            } else if (event instanceof ProgressEvent) {
                 assert !pendingOperations.isEmpty();
+                ProgressEvent progressEvent = (ProgressEvent) event;
                 Operation operation = pendingOperations.getFirst();
-                operation.status = event.getFormattedMessage();
+                operation.status = progressEvent.getStatus();
                 onStatusChange(operation);
-            } else if (event.getMarker() == Logging.PROGRESS_COMPLETE) {
+            } else if (event instanceof ProgressCompleteEvent) {
                 assert !pendingOperations.isEmpty();
+                ProgressCompleteEvent progressCompleteEvent = (ProgressCompleteEvent) event;
                 Operation operation = pendingOperations.removeFirst();
-                operation.status = event.getFormattedMessage();
+                operation.status = progressCompleteEvent.getStatus();
                 onComplete(operation);
-            } else if (event.getLevel() == Level.ERROR) {
-                String message = layout.doLayout(event);
-                onErrorMessage(message);
+            } else if (event instanceof LogLevelChangeEvent) {
+                debugOutput = ((LogLevelChangeEvent) event).getNewLogLevel() == LogLevel.DEBUG;
             } else {
-                String message = layout.doLayout(event);
-                onInfoMessage(message);
+                String message = doLayout((LogEvent) event);
+                if (event.getLogLevel() == LogLevel.ERROR) {
+                    onErrorMessage(message);
+                } else {
+                    onInfoMessage(message);
+                }
             }
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+    }
+
+    private String doLayout(LogEvent event) {
+        OutputEventTextOutput writer = new StringWriterBackedOutputEventTextOutput();
+        if (debugOutput) {
+            writer.text("[");
+            writer.text(event.getLogLevel().toString());
+            writer.text("] [");
+            writer.text(event.getCategory());
+            writer.text("] ");
+        }
+        event.render(writer);
+        return writer.toString();
     }
 
     protected abstract void onStart(Operation operation) throws IOException;

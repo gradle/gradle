@@ -16,33 +16,37 @@
 
 package org.gradle.logging;
 
-import org.gradle.listener.ListenerManager;
+import org.gradle.logging.internal.ProgressCompleteEvent;
+import org.gradle.logging.internal.ProgressEvent;
+import org.gradle.logging.internal.ProgressListener;
+import org.gradle.logging.internal.ProgressStartEvent;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
-    private final ListenerManager listenerManager;
+    private final ProgressListener progressListener;
 
-    public DefaultProgressLoggerFactory(ListenerManager listenerManager) {
-        this.listenerManager = listenerManager;
+    public DefaultProgressLoggerFactory(ProgressListener progressListener) {
+        this.progressListener = progressListener;
     }
 
-    public ProgressLogger start() {
-        return start("");
+    public ProgressLogger start(String loggerCategory) {
+        return start(loggerCategory, "");
     }
 
-    public ProgressLogger start(String description) {
-        ProgressListener listener = listenerManager.getBroadcaster(ProgressListener.class);
-        ProgressLoggerImpl logger = new ProgressLoggerImpl(description, listener);
+    public ProgressLogger start(String loggerCategory, String description) {
+        ProgressLoggerImpl logger = new ProgressLoggerImpl(loggerCategory, description, progressListener);
         logger.started();
         return logger;
     }
 
     private static class ProgressLoggerImpl implements ProgressLogger {
+        private final String category;
         private final String description;
         private final ProgressListener listener;
         private String status = "";
         private boolean completed;
 
-        public ProgressLoggerImpl(String description, ProgressListener listener) {
+        public ProgressLoggerImpl(String category, String description, ProgressListener listener) {
+            this.category = category;
             this.description = description;
             this.listener = listener;
         }
@@ -56,13 +60,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         public void started() {
-            listener.started(this);
+            listener.started(new ProgressStartEvent(category, description));
         }
 
         public void progress(String status) {
             assertNotCompleted();
             this.status = status;
-            listener.progress(this);
+            listener.progress(new ProgressEvent(category, status));
         }
 
         public void completed() {
@@ -72,7 +76,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         public void completed(String status) {
             this.status = status;
             completed = true;
-            listener.completed(this);
+            listener.completed(new ProgressCompleteEvent(category, status));
         }
 
         private void assertNotCompleted() {

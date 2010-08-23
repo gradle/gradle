@@ -17,7 +17,6 @@ package org.gradle.logging;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
 
@@ -35,11 +34,11 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
             destination.get().onOutput(output);
         }
     });
-    private final Logger logger;
+    private final StyledTextOutput textOutput;
     private StandardOutputListener original;
 
-    protected PrintStreamLoggingSystem(Logger logger) {
-        this.logger = logger;
+    protected PrintStreamLoggingSystem(StyledTextOutput textOutput) {
+        this.textOutput = textOutput;
     }
 
     /**
@@ -113,7 +112,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         }
 
         public void onOutput(CharSequence output) {
-            logger.log(level, output.toString());
+            textOutput.text(level, output.toString());
         }
     }
 

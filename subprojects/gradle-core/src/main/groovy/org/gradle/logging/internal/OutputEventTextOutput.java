@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.logging.internal;
 
-package org.gradle.logging;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
 
-public interface ProgressListener {
-    void started(ProgressLogger logger);
+public interface OutputEventTextOutput extends StyledTextOutput {
+    OutputEventTextOutput text(LogLevel level, CharSequence text);
 
-    void progress(ProgressLogger logger);
+    OutputEventTextOutput text(CharSequence text);
 
-    void completed(ProgressLogger logger);
+    OutputEventTextOutput exception(Throwable throwable);
 }

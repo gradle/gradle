@@ -63,7 +63,7 @@ public class TestLogger implements TestListener {
 
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
-            logger = factory.start();
+            logger = factory.start(TestLogger.class.getName());
         }
     }
 

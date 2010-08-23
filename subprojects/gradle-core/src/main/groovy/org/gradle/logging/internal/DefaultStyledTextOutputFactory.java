@@ -13,24 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.logging.internal;
 
-package org.gradle.logging;
-
-import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 
-public class ProgressLoggingBridge implements ProgressListener {
-    private static final Logger LOGGER = Logging.getLogger(ProgressLoggingBridge.class);
-
-    public void started(ProgressLogger logger) {
-        LOGGER.info(Logging.PROGRESS_STARTED, logger.getDescription());
-    }
-
-    public void completed(ProgressLogger logger) {
-        LOGGER.info(Logging.PROGRESS_COMPLETE, logger.getStatus());
-    }
-
-    public void progress(ProgressLogger logger) {
-        LOGGER.info(Logging.PROGRESS, logger.getStatus());
+public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
+    public StyledTextOutput create(String logCategory) {
+        return new LoggingBackedStyledTextOutput(Logging.getLogger(logCategory));
     }
 }

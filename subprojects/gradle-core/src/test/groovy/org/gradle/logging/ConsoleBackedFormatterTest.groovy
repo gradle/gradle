@@ -14,29 +14,23 @@
  * limitations under the License.
  */
 
-
-
-
-
-
 package org.gradle.logging
 
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.spi.IThrowableProxy
-import ch.qos.logback.classic.spi.ThrowableProxy
-import org.gradle.api.logging.Logging
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.slf4j.Marker
+
 import static org.junit.Assert.*
 import static org.hamcrest.Matchers.*
 
-import org.slf4j.LoggerFactory
-import ch.qos.logback.classic.LoggerContext
 import org.junit.Before
-import ch.qos.logback.classic.Level
+
+import org.gradle.logging.internal.LogEvent
+import org.gradle.api.logging.LogLevel
+import org.gradle.logging.internal.ProgressStartEvent
+import org.gradle.logging.internal.ProgressEvent
+import org.gradle.logging.internal.ProgressCompleteEvent
 
 @RunWith(JMock.class)
 class ConsoleBackedFormatterTest {
@@ -55,7 +49,7 @@ class ConsoleBackedFormatterTest {
             will(returnValue(mainArea))
         }
 
-        formatter = new ConsoleBackedFormatter((LoggerContext) LoggerFactory.getILoggerFactory(), console)
+        formatter = new ConsoleBackedFormatter(console)
     }
 
     @Test
@@ -64,7 +58,7 @@ class ConsoleBackedFormatterTest {
             one(mainArea).append(String.format('message%n'))
         }
 
-        formatter.format(event('message'))
+        formatter.onOutput(event('message'))
     }
 
     @Test
@@ -77,7 +71,7 @@ class ConsoleBackedFormatterTest {
             }
         }
 
-        formatter.format(event('message', new RuntimeException('broken')))
+        formatter.onOutput(event('message', new RuntimeException('broken')))
     }
 
     @Test
@@ -86,7 +80,7 @@ class ConsoleBackedFormatterTest {
             one(mainArea).append(String.format('message%n'))
         }
 
-        formatter.format(event('message', Level.ERROR))
+        formatter.onOutput(event('message', LogLevel.ERROR))
     }
 
     @Test
@@ -95,14 +89,14 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description'))
 
         context.checking {
             one(statusBar).setText('')
             one(mainArea).append(String.format('description complete%n'))
         }
         
-        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('complete'))
     }
 
     @Test
@@ -111,13 +105,13 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description'))
 
         context.checking {
             one(statusBar).setText('> status')
         }
 
-        formatter.format(event('status', Logging.PROGRESS))
+        formatter.onOutput(progress('status'))
     }
 
     @Test
@@ -126,34 +120,34 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description1', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description1'))
 
         context.checking {
             one(mainArea).append(String.format('description1%n'))
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description2', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description2'))
 
         context.checking {
             one(statusBar).setText('> tick')
         }
 
-        formatter.format(event('tick', Logging.PROGRESS))
+        formatter.onOutput(progress('tick'))
 
         context.checking {
             one(statusBar).setText('')
             one(mainArea).append(String.format('description2 complete2%n'))
         }
 
-        formatter.format(event('complete2', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('complete2'))
 
         context.checking {
             one(statusBar).setText('')
             one(mainArea).append(String.format('description1 complete1%n'))
         }
 
-        formatter.format(event('complete1', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('complete1'))
     }
 
     @Test
@@ -162,21 +156,21 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description'))
 
         context.checking {
             one(mainArea).append(String.format('description%n'))
             one(mainArea).append(String.format('message%n'))
         }
 
-        formatter.format(event('message'))
+        formatter.onOutput(event('message'))
 
         context.checking {
             one(statusBar).setText('')
             one(mainArea).append(String.format('description complete%n'))
         }
 
-        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('complete'))
     }
 
     @Test
@@ -185,14 +179,14 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description'))
 
         context.checking {
             one(mainArea).append(String.format('description%n'))
             one(statusBar).setText('')
         }
 
-        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete(''))
     }
 
     @Test
@@ -202,20 +196,20 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('description'))
 
         context.checking {
             one(mainArea).append(String.format('description%n'))
             one(mainArea).append(String.format('message%n'))
         }
 
-        formatter.format(event('message'))
+        formatter.onOutput(event('message'))
 
         context.checking {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete(''))
     }
 
     @Test
@@ -224,18 +218,18 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start(''))
 
         context.checking {
             one(statusBar).setText('> running')
         }
-        formatter.format(event('running', Logging.PROGRESS))
+        formatter.onOutput(progress('running'))
 
         context.checking {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete(''))
     }
 
     @Test
@@ -244,35 +238,46 @@ class ConsoleBackedFormatterTest {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start(''))
 
         context.checking {
             one(mainArea).append(String.format('message%n'))
         }
 
-        formatter.format(event('message'))
+        formatter.onOutput(event('message'))
 
         context.checking {
             one(statusBar).setText('')
         }
 
-        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete(''))
     }
     
     private Label statusBar() {
         return context.mock(Label.class)
     }
 
-    private ILoggingEvent event(String text, Marker marker) {
-        event(text, null, marker)
+    private LogEvent event(String text) {
+        return new LogEvent('category', LogLevel.INFO, text)
     }
 
-    private ILoggingEvent event(String text, Level level) {
-        event(text, null, null, level)
+    private LogEvent event(String text, LogLevel logLevel) {
+        return new LogEvent('category', logLevel, text)
     }
 
-    private ILoggingEvent event(String text, Throwable failure = null, marker = null, Level level = Level.INFO) {
-        IThrowableProxy throwableProxy = failure == null ? null : new ThrowableProxy(failure)
-        [getLevel: {level}, getThrowableProxy: {throwableProxy}, getFormattedMessage: {text}, getMarker: {marker}] as ILoggingEvent
+    private LogEvent event(String text, Throwable throwable) {
+        return new LogEvent('category', LogLevel.INFO, text, throwable)
+    }
+
+    private ProgressStartEvent start(String description) {
+        return new ProgressStartEvent('category', description)
+    }
+
+    private ProgressEvent progress(String status) {
+        return new ProgressEvent('category', status)
+    }
+
+    private ProgressCompleteEvent complete(String status) {
+        return new ProgressCompleteEvent('category', status)
     }
 }

@@ -21,26 +21,26 @@ package org.gradle.logging;
  */
 public interface ProgressLogger {
     /**
-     * Returns the description of the operation.
+     * Returns the description of the operation. The description is generally logged at the start of the operation.
      *
      * @return the description, possibly empty.
      */
     String getDescription();
 
     /**
-     * Logs some progress.
+     * Logs some progress, indicated by a new status.
      *
      * @param status The new status message
      */
     void progress(String status);
 
     /**
-     * Logs the completion of the operation
+     * Logs the completion of the operation, with no final status
      */
     void completed();
 
     /**
-     * Logs the completion of the operation
+     * Logs the completion of the operation, with a final status. This is generally logged along with the description.
      *
      * @param status The final status message
      */

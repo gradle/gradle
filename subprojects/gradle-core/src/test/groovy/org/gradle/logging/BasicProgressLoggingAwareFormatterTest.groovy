@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
 package org.gradle.logging
 
-import ch.qos.logback.classic.LoggerContext
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.classic.spi.IThrowableProxy
-import ch.qos.logback.classic.spi.ThrowableProxy
-import org.gradle.api.logging.Logging
+import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.StandardOutputListener
+import org.gradle.logging.internal.LogEvent
+import org.gradle.logging.internal.ProgressCompleteEvent
+import org.gradle.logging.internal.ProgressEvent
+import org.gradle.logging.internal.ProgressStartEvent
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.slf4j.LoggerFactory
-import org.slf4j.Marker
 import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
-import ch.qos.logback.classic.Level
-import org.gradle.api.logging.StandardOutputListener
+import org.gradle.logging.internal.LogLevelChangeEvent
 
 @RunWith(JMock.class)
 class BasicProgressLoggingAwareFormatterTest {
@@ -41,8 +34,7 @@ class BasicProgressLoggingAwareFormatterTest {
     private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
     private final StandardOutputListener infoMessage = context.mock(StandardOutputListener.class)
     private final StandardOutputListener errorMessage = context.mock(StandardOutputListener.class)
-    private final LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory()
-    private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter(loggerContext, infoMessage, errorMessage)
+    private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter(infoMessage, errorMessage)
 
     @Test
     public void logsEventWithMessage() {
@@ -50,7 +42,7 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(String.format('message%n'))
         }
 
-        formatter.format(event('message'))
+        formatter.onOutput(event('message'))
     }
 
     @Test
@@ -59,7 +51,17 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(withParam(allOf(startsWith(String.format('message%n')), containsString('java.lang.RuntimeException: broken'))))
         }
 
-        formatter.format(event('message', new RuntimeException('broken')))
+        formatter.onOutput(event('message', new RuntimeException('broken')))
+    }
+
+    @Test
+    public void logsDebugEventWithMessage() {
+        context.checking {
+            one(infoMessage).onOutput(String.format('[INFO] [category] message%n'))
+        }
+
+        formatter.onOutput(new LogLevelChangeEvent(LogLevel.DEBUG))
+        formatter.onOutput(event('message'))
     }
 
     @Test
@@ -68,7 +70,7 @@ class BasicProgressLoggingAwareFormatterTest {
             one(errorMessage).onOutput(String.format('message%n'))
         }
 
-        formatter.format(event('message', Level.ERROR))
+        formatter.onOutput(event('message', LogLevel.ERROR))
     }
 
     @Test
@@ -80,8 +82,8 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
-        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description'))
+        formatter.onOutput(complete('complete'))
     }
 
     @Test
@@ -93,10 +95,10 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
-        formatter.format(event('tick', Logging.PROGRESS))
-        formatter.format(event('tick', Logging.PROGRESS))
-        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description'))
+        formatter.onOutput(progress('tick'))
+        formatter.onOutput(progress('tick'))
+        formatter.onOutput(complete('complete'))
     }
 
     @Test
@@ -112,12 +114,12 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('description1', Logging.PROGRESS_STARTED))
-        formatter.format(event('description2', Logging.PROGRESS_STARTED))
-        formatter.format(event('tick', Logging.PROGRESS))
-        formatter.format(event('tick', Logging.PROGRESS))
-        formatter.format(event('complete2', Logging.PROGRESS_COMPLETE))
-        formatter.format(event('complete1', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description1'))
+        formatter.onOutput(start('description2'))
+        formatter.onOutput(progress('tick'))
+        formatter.onOutput(progress('tick'))
+        formatter.onOutput(complete('complete2'))
+        formatter.onOutput(complete('complete1'))
     }
 
     @Test
@@ -130,11 +132,11 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
-        formatter.format(event('tick', Logging.PROGRESS))
-        formatter.format(event('message'))
-        formatter.format(event('tick', Logging.PROGRESS))
-        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description'))
+        formatter.onOutput(progress('tick'))
+        formatter.onOutput(event('message'))
+        formatter.onOutput(progress('tick'))
+        formatter.onOutput(complete('complete'))
     }
 
     @Test
@@ -147,9 +149,9 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
-        formatter.format(event('message', Level.ERROR))
-        formatter.format(event('complete', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description'))
+        formatter.onOutput(event('message', LogLevel.ERROR))
+        formatter.onOutput(complete('complete'))
     }
 
     @Test
@@ -159,8 +161,8 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
-        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description'))
+        formatter.onOutput(complete(''))
     }
 
     @Test
@@ -171,21 +173,21 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput(String.format('message%n'))
         }
 
-        formatter.format(event('description', Logging.PROGRESS_STARTED))
-        formatter.format(event('message'))
-        formatter.format(event('', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(start('description'))
+        formatter.onOutput(event('message'))
+        formatter.onOutput(complete(''))
     }
 
     @Test
     public void logsProgressMessagesWithNoStartStatus() {
-        formatter.format(event('', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start(''))
 
         context.checking {
             one(infoMessage).onOutput('done')
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('done', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('done'))
     }
 
     @Test
@@ -194,47 +196,53 @@ class BasicProgressLoggingAwareFormatterTest {
             one(infoMessage).onOutput('outer')
         }
 
-        formatter.format(event('outer', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start('outer'))
 
-        formatter.format(event('', Logging.PROGRESS_STARTED))
+        formatter.onOutput(start(''))
 
         context.checking {
             one(infoMessage).onOutput(EOL)
             one(errorMessage).onOutput(String.format('message%n'))
         }
 
-        formatter.format(event('message', Level.ERROR))
+        formatter.onOutput(event('message', LogLevel.ERROR))
 
         context.checking {
             one(infoMessage).onOutput('done inner')
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('done inner', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('done inner'))
 
         context.checking {
             one(infoMessage).onOutput('done outer')
             one(infoMessage).onOutput(EOL)
         }
 
-        formatter.format(event('done outer', Logging.PROGRESS_COMPLETE))
+        formatter.onOutput(complete('done outer'))
     }
 
-    private ILoggingEvent event(String text, Marker marker) {
-        event(text, null, marker)
+    private LogEvent event(String text) {
+        return new LogEvent('category', LogLevel.INFO, text)
     }
 
-    private ILoggingEvent event(String text, Level level) {
-        event(text, null, null, level)
+    private LogEvent event(String text, LogLevel logLevel) {
+        return new LogEvent('category', logLevel, text)
     }
 
-    private ILoggingEvent event(String text, Throwable failure = null, marker = null, Level level = Level.INFO) {
-        IThrowableProxy throwableProxy = failure == null ? null : new ThrowableProxy(failure)
-        [
-                getLevel: {level},
-                getThrowableProxy: {throwableProxy},
-                getFormattedMessage: {text},
-                getMarker: {marker}
-        ] as ILoggingEvent
+    private LogEvent event(String text, Throwable throwable) {
+        return new LogEvent('category', LogLevel.INFO, text, throwable)
+    }
+
+    private ProgressStartEvent start(String description) {
+        return new ProgressStartEvent('category', description)
+    }
+
+    private ProgressEvent progress(String status) {
+        return new ProgressEvent('category', status)
+    }
+
+    private ProgressCompleteEvent complete(String status) {
+        return new ProgressCompleteEvent('category', status)
     }
 }

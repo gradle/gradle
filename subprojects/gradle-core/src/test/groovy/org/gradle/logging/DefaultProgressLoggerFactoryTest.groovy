@@ -13,68 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.logging
 
+import org.gradle.logging.internal.ProgressListener
 import spock.lang.Specification
-import org.gradle.listener.ListenerManager
 
 class DefaultProgressLoggerFactoryTest extends Specification {
-    private final ListenerManager listenerManager = Mock()
     private final ProgressListener progressListener = Mock()
-    private final ProgressLoggerFactory factory = new DefaultProgressLoggerFactory(listenerManager)
+    private final ProgressLoggerFactory factory = new DefaultProgressLoggerFactory(progressListener)
 
     def progressLoggerBroadcastsEvents() {
         when:
-        def logger = factory.start('description')
+        def logger = factory.start('logger', 'description')
 
         then:
         logger != null
-        1 * listenerManager.getBroadcaster(ProgressListener.class) >> progressListener
-        1 * progressListener.started(!null)
+        1 * progressListener.started({it.category == 'logger' && it.description == 'description'})
 
         when:
         logger.progress('progress')
 
         then:
-        1 * progressListener.progress(!null)
+        1 * progressListener.progress({it.category == 'logger' && it.status == 'progress'})
 
         when:
-        logger.completed()
+        logger.completed('completed')
 
         then:
-        1 * progressListener.completed(!null)
+        1 * progressListener.completed({it.category == 'logger' && it.status == 'completed'})
     }
 
     def hasEmptyStatusOnStart() {
         when:
-        def logger = factory.start('description')
+        def logger = factory.start('logger', 'description')
 
         then:
-        1 * listenerManager.getBroadcaster(ProgressListener.class) >> progressListener
         logger.description == 'description'
         logger.status == ''
     }
 
     def hasMostRecentStatusOnProgress() {
         when:
-        def logger = factory.start('description')
+        def logger = factory.start('logger', 'description')
         logger.progress('status')
 
         then:
-        1 * listenerManager.getBroadcaster(ProgressListener.class) >> progressListener
         logger.status == 'status'
     }
     
     def hasMostRecentStatusOnComplete() {
         when:
-        def logger = factory.start('description')
+        def logger = factory.start('logger', 'description')
         logger.completed('done')
 
         then:
-        1 * listenerManager.getBroadcaster(ProgressListener.class) >> progressListener
         logger.status == 'done'
     }
 }

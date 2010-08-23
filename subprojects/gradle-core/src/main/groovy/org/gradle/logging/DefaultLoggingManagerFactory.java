@@ -24,11 +24,11 @@ public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     private final LoggingSystem stdErrLoggingSystem;
     private final LoggingOutput loggingOutput;
 
-    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutput loggingOutput) {
+    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutput loggingOutput, StyledTextOutputFactory textOutputFactory) {
         this.loggingOutput = loggingOutput;
         slfLoggingSystem = new LoggingSystemAdapter(loggingConfigurer);
-        stdOutLoggingSystem = new StdOutLoggingSystem();
-        stdErrLoggingSystem = new StdErrLoggingSystem();
+        stdOutLoggingSystem = new StdOutLoggingSystem(textOutputFactory);
+        stdErrLoggingSystem = new StdErrLoggingSystem(textOutputFactory);
     }
 
     public LoggingManagerInternal create() {

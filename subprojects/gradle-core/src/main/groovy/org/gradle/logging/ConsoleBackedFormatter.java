@@ -16,10 +16,9 @@
 
 package org.gradle.logging;
 
-import ch.qos.logback.core.Context;
-
 import java.io.IOException;
-import java.util.*;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatter {
     private final Console console;
@@ -27,8 +26,7 @@ public class ConsoleBackedFormatter extends AbstractProgressLoggingAwareFormatte
     private final Set<Operation> noHeader = new LinkedHashSet<Operation>();
     private final Label statusBar;
 
-    public ConsoleBackedFormatter(Context context, Console console) {
-        super(context);
+    public ConsoleBackedFormatter(Console console) {
         this.console = console;
         statusBar = console.addStatusBar();
     }

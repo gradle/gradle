@@ -15,13 +15,11 @@
  */
 package org.gradle.logging;
 
-import org.gradle.api.logging.Logging;
-
 import java.io.PrintStream;
 
 class StdErrLoggingSystem extends PrintStreamLoggingSystem {
-    public StdErrLoggingSystem() {
-        super(Logging.getLogger("system.err"));
+    public StdErrLoggingSystem(StyledTextOutputFactory factory) {
+        super(factory.create("system.err"));
     }
 
     @Override

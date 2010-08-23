@@ -13,23 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.logging.internal;
 
-package org.gradle.logging;
+import org.gradle.api.logging.LogLevel;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
-import ch.qos.logback.core.Layout;
-import org.gradle.api.logging.StandardOutputListener;
+public class ProgressEvent extends OutputEvent {
+    private final String status;
 
-public class LayoutBasedFormatter implements LogEventFormatter {
-    private final Layout<ILoggingEvent> layout;
-    private final StandardOutputListener target;
-
-    public LayoutBasedFormatter(Layout<ILoggingEvent> layout, StandardOutputListener target) {
-        this.layout = layout;
-        this.target = target;
+    public ProgressEvent(String category, String status) {
+        super(category, LogLevel.LIFECYCLE);
+        this.status = status;
     }
 
-    public void format(ILoggingEvent event) {
-        target.onOutput(layout.doLayout(event));
+    public String getStatus() {
+        return status;
     }
 }

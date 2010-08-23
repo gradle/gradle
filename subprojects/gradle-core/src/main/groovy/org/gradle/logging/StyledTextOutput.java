@@ -13,24 +13,36 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.logging;
 
-public interface ProgressLoggerFactory {
+import org.gradle.api.logging.LogLevel;
+
+/**
+ * Provides streaming of styled text, that is, a stream of text and styling information. Implementations are not
+ * required to be thread-safe.
+ */
+public interface StyledTextOutput {
     /**
-     * Starts an operation, with no description.
+     * Appends text with the default style.
      *
-     * @param loggerCategory The logger category.
-     * @return The progress logger for the operation.
+     * @param text The text
+     * @return this
      */
-    ProgressLogger start(String loggerCategory);
+    StyledTextOutput text(CharSequence text);
 
     /**
-     * Starts an operation. The description is generally displayed in a log message.
+     * Appends text with the style for the given log level.
      *
-     * @param loggerCategory The logger category.
-     * @param description The description of the operation. Can be empty.
-     * @return The progress logger for the operation.
+     * @param text The text
+     * @param level The log level.
+     * @return this
      */
-    ProgressLogger start(String loggerCategory, String description);
+    StyledTextOutput text(LogLevel level, CharSequence text);
+
+    /**
+     * Starts a new line.
+     *
+     * @return this
+     */
+    StyledTextOutput endLine();
 }

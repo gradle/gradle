@@ -13,11 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.logging.internal;
 
-package org.gradle.logging;
+import org.gradle.api.logging.LogLevel;
 
-import ch.qos.logback.classic.spi.ILoggingEvent;
+import java.io.Serializable;
 
-public interface LogEventFormatter {
-    void format(ILoggingEvent event);
+public abstract class OutputEvent implements Serializable {
+    private final LogLevel logLevel;
+    private final String category;
+
+    protected OutputEvent(String category, LogLevel logLevel) {
+        this.category = category;
+        this.logLevel = logLevel;
+    }
+
+    public String getCategory() {
+        return category;
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
 }

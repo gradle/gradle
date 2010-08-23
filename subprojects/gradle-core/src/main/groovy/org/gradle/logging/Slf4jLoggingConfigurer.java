@@ -21,68 +21,31 @@ import ch.qos.logback.classic.LoggerContext;
 import ch.qos.logback.classic.PatternLayout;
 import ch.qos.logback.classic.filter.LevelFilter;
 import ch.qos.logback.classic.spi.ILoggingEvent;
+import ch.qos.logback.classic.spi.ThrowableProxy;
 import ch.qos.logback.core.AppenderBase;
 import ch.qos.logback.core.ConsoleAppender;
-import ch.qos.logback.core.Layout;
 import ch.qos.logback.core.filter.Filter;
 import ch.qos.logback.core.spi.FilterReply;
-import org.fusesource.jansi.AnsiConsole;
-import org.gradle.api.logging.*;
-import org.gradle.api.specs.Spec;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logging;
+import org.gradle.logging.internal.LogEvent;
+import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.util.UncheckedException;
 import org.slf4j.LoggerFactory;
 
-import java.io.FileDescriptor;
 import java.io.PrintStream;
 
 /**
  * @author Hans Dockter
  */
-public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput {
-    private final LoggingDestination stdout = new LoggingDestination();
-    private final LoggingDestination stderr = new LoggingDestination();
-    private final Appender errorAppender = new Appender();
-    private final Appender infoAppender = new Appender();
-    private final Spec<FileDescriptor> terminalDetector;
-    private LogEventFormatter consoleFormatter;
-    private LogEventFormatter nonConsoleFormatter;
+public class Slf4jLoggingConfigurer implements LoggingConfigurer {
+    private final Appender appender;
     private LogLevel currentLevel;
     private final PrintStream defaultStdOut;
 
-    public Slf4jLoggingConfigurer() {
-        this(new TerminalDetector());
-    }
-
-    Slf4jLoggingConfigurer(Spec<FileDescriptor> terminalDetector) {
-        this.terminalDetector = terminalDetector;
+    public Slf4jLoggingConfigurer(OutputEventListener outputListener) {
         defaultStdOut = System.out;
-    }
-
-    Console createConsole() {
-        if (stdout.terminal) {
-            return new org.gradle.logging.AnsiConsole(AnsiConsole.out(), AnsiConsole.out());
-        }
-        if (stderr.terminal) {
-            return new org.gradle.logging.AnsiConsole(AnsiConsole.err(), AnsiConsole.err());
-        }
-        return null;
-    }
-
-    public void addStandardErrorListener(StandardOutputListener listener) {
-        stderr.addListener(listener);
-    }
-
-    public void removeStandardErrorListener(StandardOutputListener listener) {
-        stderr.removeListener(listener);
-    }
-
-    public void addStandardOutputListener(StandardOutputListener listener) {
-        stdout.addListener(listener);
-    }
-
-    public void removeStandardOutputListener(StandardOutputListener listener) {
-        stdout.removeListener(listener);
+        appender = new Appender(outputListener);
     }
 
     public void configure(LogLevel logLevel) {
@@ -124,58 +87,45 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
         ch.qos.logback.classic.Logger rootLogger;
         if (currentLevel == null) {
             lc.reset();
-
-            stdout.init(FileDescriptor.out, System.out);
-            stderr.init(FileDescriptor.err, System.err);
-
-            Console console = createConsole();
-            consoleFormatter = console == null ? null : new ConsoleBackedFormatter(lc, console);
-            nonConsoleFormatter = new BasicProgressLoggingAwareFormatter(lc, stdout.getBroadcast(),
-                    stderr.getBroadcast());
-
-            errorAppender.setContext(lc);
-            infoAppender.setContext(lc);
-
+            appender.setContext(lc);
             rootLogger = lc.getLogger("ROOT");
-            rootLogger.addAppender(infoAppender);
-            rootLogger.addAppender(errorAppender);
+            rootLogger.addAppender(appender);
         } else {
             rootLogger = lc.getLogger("ROOT");
         }
 
         currentLevel = logLevel;
-        errorAppender.stop();
-        infoAppender.stop();
-        errorAppender.clearAllFilters();
-        infoAppender.clearAllFilters();
+        appender.stop();
+        appender.clearAllFilters();
 
-        errorAppender.addFilter(createLevelFilter(lc, Level.ERROR, FilterReply.ACCEPT, FilterReply.DENY));
-        Level level = Level.INFO;
-
-        infoAppender.setFormatter(stdout.createFormatter(lc, logLevel));
-        errorAppender.setFormatter(stderr.createFormatter(lc, logLevel));
-
-        MarkerFilter quietFilter = new MarkerFilter(FilterReply.DENY, Logging.QUIET);
-        infoAppender.addFilter(quietFilter);
-        if (!(logLevel == LogLevel.QUIET)) {
-            quietFilter.setOnMismatch(FilterReply.NEUTRAL);
-            if (logLevel == LogLevel.DEBUG) {
-                level = Level.DEBUG;
-                infoAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
-                infoAppender.addFilter(createLevelFilter(lc, Level.DEBUG, FilterReply.ACCEPT, FilterReply.NEUTRAL));
-            } else {
-                if (logLevel == LogLevel.INFO) {
-                    level = Level.INFO;
-                    infoAppender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.ACCEPT, FilterReply.NEUTRAL));
-                } else {
-                    infoAppender.addFilter(new MarkerFilter(Logging.LIFECYCLE, Logging.PROGRESS));
-                }
-            }
-            infoAppender.addFilter(createLevelFilter(lc, Level.WARN, FilterReply.ACCEPT, FilterReply.DENY));
+        switch (logLevel) {
+            case DEBUG:
+                rootLogger.setLevel(Level.DEBUG);
+                break;
+            case INFO:
+                rootLogger.setLevel(Level.INFO);
+                break;
+            case LIFECYCLE:
+                appender.addFilter(new MarkerFilter(Logging.QUIET, Logging.LIFECYCLE));
+                appender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.DENY, FilterReply.NEUTRAL));
+                rootLogger.setLevel(Level.INFO);
+                break;
+            case QUIET:
+                appender.addFilter(new MarkerFilter(Logging.QUIET));
+                appender.addFilter(createLevelFilter(lc, Level.INFO, FilterReply.DENY, FilterReply.NEUTRAL));
+                rootLogger.setLevel(Level.INFO);
+                break;
+            case WARN:
+                rootLogger.setLevel(Level.WARN);
+                break;
+            case ERROR:
+                rootLogger.setLevel(Level.ERROR);
+                break;
+            default:
+                throw new IllegalArgumentException();
         }
-        rootLogger.setLevel(level);
-        infoAppender.start();
-        errorAppender.start();
+
+        appender.start();
     }
 
     private Filter<ILoggingEvent> createLevelFilter(LoggerContext lc, Level level, FilterReply onMatch,
@@ -189,84 +139,42 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer, LoggingOutput 
         return levelFilter;
     }
 
-    private static class DebugLayout extends PatternLayout {
-        private DebugLayout() {
-            setPattern("%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n%ex");
-        }
-    }
-
-    private class LoggingDestination {
-        private final ListenerBroadcast<StandardOutputListener> listeners
-                = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
-        private boolean terminal;
-        private PrintStream target;
-
-        private void init(FileDescriptor fileDescriptor, PrintStream target) {
-            this.target = target;
-            terminal = terminalDetector.isSatisfiedBy(fileDescriptor);
-        }
-
-        private LogEventFormatter createFormatter(LoggerContext loggerContext, LogLevel logLevel) {
-            if (logLevel == LogLevel.DEBUG) {
-                Layout<ILoggingEvent> layout = new DebugLayout();
-                layout.setContext(loggerContext);
-                layout.start();
-                return new LayoutBasedFormatter(layout, getBroadcastWithTarget());
-            }
-            if (terminal) {
-                return new LogEventFormatter() {
-                    public void format(ILoggingEvent event) {
-                        consoleFormatter.format(event);
-                        nonConsoleFormatter.format(event);
-                    }
-                };
-            } else {
-                return nonConsoleFormatter;
-            }
-        }
-
-        public void removeListener(StandardOutputListener listener) {
-            listeners.remove(listener);
-        }
-
-        public void addListener(StandardOutputListener listener) {
-            listeners.add(listener);
-        }
-
-        public StandardOutputListener getBroadcast() {
-            if (terminal) {
-                return listeners.getSource();
-            } else {
-                return getBroadcastWithTarget();
-            }
-        }
-
-        private StandardOutputListener getBroadcastWithTarget() {
-            final StandardOutputListener targetListener = new OutputStreamStandardOutputListenerAdapter(target);
-            return new StandardOutputListener() {
-                public void onOutput(CharSequence output) {
-                    targetListener.onOutput(output);
-                    listeners.getSource().onOutput(output);
-                }
-            };
-        }
-    }
-
     private class Appender extends AppenderBase<ILoggingEvent> {
-        private LogEventFormatter formatter;
+        private final OutputEventListener listener;
 
-        public void setFormatter(LogEventFormatter formatter) {
-            this.formatter = formatter;
+        private Appender(OutputEventListener listener) {
+            this.listener = listener;
         }
 
         @Override
         protected void append(ILoggingEvent event) {
             try {
-                formatter.format(event);
+                ThrowableProxy throwableProxy = (ThrowableProxy) event.getThrowableProxy();
+                listener.onOutput(new LogEvent(event.getLoggerName(), toLogLevel(event), event.getFormattedMessage(), throwableProxy == null ? null : throwableProxy.getThrowable()));
             } catch (Throwable t) {
                 // Give up and try stdout
                 t.printStackTrace(defaultStdOut);
             }
+        }
+
+        private LogLevel toLogLevel(ILoggingEvent event) {
+            switch (event.getLevel().toInt()) {
+                case Level.DEBUG_INT:
+                    return LogLevel.DEBUG;
+                case Level.INFO_INT:
+                    if (event.getMarker() == Logging.LIFECYCLE) {
+                        return LogLevel.LIFECYCLE;
+                    }
+                    if (event.getMarker() == Logging.QUIET) {
+                        return LogLevel.QUIET;
+                    }
+                    return LogLevel.INFO;
+                case Level.WARN_INT:
+                    return LogLevel.WARN;
+                case Level.ERROR_INT:
+                    return LogLevel.ERROR;
+            }
+            throw new IllegalArgumentException(String.format("Cannot map SLF4j Level %s to a LogLevel", event.getLevel()));
         }
     }
 }

@@ -35,7 +35,7 @@ class TestLoggerTest extends Specification {
         logger.beforeSuite(rootSuite)
 
         then:
-        1 * factory.start() >> progressLogger
+        1 * factory.start(TestLogger.name) >> progressLogger
 
         when:
         logger.afterSuite(rootSuite, result())
@@ -48,7 +48,7 @@ class TestLoggerTest extends Specification {
         TestDescriptor test1 = test()
         TestDescriptor test2 = test()
 
-        1 * factory.start() >> progressLogger
+        1 * factory.start(TestLogger.name) >> progressLogger
         logger.beforeSuite(rootSuite)
 
         when:
@@ -74,7 +74,7 @@ class TestLoggerTest extends Specification {
         TestDescriptor test1 = test()
         TestDescriptor test2 = test()
 
-        1 * factory.start() >> progressLogger
+        1 * factory.start(TestLogger.name) >> progressLogger
         logger.beforeSuite(rootSuite)
 
         when:
@@ -99,7 +99,7 @@ class TestLoggerTest extends Specification {
     def ignoresSuitesOtherThanTheRootSuite() {
         TestDescriptor suite = suite()
 
-        1 * factory.start() >> progressLogger
+        1 * factory.start(TestLogger.name) >> progressLogger
         logger.beforeSuite(rootSuite)
 
         when:

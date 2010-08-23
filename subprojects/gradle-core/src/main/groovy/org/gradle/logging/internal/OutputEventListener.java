@@ -13,22 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.logging.internal;
 
-import java.io.PrintStream;
-
-class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(StyledTextOutputFactory factory) {
-        super(factory.create("system.out"));
-    }
-
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
-    }
+public interface OutputEventListener {
+    void onOutput(OutputEvent event);
 }

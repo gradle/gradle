@@ -37,7 +37,7 @@ public class TaskExecutionLogger implements TaskExecutionListener {
 
     public void beforeExecute(Task task) {
         assert currentTask == null;
-        currentTask = progressLoggerFactory.start(getDisplayName(task));
+        currentTask = progressLoggerFactory.start(TaskExecutionLogger.class.getName(), getDisplayName(task));
         currentTask.progress(getDisplayName(task));
     }
 

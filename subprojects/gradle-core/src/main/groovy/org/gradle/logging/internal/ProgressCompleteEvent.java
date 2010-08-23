@@ -13,22 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.logging.internal;
 
-import java.io.PrintStream;
+import org.gradle.api.logging.LogLevel;
 
-class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(StyledTextOutputFactory factory) {
-        super(factory.create("system.out"));
+public class ProgressCompleteEvent extends OutputEvent {
+    private final String status;
+
+    public ProgressCompleteEvent(String category, String status) {
+        super(category, LogLevel.LIFECYCLE);
+        this.status = status;
     }
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+    public String getStatus() {
+        return status;
     }
 }

@@ -16,19 +16,14 @@
 
 package org.gradle.logging
 
-import ch.qos.logback.classic.Level
-import ch.qos.logback.classic.spi.ILoggingEvent
-import ch.qos.logback.core.Appender
 import org.gradle.api.logging.LogLevel
-import org.gradle.api.logging.Logging
 import spock.lang.Specification
 
 class PrintStreamLoggingSystemTest extends Specification {
-    private final Appender<ILoggingEvent> appender = Mock()
-    private final LoggingTestHelper helper = new LoggingTestHelper(appender)
-    private OutputStream original = new ByteArrayOutputStream()
+    private final OutputStream original = new ByteArrayOutputStream()
     private PrintStream stream = new PrintStream(original)
-    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(Logging.getLogger('logger')) {
+    private final StyledTextOutput output = Mock()
+    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(output) {
         protected PrintStream get() {
             stream
         }
@@ -38,23 +33,15 @@ class PrintStreamLoggingSystemTest extends Specification {
         }
     }
 
-    def setup() {
-        helper.attachAppender()
-    }
-    
-    def teardown() {
-        helper.detachAppender()
-    }
-
     def onStartsCapturingWhenNotAlreadyCapturing() {
         when:
         loggingSystem.on(LogLevel.INFO)
         stream.println('info')
 
         then:
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.INFO && event.message == 'info'})
+        1 * output.text(LogLevel.INFO, 'info')
         original.toString() == ''
-        0 * appender._
+        0 * output._
     }
 
     def onChangesLogLevelsWhenAlreadyCapturing() {
@@ -65,9 +52,9 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.DEBUG && event.message == 'info'})
+        1 * output.text(LogLevel.DEBUG, 'info')
         original.toString() == ''
-        0 * appender._
+        0 * output._
     }
 
     def offDoesNothingWhenNotAlreadyCapturing() {
@@ -77,7 +64,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * appender._
+        0 * output._
     }
 
     def offStopsCapturingWhenAlreadyCapturing() {
@@ -90,7 +77,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * appender._
+        0 * output._
     }
 
     def restoreStopsCapturingWhenCapturingWasNotInstalledWhenSnapshotTaken() {
@@ -103,7 +90,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * appender._
+        0 * output._
     }
 
     def restoreStopsCapturingWhenCapturingWasOffWhenSnapshotTaken() {
@@ -118,7 +105,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * appender._
+        0 * output._
     }
 
     def restoreStartsCapturingWhenCapturingWasOnWhenSnapshotTaken() {
@@ -131,8 +118,8 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * appender.doAppend({ILoggingEvent event -> event.level == Level.WARN && event.message == 'info'})
+        1 * output.text(LogLevel.WARN, 'info')
         original.toString() == ''
-        0 * appender._
+        0 * output._
     }
 }

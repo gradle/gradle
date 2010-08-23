@@ -16,6 +16,7 @@
 
 package org.gradle.integtests
 
+import junit.framework.AssertionFailedError
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
@@ -23,9 +24,6 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.gradle.util.Matchers.*
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
@@ -150,7 +148,7 @@ class LoggingIntegrationTest {
     LogLevel debug = new LogLevel(
             args: ['-d'],
             includeMessages: [quietMessages, errorMessages, warningMessages, lifecycleMessages, infoMessages, debugMessages],
-            matchPartialLine: true
+            matchPartialLine: {expected, actual -> actual.endsWith(expected) /*&& actual =~ /\[.+?\] \[.+?\] .+/ */}
     )
 
     @Test
@@ -191,18 +189,20 @@ class LoggingIntegrationTest {
             }
         }
         (allOuts- level.includeMessages).each {List messages ->
-            checkOuts(false, result.output, messages, true)
-            checkOuts(false, result.error, messages, true)
+            checkOuts(false, result.output, messages) {expected, actual-> actual.contains(expected)}
+            checkOuts(false, result.error, messages) {expected, actual-> actual.contains(expected)}
         }
     }
 
-    void checkOuts(boolean shouldContain, String result, List outs, boolean partialLine) {
+    void checkOuts(boolean shouldContain, String result, List outs, Closure partialLine) {
         outs.each {String expectedOut ->
-            def matcher = partialLine ? containsLine(containsString(expectedOut)) : containsLine(expectedOut)
-            if (!shouldContain) {
-                matcher = not(matcher)
+            boolean found = result.readLines().find {partialLine.call(expectedOut, it)}
+            if (!found && shouldContain) {
+                throw new AssertionFailedError("Could not find expected line '$expectedOut' in output:\n$result")
             }
-            assertThat(result, matcher)
+            if (found && !shouldContain) {
+                throw new AssertionFailedError("Found unexpected line '$expectedOut' in output:\n$result")
+            }
         }
     }
 }
@@ -210,5 +210,5 @@ class LoggingIntegrationTest {
 class LogLevel {
     List args
     List includeMessages
-    boolean matchPartialLine
+    Closure matchPartialLine = {expected, actual -> expected == actual }
 }

@@ -13,22 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.logging.internal;
 
-import java.io.PrintStream;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.logging.StyledTextOutput;
 
-class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(StyledTextOutputFactory factory) {
-        super(factory.create("system.out"));
+public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
+    private final Logger logger;
+
+    public LoggingBackedStyledTextOutput(Logger logger) {
+        this.logger = logger;
     }
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
+    public StyledTextOutput text(LogLevel level, CharSequence text) {
+        logger.log(level, text.toString());
+        return this;
     }
 
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+    public StyledTextOutput text(CharSequence text) {
+        return text(LogLevel.INFO, text);
     }
 }

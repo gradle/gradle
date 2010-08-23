@@ -16,7 +16,6 @@
 
 package org.gradle.logging;
 
-import ch.qos.logback.core.Context;
 import org.gradle.api.logging.StandardOutputListener;
 
 import java.io.IOException;
@@ -63,8 +62,7 @@ public class BasicProgressLoggingAwareFormatter extends AbstractProgressLoggingA
     private final StandardOutputListener infoTarget;
     private final StandardOutputListener errorTarget;
 
-    public BasicProgressLoggingAwareFormatter(Context context, StandardOutputListener infoTarget, StandardOutputListener errorTarget) {
-        super(context);
+    public BasicProgressLoggingAwareFormatter(StandardOutputListener infoTarget, StandardOutputListener errorTarget) {
         this.infoTarget = infoTarget;
         this.errorTarget = errorTarget;
     }
