@@ -26,12 +26,12 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
         this.logger = logger;
     }
 
-    public StyledTextOutput text(LogLevel level, CharSequence text) {
+    public StyledTextOutput text(LogLevel level, Object text) {
         logger.log(level, text.toString());
         return this;
     }
 
-    public StyledTextOutput text(CharSequence text) {
+    public StyledTextOutput text(Object text) {
         return text(LogLevel.INFO, text);
     }
 }

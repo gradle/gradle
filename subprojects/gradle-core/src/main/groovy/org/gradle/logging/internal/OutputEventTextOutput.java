@@ -19,9 +19,9 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 
 public interface OutputEventTextOutput extends StyledTextOutput {
-    OutputEventTextOutput text(LogLevel level, CharSequence text);
+    OutputEventTextOutput text(LogLevel level, Object text);
 
-    OutputEventTextOutput text(CharSequence text);
+    OutputEventTextOutput text(Object text);
 
     OutputEventTextOutput exception(Throwable throwable);
 }

@@ -76,7 +76,10 @@ public class TestResources implements MethodRule {
                 target.getClass().getSimpleName()));
     }
 
-    private void maybeCopy(String resource) {
+    /**
+     * Copies the given resource to the test directory.
+     */
+    public void maybeCopy(String resource) {
         TestFile dir = resources.findResource(resource);
         if (dir != null) {
             dir.copyTo(getDir());

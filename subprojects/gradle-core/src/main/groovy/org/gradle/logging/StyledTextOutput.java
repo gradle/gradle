@@ -28,7 +28,7 @@ public interface StyledTextOutput {
      * @param text The text
      * @return this
      */
-    StyledTextOutput text(CharSequence text);
+    StyledTextOutput text(Object text);
 
     /**
      * Appends text with the style for the given log level.
@@ -37,7 +37,7 @@ public interface StyledTextOutput {
      * @param level The log level.
      * @return this
      */
-    StyledTextOutput text(LogLevel level, CharSequence text);
+    StyledTextOutput text(LogLevel level, Object text);
 
     /**
      * Starts a new line.

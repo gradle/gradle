@@ -113,7 +113,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         }
 
         public void onOutput(CharSequence output) {
-            textOutput.text(level, output.toString());
+            textOutput.text(level, output);
         }
     }
 

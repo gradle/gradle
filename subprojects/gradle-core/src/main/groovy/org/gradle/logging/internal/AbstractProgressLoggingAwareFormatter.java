@@ -67,7 +67,7 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
         OutputEventTextOutput writer = new StringWriterBackedOutputEventTextOutput();
         if (debugOutput) {
             writer.text("[");
-            writer.text(event.getLogLevel().toString());
+            writer.text(event.getLogLevel());
             writer.text("] [");
             writer.text(event.getCategory());
             writer.text("] ");

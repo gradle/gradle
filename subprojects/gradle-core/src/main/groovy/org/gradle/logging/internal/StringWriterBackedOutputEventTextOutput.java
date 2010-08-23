@@ -35,12 +35,12 @@ public class StringWriterBackedOutputEventTextOutput extends AbstractStyledTextO
         return this;
     }
 
-    public OutputEventTextOutput text(LogLevel level, CharSequence text) {
+    public OutputEventTextOutput text(LogLevel level, Object text) {
         return text(text);
     }
 
-    public OutputEventTextOutput text(CharSequence text) {
-        writer.append(text);
+    public OutputEventTextOutput text(Object text) {
+        writer.append(text.toString());
         return this;
     }
 }
