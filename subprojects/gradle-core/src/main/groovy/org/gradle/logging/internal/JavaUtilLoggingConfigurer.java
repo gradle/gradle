@@ -14,29 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.junit;
+package org.gradle.logging.internal;
 
-import org.gradle.logging.StandardOutputCapture;
-import org.gradle.logging.internal.DefaultStandardOutputRedirector;
+import org.gradle.api.logging.LogLevel;
+import org.slf4j.bridge.SLF4JBridgeHandler;
 
-import java.util.logging.ConsoleHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
-/**
- * Some hackery to get JUL output redirected to test output
- */
-public class JULRedirector extends DefaultStandardOutputRedirector {
-    private boolean reset;
+public class JavaUtilLoggingConfigurer implements LoggingConfigurer {
+    private boolean configured;
 
-    @Override
-    public StandardOutputCapture start() {
-        super.start();
-        if (!reset) {
-            LogManager.getLogManager().reset();
-            Logger.getLogger("").addHandler(new ConsoleHandler());
-            reset = true;
+    public void configure(LogLevel logLevel) {
+        if (configured) {
+            return;
         }
-        return this;
+
+        LogManager.getLogManager().reset();
+        SLF4JBridgeHandler.install();
+        Logger.getLogger("").setLevel(java.util.logging.Level.FINE);
+        configured = true; 
     }
 }

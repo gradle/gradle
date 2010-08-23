@@ -20,7 +20,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.listener.ListenerBroadcast;
-import org.gradle.logging.*;
 
 import java.io.FileDescriptor;
 import java.io.IOException;

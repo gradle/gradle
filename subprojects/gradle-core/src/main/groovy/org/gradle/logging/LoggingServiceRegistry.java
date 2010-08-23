@@ -17,10 +17,7 @@
 package org.gradle.logging;
 
 import org.gradle.api.internal.project.DefaultServiceRegistry;
-import org.gradle.logging.internal.OutputEventRenderer;
-import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
-import org.gradle.logging.internal.OutputEventListener;
-import org.gradle.logging.internal.ProgressLoggingBridge;
+import org.gradle.logging.internal.*;
 
 /**
  * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.

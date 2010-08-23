@@ -17,9 +17,7 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-import org.gradle.logging.Console
-import org.gradle.logging.Label
-import org.gradle.logging.TextArea
+
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
 import spock.lang.Specification

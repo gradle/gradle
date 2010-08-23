@@ -18,6 +18,8 @@ package org.gradle.logging
 
 import spock.lang.Specification
 import org.gradle.logging.internal.DefaultStyledTextOutputFactory
+import org.gradle.logging.internal.DefaultProgressLoggerFactory
+import org.gradle.logging.internal.DefaultLoggingManagerFactory
 
 class LoggingServiceRegistryTest extends Specification {
     private final LoggingServiceRegistry registry = new LoggingServiceRegistry()

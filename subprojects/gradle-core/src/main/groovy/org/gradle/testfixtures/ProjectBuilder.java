@@ -36,7 +36,7 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.DefaultProgressLoggerFactory;
+import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
