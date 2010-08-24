@@ -16,7 +16,6 @@
 package org.gradle.logging.internal
 
 import spock.lang.Specification
-import org.gradle.api.logging.LogLevel
 
 class StringWriterBackedOutputEventTextOutputTest extends Specification {
     private final StringWriterBackedOutputEventTextOutput output = new StringWriterBackedOutputEventTextOutput()
@@ -28,15 +27,15 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
         then:
         output.toString() == 'some message'
     }
-    
-    def ignoresLogLevelsWhenWritingText() {
+
+    def onOutputWritesText() {
         when:
-        output.text(LogLevel.INFO, 'some message')
+        output.onOutput('some message')
 
         then:
         output.toString() == 'some message'
     }
-
+    
     def writesEndOfLine() {
         when:
         output.endLine()

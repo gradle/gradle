@@ -15,13 +15,18 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.PrintStream;
 
-class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(StyledTextOutputFactory factory) {
-        super(factory.create("system.out"));
+public class StdOutLoggingSystem extends PrintStreamLoggingSystem implements StyledTextOutputFactory {
+    public StdOutLoggingSystem(OutputEventListener listener) {
+        super(listener, "system.out");
+    }
+
+    public StyledTextOutput create() {
+        return getTextOutput();
     }
 
     @Override

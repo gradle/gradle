@@ -26,7 +26,7 @@ class LogEventTest extends Specification {
         new LogEvent('category', LogLevel.INFO, 'message').render(output)
 
         then:
-        1 * output.text(LogLevel.INFO, 'message')
+        1 * output.text('message')
         1 * output.endLine()
         0 * output._
     }
@@ -38,7 +38,7 @@ class LogEventTest extends Specification {
         new LogEvent('category', LogLevel.INFO, 'message', failure).render(output)
 
         then:
-        1 * output.text(LogLevel.INFO, 'message')
+        1 * output.text('message')
         1 * output.endLine()
         1 * output.exception(failure)
         0 * output._

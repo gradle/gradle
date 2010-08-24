@@ -15,10 +15,15 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.StyledTextOutput;
 
-public abstract class AbstractStyledTextOutput implements StyledTextOutput {
+public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
     private static final String EOL = System.getProperty("line.separator");
+
+    public void onOutput(CharSequence output) {
+        text(output);
+    }
 
     public StyledTextOutput endLine() {
         text(EOL);

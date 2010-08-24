@@ -16,22 +16,29 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
 import org.gradle.logging.StyledTextOutput;
 
-public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
-    private final Logger logger;
+public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput implements LoggingConfigurer {
+    private final OutputEventListener listener;
+    private final String category;
+    private LogLevel logLevel;
 
-    public LoggingBackedStyledTextOutput(Logger logger) {
-        this.logger = logger;
+    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel) {
+        this.listener = listener;
+        this.category = category;
+        this.logLevel = logLevel;
     }
 
-    public StyledTextOutput text(LogLevel level, Object text) {
-        logger.log(level, text.toString());
-        return this;
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public void configure(LogLevel logLevel) {
+        this.logLevel = logLevel;
     }
 
     public StyledTextOutput text(Object text) {
-        return text(LogLevel.INFO, text);
+        listener.onOutput(new LogEvent(category, logLevel, text.toString()));
+        return this;
     }
 }

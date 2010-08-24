@@ -19,7 +19,6 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.LoggingOutput;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
-import org.gradle.logging.StyledTextOutputFactory;
 
 public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     private final LoggingSystem slfLoggingSystem;
@@ -27,11 +26,11 @@ public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
     private final LoggingSystem stdErrLoggingSystem;
     private final LoggingOutput loggingOutput;
 
-    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutput loggingOutput, StyledTextOutputFactory textOutputFactory) {
+    public DefaultLoggingManagerFactory(LoggingConfigurer loggingConfigurer, LoggingOutput loggingOutput, LoggingSystem stdOutLoggingSystem, LoggingSystem stdErrLoggingSystem) {
         this.loggingOutput = loggingOutput;
+        this.stdOutLoggingSystem = stdOutLoggingSystem;
+        this.stdErrLoggingSystem = stdErrLoggingSystem;
         slfLoggingSystem = new LoggingSystemAdapter(loggingConfigurer);
-        stdOutLoggingSystem = new StdOutLoggingSystem(textOutputFactory);
-        stdErrLoggingSystem = new StdErrLoggingSystem(textOutputFactory);
     }
 
     public LoggingManagerInternal create() {

@@ -1,4 +1,5 @@
-// START SNIPPET use-logger
+import org.gradle.logging.StyledTextOutputFactory
+
 logger.quiet('An info log message which is always logged.')
 logger.error('An error log message.')
 logger.warn('A warning log message.')
@@ -6,16 +7,17 @@ logger.lifecycle('A lifecycle info log message.')
 logger.info('An info log message.')
 logger.debug('A debug log message.')
 logger.trace('A trace log message.')
-// END SNIPPET use-logger
 
-// START SNIPPET use-println
 println 'A message which is logged at QUIET level'
-// END SNIPPET use-println
 
-// START SNIPPET capture-stdout
+// Should use stdout capture level
+def textOutput = serviceRegistryFactory.get(StyledTextOutputFactory.class).create()
+textOutput.text('Text which is logged at QUIET level').endLine()
+
 logging.captureStandardOutput LogLevel.INFO
 println 'A message which is logged at INFO level'
-// END SNIPPET capture-stdout
+
+textOutput.text('Text which is logged at INFO level').endLine()
 
 System.err.println 'An error message which is logged at ERROR level'
 logging.captureStandardError LogLevel.LIFECYCLE

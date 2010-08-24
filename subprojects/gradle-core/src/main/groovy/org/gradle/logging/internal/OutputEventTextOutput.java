@@ -15,13 +15,12 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 
 public interface OutputEventTextOutput extends StyledTextOutput {
-    OutputEventTextOutput text(LogLevel level, Object text);
-
     OutputEventTextOutput text(Object text);
+
+    OutputEventTextOutput endLine();
 
     OutputEventTextOutput exception(Throwable throwable);
 }

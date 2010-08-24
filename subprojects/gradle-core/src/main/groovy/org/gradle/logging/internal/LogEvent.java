@@ -40,7 +40,7 @@ public class LogEvent extends OutputEvent {
     }
 
     public void render(OutputEventTextOutput output) {
-        output.text(getLogLevel(), message);
+        output.text(message);
         output.endLine();
         if (throwable != null) {
             output.exception(throwable);

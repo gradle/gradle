@@ -18,7 +18,6 @@ package org.gradle.logging.internal;
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
-import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
 
 import java.io.PrintStream;
@@ -35,11 +34,11 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
             destination.get().onOutput(output);
         }
     });
-    private final StyledTextOutput textOutput;
+    private final LoggingBackedStyledTextOutput textOutput;
     private StandardOutputListener original;
 
-    protected PrintStreamLoggingSystem(StyledTextOutput textOutput) {
-        this.textOutput = textOutput;
+    protected PrintStreamLoggingSystem(OutputEventListener listener, String category) {
+        this.textOutput = new LoggingBackedStyledTextOutput(listener, category, LogLevel.LIFECYCLE);
     }
 
     /**
@@ -52,8 +51,12 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
      */
     protected abstract void set(PrintStream printStream);
 
+    protected LoggingBackedStyledTextOutput getTextOutput() {
+        return textOutput;
+    }
+
     public Snapshot snapshot() {
-        return new SnapshotImpl(destination.get());
+        return new SnapshotImpl(destination.get(), textOutput.getLogLevel());
     }
 
     public void restore(Snapshot state) {
@@ -64,12 +67,14 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         } else {
             destination.set(snapshot.listener);
         }
+        textOutput.configure(snapshot.logLevel);
     }
 
     public Snapshot on(final LogLevel level) {
         Snapshot snapshot = snapshot();
         install();
-        destination.set(new LoggerDestination(level));
+        textOutput.configure(level);
+        destination.set(textOutput);
         return snapshot;
     }
 
@@ -105,23 +110,13 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         }
     }
 
-    private class LoggerDestination implements StandardOutputListener {
-        private final LogLevel level;
-
-        public LoggerDestination(LogLevel level) {
-            this.level = level;
-        }
-
-        public void onOutput(CharSequence output) {
-            textOutput.text(level, output);
-        }
-    }
-
     private static class SnapshotImpl implements Snapshot {
         private final StandardOutputListener listener;
+        private final LogLevel logLevel;
 
-        public SnapshotImpl(StandardOutputListener listener) {
+        public SnapshotImpl(StandardOutputListener listener, LogLevel logLevel) {
             this.listener = listener;
+            this.logLevel = logLevel;
         }
     }
 

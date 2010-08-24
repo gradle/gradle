@@ -15,8 +15,6 @@
  */
 package org.gradle.logging;
 
-import org.gradle.api.logging.LogLevel;
-
 /**
  * Provides streaming of styled text, that is, a stream of text and styling information. Implementations are not
  * required to be thread-safe.
@@ -29,15 +27,6 @@ public interface StyledTextOutput {
      * @return this
      */
     StyledTextOutput text(Object text);
-
-    /**
-     * Appends text with the style for the given log level.
-     *
-     * @param text The text
-     * @param level The log level.
-     * @return this
-     */
-    StyledTextOutput text(LogLevel level, Object text);
 
     /**
      * Starts a new line.

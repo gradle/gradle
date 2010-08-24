@@ -15,8 +15,6 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.logging.LogLevel;
-
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
@@ -35,12 +33,14 @@ public class StringWriterBackedOutputEventTextOutput extends AbstractStyledTextO
         return this;
     }
 
-    public OutputEventTextOutput text(LogLevel level, Object text) {
-        return text(text);
-    }
-
     public OutputEventTextOutput text(Object text) {
         writer.append(text.toString());
+        return this;
+    }
+
+    @Override
+    public OutputEventTextOutput endLine() {
+        super.endLine();
         return this;
     }
 }

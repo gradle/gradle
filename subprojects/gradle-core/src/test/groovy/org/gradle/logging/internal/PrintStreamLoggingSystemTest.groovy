@@ -18,13 +18,12 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
-import org.gradle.logging.StyledTextOutput
 
 class PrintStreamLoggingSystemTest extends Specification {
     private final OutputStream original = new ByteArrayOutputStream()
     private PrintStream stream = new PrintStream(original)
-    private final StyledTextOutput output = Mock()
-    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(output) {
+    private final OutputEventListener listener = Mock()
+    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(listener, 'category') {
         protected PrintStream get() {
             stream
         }
@@ -40,9 +39,9 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * output.text(LogLevel.INFO, 'info')
+        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.message == 'info'})
         original.toString() == ''
-        0 * output._
+        0 * listener._
     }
 
     def onChangesLogLevelsWhenAlreadyCapturing() {
@@ -53,9 +52,9 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * output.text(LogLevel.DEBUG, 'info')
+        1 * listener.onOutput({it.logLevel == LogLevel.DEBUG && it.message == 'info'})
         original.toString() == ''
-        0 * output._
+        0 * listener._
     }
 
     def offDoesNothingWhenNotAlreadyCapturing() {
@@ -65,7 +64,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * output._
+        0 * listener._
     }
 
     def offStopsCapturingWhenAlreadyCapturing() {
@@ -78,7 +77,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * output._
+        0 * listener._
     }
 
     def restoreStopsCapturingWhenCapturingWasNotInstalledWhenSnapshotTaken() {
@@ -91,7 +90,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * output._
+        0 * listener._
     }
 
     def restoreStopsCapturingWhenCapturingWasOffWhenSnapshotTaken() {
@@ -106,7 +105,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         original.toString() == String.format('info%n')
-        0 * output._
+        0 * listener._
     }
 
     def restoreStartsCapturingWhenCapturingWasOnWhenSnapshotTaken() {
@@ -119,8 +118,23 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * output.text(LogLevel.WARN, 'info')
+        1 * listener.onOutput({it.logLevel == LogLevel.WARN && it.message == 'info'})
         original.toString() == ''
-        0 * output._
+        0 * listener._
+    }
+    
+    def restoreSetsLogLevelToTheLevelWhenSnapshotTaken() {
+        loggingSystem.on(LogLevel.WARN)
+        def snapshot = loggingSystem.snapshot()
+        loggingSystem.on(LogLevel.INFO)
+
+        when:
+        loggingSystem.restore(snapshot)
+        stream.println('info')
+
+        then:
+        1 * listener.onOutput({it.logLevel == LogLevel.WARN && it.message == 'info'})
+        original.toString() == ''
+        0 * listener._
     }
 }

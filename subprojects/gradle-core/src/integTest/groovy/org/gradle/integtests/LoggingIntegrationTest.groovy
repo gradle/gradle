@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -39,6 +39,7 @@ class LoggingIntegrationTest {
         quiet(
                 'An info log message which is always logged.',
                 'A message which is logged at QUIET level',
+                'Text which is logged at QUIET level',
                 'A task message which is logged at QUIET level',
                 'quietProject2ScriptClassPathOut',
                 'quietProject2CallbackOut',
@@ -85,6 +86,7 @@ class LoggingIntegrationTest {
         info(
                 'An info log message.',
                 'A message which is logged at INFO level',
+                'Text which is logged at INFO level',
                 'A task message which is logged at INFO level',
                 '[ant:echo] An info message logged from Ant',
                 'An info log message logged using SLF4j',

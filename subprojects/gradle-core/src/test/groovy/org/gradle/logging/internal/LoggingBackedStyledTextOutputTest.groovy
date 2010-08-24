@@ -15,27 +15,29 @@
  */
 package org.gradle.logging.internal
 
-import spock.lang.Specification
-import org.gradle.api.logging.Logger
 import org.gradle.api.logging.LogLevel
+import spock.lang.Specification
 
 class LoggingBackedStyledTextOutputTest extends Specification {
-    private final Logger logger = Mock()
-    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(logger)
+    private final OutputEventListener listener = Mock()
+    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO)
 
-    def forwardsTextToLoggerAtDefaultLevel() {
+    def forwardsTextToListenerAtDefaultLevel() {
         when:
         output.text('message')
 
         then:
-        1 * logger.log(LogLevel.INFO, 'message')
+        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.category == 'category' && it.message == 'message'})
+        0 * listener._
     }
 
-    def forwardsTextToLoggerWithSpecifiedLevel() {
+    def forwardsTextToListenerWithSpecifiedLevel() {
         when:
-        output.text(LogLevel.ERROR, 'message')
+        output.configure(LogLevel.ERROR)
+        output.text('message')
 
         then:
-        1 * logger.log(LogLevel.ERROR, 'message')
+        1 * listener.onOutput({it.logLevel == LogLevel.ERROR})
+        0 * listener._
     }
 }

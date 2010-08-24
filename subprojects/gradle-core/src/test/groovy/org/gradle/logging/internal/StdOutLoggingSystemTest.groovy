@@ -13,14 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.logging.internal
 
-import org.gradle.api.logging.Logging;
-import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.StyledTextOutputFactory;
+import spock.lang.Specification
 
-public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
-    public StyledTextOutput create(String logCategory) {
-        return new LoggingBackedStyledTextOutput(Logging.getLogger(logCategory));
+class StdOutLoggingSystemTest extends Specification {
+    private final OutputEventListener listener = Mock()
+    private final StdOutLoggingSystem loggingSystem = new StdOutLoggingSystem(listener)
+    
+    def createsAStyledTextOutput() {
+        expect:
+        loggingSystem.create() == loggingSystem.textOutput
     }
 }

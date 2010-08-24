@@ -23,10 +23,10 @@ import org.gradle.logging.internal.*;
  * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
-    protected StyledTextOutputFactory createStyledTextOutputFactory() {
-        return new DefaultStyledTextOutputFactory();
+    protected StdOutLoggingSystem createStdOutLoggingSystem() {
+        return new StdOutLoggingSystem(get(OutputEventListener.class));
     }
-    
+
     protected ProgressLoggerFactory createProgressLoggerFactory() {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)));
     }
@@ -34,7 +34,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected LoggingManagerFactory createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, new Slf4jLoggingConfigurer(renderer), new JavaUtilLoggingConfigurer());
-        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StyledTextOutputFactory.class));
+        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StdOutLoggingSystem.class), new StdErrLoggingSystem(renderer));
     }
     
     protected OutputEventRenderer createOutputEventRenderer() {
