@@ -20,6 +20,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -36,7 +37,7 @@ import java.util.TreeSet;
  */
 public class DependencyReportTask extends AbstractReportTask {
 
-    private DependencyReportRenderer renderer = new AsciiReportRenderer();
+    private DependencyReportRenderer renderer = new AsciiReportRenderer(getServices().get(StyledTextOutputFactory.class).create());
 
     private Set<Configuration> configurations;
 

@@ -33,9 +33,6 @@ import java.util.*;
 public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
 
-    public AsciiReportRenderer() {
-    }
-
     public AsciiReportRenderer(Appendable writer) {
         super(writer);
     }

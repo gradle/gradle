@@ -20,9 +20,6 @@ package org.gradle.api.tasks.diagnostics.internal;
  */
 public class PropertyReportRenderer extends TextProjectReportRenderer {
 
-    public PropertyReportRenderer() {
-    }
-
     public PropertyReportRenderer(Appendable out) {
         super(out);
     }

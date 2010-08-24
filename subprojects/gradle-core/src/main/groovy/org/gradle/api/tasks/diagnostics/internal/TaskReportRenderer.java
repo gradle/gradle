@@ -36,9 +36,6 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     private boolean hasContent;
     private boolean detail;
 
-    public TaskReportRenderer() {
-    }
-
     public TaskReportRenderer(Appendable writer) {
         super(writer);
     }
