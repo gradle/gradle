@@ -21,6 +21,21 @@ import org.gradle.logging.StyledTextOutput;
 public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
     private static final String EOL = System.getProperty("line.separator");
 
+    public StyledTextOutput append(char c) {
+        text(String.valueOf(c));
+        return this;
+    }
+
+    public StyledTextOutput append(CharSequence csq) {
+        text(csq == null ? "null" : csq);
+        return this;
+    }
+
+    public StyledTextOutput append(CharSequence csq, int start, int end) {
+        text(csq == null ? "null" : csq.subSequence(start, end));
+        return this;
+    }
+
     public void onOutput(CharSequence output) {
         text(output);
     }

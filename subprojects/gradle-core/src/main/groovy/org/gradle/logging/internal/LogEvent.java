@@ -17,7 +17,7 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
-public class LogEvent extends OutputEvent {
+public class LogEvent extends RenderableOutputEvent {
     private final String message;
     private final Throwable throwable;
 

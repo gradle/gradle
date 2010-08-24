@@ -51,7 +51,7 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
             } else if (event instanceof LogLevelChangeEvent) {
                 debugOutput = ((LogLevelChangeEvent) event).getNewLogLevel() == LogLevel.DEBUG;
             } else {
-                String message = doLayout((LogEvent) event);
+                String message = doLayout((RenderableOutputEvent) event);
                 if (event.getLogLevel() == LogLevel.ERROR) {
                     onErrorMessage(message);
                 } else {
@@ -63,7 +63,7 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
         }
     }
 
-    private String doLayout(LogEvent event) {
+    private String doLayout(RenderableOutputEvent event) {
         OutputEventTextOutput writer = new StringWriterBackedOutputEventTextOutput();
         if (debugOutput) {
             writer.text("[");

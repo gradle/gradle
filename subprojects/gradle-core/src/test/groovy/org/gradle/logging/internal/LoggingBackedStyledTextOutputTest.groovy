@@ -22,22 +22,55 @@ class LoggingBackedStyledTextOutputTest extends Specification {
     private final OutputEventListener listener = Mock()
     private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO)
 
-    def forwardsTextToListenerAtDefaultLevel() {
+    def forwardsLineOfTextToListenerAtDefaultLevel() {
         when:
-        output.text('message')
+        output.text('message').endLine()
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.category == 'category' && it.message == 'message'})
+        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.category == 'category' && it.message == toNative('message\n')})
         0 * listener._
     }
 
+    def forwardsEachLineOfTextToListener() {
+        when:
+        output.text(toNative('message1\nmessage2')).endLine()
+
+        then:
+        1 * listener.onOutput({it.message == toNative('message1\n')})
+        1 * listener.onOutput({it.message == toNative('message2\n')})
+        0 * listener._
+    }
+
+    def forwardsEmptyLinesToListener() {
+        when:
+        output.text(toNative('\n\n'))
+
+        then:
+        2 * listener.onOutput({it.message == toNative('\n')})
+        0 * listener._
+    }
+
+    def forwardsBufferedTextToListenerOnFlush() {
+        when:
+        output.text('message1')
+        output.flush()
+
+        then:
+        1 * listener.onOutput({it.message == 'message1'})
+        0 * listener._
+    }
+    
     def forwardsTextToListenerWithSpecifiedLevel() {
         when:
         output.configure(LogLevel.ERROR)
-        output.text('message')
+        output.text('message').endLine()
 
         then:
         1 * listener.onOutput({it.logLevel == LogLevel.ERROR})
         0 * listener._
+    }
+
+    private String toNative(String value) {
+        return value.replaceAll('\n', System.getProperty('line.separator'))
     }
 }

@@ -33,7 +33,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         public void execute(String output) {
             destination.get().onOutput(output);
         }
-    });
+    }, true);
     private final LoggingBackedStyledTextOutput textOutput;
     private StandardOutputListener original;
 
@@ -82,6 +82,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         Snapshot snapshot = snapshot();
         if (original != null) {
             outstr.flush();
+            textOutput.flush();
             destination.set(original);
         }
         return snapshot;
@@ -93,6 +94,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
             original = new PrintStreamDestination(originalStream);
         }
         outstr.flush();
+        textOutput.flush();
         if (get() != outstr) {
             set(outstr);
         }
@@ -106,7 +108,7 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         }
 
         public void onOutput(CharSequence output) {
-            originalStream.println(output);
+            originalStream.print(output);
         }
     }
 

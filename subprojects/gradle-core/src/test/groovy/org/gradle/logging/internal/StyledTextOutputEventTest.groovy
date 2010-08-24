@@ -13,24 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.logging.internal
 
-import org.gradle.api.logging.LogLevel;
+import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
-public class ProgressStartEvent extends OutputEvent {
-    private final String description;
+class StyledTextOutputEventTest extends Specification {
+    private final OutputEventTextOutput output = Mock()
 
-    public ProgressStartEvent(String category, String description) {
-        super(category, LogLevel.LIFECYCLE);
-        this.description = description;
-    }
+    def rendersToTextOutput() {
+        when:
+        new StyledTextOutputEvent('category', LogLevel.INFO, 'message').render(output)
 
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("ProgressStart %s", description);
+        then:
+        1 * output.text('message')
+        0 * output._
     }
 }

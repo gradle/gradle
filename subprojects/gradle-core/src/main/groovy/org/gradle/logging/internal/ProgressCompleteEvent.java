@@ -28,4 +28,9 @@ public class ProgressCompleteEvent extends OutputEvent {
     public String getStatus() {
         return status;
     }
+
+    @Override
+    public String toString() {
+        return String.format("ProgressComplete %s", status);
+    }
 }

@@ -17,20 +17,10 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
-public class ProgressStartEvent extends OutputEvent {
-    private final String description;
-
-    public ProgressStartEvent(String category, String description) {
-        super(category, LogLevel.LIFECYCLE);
-        this.description = description;
+public abstract class RenderableOutputEvent extends OutputEvent {
+    protected RenderableOutputEvent(String category, LogLevel logLevel) {
+        super(category, logLevel);
     }
 
-    public String getDescription() {
-        return description;
-    }
-
-    @Override
-    public String toString() {
-        return String.format("ProgressStart %s", description);
-    }
+    public abstract void render(OutputEventTextOutput output);
 }

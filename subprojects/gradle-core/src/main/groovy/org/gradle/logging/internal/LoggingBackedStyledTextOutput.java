@@ -15,18 +15,26 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.Action;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.util.LineBufferingOutputStream;
 
-public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput implements LoggingConfigurer {
-    private final OutputEventListener listener;
-    private final String category;
+import java.io.Flushable;
+import java.io.IOException;
+
+public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput implements LoggingConfigurer, Flushable {
     private LogLevel logLevel;
+    private final LineBufferingOutputStream outstr;
 
-    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel) {
-        this.listener = listener;
-        this.category = category;
+    public LoggingBackedStyledTextOutput(final OutputEventListener listener, final String category, LogLevel logLevel) {
         this.logLevel = logLevel;
+        outstr = new LineBufferingOutputStream(new LogAction(listener, category), true);
+    }
+
+    public void flush() {
+        outstr.flush();
     }
 
     public LogLevel getLogLevel() {
@@ -38,7 +46,25 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput impl
     }
 
     public StyledTextOutput text(Object text) {
-        listener.onOutput(new LogEvent(category, logLevel, text.toString()));
+        try {
+            outstr.write(text.toString().getBytes());
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
         return this;
+    }
+
+    private class LogAction implements Action<String> {
+        private final OutputEventListener listener;
+        private final String category;
+
+        public LogAction(OutputEventListener listener, String category) {
+            this.listener = listener;
+            this.category = category;
+        }
+
+        public void execute(String text) {
+            listener.onOutput(new StyledTextOutputEvent(category, logLevel, text));
+        }
     }
 }

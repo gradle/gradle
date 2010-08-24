@@ -19,7 +19,13 @@ package org.gradle.logging;
  * Provides streaming of styled text, that is, a stream of text and styling information. Implementations are not
  * required to be thread-safe.
  */
-public interface StyledTextOutput {
+public interface StyledTextOutput extends Appendable {
+    StyledTextOutput append(char c);
+
+    StyledTextOutput append(CharSequence csq);
+
+    StyledTextOutput append(CharSequence csq, int start, int end);
+
     /**
      * Appends text with the default style.
      *

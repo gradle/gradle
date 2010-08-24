@@ -28,4 +28,9 @@ public class LogLevelChangeEvent extends OutputEvent {
     public LogLevel getNewLogLevel() {
         return newLogLevel;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s", LogLevelChangeEvent.class.getSimpleName(), newLogLevel);
+    }
 }
