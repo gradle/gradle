@@ -161,11 +161,26 @@ public class IdeaModule extends ConventionTask {
     }
 
     protected getVariableReplacement() {
-        if (getGradleCacheHome() && getGradleCacheVariable()) {
+        if (getGradleCacheHome() && getGradleCacheVariable() && areFilesRelativeToEachOther(getGradleCacheHome(), getModuleDir())) {
             String replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome())
             return new VariableReplacement(replacer: replacer, replacable: '$' + getGradleCacheVariable() + '$')
         }
         return VariableReplacement.NO_REPLACEMENT
+    }
+
+    private File getParentFile(File file) {
+        if (file.parentFile == null) {
+            return file;
+        }
+
+        return getParentFile(file.parentFile);
+    }
+
+    private boolean areFilesRelativeToEachOther(File file1, File file2) {
+        File parent1 = getParentFile(file1)
+        File parent2 = getParentFile(file2)
+
+        return parent1.equals(parent2)
     }
 
     protected Set getModules(String scope) {
