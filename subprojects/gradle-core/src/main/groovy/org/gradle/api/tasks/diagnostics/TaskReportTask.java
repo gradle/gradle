@@ -29,7 +29,7 @@ import java.io.IOException;
  * <p>Displays a list of tasks in the project. It is used when you use the task list command-line option.</p>
  */
 public class TaskReportTask extends AbstractReportTask {
-    private TaskReportRenderer renderer = new TaskReportRenderer(getServices().get(StyledTextOutputFactory.class).create());
+    private TaskReportRenderer renderer = new TaskReportRenderer(getServices().get(StyledTextOutputFactory.class).create(TaskReportTask.class));
 
     private boolean detail;
 

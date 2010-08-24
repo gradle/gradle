@@ -28,7 +28,7 @@ import java.util.TreeMap;
  * Displays the properties of a project. This task is used when you execute the property list command-line option.
  */
 public class PropertyReportTask extends AbstractReportTask {
-    private PropertyReportRenderer renderer = new PropertyReportRenderer(getServices().get(StyledTextOutputFactory.class).create());
+    private PropertyReportRenderer renderer = new PropertyReportRenderer(getServices().get(StyledTextOutputFactory.class).create(PropertyReportTask.class));
 
     public ProjectReportRenderer getRenderer() {
         return renderer;

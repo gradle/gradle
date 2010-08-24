@@ -39,7 +39,8 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO})
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.message == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }
@@ -52,7 +53,8 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.DEBUG && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.DEBUG})
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.message == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }
@@ -118,7 +120,8 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.WARN && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.WARN})
+        1 * listener.onOutput({it.message == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }
@@ -133,7 +136,8 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.WARN && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.WARN})
+        1 * listener.onOutput({it.message == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }

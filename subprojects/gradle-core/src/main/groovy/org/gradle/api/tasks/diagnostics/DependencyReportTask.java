@@ -37,7 +37,7 @@ import java.util.TreeSet;
  */
 public class DependencyReportTask extends AbstractReportTask {
 
-    private DependencyReportRenderer renderer = new AsciiReportRenderer(getServices().get(StyledTextOutputFactory.class).create());
+    private DependencyReportRenderer renderer = new AsciiReportRenderer(getServices().get(StyledTextOutputFactory.class).create(DependencyReportTask.class));
 
     private Set<Configuration> configurations;
 

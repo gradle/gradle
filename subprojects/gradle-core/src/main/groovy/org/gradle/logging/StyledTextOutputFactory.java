@@ -16,5 +16,7 @@
 package org.gradle.logging;
 
 public interface StyledTextOutputFactory {
-    StyledTextOutput create();
+    StyledTextOutput create(String logCategory);
+
+    StyledTextOutput create(Class logCategory);
 }

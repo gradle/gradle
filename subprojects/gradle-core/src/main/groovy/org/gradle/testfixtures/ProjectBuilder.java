@@ -36,14 +36,14 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.StyledTextOutputFactory;
-import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.logging.internal.DefaultProgressLoggerFactory;
+import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
-import org.gradle.logging.internal.StdOutLoggingSystem;
 import org.gradle.util.GFileUtils;
 
 import java.io.File;
@@ -209,7 +209,7 @@ public class ProjectBuilder {
         }
 
         protected StyledTextOutputFactory createStyledTextOutputFactory() {
-            return new StdOutLoggingSystem(get(ListenerManager.class).getBroadcaster(OutputEventListener.class));
+            return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class));
         }
         
         protected IsolatedAntBuilder createIsolatedAntBuilder() {

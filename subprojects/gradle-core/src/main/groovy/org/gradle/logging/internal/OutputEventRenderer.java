@@ -25,10 +25,15 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintStream;
 
+/**
+ * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
+ * destinations. This implementation is thread-safe.
+ */
 public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutput {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+    private final Object lock = new Object();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public OutputEventRenderer() {
@@ -89,7 +94,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         if (stdout && stderr) {
             formatters.add(consoleFormatter);
         } else if (stdout) {
-            formatters.add(onNotError(consoleFormatter));
+            formatters.add(onNonError(consoleFormatter));
         } else {
             formatters.add(onError(consoleFormatter));
         }
@@ -106,7 +111,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         };
     }
 
-    private OutputEventListener onNotError(final OutputEventListener listener) {
+    private OutputEventListener onNonError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
                 if (event.getLogLevel() != LogLevel.ERROR) {
@@ -133,14 +138,18 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public void configure(LogLevel logLevel) {
-        this.logLevel = logLevel;
-        formatters.getSource().onOutput(new LogLevelChangeEvent(logLevel));
+        synchronized (lock) {
+            this.logLevel = logLevel;
+            formatters.getSource().onOutput(new LogLevelChangeEvent(logLevel));
+        }
     }
 
     public void onOutput(OutputEvent event) {
-        if (event.getLogLevel().compareTo(logLevel) < 0) {
-            return;
+        synchronized (lock) {
+            if (event.getLogLevel().compareTo(logLevel) < 0) {
+                return;
+            }
+            formatters.getSource().onOutput(event);
         }
-        formatters.getSource().onOutput(event);
     }
 }

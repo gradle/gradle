@@ -27,18 +27,20 @@ import java.util.concurrent.atomic.AtomicReference;
  * A {@link LoggingSystem} which routes content written to a PrintStream to the logging system.
  */
 abstract class PrintStreamLoggingSystem implements LoggingSystem {
-    private final AtomicReference<StandardOutputListener> destination
-            = new AtomicReference<StandardOutputListener>();
+    private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
     private final PrintStream outstr = new LinePerThreadBufferingOutputStream(new Action<String>() {
         public void execute(String output) {
             destination.get().onOutput(output);
         }
     }, true);
-    private final LoggingBackedStyledTextOutput textOutput;
     private StandardOutputListener original;
+    private LogLevel logLevel;
+    private final StandardOutputListener listener;
+    private final OutputEventListener outputEventListener;
 
-    protected PrintStreamLoggingSystem(OutputEventListener listener, String category) {
-        this.textOutput = new LoggingBackedStyledTextOutput(listener, category, LogLevel.LIFECYCLE);
+    protected PrintStreamLoggingSystem(final OutputEventListener listener, final String category) {
+        outputEventListener = listener;
+        this.listener = new OutputEventDestination(listener, category);
     }
 
     /**
@@ -51,30 +53,28 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
      */
     protected abstract void set(PrintStream printStream);
 
-    protected LoggingBackedStyledTextOutput getTextOutput() {
-        return textOutput;
-    }
-
     public Snapshot snapshot() {
-        return new SnapshotImpl(destination.get(), textOutput.getLogLevel());
+        return new SnapshotImpl(logLevel);
     }
 
     public void restore(Snapshot state) {
         SnapshotImpl snapshot = (SnapshotImpl) state;
         install();
-        if (snapshot.listener == null) {
+        if (snapshot.logLevel == null) {
             destination.set(original);
         } else {
-            destination.set(snapshot.listener);
+            this.logLevel = snapshot.logLevel;
+            outputEventListener.onOutput(new LogLevelChangeEvent(snapshot.logLevel));
+            destination.set(listener);
         }
-        textOutput.configure(snapshot.logLevel);
     }
 
     public Snapshot on(final LogLevel level) {
         Snapshot snapshot = snapshot();
         install();
-        textOutput.configure(level);
-        destination.set(textOutput);
+        this.logLevel = level;
+        outputEventListener.onOutput(new LogLevelChangeEvent(logLevel));
+        destination.set(listener);
         return snapshot;
     }
 
@@ -82,8 +82,8 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
         Snapshot snapshot = snapshot();
         if (original != null) {
             outstr.flush();
-            textOutput.flush();
             destination.set(original);
+            logLevel = null;
         }
         return snapshot;
     }
@@ -94,7 +94,6 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
             original = new PrintStreamDestination(originalStream);
         }
         outstr.flush();
-        textOutput.flush();
         if (get() != outstr) {
             set(outstr);
         }
@@ -113,13 +112,24 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
     }
 
     private static class SnapshotImpl implements Snapshot {
-        private final StandardOutputListener listener;
         private final LogLevel logLevel;
 
-        public SnapshotImpl(StandardOutputListener listener, LogLevel logLevel) {
-            this.listener = listener;
+        public SnapshotImpl(LogLevel logLevel) {
             this.logLevel = logLevel;
         }
     }
 
+    private static class OutputEventDestination implements StandardOutputListener {
+        private final OutputEventListener listener;
+        private final String category;
+
+        public OutputEventDestination(OutputEventListener listener, String category) {
+            this.listener = listener;
+            this.category = category;
+        }
+
+        public void onOutput(CharSequence output) {
+            listener.onOutput(new StyledTextOutputEvent(category, output.toString()));
+        }
+    }
 }

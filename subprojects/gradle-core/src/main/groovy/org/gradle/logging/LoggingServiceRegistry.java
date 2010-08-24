@@ -23,8 +23,22 @@ import org.gradle.logging.internal.*;
  * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
+    private TextStreamOutputEventListener stdoutListener;
+
+    public LoggingServiceRegistry() {
+        stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+    }
+
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
-        return new StdOutLoggingSystem(get(OutputEventListener.class));
+        return new StdOutLoggingSystem(stdoutListener);
+    }
+
+    protected StyledTextOutputFactory createStyledTextOutputFactory() {
+        return new DefaultStyledTextOutputFactory(stdoutListener);
+    }
+
+    protected StdErrLoggingSystem createStdErrLoggingSystem() {
+        return new StdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)));
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
@@ -34,7 +48,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     protected LoggingManagerFactory createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, new Slf4jLoggingConfigurer(renderer), new JavaUtilLoggingConfigurer());
-        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StdOutLoggingSystem.class), new StdErrLoggingSystem(renderer));
+        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StdOutLoggingSystem.class), get(StdErrLoggingSystem.class));
     }
     
     protected OutputEventRenderer createOutputEventRenderer() {

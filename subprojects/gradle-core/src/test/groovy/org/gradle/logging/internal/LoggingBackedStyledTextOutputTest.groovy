@@ -15,19 +15,18 @@
  */
 package org.gradle.logging.internal
 
-import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
 
 class LoggingBackedStyledTextOutputTest extends Specification {
     private final OutputEventListener listener = Mock()
-    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO)
+    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category')
 
     def forwardsLineOfTextToListenerAtDefaultLevel() {
         when:
         output.text('message').endLine()
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.category == 'category' && it.message == toNative('message\n')})
+        1 * listener.onOutput({it.category == 'category' && it.message == toNative('message\n')})
         0 * listener._
     }
 
@@ -49,27 +48,7 @@ class LoggingBackedStyledTextOutputTest extends Specification {
         2 * listener.onOutput({it.message == toNative('\n')})
         0 * listener._
     }
-
-    def forwardsBufferedTextToListenerOnFlush() {
-        when:
-        output.text('message1')
-        output.flush()
-
-        then:
-        1 * listener.onOutput({it.message == 'message1'})
-        0 * listener._
-    }
-    
-    def forwardsTextToListenerWithSpecifiedLevel() {
-        when:
-        output.configure(LogLevel.ERROR)
-        output.text('message').endLine()
-
-        then:
-        1 * listener.onOutput({it.logLevel == LogLevel.ERROR})
-        0 * listener._
-    }
-
+   
     private String toNative(String value) {
         return value.replaceAll('\n', System.getProperty('line.separator'))
     }

@@ -33,7 +33,7 @@ import org.gradle.integtests.fixtures.TestResources
 class LoggingIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-    @Rule public final TestResources resources = new TestResources('LoggingIntegrationTest/logging')
+    @Rule public final TestResources resources = new TestResources()
 
     private final LogOutput logOutput = new LogOutput() {{
         quiet(
@@ -127,57 +127,65 @@ class LoggingIntegrationTest {
         )
     }}
 
+    private final LogOutput multiThreaded = new LogOutput() {{
+        (1..10).each { thread ->
+            (1..100).each { iteration ->
+                lifecycle("log message from thread $thread iteration $iteration")
+                quiet("stdout message from thread $thread iteration $iteration")
+                quiet("styled text message from thread $thread iteration $iteration")
+            }
+        }
+    }}
+
     @Test
     public void quietLogging() {
-        checkOutput(logOutput.quiet)
+        checkOutput(this.&run, logOutput.quiet)
     }
 
     @Test
     public void lifecycleLogging() {
-        checkOutput(logOutput.lifecycle)
+        checkOutput(this.&run, logOutput.lifecycle)
     }
 
     @Test
     public void infoLogging() {
-        checkOutput(logOutput.info)
+        checkOutput(this.&run, logOutput.info)
     }
 
     @Test
     public void debugLogging() {
-        checkOutput(logOutput.debug)
+        checkOutput(this.&run, logOutput.debug)
     }
 
-    void checkOutput(LogLevel level) {
+    @Test
+    public void multiThreadedQuietLogging() {
+        checkOutput(this.&runMultiThreaded, multiThreaded.quiet)
+    }
+
+    @Test
+    public void multiThreadedlifecycleLogging() {
+        checkOutput(this.&runMultiThreaded, multiThreaded.lifecycle)
+    }
+
+    def run(LogLevel level) {
+        resources.maybeCopy('LoggingIntegrationTest/logging')
         TestFile loggingDir = dist.testDir
         loggingDir.file("buildSrc/build/.gradle").deleteDir()
         loggingDir.file("nestedBuild/buildSrc/.gradle").deleteDir()
 
         String initScript = new File(loggingDir, 'init.gradle').absolutePath
         String[] allArgs = level.args + ['-I', initScript]
-
-        ExecutionResult result = executer.inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
-        level.infoMessages.each {List messages ->
-            checkOuts(true, result.output, messages, level.matchPartialLine)
-        }
-        level.errorMessages.each {List messages ->
-            checkOuts(true, result.error, messages, level.matchPartialLine)
-        }
-        (level.forbiddenMessages).each {List messages ->
-            checkOuts(false, result.output, messages) {expected, actual-> actual.contains(expected)}
-            checkOuts(false, result.error, messages) {expected, actual-> actual.contains(expected)}
-        }
+        return executer.inDirectory(loggingDir).withArguments(allArgs).withTasks('log').run()
     }
 
-    void checkOuts(boolean shouldContain, String result, List outs, Closure partialLine) {
-        outs.each {String expectedOut ->
-            boolean found = result.readLines().find {partialLine.call(expectedOut, it)}
-            if (!found && shouldContain) {
-                throw new AssertionFailedError("Could not find expected line '$expectedOut' in output:\n$result")
-            }
-            if (found && !shouldContain) {
-                throw new AssertionFailedError("Found unexpected line '$expectedOut' in output:\n$result")
-            }
-        }
+    def runMultiThreaded(LogLevel level) {
+        resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
+        return executer.withArguments(level.args).withTasks('log').run()
+    }
+
+    void checkOutput(Closure run, LogLevel level) {
+        ExecutionResult result = run.call(level)
+        level.checkOuts(result)
     }
 }
 
@@ -190,6 +198,31 @@ class LogLevel {
 
     def getForbiddenMessages() {
         allMessages - (infoMessages + errorMessages)
+    }
+
+    def checkOuts(ExecutionResult result) {
+        infoMessages.each {List messages ->
+            checkOuts(true, result.output, messages, matchPartialLine)
+        }
+        errorMessages.each {List messages ->
+            checkOuts(true, result.error, messages, matchPartialLine)
+        }
+        forbiddenMessages.each {List messages ->
+            checkOuts(false, result.output, messages) {expected, actual-> actual.contains(expected)}
+            checkOuts(false, result.error, messages) {expected, actual-> actual.contains(expected)}
+        }
+    }
+
+    def checkOuts(boolean shouldContain, String result, List outs, Closure partialLine) {
+        outs.each {String expectedOut ->
+            boolean found = result.readLines().find {partialLine.call(expectedOut, it)}
+            if (!found && shouldContain) {
+                throw new AssertionFailedError("Could not find expected line '$expectedOut' in output:\n$result")
+            }
+            if (found && !shouldContain) {
+                throw new AssertionFailedError("Found unexpected line '$expectedOut' in output:\n$result")
+            }
+        }
     }
 }
 

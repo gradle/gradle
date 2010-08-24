@@ -15,15 +15,22 @@
  */
 package org.gradle.logging.internal
 
-import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
+import spock.lang.Specification
 
 class StyledTextOutputEventTest extends Specification {
-    private final OutputEventTextOutput output = Mock()
 
+    def canSetLogLevel() {
+        expect:
+        def event = new StyledTextOutputEvent('category', 'message').withLogLevel(LogLevel.DEBUG)
+        event.logLevel == LogLevel.DEBUG
+    }
+    
     def rendersToTextOutput() {
+        OutputEventTextOutput output = Mock()
+
         when:
-        new StyledTextOutputEvent('category', LogLevel.INFO, 'message').render(output)
+        new StyledTextOutputEvent('category', 'message').render(output)
 
         then:
         1 * output.text('message')

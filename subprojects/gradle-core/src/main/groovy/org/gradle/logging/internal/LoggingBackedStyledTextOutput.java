@@ -17,32 +17,16 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.LineBufferingOutputStream;
 
-import java.io.Flushable;
 import java.io.IOException;
 
-public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput implements LoggingConfigurer, Flushable {
-    private LogLevel logLevel;
+public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private final LineBufferingOutputStream outstr;
 
-    public LoggingBackedStyledTextOutput(final OutputEventListener listener, final String category, LogLevel logLevel) {
-        this.logLevel = logLevel;
+    public LoggingBackedStyledTextOutput(final OutputEventListener listener, String category) {
         outstr = new LineBufferingOutputStream(new LogAction(listener, category), true);
-    }
-
-    public void flush() {
-        outstr.flush();
-    }
-
-    public LogLevel getLogLevel() {
-        return logLevel;
-    }
-
-    public void configure(LogLevel logLevel) {
-        this.logLevel = logLevel;
     }
 
     public StyledTextOutput text(Object text) {
@@ -64,7 +48,7 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput impl
         }
 
         public void execute(String text) {
-            listener.onOutput(new StyledTextOutputEvent(category, logLevel, text));
+            listener.onOutput(new StyledTextOutputEvent(category, text));
         }
     }
 }

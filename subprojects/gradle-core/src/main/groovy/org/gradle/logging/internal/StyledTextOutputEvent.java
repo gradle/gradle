@@ -20,11 +20,19 @@ import org.gradle.api.logging.LogLevel;
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final String message;
 
+    public StyledTextOutputEvent(String category, String message) {
+        this(category, null, message);
+    }
+
     public StyledTextOutputEvent(String category, LogLevel logLevel, String message) {
         super(category, logLevel);
         this.message = message;
     }
 
+    public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
+        return new StyledTextOutputEvent(getCategory(), logLevel, message);
+    }
+    
     @Override
     public void render(OutputEventTextOutput output) {
         output.text(message);

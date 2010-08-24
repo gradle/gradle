@@ -15,20 +15,21 @@
  */
 package org.gradle.logging.internal;
 
-import java.io.PrintStream;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 
-public class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(OutputEventListener listener) {
-        super(listener, "system.out");
+public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
+    private final OutputEventListener outputEventListener;
+
+    public DefaultStyledTextOutputFactory(OutputEventListener outputEventListener) {
+        this.outputEventListener = outputEventListener;
     }
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
+    public StyledTextOutput create(Class logCategory) {
+        return create(logCategory.getName());
     }
 
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+    public StyledTextOutput create(String logCategory) {
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory);
     }
 }
