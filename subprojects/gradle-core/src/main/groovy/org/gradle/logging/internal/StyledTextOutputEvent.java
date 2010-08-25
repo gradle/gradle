@@ -16,30 +16,68 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public class StyledTextOutputEvent extends RenderableOutputEvent {
-    private final String message;
+    private final List<Span> spans;
 
-    public StyledTextOutputEvent(long timestamp, String category, String message) {
-        this(timestamp, category, null, message);
+    public StyledTextOutputEvent(long timestamp, String category, String text) {
+        this(StyledTextOutput.Style.Normal, timestamp, category, text);
     }
 
-    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String message) {
+    public StyledTextOutputEvent(StyledTextOutput.Style style, long timestamp, String category, String text) {
+        this(timestamp, category, null, Collections.singletonList(new Span(style, text)));
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
+        this(timestamp, category, null, spans);
+    }
+
+    private StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
         super(timestamp, category, logLevel);
-        this.message = message;
+        this.spans = new ArrayList<Span>(spans);
     }
 
     @Override
     public String toString() {
-        return String.format("[%s] [%s] %s", getLogLevel(), getCategory(), message);
+        StringBuilder builder = new StringBuilder();
+        builder.append('[').append(getLogLevel()).append("] [");
+        builder.append(getCategory()).append("] ");
+        for (Span span : spans) {
+            builder.append('<');
+            builder.append(span.style);
+            builder.append(">");
+            builder.append(span.text);
+            builder.append("</");
+            builder.append(span.style);
+            builder.append(">");
+        }
+        return builder.toString();
     }
 
     public StyledTextOutputEvent withLogLevel(LogLevel logLevel) {
-        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, message);
+        return new StyledTextOutputEvent(getTimestamp(), getCategory(), logLevel, spans);
     }
-    
+
     @Override
     public void render(OutputEventTextOutput output) {
-        output.text(message);
+        for (Span span : spans) {
+            output.style(span.style);
+            output.text(span.text);
+        }
+    }
+
+    public static class Span {
+        private final String text;
+        private final StyledTextOutput.Style style;
+
+        public Span(StyledTextOutput.Style style, String text) {
+            this.style = style;
+            this.text = text;
+        }
     }
 }

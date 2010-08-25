@@ -41,6 +41,10 @@ public class WriterBackedStyledTextOutput extends AbstractStyledTextOutput imple
         }
     }
 
+    public StyledTextOutput style(Style style) {
+        return this;
+    }
+
     public StyledTextOutput text(Object text) {
         try {
             writer.append(text.toString());

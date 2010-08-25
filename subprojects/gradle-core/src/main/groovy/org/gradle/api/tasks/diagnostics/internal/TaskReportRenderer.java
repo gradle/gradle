@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static org.gradle.logging.StyledTextOutput.Style.*;
+
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>
  *
@@ -86,7 +88,9 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     }
 
     private void writeTask(TaskDetails task, String prefix) {
-        getTextOutput().format("%s%s%s", prefix, task.getPath(), getDescription(task));
+        getTextOutput().text(prefix);
+        getTextOutput().style(UserInput).text(task.getPath()).style(Normal);
+        getTextOutput().text(getDescription(task));
         if (detail) {
             SortedSet<String> sortedDependencies = new TreeSet<String>();
             for (String dependency : task.getDependencies()) {
@@ -104,11 +108,11 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
             getTextOutput().println();
         }
         hasContent = true;
-        getTextOutput().println(header);
+        getTextOutput().style(Header).println(header);
         for (int i = 0; i < header.length(); i++) {
             getTextOutput().text("-");
         }
-        getTextOutput().println();
+        getTextOutput().style(Normal).println();
     }
 
     private String getDescription(TaskDetails task) {

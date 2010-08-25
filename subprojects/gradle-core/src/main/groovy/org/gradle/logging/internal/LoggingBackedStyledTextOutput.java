@@ -22,12 +22,32 @@ import org.gradle.util.LineBufferingOutputStream;
 import org.gradle.util.TimeProvider;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
+/**
+ * A {@link org.gradle.logging.StyledTextOutput} implementation which generates events of type {@link
+ * org.gradle.logging.internal.StyledTextOutputEvent}. This implementation is not thread-safe.
+ */
 public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private final LineBufferingOutputStream outstr;
+    private Style style = Style.Normal;
+    private boolean styleChange;
 
     public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, TimeProvider timeProvider) {
         outstr = new LineBufferingOutputStream(new LogAction(listener, category, timeProvider), true);
+    }
+
+    public StyledTextOutput style(Style style) {
+        styleChange = true;
+        try {
+            outstr.flush();
+        } finally {
+            styleChange = false;
+        }
+        this.style = style;
+        return this;
     }
 
     public StyledTextOutput text(Object text) {
@@ -39,10 +59,11 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
         return this;
     }
 
-    private static class LogAction implements Action<String> {
+    private class LogAction implements Action<String> {
         private final OutputEventListener listener;
         private final String category;
         private final TimeProvider timeProvider;
+        private List<StyledTextOutputEvent.Span> spans;
 
         public LogAction(OutputEventListener listener, String category, TimeProvider timeProvider) {
             this.listener = listener;
@@ -51,7 +72,27 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
         }
 
         public void execute(String text) {
-            listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, text));
+            if (text.length() == 0) {
+                return;
+            }
+
+            StyledTextOutputEvent.Span span = new StyledTextOutputEvent.Span(style, text);
+            if (styleChange) {
+                if (spans == null) {
+                    spans = new ArrayList<StyledTextOutputEvent.Span>();
+                }
+                spans.add(span);
+                return;
+            } else if (spans != null) {
+                spans.add(span);
+            } else {
+                spans = Collections.singletonList(span);
+            }
+
+            StyledTextOutputEvent event = new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, spans);
+            spans = null;
+            
+            listener.onOutput(event);
         }
     }
 }

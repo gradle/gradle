@@ -1,6 +1,7 @@
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import org.gradle.logging.StyledTextOutputFactory
+import static org.gradle.logging.StyledTextOutput.Style.*
 
 task log << {
     def executor = Executors.newCachedThreadPool()
@@ -12,9 +13,9 @@ task log << {
                 print "stdout message "
                 println "from thread $thread iteration $iteration"
                 textOut.text("styled text message from thread ")
-                textOut.text(thread)
+                textOut.style(UserInput).text(thread).style(Normal)
                 textOut.text(' iteration ')
-                textOut.text(iteration)
+                textOut.style(UserInput).text(iteration).style(Normal)
                 textOut.println()
             }
         }

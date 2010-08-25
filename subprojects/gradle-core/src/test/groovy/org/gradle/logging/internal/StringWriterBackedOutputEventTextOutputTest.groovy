@@ -16,6 +16,7 @@
 package org.gradle.logging.internal
 
 import spock.lang.Specification
+import org.gradle.logging.StyledTextOutput
 
 class StringWriterBackedOutputEventTextOutputTest extends Specification {
     private final StringWriterBackedOutputEventTextOutput output = new StringWriterBackedOutputEventTextOutput()
@@ -34,6 +35,14 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
 
         then:
         output.toString().startsWith('java.lang.RuntimeException: broken')
+    }
+    
+    def ignoresStyle() {
+        when:
+        output.style(StyledTextOutput.Style.Header).text('some message').style(StyledTextOutput.Style.Normal)
+
+        then:
+        output.toString() == 'some message'
     }
 
 }

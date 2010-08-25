@@ -42,7 +42,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.INFO})
-        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }
@@ -53,7 +53,7 @@ class PrintStreamLoggingSystemTest extends Specification {
         stream.println('info')
 
         then:
-        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.category == 'category' && it.timestamp == 1200 && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.category == 'category' && it.timestamp == 1200 && it.spans[0].text == withEOL('info')})
     }
 
     def onChangesLogLevelsWhenAlreadyCapturing() {
@@ -65,7 +65,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.DEBUG})
-        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.message == withEOL('info')})
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }
@@ -132,7 +132,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.WARN})
-        1 * listener.onOutput({it.message == withEOL('info')})
+        1 * listener.onOutput({it.spans[0].text == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }
@@ -148,7 +148,7 @@ class PrintStreamLoggingSystemTest extends Specification {
 
         then:
         1 * listener.onOutput({it instanceof LogLevelChangeEvent && it.newLogLevel == LogLevel.WARN})
-        1 * listener.onOutput({it.message == withEOL('info')})
+        1 * listener.onOutput({it.spans[0].text == withEOL('info')})
         original.toString() == ''
         0 * listener._
     }

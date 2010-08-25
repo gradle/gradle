@@ -21,6 +21,8 @@ import org.gradle.logging.internal.WriterBackedStyledTextOutput;
 
 import java.io.*;
 
+import static org.gradle.logging.StyledTextOutput.Style.*;
+
 /**
  * <p>A basic {@link ProjectReportRenderer} which writes out a text report.
  */
@@ -39,13 +41,13 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
     }
 
     public void startProject(Project project) {
-        textOutput.println().println(SEPARATOR);
+        textOutput.println().style(Header).println(SEPARATOR);
         if (project.getRootProject() == project) {
             textOutput.println("Root Project");
         } else {
             textOutput.formatln("Project %s", project.getPath());
         }
-        textOutput.println(SEPARATOR);
+        textOutput.text(SEPARATOR).style(Normal).println();
     }
 
     public void completeProject(Project project) {

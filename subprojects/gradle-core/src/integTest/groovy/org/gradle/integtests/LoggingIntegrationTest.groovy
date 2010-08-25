@@ -167,6 +167,11 @@ class LoggingIntegrationTest {
         checkOutput(this.&runMultiThreaded, multiThreaded.lifecycle)
     }
 
+    @Test
+    public void multiThreadedDebugLogging() {
+        checkOutput(this.&runMultiThreaded, multiThreaded.debug)
+    }
+
     def run(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/logging')
         TestFile loggingDir = dist.testDir

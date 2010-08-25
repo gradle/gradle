@@ -30,7 +30,9 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
     }
 
     /**
-     * Renders this event to the given output
+     * Renders this event to the given output. The output's style will be set to {@link
+     * org.gradle.logging.StyledTextOutput.Style#Normal}. The style will be reset after the rendering is complete, so
+     * there is no need for this method to clean up the style.
      *
      * @param output The output to render to.
      */

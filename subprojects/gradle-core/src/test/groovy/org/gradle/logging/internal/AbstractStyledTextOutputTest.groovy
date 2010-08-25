@@ -113,6 +113,10 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
         result.toString()
     }
 
+    StyledTextOutput style(StyledTextOutput.Style style) {
+        this
+    }
+
     StyledTextOutput text(Object text) {
         result.append(text)
         this

@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.LinkedList;
 
+import static org.gradle.logging.StyledTextOutput.Style.*;
+
 public abstract class AbstractProgressLoggingAwareFormatter implements OutputEventListener {
     public static final String EOL = System.getProperty("line.separator");
     private final LinkedList<Operation> pendingOperations = new LinkedList<Operation>();
@@ -68,6 +70,7 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
 
     private String doLayout(RenderableOutputEvent event) {
         OutputEventTextOutput writer = new StringWriterBackedOutputEventTextOutput();
+        writer.style(Normal);
         if (debugOutput) {
             writer.text(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date(event.getTimestamp())));
             writer.text(" [");
@@ -77,6 +80,7 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
             writer.text("] ");
         }
         event.render(writer);
+        writer.style(Normal);
         return writer.toString();
     }
 
