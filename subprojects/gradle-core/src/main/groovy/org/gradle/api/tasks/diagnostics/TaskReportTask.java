@@ -21,7 +21,6 @@ import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
-import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.IOException;
 
@@ -29,7 +28,7 @@ import java.io.IOException;
  * <p>Displays a list of tasks in the project. It is used when you use the task list command-line option.</p>
  */
 public class TaskReportTask extends AbstractReportTask {
-    private TaskReportRenderer renderer = new TaskReportRenderer(getServices().get(StyledTextOutputFactory.class).create(TaskReportTask.class));
+    private TaskReportRenderer renderer = new TaskReportRenderer();
 
     private boolean detail;
 

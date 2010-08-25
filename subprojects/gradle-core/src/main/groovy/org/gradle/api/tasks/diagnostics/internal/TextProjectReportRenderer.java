@@ -16,43 +16,36 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.internal.WriterBackedStyledTextOutput;
 
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Formatter;
+import java.io.*;
 
 /**
  * <p>A basic {@link ProjectReportRenderer} which writes out a text report.
  */
 public class TextProjectReportRenderer implements ProjectReportRenderer {
     public static final String SEPARATOR = "------------------------------------------------------------";
-    private Appendable writer;
+    private StyledTextOutput textOutput;
     private boolean close;
-    private Formatter formatter;
 
-    public TextProjectReportRenderer() {
-        this(System.out);
-    }
-
-    public TextProjectReportRenderer(Appendable writer) {
-        setWriter(writer, false);
+    public void setOutput(StyledTextOutput textOutput) {
+        setWriter(textOutput, false);
     }
 
     public void setOutputFile(File file) throws IOException {
         cleanupWriter();
-        setWriter(new FileWriter(file), true);
+        setWriter(new WriterBackedStyledTextOutput(new BufferedWriter(new FileWriter(file))), true);
     }
 
     public void startProject(Project project) {
-        formatter.format("%n%s%n", SEPARATOR);
+        textOutput.println().println(SEPARATOR);
         if (project.getRootProject() == project) {
-            formatter.format("Root Project%n");
+            textOutput.println("Root Project");
         } else {
-            formatter.format("Project %s%n", project.getPath());
+            textOutput.formatln("Project %s", project.getPath());
         }
-        formatter.format("%s%n", SEPARATOR);
+        textOutput.println(SEPARATOR);
     }
 
     public void completeProject(Project project) {
@@ -60,27 +53,24 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
 
     public void complete() throws IOException {
         cleanupWriter();
-        setWriter(System.out, false);
     }
 
-    private void setWriter(Appendable writer, boolean close) {
-        this.writer = writer;
+    private void setWriter(StyledTextOutput styledTextOutput, boolean close) {
+        this.textOutput = styledTextOutput;
         this.close = close;
-        formatter = new Formatter(writer);
     }
 
     private void cleanupWriter() throws IOException {
-        formatter.flush();
-        if (close) {
-            ((Closeable) writer).close();
+        try {
+            if (textOutput != null && close) {
+                ((Closeable) textOutput).close();
+            }
+        } finally {
+            textOutput = null;
         }
     }
 
-    protected Appendable getWriter() {
-        return writer;
-    }
-
-    protected Formatter getFormatter() {
-        return formatter;
+    protected StyledTextOutput getTextOutput() {
+        return textOutput;
     }
 }

@@ -18,29 +18,32 @@ package org.gradle.logging.internal;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-public class StringWriterBackedOutputEventTextOutput extends AbstractStyledTextOutput implements OutputEventTextOutput {
-    private final StringWriter writer = new StringWriter();
+public class StringWriterBackedOutputEventTextOutput extends WriterBackedStyledTextOutput implements OutputEventTextOutput {
+    public StringWriterBackedOutputEventTextOutput() {
+        super(new StringWriter());
+    }
 
     @Override
     public String toString() {
-        return writer.toString();
+        return getWriter().toString();
     }
 
     public OutputEventTextOutput exception(Throwable throwable) {
-        PrintWriter writer = new PrintWriter(this.writer);
+        PrintWriter writer = new PrintWriter(getWriter());
         throwable.printStackTrace(writer);
         writer.flush();
         return this;
     }
 
+    @Override
     public OutputEventTextOutput text(Object text) {
-        writer.append(text.toString());
+        super.text(text);
         return this;
     }
 
     @Override
-    public OutputEventTextOutput endLine() {
-        super.endLine();
+    public OutputEventTextOutput println() {
+        super.println();
         return this;
     }
 }

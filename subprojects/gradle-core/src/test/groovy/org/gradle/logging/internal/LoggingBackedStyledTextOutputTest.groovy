@@ -24,7 +24,7 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
 
     def forwardsLineOfTextToListenerAtDefaultLevel() {
         when:
-        output.text('message').endLine()
+        output.text('message').println()
 
         then:
         1 * listener.onOutput({it.category == 'category' && it.timestamp == 1200 && it.message == toNative('message\n')})
@@ -33,7 +33,7 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
 
     def forwardsEachLineOfTextToListener() {
         when:
-        output.text(toNative('message1\nmessage2')).endLine()
+        output.text(toNative('message1\nmessage2')).println()
 
         then:
         1 * listener.onOutput({it.message == toNative('message1\n')})

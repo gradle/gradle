@@ -37,7 +37,7 @@ public class LogEvent extends RenderableOutputEvent {
 
     public void render(OutputEventTextOutput output) {
         output.text(message);
-        output.endLine();
+        output.println();
         if (throwable != null) {
             output.exception(throwable);
         }

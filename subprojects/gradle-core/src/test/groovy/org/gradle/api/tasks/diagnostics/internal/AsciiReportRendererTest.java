@@ -15,25 +15,27 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import org.junit.Test;
-import org.junit.runner.RunWith;
-import static org.junit.Assert.*;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.logging.internal.TestStyledTextOutput;
 import org.gradle.util.HelperUtil;
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
+import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.Expectations;
+import org.junit.Test;
+import org.junit.runner.RunWith;
 
-import java.io.StringWriter;
+import static org.gradle.util.Matchers.containsLine;
+import static org.hamcrest.Matchers.not;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class AsciiReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final StringWriter writer = new StringWriter();
-    private final AsciiReportRenderer renderer = new AsciiReportRenderer(writer);
+    private final TestStyledTextOutput textOutput = new TestStyledTextOutput();
+    private final AsciiReportRenderer renderer = new AsciiReportRenderer() {{
+        setOutput(textOutput);
+    }};
     private final Project project = HelperUtil.createRootProject();
 
     @Test
@@ -41,7 +43,7 @@ public class AsciiReportRendererTest {
         renderer.startProject(project);
         renderer.completeProject(project);
 
-        assertThat(writer.toString(), containsLine("No configurations"));
+        assertThat(textOutput.toString(), containsLine("No configurations"));
     }
 
     @Test
@@ -59,7 +61,7 @@ public class AsciiReportRendererTest {
         renderer.completeConfiguration(configuration);
         renderer.completeProject(project);
 
-        assertThat(writer.toString(), containsLine("configName - description"));
-        assertThat(writer.toString(), not(containsLine("No configurations")));
+        assertThat(textOutput.toString(), containsLine("configName - description"));
+        assertThat(textOutput.toString(), not(containsLine("No configurations")));
     }
 }

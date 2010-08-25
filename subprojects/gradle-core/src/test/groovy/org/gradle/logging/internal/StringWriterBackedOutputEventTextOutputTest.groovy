@@ -28,62 +28,6 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
         output.toString() == 'some message'
     }
 
-    def onOutputWritesText() {
-        when:
-        output.onOutput('some message')
-
-        then:
-        output.toString() == 'some message'
-    }
-    
-    def writesEndOfLine() {
-        when:
-        output.endLine()
-
-        then:
-        output.toString() == System.getProperty('line.separator')
-    }
-
-    def appendsCharacter() {
-        when:
-        output.append('c' as char)
-
-        then:
-        output.toString() == 'c'
-    }
-
-    def appendsCharSequence() {
-        when:
-        output.append('some message')
-
-        then:
-        output.toString() == 'some message'
-    }
-
-    def appendsNullCharSequence() {
-        when:
-        output.append(null)
-
-        then:
-        output.toString() == 'null'
-    }
-
-    def appendsCharSubsequence() {
-        when:
-        output.append('some message', 5, 9)
-
-        then:
-        output.toString() == 'mess'
-    }
-    
-    def appendsNullCharSubsequence() {
-        when:
-        output.append(null, 5, 9)
-
-        then:
-        output.toString() == 'null'
-    }
-
     def writesException() {
         when:
         output.exception(new RuntimeException('broken'))

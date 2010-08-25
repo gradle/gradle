@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.logging.internal.TestStyledTextOutput;
+import org.gradle.logging.internal.WriterBackedStyledTextOutput;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -25,65 +27,55 @@ import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.Matchers.containsLine;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.nullValue;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(JMock.class)
 public class TextProjectReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
-
-    @Test
-    public void writesReportToStandardOutByDefault() throws IOException {
-        TextProjectReportRenderer renderer = new TextProjectReportRenderer();
-        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
-
-        renderer.complete();
-
-        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
-    }
+    public final TemporaryFolder testDir = new TemporaryFolder();
+    private final TextProjectReportRenderer renderer = new TextProjectReportRenderer();
 
     @Test
     public void writesReportToAFile() throws IOException {
         File outFile = new File(testDir.getDir(), "report.txt");
-        TextProjectReportRenderer renderer = new TextProjectReportRenderer();
         renderer.setOutputFile(outFile);
-        assertThat(renderer.getWriter(), instanceOf(FileWriter.class));
+        assertThat(renderer.getTextOutput(), instanceOf(WriterBackedStyledTextOutput.class));
 
         renderer.complete();
 
         assertTrue(outFile.isFile());
-        assertThat(renderer.getWriter(), sameInstance((Appendable) System.out));
+        assertThat(renderer.getTextOutput(), nullValue());
     }
 
     @Test
     public void writeRootProjectHeader() throws IOException {
         final Project project = context.mock(Project.class);
-        StringWriter writer = new StringWriter();
+        TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
             will(returnValue(project));
         }});
 
-        TextProjectReportRenderer renderer = new TextProjectReportRenderer(writer);
+        renderer.setOutput(textOutput);
         renderer.startProject(project);
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(writer.toString(), containsLine("Root Project"));
+        assertThat(textOutput.toString(), containsLine("Root Project"));
     }
     
     @Test
     public void writeSubProjectHeader() throws IOException {
         final Project project = context.mock(Project.class);
-        StringWriter writer = new StringWriter();
+        TestStyledTextOutput textOutput = new TestStyledTextOutput();
 
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
@@ -92,11 +84,11 @@ public class TextProjectReportRendererTest {
             will(returnValue("<path>"));
         }});
 
-        TextProjectReportRenderer renderer = new TextProjectReportRenderer(writer);
+        renderer.setOutput(textOutput);
         renderer.startProject(project);
         renderer.completeProject(project);
         renderer.complete();
 
-        assertThat(writer.toString(), containsLine("Project <path>"));
+        assertThat(textOutput.toString(), containsLine("Project <path>"));
     }
 }

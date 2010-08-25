@@ -15,7 +15,7 @@ task log << {
                 textOut.text(thread)
                 textOut.text(' iteration ')
                 textOut.text(iteration)
-                textOut.endLine()
+                textOut.println()
             }
         }
     }

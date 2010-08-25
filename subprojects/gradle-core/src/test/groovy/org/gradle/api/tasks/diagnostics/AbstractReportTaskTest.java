@@ -17,9 +17,8 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
-import static org.gradle.util.HelperUtil.*;
-
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
@@ -28,12 +27,16 @@ import org.jmock.Sequence;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
-import org.junit.Test;
 import org.junit.Rule;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.gradle.util.HelperUtil.createChildProject;
+import static org.gradle.util.HelperUtil.createRootProject;
+import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(JMock.class)
 public class AbstractReportTaskTest {
@@ -59,6 +62,8 @@ public class AbstractReportTaskTest {
     public void completesRendererAtEndOfGeneration() throws IOException {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("sequence");
+            one(renderer).setOutput((StyledTextOutput) with(notNullValue()));
+            inSequence(sequence);
             one(renderer).startProject(project);
             inSequence(sequence);
             one(generator).run();
@@ -102,6 +107,8 @@ public class AbstractReportTaskTest {
         context.checking(new Expectations() {{
             Sequence sequence = context.sequence("seq");
 
+            one(renderer).setOutput((StyledTextOutput) with(notNullValue()));
+            inSequence(sequence);
             one(renderer).startProject(project);
             inSequence(sequence);
             one(generator).run();

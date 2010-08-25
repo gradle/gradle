@@ -20,7 +20,7 @@ import org.gradle.logging.StyledTextOutput;
 public interface OutputEventTextOutput extends StyledTextOutput {
     OutputEventTextOutput text(Object text);
 
-    OutputEventTextOutput endLine();
+    OutputEventTextOutput println();
 
     OutputEventTextOutput exception(Throwable throwable);
 }

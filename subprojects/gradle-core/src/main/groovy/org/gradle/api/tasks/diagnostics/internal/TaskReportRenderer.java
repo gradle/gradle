@@ -36,10 +36,6 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     private boolean hasContent;
     private boolean detail;
 
-    public TaskReportRenderer(Appendable writer) {
-        super(writer);
-    }
-
     @Override
     public void startProject(Project project) {
         currentProjectHasTasks = false;
@@ -60,7 +56,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void addDefaultTasks(List<String> defaultTaskNames) {
         if (defaultTaskNames.size() > 0) {
-            getFormatter().format("Default tasks: %s%n", GUtil.join(defaultTaskNames, ", "));
+            getTextOutput().formatln("Default tasks: %s", GUtil.join(defaultTaskNames, ", "));
             hasContent = true;
         }
     }
@@ -90,29 +86,29 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     }
 
     private void writeTask(TaskDetails task, String prefix) {
-        getFormatter().format("%s%s%s", prefix, task.getPath(), getDescription(task));
+        getTextOutput().format("%s%s%s", prefix, task.getPath(), getDescription(task));
         if (detail) {
             SortedSet<String> sortedDependencies = new TreeSet<String>();
             for (String dependency : task.getDependencies()) {
                 sortedDependencies.add(dependency);
             }
             if (sortedDependencies.size() > 0) {
-                getFormatter().format(" [%s]", GUtil.join(sortedDependencies, ", "));
+                getTextOutput().format(" [%s]", GUtil.join(sortedDependencies, ", "));
             }
         }
-        getFormatter().format("%n");
+        getTextOutput().println();
     }
 
     private void addHeader(String header) {
         if (hasContent) {
-            getFormatter().format("%n");
+            getTextOutput().println();
         }
         hasContent = true;
-        getFormatter().format("%s%n", header);
+        getTextOutput().println(header);
         for (int i = 0; i < header.length(); i++) {
-            getFormatter().format("-");
+            getTextOutput().text("-");
         }
-        getFormatter().format("%n");
+        getTextOutput().println();
     }
 
     private String getDescription(TaskDetails task) {
@@ -124,7 +120,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void completeTasks() {
         if (!currentProjectHasTasks) {
-            getFormatter().format("No tasks%n");
+            getTextOutput().println("No tasks");
             hasContent = true;
         }
     }
@@ -138,7 +134,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         if (!currentProjectHasRules) {
             addHeader("Rules");
         }
-        getFormatter().format("%s%n", GUtil.elvis(rule.getDescription(), ""));
+        getTextOutput().println(GUtil.elvis(rule.getDescription(), ""));
         currentProjectHasRules = true;
     }
 }

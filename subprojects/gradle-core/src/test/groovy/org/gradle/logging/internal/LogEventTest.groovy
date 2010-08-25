@@ -27,7 +27,7 @@ class LogEventTest extends Specification {
 
         then:
         1 * output.text('message')
-        1 * output.endLine()
+        1 * output.println()
         0 * output._
     }
     
@@ -39,7 +39,7 @@ class LogEventTest extends Specification {
 
         then:
         1 * output.text('message')
-        1 * output.endLine()
+        1 * output.println()
         1 * output.exception(failure)
         0 * output._
     }

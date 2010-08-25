@@ -35,9 +35,35 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput text(Object text);
 
     /**
+     * Appends text with the default style and starts a new line.
+     *
+     * @param text The text
+     * @return this
+     */
+    StyledTextOutput println(Object text);
+
+    /**
+     * Appends a formatted string with the default style.
+     *
+     * @param pattern The pattern string
+     * @param args The args for the pattern
+     * @return this
+     */
+    StyledTextOutput format(String pattern, Object... args);
+
+    /**
+     * Appends a formatted string with the default style and starts a new line.
+     *
+     * @param pattern The pattern string
+     * @param args The args for the pattern
+     * @return this
+     */
+    StyledTextOutput formatln(String pattern, Object... args);
+
+    /**
      * Starts a new line.
      *
      * @return this
      */
-    StyledTextOutput endLine();
+    StyledTextOutput println();
 }

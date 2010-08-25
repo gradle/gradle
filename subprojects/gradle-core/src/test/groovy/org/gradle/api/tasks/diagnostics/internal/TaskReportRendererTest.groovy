@@ -20,13 +20,20 @@ import org.gradle.api.Rule
 import org.junit.Test
 import static org.junit.Assert.*
 import groovy.io.PlatformLineWriter
+import org.gradle.logging.internal.TestStyledTextOutput
+import org.junit.Before
 
 /**
  * @author Hans Dockter
  */
 class TaskReportRendererTest {
-    private final StringWriter writer = new StringWriter()
-    private final TaskReportRenderer renderer = new TaskReportRenderer(writer)
+    private final TestStyledTextOutput writer = new TestStyledTextOutput()
+    private final TaskReportRenderer renderer = new TaskReportRenderer()
+
+    @Before
+    public void setup() {
+        renderer.output = writer
+    }
 
     @Test public void testWritesTaskAndDependenciesWithNoDetail() {
         TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[':task11', ':task12'] as LinkedHashSet}] as TaskDetails

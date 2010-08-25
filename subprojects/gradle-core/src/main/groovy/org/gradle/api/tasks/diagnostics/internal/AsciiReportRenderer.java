@@ -33,10 +33,6 @@ import java.util.*;
 public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
 
-    public AsciiReportRenderer(Appendable writer) {
-        super(writer);
-    }
-
     @Override
     public void startProject(Project project) {
         super.startProject(project);
@@ -46,14 +42,14 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
     @Override
     public void completeProject(Project project) {
         if (!hasConfigs) {
-            getFormatter().format("No configurations%n");
+            getTextOutput().println("No configurations");
         }
         super.completeProject(project);
     }
 
     public void startConfiguration(Configuration configuration) {
         hasConfigs = true;
-        getFormatter().format("%s%s%n", configuration.getName(), getDescription(configuration));
+        getTextOutput().formatln("%s%s", configuration.getName(), getDescription(configuration));
     }
 
     private String getDescription(Configuration configuration) {
@@ -73,8 +69,8 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
 
     private void render(ResolvedDependency resolvedDependency, int depth) throws IOException
     {
-        getFormatter().format(getIndent(depth));
-		getFormatter().format("%s:%s%n", resolvedDependency.getName(),
+        getTextOutput().text(getIndent(depth));
+        getTextOutput().formatln("%s:%s", resolvedDependency.getName(),
                 resolvedDependency.getConfiguration());
 
         Collection<ResolvedDependency> mergedChildren = mergeChildren(resolvedDependency.getChildren());
