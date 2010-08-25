@@ -18,12 +18,14 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import spock.lang.Specification
+import org.gradle.util.TimeProvider
 
 class PrintStreamLoggingSystemTest extends Specification {
     private final OutputStream original = new ByteArrayOutputStream()
     private PrintStream stream = new PrintStream(original)
     private final OutputEventListener listener = Mock()
-    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(listener, 'category') {
+    private final TimeProvider timeProvider = { 1200L } as TimeProvider
+    private final PrintStreamLoggingSystem loggingSystem = new PrintStreamLoggingSystem(listener, 'category', timeProvider) {
         protected PrintStream get() {
             stream
         }
@@ -43,6 +45,15 @@ class PrintStreamLoggingSystemTest extends Specification {
         1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.message == withEOL('info')})
         original.toString() == ''
         0 * listener._
+    }
+
+    def fillsInEventDetails() {
+        when:
+        loggingSystem.on(LogLevel.INFO)
+        stream.println('info')
+
+        then:
+        1 * listener.onOutput({it instanceof StyledTextOutputEvent && it.category == 'category' && it.timestamp == 1200 && it.message == withEOL('info')})
     }
 
     def onChangesLogLevelsWhenAlreadyCapturing() {

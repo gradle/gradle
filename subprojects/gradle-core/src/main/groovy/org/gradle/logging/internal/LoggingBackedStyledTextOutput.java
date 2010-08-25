@@ -19,14 +19,15 @@ import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.LineBufferingOutputStream;
+import org.gradle.util.TimeProvider;
 
 import java.io.IOException;
 
 public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private final LineBufferingOutputStream outstr;
 
-    public LoggingBackedStyledTextOutput(final OutputEventListener listener, String category) {
-        outstr = new LineBufferingOutputStream(new LogAction(listener, category), true);
+    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, TimeProvider timeProvider) {
+        outstr = new LineBufferingOutputStream(new LogAction(listener, category, timeProvider), true);
     }
 
     public StyledTextOutput text(Object text) {
@@ -38,17 +39,19 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
         return this;
     }
 
-    private class LogAction implements Action<String> {
+    private static class LogAction implements Action<String> {
         private final OutputEventListener listener;
         private final String category;
+        private final TimeProvider timeProvider;
 
-        public LogAction(OutputEventListener listener, String category) {
+        public LogAction(OutputEventListener listener, String category, TimeProvider timeProvider) {
             this.listener = listener;
             this.category = category;
+            this.timeProvider = timeProvider;
         }
 
         public void execute(String text) {
-            listener.onOutput(new StyledTextOutputEvent(category, text));
+            listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, text));
         }
     }
 }

@@ -17,10 +17,22 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
-public abstract class RenderableOutputEvent extends OutputEvent {
-    protected RenderableOutputEvent(String category, LogLevel logLevel) {
+public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
+    private final long timestamp;
+
+    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel) {
         super(category, logLevel);
+        this.timestamp = timestamp;
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Renders this event to the given output
+     *
+     * @param output The output to render to.
+     */
     public abstract void render(OutputEventTextOutput output);
 }

@@ -22,7 +22,7 @@ class StyledTextOutputEventTest extends Specification {
 
     def canSetLogLevel() {
         expect:
-        def event = new StyledTextOutputEvent('category', 'message').withLogLevel(LogLevel.DEBUG)
+        def event = new StyledTextOutputEvent(100, 'category', 'message').withLogLevel(LogLevel.DEBUG)
         event.logLevel == LogLevel.DEBUG
     }
     
@@ -30,7 +30,7 @@ class StyledTextOutputEventTest extends Specification {
         OutputEventTextOutput output = Mock()
 
         when:
-        new StyledTextOutputEvent('category', 'message').render(output)
+        new StyledTextOutputEvent(100, 'category', 'message').render(output)
 
         then:
         1 * output.text('message')

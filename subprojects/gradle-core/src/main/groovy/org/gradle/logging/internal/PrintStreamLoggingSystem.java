@@ -19,12 +19,14 @@ import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.util.LinePerThreadBufferingOutputStream;
+import org.gradle.util.TimeProvider;
 
 import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A {@link LoggingSystem} which routes content written to a PrintStream to the logging system.
+ * A {@link LoggingSystem} which routes content written to a PrintStream to a {@link
+ * org.gradle.logging.internal.OutputEventListener}.
  */
 abstract class PrintStreamLoggingSystem implements LoggingSystem {
     private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
@@ -38,9 +40,9 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
     private final StandardOutputListener listener;
     private final OutputEventListener outputEventListener;
 
-    protected PrintStreamLoggingSystem(final OutputEventListener listener, final String category) {
+    protected PrintStreamLoggingSystem(OutputEventListener listener, String category, TimeProvider timeProvider) {
         outputEventListener = listener;
-        this.listener = new OutputEventDestination(listener, category);
+        this.listener = new OutputEventDestination(listener, category, timeProvider);
     }
 
     /**
@@ -122,14 +124,16 @@ abstract class PrintStreamLoggingSystem implements LoggingSystem {
     private static class OutputEventDestination implements StandardOutputListener {
         private final OutputEventListener listener;
         private final String category;
+        private final TimeProvider timeProvider;
 
-        public OutputEventDestination(OutputEventListener listener, String category) {
+        public OutputEventDestination(OutputEventListener listener, String category, TimeProvider timeProvider) {
             this.listener = listener;
             this.category = category;
+            this.timeProvider = timeProvider;
         }
 
         public void onOutput(CharSequence output) {
-            listener.onOutput(new StyledTextOutputEvent(category, output.toString()));
+            listener.onOutput(new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, output.toString()));
         }
     }
 }

@@ -21,12 +21,8 @@ public class LogEvent extends RenderableOutputEvent {
     private final String message;
     private final Throwable throwable;
 
-    public LogEvent(String category, LogLevel logLevel, String message) {
-        this(category, logLevel, message, null);
-    }
-
-    public LogEvent(String category, LogLevel logLevel, String message, Throwable throwable) {
-        super(category, logLevel);
+    public LogEvent(long timestamp, String category, LogLevel logLevel, String message, Throwable throwable) {
+        super(timestamp, category, logLevel);
         this.message = message;
         this.throwable = throwable;
     }
@@ -49,6 +45,6 @@ public class LogEvent extends RenderableOutputEvent {
 
     @Override
     public String toString() {
-        return String.format("[%s] [%s] %s", getLogLevel(), getCategory(), getMessage());
+        return String.format("[%s] [%s] %s", getLogLevel(), getCategory(), message);
     }
 }

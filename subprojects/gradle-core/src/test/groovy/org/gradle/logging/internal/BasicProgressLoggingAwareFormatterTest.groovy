@@ -18,227 +18,213 @@ package org.gradle.logging.internal
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
 
-import org.gradle.util.JUnit4GroovyMockery
-import org.jmock.integration.junit4.JMock
-import org.junit.Test
-import org.junit.runner.RunWith
-import static org.hamcrest.Matchers.*
-
-@RunWith(JMock.class)
-class BasicProgressLoggingAwareFormatterTest {
-    private static final String EOL = String.format('%n')
-    private final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
-    private final StandardOutputListener infoMessage = context.mock(StandardOutputListener.class)
-    private final StandardOutputListener errorMessage = context.mock(StandardOutputListener.class)
+class BasicProgressLoggingAwareFormatterTest extends OutputSpecification {
+    private final StandardOutputListener infoMessage = Mock()
+    private final StandardOutputListener errorMessage = Mock()
     private final BasicProgressLoggingAwareFormatter formatter = new BasicProgressLoggingAwareFormatter(infoMessage, errorMessage)
 
-    @Test
     public void logsEventWithMessage() {
-        context.checking {
-            one(infoMessage).onOutput(String.format('message%n'))
-        }
-
+        when:
         formatter.onOutput(event('message'))
+
+        then:
+        1 * infoMessage.onOutput(toNative('message\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsEventWithMessageAndException() {
-        context.checking {
-            one(infoMessage).onOutput(withParam(allOf(startsWith(String.format('message%n')), containsString('java.lang.RuntimeException: broken'))))
-        }
-
+        when:
         formatter.onOutput(event('message', new RuntimeException('broken')))
+
+        then:
+        1 * infoMessage.onOutput({it.startsWith(toNative('message\n')) && it.contains('java.lang.RuntimeException: broken')})
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsDebugEventWithMessage() {
-        context.checking {
-            one(infoMessage).onOutput(String.format('[INFO] [category] message%n'))
-        }
-
+        when:
         formatter.onOutput(new LogLevelChangeEvent(LogLevel.DEBUG))
-        formatter.onOutput(event('message'))
+        formatter.onOutput(event(getTime('10:12:01.905'), 'message'))
+
+        then:
+        1 *infoMessage.onOutput(toNative('10:12:01.905 [INFO] [category] message\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsEventWithErrorMessage() {
-        context.checking {
-            one(errorMessage).onOutput(String.format('message%n'))
-        }
-
+        when:
         formatter.onOutput(event('message', LogLevel.ERROR))
+
+        then:
+        1 * errorMessage.onOutput(toNative('message\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsProgressMessages() {
-        context.checking {
-            one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(' ')
-            one(infoMessage).onOutput('complete')
-            one(infoMessage).onOutput(EOL)
-        }
-
+        when:
         formatter.onOutput(start('description'))
         formatter.onOutput(complete('complete'))
+
+        then:
+        1 * infoMessage.onOutput('description')
+        1 * infoMessage.onOutput(' ')
+        1 * infoMessage.onOutput('complete')
+        1 * infoMessage.onOutput(toNative('\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void ignoresProgressStatusMessages() {
-        context.checking {
-            one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(' ')
-            one(infoMessage).onOutput('complete')
-            one(infoMessage).onOutput(EOL)
-        }
-
+        when:
         formatter.onOutput(start('description'))
         formatter.onOutput(progress('tick'))
         formatter.onOutput(progress('tick'))
         formatter.onOutput(complete('complete'))
+
+        then:
+        1 * infoMessage.onOutput('description')
+        1 * infoMessage.onOutput(' ')
+        1 * infoMessage.onOutput('complete')
+        1 * infoMessage.onOutput(toNative('\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsNestedProgressMessages() {
-        context.checking {
-            one(infoMessage).onOutput('description1')
-            one(infoMessage).onOutput(EOL)
-            one(infoMessage).onOutput('description2')
-            one(infoMessage).onOutput(' ')
-            one(infoMessage).onOutput('complete2')
-            one(infoMessage).onOutput(EOL)
-            one(infoMessage).onOutput('complete1')
-            one(infoMessage).onOutput(EOL)
-        }
-
+        when:
         formatter.onOutput(start('description1'))
         formatter.onOutput(start('description2'))
         formatter.onOutput(progress('tick'))
         formatter.onOutput(progress('tick'))
         formatter.onOutput(complete('complete2'))
         formatter.onOutput(complete('complete1'))
+
+        then:
+        1 * infoMessage.onOutput('description1')
+        3 * infoMessage.onOutput(toNative('\n'))
+        1 * infoMessage.onOutput('description2')
+        1 * infoMessage.onOutput(' ')
+        1 * infoMessage.onOutput('complete2')
+        1 * infoMessage.onOutput('complete1')
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsMixOfProgressAndInfoMessages() {
-        context.checking {
-            one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(EOL)
-            one(infoMessage).onOutput(String.format('message%n'))
-            one(infoMessage).onOutput('complete')
-            one(infoMessage).onOutput(EOL)
-        }
-
+        when:
         formatter.onOutput(start('description'))
         formatter.onOutput(progress('tick'))
         formatter.onOutput(event('message'))
         formatter.onOutput(progress('tick'))
         formatter.onOutput(complete('complete'))
+
+        then:
+        1 * infoMessage.onOutput('description')
+        2 * infoMessage.onOutput(toNative('\n'))
+        1 * infoMessage.onOutput(String.format('message%n'))
+        1 * infoMessage.onOutput('complete')
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsMixOfProgressAndErrorMessages() {
-        context.checking {
-            one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(EOL)
-            one(errorMessage).onOutput(String.format('message%n'))
-            one(infoMessage).onOutput('complete')
-            one(infoMessage).onOutput(EOL)
-        }
-
+        when:
         formatter.onOutput(start('description'))
         formatter.onOutput(event('message', LogLevel.ERROR))
         formatter.onOutput(complete('complete'))
+
+        then:
+        1 * infoMessage.onOutput('description')
+        2 * infoMessage.onOutput(toNative('\n'))
+        1 * errorMessage.onOutput(toNative('message\n'))
+        1 * infoMessage.onOutput('complete')
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsProgressMessagesWithNoCompletionStatus() {
-        context.checking {
-            one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(EOL)
-        }
-
+        when:
         formatter.onOutput(start('description'))
         formatter.onOutput(complete(''))
+
+        then:
+        1 * infoMessage.onOutput('description')
+        1 * infoMessage.onOutput(toNative('\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsProgressMessagesWithNoCompletionStatusAndOtherMessages() {
-        context.checking {
-            one(infoMessage).onOutput('description')
-            one(infoMessage).onOutput(EOL)
-            one(infoMessage).onOutput(String.format('message%n'))
-        }
-
+        when:
         formatter.onOutput(start('description'))
         formatter.onOutput(event('message'))
         formatter.onOutput(complete(''))
+
+        then:
+        1 * infoMessage.onOutput('description')
+        1 * infoMessage.onOutput(toNative('\n'))
+        1 * infoMessage.onOutput(toNative('message\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsProgressMessagesWithNoStartStatus() {
+        when:
         formatter.onOutput(start(''))
 
-        context.checking {
-            one(infoMessage).onOutput('done')
-            one(infoMessage).onOutput(EOL)
-        }
+        then:
+        0 * infoMessage._
+        0 * errorMessage._
 
+        when:
         formatter.onOutput(complete('done'))
+
+        then:
+        1 * infoMessage.onOutput('done')
+        1 * infoMessage.onOutput(toNative('\n'))
+        0 * infoMessage._
+        0 * errorMessage._
     }
 
-    @Test
     public void logsNestedProgressMessagesWithNoStartStatusAndOtherMessages() {
-        context.checking {
-            one(infoMessage).onOutput('outer')
-        }
-
+        when:
         formatter.onOutput(start('outer'))
 
+        then:
+        1 * infoMessage.onOutput('outer')
+        0 * infoMessage._
+        0 * errorMessage._
+
+        when:
         formatter.onOutput(start(''))
 
-        context.checking {
-            one(infoMessage).onOutput(EOL)
-            one(errorMessage).onOutput(String.format('message%n'))
-        }
+        then:
+        0 * infoMessage._
+        0 * errorMessage._
 
+        when:
         formatter.onOutput(event('message', LogLevel.ERROR))
 
-        context.checking {
-            one(infoMessage).onOutput('done inner')
-            one(infoMessage).onOutput(EOL)
-        }
+        then:
+        1 * infoMessage.onOutput(toNative('\n'))
+        1 * errorMessage.onOutput(toNative('message\n'))
 
+        when:
         formatter.onOutput(complete('done inner'))
 
-        context.checking {
-            one(infoMessage).onOutput('done outer')
-            one(infoMessage).onOutput(EOL)
-        }
+        then:
+        1 * infoMessage.onOutput('done inner')
+        1 * infoMessage.onOutput(toNative('\n'))
 
+        when:
         formatter.onOutput(complete('done outer'))
-    }
 
-    private LogEvent event(String text) {
-        return new LogEvent('category', LogLevel.INFO, text)
-    }
-
-    private LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent('category', logLevel, text)
-    }
-
-    private LogEvent event(String text, Throwable throwable) {
-        return new LogEvent('category', LogLevel.INFO, text, throwable)
-    }
-
-    private ProgressStartEvent start(String description) {
-        return new ProgressStartEvent('category', description)
-    }
-
-    private ProgressEvent progress(String status) {
-        return new ProgressEvent('category', status)
-    }
-
-    private ProgressCompleteEvent complete(String status) {
-        return new ProgressCompleteEvent('category', status)
+        then:
+        1 * infoMessage.onOutput('done outer')
+        1 * infoMessage.onOutput(toNative('\n'))
     }
 }

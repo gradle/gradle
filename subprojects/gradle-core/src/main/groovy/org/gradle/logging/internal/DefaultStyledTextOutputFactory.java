@@ -17,12 +17,15 @@ package org.gradle.logging.internal;
 
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.util.TimeProvider;
 
 public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
     private final OutputEventListener outputEventListener;
+    private final TimeProvider timeProvider;
 
-    public DefaultStyledTextOutputFactory(OutputEventListener outputEventListener) {
+    public DefaultStyledTextOutputFactory(OutputEventListener outputEventListener, TimeProvider timeProvider) {
         this.outputEventListener = outputEventListener;
+        this.timeProvider = timeProvider;
     }
 
     public StyledTextOutput create(Class logCategory) {
@@ -30,6 +33,6 @@ public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
     }
 
     public StyledTextOutput create(String logCategory) {
-        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory);
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, timeProvider);
     }
 }

@@ -86,6 +86,16 @@ class Slf4jLoggingConfigurerTest extends Specification {
         0 * listener._
     }
 
+    def attachesATimestamp() {
+        when:
+        configurer.configure(LogLevel.INFO)
+        logger.info('message')
+
+        then:
+        1 * listener.onOutput({it.timestamp >= System.currentTimeMillis() - 300})
+        0 * listener._
+    }
+
     def filtersLifecycleAndLowerWhenConfiguredAtQuietLevel() {
         when:
         configurer.configure(LogLevel.QUIET)

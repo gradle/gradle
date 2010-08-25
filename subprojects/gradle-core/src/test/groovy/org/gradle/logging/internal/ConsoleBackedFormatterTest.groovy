@@ -254,15 +254,15 @@ class ConsoleBackedFormatterTest {
     }
 
     private LogEvent event(String text) {
-        return new LogEvent('category', LogLevel.INFO, text)
+        return new LogEvent(0, 'category', LogLevel.INFO, text, null)
     }
 
     private LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent('category', logLevel, text)
+        return new LogEvent(0, 'category', logLevel, text, null)
     }
 
     private LogEvent event(String text, Throwable throwable) {
-        return new LogEvent('category', LogLevel.INFO, text, throwable)
+        return new LogEvent(0, 'category', LogLevel.INFO, text, throwable)
     }
 
     private ProgressStartEvent start(String description) {

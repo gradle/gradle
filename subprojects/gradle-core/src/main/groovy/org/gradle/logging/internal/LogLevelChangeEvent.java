@@ -21,7 +21,6 @@ public class LogLevelChangeEvent extends OutputEvent {
     private final LogLevel newLogLevel;
 
     public LogLevelChangeEvent(LogLevel newLogLevel) {
-        super(null, null);
         this.newLogLevel = newLogLevel;
     }
 
@@ -32,5 +31,10 @@ public class LogLevelChangeEvent extends OutputEvent {
     @Override
     public String toString() {
         return String.format("%s %s", LogLevelChangeEvent.class.getSimpleName(), newLogLevel);
+    }
+
+    @Override
+    public boolean relevantFor(LogLevel logLevel) {
+        return true;
     }
 }

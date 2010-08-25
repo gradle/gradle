@@ -17,12 +17,10 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.Specification
 
-class OutputEventRendererTest extends Specification {
+class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
     private OutputEventRenderer renderer
@@ -55,10 +53,10 @@ class OutputEventRendererTest extends Specification {
     def rendersLogEventsWhenLogLevelIsDebug() {
         when:
         renderer.configure(LogLevel.DEBUG)
-        renderer.onOutput(event('message', LogLevel.INFO))
+        renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
         then:
-        outputs.stdOut.readLines() == ['[INFO] [category] message']
+        outputs.stdOut.readLines() == ['10:00:00.000 [INFO] [category] message']
         outputs.stdErr == ''
     }
 
@@ -170,18 +168,6 @@ class OutputEventRendererTest extends Specification {
 
         then:
         console.value.readLines() == ['error']
-    }
-
-    private LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent('category', logLevel, text)
-    }
-
-    private ProgressStartEvent start(String description) {
-        return new ProgressStartEvent('category', description)
-    }
-
-    private ProgressCompleteEvent complete(String status) {
-        return new ProgressCompleteEvent('category', status)
     }
 }
 

@@ -45,6 +45,7 @@ import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.logging.internal.ProgressListener;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.TrueTimeProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -209,7 +210,7 @@ public class ProjectBuilder {
         }
 
         protected StyledTextOutputFactory createStyledTextOutputFactory() {
-            return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class));
+            return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
         }
         
         protected IsolatedAntBuilder createIsolatedAntBuilder() {

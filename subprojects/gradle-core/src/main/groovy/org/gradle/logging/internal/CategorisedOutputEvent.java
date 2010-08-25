@@ -15,22 +15,27 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.util.TimeProvider;
+import org.gradle.api.logging.LogLevel;
 
-import java.io.PrintStream;
+public class CategorisedOutputEvent extends OutputEvent {
+    private final String category;
+    private final LogLevel logLevel;
 
-public class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
+    public CategorisedOutputEvent(String category, LogLevel logLevel) {
+        this.category = category;
+        this.logLevel = logLevel;
+    }
+
+    public LogLevel getLogLevel() {
+        return logLevel;
+    }
+
+    public String getCategory() {
+        return category;
     }
 
     @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+    public boolean relevantFor(LogLevel logLevel) {
+        return getLogLevel().compareTo(logLevel) >= 0;
     }
 }

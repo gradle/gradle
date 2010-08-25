@@ -22,6 +22,9 @@ import org.slf4j.bridge.SLF4JBridgeHandler;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
+/**
+ * A {@link org.gradle.logging.internal.LoggingConfigurer} which configures JUL to route logging events to SLF4J.
+ */
 public class JavaUtilLoggingConfigurer implements LoggingConfigurer {
     private boolean configured;
 
@@ -33,6 +36,6 @@ public class JavaUtilLoggingConfigurer implements LoggingConfigurer {
         LogManager.getLogManager().reset();
         SLF4JBridgeHandler.install();
         Logger.getLogger("").setLevel(java.util.logging.Level.FINE);
-        configured = true; 
+        configured = true;
     }
 }

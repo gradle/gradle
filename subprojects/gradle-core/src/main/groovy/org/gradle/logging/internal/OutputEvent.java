@@ -19,20 +19,15 @@ import org.gradle.api.logging.LogLevel;
 
 import java.io.Serializable;
 
+/**
+ * Represents some event which may generate output. All implementations are immutable.
+ */
 public abstract class OutputEvent implements Serializable {
-    private final LogLevel logLevel;
-    private final String category;
-
-    protected OutputEvent(String category, LogLevel logLevel) {
-        this.category = category;
-        this.logLevel = logLevel;
-    }
-
-    public String getCategory() {
-        return category;
-    }
-
-    public LogLevel getLogLevel() {
-        return logLevel;
-    }
+    /**
+     * Returns true if this event is relevant for the given minimum logging level.
+     *
+     * @param logLevel the log level.
+     * @return true if this event is relevant.
+     */
+    public abstract boolean relevantFor(LogLevel logLevel);
 }

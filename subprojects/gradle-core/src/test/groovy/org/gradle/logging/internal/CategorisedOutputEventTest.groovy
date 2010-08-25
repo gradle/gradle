@@ -13,24 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.logging.internal
 
-import org.gradle.util.TimeProvider;
+import spock.lang.Specification
+import org.gradle.api.logging.LogLevel
 
-import java.io.PrintStream;
+class CategorisedOutputEventTest extends Specification {
+    def meetsLevel() {
+        def event = new CategorisedOutputEvent('category', LogLevel.INFO)
 
-public class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
-    }
-
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+        expect:
+        event.relevantFor(LogLevel.DEBUG)
+        event.relevantFor(LogLevel.INFO)
+        !event.relevantFor(LogLevel.ERROR)
     }
 }

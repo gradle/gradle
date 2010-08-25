@@ -20,6 +20,8 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
 
 import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.LinkedList;
 
 public abstract class AbstractProgressLoggingAwareFormatter implements OutputEventListener {
@@ -51,8 +53,9 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
             } else if (event instanceof LogLevelChangeEvent) {
                 debugOutput = ((LogLevelChangeEvent) event).getNewLogLevel() == LogLevel.DEBUG;
             } else {
-                String message = doLayout((RenderableOutputEvent) event);
-                if (event.getLogLevel() == LogLevel.ERROR) {
+                RenderableOutputEvent renderableEvent = (RenderableOutputEvent) event;
+                String message = doLayout(renderableEvent);
+                if (renderableEvent.getLogLevel() == LogLevel.ERROR) {
                     onErrorMessage(message);
                 } else {
                     onInfoMessage(message);
@@ -66,7 +69,8 @@ public abstract class AbstractProgressLoggingAwareFormatter implements OutputEve
     private String doLayout(RenderableOutputEvent event) {
         OutputEventTextOutput writer = new StringWriterBackedOutputEventTextOutput();
         if (debugOutput) {
-            writer.text("[");
+            writer.text(new SimpleDateFormat("HH:mm:ss.SSS").format(new Date(event.getTimestamp())));
+            writer.text(" [");
             writer.text(event.getLogLevel());
             writer.text("] [");
             writer.text(event.getCategory());

@@ -15,18 +15,19 @@
  */
 package org.gradle.logging.internal
 
-import spock.lang.Specification
+import org.gradle.util.TimeProvider
 
-class LoggingBackedStyledTextOutputTest extends Specification {
+class LoggingBackedStyledTextOutputTest extends OutputSpecification {
     private final OutputEventListener listener = Mock()
-    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category')
+    private final TimeProvider timeProvider = { 1200L } as TimeProvider
+    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', timeProvider)
 
     def forwardsLineOfTextToListenerAtDefaultLevel() {
         when:
         output.text('message').endLine()
 
         then:
-        1 * listener.onOutput({it.category == 'category' && it.message == toNative('message\n')})
+        1 * listener.onOutput({it.category == 'category' && it.timestamp == 1200 && it.message == toNative('message\n')})
         0 * listener._
     }
 
@@ -47,9 +48,5 @@ class LoggingBackedStyledTextOutputTest extends Specification {
         then:
         2 * listener.onOutput({it.message == toNative('\n')})
         0 * listener._
-    }
-   
-    private String toNative(String value) {
-        return value.replaceAll('\n', System.getProperty('line.separator'))
     }
 }

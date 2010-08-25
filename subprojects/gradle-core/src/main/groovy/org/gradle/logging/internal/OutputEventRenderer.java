@@ -104,7 +104,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputEventListener onError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() == LogLevel.ERROR) {
+                if (event.relevantFor(LogLevel.ERROR)) {
                     listener.onOutput(event);
                 }
             }
@@ -114,7 +114,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputEventListener onNonError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() != LogLevel.ERROR) {
+                if (!event.relevantFor(LogLevel.ERROR)) {
                     listener.onOutput(event);
                 }
             }
@@ -146,7 +146,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public void onOutput(OutputEvent event) {
         synchronized (lock) {
-            if (event.getLogLevel().compareTo(logLevel) < 0) {
+            if (!event.relevantFor(logLevel)) {
                 return;
             }
             formatters.getSource().onOutput(event);
