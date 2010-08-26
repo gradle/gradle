@@ -19,5 +19,5 @@ package org.gradle.logging.internal;
 public interface Console {
     TextArea getMainArea();
 
-    Label addStatusBar();
+    Label getStatusBar();
 }

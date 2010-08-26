@@ -21,7 +21,6 @@ import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.logging.StyledTextOutput
-import org.fusesource.jansi.Ansi.Attribute
 import org.fusesource.jansi.Ansi.Color
 
 @RunWith(JMock.class)
@@ -67,12 +66,12 @@ class AnsiConsoleTest {
 
     @Test
     public void displaysStatusBarWithNonEmptyText() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -87,12 +86,12 @@ class AnsiConsoleTest {
 
         console.mainArea.append("message${EOL}")
 
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -100,21 +99,21 @@ class AnsiConsoleTest {
 
     @Test
     public void redrawsStatusBarWhenTextChangesValue() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('123')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = '123'
 
         context.checking {
             one(ansi).cursorLeft(3)
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('abc')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'abc'
@@ -122,21 +121,21 @@ class AnsiConsoleTest {
 
     @Test
     public void redrawsStatusBarWhenTextChangesSuffix() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text 1')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 1'
 
         context.checking {
             one(ansi).cursorLeft(1)
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('2')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 2'
@@ -144,20 +143,20 @@ class AnsiConsoleTest {
 
     @Test
     public void redrawsStatusBarWhenTextAdded() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a(' 2')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 2'
@@ -165,12 +164,12 @@ class AnsiConsoleTest {
 
     @Test
     public void redrawsStatusBarWhenTextRemoved() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text 1')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 1'
@@ -185,12 +184,12 @@ class AnsiConsoleTest {
     
     @Test
     public void redrawsStatusBarWhenTextSetToEmpty() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -205,12 +204,12 @@ class AnsiConsoleTest {
 
     @Test
     public void removesStatusBarWhenClosed() {
-        def statusBar = console.addStatusBar()
+        def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -226,57 +225,49 @@ class AnsiConsoleTest {
     @Test
     public void showsMostRecentlyCreatedStatusBarOnly() {
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('first')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
-        console.addStatusBar().text = 'first'
+        console.getStatusBar().text = 'first'
 
         context.checking {
             one(ansi).cursorLeft(5)
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
         }
 
-        Label second = console.addStatusBar()
+        console.getStatusBar().close()
+
+        Label second = console.getStatusBar()
 
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('second')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         second.text = 'second'
-
-        context.checking {
-            one(ansi).cursorLeft(6)
-            one(ansi).eraseLine(Ansi.Erase.FORWARD)
-            one(ansi).a(Attribute.INTENSITY_BOLD)
-            one(ansi).a('first')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
-        }
-
-        second.close()
     }
 
     @Test
     public void appendsTextWhenStatusBarIsPresent() {
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
-        console.addStatusBar().text = 'status'
+        console.getStatusBar().text = 'status'
 
         context.checking {
             one(ansi).cursorLeft(6)
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).a('message')
             one(ansi).a(EOL)
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append("message$EOL");
@@ -285,21 +276,21 @@ class AnsiConsoleTest {
     @Test
     public void appendsTextWithNoEOLWhenStatusBarIsPresent() {
         context.checking {
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
-        console.addStatusBar().text = 'status'
+        console.getStatusBar().text = 'status'
 
         context.checking {
             one(ansi).cursorLeft(6)
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).a('message')
             one(ansi).newline()
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append('message');
@@ -311,9 +302,9 @@ class AnsiConsoleTest {
             one(ansi).cursorRight(7)
             one(ansi).a('message2')
             one(ansi).newline()
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append('message2');
@@ -329,12 +320,12 @@ class AnsiConsoleTest {
 
         context.checking {
             one(ansi).newline()
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
-        console.addStatusBar().text = 'status'
+        console.getStatusBar().text = 'status'
 
         context.checking {
             one(ansi).cursorLeft(6)
@@ -343,9 +334,9 @@ class AnsiConsoleTest {
             one(ansi).cursorRight(7)
             one(ansi).a('message2')
             one(ansi).a(EOL)
-            one(ansi).a(Attribute.INTENSITY_BOLD)
+            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
+            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append("message2${EOL}")

@@ -67,7 +67,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         TestStyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
         RenderableOutputEvent event1 = new StyledTextOutputEvent(0, 'category', LogLevel.INFO, 'message')
-        RenderableOutputEvent event2 = new StyledTextOutputEvent(0, 'category', LogLevel.INFO, '\n')
+        RenderableOutputEvent event2 = new StyledTextOutputEvent(0, 'category', LogLevel.INFO, toNative('\n'))
 
         when:
         renderer.onOutput(new LogLevelChangeEvent(LogLevel.DEBUG))

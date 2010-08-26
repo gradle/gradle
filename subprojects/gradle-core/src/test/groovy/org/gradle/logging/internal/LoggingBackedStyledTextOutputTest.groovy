@@ -43,7 +43,7 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
 
     def buffersTextUntilEndOfLineReached() {
         when:
-        output.text('message ').text('with more\nanother ').text('line').println()
+        output.text('message ').text(toNative('with more\nanother ')).text('line').println()
 
         then:
         1 * listener.onOutput({it.spans[0].text == toNative('message with more\n')})
