@@ -15,8 +15,6 @@
  */
 package org.gradle.logging.internal
 
-import org.gradle.logging.StyledTextOutput
-
 class AbstractStyledTextOutputTest extends OutputSpecification {
     private final TestStyledTextOutput output = new TestStyledTextOutput()
 
@@ -113,12 +111,8 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
         result.toString()
     }
 
-    StyledTextOutput style(StyledTextOutput.Style style) {
-        this
-    }
-
-    StyledTextOutput text(Object text) {
+    @Override
+    protected void doAppend(String text) {
         result.append(text)
-        this
     }
 }

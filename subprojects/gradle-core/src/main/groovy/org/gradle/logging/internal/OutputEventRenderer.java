@@ -37,7 +37,10 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public OutputEventRenderer() {
-        formatters.add(new BasicProgressLoggingAwareFormatter(stdoutListeners.getSource(), stderrListeners.getSource()));
+        OutputEventListener stdoutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stdoutListeners.getSource())), false));
+        formatters.add(stdoutChain);
+        OutputEventListener stderrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stderrListeners.getSource())), false));
+        formatters.add(stderrChain);
     }
 
     public OutputEventRenderer addStandardOutputAndError() {
@@ -49,7 +52,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
             Console console = new AnsiConsole(outStr, outStr);
             addConsole(console, true, stdErrIsTerminal);
         } else if (stdErrIsTerminal) {
-            // Only std err is connected to a terminal
+            // Only stderr is connected to a terminal
             PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
             Console console = new AnsiConsole(errStr, errStr);
             addConsole(console, false, true);
@@ -89,14 +92,18 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return this;
     }
 
-    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr) {
-        final ConsoleBackedFormatter consoleFormatter = new ConsoleBackedFormatter(console);
+    public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new AbstractStyledTextOutput() {
+            public void doAppend(String text) {
+                console.getMainArea().append(text);
+            }
+        }), true), console);
         if (stdout && stderr) {
-            formatters.add(consoleFormatter);
+            formatters.add(consoleChain);
         } else if (stdout) {
-            formatters.add(onNonError(consoleFormatter));
+            formatters.add(onNonError(consoleChain));
         } else {
-            formatters.add(onError(consoleFormatter));
+            formatters.add(onError(consoleChain));
         }
         return this;
     }
@@ -104,7 +111,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputEventListener onError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (event.relevantFor(LogLevel.ERROR)) {
+                if (event.getLogLevel() == LogLevel.ERROR || event.getLogLevel() == null) {
                     listener.onOutput(event);
                 }
             }
@@ -114,7 +121,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputEventListener onNonError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (!event.relevantFor(LogLevel.ERROR)) {
+                if (event.getLogLevel() != LogLevel.ERROR || event.getLogLevel() == null) {
                     listener.onOutput(event);
                 }
             }
@@ -146,7 +153,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public void onOutput(OutputEvent event) {
         synchronized (lock) {
-            if (!event.relevantFor(logLevel)) {
+            if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel) < 0) {
                 return;
             }
             formatters.getSource().onOutput(event);

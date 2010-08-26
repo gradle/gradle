@@ -34,7 +34,7 @@ public class LogLevelChangeEvent extends OutputEvent {
     }
 
     @Override
-    public boolean relevantFor(LogLevel logLevel) {
-        return true;
+    public LogLevel getLogLevel() {
+        return null;
     }
 }

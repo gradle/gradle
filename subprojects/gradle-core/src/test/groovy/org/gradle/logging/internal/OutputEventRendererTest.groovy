@@ -85,6 +85,18 @@ class OutputEventRendererTest extends OutputSpecification {
         listener.value == ''
     }
 
+    def rendersLogEventsToStdOutListenerWhenLogLevelIsDebug() {
+        def listener = new TestListener()
+
+        when:
+        renderer.configure(LogLevel.DEBUG)
+        renderer.addStandardOutputListener(listener)
+        renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
+
+        then:
+        listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
+    }
+    
     def rendersErrorLogEventsToStdErrListener() {
         def listener = new TestListener()
 
@@ -108,6 +120,18 @@ class OutputEventRendererTest extends OutputSpecification {
 
         then:
         listener.value == ''
+    }
+
+    def rendersLogEventsToStdErrListenerWhenLogLevelIsDebug() {
+        def listener = new TestListener()
+
+        when:
+        renderer.configure(LogLevel.DEBUG)
+        renderer.addStandardErrorListener(listener)
+        renderer.onOutput(event(tenAm, 'message', LogLevel.ERROR))
+
+        then:
+        listener.value.readLines() == ['10:00:00.000 [ERROR] [category] message']
     }
 
     def rendersProgressEvents() {

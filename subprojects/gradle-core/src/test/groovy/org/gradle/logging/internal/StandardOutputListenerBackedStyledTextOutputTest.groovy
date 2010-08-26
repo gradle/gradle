@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.logging.internal
 
-import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.StandardOutputListener
 
-import java.io.Serializable;
+class StandardOutputListenerBackedStyledTextOutputTest extends OutputSpecification {
+    private final StandardOutputListener listener = Mock()
+    private final StandardOutputListenerBackedStyledTextOutput output = new StandardOutputListenerBackedStyledTextOutput(listener)
 
-/**
- * Represents some event which may generate output. All implementations are immutable.
- */
-public abstract class OutputEvent implements Serializable {
-    /**
-     * Returns the log level for this event. May return null.
-     */
-    public abstract LogLevel getLogLevel();
+    def forwardsTextToListener() {
+        when:
+        output.text('text')
+
+        then:
+        listener.onOutput('text')
+    }
 }

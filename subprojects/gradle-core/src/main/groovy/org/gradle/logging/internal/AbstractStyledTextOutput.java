@@ -61,4 +61,15 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
         text(EOL);
         return this;
     }
+
+    public StyledTextOutput text(Object text) {
+        doAppend(text.toString());
+        return this;
+    }
+
+    protected abstract void doAppend(String text);
+
+    public StyledTextOutput style(Style style) {
+        return this;
+    }
 }

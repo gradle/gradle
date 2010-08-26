@@ -33,9 +33,4 @@ public class CategorisedOutputEvent extends OutputEvent {
     public String getCategory() {
         return category;
     }
-
-    @Override
-    public boolean relevantFor(LogLevel logLevel) {
-        return getLogLevel().compareTo(logLevel) >= 0;
-    }
 }

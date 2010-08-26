@@ -50,13 +50,13 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
         return this;
     }
 
-    public StyledTextOutput text(Object text) {
+    @Override
+    protected void doAppend(String text) {
         try {
-            outstr.write(text.toString().getBytes());
+            outstr.write(text.getBytes());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return this;
     }
 
     private class LogAction implements Action<String> {

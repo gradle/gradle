@@ -16,7 +16,6 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.UncheckedIOException;
-import org.gradle.logging.StyledTextOutput;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -41,16 +40,12 @@ public class WriterBackedStyledTextOutput extends AbstractStyledTextOutput imple
         }
     }
 
-    public StyledTextOutput style(Style style) {
-        return this;
-    }
-
-    public StyledTextOutput text(Object text) {
+    @Override
+    protected void doAppend(String text) {
         try {
-            writer.append(text.toString());
+            writer.append(text);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return this;
     }
 }

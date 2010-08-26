@@ -13,18 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal
+package org.gradle.logging.internal;
 
-import spock.lang.Specification
-import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.StandardOutputListener;
 
-class CategorisedOutputEventTest extends Specification {
-    def meetsLevel() {
-        def event = new CategorisedOutputEvent('category', LogLevel.INFO)
+public class StandardOutputListenerBackedStyledTextOutput extends AbstractStyledTextOutput {
+    private final StandardOutputListener listener;
 
-        expect:
-        event.relevantFor(LogLevel.DEBUG)
-        event.relevantFor(LogLevel.INFO)
-        !event.relevantFor(LogLevel.ERROR)
+    public StandardOutputListenerBackedStyledTextOutput(StandardOutputListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    protected void doAppend(String text) {
+        listener.onOutput(text);
     }
 }

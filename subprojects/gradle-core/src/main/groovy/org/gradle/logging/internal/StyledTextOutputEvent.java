@@ -22,11 +22,17 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import static org.gradle.logging.StyledTextOutput.Style.*;
+
 public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, String text) {
-        this(StyledTextOutput.Style.Normal, timestamp, category, text);
+        this(Normal, timestamp, category, text);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String text) {
+        this(timestamp, category, logLevel, Collections.singletonList(new Span(Normal, text)));
     }
 
     public StyledTextOutputEvent(StyledTextOutput.Style style, long timestamp, String category, String text) {
