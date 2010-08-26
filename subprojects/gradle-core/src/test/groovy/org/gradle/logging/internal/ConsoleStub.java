@@ -13,10 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.logging.internal;
 
-import org.gradle.logging.StyledTextOutput;
+class ConsoleStub implements Console {
+    private final TextAreaImpl mainArea = new TextAreaImpl();
 
-public interface TextArea extends StyledTextOutput {
+    public Label addStatusBar() {
+        return new Label() {
+            public void close() {
+            }
+
+            public void setText(String text) {
+            }
+        };
+    }
+
+    public String getValue() {
+        return mainArea.toString();
+    }
+
+    public TextArea getMainArea() {
+        return mainArea;
+    }
+
+    private static class TextAreaImpl extends TestStyledTextOutput implements TextArea {
+    }
 }

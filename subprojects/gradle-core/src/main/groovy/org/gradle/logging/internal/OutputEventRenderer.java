@@ -93,11 +93,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
-        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new AbstractStyledTextOutput() {
-            public void doAppend(String text) {
-                console.getMainArea().append(text);
-            }
-        }), true), console);
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console);
         if (stdout && stderr) {
             formatters.add(consoleChain);
         } else if (stdout) {

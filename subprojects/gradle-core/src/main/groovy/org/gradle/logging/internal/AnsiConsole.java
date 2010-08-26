@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.logging.StyledTextOutput;
 
 import java.io.Flushable;
 import java.io.IOException;
@@ -180,7 +181,9 @@ public class AnsiConsole implements Console {
                 ansi.cursorLeft(displayedText.length() - prefix.length());
             }
             if (prefix.length() < text.length()) {
+                ansi.a(Ansi.Attribute.INTENSITY_BOLD);
                 ansi.a(text.substring(prefix.length()));
+                ansi.a(Ansi.Attribute.INTENSITY_BOLD_OFF);
             }
             if (displayedText.length() > text.length()) {
                 ansi.eraseLine(Ansi.Erase.FORWARD);
@@ -189,10 +192,11 @@ public class AnsiConsole implements Console {
         }
     }
 
-    private class TextAreaImpl implements TextArea, Widget {
+    private class TextAreaImpl extends AbstractStyledTextOutput implements TextArea, Widget {
         private final Container container;
         private int width;
         boolean extraEol;
+        StyledTextOutput.Style style = Style.Normal;
 
         private TextAreaImpl(Container container) {
             this.container = container;
@@ -205,7 +209,14 @@ public class AnsiConsole implements Console {
             }
         }
 
-        public void append(final CharSequence text) {
+        @Override
+        public StyledTextOutput style(Style style) {
+            this.style = style;
+            return this;
+        }
+
+        @Override
+        protected void doAppend(final String text) {
             if (text.length() == 0) {
                 return;
             }
@@ -217,6 +228,15 @@ public class AnsiConsole implements Console {
                         extraEol = false;
                     }
 
+                    switch (style) {
+                        case Header:
+                            ansi.fg(Ansi.Color.YELLOW);
+                            break;
+                        case UserInput:
+                            ansi.fg(Ansi.Color.GREEN);
+                            break;
+                    }
+                    
                     Iterator<String> tokenizer = new LineSplitter(text);
                     while (tokenizer.hasNext()) {
                         String token = tokenizer.next();
@@ -227,6 +247,9 @@ public class AnsiConsole implements Console {
                             width += token.length();
                         }
                         ansi.a(token);
+                    }
+                    if (style != Style.Normal) {
+                        ansi.fg(Ansi.Color.DEFAULT);
                     }
                 }
             });

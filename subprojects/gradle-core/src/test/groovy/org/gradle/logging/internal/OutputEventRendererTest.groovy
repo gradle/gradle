@@ -195,32 +195,6 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 }
 
-private static class ConsoleStub implements Console, TextArea {
-    private final StringWriter writer = new StringWriter();
-
-    public String getValue() {
-        return writer.toString();
-    }
-
-    public Label addStatusBar() {
-        return new Label() {
-            void close() {
-            }
-
-            void setText(String text) {
-            }
-        }
-    }
-
-    public TextArea getMainArea() {
-        return this;
-    }
-
-    public void append(CharSequence text) {
-        writer.append(text);
-    }
-}
-
 private static class TestListener implements StandardOutputListener {
     private final StringWriter writer = new StringWriter();
 
