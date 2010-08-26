@@ -20,14 +20,55 @@ package org.gradle.logging;
  * required to be thread-safe.
  */
 public interface StyledTextOutput extends Appendable {
+    enum Style {
+        /**
+         * Regular text.
+         */
+        Normal,
+        /**
+         * A header.
+         */
+        Header,
+        /**
+         * User input
+         */
+        UserInput,
+    }
+
+    /**
+     * Appends a character with the current style.
+     *
+     * @param c The character
+     * @return this
+     */
     StyledTextOutput append(char c);
 
+    /**
+     * Appends a sequence of characters with the current style.
+     *
+     * @param csq The character sequence
+     * @return this.
+     */
     StyledTextOutput append(CharSequence csq);
 
+    /**
+     * Appends a sequence of characters with the current style.
+     *
+     * @param csq The character sequence
+     * @return this.
+     */
     StyledTextOutput append(CharSequence csq, int start, int end);
 
     /**
-     * Appends text with the default style.
+     * Switches to a new style.
+     *
+     * @param style The style.
+     * @return this
+     */
+    StyledTextOutput style(Style style);
+
+    /**
+     * Appends text with the current style.
      *
      * @param text The text
      * @return this
@@ -35,9 +76,35 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput text(Object text);
 
     /**
+     * Appends text with the current style and starts a new line.
+     *
+     * @param text The text
+     * @return this
+     */
+    StyledTextOutput println(Object text);
+
+    /**
+     * Appends a formatted string with the current style.
+     *
+     * @param pattern The pattern string
+     * @param args The args for the pattern
+     * @return this
+     */
+    StyledTextOutput format(String pattern, Object... args);
+
+    /**
+     * Appends a formatted string with the current style and starts a new line.
+     *
+     * @param pattern The pattern string
+     * @param args The args for the pattern
+     * @return this
+     */
+    StyledTextOutput formatln(String pattern, Object... args);
+
+    /**
      * Starts a new line.
      *
      * @return this
      */
-    StyledTextOutput endLine();
+    StyledTextOutput println();
 }

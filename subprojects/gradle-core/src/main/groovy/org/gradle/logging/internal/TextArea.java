@@ -16,6 +16,7 @@
 
 package org.gradle.logging.internal;
 
-public interface TextArea {
-    void append(CharSequence text);
+import org.gradle.logging.StyledTextOutput;
+
+public interface TextArea extends StyledTextOutput {
 }

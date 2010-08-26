@@ -13,16 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal
+package org.gradle.logging.internal;
 
-import spock.lang.Specification
+import org.gradle.api.logging.StandardOutputListener;
 
-class StdOutLoggingSystemTest extends Specification {
-    private final OutputEventListener listener = Mock()
-    private final StdOutLoggingSystem loggingSystem = new StdOutLoggingSystem(listener)
-    
-    def createsAStyledTextOutput() {
-        expect:
-        loggingSystem.create() == loggingSystem.textOutput
+public class StandardOutputListenerBackedStyledTextOutput extends AbstractStyledTextOutput {
+    private final StandardOutputListener listener;
+
+    public StandardOutputListenerBackedStyledTextOutput(StandardOutputListener listener) {
+        this.listener = listener;
+    }
+
+    @Override
+    protected void doAppend(String text) {
+        listener.onOutput(text);
     }
 }

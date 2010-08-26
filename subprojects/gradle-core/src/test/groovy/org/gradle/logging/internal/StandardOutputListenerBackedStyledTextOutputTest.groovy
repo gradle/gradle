@@ -13,24 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.logging.internal
 
-import org.gradle.util.TimeProvider;
+import org.gradle.api.logging.StandardOutputListener
 
-import java.io.PrintStream;
+class StandardOutputListenerBackedStyledTextOutputTest extends OutputSpecification {
+    private final StandardOutputListener listener = Mock()
+    private final StandardOutputListenerBackedStyledTextOutput output = new StandardOutputListenerBackedStyledTextOutput(listener)
 
-public class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
-    }
+    def forwardsTextToListener() {
+        when:
+        output.text('text')
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
-    }
-
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+        then:
+        listener.onOutput('text')
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.logging
 
 import org.gradle.logging.internal.DefaultLoggingManagerFactory
 import org.gradle.logging.internal.DefaultProgressLoggerFactory
-import org.gradle.logging.internal.StdOutLoggingSystem
+import org.gradle.logging.internal.DefaultStyledTextOutputFactory
 import spock.lang.Specification
 
 class LoggingServiceRegistryTest extends Specification {
@@ -33,7 +33,7 @@ class LoggingServiceRegistryTest extends Specification {
     def providesAStyledTextOutputFactory() {
         expect:
         def factory = registry.get(StyledTextOutputFactory.class)
-        factory instanceof StdOutLoggingSystem
+        factory instanceof DefaultStyledTextOutputFactory
     }
     
     def providesAProgressLoggerFactory() {

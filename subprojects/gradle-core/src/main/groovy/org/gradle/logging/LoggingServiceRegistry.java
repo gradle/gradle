@@ -18,13 +18,33 @@ package org.gradle.logging;
 
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
+import org.gradle.util.TimeProvider;
+import org.gradle.util.TrueTimeProvider;
 
 /**
  * A {@link org.gradle.api.internal.project.ServiceRegistry} implementation which provides the logging services.
  */
 public class LoggingServiceRegistry extends DefaultServiceRegistry {
+    private TextStreamOutputEventListener stdoutListener;
+
+    public LoggingServiceRegistry() {
+        stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+    }
+
+    protected TimeProvider createTimeProvider() {
+        return new TrueTimeProvider();
+    }
+    
     protected StdOutLoggingSystem createStdOutLoggingSystem() {
-        return new StdOutLoggingSystem(get(OutputEventListener.class));
+        return new StdOutLoggingSystem(stdoutListener, get(TimeProvider.class));
+    }
+
+    protected StyledTextOutputFactory createStyledTextOutputFactory() {
+        return new DefaultStyledTextOutputFactory(stdoutListener, get(TimeProvider.class));
+    }
+
+    protected StdErrLoggingSystem createStdErrLoggingSystem() {
+        return new StdErrLoggingSystem(new TextStreamOutputEventListener(get(OutputEventListener.class)), get(TimeProvider.class));
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
@@ -33,8 +53,9 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     
     protected LoggingManagerFactory createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
-        LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, new Slf4jLoggingConfigurer(renderer), new JavaUtilLoggingConfigurer());
-        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StdOutLoggingSystem.class), new StdErrLoggingSystem(renderer));
+        Slf4jLoggingConfigurer slf4jConfigurer = new Slf4jLoggingConfigurer(renderer);
+        LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, slf4jConfigurer, new JavaUtilLoggingConfigurer());
+        return new DefaultLoggingManagerFactory(compositeConfigurer, renderer, get(StdOutLoggingSystem.class), get(StdErrLoggingSystem.class));
     }
     
     protected OutputEventRenderer createOutputEventRenderer() {

@@ -15,18 +15,50 @@
  */
 package org.gradle.logging.internal
 
-import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
+import spock.lang.Specification
+import org.gradle.logging.StyledTextOutput
 
 class StyledTextOutputEventTest extends Specification {
-    private final OutputEventTextOutput output = Mock()
 
+    def canSetLogLevel() {
+        def event = new StyledTextOutputEvent(100, 'category', 'message').withLogLevel(LogLevel.DEBUG)
+
+        expect:
+        event.logLevel == LogLevel.DEBUG
+    }
+    
     def rendersToTextOutput() {
+        OutputEventTextOutput output = Mock()
+        def event = new StyledTextOutputEvent(StyledTextOutput.Style.UserInput, 100, 'category', 'message')
+
         when:
-        new StyledTextOutputEvent('category', LogLevel.INFO, 'message').render(output)
+        event.render(output)
 
         then:
+        1 * output.style(StyledTextOutput.Style.UserInput)
         1 * output.text('message')
+        0 * output._
+    }
+    
+    def rendersMultipleSpansToTextOutput() {
+        OutputEventTextOutput output = Mock()
+        List spans = [new StyledTextOutputEvent.Span(StyledTextOutput.Style.UserInput, 'UserInput'),
+                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Normal, 'Normal'),
+                new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, 'Header')
+        ]
+        def event = new StyledTextOutputEvent(100, 'category', spans)
+
+        when:
+        event.render(output)
+
+        then:
+        1 * output.style(StyledTextOutput.Style.UserInput)
+        1 * output.text('UserInput')
+        1 * output.style(StyledTextOutput.Style.Normal)
+        1 * output.text('Normal')
+        1 * output.style(StyledTextOutput.Style.Header)
+        1 * output.text('Header')
         0 * output._
     }
 }

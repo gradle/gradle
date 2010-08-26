@@ -25,14 +25,22 @@ import java.io.FileDescriptor;
 import java.io.IOException;
 import java.io.PrintStream;
 
+/**
+ * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
+ * destinations. This implementation is thread-safe.
+ */
 public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutput {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
+    private final Object lock = new Object();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public OutputEventRenderer() {
-        formatters.add(new BasicProgressLoggingAwareFormatter(stdoutListeners.getSource(), stderrListeners.getSource()));
+        OutputEventListener stdoutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stdoutListeners.getSource())), false));
+        formatters.add(stdoutChain);
+        OutputEventListener stderrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stderrListeners.getSource())), false));
+        formatters.add(stderrChain);
     }
 
     public OutputEventRenderer addStandardOutputAndError() {
@@ -44,7 +52,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
             Console console = new AnsiConsole(outStr, outStr);
             addConsole(console, true, stdErrIsTerminal);
         } else if (stdErrIsTerminal) {
-            // Only std err is connected to a terminal
+            // Only stderr is connected to a terminal
             PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
             Console console = new AnsiConsole(errStr, errStr);
             addConsole(console, false, true);
@@ -84,14 +92,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return this;
     }
 
-    public OutputEventRenderer addConsole(Console console, boolean stdout, boolean stderr) {
-        final ConsoleBackedFormatter consoleFormatter = new ConsoleBackedFormatter(console);
+    public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
+        final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console);
         if (stdout && stderr) {
-            formatters.add(consoleFormatter);
+            formatters.add(consoleChain);
         } else if (stdout) {
-            formatters.add(onNotError(consoleFormatter));
+            formatters.add(onNonError(consoleChain));
         } else {
-            formatters.add(onError(consoleFormatter));
+            formatters.add(onError(consoleChain));
         }
         return this;
     }
@@ -99,17 +107,17 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private OutputEventListener onError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() == LogLevel.ERROR) {
+                if (event.getLogLevel() == LogLevel.ERROR || event.getLogLevel() == null) {
                     listener.onOutput(event);
                 }
             }
         };
     }
 
-    private OutputEventListener onNotError(final OutputEventListener listener) {
+    private OutputEventListener onNonError(final OutputEventListener listener) {
         return new OutputEventListener() {
             public void onOutput(OutputEvent event) {
-                if (event.getLogLevel() != LogLevel.ERROR) {
+                if (event.getLogLevel() != LogLevel.ERROR || event.getLogLevel() == null) {
                     listener.onOutput(event);
                 }
             }
@@ -133,14 +141,18 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public void configure(LogLevel logLevel) {
-        this.logLevel = logLevel;
-        formatters.getSource().onOutput(new LogLevelChangeEvent(logLevel));
+        synchronized (lock) {
+            this.logLevel = logLevel;
+            formatters.getSource().onOutput(new LogLevelChangeEvent(logLevel));
+        }
     }
 
     public void onOutput(OutputEvent event) {
-        if (event.getLogLevel().compareTo(logLevel) < 0) {
-            return;
+        synchronized (lock) {
+            if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel) < 0) {
+                return;
+            }
+            formatters.getSource().onOutput(event);
         }
-        formatters.getSource().onOutput(event);
     }
 }

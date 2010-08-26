@@ -15,22 +15,27 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.util.TimeProvider;
+class ConsoleStub implements Console {
+    private final TextAreaImpl mainArea = new TextAreaImpl();
 
-import java.io.PrintStream;
+    public Label addStatusBar() {
+        return new Label() {
+            public void close() {
+            }
 
-public class StdOutLoggingSystem extends PrintStreamLoggingSystem {
-    public StdOutLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
-        super(listener, "system.out", timeProvider);
+            public void setText(String text) {
+            }
+        };
     }
 
-    @Override
-    protected PrintStream get() {
-        return System.out;
+    public String getValue() {
+        return mainArea.toString();
     }
 
-    @Override
-    protected void set(PrintStream printStream) {
-        System.setOut(printStream);
+    public TextArea getMainArea() {
+        return mainArea;
+    }
+
+    private static class TextAreaImpl extends TestStyledTextOutput implements TextArea {
     }
 }

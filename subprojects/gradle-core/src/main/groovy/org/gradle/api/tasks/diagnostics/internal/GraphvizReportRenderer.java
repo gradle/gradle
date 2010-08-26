@@ -25,7 +25,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * DependencyGrAaphRenderer that emits simple graphviz dot notation for a dependency tree.
+ * DependencyGraphRenderer that emits simple graphviz dot notation for a dependency tree.
  *
  * @author Phil Messenger
  */
@@ -44,7 +44,7 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
     }
 
     public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
-        getFormatter().format("digraph %s{%n", "SomeConf");
+        getTextOutput().println("digraph SomeConf{");
 
         Set<String> edges = new HashSet<String>();
 
@@ -53,10 +53,10 @@ public class GraphvizReportRenderer extends TextProjectReportRenderer implements
         }
 
         for (String edge : edges) {
-            getFormatter().format("%s%n", edge);
+            getTextOutput().println(edge);
         }
 
-        getFormatter().format("}%n");
+        getTextOutput().println("}");
     }
 
     private void buildDotDependencyTree(ResolvedDependency root, Set<String> edges) {

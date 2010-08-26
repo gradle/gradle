@@ -17,10 +17,24 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
-public abstract class RenderableOutputEvent extends OutputEvent {
-    protected RenderableOutputEvent(String category, LogLevel logLevel) {
+public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
+    private final long timestamp;
+
+    protected RenderableOutputEvent(long timestamp, String category, LogLevel logLevel) {
         super(category, logLevel);
+        this.timestamp = timestamp;
     }
 
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    /**
+     * Renders this event to the given output. The output's style will be set to {@link
+     * org.gradle.logging.StyledTextOutput.Style#Normal}. The style will be reset after the rendering is complete, so
+     * there is no need for this method to clean up the style.
+     *
+     * @param output The output to render to.
+     */
     public abstract void render(OutputEventTextOutput output);
 }

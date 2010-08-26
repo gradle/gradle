@@ -15,33 +15,23 @@
  */
 package org.gradle.logging.internal
 
-import spock.lang.Specification
-
-class StringWriterBackedOutputEventTextOutputTest extends Specification {
-    private final StringWriterBackedOutputEventTextOutput output = new StringWriterBackedOutputEventTextOutput()
-
-    def writesText() {
-        when:
-        output.text('some message')
-
-        then:
-        output.toString() == 'some message'
-    }
+class AbstractStyledTextOutputTest extends OutputSpecification {
+    private final TestStyledTextOutput output = new TestStyledTextOutput()
 
     def onOutputWritesText() {
         when:
         output.onOutput('some message')
 
         then:
-        output.toString() == 'some message'
+        output.value == 'some message'
     }
-    
+
     def writesEndOfLine() {
         when:
-        output.endLine()
+        output.println()
 
         then:
-        output.toString() == System.getProperty('line.separator')
+        output.value == System.getProperty('line.separator')
     }
 
     def appendsCharacter() {
@@ -49,7 +39,7 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
         output.append('c' as char)
 
         then:
-        output.toString() == 'c'
+        output.value == 'c'
     }
 
     def appendsCharSequence() {
@@ -57,7 +47,7 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
         output.append('some message')
 
         then:
-        output.toString() == 'some message'
+        output.value == 'some message'
     }
 
     def appendsNullCharSequence() {
@@ -65,7 +55,7 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
         output.append(null)
 
         then:
-        output.toString() == 'null'
+        output.value == 'null'
     }
 
     def appendsCharSubsequence() {
@@ -73,23 +63,56 @@ class StringWriterBackedOutputEventTextOutputTest extends Specification {
         output.append('some message', 5, 9)
 
         then:
-        output.toString() == 'mess'
+        output.value == 'mess'
     }
-    
+
     def appendsNullCharSubsequence() {
         when:
         output.append(null, 5, 9)
 
         then:
-        output.toString() == 'null'
+        output.value == 'null'
     }
 
-    def writesException() {
+    def printlnWritesTextAndEndOfLine() {
         when:
-        output.exception(new RuntimeException('broken'))
+        output.println('message')
 
         then:
-        output.toString().startsWith('java.lang.RuntimeException: broken')
+        output.value == toNative('message\n')
+    }
+    
+    def formatsText() {
+        when:
+        output.format('[%s]', 'message')
+
+        then:
+        output.value == '[message]'
+    }
+    
+    def formatsTextAndEndOfLine() {
+        when:
+        output.formatln('[%s]', 'message')
+
+        then:
+        output.value == toNative('[message]\n')
+    }
+}
+
+class TestStyledTextOutput extends AbstractStyledTextOutput {
+    StringBuilder result = new StringBuilder()
+
+    @Override
+    String toString() {
+        result.toString()
     }
 
+    def getValue() {
+        result.toString()
+    }
+
+    @Override
+    protected void doAppend(String text) {
+        result.append(text)
+    }
 }

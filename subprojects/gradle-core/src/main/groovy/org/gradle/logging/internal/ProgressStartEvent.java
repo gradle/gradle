@@ -17,7 +17,7 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
 
-public class ProgressStartEvent extends OutputEvent {
+public class ProgressStartEvent extends CategorisedOutputEvent {
     private final String description;
 
     public ProgressStartEvent(String category, String description) {

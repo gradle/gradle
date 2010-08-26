@@ -20,6 +20,9 @@ import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
+import org.gradle.logging.StyledTextOutput
+import org.fusesource.jansi.Ansi.Attribute
+import org.fusesource.jansi.Ansi.Color
 
 @RunWith(JMock.class)
 class AnsiConsoleTest {
@@ -52,11 +55,24 @@ class AnsiConsoleTest {
     }
 
     @Test
+    public void appendsStyledTextToMainArea() {
+        context.checking {
+            one(ansi).fg(Color.YELLOW)
+            one(ansi).a('message')
+            one(ansi).fg(Color.DEFAULT)
+        }
+
+        console.mainArea.style(StyledTextOutput.Style.Header).append('message')
+    }
+
+    @Test
     public void displaysStatusBarWithNonEmptyText() {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text'
@@ -74,7 +90,9 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text'
@@ -85,14 +103,18 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('123')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = '123'
 
         context.checking {
             one(ansi).cursorLeft(3)
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('abc')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'abc'
@@ -103,14 +125,18 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text 1')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text 1'
 
         context.checking {
             one(ansi).cursorLeft(1)
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('2')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text 2'
@@ -121,13 +147,17 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text'
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a(' 2')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text 2'
@@ -138,7 +168,9 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text 1')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text 1'
@@ -156,7 +188,9 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text'
@@ -174,7 +208,9 @@ class AnsiConsoleTest {
         def statusBar = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('text')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         statusBar.text = 'text'
@@ -190,7 +226,9 @@ class AnsiConsoleTest {
     @Test
     public void showsMostRecentlyCreatedStatusBarOnly() {
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('first')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.addStatusBar().text = 'first'
@@ -203,7 +241,9 @@ class AnsiConsoleTest {
         Label second = console.addStatusBar()
 
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('second')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         second.text = 'second'
@@ -211,7 +251,9 @@ class AnsiConsoleTest {
         context.checking {
             one(ansi).cursorLeft(6)
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('first')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         second.close()
@@ -220,7 +262,9 @@ class AnsiConsoleTest {
     @Test
     public void appendsTextWhenStatusBarIsPresent() {
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.addStatusBar().text = 'status'
@@ -230,7 +274,9 @@ class AnsiConsoleTest {
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).a('message')
             one(ansi).a(EOL)
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.mainArea.append("message$EOL");
@@ -239,7 +285,9 @@ class AnsiConsoleTest {
     @Test
     public void appendsTextWithNoEOLWhenStatusBarIsPresent() {
         context.checking {
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.addStatusBar().text = 'status'
@@ -249,7 +297,9 @@ class AnsiConsoleTest {
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).a('message')
             one(ansi).newline()
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.mainArea.append('message');
@@ -261,7 +311,9 @@ class AnsiConsoleTest {
             one(ansi).cursorRight(7)
             one(ansi).a('message2')
             one(ansi).newline()
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.mainArea.append('message2');
@@ -277,7 +329,9 @@ class AnsiConsoleTest {
 
         context.checking {
             one(ansi).newline()
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.addStatusBar().text = 'status'
@@ -289,7 +343,9 @@ class AnsiConsoleTest {
             one(ansi).cursorRight(7)
             one(ansi).a('message2')
             one(ansi).a(EOL)
+            one(ansi).a(Attribute.INTENSITY_BOLD)
             one(ansi).a('status')
+            one(ansi).a(Attribute.INTENSITY_BOLD_OFF)
         }
 
         console.mainArea.append("message2${EOL}")

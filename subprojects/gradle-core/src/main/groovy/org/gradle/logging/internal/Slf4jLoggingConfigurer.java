@@ -34,6 +34,9 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintStream;
 
 /**
+ * A {@link org.gradle.logging.internal.LoggingConfigurer} implementation which configures SLF4J to route logging
+ * events to a {@link org.gradle.logging.internal.OutputEventListener}.
+ *
  * @author Hans Dockter
  */
 public class Slf4jLoggingConfigurer implements LoggingConfigurer {
@@ -148,7 +151,9 @@ public class Slf4jLoggingConfigurer implements LoggingConfigurer {
         protected void append(ILoggingEvent event) {
             try {
                 ThrowableProxy throwableProxy = (ThrowableProxy) event.getThrowableProxy();
-                listener.onOutput(new LogEvent(event.getLoggerName(), toLogLevel(event), event.getFormattedMessage(), throwableProxy == null ? null : throwableProxy.getThrowable()));
+                Throwable throwable = throwableProxy == null ? null : throwableProxy.getThrowable();
+                String message = event.getFormattedMessage();
+                listener.onOutput(new LogEvent(event.getTimeStamp(), event.getLoggerName(), toLogLevel(event), message, throwable));
             } catch (Throwable t) {
                 // Give up and try stdout
                 t.printStackTrace(defaultStdOut);

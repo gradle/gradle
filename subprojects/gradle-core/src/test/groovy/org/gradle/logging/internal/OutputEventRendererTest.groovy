@@ -17,12 +17,10 @@ package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.StandardOutputListener
-
 import org.gradle.util.RedirectStdOutAndErr
 import org.junit.Rule
-import spock.lang.Specification
 
-class OutputEventRendererTest extends Specification {
+class OutputEventRendererTest extends OutputSpecification {
     @Rule public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     private final ConsoleStub console = new ConsoleStub()
     private OutputEventRenderer renderer
@@ -55,10 +53,10 @@ class OutputEventRendererTest extends Specification {
     def rendersLogEventsWhenLogLevelIsDebug() {
         when:
         renderer.configure(LogLevel.DEBUG)
-        renderer.onOutput(event('message', LogLevel.INFO))
+        renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
 
         then:
-        outputs.stdOut.readLines() == ['[INFO] [category] message']
+        outputs.stdOut.readLines() == ['10:00:00.000 [INFO] [category] message']
         outputs.stdErr == ''
     }
 
@@ -87,6 +85,18 @@ class OutputEventRendererTest extends Specification {
         listener.value == ''
     }
 
+    def rendersLogEventsToStdOutListenerWhenLogLevelIsDebug() {
+        def listener = new TestListener()
+
+        when:
+        renderer.configure(LogLevel.DEBUG)
+        renderer.addStandardOutputListener(listener)
+        renderer.onOutput(event(tenAm, 'message', LogLevel.INFO))
+
+        then:
+        listener.value.readLines() == ['10:00:00.000 [INFO] [category] message']
+    }
+    
     def rendersErrorLogEventsToStdErrListener() {
         def listener = new TestListener()
 
@@ -110,6 +120,18 @@ class OutputEventRendererTest extends Specification {
 
         then:
         listener.value == ''
+    }
+
+    def rendersLogEventsToStdErrListenerWhenLogLevelIsDebug() {
+        def listener = new TestListener()
+
+        when:
+        renderer.configure(LogLevel.DEBUG)
+        renderer.addStandardErrorListener(listener)
+        renderer.onOutput(event(tenAm, 'message', LogLevel.ERROR))
+
+        then:
+        listener.value.readLines() == ['10:00:00.000 [ERROR] [category] message']
     }
 
     def rendersProgressEvents() {
@@ -170,44 +192,6 @@ class OutputEventRendererTest extends Specification {
 
         then:
         console.value.readLines() == ['error']
-    }
-
-    private LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent('category', logLevel, text)
-    }
-
-    private ProgressStartEvent start(String description) {
-        return new ProgressStartEvent('category', description)
-    }
-
-    private ProgressCompleteEvent complete(String status) {
-        return new ProgressCompleteEvent('category', status)
-    }
-}
-
-private static class ConsoleStub implements Console, TextArea {
-    private final StringWriter writer = new StringWriter();
-
-    public String getValue() {
-        return writer.toString();
-    }
-
-    public Label addStatusBar() {
-        return new Label() {
-            void close() {
-            }
-
-            void setText(String text) {
-            }
-        }
-    }
-
-    public TextArea getMainArea() {
-        return this;
-    }
-
-    public void append(CharSequence text) {
-        writer.append(text);
     }
 }
 

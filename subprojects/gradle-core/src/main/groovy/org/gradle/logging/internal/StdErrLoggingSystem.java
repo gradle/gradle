@@ -15,11 +15,13 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.util.TimeProvider;
+
 import java.io.PrintStream;
 
 public class StdErrLoggingSystem extends PrintStreamLoggingSystem {
-    public StdErrLoggingSystem(OutputEventListener listener) {
-        super(listener, "system.err");
+    public StdErrLoggingSystem(OutputEventListener listener, TimeProvider timeProvider) {
+        super(listener, "system.err", timeProvider);
     }
 
     @Override

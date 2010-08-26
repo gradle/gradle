@@ -18,7 +18,6 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.PropertyReportRenderer;
-import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.IOException;
 import java.util.Map;
@@ -28,7 +27,7 @@ import java.util.TreeMap;
  * Displays the properties of a project. This task is used when you execute the property list command-line option.
  */
 public class PropertyReportTask extends AbstractReportTask {
-    private PropertyReportRenderer renderer = new PropertyReportRenderer(getServices().get(StyledTextOutputFactory.class).create());
+    private PropertyReportRenderer renderer = new PropertyReportRenderer();
 
     public ProjectReportRenderer getRenderer() {
         return renderer;

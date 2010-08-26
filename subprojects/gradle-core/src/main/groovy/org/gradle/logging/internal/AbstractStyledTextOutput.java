@@ -36,12 +36,40 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
         return this;
     }
 
+    public StyledTextOutput format(String pattern, Object... args) {
+        text(String.format(pattern, args));
+        return this;
+    }
+
+    public StyledTextOutput println(Object text) {
+        text(text);
+        println();
+        return this;
+    }
+
+    public StyledTextOutput formatln(String pattern, Object... args) {
+        format(pattern, args);
+        println();
+        return this;
+    }
+
     public void onOutput(CharSequence output) {
         text(output);
     }
 
-    public StyledTextOutput endLine() {
+    public StyledTextOutput println() {
         text(EOL);
+        return this;
+    }
+
+    public StyledTextOutput text(Object text) {
+        doAppend(text.toString());
+        return this;
+    }
+
+    protected abstract void doAppend(String text);
+
+    public StyledTextOutput style(Style style) {
         return this;
     }
 }

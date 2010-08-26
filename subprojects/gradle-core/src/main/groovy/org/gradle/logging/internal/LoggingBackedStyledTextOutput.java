@@ -17,54 +17,82 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.LineBufferingOutputStream;
+import org.gradle.util.TimeProvider;
 
-import java.io.Flushable;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
-public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput implements LoggingConfigurer, Flushable {
-    private LogLevel logLevel;
+/**
+ * A {@link org.gradle.logging.StyledTextOutput} implementation which generates events of type {@link
+ * org.gradle.logging.internal.StyledTextOutputEvent}. This implementation is not thread-safe.
+ */
+public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private final LineBufferingOutputStream outstr;
+    private Style style = Style.Normal;
+    private boolean styleChange;
 
-    public LoggingBackedStyledTextOutput(final OutputEventListener listener, final String category, LogLevel logLevel) {
-        this.logLevel = logLevel;
-        outstr = new LineBufferingOutputStream(new LogAction(listener, category), true);
+    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, TimeProvider timeProvider) {
+        outstr = new LineBufferingOutputStream(new LogAction(listener, category, timeProvider), true);
     }
 
-    public void flush() {
-        outstr.flush();
-    }
-
-    public LogLevel getLogLevel() {
-        return logLevel;
-    }
-
-    public void configure(LogLevel logLevel) {
-        this.logLevel = logLevel;
-    }
-
-    public StyledTextOutput text(Object text) {
+    public StyledTextOutput style(Style style) {
+        styleChange = true;
         try {
-            outstr.write(text.toString().getBytes());
+            outstr.flush();
+        } finally {
+            styleChange = false;
+        }
+        this.style = style;
+        return this;
+    }
+
+    @Override
+    protected void doAppend(String text) {
+        try {
+            outstr.write(text.getBytes());
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
-        return this;
     }
 
     private class LogAction implements Action<String> {
         private final OutputEventListener listener;
         private final String category;
+        private final TimeProvider timeProvider;
+        private List<StyledTextOutputEvent.Span> spans;
 
-        public LogAction(OutputEventListener listener, String category) {
+        public LogAction(OutputEventListener listener, String category, TimeProvider timeProvider) {
             this.listener = listener;
             this.category = category;
+            this.timeProvider = timeProvider;
         }
 
         public void execute(String text) {
-            listener.onOutput(new StyledTextOutputEvent(category, logLevel, text));
+            if (text.length() == 0) {
+                return;
+            }
+
+            StyledTextOutputEvent.Span span = new StyledTextOutputEvent.Span(style, text);
+            if (styleChange) {
+                if (spans == null) {
+                    spans = new ArrayList<StyledTextOutputEvent.Span>();
+                }
+                spans.add(span);
+                return;
+            } else if (spans != null) {
+                spans.add(span);
+            } else {
+                spans = Collections.singletonList(span);
+            }
+
+            StyledTextOutputEvent event = new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, spans);
+            spans = null;
+            
+            listener.onOutput(event);
         }
     }
 }

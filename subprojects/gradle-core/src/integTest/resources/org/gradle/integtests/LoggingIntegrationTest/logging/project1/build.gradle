@@ -11,13 +11,13 @@ logger.trace('A trace log message.')
 println 'A message which is logged at QUIET level'
 
 // Should use stdout capture level
-def textOutput = serviceRegistryFactory.get(StyledTextOutputFactory.class).create()
-textOutput.text('Text which is logged at QUIET level').endLine()
+def textOutput = serviceRegistryFactory.get(StyledTextOutputFactory.class).create('build')
+textOutput.text('Text which is logged at QUIET level').println()
 
 logging.captureStandardOutput LogLevel.INFO
 println 'A message which is logged at INFO level'
 
-textOutput.text('Text which is logged at INFO level').endLine()
+textOutput.text('Text which is logged at INFO level').println()
 
 System.err.println 'An error message which is logged at ERROR level'
 logging.captureStandardError LogLevel.LIFECYCLE

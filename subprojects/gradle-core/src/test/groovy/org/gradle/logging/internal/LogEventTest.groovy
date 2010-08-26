@@ -23,11 +23,11 @@ class LogEventTest extends Specification {
 
     def renderWritesMessageToTextOutput() {
         when:
-        new LogEvent('category', LogLevel.INFO, 'message').render(output)
+        new LogEvent(0, 'category', LogLevel.INFO, 'message', null).render(output)
 
         then:
         1 * output.text('message')
-        1 * output.endLine()
+        1 * output.println()
         0 * output._
     }
     
@@ -35,11 +35,11 @@ class LogEventTest extends Specification {
         def failure = new RuntimeException()
 
         when:
-        new LogEvent('category', LogLevel.INFO, 'message', failure).render(output)
+        new LogEvent(0, 'category', LogLevel.INFO, 'message', failure).render(output)
 
         then:
         1 * output.text('message')
-        1 * output.endLine()
+        1 * output.println()
         1 * output.exception(failure)
         0 * output._
     }

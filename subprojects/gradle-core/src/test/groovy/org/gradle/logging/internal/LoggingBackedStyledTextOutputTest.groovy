@@ -15,29 +15,49 @@
  */
 package org.gradle.logging.internal
 
-import org.gradle.api.logging.LogLevel
-import spock.lang.Specification
+import org.gradle.util.TimeProvider
+import static org.gradle.logging.StyledTextOutput.Style.*
 
-class LoggingBackedStyledTextOutputTest extends Specification {
+class LoggingBackedStyledTextOutputTest extends OutputSpecification {
     private final OutputEventListener listener = Mock()
-    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO)
+    private final TimeProvider timeProvider = { 1200L } as TimeProvider
+    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', timeProvider)
 
-    def forwardsLineOfTextToListenerAtDefaultLevel() {
+    def forwardsLineOfTextToListener() {
         when:
-        output.text('message').endLine()
+        output.println('message')
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.INFO && it.category == 'category' && it.message == toNative('message\n')})
+        1 * listener.onOutput({it.spans[0].text == toNative('message\n')})
         0 * listener._
     }
 
-    def forwardsEachLineOfTextToListener() {
+    def fillsInDetailsOfEvent() {
         when:
-        output.text(toNative('message1\nmessage2')).endLine()
+        output.text('message').println()
 
         then:
-        1 * listener.onOutput({it.message == toNative('message1\n')})
-        1 * listener.onOutput({it.message == toNative('message2\n')})
+        1 * listener.onOutput({it.spans[0].style == Normal && it.category == 'category' && it.timestamp == 1200 && it.spans[0].text == toNative('message\n')})
+        0 * listener._
+    }
+
+    def buffersTextUntilEndOfLineReached() {
+        when:
+        output.text('message ').text('with more\nanother ').text('line').println()
+
+        then:
+        1 * listener.onOutput({it.spans[0].text == toNative('message with more\n')})
+        1 * listener.onOutput({it.spans[0].text == toNative('another line\n')})
+        0 * listener._
+    }
+    
+    def forwardsEachLineOfTextToListener() {
+        when:
+        output.text(toNative('message1\nmessage2')).println()
+
+        then:
+        1 * listener.onOutput({it.spans[0].text == toNative('message1\n')})
+        1 * listener.onOutput({it.spans[0].text == toNative('message2\n')})
         0 * listener._
     }
 
@@ -46,31 +66,60 @@ class LoggingBackedStyledTextOutputTest extends Specification {
         output.text(toNative('\n\n'))
 
         then:
-        2 * listener.onOutput({it.message == toNative('\n')})
+        2 * listener.onOutput({it.spans[0].text == toNative('\n')})
         0 * listener._
     }
 
-    def forwardsBufferedTextToListenerOnFlush() {
+    def canChangeTheStyle() {
         when:
-        output.text('message1')
-        output.flush()
+        output.style(Header)
+        output.println('message')
 
         then:
-        1 * listener.onOutput({it.message == 'message1'})
+        1 * listener.onOutput(!null) >> { args ->
+            def event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].style == Header
+            assert event.spans[0].text == toNative('message\n')
+        }
         0 * listener._
     }
     
-    def forwardsTextToListenerWithSpecifiedLevel() {
+    def canChangeTheStyleInsideALine() {
         when:
-        output.configure(LogLevel.ERROR)
-        output.text('message').endLine()
+        output.style(Header)
+        output.text('header')
+        output.style(Normal)
+        output.text('normal')
+        output.println()
 
         then:
-        1 * listener.onOutput({it.logLevel == LogLevel.ERROR})
+        1 * listener.onOutput(!null) >> { args ->
+            def event = args[0]
+            assert event.spans.size() == 2
+            assert event.spans[0].style == Header
+            assert event.spans[0].text == 'header'
+            assert event.spans[1].style == Normal
+            assert event.spans[1].text == toNative('normal\n')
+        }
         0 * listener._
     }
 
-    private String toNative(String value) {
-        return value.replaceAll('\n', System.getProperty('line.separator'))
+    def ignoresEmptySpans() {
+        when:
+        output.style(Header)
+        output.text('')
+        output.style(Normal)
+        output.style(UserInput)
+        output.println()
+
+        then:
+        1 * listener.onOutput(!null) >> { args ->
+            def event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].style == UserInput
+            assert event.spans[0].text == toNative('\n')
+        }
+        0 * listener._
     }
 }

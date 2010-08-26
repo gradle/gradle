@@ -15,22 +15,17 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
-import static org.gradle.util.Matchers.*;
-import static org.junit.Assert.*;
-import org.junit.Before;
+import org.gradle.logging.internal.TestStyledTextOutput;
 import org.junit.Test;
 
-import java.io.StringWriter;
+import static org.gradle.util.Matchers.containsLine;
+import static org.junit.Assert.assertThat;
 
 public class PropertyReportRendererTest {
-    private StringWriter out;
-    private PropertyReportRenderer renderer;
-
-    @Before
-    public void setUp() {
-        out = new StringWriter();
-        renderer = new PropertyReportRenderer(out);
-    }
+    private final TestStyledTextOutput out = new TestStyledTextOutput();
+    private final PropertyReportRenderer renderer = new PropertyReportRenderer(){{
+        setOutput(out);
+    }};
 
     @Test
     public void writesProperty() {
