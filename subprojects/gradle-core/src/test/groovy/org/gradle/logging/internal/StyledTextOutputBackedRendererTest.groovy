@@ -53,7 +53,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def rendersOutputEventWhenInDebugMode() {
         TestStyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
-        RenderableOutputEvent event = event('message')
+        RenderableOutputEvent event = event(tenAm, 'message')
 
         when:
         renderer.onOutput(new LogLevelChangeEvent(LogLevel.DEBUG))
@@ -66,8 +66,8 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def continuesLineWhenPreviousOutputEventDidNotEndWithEOL() {
         TestStyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
-        RenderableOutputEvent event1 = new StyledTextOutputEvent(0, 'category', LogLevel.INFO, 'message')
-        RenderableOutputEvent event2 = new StyledTextOutputEvent(0, 'category', LogLevel.INFO, toNative('\n'))
+        RenderableOutputEvent event1 = new StyledTextOutputEvent(tenAm, 'category', LogLevel.INFO, 'message')
+        RenderableOutputEvent event2 = new StyledTextOutputEvent(tenAm, 'category', LogLevel.INFO, toNative('\n'))
 
         when:
         renderer.onOutput(new LogLevelChangeEvent(LogLevel.DEBUG))
@@ -81,8 +81,8 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def addsEOLWhenPreviousOutputEventDidNotEndWithEOLAndHadDifferentCategory() {
         TestStyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
-        RenderableOutputEvent event1 = new StyledTextOutputEvent(0, 'category', LogLevel.INFO, 'message')
-        RenderableOutputEvent event2 = new StyledTextOutputEvent(0, 'category2', LogLevel.INFO, 'message2')
+        RenderableOutputEvent event1 = new StyledTextOutputEvent(tenAm, 'category', LogLevel.INFO, 'message')
+        RenderableOutputEvent event2 = new StyledTextOutputEvent(tenAm, 'category2', LogLevel.INFO, 'message2')
 
         when:
         renderer.onOutput(new LogLevelChangeEvent(LogLevel.DEBUG))
