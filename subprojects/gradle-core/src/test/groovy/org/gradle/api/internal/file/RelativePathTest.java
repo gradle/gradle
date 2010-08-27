@@ -35,7 +35,7 @@ public class RelativePathTest {
 
     @Test
     public void testConstructors() {
-        RelativePath path, childPath;
+        RelativePath path;
         path = new RelativePath(true, "one");
         assertPathContains(path, true, "one");
 

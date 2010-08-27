@@ -45,7 +45,7 @@ import org.slf4j.LoggerFactory;
  * @author Steve Ebersole
  */
 public class AntlrTask extends SourceTask {
-	private static final Logger LOGGER = LoggerFactory.getLogger( AntlrTask.class );
+    private static final Logger LOGGER = LoggerFactory.getLogger(AntlrTask.class);
 
     private boolean trace;
     private boolean traceLexer;
@@ -54,89 +54,89 @@ public class AntlrTask extends SourceTask {
 
     private FileCollection antlrClasspath;
 
-	private File outputDirectory;
+    private File outputDirectory;
 
-	public boolean isTrace() {
-		return trace;
-	}
+    public boolean isTrace() {
+        return trace;
+    }
 
-	public void setTrace(boolean trace) {
-		this.trace = trace;
-	}
+    public void setTrace(boolean trace) {
+        this.trace = trace;
+    }
 
-	public boolean isTraceLexer() {
-		return traceLexer;
-	}
+    public boolean isTraceLexer() {
+        return traceLexer;
+    }
 
-	public void setTraceLexer(boolean traceLexer) {
-		this.traceLexer = traceLexer;
-	}
+    public void setTraceLexer(boolean traceLexer) {
+        this.traceLexer = traceLexer;
+    }
 
-	public boolean isTraceParser() {
-		return traceParser;
-	}
+    public boolean isTraceParser() {
+        return traceParser;
+    }
 
-	public void setTraceParser(boolean traceParser) {
-		this.traceParser = traceParser;
-	}
+    public void setTraceParser(boolean traceParser) {
+        this.traceParser = traceParser;
+    }
 
-	public boolean isTraceTreeWalker() {
-		return traceTreeWalker;
-	}
+    public boolean isTraceTreeWalker() {
+        return traceTreeWalker;
+    }
 
-	public void setTraceTreeWalker(boolean traceTreeWalker) {
-		this.traceTreeWalker = traceTreeWalker;
-	}
+    public void setTraceTreeWalker(boolean traceTreeWalker) {
+        this.traceTreeWalker = traceTreeWalker;
+    }
 
     @OutputDirectory
-	public File getOutputDirectory() {
-		return outputDirectory;
-	}
+    public File getOutputDirectory() {
+        return outputDirectory;
+    }
 
-	public void setOutputDirectory(File outputDirectory) {
-		this.outputDirectory = outputDirectory;
-	}
+    public void setOutputDirectory(File outputDirectory) {
+        this.outputDirectory = outputDirectory;
+    }
 
     @InputFiles
-	public FileCollection getAntlrClasspath() {
-		return antlrClasspath;
-	}
+    public FileCollection getAntlrClasspath() {
+        return antlrClasspath;
+    }
 
-	public void setAntlrClasspath(FileCollection antlrClasspath) {
-		this.antlrClasspath = antlrClasspath;
-	}
+    public void setAntlrClasspath(FileCollection antlrClasspath) {
+        this.antlrClasspath = antlrClasspath;
+    }
 
-	@TaskAction
-	public void generate() {
-		// Determine the grammar files and the proper ordering amongst them
-		XRef xref = new MetadataExtracter().extractMetadata( getSource() );
-		List<GenerationPlan> generationPlans = new GenerationPlanBuilder( outputDirectory ).buildGenerationPlans( xref );
+    @TaskAction
+    public void generate() {
+        // Determine the grammar files and the proper ordering amongst them
+        XRef xref = new MetadataExtracter().extractMetadata(getSource());
+        List<GenerationPlan> generationPlans = new GenerationPlanBuilder(outputDirectory).buildGenerationPlans(xref);
 
-		for ( GenerationPlan generationPlan : generationPlans ) {
-			if ( ! generationPlan.isOutOfDate() ) {
-				LOGGER.info( "grammar [" + generationPlan.getId() + "] was up-to-date; skipping" );
-				continue;
-			}
+        for (GenerationPlan generationPlan : generationPlans) {
+            if (!generationPlan.isOutOfDate()) {
+                LOGGER.info("grammar [" + generationPlan.getId() + "] was up-to-date; skipping");
+                continue;
+            }
 
-			LOGGER.info( "performing grammar generation [" + generationPlan.getId() + "]" );
+            LOGGER.info("performing grammar generation [" + generationPlan.getId() + "]");
 
-			//noinspection ResultOfMethodCallIgnored
-			generationPlan.getGenerationDirectory().mkdirs();
+            //noinspection ResultOfMethodCallIgnored
+            generationPlan.getGenerationDirectory().mkdirs();
 
-			ANTLR antlr = new ANTLR();
-			antlr.setProject( getAnt().getAntProject() );
-			Path antlrTaskClasspath = antlr.createClasspath();
-			for ( File dep: getAntlrClasspath() ) {
-				antlrTaskClasspath.createPathElement().setLocation( dep );
-			}
-			antlr.setTrace( trace );
-			antlr.setTraceLexer( traceLexer );
-			antlr.setTraceParser( traceParser );
-			antlr.setTraceTreeWalker( traceTreeWalker );
-			antlr.setOutputdirectory( generationPlan.getGenerationDirectory() );
-			antlr.setTarget( generationPlan.getSource() );
+            ANTLR antlr = new ANTLR();
+            antlr.setProject(getAnt().getAntProject());
+            Path antlrTaskClasspath = antlr.createClasspath();
+            for (File dep : getAntlrClasspath()) {
+                antlrTaskClasspath.createPathElement().setLocation(dep);
+            }
+            antlr.setTrace(trace);
+            antlr.setTraceLexer(traceLexer);
+            antlr.setTraceParser(traceParser);
+            antlr.setTraceTreeWalker(traceTreeWalker);
+            antlr.setOutputdirectory(generationPlan.getGenerationDirectory());
+            antlr.setTarget(generationPlan.getSource());
 
-			antlr.execute();
-		}
-	}
+            antlr.execute();
+        }
+    }
 }

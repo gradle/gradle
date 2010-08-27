@@ -28,70 +28,70 @@ import antlr.preprocessor.Hierarchy;
  * @author Steve Ebersole
  */
 public class XRef {
-	private final Hierarchy antlrHierarchy;
+    private final Hierarchy antlrHierarchy;
 
-	private LinkedHashMap<String, GrammarFileMetadata> filesByPath = new LinkedHashMap<String, GrammarFileMetadata>();
-	private HashMap<String, GrammarFileMetadata> filesByExportVocab = new HashMap<String, GrammarFileMetadata>();
-	private HashMap<String, GrammarFileMetadata> filesByClassName = new HashMap<String, GrammarFileMetadata>();
+    private LinkedHashMap<String, GrammarFileMetadata> filesByPath = new LinkedHashMap<String, GrammarFileMetadata>();
+    private HashMap<String, GrammarFileMetadata> filesByExportVocab = new HashMap<String, GrammarFileMetadata>();
+    private HashMap<String, GrammarFileMetadata> filesByClassName = new HashMap<String, GrammarFileMetadata>();
 
-	public XRef(Hierarchy antlrHierarchy) {
-		this.antlrHierarchy = antlrHierarchy;
-	}
+    public XRef(Hierarchy antlrHierarchy) {
+        this.antlrHierarchy = antlrHierarchy;
+    }
 
-	public Object getAntlrHierarchy() {
-		return antlrHierarchy;
-	}
+    public Object getAntlrHierarchy() {
+        return antlrHierarchy;
+    }
 
-	/**
-	 * Adds a grammar file to this cross-reference.
-	 * 
-	 * @param grammarFileMetadata The grammar file to add (and to be cross referenced).
-	 */
-	void addGrammarFile(GrammarFileMetadata grammarFileMetadata) {
-		filesByPath.put( grammarFileMetadata.getFilePath().getPath(), grammarFileMetadata );
-		for ( GrammarMetadata grammarMetadata : grammarFileMetadata.getGrammars() ) {
-			filesByClassName.put( grammarMetadata.getClassName(), grammarFileMetadata );
-			if ( grammarMetadata.getExportVocab() != null ) {
-				GrammarFileMetadata old = filesByExportVocab.put( grammarMetadata.getExportVocab(), grammarFileMetadata );
-				if ( old != null && old != grammarFileMetadata ) {
-					System.out.println( "[WARNING] : multiple grammars defined the same exportVocab : " + grammarMetadata
-							.getExportVocab() );
-				}
-			}
-		}
-	}
+    /**
+     * Adds a grammar file to this cross-reference.
+     *
+     * @param grammarFileMetadata The grammar file to add (and to be cross referenced).
+     */
+    void addGrammarFile(GrammarFileMetadata grammarFileMetadata) {
+        filesByPath.put(grammarFileMetadata.getFilePath().getPath(), grammarFileMetadata);
+        for (GrammarMetadata grammarMetadata : grammarFileMetadata.getGrammars()) {
+            filesByClassName.put(grammarMetadata.getClassName(), grammarFileMetadata);
+            if (grammarMetadata.getExportVocab() != null) {
+                GrammarFileMetadata old = filesByExportVocab.put(grammarMetadata.getExportVocab(), grammarFileMetadata);
+                if (old != null && old != grammarFileMetadata) {
+                    System.out.println("[WARNING] : multiple grammars defined the same exportVocab : " + grammarMetadata
+                            .getExportVocab());
+                }
+            }
+        }
+    }
 
-	public Iterator<GrammarFileMetadata> iterateGrammarFiles() {
-		return filesByPath.values().iterator();
-	}
+    public Iterator<GrammarFileMetadata> iterateGrammarFiles() {
+        return filesByPath.values().iterator();
+    }
 
-	/**
-	 * Locate the grammar file metadata by grammar file path.
-	 *
-	 * @param path The grammar file path.
-	 * @return The grammar file metadata.  May be null if none found.
-	 */
-	public GrammarFileMetadata getGrammarFileByPath(String path) {
-		return filesByPath.get( path );
-	}
+    /**
+     * Locate the grammar file metadata by grammar file path.
+     *
+     * @param path The grammar file path.
+     * @return The grammar file metadata.  May be null if none found.
+     */
+    public GrammarFileMetadata getGrammarFileByPath(String path) {
+        return filesByPath.get(path);
+    }
 
-	/**
-	 * Locate the grammar file metadata by the name of a class generated from one of its included grammars.
-	 *
-	 * @param className The generated class name.
-	 * @return The grammar file metadata.  May be null if none found.
-	 */
-	public GrammarFileMetadata getGrammarFileByClassName(String className) {
-		return filesByClassName.get( className );
-	}
+    /**
+     * Locate the grammar file metadata by the name of a class generated from one of its included grammars.
+     *
+     * @param className The generated class name.
+     * @return The grammar file metadata.  May be null if none found.
+     */
+    public GrammarFileMetadata getGrammarFileByClassName(String className) {
+        return filesByClassName.get(className);
+    }
 
-	/**
-	 * Locate the grammar file metadata by the name of a vocabulary exported from one of its included grammars.
-	 *
-	 * @param vocabName The vocabulary name
-	 * @return The grammar file metadata.  May be null if none found.
-	 */
-	public GrammarFileMetadata getGrammarFileByExportVocab(String vocabName) {
-		return filesByExportVocab.get( vocabName );
-	}
+    /**
+     * Locate the grammar file metadata by the name of a vocabulary exported from one of its included grammars.
+     *
+     * @param vocabName The vocabulary name
+     * @return The grammar file metadata.  May be null if none found.
+     */
+    public GrammarFileMetadata getGrammarFileByExportVocab(String vocabName) {
+        return filesByExportVocab.get(vocabName );
+    }
 }

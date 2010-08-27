@@ -20,42 +20,42 @@ import java.util.ArrayList;
 import java.io.File;
 
 /**
- * Models information about an Antlr grammar file, including the inidividual {@link #getGrammars grammars}
- * (lexers, parsers, etc) contained within it.
+ * Models information about an Antlr grammar file, including the inidividual {@link #getGrammars grammars} (lexers,
+ * parsers, etc) contained within it.
  *
  * @author Steve Ebersole
  */
 public class GrammarFileMetadata {
-	private final File filePath;
-	private final antlr.preprocessor.GrammarFile antlrGrammarFile;
-	private final String packageName;
-	private List<GrammarMetadata> grammarMetadatas = new ArrayList<GrammarMetadata>();
+    private final File filePath;
+    private final antlr.preprocessor.GrammarFile antlrGrammarFile;
+    private final String packageName;
+    private List<GrammarMetadata> grammarMetadatas = new ArrayList<GrammarMetadata>();
 
-	public GrammarFileMetadata(File filePath, antlr.preprocessor.GrammarFile antlrGrammarFile, String packageName) {
-		this.filePath = filePath;
-		this.antlrGrammarFile = antlrGrammarFile;
-		this.packageName = packageName;
+    public GrammarFileMetadata(File filePath, antlr.preprocessor.GrammarFile antlrGrammarFile, String packageName) {
+        this.filePath = filePath;
+        this.antlrGrammarFile = antlrGrammarFile;
+        this.packageName = packageName;
 
-		List<GrammarDelegate> antlrGrammarDelegates = GrammarDelegate.extractGrammarDelegates( antlrGrammarFile );
-		for ( GrammarDelegate antlrGrammarDelegate : antlrGrammarDelegates ) {
-			GrammarMetadata grammarMetadata = new GrammarMetadata( this, antlrGrammarDelegate );
-			grammarMetadatas.add( grammarMetadata );
-		}
-	}
+        List<GrammarDelegate> antlrGrammarDelegates = GrammarDelegate.extractGrammarDelegates(antlrGrammarFile);
+        for (GrammarDelegate antlrGrammarDelegate : antlrGrammarDelegates) {
+            GrammarMetadata grammarMetadata = new GrammarMetadata(this, antlrGrammarDelegate);
+            grammarMetadatas.add(grammarMetadata);
+        }
+    }
 
-	public File getFilePath() {
-		return filePath;
-	}
+    public File getFilePath() {
+        return filePath;
+    }
 
-	public antlr.preprocessor.GrammarFile getAntlrGrammarFile() {
-		return antlrGrammarFile;
-	}
+    public antlr.preprocessor.GrammarFile getAntlrGrammarFile() {
+        return antlrGrammarFile;
+    }
 
-	public String getPackageName() {
-		return packageName;
-	}
+    public String getPackageName() {
+        return packageName;
+    }
 
-	public List<GrammarMetadata> getGrammars() {
-		return grammarMetadatas;
-	}
+    public List<GrammarMetadata> getGrammars() {
+        return grammarMetadatas;
+    }
 }

@@ -284,8 +284,8 @@ public class JettyRun extends AbstractJettyRunTask {
                         int size = old.length + overlays.size();
                         Resource[] resources = new Resource[size];
                         System.arraycopy(old, 0, resources, 0, old.length);
-                        for (int i = old.length, j = 0; i < size; i++, j++) {
-                            resources[i] = overlays.get(j);
+                        for (int i = old.length; i < size; i++) {
+                            resources[i] = overlays.get(i - old.length);
                             logger.info("Adding overlay: " + resources[i]);
                         }
                         rc.setResources(resources);

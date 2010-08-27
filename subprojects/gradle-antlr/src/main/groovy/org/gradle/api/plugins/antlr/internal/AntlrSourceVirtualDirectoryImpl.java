@@ -31,32 +31,32 @@ import groovy.lang.Closure;
  * @author Steve Ebersole
  */
 public class AntlrSourceVirtualDirectoryImpl implements AntlrSourceVirtualDirectory {
-	private final SourceDirectorySet antlr;
+    private final SourceDirectorySet antlr;
     private final UnionFileTree allAntlr;
     private final PatternFilterable antlrPatterns = new PatternSet();
 
-	public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, FileResolver fileResolver) {
-		final String displayName = String.format( "%s Antlr source", parentDisplayName );
-		antlr = new DefaultSourceDirectorySet( displayName, fileResolver );
-		antlr.getFilter().include( "**/*.g" );
-        antlrPatterns.include( "**/*.g" );
-        allAntlr = new UnionFileTree( displayName, antlr.matching( antlrPatterns ) );
-	}
+    public AntlrSourceVirtualDirectoryImpl(String parentDisplayName, FileResolver fileResolver) {
+        final String displayName = String.format("%s Antlr source", parentDisplayName);
+        antlr = new DefaultSourceDirectorySet(displayName, fileResolver);
+        antlr.getFilter().include("**/*.g");
+        antlrPatterns.include("**/*.g");
+        allAntlr = new UnionFileTree(displayName, antlr.matching(antlrPatterns));
+    }
 
-	public SourceDirectorySet getAntlr() {
-		return antlr;
-	}
+    public SourceDirectorySet getAntlr() {
+        return antlr;
+    }
 
-	public AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
-        ConfigureUtil.configure( configureClosure, getAntlr() );
+    public AntlrSourceVirtualDirectory antlr(Closure configureClosure) {
+        ConfigureUtil.configure(configureClosure, getAntlr());
         return this;
     }
 
-	public UnionFileTree getAllAntlr() {
-		return allAntlr;
-	}
+    public UnionFileTree getAllAntlr() {
+        return allAntlr;
+    }
 
-	public PatternFilterable getAntlrSourcePatterns() {
-		return antlrPatterns;
-	}
+    public PatternFilterable getAntlrSourcePatterns() {
+        return antlrPatterns;
+    }
 }
