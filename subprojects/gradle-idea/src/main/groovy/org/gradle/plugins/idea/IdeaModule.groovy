@@ -179,6 +179,7 @@ public class IdeaModule extends ConventionTask {
     private boolean areFilesRelativeToEachOther(File file1, File file2) {
         File parent1 = getParentFile(file1)
         File parent2 = getParentFile(file2)
+        println "Parent1: $parent1.absolutePath; Parent2: $parent2.absolutePath"
 
         return parent1.equals(parent2)
     }
