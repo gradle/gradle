@@ -51,9 +51,7 @@ class AsciiReportRendererTest extends Specification {
         renderer.completeConfiguration(configuration);
 
         then:
-        textOutput.value == '''
-configName - description
-'''
+        textOutput.value.readLines() == ['', 'configName - description']
     }
 
     def rendersDependencyTreeForConfiguration() {
@@ -84,12 +82,13 @@ configName - description
         renderer.render(configuration)
 
         then:
-        textOutput.value == '''+--- dep1 [config1]
-|    +--- dep1.1 [config1.1]
-+--- dep2 [config2]
-     +--- dep2.1 [config2.1]
-     +--- dep2.2 [config2.2]
-'''
+        textOutput.value.readLines() == [
+                '+--- dep1 [config1]',
+                '|    +--- dep1.1 [config1.1]',
+                '+--- dep2 [config2]',
+                '     +--- dep2.1 [config2.1]',
+                '     +--- dep2.2 [config2.2]'
+        ]
     }
 
     def rendersDependencyTreeForEmptyConfiguration() {
@@ -100,8 +99,6 @@ configName - description
         renderer.render(configuration)
 
         then:
-        textOutput.value == '''No dependencies
-'''
-
+        textOutput.value.readLines() == ['No dependencies']
     }
 }
