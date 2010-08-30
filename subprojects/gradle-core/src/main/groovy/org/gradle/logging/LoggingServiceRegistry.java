@@ -48,7 +48,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
     }
 
     protected ProgressLoggerFactory createProgressLoggerFactory() {
-        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)));
+        return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
     
     protected LoggingManagerFactory createLoggingManagerFactory() {

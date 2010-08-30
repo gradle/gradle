@@ -201,7 +201,7 @@ public class ProjectBuilder {
         }
 
         protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class));
+            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         }
 
         protected LoggingManagerFactory createLoggingManagerFactory() {

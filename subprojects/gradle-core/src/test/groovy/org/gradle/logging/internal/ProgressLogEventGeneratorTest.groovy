@@ -20,36 +20,40 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
 
     def insertsLogMessagesWhenOperationStartsAndEnds() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, false)
+        def startEvent = start('description')
+        def completeEvent = complete('status')
 
         when:
-        generator.onOutput(start('description'))
+        generator.onOutput(startEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == 'description'})
+        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == 'description' && it.timestamp == startEvent.timestamp})
         0 * target._
 
         when:
-        generator.onOutput(complete('status'))
+        generator.onOutput(completeEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative(' status\n')})
+        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative(' status\n') && it.timestamp == completeEvent.timestamp})
         0 * target._
     }
 
     def insertsLogMessagesWhenOperationStartsAndEndsAndDeferredHeaderMode() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, true)
+        def startEvent = start('description')
+        def completeEvent = complete('status')
 
         when:
-        generator.onOutput(start('description'))
+        generator.onOutput(startEvent)
 
         then:
         0 * target._
 
         when:
-        generator.onOutput(complete('status'))
+        generator.onOutput(completeEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n')})
+        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n') && it.timestamp == completeEvent.timestamp})
         0 * target._
     }
 
@@ -83,9 +87,11 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
     def insertsLogMessagesWhenOperationGeneratesSomeOutputAndInDeferredHeaderMode() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, true)
         def event = event('message')
+        def startEvent = start('description')
+        def completeEvent = complete('status')
 
         when:
-        generator.onOutput(start('description'))
+        generator.onOutput(startEvent)
 
         then:
         0 * target._
@@ -94,15 +100,15 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(event)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description\n')})
+        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description\n') && it.timestamp == startEvent.timestamp})
         1 * target.onOutput(event)
         0 * target._
 
         when:
-        generator.onOutput(complete('status'))
+        generator.onOutput(completeEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n')})
+        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n') && it.timestamp == completeEvent.timestamp})
         0 * target._
     }
 
