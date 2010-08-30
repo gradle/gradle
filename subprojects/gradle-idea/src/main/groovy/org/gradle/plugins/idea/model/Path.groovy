@@ -27,8 +27,31 @@ class Path {
     String url
 
     def Path(rootDir, rootDirString, file) {
-        String path = getRelativePath(rootDir, rootDirString, file)
+        String path;
+        if (areFilesRelativeToEachOther(rootDir, file)) {
+            path = getRelativePath(rootDir, rootDirString, file)
+        } else {
+            path = file.getAbsolutePath();
+        }
         url = relativePathToURI(path)
+    }
+
+    private static File getParentFile(File file) {
+        if (file.parentFile == null) {
+            return file;
+        }
+
+        return getParentFile(file.parentFile);
+    }
+
+    private static boolean areFilesRelativeToEachOther(File file1, File file2) {
+        File parent1 = getParentFile(file1)
+        File parent2 = getParentFile(file2)
+        boolean equal = parent1.equals(parent2)
+
+        println "Parent1: $parent1.absolutePath; Parent2: $parent2.absolutePath; equal: $equal"
+
+        return equal
     }
 
     def Path(url) {

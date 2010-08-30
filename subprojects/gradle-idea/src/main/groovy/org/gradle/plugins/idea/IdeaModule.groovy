@@ -174,24 +174,6 @@ public class IdeaModule extends ConventionTask {
         return VariableReplacement.NO_REPLACEMENT
     }
 
-    private File getParentFile(File file) {
-        if (file.parentFile == null) {
-            return file;
-        }
-
-        return getParentFile(file.parentFile);
-    }
-
-    private boolean areFilesRelativeToEachOther(File file1, File file2) {
-        File parent1 = getParentFile(file1)
-        File parent2 = getParentFile(file2)
-        boolean equal = parent1.equals(parent2)
-
-        println "Parent1: $parent1.absolutePath; Parent2: $parent2.absolutePath; equal: $equal"
-
-        return equal
-    }
-
     protected Set getModules(String scope) {
         if (scopes[scope]) {
             return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency}).collect { ProjectDependency projectDependency ->
