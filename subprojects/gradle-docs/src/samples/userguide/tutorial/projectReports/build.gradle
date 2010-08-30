@@ -17,6 +17,7 @@
 defaultTasks 'dists'
 
 allprojects {
+    version = '1.0-SNAPSHOT'
     task clean {
         description = "Deletes the build directory ($buildDir.name)"
         group = 'build'
@@ -47,9 +48,9 @@ subprojects {
     }
     dependencies {
         if (project.name == 'webapp') {
-        	compile "commons-io:commons-io:1.2"
+        	compile project(path: ':api', configuration: 'compile'), "commons-io:commons-io:1.2"
 		} else {
-			compile "junit:junit:4.7"
+			compile "org.codehaus.groovy:groovy-all:1.7.4"
 		}
     }
     task libs {
