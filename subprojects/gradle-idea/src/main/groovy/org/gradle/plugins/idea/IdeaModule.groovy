@@ -161,8 +161,14 @@ public class IdeaModule extends ConventionTask {
     }
 
     protected getVariableReplacement() {
-        if (getGradleCacheHome() && getGradleCacheVariable() && areFilesRelativeToEachOther(getGradleCacheHome(), getModuleDir())) {
-            String replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome())
+        if (getGradleCacheHome() && getGradleCacheVariable()) {
+            String replacer;
+
+            if (areFilesRelativeToEachOther(getGradleCacheHome(), getModuleDir())) {
+                replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome())
+            } else {
+                replacer = getGradleCacheHome().getAbsolutePath()
+            }
             return new VariableReplacement(replacer: replacer, replacable: '$' + getGradleCacheVariable() + '$')
         }
         return VariableReplacement.NO_REPLACEMENT
@@ -179,9 +185,11 @@ public class IdeaModule extends ConventionTask {
     private boolean areFilesRelativeToEachOther(File file1, File file2) {
         File parent1 = getParentFile(file1)
         File parent2 = getParentFile(file2)
-        println "Parent1: $parent1.absolutePath; Parent2: $parent2.absolutePath"
+        boolean equal = parent1.equals(parent2)
 
-        return parent1.equals(parent2)
+        println "Parent1: $parent1.absolutePath; Parent2: $parent2.absolutePath; equal: $equal"
+
+        return equal
     }
 
     protected Set getModules(String scope) {
