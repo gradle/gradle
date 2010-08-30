@@ -162,13 +162,7 @@ public class IdeaModule extends ConventionTask {
 
     protected getVariableReplacement() {
         if (getGradleCacheHome() && getGradleCacheVariable()) {
-            String replacer;
-
-            if (areFilesRelativeToEachOther(getGradleCacheHome(), getModuleDir())) {
-                replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome())
-            } else {
-                replacer = getGradleCacheHome().getAbsolutePath()
-            }
+            String replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome());
             return new VariableReplacement(replacer: replacer, replacable: '$' + getGradleCacheVariable() + '$')
         }
         return VariableReplacement.NO_REPLACEMENT
