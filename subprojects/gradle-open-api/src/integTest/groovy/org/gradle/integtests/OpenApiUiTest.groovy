@@ -900,7 +900,7 @@ public class OpenApiUiTest {
       //since we just asked to close and we're busy, make sure we prompted the user
       Assert.assertTrue( testCloseInteraction.wasPromptedToConfirmClose )
 
-      testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
+      testRequestObserver.waitForRequestExecutionComplete(120, TimeUnit.SECONDS)
 
       Assert.assertThat( testRequestObserver.request.getFullCommandLine(), startsWith( "build" ) )
 

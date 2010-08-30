@@ -178,6 +178,9 @@ public class ProjectBuilder {
 
         public void removeStandardErrorListener(StandardOutputListener listener) {
         }
+
+        public void colorStdOutAndStdErr(boolean colorOutput) {
+        }
     }
 
     private static class GlobalTestServices extends DefaultServiceRegistry {
@@ -198,7 +201,7 @@ public class ProjectBuilder {
         }
 
         protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class));
+            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         }
 
         protected LoggingManagerFactory createLoggingManagerFactory() {

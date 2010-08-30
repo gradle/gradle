@@ -22,7 +22,7 @@ import groovy.lang.Closure;
  * Unified manager for all listeners for Gradle.  Provides a simple way to find all listeners of a given type in the
  * system.
  *
- * While the methods work with any Object, in general only interfaces should be used as listeners.  Also, due to
+ * While the methods work with any Object, in general only interfaces should be used as listener types.  Also, due to
  * implementation details, any listener method with a non-void return type will return a null.
  */
 public interface ListenerManager {

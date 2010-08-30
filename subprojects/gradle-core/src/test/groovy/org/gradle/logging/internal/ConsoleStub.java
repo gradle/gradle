@@ -18,7 +18,7 @@ package org.gradle.logging.internal;
 class ConsoleStub implements Console {
     private final TextAreaImpl mainArea = new TextAreaImpl();
 
-    public Label addStatusBar() {
+    public Label getStatusBar() {
         return new Label() {
             public void close() {
             }

@@ -25,35 +25,37 @@ import org.gradle.logging.StyledTextOutput;
 import java.io.Flushable;
 import java.io.IOException;
 import java.util.Iterator;
-import java.util.LinkedList;
 
 public class AnsiConsole implements Console {
     private final static String EOL = System.getProperty("line.separator");
     private final Appendable target;
     private final Flushable flushable;
-    private final LinkedList<LabelImpl> statusBars = new LinkedList<LabelImpl>();
+    private LabelImpl statusBar;
     private final TextAreaImpl textArea;
     private Widget bottomWidget;
     private final Screen container;
+    private final ColorMap colorMap;
 
-    public AnsiConsole(Appendable target, Flushable flushable) {
+    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap) {
         this.target = target;
         this.flushable = flushable;
+        this.colorMap = colorMap;
         container = new Screen();
         textArea = new TextAreaImpl(container);
         bottomWidget = textArea;
     }
 
-    public Label addStatusBar() {
-        final LabelImpl statusBar = new LabelImpl(container);
-        render(new Action<Ansi>() {
-            public void execute(Ansi ansi) {
-                bottomWidget.removeFromLastLine(ansi);
-                statusBar.draw(ansi);
-            }
-        });
-        statusBars.addFirst(statusBar);
-        bottomWidget = statusBar;
+    public Label getStatusBar() {
+        if (statusBar == null) {
+            statusBar = new LabelImpl(container);
+            render(new Action<Ansi>() {
+                public void execute(Ansi ansi) {
+                    bottomWidget.removeFromLastLine(ansi);
+                    statusBar.draw(ansi);
+                }
+            });
+            bottomWidget = statusBar;
+        }
         return statusBar;
     }
 
@@ -92,7 +94,7 @@ public class AnsiConsole implements Console {
 
     private class Screen implements Container {
         public void redraw(Widget widget, final Action<Ansi> drawOperation) {
-            final LabelImpl currentStatusBar = statusBars.peek();
+            final LabelImpl currentStatusBar = statusBar;
             if (widget == textArea) {
                 render(new Action<Ansi>() {
                     public void execute(Ansi ansi) {
@@ -107,10 +109,7 @@ public class AnsiConsole implements Console {
                     }
                 });
             } else {
-                final LabelImpl statusBar = (LabelImpl) widget;
-                if (statusBar != currentStatusBar) {
-                    return;
-                }
+                assert widget == statusBar;
                 render(new Action<Ansi>() {
                     public void execute(Ansi ansi) {
                         drawOperation.execute(ansi);
@@ -123,19 +122,13 @@ public class AnsiConsole implements Console {
             if (widget == textArea) {
                 throw new UnsupportedOperationException();
             }
-            final LabelImpl statusBar = (LabelImpl) widget;
-            statusBars.remove(statusBar);
-            if (statusBar == bottomWidget) {
+            if (widget == statusBar) {
+                assert bottomWidget == statusBar;
                 render(new Action<Ansi>() {
                     public void execute(Ansi ansi) {
                         statusBar.removeFromLastLine(ansi);
-                        LabelImpl current = statusBars.peek();
-                        if (current != null) {
-                            current.draw(ansi);
-                            bottomWidget = current;
-                        } else {
-                            bottomWidget = textArea;
-                        }
+                        statusBar = null;
+                        bottomWidget = textArea;
                     }
                 });
             }
@@ -181,9 +174,7 @@ public class AnsiConsole implements Console {
                 ansi.cursorLeft(displayedText.length() - prefix.length());
             }
             if (prefix.length() < text.length()) {
-                ansi.a(Ansi.Attribute.INTENSITY_BOLD);
                 ansi.a(text.substring(prefix.length()));
-                ansi.a(Ansi.Attribute.INTENSITY_BOLD_OFF);
             }
             if (displayedText.length() > text.length()) {
                 ansi.eraseLine(Ansi.Erase.FORWARD);
@@ -228,15 +219,11 @@ public class AnsiConsole implements Console {
                         extraEol = false;
                     }
 
-                    switch (style) {
-                        case Header:
-                            ansi.fg(Ansi.Color.YELLOW);
-                            break;
-                        case UserInput:
-                            ansi.fg(Ansi.Color.GREEN);
-                            break;
+                    Ansi.Color colour = colorMap.getColourFor(style);
+                    if (colour != Ansi.Color.DEFAULT) {
+                        ansi.fg(colour);
                     }
-                    
+
                     Iterator<String> tokenizer = new LineSplitter(text);
                     while (tokenizer.hasNext()) {
                         String token = tokenizer.next();

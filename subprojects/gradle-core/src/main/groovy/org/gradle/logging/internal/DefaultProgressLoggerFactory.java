@@ -18,12 +18,15 @@ package org.gradle.logging.internal;
 
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.util.TimeProvider;
 
 public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     private final ProgressListener progressListener;
+    private final TimeProvider timeProvider;
 
-    public DefaultProgressLoggerFactory(ProgressListener progressListener) {
+    public DefaultProgressLoggerFactory(ProgressListener progressListener, TimeProvider timeProvider) {
         this.progressListener = progressListener;
+        this.timeProvider = timeProvider;
     }
 
     public ProgressLogger start(String loggerCategory) {
@@ -31,7 +34,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
     }
 
     public ProgressLogger start(String loggerCategory, String description) {
-        ProgressLoggerImpl logger = new ProgressLoggerImpl(loggerCategory, description, progressListener);
+        ProgressLoggerImpl logger = new ProgressLoggerImpl(loggerCategory, description, progressListener, timeProvider);
         logger.started();
         return logger;
     }
@@ -40,13 +43,15 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private final String category;
         private final String description;
         private final ProgressListener listener;
+        private final TimeProvider timeProvider;
         private String status = "";
         private boolean completed;
 
-        public ProgressLoggerImpl(String category, String description, ProgressListener listener) {
+        public ProgressLoggerImpl(String category, String description, ProgressListener listener, TimeProvider timeProvider) {
             this.category = category;
             this.description = description;
             this.listener = listener;
+            this.timeProvider = timeProvider;
         }
 
         public String getDescription() {
@@ -58,13 +63,13 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         }
 
         public void started() {
-            listener.started(new ProgressStartEvent(category, description));
+            listener.started(new ProgressStartEvent(timeProvider.getCurrentTime(), category, description));
         }
 
         public void progress(String status) {
             assertNotCompleted();
             this.status = status;
-            listener.progress(new ProgressEvent(category, status));
+            listener.progress(new ProgressEvent(timeProvider.getCurrentTime(), category, status));
         }
 
         public void completed() {
@@ -74,7 +79,7 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         public void completed(String status) {
             this.status = status;
             completed = true;
-            listener.completed(new ProgressCompleteEvent(category, status));
+            listener.completed(new ProgressCompleteEvent(timeProvider.getCurrentTime(), category, status));
         }
 
         private void assertNotCompleted() {

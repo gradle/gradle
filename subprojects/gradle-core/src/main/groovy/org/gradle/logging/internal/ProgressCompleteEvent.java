@@ -20,8 +20,8 @@ import org.gradle.api.logging.LogLevel;
 public class ProgressCompleteEvent extends CategorisedOutputEvent {
     private final String status;
 
-    public ProgressCompleteEvent(String category, String status) {
-        super(category, LogLevel.LIFECYCLE);
+    public ProgressCompleteEvent(long timestamp, String category, String status) {
+        super(timestamp, category, LogLevel.LIFECYCLE);
         this.status = status;
     }
 

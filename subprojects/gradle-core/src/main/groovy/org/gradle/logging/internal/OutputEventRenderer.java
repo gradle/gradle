@@ -17,7 +17,6 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.listener.ListenerBroadcast;
 
@@ -29,18 +28,25 @@ import java.io.PrintStream;
  * A {@link org.gradle.logging.internal.OutputEventListener} implementation which renders output events to various
  * destinations. This implementation is thread-safe.
  */
-public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutput {
+public class OutputEventRenderer implements OutputEventListener, LoggingConfigurer, LoggingOutputInternal {
     private final ListenerBroadcast<OutputEventListener> formatters = new ListenerBroadcast<OutputEventListener>(OutputEventListener.class);
     private final ListenerBroadcast<StandardOutputListener> stdoutListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final ListenerBroadcast<StandardOutputListener> stderrListeners = new ListenerBroadcast<StandardOutputListener>(StandardOutputListener.class);
     private final Object lock = new Object();
+    private final DefaultColorMap colourMap = new DefaultColorMap();
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public OutputEventRenderer() {
-        OutputEventListener stdoutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stdoutListeners.getSource())), false));
-        formatters.add(stdoutChain);
-        OutputEventListener stderrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stderrListeners.getSource())), false));
-        formatters.add(stderrChain);
+        OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stdoutListeners.getSource())), false));
+        formatters.add(stdOutChain);
+        OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stderrListeners.getSource())), false));
+        formatters.add(stdErrChain);
+    }
+
+    public void colorStdOutAndStdErr(boolean colorOutput) {
+        synchronized (lock) {
+            colourMap.setUseColor(colorOutput);
+        }
     }
 
     public OutputEventRenderer addStandardOutputAndError() {
@@ -49,12 +55,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         boolean stdErrIsTerminal = terminalDetector.isSatisfiedBy(FileDescriptor.err);
         if (stdOutIsTerminal) {
             PrintStream outStr = org.fusesource.jansi.AnsiConsole.out();
-            Console console = new AnsiConsole(outStr, outStr);
+            Console console = new AnsiConsole(outStr, outStr, colourMap);
             addConsole(console, true, stdErrIsTerminal);
         } else if (stdErrIsTerminal) {
             // Only stderr is connected to a terminal
             PrintStream errStr = org.fusesource.jansi.AnsiConsole.err();
-            Console console = new AnsiConsole(errStr, errStr);
+            Console console = new AnsiConsole(errStr, errStr, colourMap);
             addConsole(console, false, true);
         }
         if (!stdOutIsTerminal) {
@@ -94,12 +100,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
 
     public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
         final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console);
-        if (stdout && stderr) {
-            formatters.add(consoleChain);
-        } else if (stdout) {
-            formatters.add(onNonError(consoleChain));
-        } else {
-            formatters.add(onError(consoleChain));
+        synchronized (lock) {
+            if (stdout && stderr) {
+                formatters.add(consoleChain);
+            } else if (stdout) {
+                formatters.add(onNonError(consoleChain));
+            } else {
+                formatters.add(onError(consoleChain));
+            }
         }
         return this;
     }
@@ -125,23 +133,34 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public void addStandardErrorListener(StandardOutputListener listener) {
-        stderrListeners.add(listener);
+        synchronized (lock) {
+            stderrListeners.add(listener);
+        }
     }
 
     public void addStandardOutputListener(StandardOutputListener listener) {
-        stdoutListeners.add(listener);
+        synchronized (lock) {
+            stdoutListeners.add(listener);
+        }
     }
 
     public void removeStandardOutputListener(StandardOutputListener listener) {
-        stdoutListeners.remove(listener);
+        synchronized (lock) {
+            stdoutListeners.remove(listener);
+        }
     }
 
     public void removeStandardErrorListener(StandardOutputListener listener) {
-        stderrListeners.remove(listener);
+        synchronized (lock) {
+            stderrListeners.remove(listener);
+        }
     }
 
     public void configure(LogLevel logLevel) {
         synchronized (lock) {
+            if (logLevel == this.logLevel) {
+                return;
+            }
             this.logLevel = logLevel;
             formatters.getSource().onOutput(new LogLevelChangeEvent(logLevel));
         }
@@ -151,6 +170,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         synchronized (lock) {
             if (event.getLogLevel() != null && event.getLogLevel().compareTo(logLevel) < 0) {
                 return;
+            }
+            if (event instanceof LogLevelChangeEvent) {
+                throw new UnsupportedOperationException();
             }
             formatters.getSource().onOutput(event);
         }

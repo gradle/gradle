@@ -25,22 +25,23 @@ class OutputSpecification extends Specification {
     }
 
     /**
-     * Returns timestamp representing 10AM in local time.
+     * Returns timestamp representing 10AM today in local time.
      */
     def long getTenAm() {
         return getTime('10:00:00.000')
     }
 
     def long getTime(String time) {
-        return new SimpleDateFormat('HH:mm:ss.SSS').parse(time).getTime()
+        String today = new SimpleDateFormat("yyyyMMdd").format(new Date())
+        return new SimpleDateFormat('yyyyMMdd HH:mm:ss.SSS').parse(today + ' ' + time).getTime()
     }
 
     def LogEvent event(String text) {
-        return new LogEvent(0, 'category', LogLevel.INFO, text, null)
+        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, null)
     }
 
     def LogEvent event(String text, LogLevel logLevel) {
-        return new LogEvent(0, 'category', logLevel, text, null)
+        return new LogEvent(tenAm, 'category', logLevel, text, null)
     }
 
     def LogEvent event(long timestamp, String text, LogLevel logLevel) {
@@ -52,18 +53,18 @@ class OutputSpecification extends Specification {
     }
 
     def LogEvent event(String text, Throwable throwable) {
-        return new LogEvent(0, 'category', LogLevel.INFO, text, throwable)
+        return new LogEvent(tenAm, 'category', LogLevel.INFO, text, throwable)
     }
 
     def ProgressStartEvent start(String description) {
-        return new ProgressStartEvent('category', description)
+        return new ProgressStartEvent(tenAm, 'category', description)
     }
 
     def ProgressEvent progress(String status) {
-        return new ProgressEvent('category', status)
+        return new ProgressEvent(tenAm, 'category', status)
     }
 
     def ProgressCompleteEvent complete(String status) {
-        return new ProgressCompleteEvent('category', status)
+        return new ProgressCompleteEvent(tenAm, 'category', status)
     }
 }

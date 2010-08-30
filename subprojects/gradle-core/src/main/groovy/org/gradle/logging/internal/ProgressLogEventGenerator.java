@@ -36,19 +36,9 @@ public class ProgressLogEventGenerator implements OutputEventListener {
 
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
-            ProgressStartEvent progressStartEvent = (ProgressStartEvent) event;
-            Operation operation = new Operation();
-            operation.category = progressStartEvent.getCategory();
-            operation.description = progressStartEvent.getDescription();
-            operation.status = "";
-            operations.add(operation);
-            onStart(operation);
+            onStart((ProgressStartEvent) event);
         } else if (event instanceof ProgressCompleteEvent) {
-            assert !operations.isEmpty();
-            ProgressCompleteEvent progressCompleteEvent = (ProgressCompleteEvent) event;
-            Operation operation = operations.removeLast();
-            operation.status = progressCompleteEvent.getStatus();
-            onComplete(operation);
+            onComplete((ProgressCompleteEvent) event);
         } else if (event instanceof RenderableOutputEvent) {
             doOutput((RenderableOutputEvent) event);
         } else if (!(event instanceof ProgressEvent)) {
@@ -63,11 +53,22 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         listener.onOutput(event);
     }
 
-    private void onComplete(Operation operation) {
+    private void onComplete(ProgressCompleteEvent progressCompleteEvent) {
+        assert !operations.isEmpty();
+        Operation operation = operations.removeLast();
+        operation.status = progressCompleteEvent.getStatus();
+        operation.completeTime = progressCompleteEvent.getTimestamp();
         operation.complete();
     }
 
-    private void onStart(Operation operation) {
+    private void onStart(ProgressStartEvent progressStartEvent) {
+        Operation operation = new Operation();
+        operation.category = progressStartEvent.getCategory();
+        operation.description = progressStartEvent.getDescription();
+        operation.startTime = progressStartEvent.getTimestamp();
+        operation.status = "";
+        operations.add(operation);
+
         if (!deferHeader) {
             operation.startHeader();
         }
@@ -80,6 +81,8 @@ public class ProgressLogEventGenerator implements OutputEventListener {
         private String description;
         private String status;
         private State state = State.None;
+        public long startTime;
+        public long completeTime;
 
         public String getDescription() {
             return description;
@@ -104,7 +107,7 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             boolean hasDescription = description.length() > 0;
             if (hasDescription) {
                 state = State.HeaderStarted;
-                doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, description));
+                doOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, description));
             } else {
                 state = State.HeaderCompleted;
             }
@@ -115,11 +118,11 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasDescription) {
-                        listener.onOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, description + EOL));
+                        listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, description + EOL));
                     }
                     break;
                 case HeaderStarted:
-                    listener.onOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, EOL));
+                    listener.onOutput(new StyledTextOutputEvent(startTime, category, LogLevel.LIFECYCLE, EOL));
                     break;
                 case HeaderCompleted:
                     return;
@@ -135,25 +138,25 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasDescription && hasStatus) {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, description + ' ' + status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, description + ' ' + status + EOL));
                     } else if (hasDescription) {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, description + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, description + EOL));
                     } else if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, status + EOL));
                     }
                     break;
                 case HeaderStarted:
                     if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, ' ' + status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, ' ' + status + EOL));
                     } else {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, EOL));
                     }
                     break;
                 case HeaderCompleted:
                     if (hasDescription && hasStatus) {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, description + ' ' + status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, description + ' ' + status + EOL));
                     } else if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(0, category, LogLevel.LIFECYCLE, status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, status + EOL));
                     }
                     break;
                 default:

@@ -17,10 +17,12 @@ package org.gradle.logging.internal
 
 import spock.lang.Specification
 import org.gradle.logging.ProgressLoggerFactory
+import org.gradle.util.TimeProvider
 
 class DefaultProgressLoggerFactoryTest extends Specification {
     private final ProgressListener progressListener = Mock()
-    private final ProgressLoggerFactory factory = new DefaultProgressLoggerFactory(progressListener)
+    private final TimeProvider timeProvider = Mock()
+    private final ProgressLoggerFactory factory = new DefaultProgressLoggerFactory(progressListener, timeProvider)
 
     def progressLoggerBroadcastsEvents() {
         when:
@@ -28,19 +30,22 @@ class DefaultProgressLoggerFactoryTest extends Specification {
 
         then:
         logger != null
-        1 * progressListener.started({it.category == 'logger' && it.description == 'description'})
+        1 * timeProvider.getCurrentTime() >> 100L
+        1 * progressListener.started({it.timestamp == 100L && it.category == 'logger' && it.description == 'description'})
 
         when:
         logger.progress('progress')
 
         then:
-        1 * progressListener.progress({it.category == 'logger' && it.status == 'progress'})
+        1 * timeProvider.getCurrentTime() >> 200L
+        1 * progressListener.progress({it.timestamp == 200L && it.category == 'logger' && it.status == 'progress'})
 
         when:
         logger.completed('completed')
 
         then:
-        1 * progressListener.completed({it.category == 'logger' && it.status == 'completed'})
+        1 * timeProvider.getCurrentTime() >> 300L
+        1 * progressListener.completed({it.timestamp == 300L && it.category == 'logger' && it.status == 'completed'})
     }
 
     def hasEmptyStatusOnStart() {

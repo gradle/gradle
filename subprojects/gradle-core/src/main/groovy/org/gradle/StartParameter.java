@@ -79,6 +79,7 @@ public class StartParameter {
     private boolean launchGUI;
     private boolean dryRun;
     private boolean noOpt;
+    private boolean colorOutput = true;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -110,6 +111,7 @@ public class StartParameter {
         startParameter.buildExecuter = buildExecuter;
         startParameter.defaultProjectSelector = defaultProjectSelector;
         startParameter.logLevel = logLevel;
+        startParameter.colorOutput = colorOutput;
         startParameter.showStacktrace = showStacktrace;
         startParameter.showHelp = showHelp;
         startParameter.showVersion = showVersion;
@@ -130,6 +132,7 @@ public class StartParameter {
         startParameter.gradleUserHomeDir = gradleUserHomeDir;
         startParameter.cacheUsage = cacheUsage;
         startParameter.logLevel = logLevel;
+        startParameter.colorOutput = colorOutput;
         return startParameter;
     }
 
@@ -505,6 +508,25 @@ public class StartParameter {
 
     public void setLaunchGUI(boolean launchGUI) {
         this.launchGUI = launchGUI;
+    }
+
+    /**
+     * Returns true if logging output should be displayed in color when Gradle is running in a terminal which supports
+     * color output. The default value is true.
+     *
+     * @return true if logging output should be displayed in color.
+     */
+    public boolean isColorOutput() {
+        return colorOutput;
+    }
+
+    /**
+     * Specifies whether logging output should be displayed in color.
+     *
+     * @param colorOutput true if logging output should be displayed in color.
+     */
+    public void setColorOutput(boolean colorOutput) {
+        this.colorOutput = colorOutput;
     }
 
     @Override

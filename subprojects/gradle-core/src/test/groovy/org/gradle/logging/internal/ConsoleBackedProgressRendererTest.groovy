@@ -22,7 +22,7 @@ class ConsoleBackedProgressRendererTest extends OutputSpecification {
     private final ConsoleBackedProgressRenderer renderer = new ConsoleBackedProgressRenderer(listener, console)
 
     def setup() {
-        (0..1) * console.addStatusBar() >> statusBar
+        (0..1) * console.getStatusBar() >> statusBar
     }
 
     def forwardsEventsToListener() {
