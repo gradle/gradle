@@ -52,7 +52,7 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
         hasConfigs = true;
         getTextOutput().println();
         getTextOutput().style(Identifier).text(configuration.getName()).style(Normal);
-        getTextOutput().style(Info).text(getDescription(configuration)).style(Normal);
+        getTextOutput().style(Description).text(getDescription(configuration)).style(Normal);
         getTextOutput().println();
     }
 

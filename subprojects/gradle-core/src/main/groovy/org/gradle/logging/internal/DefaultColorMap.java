@@ -30,9 +30,11 @@ public class DefaultColorMap implements ColorMap {
     private boolean useColor = true;
 
     public DefaultColorMap() {
-        defaults.put(Header, YELLOW);
+        defaults.put(Header, DEFAULT);
         defaults.put(Info, YELLOW);
+        defaults.put(Description, YELLOW);
         defaults.put(Identifier, GREEN);
+        defaults.put(UserInput, GREEN);
     }
 
     public void setUseColor(boolean useColor) {
