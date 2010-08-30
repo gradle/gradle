@@ -25,8 +25,9 @@ import java.io.PrintStream;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
- * A {@link LoggingSystem} which routes content written to a PrintStream to a {@link
- * org.gradle.logging.internal.OutputEventListener}.
+ * A {@link LoggingSystem} which routes content written to a {@code PrintStream} to a {@link OutputEventListener}.
+ * Generates a {@link StyledTextOutputEvent} instance when a line of text is written to the {@code PrintStream}.
+ * Generates a {@link LogLevelChangeEvent} when the log level for this {@code LoggingSystem} is changed.
  */
 abstract class PrintStreamLoggingSystem implements LoggingSystem {
     private final AtomicReference<StandardOutputListener> destination = new AtomicReference<StandardOutputListener>();
