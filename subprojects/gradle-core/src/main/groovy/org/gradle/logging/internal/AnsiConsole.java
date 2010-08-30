@@ -34,10 +34,12 @@ public class AnsiConsole implements Console {
     private final TextAreaImpl textArea;
     private Widget bottomWidget;
     private final Screen container;
+    private final ColorMap colorMap;
 
-    public AnsiConsole(Appendable target, Flushable flushable) {
+    public AnsiConsole(Appendable target, Flushable flushable, ColorMap colorMap) {
         this.target = target;
         this.flushable = flushable;
+        this.colorMap = colorMap;
         container = new Screen();
         textArea = new TextAreaImpl(container);
         bottomWidget = textArea;
@@ -172,9 +174,7 @@ public class AnsiConsole implements Console {
                 ansi.cursorLeft(displayedText.length() - prefix.length());
             }
             if (prefix.length() < text.length()) {
-                ansi.fg(Ansi.Color.CYAN);
                 ansi.a(text.substring(prefix.length()));
-                ansi.fg(Ansi.Color.DEFAULT);
             }
             if (displayedText.length() > text.length()) {
                 ansi.eraseLine(Ansi.Erase.FORWARD);
@@ -219,15 +219,11 @@ public class AnsiConsole implements Console {
                         extraEol = false;
                     }
 
-                    switch (style) {
-                        case Header:
-                            ansi.fg(Ansi.Color.YELLOW);
-                            break;
-                        case UserInput:
-                            ansi.fg(Ansi.Color.GREEN);
-                            break;
+                    Ansi.Color colour = colorMap.getColourFor(style);
+                    if (colour != Ansi.Color.DEFAULT) {
+                        ansi.fg(colour);
                     }
-                    
+
                     Iterator<String> tokenizer = new LineSplitter(text);
                     while (tokenizer.hasNext()) {
                         String token = tokenizer.next();

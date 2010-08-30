@@ -16,7 +16,6 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.RedirectStdOutAndErr;
@@ -39,7 +38,7 @@ public class DefaultLoggingManagerTest {
     private final LoggingSystem loggingSystem = context.mock(LoggingSystem.class);
     private final LoggingSystem stdOutLoggingSystem = context.mock(LoggingSystem.class);
     private final LoggingSystem stdErrLoggingSystem = context.mock(LoggingSystem.class);
-    private final LoggingOutput loggingOutput = context.mock(LoggingOutput.class);
+    private final LoggingOutputInternal loggingOutput = context.mock(LoggingOutputInternal.class);
     private final DefaultLoggingManager loggingManager = new DefaultLoggingManager(loggingSystem, stdOutLoggingSystem, stdErrLoggingSystem, loggingOutput);
 
     @Test

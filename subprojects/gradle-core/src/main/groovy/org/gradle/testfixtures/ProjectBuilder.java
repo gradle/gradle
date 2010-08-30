@@ -178,6 +178,9 @@ public class ProjectBuilder {
 
         public void removeStandardErrorListener(StandardOutputListener listener) {
         }
+
+        public void colorStdOutAndStdErr(boolean colorOutput) {
+        }
     }
 
     private static class GlobalTestServices extends DefaultServiceRegistry {

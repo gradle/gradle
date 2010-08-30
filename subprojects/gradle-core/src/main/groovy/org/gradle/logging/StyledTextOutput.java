@@ -33,6 +33,14 @@ public interface StyledTextOutput extends Appendable {
          * User input
          */
         UserInput,
+        /**
+         * An identifier for something
+         */
+        Identifier,
+        /**
+         * Informational text
+         */
+        Info
     }
 
     /**

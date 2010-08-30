@@ -13,20 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging;
+package org.gradle.logging.internal;
 
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingManager;
-import org.gradle.logging.internal.LoggingOutputInternal;
+import org.gradle.api.logging.LoggingOutput;
 
-public interface LoggingManagerInternal extends LoggingManager, StandardOutputCapture, LoggingOutputInternal {
-    LoggingManagerInternal start();
-
-    LoggingManagerInternal stop();
-
-    LoggingManagerInternal captureStandardOutput(LogLevel level);
-
-    LoggingManagerInternal captureStandardError(LogLevel level);
-
-    LoggingManagerInternal setLevel(LogLevel logLevel);
+public interface LoggingOutputInternal extends LoggingOutput {
+    void colorStdOutAndStdErr(boolean colorOutput);
 }

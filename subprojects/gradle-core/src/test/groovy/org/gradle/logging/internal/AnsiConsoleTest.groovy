@@ -30,7 +30,8 @@ class AnsiConsoleTest {
     private final Ansi ansi = context.mock(Ansi.class)
     private final Appendable target = {} as Appendable
     private final Flushable flushable = {} as Flushable
-    private final AnsiConsole console = new AnsiConsole(target, flushable) {
+    private final ColorMap colorMap = {style -> style == StyledTextOutput.Style.Header ? Color.YELLOW : Color.DEFAULT} as ColorMap
+    private final AnsiConsole console = new AnsiConsole(target, flushable, colorMap) {
         def Ansi createAnsi() {
             return ansi
         }
@@ -69,9 +70,7 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -89,9 +88,7 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -102,18 +99,14 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('123')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = '123'
 
         context.checking {
             one(ansi).cursorLeft(3)
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('abc')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'abc'
@@ -124,18 +117,14 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text 1')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 1'
 
         context.checking {
             one(ansi).cursorLeft(1)
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('2')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 2'
@@ -146,17 +135,13 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a(' 2')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 2'
@@ -167,9 +152,7 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text 1')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text 1'
@@ -187,9 +170,7 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -207,9 +188,7 @@ class AnsiConsoleTest {
         def statusBar = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('text')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         statusBar.text = 'text'
@@ -225,9 +204,7 @@ class AnsiConsoleTest {
     @Test
     public void showsMostRecentlyCreatedStatusBarOnly() {
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('first')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.getStatusBar().text = 'first'
@@ -242,9 +219,7 @@ class AnsiConsoleTest {
         Label second = console.getStatusBar()
 
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('second')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         second.text = 'second'
@@ -253,9 +228,7 @@ class AnsiConsoleTest {
     @Test
     public void appendsTextWhenStatusBarIsPresent() {
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.getStatusBar().text = 'status'
@@ -265,9 +238,7 @@ class AnsiConsoleTest {
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).a('message')
             one(ansi).a(EOL)
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append("message$EOL");
@@ -276,9 +247,7 @@ class AnsiConsoleTest {
     @Test
     public void appendsTextWithNoEOLWhenStatusBarIsPresent() {
         context.checking {
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.getStatusBar().text = 'status'
@@ -288,9 +257,7 @@ class AnsiConsoleTest {
             one(ansi).eraseLine(Ansi.Erase.FORWARD)
             one(ansi).a('message')
             one(ansi).newline()
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append('message');
@@ -302,9 +269,7 @@ class AnsiConsoleTest {
             one(ansi).cursorRight(7)
             one(ansi).a('message2')
             one(ansi).newline()
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append('message2');
@@ -320,9 +285,7 @@ class AnsiConsoleTest {
 
         context.checking {
             one(ansi).newline()
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.getStatusBar().text = 'status'
@@ -334,9 +297,7 @@ class AnsiConsoleTest {
             one(ansi).cursorRight(7)
             one(ansi).a('message2')
             one(ansi).a(EOL)
-            one(ansi).fg(Color.CYAN)
             one(ansi).a('status')
-            one(ansi).fg(Color.DEFAULT)
         }
 
         console.mainArea.append("message2${EOL}")

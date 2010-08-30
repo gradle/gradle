@@ -17,7 +17,6 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.LoggingOutput;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.messaging.concurrent.CompositeStoppable;
@@ -34,12 +33,12 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
     private final StartableLoggingSystem loggingSystem;
     private final StartableLoggingSystem stdOutLoggingSystem;
     private final StartableLoggingSystem stdErrLoggingSystem;
-    private final LoggingOutput loggingOutput;
+    private final LoggingOutputInternal loggingOutput;
     private final Set<StandardOutputListener> stdoutListeners = new LinkedHashSet<StandardOutputListener>();
     private final Set<StandardOutputListener> stderrListeners = new LinkedHashSet<StandardOutputListener>();
 
     public DefaultLoggingManager(LoggingSystem loggingSystem, LoggingSystem stdOutLoggingSystem,
-                                 LoggingSystem stdErrLoggingSystem, LoggingOutput loggingOutput) {
+                                 LoggingSystem stdErrLoggingSystem, LoggingOutputInternal loggingOutput) {
         this.loggingOutput = loggingOutput;
         this.loggingSystem = new StartableLoggingSystem(loggingSystem, null);
         this.stdOutLoggingSystem = new StartableLoggingSystem(stdOutLoggingSystem, LogLevel.QUIET);
@@ -135,6 +134,10 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         if (stderrListeners.remove(listener) && started) {
             loggingOutput.removeStandardErrorListener(listener);
         }
+    }
+
+    public void colorStdOutAndStdErr(boolean colorOutput) {
+        loggingOutput.colorStdOutAndStdErr(colorOutput);
     }
 
     private static class StartableLoggingSystem implements Stoppable {
