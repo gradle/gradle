@@ -90,7 +90,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                     "Print out the stacktrace also for user exceptions (e.g. compile error).");
             acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"),
                     "Print out the full (very verbose) stacktrace for any exceptions.");
-            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks.").
+            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of available tasks.").
                     withOptionalArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(ALL), "Show additional details in the task listing.");
             acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.").
