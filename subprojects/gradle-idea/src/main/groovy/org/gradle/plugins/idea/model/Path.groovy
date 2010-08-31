@@ -47,11 +47,7 @@ class Path {
     private static boolean areFilesRelativeToEachOther(File file1, File file2) {
         File parent1 = getParentFile(file1)
         File parent2 = getParentFile(file2)
-        boolean equal = parent1.equals(parent2)
-
-        println "Parent1: $parent1.absolutePath; Parent2: $parent2.absolutePath; equal: $equal"
-
-        return equal
+        return parent1.equals(parent2)
     }
 
     def Path(url) {
