@@ -71,7 +71,7 @@ class TaskReportModelTest extends Specification {
         t.children*.task as List == [task4]
     }
 
-    def theDependenciesOfATopLevelTaskAreTheUnionOfItsChildrensDependencies() {
+    def theDependenciesOfATopLevelTaskAreTheUnionOfTheDependenciesOfItsChildren() {
         def task1 = task('task1', 'group1')
         def task2 = task('task2', 'group2', task1)
         def task3 = task('task3', 'group3')
@@ -83,7 +83,20 @@ class TaskReportModelTest extends Specification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group4') as List).first()
-        t.dependencies as List == [':task2', ':task3']
+        t.dependencies as List == ['task2', 'task3']
+    }
+
+    def usesTaskPathForExternalDependencies() {
+        def task1 = task('task1')
+        def task2 = task('task2', 'other')
+        def task3 = task('task3', 'group', task1, task2)
+
+        when:
+        model.calculate([task2, task3])
+
+        then:
+        TaskDetails t = (model.getTasksForGroup('group') as List).first()
+        t.dependencies as List == [':task1', 'task2']
     }
     
     def dependenciesDoNotIncludeTheChildrenOfOtherTopLevelTasks() {
@@ -98,7 +111,7 @@ class TaskReportModelTest extends Specification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group2') as List).first()
-        t.dependencies as List == [':task2']
+        t.dependencies as List == ['task2']
     }
 
     def addsAGroupContainingTheTasksWithNoGroup() {

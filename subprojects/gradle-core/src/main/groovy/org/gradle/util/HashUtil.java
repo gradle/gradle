@@ -34,7 +34,7 @@ public class HashUtil {
         try {
             messageDigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
         messageDigest.update(scriptText.getBytes());
         return new BigInteger(1, messageDigest.digest()).toString(16);
@@ -45,7 +45,7 @@ public class HashUtil {
         try {
             messageDigest = MessageDigest.getInstance("MD5");
         } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException(e);
+            throw UncheckedException.asUncheckedException(e);
         }
         try {
             byte[] buffer = new byte[4096];
