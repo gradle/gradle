@@ -162,7 +162,7 @@ public class TaskReportTaskTest {
         return new BaseMatcher<TaskDetails>() {
             public boolean matches(Object o) {
                 TaskDetails other = (TaskDetails) o;
-                return other.getPath().equals(task.getPath());
+                return other.getPath().equals(task.getName());
             }
 
             public void describeTo(Description description) {

@@ -57,7 +57,7 @@ public class TaskReportModel {
                 }
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
                     if (topLevelTasks.contains(dep) || !tasks.contains(dep)) {
-                        dependencies.add(dep.getPath());
+                        dependencies.add(tasks.contains(dep) ? dep.getName() : dep.getPath());
                     }
                 }
             }
@@ -94,7 +94,7 @@ public class TaskReportModel {
         }
 
         public String getPath() {
-            return task.getPath();
+            return task.getName();
         }
 
         @Override
