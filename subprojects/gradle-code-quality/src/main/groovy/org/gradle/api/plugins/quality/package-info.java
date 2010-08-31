@@ -15,6 +15,6 @@
  */
 
 /**
- * A {@link Plugin} which measures and enforces code quality for Java and Groovy projects.
+ * A {@link org.gradle.api.Plugin} which measures and enforces code quality for Java and Groovy projects.
  */
 package org.gradle.api.plugins.quality;
