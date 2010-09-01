@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.util.GradleVersion;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
 import org.gradle.util.TestFileContext;
@@ -28,7 +29,7 @@ import java.io.File;
 /**
  * Provides access to a Gradle distribution for integration testing.
  */
-public class GradleDistribution implements MethodRule, TestFileContext {
+public class GradleDistribution implements MethodRule, TestFileContext, BasicGradleDistribution {
     private static final TestFile USER_HOME_DIR;
     private static final TestFile GRADLE_HOME_DIR;
     private static final TestFile SAMPLES_DIR;
@@ -85,6 +86,10 @@ public class GradleDistribution implements MethodRule, TestFileContext {
         return GRADLE_HOME_DIR;
     }
 
+    public String getVersion() {
+        return new GradleVersion().getVersion();
+    }
+
     /**
      * The samples from the distribution. These are usually shared with other tests.
      */
@@ -126,6 +131,16 @@ public class GradleDistribution implements MethodRule, TestFileContext {
 
     public TemporaryFolder getTemporaryFolder() {
         return temporaryFolder;
+    }
+
+    /**
+     * Returns an executer which can execute a previous version of Gradle.
+     *
+     * @param version The Gradle version
+     * @return An executer
+     */
+    public PreviousGradleVersionExecuter previousVersion(String version) {
+        return new PreviousGradleVersionExecuter(this, version);
     }
 
     /**
