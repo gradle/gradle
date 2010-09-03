@@ -21,6 +21,9 @@ import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
 
+/**
+ * A Junit rule which copies a sample into the test directory before the test executes.
+ */
 public class Sample implements MethodRule {
     private final String name;
     private GradleDistribution dist;

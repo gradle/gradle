@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.openapi
 
 import junit.framework.AssertionFailedError
+import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.runner.GradleRunnerFactory
 import org.gradle.openapi.external.runner.GradleRunnerInteractionVersion1
 import org.gradle.openapi.external.runner.GradleRunnerVersion1
@@ -41,12 +41,11 @@ class GradleRunnerTest {
   private File javaprojectDir
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
-  @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
-  @Rule public final Sample sample = new Sample('java/quickstart')
+  @Rule public final TestResources resources = new TestResources('testProject')
 
   @Before
   void setUp() {
-      javaprojectDir = sample.dir
+      javaprojectDir = dist.testDir
   }
 
   /**
