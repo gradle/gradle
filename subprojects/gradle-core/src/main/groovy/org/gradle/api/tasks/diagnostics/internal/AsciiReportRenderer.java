@@ -85,7 +85,7 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
         for (int i = 0; i < mergedChildren.size(); i++) {
             MergedResolvedDependency dependency = mergedChildren.get(i);
             render(dependency, prefix, i == mergedChildren.size() - 1);
-		}
+        }
     }
 
     private Set<MergedResolvedDependency> mergeChildren(Set<ResolvedDependency> children) {
