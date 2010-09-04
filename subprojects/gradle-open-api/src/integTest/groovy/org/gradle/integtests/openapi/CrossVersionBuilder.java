@@ -80,7 +80,7 @@ public class CrossVersionBuilder {
 
         testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS);
 
-        assertEquals(0, (long) testRequestObserver.result);
+        assertEquals(String.format("Execution failed%n%s", testRequestObserver.getOutput()), 0, (long) testRequestObserver.getResult());
 
         List<ProjectVersion1> rootProjects = gradleInterface.getRootProjects();
         assertTrue(!rootProjects.isEmpty());

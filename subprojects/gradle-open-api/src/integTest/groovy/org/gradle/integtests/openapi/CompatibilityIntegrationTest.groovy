@@ -26,9 +26,12 @@ import org.junit.runner.RunWith
 import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.junit.Assert
+import org.slf4j.LoggerFactory
+import org.slf4j.Logger
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class CompatibilityIntegrationTest {
+    private final Logger logger = LoggerFactory.getLogger(CompatibilityIntegrationTest)
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
@@ -53,7 +56,7 @@ class CompatibilityIntegrationTest {
         def testClasses = AbstractClassPathProvider.getClasspathForClass(CrossVersionBuilder.class)
         def junitJar = AbstractClassPathProvider.getClasspathForClass(Assert.class)
         def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
-        println "-> using classpath: $classpath"
+        logger.info('Using Open API classpath {}', classpath)
         def classloader = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
 
         def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()

@@ -27,9 +27,9 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class BlockingRequestObserver implements RequestObserverVersion1 {
     private final String typeOfInterest;  //either RequestVersion1.EXECUTION_TYPE or RequestVersion1.REFRESH_TYPE
-    public RequestVersion1 request;
-    public Integer result;
-    public String output;
+    private RequestVersion1 request;
+    private Integer result;
+    private String output;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private Throwable failure;
@@ -40,6 +40,42 @@ public class BlockingRequestObserver implements RequestObserverVersion1 {
 
     public BlockingRequestObserver(String typeOfInterest) {
         this.typeOfInterest = typeOfInterest;
+    }
+
+    public RequestVersion1 getRequest() {
+        lock.lock();
+        try {
+            assertComplete();
+            return request;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public int getResult() {
+        lock.lock();
+        try {
+            assertComplete();
+            return result;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    public String getOutput() {
+        lock.lock();
+        try {
+            assertComplete();
+            return output;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void assertComplete() {
+        if (request == null) {
+            throw new AssertionError("Request has not completed.");
+        }
     }
 
     void reset() {
