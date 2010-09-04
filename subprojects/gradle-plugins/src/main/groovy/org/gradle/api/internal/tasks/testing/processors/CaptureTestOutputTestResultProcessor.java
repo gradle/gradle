@@ -14,12 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.junit;
+package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.StandardOutputRedirector;
 
+/**
+ * A {@link org.gradle.api.internal.tasks.testing.TestResultProcessor} which redirect stdout and stderr during the
+ * execution of a test suite.
+ */
 public class CaptureTestOutputTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor processor;
     private final StandardOutputRedirector outputRedirector;

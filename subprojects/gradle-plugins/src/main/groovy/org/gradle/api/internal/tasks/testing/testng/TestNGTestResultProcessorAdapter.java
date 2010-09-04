@@ -98,6 +98,7 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
         synchronized (lock) {
             testId = tests.remove(iTestResult.getName());
         }
+        assert testId != null : String.format("Unexpected test finished event for test %s", iTestResult.getName());
         if (resultType == TestResult.ResultType.FAILURE) {
             resultProcessor.failure(testId, iTestResult.getThrowable());
         }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.tasks.testing.junit
+package org.gradle.api.internal.tasks.testing.processors
 
 import org.gradle.logging.StandardOutputRedirector
 import spock.lang.Specification
