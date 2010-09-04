@@ -41,7 +41,7 @@ class GradleRunnerTest {
   private File javaprojectDir
 
   @Rule public final GradleDistribution dist = new GradleDistribution()
-  @Rule public final TestResources resources = new TestResources('testProject')
+  @Rule public final TestResources resources = new TestResources('testproject')
 
   @Before
   void setUp() {

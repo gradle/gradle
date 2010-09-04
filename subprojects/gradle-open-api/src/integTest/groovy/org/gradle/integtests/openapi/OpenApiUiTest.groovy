@@ -47,7 +47,7 @@ import static org.hamcrest.Matchers.*
 @RunWith(DistributionIntegrationTestRunner.class)
 public class OpenApiUiTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final TestResources resources = new TestResources('testProject')
+    @Rule public final TestResources resources = new TestResources('testproject')
     @Rule public final OpenApiFixture openApi = new OpenApiFixture()
 
     /**
