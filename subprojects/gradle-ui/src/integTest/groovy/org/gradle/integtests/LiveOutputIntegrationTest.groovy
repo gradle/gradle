@@ -27,6 +27,10 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
+import java.util.concurrent.locks.Lock
+import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.Condition
 
 /**
 This tests the that live output is gathered while executing a task.
@@ -108,20 +112,7 @@ that's likely to change over time. This version executes the command via GradleR
                                             org.gradle.StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS,
                                             executionInteraction);
 
-        //now sleep until we're complete, but bail if we wait too long
-        int maximumWaitSeconds = 45; //this is totally arbitrary and is worse case senario.
-        int totalWaitTime = 0;
-        while( !executionInteraction.executionFinishedReported && totalWaitTime <= maximumWaitSeconds) {
-            try {
-               println "Waiting. Has Finished: " + executionInteraction.executionFinishedReported + ". Total Time: "+ totalWaitTime
-                Thread.sleep(1000);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            totalWaitTime += 1;
-        }
+        executionInteraction.waitForCompletion(45, TimeUnit.SECONDS)
 
         verifyLiveOutputObtained( executionInteraction );
     }
@@ -157,6 +148,9 @@ public class TestExecutionInteraction implements ExecuteGradleCommandServerProto
    public boolean executionFinishedReported = false;
    public boolean wasSuccessful = false;
    public String finalMessage;
+   private Throwable failure
+   private final Lock lock = new ReentrantLock()
+   private final Condition condition = lock.newCondition()
 
    public void reportLiveOutput(String message)
    {
@@ -164,12 +158,34 @@ public class TestExecutionInteraction implements ExecuteGradleCommandServerProto
    }
 
    //when we finish executing, we'll make sure we got some type of live output from gradle.
-   public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable)
-   {
-      println "Received execution finished"
-      executionFinishedReported = true
-      this.wasSuccessful = true
-      this.finalMessage = message
+   public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
+       lock.lock()
+       try {
+           executionFinishedReported = true
+           this.wasSuccessful = wasSuccessful
+           this.finalMessage = message
+           failure = throwable
+           condition.signalAll()
+       } finally {
+           lock.unlock()
+       }
+   }
+
+   public waitForCompletion(int maxWaitValue, TimeUnit maxWaitUnits) {
+       Date expiry = new Date(System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue))
+       lock.lock()
+       try {
+           while (!executionFinishedReported) {
+               if (!condition.awaitUntil(expiry)) {
+                   throw new AssertionError("Timeout waiting for execution to complete.")
+               }
+           }
+           if (failure != null) {
+               throw failure
+           }
+       } finally {
+           lock.unlock()
+       }
    }
 
    public void reportExecutionStarted() { }
