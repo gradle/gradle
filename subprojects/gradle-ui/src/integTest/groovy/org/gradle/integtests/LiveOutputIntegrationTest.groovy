@@ -125,6 +125,8 @@ that's likely to change over time. This version executes the command via GradleR
   */
    private void verifyLiveOutputObtained( TestExecutionInteraction executionInteraction )
    {
+      executionInteraction.waitForCompletion(0, TimeUnit.SECONDS)
+
       //Make sure we were successful. If we weren't successful, that probably indicates a different problem and the test itself may be invalid.
       Assert.assertTrue( String.format("Verifying execution was successful failed:%n%s", executionInteraction.finalMessage), executionInteraction.wasSuccessful )
 
@@ -144,7 +146,7 @@ that's likely to change over time. This version executes the command via GradleR
 //this class just holds onto our liveOutput and also tracks whether or not we've finished.
 public class TestExecutionInteraction implements ExecuteGradleCommandServerProtocol.ExecutionInteraction
 {
-   public StringBuilder liveOutput = new StringBuilder();
+   private StringBuilder liveOutput = new StringBuilder();
    public boolean executionFinishedReported = false;
    public boolean wasSuccessful = false;
    public String finalMessage;
