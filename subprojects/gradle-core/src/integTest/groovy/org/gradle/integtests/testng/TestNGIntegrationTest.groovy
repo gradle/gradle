@@ -101,12 +101,15 @@ public class TestNGIntegrationTest {
         def execution = executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
         def result = new TestNgExecutionResult(dist.testDir)
-        result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite')
+        result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
         result.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')
         result.testClass('org.gradle.BrokenAfterSuite').assertConfigMethodFailed('cleanup')
+        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestFailed('broken', equalTo('broken'))
+        result.testClass('org.gradle.TestWithBrokenMethodDependency').assertTestSkipped('okTest')
         assertThat(execution.error, containsString('Test org.gradle.BadTest FAILED'))
         assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenSetup FAILED'))
         assertThat(execution.error, containsString('Test org.gradle.BrokenAfterSuite FAILED'))
+        assertThat(execution.error, containsString('Test org.gradle.TestWithBrokenMethodDependency FAILED'))
     }
 }

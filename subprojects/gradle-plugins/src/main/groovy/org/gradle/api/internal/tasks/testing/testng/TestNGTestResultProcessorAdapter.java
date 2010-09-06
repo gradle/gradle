@@ -95,10 +95,20 @@ public class TestNGTestResultProcessorAdapter implements ITestListener, IConfigu
 
     private void onTestFinished(ITestResult iTestResult, TestResult.ResultType resultType) {
         Object testId;
+        TestStartEvent startEvent = null;
         synchronized (lock) {
             testId = tests.remove(iTestResult.getName());
+            if (testId == null) {
+                // This can happen when a method fails which this method depends on 
+                testId = idGenerator.generateId();
+                Object parentId = testMethodToSuiteMapping.get(iTestResult.getMethod());
+                startEvent = new TestStartEvent(iTestResult.getStartMillis(), parentId);
+            }
         }
-        assert testId != null : String.format("Unexpected test finished event for test %s", iTestResult.getName());
+        if (startEvent != null) {
+            // Synthesize a start event
+            resultProcessor.started(new DefaultTestMethodDescriptor(testId, iTestResult.getTestClass().getName(), iTestResult.getName()), startEvent);
+        }
         if (resultType == TestResult.ResultType.FAILURE) {
             resultProcessor.failure(testId, iTestResult.getThrowable());
         }

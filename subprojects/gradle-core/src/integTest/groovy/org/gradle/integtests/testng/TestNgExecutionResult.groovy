@@ -83,6 +83,12 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
         this
     }
 
+    TestClassExecutionResult assertTestSkipped(String name) {
+        def testMethodNode = findTestMethod(name)
+        assertEquals('SKIP', testMethodNode.@status as String)
+        this
+    }
+
     TestClassExecutionResult assertTestFailed(String name, Matcher<? super String> messageMatcher) {
         def testMethodNode = findTestMethod(name)
         assertEquals('FAIL', testMethodNode.@status as String)
