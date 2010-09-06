@@ -43,6 +43,7 @@
         <li><a href="http://gradle.biz/training.html">October 5-6, M&uuml;nchen</a></li>
         <li><a href="http://gradle.biz/training.html">October 25-26, London</a></li>
         <li><a href="http://gradle.biz/training.html">November 8-9, Paris</a></li>
+        <li><a href="http://gradle.biz/training.html">Dec 6-7, Reston</a></li>
     </ul>
     <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
 </div>
