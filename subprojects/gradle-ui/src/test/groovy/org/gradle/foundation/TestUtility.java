@@ -288,7 +288,7 @@ public class TestUtility {
     }
 
     /**
-     * This is an ImportInteraction implemention meant to be used by tests. See TestExportInteraction for more
+     * This is an ImportInteraction implementation meant to be used by tests. See TestExportInteraction for more
      * information.
     */
     public static class TestImportInteraction implements DOM4JSerializer.ImportInteraction {
@@ -325,12 +325,6 @@ public class TestUtility {
             public void reportExecutionStarted() {
             }
 
-           /**
-            Notification of the total number of tasks that will be executed. This is
-            called after reportExecutionStarted and before any tasks are executed.
-
-            @param size the total number of tasks.
-            */
            public void reportNumberOfTasksToExecute( int size ) {
            }
 

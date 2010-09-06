@@ -20,27 +20,57 @@ import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+/**
+ * A Junit rule which copies a sample into the test directory before the test executes. Looks for a
+ * {@link org.gradle.integtests.fixtures.UsesSample} annotation on the test method to determine which sample the
+ * test requires. If not found, uses the default sample provided in the constructor.
+ */
 public class Sample implements MethodRule {
-    private final String name;
+    private final Logger logger = LoggerFactory.getLogger(Sample.class);
+    private final String defaultSampleName;
     private GradleDistribution dist;
     private TestFile sampleDir;
 
-    public Sample(String name) {
-        this.name = name;
+    public Sample(String defaultSampleName) {
+        this.defaultSampleName = defaultSampleName;
+    }
+
+    public Sample() {
+        this.defaultSampleName = null;
     }
 
     public Statement apply(final Statement base, FrameworkMethod method, Object target) {
         dist = RuleHelper.getField(target, GradleDistribution.class);
-        sampleDir = dist.getTestDir().file(name);
+        final String sampleName = getSampleName(method);
+        sampleDir = sampleName == null ? null : dist.getTestDir().file(sampleName);
+
         return new Statement() {
             @Override
             public void evaluate() throws Throwable {
-                TestFile srcDir = dist.getSamplesDir().file(name).assertIsDir();
-                srcDir.copyTo(sampleDir);
+                if (sampleName != null) {
+                    TestFile srcDir = dist.getSamplesDir().file(sampleName).assertIsDir();
+                    logger.debug("Copying sample '{}' to test directory.", sampleName);
+                    srcDir.copyTo(sampleDir);
+                } else {
+                    logger.debug("No sample specified for this test, skipping.");
+                }
                 base.evaluate();
             }
         };
+    }
+
+    private String getSampleName(FrameworkMethod method) {
+        String sampleName;
+        UsesSample annotation = method.getAnnotation(UsesSample.class);
+        if (annotation == null) {
+            sampleName = defaultSampleName;
+        } else {
+            sampleName = annotation.value();
+        }
+        return sampleName;
     }
 
     public TestFile getDir() {

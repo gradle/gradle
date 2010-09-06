@@ -23,7 +23,7 @@ import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import static org.hamcrest.Matchers.*
-import org.gradle.integtests.testng.TestNgExecutionResult
+import org.gradle.integtests.testng.TestNGExecutionResult
 
 class IncrementalTestIntegrationTest {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -82,7 +82,7 @@ class IncrementalTestIntegrationTest {
 
         executer.withTasks('test').run().assertTasksNotSkipped(':test')
 
-        result = new TestNgExecutionResult(distribution.testDir)
+        result = new TestNGExecutionResult(distribution.testDir)
         result.assertTestClassesExecuted('TestNGTest')
 
         executer.withTasks('test').run().assertTasksNotSkipped()

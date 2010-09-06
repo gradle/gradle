@@ -97,6 +97,8 @@ if $cygwin ; then
 
 fi
 
+GRADLE_APP_BASE_NAME=`basename "$0"`
+
 STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
 # Start the Profiler or the JVM
@@ -105,6 +107,7 @@ if $useprofiler ; then
 else
     exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
+        -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" \
         $STARTER_MAIN_CLASS \
         "$@"
 fi

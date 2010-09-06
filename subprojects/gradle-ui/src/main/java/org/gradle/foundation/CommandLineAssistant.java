@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -47,29 +47,31 @@ public class CommandLineAssistant {
     public static String[] breakUpCommandLine(String fullCommandLine) {
         List<String> commandLineArguments = new ArrayList<String>();
 
-        boolean isInsideQuotes = false;
-        StringBuffer currentOption = new StringBuffer();
+        Character currentQuote = null;
+        StringBuilder currentOption = new StringBuilder();
+        boolean hasOption = false;
 
         for (int index = 0; index < fullCommandLine.length(); index++) {
             char c = fullCommandLine.charAt(index);
-            if (Character.isSpaceChar(c) && !isInsideQuotes) {
-                currentOption.trimToSize();
-                if (currentOption.length() > 0) {
+            if (currentQuote == null && Character.isWhitespace(c)) {
+                if (hasOption) {
                     commandLineArguments.add(currentOption.toString());
+                    hasOption = false;
+                    currentOption.setLength(0);
                 }
-
-                currentOption = new StringBuffer();
-            } else {
-                if (c == '"') {
-                    isInsideQuotes = !isInsideQuotes;
-                }
-
+            } else if (currentQuote == null && (c == '"' || c == '\'')) {
+                currentQuote = c;
+                hasOption = true;
+            } else if (currentQuote != null && c == currentQuote) {
+                currentQuote = null;
+            }
+            else {
                 currentOption.append(c);
+                hasOption = true;
             }
         }
 
-        currentOption.trimToSize();
-        if (currentOption.length() > 0) {
+        if (hasOption) {
             commandLineArguments.add(currentOption.toString());
         }
 

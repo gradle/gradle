@@ -26,75 +26,69 @@ import antlr.Parser;
  * @author Steve Ebersole
  */
 public class GrammarMetadata {
-	private final GrammarFileMetadata grammarFileMetadata;
-	private final GrammarDelegate grammarDelegate;
+    private final GrammarFileMetadata grammarFileMetadata;
+    private final GrammarDelegate grammarDelegate;
 
-	public GrammarMetadata(GrammarFileMetadata grammarFileMetadata, GrammarDelegate grammarDelegate) {
-		this.grammarFileMetadata = grammarFileMetadata;
-		this.grammarDelegate = grammarDelegate;
-		grammarDelegate.associateWith( this );
-	}
+    public GrammarMetadata(GrammarFileMetadata grammarFileMetadata, GrammarDelegate grammarDelegate) {
+        this.grammarFileMetadata = grammarFileMetadata;
+        this.grammarDelegate = grammarDelegate;
+        grammarDelegate.associateWith(this);
+    }
 
-	public GrammarFileMetadata getGrammarFile() {
-		return grammarFileMetadata;
-	}
+    public GrammarFileMetadata getGrammarFile() {
+        return grammarFileMetadata;
+    }
 
-	public String getClassName() {
-		return grammarDelegate.getClassName();
-	}
+    public String getClassName() {
+        return grammarDelegate.getClassName();
+    }
 
-	public String getQualifiedClassName() {
-		if ( isEmpty( getPackageName() ) ) {
-			return getClassName();
-		}
-		else {
-			return getPackageName() + '.' + getClassName();
-		}
-	}
+    public String getQualifiedClassName() {
+        if (isEmpty(getPackageName())) {
+            return getClassName();
+        } else {
+            return getPackageName() + '.' + getClassName();
+        }
+    }
 
-	public GrammarDelegate getSuperGrammarDelegate() {
-		return grammarDelegate.getSuperGrammarDelegate();
-	}
+    public GrammarDelegate getSuperGrammarDelegate() {
+        return grammarDelegate.getSuperGrammarDelegate();
+    }
 
-	public boolean extendsStandardGrammar() {
-		final String superGrammarClassName = getSuperGrammarDelegate().getClassName();
-		return Parser.class.getName().equals( superGrammarClassName )
-				|| Parser.class.getSimpleName().equals( superGrammarClassName )
-				|| TreeParser.class.getName().equals( superGrammarClassName )
-				|| TreeParser.class.getSimpleName().equals( superGrammarClassName )
-				|| "Lexer".equals( superGrammarClassName );
-	}
+    public boolean extendsStandardGrammar() {
+        final String superGrammarClassName = getSuperGrammarDelegate().getClassName();
+        return Parser.class.getName().equals(superGrammarClassName) || Parser.class.getSimpleName().equals(
+                superGrammarClassName) || TreeParser.class.getName().equals(superGrammarClassName)
+                || TreeParser.class.getSimpleName().equals(superGrammarClassName) || "Lexer".equals(
+                superGrammarClassName);
+    }
 
-	public String getImportVocab() {
-		return grammarDelegate.getImportVocab();
-	}
+    public String getImportVocab() {
+        return grammarDelegate.getImportVocab();
+    }
 
-	public String getExportVocab() {
-		return grammarDelegate.getExportVocab();
-	}
+    public String getExportVocab() {
+        return grammarDelegate.getExportVocab();
+    }
 
-	public String getPackageName() {
-		return getGrammarFile().getPackageName();
-	}
+    public String getPackageName() {
+        return getGrammarFile().getPackageName();
+    }
 
-	/**
-	 * Determine the relative path of the generated parser java file.
-	 * 
-	 * @return The relative generated parser file path.
-	 */
-	public String determineGeneratedParserPath() {
-		if ( isEmpty( getPackageName() ) ) {
-			return getClassName() + ".java";
-		}
-		else {
-			return getPackageName().replace( '.', File.separatorChar )
-					+ File.separatorChar
-					+ getClassName()
-					+ ".java";
-		}
-	}
+    /**
+     * Determine the relative path of the generated parser java file.
+     *
+     * @return The relative generated parser file path.
+     */
+    public String determineGeneratedParserPath() {
+        if (isEmpty(getPackageName())) {
+            return getClassName() + ".java";
+        } else {
+            return getPackageName().replace('.', File.separatorChar) + File.separatorChar + getClassName() + ".java";
+        }
+    }
 
-	private boolean isEmpty(String packageName) {
-		return packageName == null || packageName.trim().length() == 0;
-	}
+    private boolean isEmpty(String packageName) {
+        return packageName == null || packageName.trim().length() == 0;
+    }
 }

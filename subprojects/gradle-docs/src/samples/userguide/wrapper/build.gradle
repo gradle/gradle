@@ -1,6 +1,6 @@
 //START SNIPPET wrapper-simple
 task wrapper(type: Wrapper) {
-    gradleVersion = '0.6'
+    gradleVersion = '0.8'
 //END SNIPPET wrapper-simple
     jarPath = 'wrapper'
 //START SNIPPET wrapper-simple

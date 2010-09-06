@@ -196,19 +196,22 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             super(result);
         }
 
-        public void assertHasLineNumber(int lineNumber) {
+        public ExecutionFailure assertHasLineNumber(int lineNumber) {
             assertThat(getError(), containsString(String.format(" line: %d", lineNumber)));
+            return this;
         }
 
-        public void assertHasFileName(String filename) {
+        public ExecutionFailure assertHasFileName(String filename) {
             assertThat(getError(), containsLine(startsWith(filename)));
+            return this;
         }
 
-        public void assertHasCause(String description) {
+        public ExecutionFailure assertHasCause(String description) {
             assertThatCause(startsWith(description));
+            return this;
         }
 
-        public void assertThatCause(final Matcher<String> matcher) {
+        public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
             assertThat(getError(), containsLine(new BaseMatcher<String>() {
                 public boolean matches(Object o) {
                     String str = (String) o;
@@ -220,14 +223,17 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
                     matcher.describeTo(description);
                 }
             }));
+            return this;
         }
 
-        public void assertHasDescription(String context) {
+        public ExecutionFailure assertHasDescription(String context) {
             assertThatDescription(startsWith(context));
+            return this;
         }
 
-        public void assertThatDescription(Matcher<String> matcher) {
+        public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
             assertThat(getError(), containsLine(matcher));
+            return this;
         }
     }
 }

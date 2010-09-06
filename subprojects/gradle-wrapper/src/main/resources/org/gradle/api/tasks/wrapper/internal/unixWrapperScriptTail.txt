@@ -68,8 +68,11 @@ if $cygwin ; then
     esac
 fi
 
+GRADLE_APP_BASE_NAME=`basename "$0"`
+
 "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
+        -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" \
         -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" \
         $STARTER_MAIN_CLASS \
         "$@"

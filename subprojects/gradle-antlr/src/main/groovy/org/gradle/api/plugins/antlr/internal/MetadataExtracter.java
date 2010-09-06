@@ -25,74 +25,66 @@ import org.gradle.api.UncheckedIOException;
 import org.gradle.api.file.FileTree;
 
 /**
- * Preprocess an Antlr grammar file so that dependencies between grammars
- * can be properly determined such that they can be processed for generation
- * in proper order later.
+ * Preprocess an Antlr grammar file so that dependencies between grammars can be properly determined such that they can
+ * be processed for generation in proper order later.
  *
  * @author Steve Ebersole
  */
 public class MetadataExtracter {
 
-	public XRef extractMetadata(FileTree source) {
-		antlr.Tool tool = new antlr.Tool();
-		antlr.preprocessor.Hierarchy hierarchy = new antlr.preprocessor.Hierarchy( tool );
+    public XRef extractMetadata(FileTree source) {
+        antlr.Tool tool = new antlr.Tool();
+        antlr.preprocessor.Hierarchy hierarchy = new antlr.preprocessor.Hierarchy(tool);
 
-		// first let antlr preprocess the grammars...
-		for ( File grammarFileFile : source.getFiles() ) {
-			final String grammarFilePath = grammarFileFile.getPath();
+        // first let antlr preprocess the grammars...
+        for (File grammarFileFile : source.getFiles()) {
+            final String grammarFilePath = grammarFileFile.getPath();
 
-			try {
-				hierarchy.readGrammarFile( grammarFilePath );
-			}
-			catch ( FileNotFoundException e ) {
-				// should never happen here
-				throw new IllegalStateException( "Received FileNotFoundException on already read file", e );
-			}
-		}
+            try {
+                hierarchy.readGrammarFile(grammarFilePath);
+            } catch (FileNotFoundException e) {
+                // should never happen here
+                throw new IllegalStateException("Received FileNotFoundException on already read file", e);
+            }
+        }
 
-		// now, do our processing using the antlr preprocessor results whenever possible.
-		XRef xref = new XRef( hierarchy );
-		for ( File grammarFileFile : source.getFiles() ) {
+        // now, do our processing using the antlr preprocessor results whenever possible.
+        XRef xref = new XRef(hierarchy);
+        for (File grammarFileFile : source.getFiles()) {
 
-			// determine the package name :(
-			String grammarPackageName = null;
-			try {
-				BufferedReader in = new BufferedReader( new FileReader( grammarFileFile ) );
-				try {
-					String line;
-					while ( ( line = in.readLine() ) != null ) {
-						line = line.trim();
-						if ( line.startsWith( "package" ) && line.endsWith( ";" ) ) {
-							grammarPackageName = line.substring( 8, line.length() -1 );
-							break;
-						}
-					}
-				}
-				finally {
-					try {
-						in.close();
-					}
-					catch ( IOException e ) {
+            // determine the package name :(
+            String grammarPackageName = null;
+            try {
+                BufferedReader in = new BufferedReader(new FileReader(grammarFileFile));
+                try {
+                    String line;
+                    while ((line = in.readLine()) != null) {
+                        line = line.trim();
+                        if (line.startsWith("package") && line.endsWith(";")) {
+                            grammarPackageName = line.substring(8, line.length() - 1);
+                            break;
+                        }
+                    }
+                } finally {
+                    try {
+                        in.close();
+                    } catch (IOException e) {
                         throw new UncheckedIOException(e);
                     }
-				}
-			}
-			catch ( IOException e ) {
-				e.printStackTrace();
-			}
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
-			final String grammarFilePath = grammarFileFile.getPath();
-			antlr.preprocessor.GrammarFile antlrGrammarFile = hierarchy.getFile( grammarFilePath );
+            final String grammarFilePath = grammarFileFile.getPath();
+            antlr.preprocessor.GrammarFile antlrGrammarFile = hierarchy.getFile(grammarFilePath);
 
-			GrammarFileMetadata grammarFileMetadata = new GrammarFileMetadata(
-					grammarFileFile,
-					antlrGrammarFile,
-					grammarPackageName
-			);
+            GrammarFileMetadata grammarFileMetadata = new GrammarFileMetadata(grammarFileFile, antlrGrammarFile,
+                    grammarPackageName);
 
-			xref.addGrammarFile( grammarFileMetadata );
-		}
+            xref.addGrammarFile(grammarFileMetadata);
+        }
 
-		return xref;
-	}
+        return xref;
+    }
 }

@@ -59,9 +59,9 @@ public class TestNGIntegrationProject {
 
     void doAssert(projectDir, result) {
         if (assertClosure.maximumNumberOfParameters == 3) {
-            assertClosure(name, projectDir, new TestNgExecutionResult(projectDir))
+            assertClosure(name, projectDir, new TestNGExecutionResult(projectDir))
         } else {
-            assertClosure(name, projectDir, new TestNgExecutionResult(projectDir), result)
+            assertClosure(name, projectDir, new TestNGExecutionResult(projectDir), result)
         }
     }
 }

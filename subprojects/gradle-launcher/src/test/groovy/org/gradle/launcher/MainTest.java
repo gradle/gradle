@@ -18,25 +18,26 @@ package org.gradle.launcher;
 
 import org.gradle.*;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.util.HelperUtil;
-import static org.hamcrest.Matchers.*;
+import org.gradle.util.*;
 import org.jmock.Expectations;
-import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import static org.junit.Assert.*;
+import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 /**
  * @author Hans Dockter
  */
-@RunWith(JMock.class)
 public class MainTest {
     private static final String[] TEST_ARGS = { "arg1", "arg2" };
-    private JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
+    private JUnit4Mockery context = new JUnit4GroovyMockery();
+    @Rule
+    public final SetSystemProperties sysProperties = new SetSystemProperties();
+    @Rule
+    public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
 
     private void setUpGradle(final BuildResult buildResult, final StartParameter startParameter) {
         final GradleLauncher gradleMockLauncher = context.mock(GradleLauncher.class);
@@ -44,9 +45,11 @@ public class MainTest {
 
         GradleLauncher.injectCustomFactory(gradleLauncherFactoryMock);
         context.checking(new Expectations() {{
-            one(gradleLauncherFactoryMock).newInstance(startParameter); will(returnValue(gradleMockLauncher));
+            one(gradleLauncherFactoryMock).newInstance(startParameter);
+            will(returnValue(gradleMockLauncher));
             one(gradleMockLauncher).useLogger(with(any(BuildLogger.class)));
-            one(gradleMockLauncher).run(); will(returnValue(buildResult));
+            one(gradleMockLauncher).run();
+            will(returnValue(buildResult));
         }});
     }
 
@@ -65,7 +68,6 @@ public class MainTest {
         }});
     }
 
-
     @Test
     public void runBuild() throws Exception {
         Main main = new Main(TEST_ARGS);
@@ -78,8 +80,6 @@ public class MainTest {
             fail();
         } catch (BuildCompletedError e) {
             assertThat(e.getCause(), nullValue());
-        } catch (Throwable t) {
-            t.printStackTrace();
         }
     }
 
@@ -118,11 +118,37 @@ public class MainTest {
         } catch (BuildCompletedError e) {
             assertThat(e.getCause(), nullValue());
         }
+
+        assertThat(outputs.getStdOut(), containsString("USAGE: gradle [option...] [task...]"));
+    }
+
+    @Test
+    public void usesSystemPropertyForGradleAppName() {
+        System.setProperty("org.gradle.appname", "gradle-app");
+        final CommandLine2StartParameterConverter commandLine2StartParameterConverterMock =
+                context.mock(CommandLine2StartParameterConverter.class, "helpMock");
+        Main main = new Main(TEST_ARGS);
+        final StartParameter startParameter = new StartParameter();
+        startParameter.setShowHelp(true);
+        setUpMain(main, startParameter);
+        main.setParameterConverter(commandLine2StartParameterConverterMock);
+        context.checking(new Expectations() {{
+            one(commandLine2StartParameterConverterMock).convert(TEST_ARGS);
+            will(returnValue(startParameter));
+            one(commandLine2StartParameterConverterMock).showHelp(System.out);
+        }});
+        try {
+            main.execute();
+            fail();
+        } catch (BuildCompletedError e) {
+            assertThat(e.getCause(), nullValue());
+        }
+
+        assertThat(outputs.getStdOut(), containsString("USAGE: gradle-app [option...] [task...]"));
     }
 
     @Test
     public void showVersion() throws Exception {
-        // This tests just that showVersion does not lead to running a build or throwing of an exception.
         Main main = new Main(TEST_ARGS);
         StartParameter startParameter = new StartParameter();
         startParameter.setShowVersion(true);
@@ -133,6 +159,8 @@ public class MainTest {
         } catch (BuildCompletedError e) {
             assertThat(e.getCause(), nullValue());
         }
+
+        assertThat(outputs.getStdOut(), containsString(new GradleVersion().prettyPrint()));
     }
 
     @Test
@@ -154,6 +182,8 @@ public class MainTest {
         } catch (BuildCompletedError e) {
             assertThat((CommandLineArgumentException) e.getCause(), sameInstance(conversionException));
         }
+
+        assertThat(outputs.getStdErr(), containsString("USAGE: gradle [option...] [task...]"));
     }
 
 

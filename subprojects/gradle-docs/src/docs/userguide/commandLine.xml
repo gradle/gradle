@@ -19,7 +19,7 @@
         <cmdsynopsis>
             <command>gradle</command>
             <arg choice="opt" rep="repeat">option</arg>
-            <arg choice="opt" rep="repeat">task-name</arg>
+            <arg choice="opt" rep="repeat">task</arg>
         </cmdsynopsis>
         The command-line options available for the <command>gradle</command> command are listed below:
     </para>
@@ -109,6 +109,10 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>-no-color</option></term>
+            <listitem><para>Do not use color in the console output.</para></listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-p</option>, <option>--project-dir</option></term>
             <listitem><para>Specifies the start directory for Gradle. Defaults to current directory.
                 See <xref linkend="sec:selecting_build"/>.
@@ -129,7 +133,7 @@
         </varlistentry>
         <varlistentry>
             <term><option>-t</option>, <option>--tasks</option></term>
-            <listitem><para>Show list of all available tasks. See <xref linkend="sec:listing_tasks"/>.
+            <listitem><para>Show list of available tasks. See <xref linkend="sec:listing_tasks"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>

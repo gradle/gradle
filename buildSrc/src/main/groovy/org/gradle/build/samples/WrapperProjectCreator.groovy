@@ -29,7 +29,7 @@ class WrapperProjectCreator {
 
     static void createProject(File baseDir, File downloadUrlRoot, String gradleVersion) {
         String gradleScript = """
-createTask('$WRAPPER_TASK_NAME', type: $Wrapper.name).configure {
+task $WRAPPER_TASK_NAME(type: $Wrapper.name) {
     gradleVersion = '$gradleVersion'
     urlRoot = '${downloadUrlRoot.toURI().toURL()}'
     zipBase = Wrapper.PathBase.PROJECT
@@ -40,7 +40,7 @@ createTask('$WRAPPER_TASK_NAME', type: $Wrapper.name).configure {
     distributionPath = 'dist'
 }
 
-createTask('$TEST_TASK_NAME') {
+task $TEST_TASK_NAME << {
     println '$TEST_TASK_OUTPUT'
 }
 """
