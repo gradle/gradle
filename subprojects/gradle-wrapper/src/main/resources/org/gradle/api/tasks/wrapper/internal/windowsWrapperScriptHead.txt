@@ -13,8 +13,8 @@
 if "%OS%"=="Windows_NT" setlocal
 
 @rem Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
-@rem set GRADLE_OPTS=%GRADLE_OPTS% -Xmx512
-@rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512
+@rem set GRADLE_OPTS=%GRADLE_OPTS% -Xmx512m
+@rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512m
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.\
