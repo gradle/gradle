@@ -6,7 +6,7 @@ repositories {
 
 dependencies {
     testCompile 'junit:junit:4.7'
-    testCompile 'org.testng:testng:5.12.1'
+    testCompile 'org.testng:testng:5.13.1'
 }
 
 test {

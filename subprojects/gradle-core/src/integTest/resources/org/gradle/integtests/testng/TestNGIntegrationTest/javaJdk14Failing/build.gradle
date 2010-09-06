@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    testCompile 'org.testng:testng:5.8:jdk14'
+    testCompile 'org.testng:testng:5.11:jdk14'
 }
 
 test {

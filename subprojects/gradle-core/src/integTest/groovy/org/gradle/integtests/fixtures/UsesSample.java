@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -15,18 +15,13 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.hamcrest.Matcher;
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
 
-public interface ExecutionFailure extends ExecutionResult {
-    ExecutionFailure assertHasLineNumber(int lineNumber);
-
-    ExecutionFailure assertHasFileName(String filename);
-
-    ExecutionFailure assertHasCause(String description);
-
-    ExecutionFailure assertThatCause(Matcher<String> matcher);
-
-    ExecutionFailure assertHasDescription(String context);
-
-    ExecutionFailure assertThatDescription(Matcher<String> matcher);
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+public @interface UsesSample {
+    String value();
 }

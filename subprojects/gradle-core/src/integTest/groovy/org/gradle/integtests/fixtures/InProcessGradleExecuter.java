@@ -289,19 +289,23 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             this.failure = failure;
         }
 
-        public void assertHasLineNumber(int lineNumber) {
+        public ExecutionFailure assertHasLineNumber(int lineNumber) {
             assertThat(failure.getMessage(), containsString(String.format(" line: %d", lineNumber)));
+            return this;
+
         }
 
-        public void assertHasFileName(String filename) {
+        public ExecutionFailure assertHasFileName(String filename) {
             assertThat(failure.getMessage(), startsWith(String.format("%s", filename)));
+            return this;
         }
 
-        public void assertHasCause(String description) {
+        public ExecutionFailure assertHasCause(String description) {
             assertThatCause(startsWith(description));
+            return this;
         }
 
-        public void assertThatCause(final Matcher<String> matcher) {
+        public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
             if (failure instanceof LocationAwareException) {
                 LocationAwareException exception = (LocationAwareException) failure;
                 assertThat(exception.getReportableCauses(), hasItem(hasMessage(matcher)));
@@ -309,14 +313,17 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
                 assertThat(failure.getCause(), notNullValue());
                 assertThat(failure.getCause().getMessage(), matcher);
             }
+            return this;
         }
 
-        public void assertHasDescription(String context) {
+        public ExecutionFailure assertHasDescription(String context) {
             assertThatDescription(startsWith(context));
+            return this;
         }
 
-        public void assertThatDescription(Matcher<String> matcher) {
+        public ExecutionFailure assertThatDescription(Matcher<String> matcher) {
             assertThat(failure.getMessage(), containsLine(matcher));
+            return this;
         }
     }
 }
