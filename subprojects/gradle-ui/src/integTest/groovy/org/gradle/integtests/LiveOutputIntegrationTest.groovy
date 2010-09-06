@@ -126,7 +126,7 @@ that's likely to change over time. This version executes the command via GradleR
    private void verifyLiveOutputObtained( TestExecutionInteraction executionInteraction )
    {
       //Make sure we were successful. If we weren't successful, that probably indicates a different problem and the test itself may be invalid.
-      Assert.assertTrue( "Verifying execution was successful failed", executionInteraction.wasSuccessful )
+      Assert.assertTrue( String.format("Verifying execution was successful failed:%n%s", executionInteraction.finalMessage), executionInteraction.wasSuccessful )
 
       //verify that we actually finished. If not, then we timed out, which may mean the machine is really slow or that there's a serious problem.
       Assert.assertTrue( "Verifying execution finished in a timely manner", executionInteraction.executionFinishedReported );
