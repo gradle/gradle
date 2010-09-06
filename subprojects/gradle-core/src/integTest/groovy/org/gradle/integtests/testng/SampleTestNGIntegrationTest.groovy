@@ -39,7 +39,7 @@ public class SampleTestNGIntegrationTest {
     public void suiteXmlBuilder() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new TestNgExecutionResult(sample.dir)
+        def result = new TestNGExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.testng.UserImplTest')
         result.testClass('org.gradle.testng.UserImplTest').assertTestsExecuted('testOkFirstName')
         result.testClass('org.gradle.testng.UserImplTest').assertTestPassed('testOkFirstName')
@@ -49,7 +49,7 @@ public class SampleTestNGIntegrationTest {
     public void javaJdk14Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new TestNgExecutionResult(sample.dir)
+        def result = new TestNGExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
@@ -58,7 +58,7 @@ public class SampleTestNGIntegrationTest {
     public void javaJdk15Passing() {
         executer.inDirectory(sample.dir).withTasks('clean', 'test').run()
 
-        def result = new TestNgExecutionResult(sample.dir)
+        def result = new TestNGExecutionResult(sample.dir)
         result.assertTestClassesExecuted('org.gradle.OkTest', 'org.gradle.ConcreteTest', 'org.gradle.SuiteSetup', 'org.gradle.SuiteCleanup', 'org.gradle.TestSetup', 'org.gradle.TestCleanup')
         result.testClass('org.gradle.OkTest').assertTestsExecuted('passingTest', 'expectedFailTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')

@@ -25,6 +25,8 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.integtests.fixtures.Sample
+import org.gradle.integtests.fixtures.UsesSample
 
 /**
  * @author Hans Dockter
@@ -34,6 +36,7 @@ class LoggingIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
+    @Rule public final Sample sampleResources = new Sample()
 
     private final LogOutput logOutput = new LogOutput() {{
         quiet(
@@ -127,6 +130,20 @@ class LoggingIntegrationTest {
         )
     }}
 
+    private final LogOutput sample = new LogOutput() {{
+        error('An error log message.')
+        quiet('An info log message which is always logged.')
+        quiet('A message which is logged at QUIET level')
+        warning('A warning log message.')
+        lifecycle('A lifecycle info log message.')
+        info('An info log message.')
+        info('A message which is logged at INFO level')
+        info('A task message which is logged at INFO level')
+        info('An info log message logged using SLF4j')
+        debug('A debug log message.')
+        forbidden('A trace log message.')
+    }}
+
     private final LogOutput multiThreaded = new LogOutput() {{
         (1..10).each { thread ->
             (1..100).each { iteration ->
@@ -155,6 +172,26 @@ class LoggingIntegrationTest {
     @Test
     public void debugLogging() {
         checkOutput(this.&run, logOutput.debug)
+    }
+
+    @Test @UsesSample('userguide/tutorial/logging')
+    public void sampleQuietLogging() {
+        checkOutput(this.&runSample, sample.quiet)
+    }
+
+    @Test @UsesSample('userguide/tutorial/logging')
+    public void sampleLifecycleLogging() {
+        checkOutput(this.&runSample, sample.lifecycle)
+    }
+
+    @Test @UsesSample('userguide/tutorial/logging')
+    public void sampleInfoLogging() {
+        checkOutput(this.&runSample, sample.info)
+    }
+
+    @Test @UsesSample('userguide/tutorial/logging')
+    public void sampleDebugLogging() {
+        checkOutput(this.&runSample, sample.debug)
     }
 
     @Test
@@ -186,6 +223,10 @@ class LoggingIntegrationTest {
     def runMultiThreaded(LogLevel level) {
         resources.maybeCopy('LoggingIntegrationTest/multiThreaded')
         return executer.withArguments(level.args).withTasks('log').run()
+    }
+    
+    def runSample(LogLevel level) {
+        return executer.inDirectory(sampleResources.dir).withArguments(level.args).withTasks('log').run()
     }
 
     void checkOutput(Closure run, LogLevel level) {

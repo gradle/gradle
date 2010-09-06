@@ -46,7 +46,7 @@ public class TestNGIntegrationTest {
         assertThat(result.error, not(containsString('stderr')))
         assertThat(result.error, not(containsString('a warning')))
 
-        new TestNgExecutionResult(dist.testDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
+        new TestNGExecutionResult(dist.testDir).testClass('org.gradle.OkTest').assertTestPassed('ok')
     }
 
     @Test
@@ -73,7 +73,7 @@ public class TestNGIntegrationTest {
     public void groovyJdk15Failing() {
         executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
-        def result = new TestNgExecutionResult(dist.testDir)
+        def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
     }
@@ -82,7 +82,7 @@ public class TestNGIntegrationTest {
     public void groovyJdk15Passing() {
         executer.withTasks("test").run()
 
-        def result = new TestNgExecutionResult(dist.testDir)
+        def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.OkTest')
         result.testClass('org.gradle.OkTest').assertTestPassed('passingTest')
     }
@@ -91,7 +91,7 @@ public class TestNGIntegrationTest {
     public void javaJdk14Failing() {
         executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
-        def result = new TestNgExecutionResult(dist.testDir)
+        def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
     }
@@ -100,7 +100,7 @@ public class TestNGIntegrationTest {
     public void javaJdk15Failing() {
         def execution = executer.withTasks("test").runWithFailure().assertThatCause(startsWith('There were failing tests'))
 
-        def result = new TestNgExecutionResult(dist.testDir)
+        def result = new TestNGExecutionResult(dist.testDir)
         result.assertTestClassesExecuted('org.gradle.BadTest', 'org.gradle.TestWithBrokenSetup', 'org.gradle.BrokenAfterSuite', 'org.gradle.TestWithBrokenMethodDependency')
         result.testClass('org.gradle.BadTest').assertTestFailed('failingTest', equalTo('broken'))
         result.testClass('org.gradle.TestWithBrokenSetup').assertConfigMethodFailed('setup')

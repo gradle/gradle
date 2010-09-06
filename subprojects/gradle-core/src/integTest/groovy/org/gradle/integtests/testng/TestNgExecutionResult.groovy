@@ -25,11 +25,11 @@ import org.hamcrest.Matcher
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-class TestNgExecutionResult implements TestExecutionResult {
+class TestNGExecutionResult implements TestExecutionResult {
     private final TestFile projectDir
     private final GPathResult resultsXml
 
-    def TestNgExecutionResult(projectDir) {
+    def TestNGExecutionResult(projectDir) {
         this.projectDir = projectDir;
         resultsXml = new XmlSlurper().parse(projectDir.file('build/reports/tests/testng-results.xml').assertIsFile())
     }
