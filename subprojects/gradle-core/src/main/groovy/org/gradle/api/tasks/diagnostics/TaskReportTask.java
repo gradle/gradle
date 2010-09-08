@@ -29,6 +29,7 @@ import java.io.IOException;
  */
 public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();
+
     private boolean detail;
 
     public ProjectReportRenderer getRenderer() {
@@ -63,8 +64,8 @@ public class TaskReportTask extends AbstractReportTask {
                 }
             }
         }
-
         renderer.completeTasks();
+
         for (Rule rule : project.getTasks().getRules()) {
             renderer.addRule(rule);
         }

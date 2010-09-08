@@ -20,9 +20,8 @@
 <section>
     <title>Prerequisites</title>
 
-    <para>Gradle requires a Java JDK to be installed. Gradle ships with its own Groovy library, therefore no Groovy
-        needs to be installed. Any existing Groovy installation is ignored by Gradle. The standard Gradle distribution
-        requires a JDK 1.5 or higher. We also provide a distinct JDK 1.4 compatible distribution.
+    <para>Gradle requires a Java JDK to be installed. Gradle requires a JDK 1.5 or higher. Gradle ships with its own
+        Groovy library, therefore no Groovy needs to be installed. Any existing Groovy installation is ignored by Gradle.
     </para>
 
     <para>Gradle uses whichever JDK it finds in your path (to check, use <userinput>java -version</userinput>).
@@ -51,8 +50,8 @@
         </para>
     </listitem>
     <listitem>
-        <para>The binary sources (If you want to build Gradle you need to download the source distribution or checkout
-            the sources from the source repository).
+        <para>The binary sources. This is for reference only. If you want to build Gradle you need to download the source distribution
+            or checkout the sources from the source repository. See the <ulink url="website:build.html">Gradle web site</ulink> for details).
         </para>
     </listitem>
 </itemizedlist>

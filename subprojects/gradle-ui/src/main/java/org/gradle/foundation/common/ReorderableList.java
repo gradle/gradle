@@ -474,7 +474,7 @@ public class ReorderableList<E> implements List<E> {
      *  Any operation that expects a list can be used as a range operation by passing a subList view instead of a whole
      * list.  For example, the following idiom removes a range of elements from a list:
      * <pre>
-     * 	    list.subList(from, to).clear();
+     *     list.subList(from, to).clear();
      * </pre>
      * Similar idioms may be constructed for <tt>indexOf</tt> and <tt>lastIndexOf</tt>, and all of the algorithms in the
      * <tt>Collections</tt> class can be applied to a subList.<p> <p/> The semantics of the list returned by this method

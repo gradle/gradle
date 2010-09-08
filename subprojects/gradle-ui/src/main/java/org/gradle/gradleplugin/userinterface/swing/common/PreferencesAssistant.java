@@ -86,12 +86,10 @@ public class PreferencesAssistant {
             return null;
         }
 
-        int x, y, width, height;
-
-        x = childNode.getValueOfChildAsInt(WINDOW_X, window.getLocation().x);
-        y = childNode.getValueOfChildAsInt(WINDOW_Y, window.getLocation().y);
-        width = childNode.getValueOfChildAsInt(WINDOW_WIDTH, window.getSize().width);
-        height = childNode.getValueOfChildAsInt(WINDOW_HEIGHT, window.getSize().height);
+        int x = childNode.getValueOfChildAsInt(WINDOW_X, window.getLocation().x);
+        int y = childNode.getValueOfChildAsInt(WINDOW_Y, window.getLocation().y);
+        int width = childNode.getValueOfChildAsInt(WINDOW_WIDTH, window.getSize().width);
+        int height = childNode.getValueOfChildAsInt(WINDOW_HEIGHT, window.getSize().height);
 
         window.setLocation(x, y);
         window.setSize(width, height);

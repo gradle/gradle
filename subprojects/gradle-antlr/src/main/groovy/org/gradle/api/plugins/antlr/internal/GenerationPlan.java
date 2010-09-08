@@ -23,57 +23,57 @@ import java.io.File;
  * @author Steve Ebersole
  */
 public class GenerationPlan {
-	private final File source;
-	private final File generationDirectory;
+    private final File source;
+    private final File generationDirectory;
 
-	private File importVocabTokenTypesDirectory;
-	private boolean outOfDate;
+    private File importVocabTokenTypesDirectory;
+    private boolean outOfDate;
 
-	/**
-	 * Instantiates a generation plan.
-	 *
-	 * @param source The grammar file.
-	 * @param generationDirectory The directory into which generated lexers and parsers should be written, accounting
-	 * for delared package.
-	 */
-	GenerationPlan(File source, File generationDirectory) {
-		this.source = source;
-		this.generationDirectory = generationDirectory;
-	}
+    /**
+     * Instantiates a generation plan.
+     *
+     * @param source The grammar file.
+     * @param generationDirectory The directory into which generated lexers and parsers should be written, accounting for
+     * declared package.
+     */
+    GenerationPlan(File source, File generationDirectory) {
+        this.source = source;
+        this.generationDirectory = generationDirectory;
+    }
 
-	public String getId() {
-		return getSource().getPath();
-	}
+    public String getId() {
+        return getSource().getPath();
+    }
 
-	public File getSource() {
-		return source;
-	}
+    public File getSource() {
+        return source;
+    }
 
-	public File getGenerationDirectory() {
-		return generationDirectory;
-	}
+    public File getGenerationDirectory() {
+        return generationDirectory;
+    }
 
-	public File getImportVocabTokenTypesDirectory() {
-		return importVocabTokenTypesDirectory;
-	}
+    public File getImportVocabTokenTypesDirectory() {
+        return importVocabTokenTypesDirectory;
+    }
 
-	void setImportVocabTokenTypesDirectory(File importVocabTokenTypesDirectory) {
-		this.importVocabTokenTypesDirectory = importVocabTokenTypesDirectory;
-	}
+    void setImportVocabTokenTypesDirectory(File importVocabTokenTypesDirectory) {
+        this.importVocabTokenTypesDirectory = importVocabTokenTypesDirectory;
+    }
 
-	/**
-	 * Is the grammar file modeled by this plan out of considered out of date?
-	 *
-	 * @return True if the grammar generation is out of date (needs regen); false otherwise.
-	 */
-	public boolean isOutOfDate() {
-		return outOfDate;
-	}
+    /**
+     * Is the grammar file modeled by this plan out of considered out of date?
+     *
+     * @return True if the grammar generation is out of date (needs regen); false otherwise.
+     */
+    public boolean isOutOfDate() {
+        return outOfDate;
+    }
 
-	/**
-	 * Marks the plan as out of date.
-	 */
-	void markOutOfDate() {
-		this.outOfDate = true;
-	}
+    /**
+     * Marks the plan as out of date.
+     */
+    void markOutOfDate() {
+        this.outOfDate = true;
+    }
 }

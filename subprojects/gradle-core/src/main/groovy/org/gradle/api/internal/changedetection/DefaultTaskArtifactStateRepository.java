@@ -299,7 +299,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
                     formatter.format("%n%s", message);
                 }
                 if (messages.size() > MAX_OUT_OF_DATE_MESSAGES) {
-                    formatter.format("%d more ...", messages.size() - MAX_OUT_OF_DATE_MESSAGES);
+                    formatter.format("%n%d more ...", messages.size() - MAX_OUT_OF_DATE_MESSAGES);
                 }
                 LOGGER.info(formatter.toString());
             }

@@ -129,7 +129,7 @@
         <title>Writing your own log messages</title>
         <para>A simple option for logging in your build file is to write messages to standard output. Gradle redirects
             anything written to standard output to it's logging system at the <literal>QUIET</literal> log level.</para>
-        <sample id="logging_to_stdout" dir="logging/project1" title="Using stdout to write log messages">
+        <sample id="logging_to_stdout" dir="userguide/tutorial/logging" title="Using stdout to write log messages">
             <sourcefile file="build.gradle" snippet="use-println"/>
         </sample>
         <para>Gradle also provides a <literal>logger</literal> property to a build script, which is an instance of
@@ -137,14 +137,14 @@
             <classname>Logger</classname> interface and adds a few Gradle specific methods to it. Below is an example
             of how this is used in the build script:
         </para>
-        <sample id="logging_ex" dir="logging/project1" title="Writing your own log messages">
+        <sample id="logging_ex" dir="userguide/tutorial/logging" title="Writing your own log messages">
             <sourcefile file="build.gradle" snippet="use-logger"/>
         </sample>
         <para>You can also hook into Gradle's logging system from within other classes used in the build (classes from
             the <filename>buildSrc</filename> directory for example). Simply use an SLF4J logger. You can use this
             logger the same way as you use the provided logger in the build script.
         </para>
-        <sample id="logging_with_slf4j" dir="logging/project1" title="Using SLF4J to write log messages">
+        <sample id="logging_with_slf4j" dir="userguide/tutorial/logging" title="Using SLF4J to write log messages">
             <sourcefile file="build.gradle" snippet="use-slf4j"/>
         </sample>
     </section>
@@ -162,14 +162,15 @@
             level. This behavior is configurable. The project object provides a
             <apilink class="org.gradle.api.logging.LoggingManager"/>, which allows you to change the log levels that
             standard out or error are redirected to when your build script is evaluated.</para>
-        <sample id="project_stdout_capture" dir="logging/project1" title="Configuring standard output capture">
+        <sample id="project_stdout_capture" dir="userguide/tutorial/logging" title="Configuring standard output capture">
             <sourcefile file="build.gradle" snippet="capture-stdout"/>
         </sample>
         <para>
             To change the log level for standard out or error during task execution, tasks also provide a <apilink class="org.gradle.api.logging.LoggingManager"/>.
         </para>
-        <sample id="task_stdout_capture" dir="logging/project1" title="Configuring standard output capture for a task">
+        <sample id="task_stdout_capture" dir="userguide/tutorial/logging" title="Configuring standard output capture for a task">
             <sourcefile file="build.gradle" snippet="task-capture-stdout"/>
+            <test args="logInfo"/>
         </sample>
         <para>Gradle also provides integration with the Java Util Logging, Jakarta Commons Logging and Log4j logging
             toolkits. Any log messages which your build classes write using these logging toolkits will be redirected to

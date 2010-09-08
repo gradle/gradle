@@ -17,7 +17,20 @@
 package org.gradle.logging;
 
 public interface ProgressLoggerFactory {
-    ProgressLogger start();
-    
-    ProgressLogger start(String description);
+    /**
+     * Starts an operation, with no description.
+     *
+     * @param loggerCategory The logger category.
+     * @return The progress logger for the operation.
+     */
+    ProgressLogger start(String loggerCategory);
+
+    /**
+     * Starts an operation. The description is generally displayed in a log message.
+     *
+     * @param loggerCategory The logger category.
+     * @param description The description of the operation. Can be empty.
+     * @return The progress logger for the operation.
+     */
+    ProgressLogger start(String loggerCategory, String description);
 }

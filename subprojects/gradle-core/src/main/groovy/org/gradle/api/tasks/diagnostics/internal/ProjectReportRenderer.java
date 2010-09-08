@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.logging.StyledTextOutput;
 
 import java.io.File;
 import java.io.IOException;
@@ -24,6 +25,13 @@ import java.io.IOException;
  * <p>A {@code ProjectReportRenderer} is responsible for rendering the model of a project report.</p>
  */
 public interface ProjectReportRenderer {
+    /**
+     * Sets the text output for the report. This method must be called before any other methods on this renderer.
+     *
+     * @param textOutput The text output, never null.
+     */
+    void setOutput(StyledTextOutput textOutput);
+
     /**
      * Sets the output file for the report. This method must be called before any other methods on this renderer.
      *

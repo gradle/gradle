@@ -22,6 +22,8 @@ import org.gradle.util.TestFile;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -33,6 +35,7 @@ import java.util.Collection;
  * Copies the contents of each such directory into a temporary directory for the test to use.
  */
 public class TestResources implements MethodRule {
+    private final Logger logger = LoggerFactory.getLogger(TestResources.class);
     private TemporaryFolder temporaryFolder;
     private final Collection<String> extraResources;
     private final Resources resources = new Resources();
@@ -76,10 +79,16 @@ public class TestResources implements MethodRule {
                 target.getClass().getSimpleName()));
     }
 
-    private void maybeCopy(String resource) {
+    /**
+     * Copies the given resource to the test directory.
+     */
+    public void maybeCopy(String resource) {
         TestFile dir = resources.findResource(resource);
         if (dir != null) {
+            logger.debug("Copying test resource '{}' from {} to test directory.", resource, dir);
             dir.copyTo(getDir());
+        } else {
+            logger.debug("Test resource '{}' not found, skipping.", resource);
         }
     }
 }

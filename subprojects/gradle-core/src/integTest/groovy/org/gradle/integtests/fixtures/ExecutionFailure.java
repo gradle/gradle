@@ -18,15 +18,15 @@ package org.gradle.integtests.fixtures;
 import org.hamcrest.Matcher;
 
 public interface ExecutionFailure extends ExecutionResult {
-    void assertHasLineNumber(int lineNumber);
+    ExecutionFailure assertHasLineNumber(int lineNumber);
 
-    void assertHasFileName(String filename);
+    ExecutionFailure assertHasFileName(String filename);
 
-    void assertHasCause(String description);
+    ExecutionFailure assertHasCause(String description);
 
-    void assertThatCause(Matcher<String> matcher);
+    ExecutionFailure assertThatCause(Matcher<String> matcher);
 
-    void assertHasDescription(String context);
+    ExecutionFailure assertHasDescription(String context);
 
-    void assertThatDescription(Matcher<String> matcher);
+    ExecutionFailure assertThatDescription(Matcher<String> matcher);
 }

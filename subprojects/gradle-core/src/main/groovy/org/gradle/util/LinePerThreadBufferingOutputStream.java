@@ -54,6 +54,18 @@ public class LinePerThreadBufferingOutputStream extends PrintStream {
     }
 
     @Override
+    public PrintStream append(CharSequence csq) {
+        getStream().append(csq);
+        return this;
+    }
+
+    @Override
+    public PrintStream append(char c) {
+        getStream().append(c);
+        return this;
+    }
+
+    @Override
     public PrintStream append(CharSequence csq, int start, int end) {
         getStream().append(csq, start, end);
         return this;

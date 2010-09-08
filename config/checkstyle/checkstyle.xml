@@ -30,14 +30,26 @@
             <property name="option" value="text"/>
             <property name="tokens" value="LITERAL_CATCH"/>
         </module>
+        <module name="AvoidNestedBlocks"/>
 
         <!-- Braces -->
         <module name="NeedBraces"/>
 
         <!-- Coding -->
+        <module name="CovariantEquals"/>
+        <module name="DefaultComesLast"/>
         <module name="EmptyStatement"/>
         <module name="EqualsHashCode"/>
         <module name="ExplicitInitialization"/>
+        <module name="MultipleVariableDeclarations"/>
+        <module name="NoClone"/>
+        <module name="NoFinalizer"/>
+        <module name="RedundantThrows">
+            <property name="allowUnchecked" value="true"/>
+        </module>
+        <module name="SimplifyBooleanExpression"/>
+        <module name="SimplifyBooleanReturn"/>
+        <module name="StringLiteralEquality"/>
         <module name="UnnecessaryParentheses"/>
 
         <!-- Design -->
@@ -61,8 +73,10 @@
         <module name="ParameterName"/>
         <module name="StaticVariableName"/>
         <module name="TypeName"/>
+
     </module>
     <module name="RegexpHeader">
         <property name="headerFile" value="${checkstyleConfigDir}/required-header.txt"/>
     </module>
+    <module name="FileTabCharacter"/>
 </module>

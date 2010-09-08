@@ -36,7 +36,7 @@ class BuildProgressLogger extends BuildAdapter implements TaskExecutionGraphList
     @Override
     public void buildStarted(Gradle gradle) {
         if (gradle.getParent() == null) {
-            progressLogger = progressLoggerFactory.start();
+            progressLogger = progressLoggerFactory.start(BuildProgressLogger.class.getName());
             progressLogger.progress("Loading");
             this.gradle = gradle;
         }

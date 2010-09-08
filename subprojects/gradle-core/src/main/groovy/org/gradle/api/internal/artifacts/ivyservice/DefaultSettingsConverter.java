@@ -188,8 +188,8 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
                 total = 0;
-                DefaultSettingsConverter.this.logger.lifecycle("Download " + evt.getResource().getName());
-                logger = progressLoggerFactory.start();
+                DefaultSettingsConverter.logger.lifecycle("Download " + evt.getResource().getName());
+                logger = progressLoggerFactory.start(DefaultSettingsConverter.class.getName());
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                 total += evt.getLength();

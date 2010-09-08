@@ -17,9 +17,9 @@
 package org.gradle.api.logging;
 
 import org.apache.ivy.util.Message;
-import org.slf4j.MarkerFactory;
-import org.slf4j.Marker;
 import org.slf4j.LoggerFactory;
+import org.slf4j.Marker;
+import org.slf4j.MarkerFactory;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -32,16 +32,8 @@ import java.util.Map;
  */
 public class Logging {
     public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
-    public static final Marker PROGRESS = MarkerFactory.getDetachedMarker("PROGRESS");
-    public static final Marker PROGRESS_STARTED = MarkerFactory.getDetachedMarker("PROGRESS_START");
-    public static final Marker PROGRESS_COMPLETE = MarkerFactory.getDetachedMarker("PROGRESS_COMPLETE");
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 
-    static {
-        PROGRESS_STARTED.add(PROGRESS);
-        PROGRESS_COMPLETE.add(PROGRESS);
-    }
-    
     /**
      * Returns the logger for the given class.
      *

@@ -35,7 +35,7 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
     private final File gradleHome;
 
     protected AbstractClassPathProvider() {
-        File codeSource = findThisClass();
+        File codeSource = getClasspathForClass(DefaultClassPathProvider.class);
         if (codeSource.isFile()) {
             // Loaded from a JAR - assume we're running from the distribution
             gradleHome = codeSource.getParentFile().getParentFile();
@@ -84,10 +84,10 @@ public abstract class AbstractClassPathProvider implements ClassPathProvider, Gr
         return null;
     }
 
-    private File findThisClass() {
+    public static File getClasspathForClass(Class<?> targetClass) {
         URI location;
         try {
-            location = DefaultClassPathProvider.class.getProtectionDomain().getCodeSource().getLocation().toURI();
+            location = targetClass.getProtectionDomain().getCodeSource().getLocation().toURI();
         } catch (URISyntaxException e) {
             throw new UncheckedIOException(e);
         }

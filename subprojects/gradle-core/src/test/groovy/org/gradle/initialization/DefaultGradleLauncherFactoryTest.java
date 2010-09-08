@@ -16,7 +16,6 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.logging.LoggingConfigurer;
 import org.gradle.util.WrapUtil;
 import org.hamcrest.Matchers;
 import org.jmock.Expectations;
@@ -24,14 +23,14 @@ import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultGradleLauncherFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
-    private final LoggingConfigurer loggingConfigurer = context.mock(LoggingConfigurer.class);
     private final CommandLine2StartParameterConverter parameterConverter = context.mock(CommandLine2StartParameterConverter.class);
     private final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory();
 
@@ -43,9 +42,6 @@ public class DefaultGradleLauncherFactoryTest {
     @Test
     public void newInstanceWithStartParameter() {
         final StartParameter startParameter = new StartParameter();
-        context.checking(new Expectations() {{
-            one(loggingConfigurer).configure(startParameter.getLogLevel());
-        }});
         assertNotNull(factory.newInstance(startParameter));
     }
 
@@ -54,7 +50,6 @@ public class DefaultGradleLauncherFactoryTest {
         final StartParameter startParameter = new StartParameter();
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
         context.checking(new Expectations() {{
-            one(loggingConfigurer).configure(startParameter.getLogLevel());
             allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
         }});
         assertNotNull(factory.newInstance(commandLineArgs));
@@ -65,7 +60,6 @@ public class DefaultGradleLauncherFactoryTest {
         final StartParameter startParameter = new StartParameter();
         final String[] commandLineArgs = WrapUtil.toArray("A", "B");
         context.checking(new Expectations() {{
-            one(loggingConfigurer).configure(startParameter.getLogLevel());
             allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
         }});
 

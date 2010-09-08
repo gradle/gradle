@@ -17,13 +17,14 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
-import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
 import java.util.*;
+
+import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
  * Simple dependency graph renderer that emits an ASCII tree.
@@ -32,13 +33,6 @@ import java.util.*;
  */
 public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
-
-    public AsciiReportRenderer() {
-    }
-
-    public AsciiReportRenderer(Appendable writer) {
-        super(writer);
-    }
 
     @Override
     public void startProject(Project project) {
@@ -49,14 +43,17 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
     @Override
     public void completeProject(Project project) {
         if (!hasConfigs) {
-            getFormatter().format("No configurations%n");
+            getTextOutput().style(Info).println("No configurations").style(Normal);
         }
         super.completeProject(project);
     }
 
     public void startConfiguration(Configuration configuration) {
         hasConfigs = true;
-        getFormatter().format("%s%s%n", configuration.getName(), getDescription(configuration));
+        getTextOutput().println();
+        getTextOutput().style(Identifier).text(configuration.getName()).style(Normal);
+        getTextOutput().style(Description).text(getDescription(configuration)).style(Normal);
+        getTextOutput().println();
     }
 
     private String getDescription(Configuration configuration) {
@@ -66,64 +63,48 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
     public void completeConfiguration(Configuration configuration) {
     }
 
-    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException
-    {
-        Set<ResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
-        for (ResolvedDependency root : mergedRoots) {
-            render(root, 1);
+    public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
+        Set<MergedResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
+        if (mergedRoots.isEmpty()) {
+            getTextOutput().style(Info).text("No dependencies").style(Normal).println();
+            return;
+        }
+        renderChildren(mergedRoots, "");
+    }
+
+    private void render(MergedResolvedDependency resolvedDependency, String prefix, boolean lastChild) throws IOException {
+        getTextOutput().style(Info).text(prefix + "+--- ").style(Normal);
+        getTextOutput().text(resolvedDependency.getName());
+        getTextOutput().style(Info).format(" [%s]", resolvedDependency.getConfiguration()).style(Normal).println();
+
+        renderChildren(mergeChildren(resolvedDependency.getChildren()), prefix + (lastChild ? "     " : "|    "));
+    }
+
+    private void renderChildren(Set<MergedResolvedDependency> children, String prefix) throws IOException {
+        List<MergedResolvedDependency> mergedChildren = new ArrayList<MergedResolvedDependency>(children);
+        for (int i = 0; i < mergedChildren.size(); i++) {
+            MergedResolvedDependency dependency = mergedChildren.get(i);
+            render(dependency, prefix, i == mergedChildren.size() - 1);
         }
     }
 
-    private void render(ResolvedDependency resolvedDependency, int depth) throws IOException
-    {
-        getFormatter().format(getIndent(depth));
-		getFormatter().format("%s:%s%n", resolvedDependency.getName(),
-                resolvedDependency.getConfiguration());
-
-        Collection<ResolvedDependency> mergedChildren = mergeChildren(resolvedDependency.getChildren());
-
-		for(ResolvedDependency childResolvedDependency : mergedChildren)
-		{
-			render(childResolvedDependency, depth + 1);
-		}
-    }
-
-    private Set<ResolvedDependency> mergeChildren(Set<ResolvedDependency> children) {
-        Map<String, Set<ResolvedDependency>> mergedGroups = new HashMap<String, Set<ResolvedDependency>>();
+    private Set<MergedResolvedDependency> mergeChildren(Set<ResolvedDependency> children) {
+        Map<String, Set<ResolvedDependency>> mergedGroups = new LinkedHashMap<String, Set<ResolvedDependency>>();
         for (ResolvedDependency child : children) {
             Set<ResolvedDependency> mergeGroup = mergedGroups.get(child.getName());
             if (mergeGroup == null) {
-                mergedGroups.put(child.getName(), mergeGroup = new HashSet<ResolvedDependency>());
+                mergedGroups.put(child.getName(), mergeGroup = new LinkedHashSet<ResolvedDependency>());
             }
             mergeGroup.add(child);
         }
-        Set<ResolvedDependency> mergedChildren = new HashSet<ResolvedDependency>();
+        Set<MergedResolvedDependency> mergedChildren = new LinkedHashSet<MergedResolvedDependency>();
         for (Set<ResolvedDependency> mergedGroup : mergedGroups.values()) {
             mergedChildren.add(new MergedResolvedDependency(mergedGroup));
         }
         return mergedChildren;
     }
 
-    private String getIndent(int depth)
-	{
-		StringBuilder buffer = new StringBuilder();
-
-		for(int x = 0; x < depth - 1; x++)
-		{
-            if(x > 0)
-            {
-                buffer.append("|");
-            }
-
-			buffer.append("      ");
-		}
-
-		buffer.append("|-----");
-
-		return buffer.toString();
-	}
-
-    private static class MergedResolvedDependency implements ResolvedDependency {
+    private static class MergedResolvedDependency {
         private Set<ResolvedDependency> mergedResolvedDependencies = new LinkedHashSet<ResolvedDependency>();
 
         public MergedResolvedDependency(Set<ResolvedDependency> mergedResolvedDependencies) {
@@ -133,18 +114,6 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
 
         public String getName() {
             return mergedResolvedDependencies.iterator().next().getName();
-        }
-
-        public String getModuleName() {
-            return mergedResolvedDependencies.iterator().next().getModuleName();
-        }
-
-        public String getModuleGroup() {
-            return mergedResolvedDependencies.iterator().next().getModuleGroup();
-        }
-
-        public String getModuleVersion() {
-            return mergedResolvedDependencies.iterator().next().getModuleVersion();
         }
 
         public String getConfiguration() {
@@ -161,34 +130,6 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
                 mergedChildren.addAll(mergedResolvedDependency.getChildren());
             }
             return mergedChildren;
-        }
-
-        public Set<ResolvedDependency> getParents() {
-            throw new UnsupportedOperationException();
-        }
-
-        public Set<ResolvedArtifact> getModuleArtifacts() {
-            Set<ResolvedArtifact> mergedModuleArtifacts = new LinkedHashSet<ResolvedArtifact>();
-            for (ResolvedDependency mergedResolvedDependency : mergedResolvedDependencies) {
-                mergedModuleArtifacts.addAll(mergedResolvedDependency.getModuleArtifacts());
-            }
-            return mergedModuleArtifacts;
-        }
-
-        public Set<ResolvedArtifact> getAllModuleArtifacts() {
-            throw new UnsupportedOperationException();
-        }
-
-        public Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent) {
-            throw new UnsupportedOperationException();
-        }
-
-        public Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent) {
-            throw new UnsupportedOperationException();
-        }
-
-        public Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent) {
-            throw new UnsupportedOperationException();
         }
     }
 }

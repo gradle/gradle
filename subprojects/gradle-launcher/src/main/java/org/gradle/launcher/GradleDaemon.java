@@ -7,7 +7,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.logging.TerminalDetector;
+import org.gradle.logging.internal.TerminalDetector;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;

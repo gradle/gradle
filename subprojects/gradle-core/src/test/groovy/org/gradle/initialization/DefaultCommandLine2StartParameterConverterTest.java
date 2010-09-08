@@ -64,6 +64,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private StartParameter.ShowStacktrace expectedShowStackTrace = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
+    private boolean expectedColorOutput = true;
     private StartParameter actualStartParameter;
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
@@ -100,6 +101,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedGradleUserHome.getAbsoluteFile(), startParameter.getGradleUserHomeDir().getAbsoluteFile());
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
+        assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
         assertEquals(expectedShowHelp, startParameter.isShowHelp());
         assertEquals(expectedShowVersion, startParameter.isShowVersion());
@@ -274,12 +276,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
-    public void withQuietLoggingOptions() {
-        expectedLogLevel = LogLevel.QUIET;
-        checkConversion("-q");
-    }
-
-    @Test
     public void withNoProjectDependencyRebuild() {
         expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null);
         checkConversion("-a");
@@ -293,6 +289,12 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
+    public void withQuietLoggingOptions() {
+        expectedLogLevel = LogLevel.QUIET;
+        checkConversion("-q");
+    }
+
+    @Test
     public void withInfoLoggingOptions() {
         expectedLogLevel = LogLevel.INFO;
         checkConversion("-i");
@@ -302,6 +304,12 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withDebugLoggingOptions() {
         expectedLogLevel = LogLevel.DEBUG;
         checkConversion("-d");
+    }
+
+    @Test
+    public void withNoColor() {
+        expectedColorOutput = false;
+        checkConversion("--no-color");
     }
 
     @Test

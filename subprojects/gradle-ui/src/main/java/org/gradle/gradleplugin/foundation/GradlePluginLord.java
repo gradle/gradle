@@ -318,7 +318,7 @@ public class GradlePluginLord {
       {
           public void notify( RequestObserver observer )
           {
-             try { //wrap this in a try/catch block so execeptions in the observer doesn't stop everything
+             try { //wrap this in a try/catch block so exceptions in the observer doesn't stop everything
                 observer.aboutToExecuteRequest( request );
              }
              catch( Exception e )
@@ -335,7 +335,7 @@ public class GradlePluginLord {
       {
           public void notify( RequestObserver observer )
           {
-             try { //wrap this in a try/catch block so execeptions in the observer doesn't stop everything
+             try { //wrap this in a try/catch block so exceptions in the observer doesn't stop everything
                 observer.requestExecutionComplete( request, result, output );
              }
              catch( Exception e )
@@ -513,7 +513,6 @@ public class GradlePluginLord {
         fullCommandLine = alterCommandLine(fullCommandLine);
 
         final ExecutionRequest request = new ExecutionRequest( getNextRequestID(), fullCommandLine, displayName, forceOutputToBeShown, executionQueue );
-        executionQueue.addRequestToQueue(request);
         requestObserverLord.notifyObservers( new ObserverLord.ObserverNotification<RequestObserver>()
         {
            public void notify( RequestObserver observer )
@@ -521,6 +520,7 @@ public class GradlePluginLord {
               observer.executionRequestAdded( request );
            }
         } );
+        executionQueue.addRequestToQueue(request);
         return request;
     }
 

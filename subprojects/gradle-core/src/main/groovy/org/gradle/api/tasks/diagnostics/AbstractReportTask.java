@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.File;
 import java.io.IOException;
@@ -54,6 +55,8 @@ public abstract class AbstractReportTask extends ConventionTask {
             File outputFile = getOutputFile();
             if (outputFile != null) {
                 renderer.setOutputFile(outputFile);
+            } else {
+                renderer.setOutput(getServices().get(StyledTextOutputFactory.class).create(getClass()));
             }
             Set<Project> projects = new TreeSet<Project>(getProjects());
             for (Project project : projects) {

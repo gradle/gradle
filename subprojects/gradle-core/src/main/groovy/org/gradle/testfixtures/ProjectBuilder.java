@@ -36,11 +36,16 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.logging.internal.DefaultProgressLoggerFactory;
+import org.gradle.logging.internal.DefaultStyledTextOutputFactory;
+import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.logging.internal.ProgressListener;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.TrueTimeProvider;
 
 import java.io.File;
 import java.io.IOException;
@@ -173,6 +178,9 @@ public class ProjectBuilder {
 
         public void removeStandardErrorListener(StandardOutputListener listener) {
         }
+
+        public void colorStdOutAndStdErr(boolean colorOutput) {
+        }
     }
 
     private static class GlobalTestServices extends DefaultServiceRegistry {
@@ -193,7 +201,7 @@ public class ProjectBuilder {
         }
 
         protected ProgressLoggerFactory createProgressLoggerFactory() {
-            return new DefaultProgressLoggerFactory(get(ListenerManager.class));
+            return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         }
 
         protected LoggingManagerFactory createLoggingManagerFactory() {
@@ -204,6 +212,10 @@ public class ProjectBuilder {
             };
         }
 
+        protected StyledTextOutputFactory createStyledTextOutputFactory() {
+            return new DefaultStyledTextOutputFactory(get(ListenerManager.class).getBroadcaster(OutputEventListener.class), new TrueTimeProvider());
+        }
+        
         protected IsolatedAntBuilder createIsolatedAntBuilder() {
             return new DefaultIsolatedAntBuilder(get(ClassPathRegistry.class));
         }

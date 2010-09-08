@@ -58,6 +58,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public static final String DEBUG = "d";
     public static final String INFO = "i";
     public static final String QUIET = "q";
+    public static final String NO_COLOR = "no-color";
     public static final String FULL_STACKTRACE = "S";
     public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
@@ -92,7 +93,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                     "Print out the stacktrace also for user exceptions (e.g. compile error).");
             acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"),
                     "Print out the full (very verbose) stacktrace for any exceptions.");
-            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of all available tasks.").
+            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of available tasks.").
                     withOptionalArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(ALL), "Show additional details in the task listing.");
             acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.").
@@ -126,6 +127,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(NO_OPT), "Ignore any task optimization.");
             acceptsAll(WrapUtil.toList(EXCLUDE_TASK, "exclude-task"), "Specify a task to be excluded from execution.")
                     .withRequiredArg().ofType(String.class);
+            acceptsAll(WrapUtil.toList(NO_COLOR), "Do not use color in the console output.");
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
             acceptsAll(WrapUtil.toList(FOREGROUND), "Runs the Gradle daemon in the foreground.");
             acceptsAll(WrapUtil.toList(NO_DAEMON), "Does not use the Gradle daemon.");
@@ -299,6 +301,9 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         }
 
         startParameter.setLogLevel(getLogLevel(options));
+        if (options.has(NO_COLOR)) {
+            startParameter.setColorOutput(false);
+        }
     }
 
     public void showHelp(OutputStream out) {

@@ -24,6 +24,7 @@ import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
+import java.io.PrintStream;
 
 /**
  * @author Hans Dockter
@@ -39,7 +40,7 @@ public class Main {
         this.args = args;
     }
 
-    public static void main(String[] args) throws Throwable {
+    public static void main(String[] args) {
         new Main(args).execute();
     }
 
@@ -51,19 +52,19 @@ public class Main {
         this.parameterConverter = parameterConverter;
     }
 
-    public void execute() throws Exception {
+    public void execute() {
         StartParameter startParameter = null;
 
         try {
             startParameter = parameterConverter.convert(args);
         } catch (Exception e) {
             System.err.println(e.getMessage());
-            parameterConverter.showHelp(System.err);
+            showUsage(System.err);
             buildCompleter.exit(e);
         }
 
         if (startParameter.isShowHelp()) {
-            parameterConverter.showHelp(System.out);
+            showUsage(System.out);
             buildCompleter.exit(null);
         }
 
@@ -89,6 +90,14 @@ public class Main {
             buildCompleter.exit(throwable);
         }
         buildCompleter.exit(null);
+    }
+
+    private void showUsage(PrintStream out) {
+        String appName = System.getProperty("org.gradle.appname", "gradle");
+        out.println();
+        out.format("USAGE: %s [option...] [task...]%n", appName);
+        out.println();
+        parameterConverter.showHelp(out);
     }
 
     public interface BuildCompleter {

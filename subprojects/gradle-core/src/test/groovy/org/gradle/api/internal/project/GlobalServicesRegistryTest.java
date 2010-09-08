@@ -29,6 +29,8 @@ import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.*;
+import org.gradle.logging.internal.DefaultLoggingManagerFactory;
+import org.gradle.logging.internal.DefaultProgressLoggerFactory;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;

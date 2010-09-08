@@ -111,7 +111,7 @@ public class LineBufferingOutputStream extends OutputStream {
      * by the implementation of the output stream, such bytes should immediately be written to their intended
      * destination.
      */
-    public void flush() throws IOException {
+    public void flush() {
         if (count != 0) {
             int length = count;
             if (endsWithLineSeparator()) {
@@ -130,7 +130,7 @@ public class LineBufferingOutputStream extends OutputStream {
     }
 
     private interface Output {
-        void write(byte[] buffer, int textLength, int lineLength) throws IOException;
+        void write(byte[] buffer, int textLength, int lineLength);
     }
 
     private static class StringOutput implements Output {
@@ -142,7 +142,7 @@ public class LineBufferingOutputStream extends OutputStream {
             this.action = action;
         }
 
-        public void write(byte[] buffer, int textLength, int lineLength) throws IOException {
+        public void write(byte[] buffer, int textLength, int lineLength) {
             if (includeEOL) {
                 action.execute(new String(buffer, 0, lineLength));
             } else {

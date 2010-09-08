@@ -29,9 +29,7 @@ import org.gradle.initialization.DefaultClassLoaderFactory;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.DefaultProgressLoggerFactory;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.logging.ProgressLoggerFactory;
 
 /**
  * Contains the services shared by all builds in a given process.
@@ -60,11 +58,7 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
     protected ListenerManager createListenerManager() {
         return new DefaultListenerManager();
     }
-
-    protected ProgressLoggerFactory createProgressLoggerFactory() {
-        return new DefaultProgressLoggerFactory(get(ListenerManager.class));
-    }
-    
+   
     protected GradleDistributionLocator createGradleDistributionLocator() {
         return new DefaultClassPathProvider();
     }

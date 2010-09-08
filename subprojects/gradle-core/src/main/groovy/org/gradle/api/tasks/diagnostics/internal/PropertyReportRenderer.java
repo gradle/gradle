@@ -20,13 +20,6 @@ package org.gradle.api.tasks.diagnostics.internal;
  */
 public class PropertyReportRenderer extends TextProjectReportRenderer {
 
-    public PropertyReportRenderer() {
-    }
-
-    public PropertyReportRenderer(Appendable out) {
-        super(out);
-    }
-
     /**
      * Writes a property for the current project.
      *
@@ -34,6 +27,6 @@ public class PropertyReportRenderer extends TextProjectReportRenderer {
      * @param value The value of the property
      */
     public void addProperty(String name, Object value) {
-        getFormatter().format("%s: %s%n", name, value);
+        getTextOutput().formatln("%s: %s", name, value);
     }
 }

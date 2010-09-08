@@ -26,7 +26,6 @@ import org.gradle.api.internal.CachingDirectedGraphWalker;
 import org.gradle.api.internal.DirectedGraphWithEdgeValues;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.logging.IvyLoggingAdaper;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;

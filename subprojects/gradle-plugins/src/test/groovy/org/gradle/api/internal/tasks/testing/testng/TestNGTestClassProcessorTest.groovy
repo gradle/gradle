@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-
-
-
 package org.gradle.api.internal.tasks.testing.testng
 
 import org.gradle.api.GradleException
@@ -44,6 +41,7 @@ import org.junit.Ignore
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent
 import org.gradle.api.internal.tasks.testing.TestStartEvent
 import org.gradle.logging.StandardOutputRedirector
+import org.testng.annotations.AfterMethod
 
 @RunWith(JMock.class)
 class TestNGTestClassProcessorTest {
@@ -138,14 +136,6 @@ class TestNGTestClassProcessorTest {
         processor.stop();
     }
 
-    @Test @Ignore
-    public void executesATestClassWithBrokenConstructor() {
-        processor.startProcessing(resultProcessor);
-        processor.processTestClass(testClass(ATestNGClassWithBrokenConstructor.class));
-        processor.stop();
-        fail()
-    }
-
     @Test
     public void executesATestClassWithBrokenSetup() {
         context.checking {
@@ -199,6 +189,58 @@ class TestNGTestClassProcessorTest {
     }
 
     @Test
+    public void executesATestClassWithDependencyMethod() {
+        context.checking {
+            Sequence sequence = context.sequence('seq')
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo('Gradle test'))
+                assertThat(suite.className, nullValue())
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('beforeMethod'))
+                assertThat(test.className, equalTo(ATestNGClassWithBrokenDependencyMethod.class.name))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).failure(2L, ATestNGClassWithBrokenDependencyMethod.failure)
+
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.FAILURE))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestNGClassWithBrokenDependencyMethod.class.name))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).completed(withParam(equalTo(3L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.SKIPPED))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            inSequence(sequence)
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithBrokenDependencyMethod.class));
+        processor.stop();
+    }
+
+    @Test
     public void canIncludeAndExcludeGroups() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
@@ -223,6 +265,32 @@ class TestNGTestClassProcessorTest {
         options.excludeGroups('group3')
         processor.startProcessing(resultProcessor);
         processor.processTestClass(testClass(ATestNGClassWithGroups.class));
+        processor.stop();
+    }
+
+    @Test @Ignore
+    public void executesATestClassWithBrokenConstructor() {
+        context.checking {
+            Sequence sequence = context.sequence('seq')
+
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('initializationError'))
+                assertThat(test.className, equalTo(ATestNGClassWithBrokenConstructor.class.name))
+            }
+            inSequence(sequence)
+
+            one(resultProcessor).failure(1L, ATestNGClassWithBrokenConstructor.failure)
+
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, equalTo(ResultType.FAILURE))
+            }
+            inSequence(sequence)
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestNGClassWithBrokenConstructor.class));
         processor.stop();
     }
 
@@ -264,8 +332,16 @@ public class ATestNGClass {
     public void beforeMethod() {
     }
 
+    @AfterMethod
+    public void afterMethod() {
+    }
+
     @org.testng.annotations.Test
     public void ok() {
+    }
+
+    @org.testng.annotations.Test(enabled = false)
+    public void skipped() {
     }
 }
 
@@ -323,6 +399,18 @@ public class ATestNGClassWithBrokenSetupMethod {
 
     @org.testng.annotations.Test
     public void test() {
-        System.out.println("EXECUTE");
+    }
+}
+
+public class ATestNGClassWithBrokenDependencyMethod {
+    static RuntimeException failure = new RuntimeException()
+
+    @org.testng.annotations.Test
+    public void beforeMethod() {
+        throw failure
+    }
+
+    @org.testng.annotations.Test(dependsOnMethods = 'beforeMethod')
+    public void test() {
     }
 }

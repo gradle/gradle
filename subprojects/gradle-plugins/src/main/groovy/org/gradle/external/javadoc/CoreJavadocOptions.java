@@ -206,10 +206,10 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions
     /**
      * -source release
      * Specifies the version of source code accepted. The following values for release are allowed:
-     * 1.5 	javadoc accepts code containing generics and other language features introduced in JDK 1.5.
+     * 1.5  javadoc accepts code containing generics and other language features introduced in JDK 1.5.
      * The compiler defaults to the 1.5 behavior if the -source flag is not used.
-     * 1.4 	javadoc accepts code containing assertions, which were introduced in JDK 1.4.
-     * 1.3 	javadoc does not support assertions, generics, or other language features introduced after JDK 1.3.
+     * 1.4  javadoc accepts code containing assertions, which were introduced in JDK 1.4.
+     * 1.3  javadoc does not support assertions, generics, or other language features introduced after JDK 1.3.
      *
      * Use the value of release corresponding to that used when compiling the code with javac.
      */

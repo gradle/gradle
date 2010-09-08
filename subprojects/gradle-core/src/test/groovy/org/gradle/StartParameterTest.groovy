@@ -56,6 +56,8 @@ class StartParameterTest {
         testObj.gradleUserHomeDir = new File('b')
         testObj.initScripts = [new File('init script'), new File("/path/to/another init script")]
         testObj.cacheUsage = CacheUsage.ON
+        testObj.logLevel = LogLevel.WARN
+        testObj.colorOutput = false
 
         StartParameter startParameter = testObj.newInstance()
         assertEquals(testObj, startParameter)
@@ -70,6 +72,7 @@ class StartParameterTest {
         assertThat(parameter.settingsScriptSource, nullValue())
 
         assertThat(parameter.logLevel, equalTo(LogLevel.LIFECYCLE))
+        assertTrue(parameter.colorOutput)
         assertThat(parameter.taskNames, isEmpty())
         assertThat(parameter.excludedTaskNames, isEmpty())
         assertThat(parameter.projectProperties, isEmptyMap())
@@ -222,6 +225,7 @@ class StartParameterTest {
         parameter.gradleUserHomeDir = new File("home")
         parameter.cacheUsage = CacheUsage.REBUILD
         parameter.logLevel = LogLevel.DEBUG
+        parameter.colorOutput = false
 
         // Non-copied
         parameter.currentDir = new File("other")
@@ -239,6 +243,7 @@ class StartParameterTest {
         assertThat(newParameter.gradleUserHomeDir, equalTo(parameter.gradleUserHomeDir));
         assertThat(newParameter.cacheUsage, equalTo(parameter.cacheUsage));
         assertThat(newParameter.logLevel, equalTo(parameter.logLevel));
+        assertThat(newParameter.colorOutput, equalTo(parameter.colorOutput));
 
         assertThat(newParameter.buildFile, nullValue())
         assertThat(newParameter.taskNames, isEmpty())

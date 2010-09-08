@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
 
+import static org.gradle.logging.StyledTextOutput.Style.*;
+
 /**
  * <p>A {@code TaskReportRenderer} is responsible for rendering the model of a project task report.</p>
  *
@@ -35,13 +37,6 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     private boolean currentProjectHasRules;
     private boolean hasContent;
     private boolean detail;
-
-    public TaskReportRenderer() {
-    }
-
-    public TaskReportRenderer(Appendable writer) {
-        super(writer);
-    }
 
     @Override
     public void startProject(Project project) {
@@ -63,7 +58,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void addDefaultTasks(List<String> defaultTaskNames) {
         if (defaultTaskNames.size() > 0) {
-            getFormatter().format("Default tasks: %s%n", GUtil.join(defaultTaskNames, ", "));
+            getTextOutput().formatln("Default tasks: %s", GUtil.join(defaultTaskNames, ", "));
             hasContent = true;
         }
     }
@@ -93,29 +88,31 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     }
 
     private void writeTask(TaskDetails task, String prefix) {
-        getFormatter().format("%s%s%s", prefix, task.getPath(), getDescription(task));
+        getTextOutput().text(prefix);
+        getTextOutput().style(UserInput).text(task.getPath()).style(Normal);
+        getTextOutput().style(Description).text(getDescription(task)).style(Normal);
         if (detail) {
             SortedSet<String> sortedDependencies = new TreeSet<String>();
             for (String dependency : task.getDependencies()) {
                 sortedDependencies.add(dependency);
             }
             if (sortedDependencies.size() > 0) {
-                getFormatter().format(" [%s]", GUtil.join(sortedDependencies, ", "));
+                getTextOutput().style(Info).format(" [%s]", GUtil.join(sortedDependencies, ", ")).style(Normal);
             }
         }
-        getFormatter().format("%n");
+        getTextOutput().println();
     }
 
     private void addHeader(String header) {
         if (hasContent) {
-            getFormatter().format("%n");
+            getTextOutput().println();
         }
         hasContent = true;
-        getFormatter().format("%s%n", header);
+        getTextOutput().style(Header).println(header);
         for (int i = 0; i < header.length(); i++) {
-            getFormatter().format("-");
+            getTextOutput().text("-");
         }
-        getFormatter().format("%n");
+        getTextOutput().style(Normal).println();
     }
 
     private String getDescription(TaskDetails task) {
@@ -127,7 +124,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void completeTasks() {
         if (!currentProjectHasTasks) {
-            getFormatter().format("No tasks%n");
+            getTextOutput().style(Info).println("No tasks").style(Normal);
             hasContent = true;
         }
     }
@@ -141,7 +138,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         if (!currentProjectHasRules) {
             addHeader("Rules");
         }
-        getFormatter().format("%s%n", GUtil.elvis(rule.getDescription(), ""));
+        getTextOutput().println(GUtil.elvis(rule.getDescription(), ""));
         currentProjectHasRules = true;
     }
 }

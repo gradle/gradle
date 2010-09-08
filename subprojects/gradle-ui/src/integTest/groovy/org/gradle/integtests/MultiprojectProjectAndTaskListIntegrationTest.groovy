@@ -28,6 +28,8 @@ import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
+import org.gradle.foundation.TestUtility
 
 /**
  This tests the multiproject sample with the GradleView mechanism.
@@ -77,7 +79,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
         gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
         //refresh the projects and wait. This will throw an exception if it fails.
-        org.gradle.foundation.TestUtility.refreshProjectsBlocking(gradlePluginLord, 20);  //we'll give this 20 seconds to complete
+        TestUtility.refreshProjectsBlocking(gradlePluginLord, 80, TimeUnit.SECONDS);
 
         //get the root project
         List<ProjectView> projects = gradlePluginLord.getProjects();
@@ -132,7 +134,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
         //the rest of this uses the open API mechanism to access the projects and tasks
 
         //refresh the projects and wait. This will throw an exception if it fails.
-        org.gradle.foundation.TestUtility.refreshProjectsBlocking(gradlePluginLord, 20);  //we'll give this 20 seconds to complete
+        TestUtility.refreshProjectsBlocking(gradlePluginLord, 80, TimeUnit.SECONDS);
 
         //get the root project
         List<ProjectVersion1> projects = wrapper.getRootProjects();
@@ -188,7 +190,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
       gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
       //refresh the projects and wait. This will throw an exception if it fails.
-      org.gradle.foundation.TestUtility.refreshProjectsBlocking(gradlePluginLord, 20);  //we'll give this 20 seconds to complete
+      TestUtility.refreshProjectsBlocking(gradlePluginLord, 80, TimeUnit.SECONDS);
 
       //get the root project
       List<ProjectView> projects = gradlePluginLord.getProjects();
@@ -226,7 +228,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
       gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
       //refresh the projects and wait. This will throw an exception if it fails.
-      org.gradle.foundation.TestUtility.refreshProjectsBlocking(gradlePluginLord, 20);  //we'll give this 20 seconds to complete
+      TestUtility.refreshProjectsBlocking(gradlePluginLord, 80, TimeUnit.SECONDS);
 
       //get the root project
       List<ProjectView> projects = gradlePluginLord.getProjects();
