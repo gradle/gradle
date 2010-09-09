@@ -61,7 +61,7 @@ public class SocketConnection implements Connection<Message> {
 
     public Message receive() {
         try {
-            return Message.receive(instr, classLoader);
+            return (Message) Message.receive(instr, classLoader);
         } catch (Exception e) {
             if (isEndOfStream(e)) {
                 return null;
@@ -82,7 +82,7 @@ public class SocketConnection implements Connection<Message> {
 
     public void dispatch(Message message) {
         try {
-            message.send(outstr);
+            Message.send(message, outstr);
             outstr.flush();
         } catch (Exception e) {
             throw new GradleException(String.format("Could not write message to '%s'.", remoteAddress), e);

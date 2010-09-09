@@ -12,6 +12,7 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
+import org.gradle.messaging.remote.internal.Message;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
@@ -53,10 +54,10 @@ public class GradleDaemon {
             LOGGER.lifecycle("Waiting for request");
             Socket socket = serverSocket.accept();
             try {
-                ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-                boolean finished = doRun(socket, oos);
-                oos.writeObject(new Stop());
-                oos.flush();
+                OutputStream outputStream = new BufferedOutputStream(socket.getOutputStream());
+                boolean finished = doRun(socket, outputStream);
+                Message.send(new Stop(), outputStream);
+                outputStream.flush();
                 if (finished) {
                     break;
                 }
@@ -66,11 +67,11 @@ public class GradleDaemon {
         }
     }
 
-    private boolean doRun(Socket socket, final ObjectOutputStream oos) {
+    private boolean doRun(Socket socket, final OutputStream oos) {
         try {
             Clock clock = new Clock();
-            final ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-            Command command = (Command) ois.readObject();
+            final InputStream ois = new BufferedInputStream(socket.getInputStream());
+            Command command = (Command) Message.receive(ois, getClass().getClassLoader());
             LOGGER.info("Executing {}", command);
             if (command instanceof Stop) {
                 LOGGER.lifecycle("Stopping");
@@ -80,8 +81,7 @@ public class GradleDaemon {
             OutputEventListener listener = new OutputEventListener() {
                 public void onOutput(OutputEvent event) {
                     try {
-                        oos.writeObject(event);
-                        oos.flush();
+                        Message.send(event, oos);
                     } catch (IOException e) {
                         throw UncheckedException.asUncheckedException(e);
                     }
@@ -146,14 +146,14 @@ public class GradleDaemon {
 
     private void run(Command command, Socket socket) throws Exception {
         try {
-            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-            oos.writeObject(command);
+            OutputStream oos = new BufferedOutputStream(socket.getOutputStream());
+            Message.send(command, oos);
             oos.flush();
 
             OutputEventListener outputEventListener = loggingServices.get(OutputEventListener.class);
-            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+            InputStream ois = new BufferedInputStream(socket.getInputStream());
             while (true) {
-                Object object = ois.readObject();
+                Object object = Message.receive(ois, getClass().getClassLoader());
                 if (object instanceof Stop) {
                     break;
                 }
