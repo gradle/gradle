@@ -27,14 +27,25 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(startEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == 'description' && it.timestamp == startEvent.timestamp})
+        1 * target.onOutput(!null) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans[0].text == 'description'
+            assert event.timestamp == startEvent.timestamp
+        }
         0 * target._
 
         when:
         generator.onOutput(completeEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative(' status\n') && it.timestamp == completeEvent.timestamp})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative(' ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+            assert event.timestamp == completeEvent.timestamp
+        }
         0 * target._
     }
 
@@ -53,40 +64,61 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(completeEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n') && it.timestamp == completeEvent.timestamp})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative('description ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+            assert event.timestamp == completeEvent.timestamp
+        }
         0 * target._
     }
 
     def insertsLogMessagesWhenOperationGeneratesSomeOutput() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, false)
-        def event = event('message')
+        def logEvent = event('message')
 
         when:
         generator.onOutput(start('description'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == 'description'})
+        1 * target.onOutput(!null) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].text == 'description'
+        }
         0 * target._
 
         when:
-        generator.onOutput(event)
+        generator.onOutput(logEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('\n')})
-        1 * target.onOutput(event)
+        1 * target.onOutput({it instanceof StyledTextOutputEvent}) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].text == toNative('\n')
+        }
+        1 * target.onOutput(logEvent)
         0 * target._
 
         when:
         generator.onOutput(complete('status'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative('description ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
     }
 
     def insertsLogMessagesWhenOperationGeneratesSomeOutputAndInDeferredHeaderMode() {
         ProgressLogEventGenerator generator = new ProgressLogEventGenerator(target, true)
-        def event = event('message')
+        def logEvent = event('message')
         def startEvent = start('description')
         def completeEvent = complete('status')
 
@@ -97,18 +129,29 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         0 * target._
 
         when:
-        generator.onOutput(event)
+        generator.onOutput(logEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description\n') && it.timestamp == startEvent.timestamp})
-        1 * target.onOutput(event)
+        1 * target.onOutput({it instanceof StyledTextOutputEvent}) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].text == toNative('description\n')
+            assert event.timestamp == startEvent.timestamp
+        }
+        1 * target.onOutput(logEvent)
         0 * target._
 
         when:
         generator.onOutput(completeEvent)
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n') && it.timestamp == completeEvent.timestamp})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative('description ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
     }
 
@@ -119,29 +162,53 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(start('description'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == 'description'})
+        1 * target.onOutput(!null) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].text == toNative('description')
+        }
         0 * target._
 
         when:
         generator.onOutput(start('description2'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('\n')})
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description2')})
+        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('\n')}) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].text == toNative('\n')
+        }
+        1 * target.onOutput(!null) >> { args->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 1
+            assert event.spans[0].text == toNative('description2')
+        }
         0 * target._
 
         when:
         generator.onOutput(complete('status2'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative(' status2\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative(' ')
+            assert event.spans[1].text == toNative('status2')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
 
         when:
         generator.onOutput(complete('status'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative('description ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
     }
 
@@ -160,14 +227,26 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
 
         then:
         1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description\n')})
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description2 status2\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative('description2 ')
+            assert event.spans[1].text == toNative('status2')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
 
         when:
         generator.onOutput(complete('status'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative('description ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
     }
 
@@ -219,7 +298,12 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(complete('status'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 2
+            assert event.spans[0].text == toNative('status')
+            assert event.spans[1].text == toNative('\n')
+        }
         0 * target._
     }
 
@@ -236,7 +320,12 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(complete('status'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 2
+            assert event.spans[0].text == toNative('status')
+            assert event.spans[1].text == toNative('\n')
+        }
         0 * target._
     }
 
@@ -311,14 +400,24 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
         generator.onOutput(complete('status2'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('status2\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 2
+            assert event.spans[0].text == toNative('status2')
+            assert event.spans[1].text == toNative('\n')
+        }
         0 * target._
 
         when:
         generator.onOutput(complete('status'))
 
         then:
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 2
+            assert event.spans[0].text == toNative('status')
+            assert event.spans[1].text == toNative('\n')
+        }
         0 * target._
     }
     
@@ -332,7 +431,13 @@ class ProgressLogEventGeneratorTest extends OutputSpecification {
 
         then:
         1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative('description')})
-        1 * target.onOutput({it instanceof StyledTextOutputEvent && it.spans[0].text == toNative(' status\n')})
+        1 * target.onOutput(!null) >> { args ->
+            StyledTextOutputEvent event = args[0]
+            assert event.spans.size() == 3
+            assert event.spans[0].text == toNative(' ')
+            assert event.spans[1].text == toNative('status')
+            assert event.spans[2].text == toNative('\n')
+        }
         0 * target._
     }
 }

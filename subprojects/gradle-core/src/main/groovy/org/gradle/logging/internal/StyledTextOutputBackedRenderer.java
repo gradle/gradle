@@ -23,6 +23,7 @@ import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
+import static org.gradle.logging.StyledTextOutput.Style.Error;
 import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 public class StyledTextOutputBackedRenderer implements OutputEventListener {
@@ -42,7 +43,7 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         }
         if (event instanceof RenderableOutputEvent) {
             RenderableOutputEvent outputEvent = (RenderableOutputEvent) event;
-            textOutput.style(Normal);
+            textOutput.style(outputEvent.getLogLevel() == LogLevel.ERROR ? Error : Normal);
             if (debugOutput && (textOutput.atEndOfLine || lastEvent == null || !lastEvent.getCategory().equals(outputEvent.getCategory()))) {
                 if (!textOutput.atEndOfLine) {
                     textOutput.println();

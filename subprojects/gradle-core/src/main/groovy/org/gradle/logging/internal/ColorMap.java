@@ -20,4 +20,8 @@ import org.gradle.logging.StyledTextOutput;
 
 public interface ColorMap {
     Ansi.Color getColourFor(StyledTextOutput.Style style);
+
+    Ansi.Attribute getStatusBarOn();
+
+    Ansi.Attribute getStatusBarOff();
 }
