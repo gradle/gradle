@@ -87,8 +87,6 @@ public class StartParameter {
     private boolean stopDaemon;
     private boolean dryRun;
     private boolean noOpt;
-    private boolean stdoutTerminal;
-    private boolean stderrTerminal;
     private boolean colorOutput = true;
 
     /**
@@ -563,23 +561,6 @@ public class StartParameter {
         this.stopDaemon = stopDaemon;
     }
 
-    public boolean isStderrTerminal() {
-        return stderrTerminal;
-    }
-
-    public void setStderrTerminal(boolean stderrTerminal) {
-        this.stderrTerminal = stderrTerminal;
-    }
-
-    public boolean isStdoutTerminal() {
-        return stdoutTerminal;
-    }
-
-    public void setStdoutTerminal(boolean stdoutTerminal) {
-        this.stdoutTerminal = stdoutTerminal;
-    }
-
-    
     @Override
     public String toString() {
         return "StartParameter{" +

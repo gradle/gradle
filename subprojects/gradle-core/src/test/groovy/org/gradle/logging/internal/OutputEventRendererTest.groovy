@@ -134,6 +134,36 @@ class OutputEventRendererTest extends OutputSpecification {
         listener.value.readLines() == ['10:00:00.000 [ERROR] [category] message']
     }
 
+    def forwardsOutputEventsToListener() {
+        OutputEventListener listener = Mock()
+        LogEvent ignored = event('ignored', LogLevel.DEBUG)
+        LogEvent event = event('message', LogLevel.INFO)
+
+        when:
+        renderer.configure(LogLevel.INFO)
+        renderer.addOutputEventListener(listener)
+        renderer.onOutput(ignored)
+        renderer.onOutput(event)
+
+        then:
+        1 * listener.onOutput(event)
+        0 * listener._
+    }
+
+    def doesNotForwardOutputEventsToRemovedListener() {
+        OutputEventListener listener = Mock()
+        LogEvent event = event('message', LogLevel.INFO)
+
+        when:
+        renderer.configure(LogLevel.INFO)
+        renderer.addOutputEventListener(listener)
+        renderer.removeOutputEventListener(listener)
+        renderer.onOutput(event)
+
+        then:
+        0 * listener._
+    }
+
     def rendersProgressEvents() {
         when:
         renderer.onOutput(start('description'))

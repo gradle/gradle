@@ -18,6 +18,7 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -77,7 +78,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         }
     }
 
-    public static class Span {
+    public static class Span implements Serializable {
         private final String text;
         private final StyledTextOutput.Style style;
 

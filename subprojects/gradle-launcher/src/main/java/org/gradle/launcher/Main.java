@@ -16,8 +16,6 @@
 package org.gradle.launcher;
 
 import org.gradle.StartParameter;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
@@ -30,8 +28,6 @@ import java.io.PrintStream;
  * @author Hans Dockter
  */
 public class Main {
-    private static final Logger LOGGER = Logging.getLogger(Main.class);
-
     private final String[] args;
     private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
     private CommandLine2StartParameterConverter parameterConverter = new DefaultCommandLine2StartParameterConverter();
@@ -77,13 +73,13 @@ public class Main {
             if (startParameter.isLaunchGUI()) {
                 BlockingApplication.launchAndBlock();
             } else if (startParameter.isForeground()) {
-                GradleDaemon.main(args);
+                new GradleDaemon().run(args);
             } else if (startParameter.isNoDaemon()) {
-                GradleDaemon.build(new File(System.getProperty("user.dir")), args);
+                new GradleDaemon().build(new File(System.getProperty("user.dir")), args);
             } else if (startParameter.isStopDaemon()) {
-                GradleDaemon.stop();
+                new GradleDaemon().stop();
             } else {
-                GradleDaemon.clientMain(new File(System.getProperty("user.dir")), args);
+                new GradleDaemon().clientMain(new File(System.getProperty("user.dir")), args);
             }
         } catch (Throwable throwable) {
             throwable.printStackTrace();

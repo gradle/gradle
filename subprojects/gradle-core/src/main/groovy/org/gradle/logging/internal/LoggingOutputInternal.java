@@ -19,4 +19,8 @@ import org.gradle.api.logging.LoggingOutput;
 
 public interface LoggingOutputInternal extends LoggingOutput {
     void colorStdOutAndStdErr(boolean colorOutput);
+
+    void addOutputEventListener(OutputEventListener listener);
+
+    void removeOutputEventListener(OutputEventListener listener);
 }

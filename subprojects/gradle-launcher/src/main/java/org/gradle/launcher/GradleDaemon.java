@@ -1,16 +1,21 @@
 package org.gradle.launcher;
 
-import org.fusesource.jansi.AnsiConsole;
 import org.gradle.*;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.logging.internal.TerminalDetector;
+import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.internal.LoggingOutputInternal;
+import org.gradle.logging.internal.OutputEvent;
+import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.util.Clock;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
+import org.gradle.util.UncheckedException;
 
 import java.io.*;
 import java.net.ConnectException;
@@ -24,10 +29,12 @@ import java.util.List;
 public class GradleDaemon {
     public static final int PORT = 12345;
     private static final Logger LOGGER = Logging.getLogger(Main.class);
+    private final ServiceRegistry loggingServices;
+    private final GradleLauncherFactory launcherFactory;
 
     public static void main(String[] args) {
         try {
-            run();
+            new GradleDaemon().run(args);
             System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -35,67 +42,85 @@ public class GradleDaemon {
         }
     }
 
-    private static void run() throws Exception {
-        // Force logging to be initialised
-        GradleLauncher.createStartParameter();
+    public GradleDaemon() {
+        loggingServices = new LoggingServiceRegistry();
+        launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
+    }
 
+    public void run(String[] args) throws Exception {
         ServerSocket serverSocket = new ServerSocket(PORT);
         while (true) {
-            LOGGER.lifecycle("Daemon running");
+            LOGGER.lifecycle("Waiting for request");
             Socket socket = serverSocket.accept();
             try {
-                Clock clock = new Clock();
-                PrintStream stdout = new PrintStream(socket.getOutputStream(), true);
-                try {
-                    ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
-                    Command command = (Command) ois.readObject();
-                    if (command instanceof Stop) {
-                        LOGGER.lifecycle("Daemon stopping");
-                        return;
-                    }
-                    PrintStream origOut = System.out;
-                    PrintStream origErr = System.err;
-                    System.setOut(stdout);
-                    System.setErr(stdout);
-                    try {
-                        build((BuildArgs) command, clock);
-                    } finally {
-                        System.setOut(origOut);
-                        System.setErr(origErr);
-                    }
-                } catch (Throwable throwable) {
-                    throwable.printStackTrace(stdout);
+                ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+                boolean finished = doRun(socket, oos);
+                oos.writeObject(new Stop());
+                oos.flush();
+                if (finished) {
+                    break;
                 }
-                stdout.flush();
             } finally {
                 socket.close();
             }
         }
     }
 
-    public static void clientMain(File currentDir, String[] args) {
+    private boolean doRun(Socket socket, final ObjectOutputStream oos) {
         try {
-            TerminalDetector detector = new TerminalDetector();
-            System.setOut(AnsiConsole.out());
-            System.setErr(AnsiConsole.err());
-            runClient(new BuildArgs(currentDir, args, detector.isSatisfiedBy(FileDescriptor.out), detector.isSatisfiedBy(
-                    FileDescriptor.err)));
+            Clock clock = new Clock();
+            final ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+            Command command = (Command) ois.readObject();
+            LOGGER.info("Executing {}", command);
+            if (command instanceof Stop) {
+                LOGGER.lifecycle("Stopping");
+                return true;
+            }
+            LoggingOutputInternal loggingOutput = loggingServices.get(LoggingOutputInternal.class);
+            OutputEventListener listener = new OutputEventListener() {
+                public void onOutput(OutputEvent event) {
+                    try {
+                        oos.writeObject(event);
+                        oos.flush();
+                    } catch (IOException e) {
+                        throw UncheckedException.asUncheckedException(e);
+                    }
+                }
+            };
+            loggingOutput.addOutputEventListener(listener);
+            try {
+                build((Build) command, clock);
+            } finally {
+                loggingOutput.removeOutputEventListener(listener);
+            }
+        } catch (Throwable throwable) {
+            LOGGER.error("Could not execute build.", throwable);
+        }
+        return false;
+    }
+
+    public void clientMain(File currentDir, String[] args) {
+        try {
+            Socket socket = connect();
+            run(new Build(currentDir, args), socket);
         } catch (Throwable t) {
-            t.printStackTrace();
+            throw UncheckedException.asUncheckedException(t);
         }
     }
 
-    private static void build(BuildArgs buildArgs, Clock clock) {
+    public void build(File file, String[] args) {
+        build(new Build(file, args), new Clock());
+    }
+
+    private void build(Build build, Clock clock) {
         StartParameter startParameter = new StartParameter();
-        startParameter.setCurrentDir(buildArgs.currentDir);
-        startParameter.setStdoutTerminal(buildArgs.stdoutIsTerminal);
-        startParameter.setStderrTerminal(buildArgs.stderrIsTerminal);
+        startParameter.setCurrentDir(build.currentDir);
         CommandLine2StartParameterConverter converter = new DefaultCommandLine2StartParameterConverter();
-        converter.convert(buildArgs.args, startParameter);
+        converter.convert(build.args, startParameter);
 
         BuildListener resultLogger = new BuildLogger(LOGGER, clock, startParameter);
         try {
-            GradleLauncher launcher = GradleLauncher.newInstance(startParameter);
+            GradleLauncher launcher = launcherFactory.newInstance(startParameter);
             launcher.useLogger(resultLogger);
             launcher.run();
         } catch (Throwable e) {
@@ -103,16 +128,7 @@ public class GradleDaemon {
         }
     }
 
-    public static void build(File file, String[] args) {
-        GradleLauncher.createStartParameter();
-        TerminalDetector detector = new TerminalDetector();
-        System.setOut(new PrintStream(AnsiConsole.wrapOutputStream(new FileOutputStream(FileDescriptor.out)), true));
-        System.setErr(new PrintStream(AnsiConsole.wrapOutputStream(new FileOutputStream(FileDescriptor.err)), true));
-        build(new BuildArgs(file, args, detector.isSatisfiedBy(FileDescriptor.out), detector.isSatisfiedBy(
-                FileDescriptor.err)), new Clock());
-    }
-
-    public static void stop() {
+    public void stop() {
         try {
             maybeStop();
         } catch (Throwable t) {
@@ -120,7 +136,7 @@ public class GradleDaemon {
         }
     }
 
-    private static void maybeStop() throws IOException {
+    private void maybeStop() throws Exception {
         Socket socket = maybeConnect();
         if (socket == null) {
             return;
@@ -128,31 +144,28 @@ public class GradleDaemon {
         run(new Stop(), socket);
     }
 
-    private static void runClient(BuildArgs args) throws Exception {
-        Socket socket = connect();
-        run(args, socket);
-    }
+    private void run(Command command, Socket socket) throws Exception {
+        try {
+            ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            oos.writeObject(command);
+            oos.flush();
 
-    private static void run(Command command, Socket socket) throws IOException {
-        ObjectOutputStream oos = new ObjectOutputStream(new BufferedOutputStream(socket.getOutputStream()));
-        oos.writeObject(command);
-        oos.flush();
-
-        byte[] buffer = new byte[1024];
-        InputStream instr = socket.getInputStream();
-        while (true) {
-            int nread = instr.read(buffer);
-            if (nread < 0) {
-                break;
+            OutputEventListener outputEventListener = loggingServices.get(OutputEventListener.class);
+            ObjectInputStream ois = new ObjectInputStream(new BufferedInputStream(socket.getInputStream()));
+            while (true) {
+                Object object = ois.readObject();
+                if (object instanceof Stop) {
+                    break;
+                }
+                OutputEvent outputEvent = (OutputEvent) object;
+                outputEventListener.onOutput(outputEvent);
             }
-            System.out.write(buffer, 0, nread);
-            System.out.flush();
+        } finally {
+            socket.close();
         }
-        System.out.flush();
-        socket.close();
     }
 
-    private static Socket connect() throws Exception {
+    private Socket connect() throws Exception {
         Socket socket = maybeConnect();
         if (socket != null) {
             return socket;
@@ -184,7 +197,7 @@ public class GradleDaemon {
         throw new RuntimeException("Timeout waiting to connect to Gradle daemon.");
     }
 
-    private static Socket maybeConnect() throws IOException {
+    private Socket maybeConnect() throws IOException {
         try {
             return new Socket(InetAddress.getByName(null), 12345);
         } catch (ConnectException e) {
@@ -194,22 +207,22 @@ public class GradleDaemon {
     }
 
     private static class Command implements Serializable {
+        @Override
+        public String toString() {
+            return getClass().getSimpleName();
+        }
     }
 
     private static class Stop extends Command {
     }
 
-    private static class BuildArgs extends Command {
+    private static class Build extends Command {
         private final String[] args;
         private final File currentDir;
-        private final boolean stdoutIsTerminal;
-        private final boolean stderrIsTerminal;
 
-        public BuildArgs(File currentDir, String[] args, boolean stdoutIsTerminal, boolean stderrIsTerminal) {
+        public Build(File currentDir, String[] args) {
             this.currentDir = currentDir;
             this.args = args;
-            this.stdoutIsTerminal = stdoutIsTerminal;
-            this.stderrIsTerminal = stderrIsTerminal;
         }
     }
 }

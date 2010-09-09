@@ -74,7 +74,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String GUI = "gui";
     private static final String ALL = "all";
     private static final String FOREGROUND = "foreground";
-    private static final String NO_DAEMON = "nodaemon";
+    private static final String NO_DAEMON = "no-daemon";
     private static final String STOP_DAEMON = "stop";
 
     private final OptionParser parser = new OptionParser() {

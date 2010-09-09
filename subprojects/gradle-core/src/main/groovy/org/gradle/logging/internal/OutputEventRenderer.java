@@ -98,6 +98,14 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
         return this;
     }
 
+    public void addOutputEventListener(OutputEventListener listener) {
+        formatters.add(listener);
+    }
+
+    public void removeOutputEventListener(OutputEventListener listener) {
+        formatters.remove(listener);
+    }
+
     public OutputEventRenderer addConsole(final Console console, boolean stdout, boolean stderr) {
         final OutputEventListener consoleChain = new ConsoleBackedProgressRenderer(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(console.getMainArea()), true), console);
         synchronized (lock) {
@@ -157,13 +165,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     }
 
     public void configure(LogLevel logLevel) {
-        synchronized (lock) {
-            if (logLevel == this.logLevel) {
-                return;
-            }
-            this.logLevel = logLevel;
-            formatters.getSource().onOutput(new LogLevelChangeEvent(logLevel));
-        }
+        onOutput(new LogLevelChangeEvent(logLevel));
     }
 
     public void onOutput(OutputEvent event) {
@@ -172,7 +174,12 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
                 return;
             }
             if (event instanceof LogLevelChangeEvent) {
-                throw new UnsupportedOperationException();
+                LogLevelChangeEvent changeEvent = (LogLevelChangeEvent) event;
+                LogLevel newLogLevel = changeEvent.getNewLogLevel();
+                if (newLogLevel == this.logLevel) {
+                    return;
+                }
+                this.logLevel = newLogLevel;
             }
             formatters.getSource().onOutput(event);
         }
