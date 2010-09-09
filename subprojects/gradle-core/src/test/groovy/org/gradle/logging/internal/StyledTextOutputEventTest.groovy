@@ -30,7 +30,7 @@ class StyledTextOutputEventTest extends Specification {
     
     def rendersToTextOutput() {
         OutputEventTextOutput output = Mock()
-        def event = new StyledTextOutputEvent(StyledTextOutput.Style.UserInput, 100, 'category', 'message')
+        def event = new StyledTextOutputEvent(100, 'category', StyledTextOutput.Style.UserInput, 'message')
 
         when:
         event.render(output)

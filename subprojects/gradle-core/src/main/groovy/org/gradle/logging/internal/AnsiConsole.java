@@ -174,7 +174,14 @@ public class AnsiConsole implements Console {
                 ansi.cursorLeft(displayedText.length() - prefix.length());
             }
             if (prefix.length() < text.length()) {
+                Ansi.Attribute on = colorMap.getStatusBarOn();
+                if (on != Ansi.Attribute.RESET) {
+                    ansi.a(on);
+                }
                 ansi.a(text.substring(prefix.length()));
+                if (on != Ansi.Attribute.RESET) {
+                    ansi.a(colorMap.getStatusBarOff());
+                }
             }
             if (displayedText.length() > text.length()) {
                 ansi.eraseLine(Ansi.Erase.FORWARD);

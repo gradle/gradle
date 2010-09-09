@@ -42,9 +42,17 @@ public interface StyledTextOutput extends Appendable {
          */
         Description,
         /**
-         * Informational text
+         * Operation progress status
          */
-        Info
+        ProgressStatus,
+        /**
+         * General purpose informational text
+         */
+        Info,
+        /**
+         * General purpose error text
+         */
+        Error
     }
 
     /**

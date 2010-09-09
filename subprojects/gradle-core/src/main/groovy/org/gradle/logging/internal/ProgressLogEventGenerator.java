@@ -19,6 +19,8 @@ import org.gradle.api.logging.LogLevel;
 
 import java.util.LinkedList;
 
+import static org.gradle.logging.StyledTextOutput.Style;
+
 /**
  * An {@code org.gradle.logging.internal.OutputEventListener} implementation which generates output events to log the
  * progress of operations.
@@ -138,25 +140,38 @@ public class ProgressLogEventGenerator implements OutputEventListener {
             switch (state) {
                 case None:
                     if (hasDescription && hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, description + ' ' + status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
+                                new StyledTextOutputEvent.Span(description + ' '),
+                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                                new StyledTextOutputEvent.Span(EOL)));
                     } else if (hasDescription) {
                         doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, description + EOL));
                     } else if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
+                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                                new StyledTextOutputEvent.Span(EOL)));
                     }
                     break;
                 case HeaderStarted:
                     if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, ' ' + status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
+                                new StyledTextOutputEvent.Span(" "),
+                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                                new StyledTextOutputEvent.Span(EOL)));
                     } else {
                         doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, EOL));
                     }
                     break;
                 case HeaderCompleted:
                     if (hasDescription && hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, description + ' ' + status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE,
+                                new StyledTextOutputEvent.Span(description + ' '),
+                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                                new StyledTextOutputEvent.Span(EOL)));
                     } else if (hasStatus) {
-                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, status + EOL));
+                        doOutput(new StyledTextOutputEvent(completeTime, category, LogLevel.LIFECYCLE, 
+                                new StyledTextOutputEvent.Span(Style.ProgressStatus, status),
+                                new StyledTextOutputEvent.Span(EOL)));
                     }
                     break;
                 default:
