@@ -179,6 +179,12 @@ public class ProjectBuilder {
         public void removeStandardErrorListener(StandardOutputListener listener) {
         }
 
+        public void addOutputEventListener(OutputEventListener listener) {
+        }
+
+        public void removeOutputEventListener(OutputEventListener listener) {
+        }
+
         public void colorStdOutAndStdErr(boolean colorOutput) {
         }
     }

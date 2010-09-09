@@ -36,7 +36,11 @@ import org.gradle.logging.LoggingServiceRegistry;
  */
 public class GlobalServicesRegistry extends DefaultServiceRegistry {
     public GlobalServicesRegistry() {
-        super(new LoggingServiceRegistry());
+        this(new LoggingServiceRegistry());
+    }
+
+    public GlobalServicesRegistry(ServiceRegistry loggingServices) {
+        super(loggingServices);
     }
 
     protected CommandLine2StartParameterConverter createCommandLine2StartParameterConverter() {
