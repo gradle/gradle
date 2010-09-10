@@ -15,8 +15,12 @@
  */
 package org.gradle.plugins.eclipse.model.internal
 
+import org.gradle.api.artifacts.ResolvedArtifact
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.internal.CachingDirectedGraphWalker
 import org.gradle.api.file.SourceDirectorySet
-import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
+import org.gradle.api.internal.DirectedGraph 
+import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency 
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.artifacts.*
@@ -27,6 +31,9 @@ import org.gradle.plugins.eclipse.EclipseClasspath
  * @author Hans Dockter
  */
 class ClasspathFactory {
+    private final CachingDirectedGraphWalker<ResolvedDependency, ResolvedDependency> walker = 
+        new CachingDirectedGraphWalker<ResolvedDependency, ResolvedDependency>(new ResolvedDependencyGraph())
+    
     Classpath createClasspath(EclipseClasspath eclipseClasspath) {
         File inputFile = eclipseClasspath.inputFile
         FileReader inputReader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
@@ -82,15 +89,21 @@ class ClasspathFactory {
                 detachedConfiguration((declaredDependencies as Dependency[])).resolvedConfiguration
         def allResolvedDependencies = getAllDeps(resolvedConfiguration.firstLevelModuleDependencies)
 
-        Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-            addSourceArtifact(dependency)
+        Map sourceFiles = [:]
+        if (eclipseClasspath.downloadSources) {
+            Set sourceDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
+                addSourceArtifact(dependency)
+            }
+            sourceFiles += getFiles(eclipseClasspath.project, sourceDependencies, "sources")
         }
-        Map sourceFiles = eclipseClasspath.downloadSources ? getFiles(eclipseClasspath.project, sourceDependencies, "sources") : [:]
 
-        Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
-            addJavadocArtifact(dependency)
+        Map javadocFiles = [:]
+        if (eclipseClasspath.downloadJavadoc) {
+            Set javadocDependencies = getResolvableDependenciesForAllResolvedDependencies(allResolvedDependencies) { dependency ->
+                addJavadocArtifact(dependency)
+            }
+            javadocFiles += getFiles(eclipseClasspath.project, javadocDependencies, "javadoc")
         }
-        Map javadocFiles = eclipseClasspath.downloadJavadoc ? getFiles(eclipseClasspath.project, javadocDependencies, "javadoc") : [:]
 
         List moduleLibraries = resolvedConfiguration.getFiles(Specs.SATISFIES_ALL).collect { File binaryFile ->
             File sourceFile = sourceFiles[binaryFile.name]
@@ -156,14 +169,8 @@ class ClasspathFactory {
     }
 
     protected Set getAllDeps(Set deps) {
-        Set result = []
-        deps.each { ResolvedDependency resolvedDependency ->
-            if (resolvedDependency.children) {
-                result.addAll(getAllDeps(resolvedDependency.children))
-            }
-            result.add(resolvedDependency)
-        }
-        result
+        walker.add(deps)
+        walker.findValues()
     }
 
     protected def addSourceArtifact(DefaultExternalModuleDependency dependency) {
@@ -182,5 +189,13 @@ class ClasspathFactory {
             artifact.extension = 'jar'
             artifact.classifier = 'javadoc'
         }
+    }
+}
+
+private class ResolvedDependencyGraph implements DirectedGraph<ResolvedDependency, ResolvedDependency> {
+    public void getNodeValues(ResolvedDependency node, Collection<ResolvedArtifact> values,
+                              Collection<ResolvedDependency> connectedNodes) {
+        values.addAll(node)
+        connectedNodes.addAll(node.getChildren())
     }
 }
