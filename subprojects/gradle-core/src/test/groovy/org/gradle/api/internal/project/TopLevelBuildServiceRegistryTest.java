@@ -42,7 +42,7 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
@@ -58,7 +58,8 @@ import java.io.File;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class TopLevelBuildServiceRegistryTest {
@@ -199,8 +200,7 @@ public class TopLevelBuildServiceRegistryTest {
             }));
         }});
 
-        assertThat(factory.get(WorkerProcessFactory.class), instanceOf(DefaultWorkerProcessFactory.class));
-        assertThat(factory.get(WorkerProcessFactory.class), sameInstance(factory.get(WorkerProcessFactory.class)));
+        assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
     @Test

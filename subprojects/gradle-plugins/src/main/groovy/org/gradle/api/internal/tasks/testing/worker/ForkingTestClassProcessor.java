@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
@@ -24,12 +25,11 @@ import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessFactory;
 
 import java.io.File;
 
 public class ForkingTestClassProcessor implements TestClassProcessor {
-    private final WorkerProcessFactory workerFactory;
+    private final Factory<? extends WorkerProcessBuilder> workerFactory;
     private final WorkerTestClassProcessorFactory processorFactory;
     private final JavaForkOptions options;
     private final Iterable<File> classPath;
@@ -38,7 +38,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
     private WorkerProcess workerProcess;
     private TestResultProcessor resultProcessor;
 
-    public ForkingTestClassProcessor(WorkerProcessFactory workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
+    public ForkingTestClassProcessor(Factory<? extends WorkerProcessBuilder> workerFactory, WorkerTestClassProcessorFactory processorFactory, JavaForkOptions options, Iterable<File> classPath, Action<WorkerProcessBuilder> buildConfigAction) {
         this.workerFactory = workerFactory;
         this.processorFactory = processorFactory;
         this.options = options;
@@ -52,7 +52,7 @@ public class ForkingTestClassProcessor implements TestClassProcessor {
 
     public void processTestClass(TestClassRunInfo testClass) {
         if (remoteProcessor == null) {
-            WorkerProcessBuilder builder = workerFactory.newProcess();
+            WorkerProcessBuilder builder = workerFactory.create();
             builder.applicationClasspath(classPath);
             builder.setLoadApplicationInSystemClassLoader(true);
             builder.worker(new TestWorker(processorFactory));

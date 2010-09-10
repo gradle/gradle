@@ -62,7 +62,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
@@ -313,7 +313,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(DependencyFactory.class));
     }
 
-    protected WorkerProcessFactory createWorkerProcessFactory() {
+    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
         return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
                 new IdentityFileResolver(), new LongIdGenerator());
