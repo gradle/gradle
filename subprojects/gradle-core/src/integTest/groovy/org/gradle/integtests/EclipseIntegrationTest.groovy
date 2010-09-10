@@ -30,4 +30,13 @@ class EclipseIntegrationTest extends AbstractIntegrationTest {
         File buildFile = testFile("master/build.gradle");
         usingBuildFile(buildFile).run();
     }
+    
+    @Test
+    public void handlesLibraryDependenciesWithCycle() {
+        // we need to place build file under some intermediary directory, because the name of the project is taken
+        // from this directory name (otherwise, in consecutive failed builds the project name would become 
+        // handlesLibraryDependenciesWithCycle, handlesLibraryDependenciesWithCycle1, ...)
+        def buildFile = testFile("main/build.gradle")
+        usingBuildFile(buildFile).run()
+    }
 }

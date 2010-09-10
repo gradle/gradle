@@ -1,0 +1,49 @@
+<classpath>
+  <classpathentry kind="output" path="bin"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/commons-logging/commons-logging/sources/commons-logging-1.0.4-sources.jar" kind="var" path="GRADLE_CACHE/commons-logging/commons-logging/jars/commons-logging-1.0.4.jar" exported="true">
+    <attributes>
+      <attribute name="javadoc_location" value="GRADLE_CACHE/commons-logging/commons-logging/javadocs/commons-logging-1.0.4-javadoc.jar"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-svg-dom/jars/batik-svg-dom-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-xml/jars/batik-xml-1.7.jar" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/org.apache.avalon.framework/avalon-framework-impl/sources/avalon-framework-impl-4.3.1-sources.jar" kind="var" path="GRADLE_CACHE/org.apache.avalon.framework/avalon-framework-impl/jars/avalon-framework-impl-4.3.1.jar" exported="true">
+    <attributes>
+      <attribute name="javadoc_location" value="GRADLE_CACHE/org.apache.avalon.framework/avalon-framework-impl/javadocs/avalon-framework-impl-4.3.1-javadoc.jar"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-gvt/jars/batik-gvt-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-script/jars/batik-script-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-svggen/jars/batik-svggen-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-parser/jars/batik-parser-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-dom/jars/batik-dom-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-anim/jars/batik-anim-1.7.jar" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/commons-io/commons-io/sources/commons-io-1.3.1-sources.jar" kind="var" path="GRADLE_CACHE/commons-io/commons-io/jars/commons-io-1.3.1.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/xalan/xalan/jars/xalan-2.6.0.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/xml-apis/xml-apis-ext/jars/xml-apis-ext-1.3.04.jar" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/org.apache.avalon.framework/avalon-framework-api/sources/avalon-framework-api-4.3.1-sources.jar" kind="var" path="GRADLE_CACHE/org.apache.avalon.framework/avalon-framework-api/jars/avalon-framework-api-4.3.1.jar" exported="true">
+    <attributes>
+      <attribute name="javadoc_location" value="GRADLE_CACHE/org.apache.avalon.framework/avalon-framework-api/javadocs/avalon-framework-api-4.3.1-javadoc.jar"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-js/jars/batik-js-1.7.jar" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/xml-apis/xml-apis/sources/xml-apis-1.3.04-sources.jar" kind="var" path="GRADLE_CACHE/xml-apis/xml-apis/jars/xml-apis-1.3.04.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-transcoder/jars/batik-transcoder-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-css/jars/batik-css-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-bridge/jars/batik-bridge-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-awt-util/jars/batik-awt-util-1.7.jar" exported="true"/>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-util/jars/batik-util-1.7.jar" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/org.apache.xmlgraphics/xmlgraphics-commons/sources/xmlgraphics-commons-1.4-sources.jar" kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/xmlgraphics-commons/jars/xmlgraphics-commons-1.4.jar" exported="true">
+    <attributes>
+      <attribute name="javadoc_location" value="GRADLE_CACHE/org.apache.xmlgraphics/xmlgraphics-commons/javadocs/xmlgraphics-commons-1.4-javadoc.jar"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-ext/jars/batik-ext-1.7.jar" exported="true"/>
+  <classpathentry sourcepath="GRADLE_CACHE/org.apache.xmlgraphics/fop/sources/fop-1.0-sources.jar" kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/fop/jars/fop-1.0.jar" exported="true">
+    <attributes>
+      <attribute name="javadoc_location" value="GRADLE_CACHE/org.apache.xmlgraphics/fop/javadocs/fop-1.0-javadoc.jar"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry kind="var" path="GRADLE_CACHE/org.apache.xmlgraphics/batik-extension/jars/batik-extension-1.7.jar" exported="true"/>
+</classpath>

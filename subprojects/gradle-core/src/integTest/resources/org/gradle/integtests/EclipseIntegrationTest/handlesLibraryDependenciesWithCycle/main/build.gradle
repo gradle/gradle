@@ -1,0 +1,45 @@
+import org.custommonkey.xmlunit.Diff
+import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
+import org.custommonkey.xmlunit.XMLAssert
+
+apply plugin: 'eclipse'
+apply plugin: 'java'
+
+defaultTasks 'eclipse', 'cleanEclipse'
+
+group = 'org.gradle.integtests'
+version = '1.0'
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	compile 'org.apache.xmlgraphics:fop:1.0'
+}
+
+eclipseClasspath {
+	downloadJavadoc = true
+	doLast {
+		compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/classpath.xml").text,
+				file(".classpath").text)
+	}
+}
+
+eclipseProject.doLast {
+	compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/project.xml").text,
+			file(".project").text)
+}
+
+cleanEclipse.doLast {
+	assert !file(".classpath").isFile()
+	assert !file(".project").isFile()
+}
+
+void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
+    Diff diff = new Diff(expectedXml, actualXml)
+    diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
+    XMLAssert.assertXMLEqual(diff, true);
+}
+
+
