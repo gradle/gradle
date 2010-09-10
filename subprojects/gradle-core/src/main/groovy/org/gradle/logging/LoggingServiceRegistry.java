@@ -16,6 +16,7 @@
 
 package org.gradle.logging;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.logging.internal.*;
 import org.gradle.util.TimeProvider;
@@ -51,7 +52,7 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
         return new DefaultProgressLoggerFactory(new ProgressLoggingBridge(get(OutputEventListener.class)), get(TimeProvider.class));
     }
     
-    protected LoggingManagerFactory createLoggingManagerFactory() {
+    protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
         OutputEventRenderer renderer = get(OutputEventRenderer.class);
         Slf4jLoggingConfigurer slf4jConfigurer = new Slf4jLoggingConfigurer(renderer);
         LoggingConfigurer compositeConfigurer = new DefaultLoggingConfigurer(renderer, slf4jConfigurer, new JavaUtilLoggingConfigurer());

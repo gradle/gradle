@@ -29,7 +29,6 @@ import org.gradle.configuration.BuildConfigurer;
 import org.gradle.configuration.ProjectDependencies2TaskResolver;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.WrapUtil;
@@ -54,7 +53,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices = globalServices;
 
         // Start logging system
-        sharedServices.get(LoggingManagerFactory.class).create().setLevel(LogLevel.LIFECYCLE).start();
+        sharedServices.newInstance(LoggingManagerInternal.class).setLevel(LogLevel.LIFECYCLE).start();
 
         commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
         tracker = new NestedBuildTracker();
@@ -75,7 +74,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     public GradleLauncher newInstance(StartParameter startParameter) {
         TopLevelBuildServiceRegistry serviceRegistry = new TopLevelBuildServiceRegistry(sharedServices, startParameter);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
-        LoggingManagerInternal loggingManager = serviceRegistry.get(LoggingManagerFactory.class).create();
+        LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(startParameter.getLogLevel());
         loggingManager.colorStdOutAndStdErr(startParameter.isColorOutput());
 

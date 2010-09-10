@@ -20,6 +20,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
@@ -36,7 +37,7 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
@@ -70,7 +71,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
-    private final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
+    private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
     private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
 
     @Before
@@ -83,7 +84,7 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(classPathRegistry));
             allowing(parent).get(ClassLoaderFactory.class);
             will(returnValue(classLoaderFactory));
-            allowing(parent).get(LoggingManagerFactory.class);
+            allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             allowing(parent).get(ProgressLoggerFactory.class);
             will(returnValue(progressLoggerFactory));

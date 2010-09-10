@@ -16,16 +16,14 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.AntBuilder;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.AsmBackedClassGenerator;
-import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.TaskInternal;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
@@ -44,7 +42,6 @@ import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -56,7 +53,7 @@ import org.junit.runner.RunWith;
 import java.io.File;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class ProjectInternalServiceRegistryTest {
@@ -159,8 +156,8 @@ public class ProjectInternalServiceRegistryTest {
 
     @Test
     public void providesAnAntBuilderFactory() {
-        assertThat(registry.get(AntBuilderFactory.class), instanceOf(DefaultAntBuilderFactory.class));
-        assertThat(registry.get(AntBuilderFactory.class), sameInstance(registry.get(AntBuilderFactory.class)));
+        assertThat(registry.getFactory(AntBuilder.class), instanceOf(DefaultAntBuilderFactory.class));
+        assertThat(registry.getFactory(AntBuilder.class), sameInstance((Object) registry.getFactory(AntBuilder.class)));
     }
 
     @Test
@@ -193,11 +190,11 @@ public class ProjectInternalServiceRegistryTest {
     
     @Test
     public void providesALoggingManager() {
-        final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
+        final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
         final LoggingManager loggingManager = context.mock(LoggingManagerInternal.class);
 
         context.checking(new Expectations(){{
-            allowing(parent).get(LoggingManagerFactory.class);
+            allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             one(loggingManagerFactory).create();
             will(returnValue(loggingManager));

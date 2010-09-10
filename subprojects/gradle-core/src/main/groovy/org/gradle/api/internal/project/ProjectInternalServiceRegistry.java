@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Module;
@@ -23,8 +24,8 @@ import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.ClassGenerator;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
@@ -35,6 +36,7 @@ import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.file.*;
 import org.gradle.api.internal.initialization.DefaultScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -49,7 +51,6 @@ import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -74,7 +75,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected LoggingManagerInternal createLoggingManager() {
-        return get(LoggingManagerFactory.class).create();
+        return getFactory(LoggingManagerInternal.class).create();
     }
 
     protected FileOperations createFileOperations() {
@@ -89,7 +90,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         });
     }
 
-    protected AntBuilderFactory createAntBuilderFactory() {
+    protected Factory<AntBuilder> createAntBuilderFactory() {
         return new DefaultAntBuilderFactory(new AntLoggingAdapter(), project);
     }
 

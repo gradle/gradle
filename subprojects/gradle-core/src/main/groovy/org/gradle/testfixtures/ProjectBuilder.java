@@ -18,10 +18,7 @@ package org.gradle.testfixtures;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.ClassPathRegistry;
-import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.GradleDistributionLocator;
-import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.*;
 import org.gradle.api.internal.project.*;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.LoggingManager;
@@ -36,7 +33,6 @@ import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
@@ -210,8 +206,8 @@ public class ProjectBuilder {
             return new DefaultProgressLoggerFactory(get(ListenerManager.class).getBroadcaster(ProgressListener.class), new TrueTimeProvider());
         }
 
-        protected LoggingManagerFactory createLoggingManagerFactory() {
-            return new LoggingManagerFactory() {
+        protected Factory<LoggingManagerInternal> createLoggingManagerFactory() {
+            return new Factory<LoggingManagerInternal>() {
                 public LoggingManagerInternal create() {
                     return new NoOpLoggingManager();
                 }

@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.GroovyMavenDeployer;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultArtifactPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPomFactory;
 import org.gradle.api.internal.artifacts.publish.maven.MavenPomMetaInfoProvider;
@@ -38,7 +39,7 @@ import org.gradle.api.internal.artifacts.publish.maven.deploy.BasePomFilterConta
 import org.gradle.api.internal.artifacts.publish.maven.deploy.DefaultArtifactPomContainer;
 import org.gradle.api.internal.artifacts.publish.maven.deploy.groovy.DefaultGroovyMavenDeployer;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.DeleteOnExit;
 
 import java.io.File;
@@ -49,9 +50,9 @@ import java.util.Map;
  * @author Hans Dockter
  */
 public class DefaultResolverFactory implements ResolverFactory {
-    private final LoggingManagerFactory loggingManagerFactory;
+    private final Factory<? extends LoggingManagerInternal> loggingManagerFactory;
 
-    public DefaultResolverFactory(LoggingManagerFactory loggingManagerFactory) {
+    public DefaultResolverFactory(Factory<? extends LoggingManagerInternal> loggingManagerFactory) {
         this.loggingManagerFactory = loggingManagerFactory;
     }
 

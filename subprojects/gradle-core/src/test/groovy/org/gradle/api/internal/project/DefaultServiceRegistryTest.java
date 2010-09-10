@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.Factory;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -115,6 +116,53 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
+    public void canGetServiceAsFactoryWhenTheServiceImplementsFactoryInterface() {
+        assertThat(registry.getFactory(BigDecimal.class), instanceOf(TestFactory.class));
+        assertThat(registry.getFactory(BigDecimal.class), sameInstance((Object) registry.getFactory(BigDecimal.class)));
+    }
+
+    @Test
+    public void canLocateFactoryWhenServiceInterfaceExtendsFactory() {
+        registry.add(StringFactory.class, new StringFactory() {
+            public String create() {
+                return "value";
+            }
+        });
+        assertThat(registry.getFactory(String.class).create(), equalTo("value"));
+    }
+
+    @Test
+    public void usesAFactoryServiceToCreateInstances() {
+        assertThat(registry.newInstance(BigDecimal.class), equalTo(BigDecimal.valueOf(0)));
+        assertThat(registry.newInstance(BigDecimal.class), equalTo(BigDecimal.valueOf(1)));
+        assertThat(registry.newInstance(BigDecimal.class), equalTo(BigDecimal.valueOf(2)));
+    }
+
+    @Test
+    public void delegatesToParentForUnknownFactory() {
+        final Factory<Map> factory = context.mock(Factory.class);
+        final ServiceRegistry parent = context.mock(ServiceRegistry.class);
+        TestRegistry registry = new TestRegistry(parent);
+
+        context.checking(new Expectations() {{
+            one(parent).getFactory(Map.class);
+            will(returnValue(factory));
+        }});
+
+        assertThat(registry.getFactory(Map.class), sameInstance((Object) factory));
+    }
+    
+    @Test
+    public void throwsExceptionForUnknownFactory() {
+        try {
+            registry.getFactory(String.class);
+            fail();
+        } catch (IllegalArgumentException e) {
+            assertThat(e.getMessage(), equalTo("No factory for objects of type String available in TestRegistry."));
+        }
+    }
+
+    @Test
     public void servicesCreatedByFactoryMethodsAreVisibleWhenUsingASubClass() {
         ServiceRegistry registry = new SubType();
         assertThat(registry.get(String.class), equalTo("12"));
@@ -146,7 +194,7 @@ public class DefaultServiceRegistryTest {
     }
 
     @Test
-    public void ignoresServiceWithNoCloseOrStopMethod() {
+    public void closeIgnoresServiceWithNoCloseOrStopMethod() {
         registry.add(String.class, "service");
 
         registry.close();
@@ -161,6 +209,18 @@ public class DefaultServiceRegistryTest {
             fail();
         } catch (IllegalStateException e) {
             assertThat(e.getMessage(), equalTo("Cannot locate service of type String, as TestRegistry has been closed."));
+        }
+    }
+
+    @Test
+    public void discardsFactoriesOnClose() {
+        registry.getFactory(BigDecimal.class);
+        registry.close();
+        try {
+            registry.getFactory(BigDecimal.class);
+            fail();
+        } catch (IllegalStateException e) {
+            assertThat(e.getMessage(), equalTo("Cannot locate factory for objects of type BigDecimal, as TestRegistry has been closed."));
         }
     }
 
@@ -183,9 +243,23 @@ public class DefaultServiceRegistryTest {
         protected Integer createInt() {
             return 12;
         }
+
+        protected Factory<BigDecimal> createTestFactory() {
+            return new TestFactory();
+        }
     }
 
     private static class SubType extends TestRegistry {
+    }
+
+    private static class TestFactory implements Factory<BigDecimal> {
+        int value;
+        public BigDecimal create() {
+            return BigDecimal.valueOf(value++);
+        }
+    }
+
+    private interface StringFactory extends Factory<String> {
     }
 
     public interface TestCloseService {

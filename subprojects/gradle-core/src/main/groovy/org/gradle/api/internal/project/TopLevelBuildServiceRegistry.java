@@ -53,7 +53,7 @@ import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
@@ -137,7 +137,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
         return new DefaultRepositoryHandlerFactory(
                 new DefaultResolverFactory(
-                        get(LoggingManagerFactory.class)),
+                        getFactory(LoggingManagerInternal.class)),
                 get(ClassGenerator.class));
     }
 
@@ -277,7 +277,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
                 get(ClassLoader.class),
-                get(LoggingManagerFactory.class));
+                getFactory(LoggingManagerInternal.class));
     }
 
     protected MultiParentClassLoader createRootClassLoader() {

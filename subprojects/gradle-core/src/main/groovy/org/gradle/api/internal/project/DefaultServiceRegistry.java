@@ -15,17 +15,22 @@
  */
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A hierarchical {@link ServiceRegistry} implementation. Subclasses can register services by:
+ * A hierarchical {@link ServiceRegistry} implementation.
+ *
+ * <p>Subclasses can register services by:</p>
  *
  * <ul> <li>Calling {@link #add(org.gradle.api.internal.project.DefaultServiceRegistry.Service)} to register a factory
  * for the service.</li>
@@ -35,12 +40,16 @@ import java.util.List;
  * <li>Adding a factory method. A factory method should have a name that starts with 'create', take no parameters, and
  * have a non-void return type. For example, <code>protected SomeService createSomeService() { .... }</code>.</li>
  *
- * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single parameter, and a have a non-void return type. 
+ * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single
+ * parameter, and a have a non-void return type.
  *
- *  </ul>
+ * </ul>
  *
- * <p>Service instances are created on demand. If a service of a given type cannot be located, the registry uses its
- * parent registry, if any, to locate the service.</p>
+ * <p>Service instances are created on demand. {@link #getFactory(Class)} looks for a service instance which implements
+ * {@code Factory<T>} where {@code T} is the expected type.</p>.
+ *
+ * <p>Service registries are arranged in a heirarchy. If a service of a given type cannot be located, the registry uses
+ * its parent registry, if any, to locate the service.</p>
  */
 public class DefaultServiceRegistry implements ServiceRegistry {
     private final List<Service> services = new ArrayList<Service>();
@@ -134,6 +143,38 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                 serviceType.getSimpleName(), this));
     }
 
+    public <T> Factory<? extends T> getFactory(Class<T> type) {
+        if (closed) {
+            throw new IllegalStateException(String.format("Cannot locate factory for objects of type %s, as %s has been closed.",
+                    type.getSimpleName(), this));
+        }
+
+        for (Service service : services) {
+            Factory<? extends T> factory = service.getFactory(type);
+            if (factory != null) {
+                return factory;
+            }
+        }
+
+        if (parent != null) {
+            try {
+                return parent.getFactory(type);
+            } catch (UnknownServiceException e) {
+                if (!e.type.equals(type)) {
+                    throw e;
+                }
+                // Ignore
+            }
+        }
+
+        throw new UnknownServiceException(type, String.format("No factory for objects of type %s available in %s.",
+                type.getSimpleName(), this));
+    }
+
+    public <T> T newInstance(Class<T> type) {
+        return getFactory(type).create();
+    }
+
     private static Object invoke(Method method, Object target, Object... args) {
         try {
             method.setAccessible(true);
@@ -149,15 +190,22 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     protected static abstract class Service implements Stoppable {
-        final Class<?> serviceType;
+        final Type serviceType;
+        final Class serviceClass;
         Object service;
 
-        Service(Class<?> serviceType) {
+        Service(Type serviceType) {
             this.serviceType = serviceType;
+            serviceClass = toClass(serviceType);
+        }
+
+        @Override
+        public String toString() {
+            return String.format("Service %s", serviceType);
         }
 
         <T> T getService(Class<T> serviceType) {
-            if (!serviceType.isAssignableFrom(this.serviceType)) {
+            if (!serviceType.isAssignableFrom(this.serviceClass)) {
                 return null;
             }
             if (service == null) {
@@ -187,13 +235,52 @@ public class DefaultServiceRegistry implements ServiceRegistry {
                 service = null;
             }
         }
+
+        public <T> Factory<? extends T> getFactory(Class<T> elementType) {
+            if (!Factory.class.isAssignableFrom(serviceClass)) {
+                return null;
+            }
+            return getFactory(serviceType, elementType);
+        }
+
+        private Factory getFactory(Type type, Class elementType) {
+            Class c = toClass(type);
+            if (!Factory.class.isAssignableFrom(c)) {
+                return null;
+            }
+
+            if (type instanceof ParameterizedType) {
+                ParameterizedType parameterizedType = (ParameterizedType) type;
+                if (parameterizedType.getRawType().equals(Factory.class) && parameterizedType.getActualTypeArguments()[0].equals(elementType)) {
+                    return getService(Factory.class);
+                }
+            }
+
+            for (Type interfaceType : c.getGenericInterfaces()) {
+                Factory f = getFactory(interfaceType, elementType);
+                if (f != null) {
+                    return f;
+                }
+            }
+
+            return null;
+        }
+
+        private Class toClass(Type type) {
+            if (type instanceof Class) {
+                return (Class) type;
+            } else {
+                ParameterizedType parameterizedType = (ParameterizedType) type;
+                return (Class) parameterizedType.getRawType();
+            }
+        }
     }
 
     private class FactoryMethodService extends Service {
         private final Method method;
 
         public FactoryMethodService(Method method) {
-            super(method.getReturnType());
+            super(method.getGenericReturnType());
             this.method = method;
         }
 
@@ -222,7 +309,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         private final Method method;
 
         public DecoratorMethodService(Method method) {
-            super(method.getReturnType());
+            super(method.getGenericReturnType());
             this.method = method;
         }
 
@@ -233,7 +320,6 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     }
 
     static class UnknownServiceException extends IllegalArgumentException {
-
         private final Class<?> type;
 
         UnknownServiceException(Class<?> type, String message) {

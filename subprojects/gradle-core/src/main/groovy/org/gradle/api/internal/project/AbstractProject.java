@@ -101,7 +101,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private FileResolver fileResolver;
     private FileOperations fileOperations;
 
-    private AntBuilderFactory antBuilderFactory;
+    private Factory<? extends AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
 
@@ -163,7 +163,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         services = serviceRegistryFactory.createFor(this);
         fileResolver = services.get(FileResolver.class);
         fileOperations = services.get(FileOperations.class);
-        antBuilderFactory = services.get(AntBuilderFactory.class);
+        antBuilderFactory = services.getFactory(AntBuilder.class);
         taskContainer = services.get(TaskContainerInternal.class);
         repositoryHandlerFactory = services.get(RepositoryHandlerFactory.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
@@ -477,7 +477,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public AntBuilder createAntBuilder() {
-        return antBuilderFactory.createAntBuilder();
+        return antBuilderFactory.create();
     }
 
     /**
@@ -742,11 +742,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         this.taskContainer = taskContainer;
     }
 
-    public AntBuilderFactory getAntBuilderFactory() {
+    public Factory<? extends AntBuilder> getAntBuilderFactory() {
         return antBuilderFactory;
     }
 
-    public void setAntBuilderFactory(AntBuilderFactory antBuilderFactory) {
+    public void setAntBuilderFactory(Factory<? extends AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory;
     }
 

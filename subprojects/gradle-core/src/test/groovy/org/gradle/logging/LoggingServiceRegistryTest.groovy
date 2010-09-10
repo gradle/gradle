@@ -26,7 +26,7 @@ class LoggingServiceRegistryTest extends Specification {
     
     def providesALoggingManagerFactory() {
         expect:
-        def factory = registry.get(LoggingManagerFactory.class)
+        def factory = registry.getFactory(LoggingManagerInternal.class)
         factory instanceof DefaultLoggingManagerFactory
     }
 

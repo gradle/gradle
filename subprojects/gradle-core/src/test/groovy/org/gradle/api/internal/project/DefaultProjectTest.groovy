@@ -68,6 +68,7 @@ import org.junit.runner.RunWith
 import org.gradle.api.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.api.internal.Factory
 
 /**
  * @author Hans Dockter
@@ -99,7 +100,7 @@ class DefaultProjectTest {
     ServiceRegistry serviceRegistryMock
     ServiceRegistryFactory projectServiceRegistryFactoryMock
     TaskContainerInternal taskContainerMock
-    AntBuilderFactory antBuilderFactoryMock
+    Factory<AntBuilder> antBuilderFactoryMock
     AntBuilder testAntBuilder
 
     ConfigurationContainerFactory configurationContainerFactoryMock;
@@ -127,10 +128,10 @@ class DefaultProjectTest {
         dependencyFactoryMock = context.mock(DependencyFactory.class)
         loggingManagerMock = context.mock(LoggingManagerInternal.class)
         taskContainerMock = context.mock(TaskContainerInternal.class);
-        antBuilderFactoryMock = context.mock(AntBuilderFactory.class)
+        antBuilderFactoryMock = context.mock(Factory.class)
         testAntBuilder = new DefaultAntBuilder()
         context.checking {
-            allowing(antBuilderFactoryMock).createAntBuilder(); will(returnValue(testAntBuilder))
+            allowing(antBuilderFactoryMock).create(); will(returnValue(testAntBuilder))
         }
         configurationContainerMock = context.mock(DefaultConfigurationContainer.class)
         configurationContainerFactoryMock = [createConfigurationContainer: {
@@ -171,7 +172,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(DependencyHandler); will(returnValue(dependencyHandlerMock))
             allowing(serviceRegistryMock).get(Convention); will(returnValue(convention))
             allowing(serviceRegistryMock).get(ProjectEvaluator); will(returnValue(projectEvaluator))
-            allowing(serviceRegistryMock).get(AntBuilderFactory); will(returnValue(antBuilderFactoryMock))
+            allowing(serviceRegistryMock).getFactory(AntBuilder); will(returnValue(antBuilderFactoryMock))
             allowing(serviceRegistryMock).get(PluginContainer); will(returnValue(pluginContainerMock))
             allowing(serviceRegistryMock).get(ScriptHandler); will(returnValue(scriptHandlerMock))
             allowing(serviceRegistryMock).get(ScriptClassLoaderProvider); will(returnValue(context.mock(ScriptClassLoaderProvider)))

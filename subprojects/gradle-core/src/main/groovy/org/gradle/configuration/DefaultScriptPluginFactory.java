@@ -16,6 +16,7 @@
 
 package org.gradle.configuration;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptClasspathScriptTransformer;
 import org.gradle.api.internal.artifacts.dsl.BuildScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
@@ -23,7 +24,6 @@ import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
 import org.gradle.groovy.scripts.*;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
@@ -31,13 +31,13 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ImportsReader importsReader;
     private final ScriptHandlerFactory scriptHandlerFactory;
     private final ClassLoader defaultClassLoader;
-    private final LoggingManagerFactory loggingManagerFactory;
+    private final Factory<? extends LoggingManagerInternal> loggingManagerFactory;
 
     public DefaultScriptPluginFactory(ScriptCompilerFactory scriptCompilerFactory,
                                                 ImportsReader importsReader,
                                                 ScriptHandlerFactory scriptHandlerFactory,
                                                 ClassLoader defaultClassLoader,
-                                                LoggingManagerFactory loggingManagerFactory) {
+                                                Factory<? extends LoggingManagerInternal> loggingManagerFactory) {
         this.scriptCompilerFactory = scriptCompilerFactory;
         this.importsReader = importsReader;
         this.scriptHandlerFactory = scriptHandlerFactory;

@@ -44,13 +44,13 @@ public class DefaultAntBuilderFactoryTest {
 
     @Test
     public void createsAnAntBuilder() {
-        def ant = factory.createAntBuilder()
+        def ant = factory.create()
         assertThat(ant, notNullValue())
     }
 
     @Test
     public void setsBaseDirOfAntProject() {
-        def ant = factory.createAntBuilder()
+        def ant = factory.create()
         assertThat(ant.project.baseDir, equalTo(project.projectDir))
     }
 }
