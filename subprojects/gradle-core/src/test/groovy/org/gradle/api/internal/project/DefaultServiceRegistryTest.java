@@ -151,6 +151,23 @@ public class DefaultServiceRegistryTest {
 
         assertThat(registry.getFactory(Map.class), sameInstance((Object) factory));
     }
+
+    @Test
+    public void usesDecoratorMethodToDecorateParentFactoryInstance() {
+        final ServiceRegistry parent = context.mock(ServiceRegistry.class);
+        final Factory<Long> factory = context.mock(Factory.class);
+        TestRegistry registry = new TestRegistry(parent);
+
+        context.checking(new Expectations() {{
+            one(parent).getFactory(Long.class);
+            will(returnValue(factory));
+            allowing(factory).create();
+            will(onConsecutiveCalls(returnValue(10L), returnValue(20L)));
+        }});
+
+        assertThat(registry.newInstance(Long.class), equalTo(12L));
+        assertThat(registry.newInstance(Long.class), equalTo(22L));
+    }
     
     @Test
     public void throwsExceptionForUnknownFactory() {
@@ -246,6 +263,14 @@ public class DefaultServiceRegistryTest {
 
         protected Factory<BigDecimal> createTestFactory() {
             return new TestFactory();
+        }
+
+        protected Factory<Long> createLongFactory(final Factory<? extends Long> factory) {
+            return new Factory<Long>() {
+                public Long create() {
+                    return factory.create() + 2;
+                }
+            };
         }
     }
 

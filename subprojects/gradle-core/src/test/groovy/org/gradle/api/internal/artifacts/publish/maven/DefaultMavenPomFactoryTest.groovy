@@ -33,7 +33,7 @@ public class DefaultMavenPomFactoryTest extends Specification {
         FileResolver fileResolver = Mock(FileResolver); 
         DefaultMavenPomFactory mavenPomFactory = new DefaultMavenPomFactory(configurationContainer, scopeMappings,
                 pomDependenciesConverter, fileResolver);
-        DefaultMavenPom mavenPom = (DefaultMavenPom) mavenPomFactory.createMavenPom();
+        DefaultMavenPom mavenPom = (DefaultMavenPom) mavenPomFactory.create();
 
         expect:
         !scopeMappings.is(mavenPom.scopeMappings)

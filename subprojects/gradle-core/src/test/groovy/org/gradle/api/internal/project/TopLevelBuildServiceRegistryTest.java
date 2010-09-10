@@ -17,7 +17,7 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
 import org.gradle.api.internal.Factory;
@@ -143,9 +143,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesARepositoryHandlerFactory() {
-        assertThat(factory.get(RepositoryHandlerFactory.class), instanceOf(DefaultRepositoryHandlerFactory.class));
-        assertThat(factory.get(RepositoryHandlerFactory.class), sameInstance(factory.get(
-                RepositoryHandlerFactory.class)));
+        assertThat(factory.getFactory(RepositoryHandler.class), instanceOf(DefaultRepositoryHandlerFactory.class));
     }
 
     @Test

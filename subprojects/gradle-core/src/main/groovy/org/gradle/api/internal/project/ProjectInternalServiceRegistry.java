@@ -23,7 +23,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
@@ -33,6 +32,7 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.SharedConventionRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
@@ -107,10 +107,14 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultConvention();
     }
 
-    protected RepositoryHandler createRepositoryHandler() {
-        return get(RepositoryHandlerFactory.class).createRepositoryHandler(get(Convention.class));
+    protected Factory<RepositoryHandler> createRepositoryHandlerFactory(Factory<? extends RepositoryHandler> factory) {
+        return new SharedConventionRepositoryHandlerFactory(factory, get(Convention.class));
     }
 
+    protected RepositoryHandler createRepositoryHandler() {
+        return getFactory(RepositoryHandler.class).create();
+    }
+    
     protected ConfigurationContainer createConfigurationContainer() {
         return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
                 get(DependencyMetaDataProvider.class), project);
@@ -135,7 +139,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
 
     protected ScriptHandlerInternal createScriptHandler() {
         DefaultScriptHandlerFactory factory = new DefaultScriptHandlerFactory(
-                get(RepositoryHandlerFactory.class),
+                getFactory(RepositoryHandler.class),
                 get(ConfigurationContainerFactory.class),
                 get(DependencyMetaDataProvider.class),
                 get(DependencyFactory.class));

@@ -15,16 +15,15 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.plugins.Convention;
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultRepositoryHandlerFactory implements RepositoryHandlerFactory {
+public class DefaultRepositoryHandlerFactory implements Factory<RepositoryHandler> {
     private final ResolverFactory repositoryFactory;
     private final ClassGenerator classGenerator;
 
@@ -33,10 +32,7 @@ public class DefaultRepositoryHandlerFactory implements RepositoryHandlerFactory
         this.classGenerator = classGenerator;
     }
 
-    public DefaultRepositoryHandler createRepositoryHandler(Convention convention) {
-        DefaultRepositoryHandler repositoryHandler = classGenerator.newInstance(DefaultRepositoryHandler.class,
-                repositoryFactory, classGenerator);
-        ((IConventionAware) repositoryHandler).getConventionMapping().setConvention(convention);
-        return repositoryHandler;
+    public DefaultRepositoryHandler create() {
+        return classGenerator.newInstance(DefaultRepositoryHandler.class, repositoryFactory, classGenerator);
     }
 }

@@ -20,10 +20,7 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.util.UncheckedException;
 
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.lang.reflect.ParameterizedType;
-import java.lang.reflect.Type;
+import java.lang.reflect.*;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -41,7 +38,8 @@ import java.util.List;
  * have a non-void return type. For example, <code>protected SomeService createSomeService() { .... }</code>.</li>
  *
  * <li>Adding a decorator method. A decorator method should have a name that starts with 'decorate', take a single
- * parameter, and a have a non-void return type.
+ * parameter, and a have a non-void return type. The before invoking the method, the parameter is located in the parent
+ * service registry and then passed to the method.</li>
  *
  * </ul>
  *
@@ -315,7 +313,22 @@ public class DefaultServiceRegistry implements ServiceRegistry {
 
         @Override
         protected Object create() {
-            return invoke(method, DefaultServiceRegistry.this, parent.get(method.getParameterTypes()[0]));
+            Object value;
+            if (Factory.class.isAssignableFrom(method.getParameterTypes()[0])) {
+                ParameterizedType fatoryType = (ParameterizedType) method.getGenericParameterTypes()[0];
+                Type typeArg = fatoryType.getActualTypeArguments()[0];
+                Class type;
+                if (typeArg instanceof WildcardType) {
+                    WildcardType wildcardType = (WildcardType) typeArg;
+                    type = (Class) wildcardType.getUpperBounds()[0];
+                } else {
+                    type = (Class) typeArg;
+                }
+                value = parent.getFactory(type);
+            } else {
+                value = parent.get(method.getParameterTypes()[0]);
+            }
+            return invoke(method, DefaultServiceRegistry.this, value);
         }
     }
 

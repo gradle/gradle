@@ -18,16 +18,16 @@ package org.gradle.api.internal.project;
 
 import org.apache.commons.io.FileUtils;
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandler;
-import org.gradle.api.plugins.Convention;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.StringScriptSource;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -63,7 +63,7 @@ public class ProjectFactoryTest {
     private final File projectDir = new File(rootDir, "project");
     private ConfigurationContainerFactory configurationContainerFactory = context.mock(
             ConfigurationContainerFactory.class);
-    private RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
+    private Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private DefaultRepositoryHandler repositoryHandler = context.mock(DefaultRepositoryHandler.class);
     private StartParameter startParameterStub = new StartParameter();
     private ServiceRegistryFactory serviceRegistryFactory = new TopLevelBuildServiceRegistry(new GlobalServicesRegistry(), startParameterStub);
@@ -76,7 +76,7 @@ public class ProjectFactoryTest {
     public void setUp() throws Exception {
         startParameterStub.setGradleUserHomeDir(testDir.createDir("home"));
         context.checking(new Expectations() {{
-            allowing(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));
+            allowing(repositoryHandlerFactory).create();
             will(returnValue(repositoryHandler));
         }});
         final ServiceRegistryFactory gradleServices = serviceRegistryFactory.createFor(gradle);

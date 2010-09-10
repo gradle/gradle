@@ -23,6 +23,7 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.Factory;
 import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.junit.Test;
@@ -42,7 +43,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
 
     private BaseMavenDeployer mavenDeployer = createMavenDeployer();
 
-    private DeployTaskFactory deployTaskFactoryMock = context.mock(DeployTaskFactory.class);
+    private Factory<CustomDeployTask> deployTaskFactoryMock = context.mock(Factory.class);
     private CustomDeployTask deployTaskMock = context.mock(CustomDeployTask.class);
 
     private PlexusContainer plexusContainerMock = context.mock(PlexusContainer.class);
@@ -82,7 +83,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
         context.checking(new Expectations() {{
                 allowing(configurationStub).resolve();
                 will(returnValue(protocolJars));
-                allowing(deployTaskFactoryMock).createDeployTask();
+                allowing(deployTaskFactoryMock).create();
                 will(returnValue(getInstallDeployTask()));
                 allowing(deployTaskMock).getContainer();
                 will(returnValue(plexusContainerMock));

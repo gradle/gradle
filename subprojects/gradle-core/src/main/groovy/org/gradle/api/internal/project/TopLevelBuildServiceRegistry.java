@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -134,7 +134,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                                         get(TaskArtifactStateRepository.class))));
     }
 
-    protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
+    protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {
         return new DefaultRepositoryHandlerFactory(
                 new DefaultResolverFactory(
                         getFactory(LoggingManagerInternal.class)),
@@ -307,7 +307,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {
         return new DefaultScriptHandlerFactory(
-                get(RepositoryHandlerFactory.class),
+                getFactory(RepositoryHandler.class),
                 get(ConfigurationContainerFactory.class),
                 new DependencyMetaDataProviderImpl(), 
                 get(DependencyFactory.class));

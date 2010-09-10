@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.initialization.dsl.ScriptHandler;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -43,6 +42,7 @@ import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -57,13 +57,13 @@ import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class ProjectInternalServiceRegistryTest {
-    private final JUnit4Mockery context = new JUnit4Mockery();
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final ProjectInternal project = context.mock(ProjectInternal.class);
     private final ConfigurationContainer configurationContainer = context.mock(ConfigurationContainer.class);
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ConfigurationContainerFactory configurationContainerFactory = context.mock(
             ConfigurationContainerFactory.class);
-    private final RepositoryHandlerFactory repositoryHandlerFactory = context.mock(RepositoryHandlerFactory.class);
+    private final Factory<RepositoryHandler> repositoryHandlerFactory = context.mock(Factory.class);
     private final ITaskFactory taskFactory = context.mock(ITaskFactory.class);
     private final PublishArtifactFactory publishArtifactFactory = context.mock(PublishArtifactFactory.class);
     private final DependencyFactory dependencyFactory = context.mock(DependencyFactory.class);
@@ -81,7 +81,7 @@ public class ProjectInternalServiceRegistryTest {
             allowing(project).getBuildScriptSource();
             allowing(parent).get(ITaskFactory.class);
             will(returnValue(taskFactory));
-            allowing(parent).get(RepositoryHandlerFactory.class);
+            allowing(parent).getFactory(RepositoryHandler.class);
             will(returnValue(repositoryHandlerFactory));
             allowing(parent).get(ConfigurationContainerFactory.class);
             will(returnValue(configurationContainerFactory));
@@ -127,11 +127,12 @@ public class ProjectInternalServiceRegistryTest {
 
     @Test
     public void providesARepositoryHandler() {
-        final RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
+        final RepositoryHandler repositoryHandler = context.mock(TestRepositoryHandler.class);
 
         context.checking(new Expectations() {{
-            one(repositoryHandlerFactory).createRepositoryHandler(with(any(Convention.class)));
+            one(repositoryHandlerFactory).create();
             will(returnValue(repositoryHandler));
+            ignoring(repositoryHandler);
         }});
 
         assertThat(registry.get(RepositoryHandler.class), sameInstance(repositoryHandler));
@@ -220,14 +221,19 @@ public class ProjectInternalServiceRegistryTest {
 
     private void expectConfigurationHandlerCreated() {
         context.checking(new Expectations() {{
-            RepositoryHandler repositoryHandler = context.mock(RepositoryHandler.class);
+            RepositoryHandler repositoryHandler = context.mock(TestRepositoryHandler.class);
 
-            one(repositoryHandlerFactory).createRepositoryHandler(with(notNullValue(Convention.class)));
+            one(repositoryHandlerFactory).create();
             will(returnValue(repositoryHandler));
+
+            ignoring(repositoryHandler);
 
             one(configurationContainerFactory).createConfigurationContainer(with(sameInstance(repositoryHandler)), with(
                     notNullValue(DependencyMetaDataProvider.class)), with(sameInstance(project)));
             will(returnValue(configurationContainer));
         }});
+    }
+
+    private interface TestRepositoryHandler extends RepositoryHandler, IConventionAware {
     }
 }

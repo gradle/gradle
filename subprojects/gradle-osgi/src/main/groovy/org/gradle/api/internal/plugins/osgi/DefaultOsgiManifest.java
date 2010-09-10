@@ -17,6 +17,7 @@ package org.gradle.api.internal.plugins.osgi;
 
 import aQute.lib.osgi.Analyzer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.osgi.OsgiManifest;
@@ -44,7 +45,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     private File classesDir;
 
-    private AnalyzerFactory analyzerFactory = new DefaultAnalyzerFactory();
+    private Factory<ContainedVersionAnalyzer> analyzerFactory = new DefaultAnalyzerFactory();
 
     private Map<String, List<String>> instructions = new HashMap<String, List<String>>();
 
@@ -56,7 +57,7 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
 
     @Override
     public DefaultManifest getEffectiveManifest() {
-        ContainedVersionAnalyzer analyzer = analyzerFactory.createAnalyzer();
+        ContainedVersionAnalyzer analyzer = analyzerFactory.create();
         DefaultManifest effectiveManifest = new DefaultManifest(null);
         try {
             setAnalyzerProperties(analyzer);
@@ -196,11 +197,11 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
         this.classpath = classpath;
     }
 
-    public AnalyzerFactory getAnalyzerFactory() {
+    public Factory<ContainedVersionAnalyzer> getAnalyzerFactory() {
         return analyzerFactory;
     }
 
-    public void setAnalyzerFactory(AnalyzerFactory analyzerFactory) {
+    public void setAnalyzerFactory(Factory<ContainedVersionAnalyzer> analyzerFactory) {
         this.analyzerFactory = analyzerFactory;
     }
 }
