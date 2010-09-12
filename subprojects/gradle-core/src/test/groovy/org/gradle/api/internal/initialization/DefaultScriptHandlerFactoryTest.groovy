@@ -15,18 +15,18 @@
  */
 package org.gradle.api.internal.initialization
 
-import spock.lang.Specification
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory
+import org.gradle.api.artifacts.ConfigurationContainer
+import org.gradle.api.artifacts.dsl.RepositoryHandler
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory
 import org.gradle.groovy.scripts.ScriptSource
-import org.gradle.api.artifacts.dsl.RepositoryHandler
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.util.ObservableUrlClassLoader
+import spock.lang.Specification
+import org.gradle.api.internal.Factory
 
 class DefaultScriptHandlerFactoryTest extends Specification {
-    private final RepositoryHandlerFactory repositoryHandlerFactory = Mock()
+    private final Factory<RepositoryHandler> repositoryHandlerFactory = Mock()
     private final ConfigurationContainerFactory configurationContainerFactory = Mock()
     private final DependencyMetaDataProvider metaDataProvider = Mock()
     private final DependencyFactory dependencyFactory = Mock()
@@ -77,7 +77,7 @@ class DefaultScriptHandlerFactoryTest extends Specification {
     }
 
     private def expectConfigContainerCreated() {
-        _ * repositoryHandlerFactory.createRepositoryHandler(_) >> repositoryHandler
+        _ * repositoryHandlerFactory.create() >> repositoryHandler
         _ * configurationContainerFactory.createConfigurationContainer(repositoryHandler, metaDataProvider, _) >> configurationContainer
     }
 

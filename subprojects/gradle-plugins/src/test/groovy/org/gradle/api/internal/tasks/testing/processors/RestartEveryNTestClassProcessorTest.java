@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.tasks.testing.processors;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
-import org.gradle.api.internal.tasks.testing.TestClassProcessorFactory;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -29,7 +29,7 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class RestartEveryNTestClassProcessorTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final TestClassProcessorFactory factory = context.mock(TestClassProcessorFactory.class);
+    private final Factory<TestClassProcessor> factory = context.mock(Factory.class);
     private final TestClassProcessor delegate = context.mock(TestClassProcessor.class);
     private final TestClassRunInfo test1 = context.mock(TestClassRunInfo.class, "test1");
     private final TestClassRunInfo test2 = context.mock(TestClassRunInfo.class, "test2");

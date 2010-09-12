@@ -21,14 +21,13 @@ import org.gradle.api.UnknownProjectException;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.ProjectFinder;
-import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.util.ObservableUrlClassLoader;
 
@@ -38,7 +37,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
-    private final RepositoryHandlerFactory repositoryHandlerFactory;
+    private final Factory<? extends RepositoryHandler> repositoryHandlerFactory;
     private final ConfigurationContainerFactory configurationContainerFactory;
     private final DependencyMetaDataProvider dependencyMetaDataProvider;
     private final DependencyFactory dependencyFactory;
@@ -49,7 +48,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         }
     };
 
-    public DefaultScriptHandlerFactory(RepositoryHandlerFactory repositoryHandlerFactory,
+    public DefaultScriptHandlerFactory(Factory<? extends RepositoryHandler> repositoryHandlerFactory,
                                        ConfigurationContainerFactory configurationContainerFactory,
                                        DependencyMetaDataProvider dependencyMetaDataProvider,
                                        DependencyFactory dependencyFactory) {
@@ -65,7 +64,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
 
     public ScriptHandlerInternal create(ScriptSource scriptSource, ClassLoader parentClassLoader,
                                         DomainObjectContext context) {
-        RepositoryHandler repositoryHandler = repositoryHandlerFactory.createRepositoryHandler(new DefaultConvention());
+        RepositoryHandler repositoryHandler = repositoryHandlerFactory.create();
         ConfigurationContainer configurationContainer = configurationContainerFactory.createConfigurationContainer(
                 repositoryHandler, dependencyMetaDataProvider, context);
         DependencyHandler dependencyHandler = new DefaultDependencyHandler(configurationContainer, dependencyFactory,

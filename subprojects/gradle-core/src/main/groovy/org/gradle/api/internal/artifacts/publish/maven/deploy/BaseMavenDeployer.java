@@ -24,6 +24,7 @@ import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.maven.MavenDeployer;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 import java.io.File;
@@ -39,7 +40,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
 
     private RemoteRepository remoteSnapshotRepository;
 
-    private DeployTaskFactory deployTaskFactory = new DefaultDeployTaskFactory();
+    private Factory<CustomDeployTask> deployTaskFactory = new DefaultDeployTaskFactory();
 
     private Configuration configuration;
 
@@ -53,7 +54,7 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {
-        CustomDeployTask deployTask = deployTaskFactory.createDeployTask();
+        CustomDeployTask deployTask = deployTaskFactory.create();
         deployTask.setProject(project);
         deployTask.setUniqueVersion(isUniqueVersion());
         addProtocolProvider(deployTask);
@@ -97,11 +98,11 @@ public class BaseMavenDeployer extends AbstractMavenResolver implements MavenDep
         this.remoteSnapshotRepository = remoteSnapshotRepository;
     }
 
-    public DeployTaskFactory getDeployTaskFactory() {
+    public Factory<CustomDeployTask> getDeployTaskFactory() {
         return deployTaskFactory;
     }
 
-    public void setDeployTaskFactory(DeployTaskFactory deployTaskFactory) {
+    public void setDeployTaskFactory(Factory<CustomDeployTask> deployTaskFactory) {
         this.deployTaskFactory = deployTaskFactory;
     }
 

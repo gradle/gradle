@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import org.gradle.api.internal.ClassPathRegistry;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.messaging.remote.MessagingServer;
@@ -36,7 +37,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.concurrent.Callable;
 
-public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
+public class DefaultWorkerProcessFactory implements Factory<WorkerProcessBuilder> {
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultWorkerProcessFactory.class);
     private final LogLevel workerLogLevel;
     private final MessagingServer server;
@@ -54,7 +55,7 @@ public class DefaultWorkerProcessFactory implements WorkerProcessFactory {
         this.idGenerator = idGenerator;
     }
 
-    public WorkerProcessBuilder newProcess() {
+    public WorkerProcessBuilder create() {
         return new DefaultWorkerProcessBuilder();
     }
 

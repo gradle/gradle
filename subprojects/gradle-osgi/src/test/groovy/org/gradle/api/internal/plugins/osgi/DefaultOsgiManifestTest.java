@@ -17,6 +17,7 @@ package org.gradle.api.internal.plugins.osgi;
 
 import aQute.lib.osgi.Analyzer;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.util.GUtil;
@@ -42,7 +43,7 @@ import static org.junit.Assert.*;
 @RunWith(JMock.class)
 public class DefaultOsgiManifestTest {
     private DefaultOsgiManifest osgiManifest;
-    private AnalyzerFactory analyzerFactoryMock;
+    private Factory<ContainedVersionAnalyzer> analyzerFactoryMock;
     private ContainedVersionAnalyzer analyzerMock;
 
     private JUnit4Mockery context = new JUnit4Mockery() {{
@@ -53,10 +54,10 @@ public class DefaultOsgiManifestTest {
     @Before
     public void setUp() {
         osgiManifest = new DefaultOsgiManifest(fileResolver);
-        analyzerFactoryMock = context.mock(AnalyzerFactory.class);
+        analyzerFactoryMock = context.mock(Factory.class);
         analyzerMock = context.mock(ContainedVersionAnalyzer.class);
         context.checking(new Expectations() {{
-            allowing(analyzerFactoryMock).createAnalyzer();
+            allowing(analyzerFactoryMock).create();
             will(returnValue(analyzerMock));
         }});
         osgiManifest.setAnalyzerFactory(analyzerFactoryMock);

@@ -16,12 +16,13 @@
 package org.gradle.logging.internal
 
 import org.fusesource.jansi.Ansi
+import org.fusesource.jansi.Ansi.Color
+import org.gradle.logging.StyledTextOutput
+import org.gradle.logging.StyledTextOutput.Style
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.logging.StyledTextOutput
-import org.fusesource.jansi.Ansi.Color
 
 @RunWith(JMock.class)
 class AnsiConsoleTest {
@@ -30,7 +31,7 @@ class AnsiConsoleTest {
     private final Ansi ansi = context.mock(Ansi.class)
     private final Appendable target = {} as Appendable
     private final Flushable flushable = {} as Flushable
-    private final ColorMap colorMap = {style -> style == StyledTextOutput.Style.Header ? Color.YELLOW : Color.DEFAULT} as ColorMap
+    private final TestColorMap colorMap = new TestColorMap()
     private final AnsiConsole console = new AnsiConsole(target, flushable, colorMap) {
         def Ansi createAnsi() {
             return ansi
@@ -164,7 +165,7 @@ class AnsiConsoleTest {
 
         statusBar.text = 'tex'
     }
-    
+
     @Test
     public void redrawsStatusBarWhenTextSetToEmpty() {
         def statusBar = console.getStatusBar()
@@ -181,6 +182,21 @@ class AnsiConsoleTest {
         }
 
         statusBar.text = ''
+    }
+
+    @Test
+    public void drawsStatusBarWhenTextHasSomeAttribute() {
+        colorMap.statusBarOn = Ansi.Attribute.INTENSITY_BOLD
+        colorMap.statusBarOff = Ansi.Attribute.INTENSITY_BOLD_OFF
+        def statusBar = console.getStatusBar()
+
+        context.checking {
+            one(ansi).a(Ansi.Attribute.INTENSITY_BOLD)
+            one(ansi).a('text')
+            one(ansi).a(Ansi.Attribute.INTENSITY_BOLD_OFF)
+        }
+
+        statusBar.text = 'text'
     }
 
     @Test
@@ -302,5 +318,14 @@ class AnsiConsoleTest {
 
         console.mainArea.append("message2${EOL}")
     }
+
 }
 
+class TestColorMap implements ColorMap {
+    def Ansi.Attribute statusBarOn = Ansi.Attribute.RESET
+    def Ansi.Attribute statusBarOff = Ansi.Attribute.RESET
+
+    Color getColourFor(Style style) {
+        style == StyledTextOutput.Style.Header ? Color.YELLOW : Color.DEFAULT
+    }
+}

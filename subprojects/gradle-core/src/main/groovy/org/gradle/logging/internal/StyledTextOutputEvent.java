@@ -18,7 +18,9 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 
+import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -28,19 +30,27 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     private final List<Span> spans;
 
     public StyledTextOutputEvent(long timestamp, String category, String text) {
-        this(Normal, timestamp, category, text);
+        this(timestamp, category, Normal, text);
     }
 
     public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, String text) {
-        this(timestamp, category, logLevel, Collections.singletonList(new Span(Normal, text)));
+        this(timestamp, category, logLevel, Normal, text);
     }
 
-    public StyledTextOutputEvent(StyledTextOutput.Style style, long timestamp, String category, String text) {
-        this(timestamp, category, null, Collections.singletonList(new Span(style, text)));
+    public StyledTextOutputEvent(long timestamp, String category, StyledTextOutput.Style style, String text) {
+        this(timestamp, category, null, style, text);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, StyledTextOutput.Style style, String text) {
+        this(timestamp, category, logLevel, Collections.singletonList(new Span(style, text)));
     }
 
     public StyledTextOutputEvent(long timestamp, String category, List<Span> spans) {
         this(timestamp, category, null, spans);
+    }
+
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, Span... spans) {
+        this(timestamp, category, logLevel, Arrays.asList(spans));
     }
 
     private StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
@@ -77,12 +87,17 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         }
     }
 
-    public static class Span {
+    public static class Span implements Serializable {
         private final String text;
         private final StyledTextOutput.Style style;
 
         public Span(StyledTextOutput.Style style, String text) {
             this.style = style;
+            this.text = text;
+        }
+
+        public Span(String text) {
+            this.style = Normal;
             this.text = text;
         }
     }

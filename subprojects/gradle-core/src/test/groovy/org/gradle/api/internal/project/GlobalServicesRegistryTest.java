@@ -62,7 +62,7 @@ public class GlobalServicesRegistryTest {
 
     @Test
     public void providesALoggingManagerFactory() {
-        assertThat(registry.get(LoggingManagerFactory.class), instanceOf(DefaultLoggingManagerFactory.class));
+        assertThat(registry.getFactory(LoggingManagerInternal.class), instanceOf(DefaultLoggingManagerFactory.class));
     }
     
     @Test

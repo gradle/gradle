@@ -25,7 +25,6 @@ import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.dsl.ArtifactHandler;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.file.CopySpec;
@@ -38,7 +37,10 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.logging.*;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
+import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.tasks.Directory;
@@ -60,8 +62,9 @@ import java.io.File;
 import java.net.URI;
 import java.util.*;
 
-import static java.util.Collections.*;
-import static org.gradle.util.GUtil.*;
+import static java.util.Collections.singletonMap;
+import static org.gradle.util.GUtil.addMaps;
+import static org.gradle.util.GUtil.isTrue;
 
 /**
  * @author Hans Dockter
@@ -101,7 +104,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private FileResolver fileResolver;
     private FileOperations fileOperations;
 
-    private AntBuilderFactory antBuilderFactory;
+    private Factory<? extends AntBuilder> antBuilderFactory;
 
     private AntBuilder ant;
 
@@ -123,7 +126,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private ArtifactHandler artifactHandler;
 
-    private RepositoryHandlerFactory repositoryHandlerFactory;
+    private Factory<? extends RepositoryHandler> repositoryHandlerFactory;
 
     private RepositoryHandler repositoryHandler;
 
@@ -163,9 +166,9 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         services = serviceRegistryFactory.createFor(this);
         fileResolver = services.get(FileResolver.class);
         fileOperations = services.get(FileOperations.class);
-        antBuilderFactory = services.get(AntBuilderFactory.class);
+        antBuilderFactory = services.getFactory(AntBuilder.class);
         taskContainer = services.get(TaskContainerInternal.class);
-        repositoryHandlerFactory = services.get(RepositoryHandlerFactory.class);
+        repositoryHandlerFactory = services.getFactory(RepositoryHandler.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
         repositoryHandler = services.get(RepositoryHandler.class);
         configurationContainer = services.get(ConfigurationContainer.class);
@@ -188,9 +191,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public RepositoryHandler createRepositoryHandler() {
-        RepositoryHandler handler = repositoryHandlerFactory.createRepositoryHandler(getConvention());
-        ((IConventionAware) handler).setConventionMapping(((IConventionAware) repositoryHandler).getConventionMapping());
-        return handler;
+        return repositoryHandlerFactory.create();
     }
 
     public Project getRootProject() {
@@ -346,7 +347,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return repositoryHandler;
     }
 
-    public RepositoryHandlerFactory getRepositoryHandlerFactory() {
+    public Factory<? extends RepositoryHandler> getRepositoryHandlerFactory() {
         return repositoryHandlerFactory;
     }
 
@@ -477,7 +478,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public AntBuilder createAntBuilder() {
-        return antBuilderFactory.createAntBuilder();
+        return antBuilderFactory.create();
     }
 
     /**
@@ -742,11 +743,11 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         this.taskContainer = taskContainer;
     }
 
-    public AntBuilderFactory getAntBuilderFactory() {
+    public Factory<? extends AntBuilder> getAntBuilderFactory() {
         return antBuilderFactory;
     }
 
-    public void setAntBuilderFactory(AntBuilderFactory antBuilderFactory) {
+    public void setAntBuilderFactory(Factory<? extends AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory;
     }
 

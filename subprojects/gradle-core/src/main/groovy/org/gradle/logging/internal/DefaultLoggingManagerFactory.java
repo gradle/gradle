@@ -16,10 +16,10 @@
 
 package org.gradle.logging.internal;
 
-import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.api.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
-public class DefaultLoggingManagerFactory implements LoggingManagerFactory {
+public class DefaultLoggingManagerFactory implements Factory<LoggingManagerInternal> {
     private final LoggingSystem slfLoggingSystem;
     private final LoggingSystem stdOutLoggingSystem;
     private final LoggingSystem stdErrLoggingSystem;

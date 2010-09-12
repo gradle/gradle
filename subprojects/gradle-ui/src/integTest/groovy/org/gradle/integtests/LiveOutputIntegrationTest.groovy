@@ -125,6 +125,8 @@ that's likely to change over time. This version executes the command via GradleR
   */
    private void verifyLiveOutputObtained( TestExecutionInteraction executionInteraction )
    {
+      executionInteraction.assertCompleted()
+
       //Make sure we were successful. If we weren't successful, that probably indicates a different problem and the test itself may be invalid.
       Assert.assertTrue( String.format("Verifying execution was successful failed:%n%s", executionInteraction.finalMessage), executionInteraction.wasSuccessful )
 
@@ -142,57 +144,69 @@ that's likely to change over time. This version executes the command via GradleR
 }
 
 //this class just holds onto our liveOutput and also tracks whether or not we've finished.
-public class TestExecutionInteraction implements ExecuteGradleCommandServerProtocol.ExecutionInteraction
-{
-   public StringBuilder liveOutput = new StringBuilder();
-   public boolean executionFinishedReported = false;
-   public boolean wasSuccessful = false;
-   public String finalMessage;
-   private Throwable failure
-   private final Lock lock = new ReentrantLock()
-   private final Condition condition = lock.newCondition()
+public class TestExecutionInteraction implements ExecuteGradleCommandServerProtocol.ExecutionInteraction {
+    private StringBuilder liveOutput = new StringBuilder();
+    public boolean executionFinishedReported = false;
+    public boolean wasSuccessful = false;
+    public String finalMessage;
+    private Throwable failure
+    private final Lock lock = new ReentrantLock()
+    private final Condition condition = lock.newCondition()
 
-   public void reportLiveOutput(String message)
-   {
-      liveOutput.append( message );
-   }
+    public void reportLiveOutput(String message) {
+        liveOutput.append(message);
+    }
 
-   //when we finish executing, we'll make sure we got some type of live output from gradle.
-   public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
-       lock.lock()
-       try {
-           executionFinishedReported = true
-           this.wasSuccessful = wasSuccessful
-           this.finalMessage = message
-           failure = throwable
-           condition.signalAll()
-       } finally {
-           lock.unlock()
-       }
-   }
+    //when we finish executing, we'll make sure we got some type of live output from gradle.
 
-   public waitForCompletion(int maxWaitValue, TimeUnit maxWaitUnits) {
-       Date expiry = new Date(System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue))
-       lock.lock()
-       try {
-           while (!executionFinishedReported) {
-               if (!condition.awaitUntil(expiry)) {
-                   throw new AssertionError("Timeout waiting for execution to complete.")
-               }
-           }
-           if (failure != null) {
-               throw failure
-           }
-       } finally {
-           lock.unlock()
-       }
-   }
+    public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
+        lock.lock()
+        try {
+            executionFinishedReported = true
+            this.wasSuccessful = wasSuccessful
+            this.finalMessage = message
+            failure = throwable
+            condition.signalAll()
+        } finally {
+            lock.unlock()
+        }
+    }
 
-   public void reportExecutionStarted() { }
-   public void reportNumberOfTasksToExecute(int size) { }
-   public void reportTaskStarted(String message, float percentComplete) { }
-   public void reportTaskComplete(String message, float percentComplete) { }
+    def assertCompleted() {
+        lock.lock()
+        try {
+            if (!executionFinishedReported) {
+                throw new AssertionError("Request has not completed.")
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
 
+    public waitForCompletion(int maxWaitValue, TimeUnit maxWaitUnits) {
+        Date expiry = new Date(System.currentTimeMillis() + maxWaitUnits.toMillis(maxWaitValue))
+        lock.lock()
+        try {
+            while (!executionFinishedReported) {
+                if (!condition.awaitUntil(expiry)) {
+                    throw new AssertionError("Timeout waiting for execution to complete.")
+                }
+            }
+            if (failure != null) {
+                throw failure
+            }
+        } finally {
+            lock.unlock()
+        }
+    }
+
+    public void reportExecutionStarted() { }
+
+    public void reportNumberOfTasksToExecute(int size) { }
+
+    public void reportTaskStarted(String message, float percentComplete) { }
+
+    public void reportTaskComplete(String message, float percentComplete) { }
 
 
 }

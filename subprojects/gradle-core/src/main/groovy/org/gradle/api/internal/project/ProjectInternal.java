@@ -25,9 +25,9 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.file.FileOperations;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.logging.StandardOutputCapture;
 import org.gradle.groovy.scripts.ScriptAware;
 import org.gradle.groovy.scripts.ScriptSource;
+import org.gradle.logging.StandardOutputCapture;
 
 public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, DomainObjectContext {
     ProjectInternal getParent();

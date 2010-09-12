@@ -45,7 +45,7 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
  */
 public abstract class GradleLauncher {
 
-    private static GradleLauncherFactory factory = new DefaultGradleLauncherFactory();
+    private static GradleLauncherFactory factory;
 
     /**
      * <p>Executes the build for this GradleLauncher instance and returns the result. Note that when the build fails,
@@ -79,7 +79,14 @@ public abstract class GradleLauncher {
      * @return The GradleLauncher. Never returns null.
      */
     public static GradleLauncher newInstance(final StartParameter startParameter) {
-        return factory.newInstance(startParameter);
+        return getFactory().newInstance(startParameter);
+    }
+
+    private static synchronized GradleLauncherFactory getFactory() {
+        if (factory == null) {
+            factory = new DefaultGradleLauncherFactory();
+        }
+        return factory;
     }
 
     /**
@@ -91,7 +98,7 @@ public abstract class GradleLauncher {
      * @return The GradleLauncher. Never returns null.
      */
     public static GradleLauncher newInstance(final String... commandLineArgs) {
-        return factory.newInstance(commandLineArgs);
+        return getFactory().newInstance(commandLineArgs);
     }
 
     /**
@@ -102,11 +109,11 @@ public abstract class GradleLauncher {
      * @return The GradleLauncher. Never returns null.
      */
     public static StartParameter createStartParameter(final String... commandLineArgs) {
-        return factory.createStartParameter(commandLineArgs);
+        return getFactory().createStartParameter(commandLineArgs);
     }
 
-    public static void injectCustomFactory(GradleLauncherFactory gradleLauncherFactory) {
-        factory = gradleLauncherFactory == null ? new DefaultGradleLauncherFactory() : gradleLauncherFactory;
+    public static synchronized void injectCustomFactory(GradleLauncherFactory gradleLauncherFactory) {
+        factory = gradleLauncherFactory;
     }
 
     /**
