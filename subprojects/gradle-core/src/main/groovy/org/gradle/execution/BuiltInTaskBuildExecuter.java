@@ -45,7 +45,7 @@ public abstract class BuiltInTaskBuildExecuter<T extends AbstractReportTask> imp
 
     public void select(GradleInternal gradle) {
         this.gradle = gradle;
-        ITaskFactory taskFactory = gradle.getServiceRegistryFactory().get(ITaskFactory.class);
+        ITaskFactory taskFactory = gradle.getServices().get(ITaskFactory.class);
         Map<String, Object> args = new HashMap<String, Object>();
         args.put(Task.TASK_NAME, "report");
         args.put(Task.TASK_TYPE, getTaskType());

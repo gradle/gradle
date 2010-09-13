@@ -27,6 +27,7 @@ import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
+import org.gradle.api.internal.artifacts.dsl.SharedConventionRepositoryHandlerFactory;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DefaultDependencyHandler;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactory;
 import org.gradle.api.internal.file.*;
@@ -36,11 +37,11 @@ import org.gradle.api.internal.plugins.DefaultConvention;
 import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.tasks.DefaultTaskContainer;
+import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
-import org.gradle.api.tasks.TaskContainer;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -109,9 +110,8 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void providesATaskContainer() {
-        assertThat(registry.get(TaskContainer.class), instanceOf(DefaultTaskContainer.class));
-        assertThat(registry.get(TaskContainer.class), sameInstance(registry.get(TaskContainer.class)));
+    public void providesATaskContainerFactory() {
+        assertThat(registry.getFactory(TaskContainerInternal.class), instanceOf(DefaultTaskContainerFactory.class));
     }
 
     @Test
@@ -126,17 +126,8 @@ public class ProjectInternalServiceRegistryTest {
     }
 
     @Test
-    public void providesARepositoryHandler() {
-        final RepositoryHandler repositoryHandler = context.mock(TestRepositoryHandler.class);
-
-        context.checking(new Expectations() {{
-            one(repositoryHandlerFactory).create();
-            will(returnValue(repositoryHandler));
-            ignoring(repositoryHandler);
-        }});
-
-        assertThat(registry.get(RepositoryHandler.class), sameInstance(repositoryHandler));
-        assertThat(registry.get(RepositoryHandler.class), sameInstance(registry.get(RepositoryHandler.class)));
+    public void providesARepositoryHandlerFactory() {
+        assertThat(registry.getFactory(RepositoryHandler.class), instanceOf(SharedConventionRepositoryHandlerFactory.class));
     }
 
     @Test
@@ -179,6 +170,10 @@ public class ProjectInternalServiceRegistryTest {
 
     @Test
     public void providesAFileOperationsInstance() {
+        context.checking(new Expectations(){{
+            one(project).getTasks();
+        }});
+
         assertThat(registry.get(FileOperations.class), instanceOf(DefaultFileOperations.class));
         assertThat(registry.get(FileOperations.class), sameInstance(registry.get(FileOperations.class)));
     }
@@ -223,7 +218,10 @@ public class ProjectInternalServiceRegistryTest {
         context.checking(new Expectations() {{
             RepositoryHandler repositoryHandler = context.mock(TestRepositoryHandler.class);
 
-            one(repositoryHandlerFactory).create();
+            allowing(project).getRepositories();
+            will(returnValue(repositoryHandler));
+
+            allowing(repositoryHandlerFactory).create();
             will(returnValue(repositoryHandler));
 
             ignoring(repositoryHandler);

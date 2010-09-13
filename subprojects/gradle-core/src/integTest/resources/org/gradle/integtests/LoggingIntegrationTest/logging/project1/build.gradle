@@ -11,7 +11,7 @@ logger.trace('A trace log message.')
 println 'A message which is logged at QUIET level'
 
 // Should use stdout capture level
-def textOutput = serviceRegistryFactory.get(StyledTextOutputFactory.class).create('build')
+def textOutput = services.get(StyledTextOutputFactory.class).create('build')
 textOutput.text('Text which is logged at QUIET level').println()
 
 logging.captureStandardOutput LogLevel.INFO

@@ -36,6 +36,8 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     TaskContainerInternal getTasks();
 
+    TaskContainerInternal getImplicitTasks();
+
     ScriptSource getBuildScriptSource();
 
     void addChildProject(ProjectInternal childProject);
@@ -50,7 +52,7 @@ public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware
 
     FileResolver getFileResolver();
 
-    ServiceRegistryFactory getServiceRegistryFactory();
+    ServiceRegistryFactory getServices();
 
     Module getModule();
 

@@ -118,6 +118,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private TaskContainerInternal taskContainer;
 
+    private TaskContainerInternal implicitTasksContainer;
+
     private IProjectRegistry<ProjectInternal> projectRegistry;
 
     private DependencyHandler dependencyHandler;
@@ -165,12 +167,13 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
         services = serviceRegistryFactory.createFor(this);
         fileResolver = services.get(FileResolver.class);
-        fileOperations = services.get(FileOperations.class);
         antBuilderFactory = services.getFactory(AntBuilder.class);
-        taskContainer = services.get(TaskContainerInternal.class);
+        taskContainer = services.newInstance(TaskContainerInternal.class);
+        implicitTasksContainer = services.newInstance(TaskContainerInternal.class);
+        fileOperations = services.get(FileOperations.class);
         repositoryHandlerFactory = services.getFactory(RepositoryHandler.class);
         projectEvaluator = services.get(ProjectEvaluator.class);
-        repositoryHandler = services.get(RepositoryHandler.class);
+        repositoryHandler = repositoryHandlerFactory.create();
         configurationContainer = services.get(ConfigurationContainer.class);
         pluginContainer = services.get(PluginContainer.class);
         artifactHandler = services.get(ArtifactHandler.class);
@@ -510,6 +513,10 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return taskContainer;
     }
 
+    public TaskContainerInternal getImplicitTasks() {
+        return implicitTasksContainer;
+    }
+
     public void defaultTasks(String... defaultTasks) {
         if (defaultTasks == null) {
             throw new InvalidUserDataException("Default tasks must not be null!");
@@ -833,12 +840,12 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return fileOperations.exec(closure);
     }
 
-    public ServiceRegistryFactory getServiceRegistryFactory() {
+    public ServiceRegistryFactory getServices() {
         return services;
     }
 
     public Module getModule() {
-        return getServiceRegistryFactory().get(DependencyMetaDataProvider.class).getModule();
+        return getServices().get(DependencyMetaDataProvider.class).getModule();
     }
 
     public void apply(Closure closure) {

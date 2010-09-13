@@ -178,9 +178,6 @@ public class DefaultServiceRegistry implements ServiceRegistry {
             method.setAccessible(true);
             return method.invoke(target, args);
         } catch (InvocationTargetException e) {
-            if (e.getCause() instanceof RuntimeException) {
-                throw (RuntimeException) e.getCause();
-            }
             throw UncheckedException.asUncheckedException(e.getCause());
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
