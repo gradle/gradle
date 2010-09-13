@@ -17,14 +17,18 @@
 package org.gradle.api.internal.tasks.testing.detection;
 
 import org.gradle.api.file.FileTree;
-import org.gradle.api.internal.tasks.testing.*;
+import org.gradle.api.internal.Factory;
+import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.TestFramework;
+import org.gradle.api.internal.tasks.testing.TestResultProcessor;
+import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
 import org.gradle.api.internal.tasks.testing.processors.MaxNParallelTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.RestartEveryNTestClassProcessor;
 import org.gradle.api.internal.tasks.testing.processors.TestMainAction;
 import org.gradle.api.internal.tasks.testing.worker.ForkingTestClassProcessor;
 import org.gradle.api.tasks.testing.Test;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.TrueTimeProvider;
 
 /**
@@ -33,10 +37,10 @@ import org.gradle.util.TrueTimeProvider;
  * @author Tom Eyckmans
  */
 public class DefaultTestExecuter implements TestExecuter {
-    private final WorkerProcessFactory workerFactory;
+    private final Factory<? extends WorkerProcessBuilder> workerFactory;
     private final ActorFactory actorFactor;
 
-    public DefaultTestExecuter(WorkerProcessFactory workerFactory, ActorFactory actorFactor) {
+    public DefaultTestExecuter(Factory<? extends WorkerProcessBuilder> workerFactory, ActorFactory actorFactor) {
         this.workerFactory = workerFactory;
         this.actorFactor = actorFactor;
     }
@@ -44,13 +48,13 @@ public class DefaultTestExecuter implements TestExecuter {
     public void execute(final Test testTask, TestResultProcessor testResultProcessor) {
         final TestFramework testFramework = testTask.getTestFramework();
         final WorkerTestClassProcessorFactory testInstanceFactory = testFramework.getProcessorFactory();
-        final TestClassProcessorFactory forkingProcessorFactory = new TestClassProcessorFactory() {
+        final Factory<TestClassProcessor> forkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new ForkingTestClassProcessor(workerFactory, testInstanceFactory, testTask,
                         testTask.getClasspath(), testFramework.getWorkerConfigurationAction());
             }
         };
-        TestClassProcessorFactory reforkingProcessorFactory = new TestClassProcessorFactory() {
+        Factory<TestClassProcessor> reforkingProcessorFactory = new Factory<TestClassProcessor>() {
             public TestClassProcessor create() {
                 return new RestartEveryNTestClassProcessor(forkingProcessorFactory, testTask.getForkEvery());
             }

@@ -18,7 +18,6 @@ package org.gradle.process.internal.child;
 
 import org.gradle.api.Action;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.*;
@@ -81,7 +80,7 @@ public class ImplementationClassLoaderWorker implements Action<WorkerContext>, S
     }
 
     LoggingManagerInternal createLoggingManager() {
-        return new LoggingServiceRegistry().get(LoggingManagerFactory.class).create();
+        return new LoggingServiceRegistry().newInstance(LoggingManagerInternal.class);
     }
 
     ObservableUrlClassLoader createImplementationClassLoader(ClassLoader system, ClassLoader application) {

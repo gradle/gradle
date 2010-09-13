@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.worker;
 
 import org.gradle.api.Action;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.tasks.testing.TestClassRunInfo;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.WorkerTestClassProcessorFactory;
@@ -25,7 +26,6 @@ import org.gradle.process.JavaForkOptions;
 import org.gradle.process.internal.JavaExecHandleBuilder;
 import org.gradle.process.internal.WorkerProcess;
 import org.gradle.process.internal.WorkerProcessBuilder;
-import org.gradle.process.internal.WorkerProcessFactory;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -36,8 +36,8 @@ import org.junit.runner.RunWith;
 import java.io.File;
 import java.util.List;
 
-import static java.util.Arrays.*;
-import static org.hamcrest.Matchers.*;
+import static java.util.Arrays.asList;
+import static org.hamcrest.Matchers.notNullValue;
 
 @RunWith(JMock.class)
 public class ForkingTestClassProcessorTest {
@@ -45,7 +45,7 @@ public class ForkingTestClassProcessorTest {
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final WorkerTestClassProcessorFactory processorFactory = context.mock(WorkerTestClassProcessorFactory.class);
-    private final WorkerProcessFactory workerFactory = context.mock(WorkerProcessFactory.class);
+    private final Factory<WorkerProcessBuilder> workerFactory = context.mock(Factory.class);
     private final WorkerProcess workerProcess = context.mock(WorkerProcess.class);
     private final RemoteTestClassProcessor worker = context.mock(RemoteTestClassProcessor.class);
     private final TestClassRunInfo test1 = context.mock(TestClassRunInfo.class, "test1");
@@ -106,7 +106,7 @@ public class ForkingTestClassProcessorTest {
             ObjectConnection connection = context.mock(ObjectConnection.class);
             JavaExecHandleBuilder javaCommandBuilder = context.mock(JavaExecHandleBuilder.class);
 
-            one(workerFactory).newProcess();
+            one(workerFactory).create();
             will(returnValue(builder));
 
             one(builder).worker(with(notNullValue(TestWorker.class)));

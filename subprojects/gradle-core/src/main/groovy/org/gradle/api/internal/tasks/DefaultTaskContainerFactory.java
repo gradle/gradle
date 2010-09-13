@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,26 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.dsl;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.artifacts.dsl.RepositoryHandler;
+import org.gradle.api.Project;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.Factory;
-import org.gradle.api.internal.artifacts.ivyservice.ResolverFactory;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 
-/**
- * @author Hans Dockter
- */
-public class DefaultRepositoryHandlerFactory implements Factory<RepositoryHandler> {
-    private final ResolverFactory repositoryFactory;
+public class DefaultTaskContainerFactory implements Factory<TaskContainerInternal> {
     private final ClassGenerator classGenerator;
+    private final ITaskFactory taskFactory;
+    private Project project;
 
-    public DefaultRepositoryHandlerFactory(ResolverFactory repositoryFactory, ClassGenerator classGenerator) {
-        this.repositoryFactory = repositoryFactory;
+    public DefaultTaskContainerFactory(ClassGenerator classGenerator, ITaskFactory taskFactory, Project project) {
         this.classGenerator = classGenerator;
+        this.taskFactory = taskFactory;
+        this.project = project;
     }
 
-    public DefaultRepositoryHandler create() {
-        return classGenerator.newInstance(DefaultRepositoryHandler.class, repositoryFactory, classGenerator);
+    public TaskContainerInternal create() {
+        return classGenerator.newInstance(DefaultTaskContainer.class, project, classGenerator, taskFactory);
     }
 }

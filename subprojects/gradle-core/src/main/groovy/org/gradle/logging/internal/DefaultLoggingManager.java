@@ -136,6 +136,14 @@ public class DefaultLoggingManager implements LoggingManagerInternal {
         }
     }
 
+    public void addOutputEventListener(OutputEventListener listener) {
+        loggingOutput.addOutputEventListener(listener);
+    }
+
+    public void removeOutputEventListener(OutputEventListener listener) {
+        loggingOutput.removeOutputEventListener(listener);
+    }
+
     public void colorStdOutAndStdErr(boolean colorOutput) {
         loggingOutput.colorStdOutAndStdErr(colorOutput);
     }

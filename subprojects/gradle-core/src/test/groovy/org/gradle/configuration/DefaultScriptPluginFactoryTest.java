@@ -15,12 +15,12 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.dsl.ClasspathScriptTransformer;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.initialization.ScriptHandlerInternal;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.groovy.scripts.*;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
 import org.jmock.Sequence;
@@ -52,7 +52,7 @@ public class DefaultScriptPluginFactoryTest {
     private final ScriptHandlerInternal scriptHandlerMock = context.mock(ScriptHandlerInternal.class);
     private final ScriptRunner classPathScriptRunnerMock = context.mock(ScriptRunner.class, "classpathScriptRunner");
     private final BasicScript classPathScriptMock = context.mock(BasicScript.class, "classpathScript");
-    private final LoggingManagerFactory loggingManagerFactoryMock = context.mock(LoggingManagerFactory.class);
+    private final Factory<LoggingManagerInternal> loggingManagerFactoryMock = context.mock(Factory.class);
     private final DefaultScriptPluginFactory factory = new DefaultScriptPluginFactory(scriptCompilerFactoryMock, importsReaderMock, scriptHandlerFactoryMock, parentClassLoader, loggingManagerFactoryMock);
 
     @Test

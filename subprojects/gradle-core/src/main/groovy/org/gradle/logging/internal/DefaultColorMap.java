@@ -33,12 +33,24 @@ public class DefaultColorMap implements ColorMap {
         defaults.put(Header, DEFAULT);
         defaults.put(Info, YELLOW);
         defaults.put(Description, YELLOW);
+//        defaults.put(ProgressStatus, YELLOW);
         defaults.put(Identifier, GREEN);
         defaults.put(UserInput, GREEN);
+//        defaults.put(Error, RED);
     }
 
     public void setUseColor(boolean useColor) {
         this.useColor = useColor;
+    }
+
+    public Ansi.Attribute getStatusBarOn() {
+//        return Ansi.Attribute.INTENSITY_BOLD;
+        return Ansi.Attribute.RESET;
+    }
+
+    public Ansi.Attribute getStatusBarOff() {
+//        return Ansi.Attribute.INTENSITY_BOLD_OFF;
+        return Ansi.Attribute.RESET;
     }
 
     public Ansi.Color getColourFor(StyledTextOutput.Style style) {

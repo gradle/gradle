@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.plugins.osgi;
 
+import org.gradle.api.internal.Factory;
+
 /**
  * @author Hans Dockter
  */
-public class DefaultAnalyzerFactory implements AnalyzerFactory {
-    public ContainedVersionAnalyzer createAnalyzer() {
+public class DefaultAnalyzerFactory implements Factory<ContainedVersionAnalyzer> {
+    public ContainedVersionAnalyzer create() {
         return new ContainedVersionAnalyzer();
     }
 }

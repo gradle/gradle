@@ -155,7 +155,7 @@ public class DefaultGradle implements GradleInternal {
         return this;
     }
 
-    public ServiceRegistryFactory getServiceRegistryFactory() {
+    public ServiceRegistryFactory getServices() {
         return services;
     }
 }

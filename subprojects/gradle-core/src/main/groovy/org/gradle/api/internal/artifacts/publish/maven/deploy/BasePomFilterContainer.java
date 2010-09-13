@@ -21,7 +21,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomFactory;
+import org.gradle.api.internal.Factory;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.WrapUtil;
 
@@ -36,9 +36,9 @@ public class BasePomFilterContainer implements PomFilterContainer {
 
     private PomFilter defaultPomFilter;
 
-    private MavenPomFactory mavenPomFactory;
+    private Factory<? extends MavenPom> mavenPomFactory;
 
-    public BasePomFilterContainer(MavenPomFactory mavenPomFactory) {
+    public BasePomFilterContainer(Factory<? extends MavenPom> mavenPomFactory) {
         this.mavenPomFactory = mavenPomFactory;
     }
 
@@ -82,7 +82,7 @@ public class BasePomFilterContainer implements PomFilterContainer {
         if (name == null || publishFilter == null) {
             throw new InvalidUserDataException("Name and Filter must not be null.");
         }
-        MavenPom pom = mavenPomFactory.createMavenPom();
+        MavenPom pom = mavenPomFactory.create();
         pomFilters.put(name, new DefaultPomFilter(name, pom, publishFilter));
         return pom;
     }
@@ -111,13 +111,13 @@ public class BasePomFilterContainer implements PomFilterContainer {
         return activeArtifactPoms;
     }
 
-    public MavenPomFactory getMavenPomFactory() {
+    public Factory<? extends MavenPom> getMavenPomFactory() {
         return mavenPomFactory;
     }
 
     public PomFilter getDefaultPomFilter() {
         if (defaultPomFilter == null) {
-            defaultPomFilter = new DefaultPomFilter(PomFilterContainer.DEFAULT_ARTIFACT_POM_NAME, mavenPomFactory.createMavenPom(),
+            defaultPomFilter = new DefaultPomFilter(PomFilterContainer.DEFAULT_ARTIFACT_POM_NAME, mavenPomFactory.create(),
                 PublishFilter.ALWAYS_ACCEPT);
         }
         return defaultPomFilter;

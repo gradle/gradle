@@ -17,9 +17,10 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.ExceptionAnalyser;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.dsl.DefaultPublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.DefaultRepositoryHandlerFactory;
@@ -36,12 +37,12 @@ import org.gradle.groovy.scripts.ScriptCompilerFactory;
 import org.gradle.initialization.*;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.gradle.util.TemporaryFolder;
@@ -57,7 +58,8 @@ import java.io.File;
 import java.util.Collections;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class TopLevelBuildServiceRegistryTest {
@@ -70,7 +72,7 @@ public class TopLevelBuildServiceRegistryTest {
     private final ClassPathRegistry classPathRegistry = context.mock(ClassPathRegistry.class);
     private final TopLevelBuildServiceRegistry factory = new TopLevelBuildServiceRegistry(parent, startParameter);
     private final ClassLoaderFactory classLoaderFactory = context.mock(ClassLoaderFactory.class);
-    private final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
+    private final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
     private final ProgressLoggerFactory progressLoggerFactory = context.mock(ProgressLoggerFactory.class);
 
     @Before
@@ -83,7 +85,7 @@ public class TopLevelBuildServiceRegistryTest {
             will(returnValue(classPathRegistry));
             allowing(parent).get(ClassLoaderFactory.class);
             will(returnValue(classLoaderFactory));
-            allowing(parent).get(LoggingManagerFactory.class);
+            allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             allowing(parent).get(ProgressLoggerFactory.class);
             will(returnValue(progressLoggerFactory));
@@ -141,9 +143,7 @@ public class TopLevelBuildServiceRegistryTest {
 
     @Test
     public void providesARepositoryHandlerFactory() {
-        assertThat(factory.get(RepositoryHandlerFactory.class), instanceOf(DefaultRepositoryHandlerFactory.class));
-        assertThat(factory.get(RepositoryHandlerFactory.class), sameInstance(factory.get(
-                RepositoryHandlerFactory.class)));
+        assertThat(factory.getFactory(RepositoryHandler.class), instanceOf(DefaultRepositoryHandlerFactory.class));
     }
 
     @Test
@@ -198,8 +198,7 @@ public class TopLevelBuildServiceRegistryTest {
             }));
         }});
 
-        assertThat(factory.get(WorkerProcessFactory.class), instanceOf(DefaultWorkerProcessFactory.class));
-        assertThat(factory.get(WorkerProcessFactory.class), sameInstance(factory.get(WorkerProcessFactory.class)));
+        assertThat(factory.getFactory(WorkerProcessBuilder.class), instanceOf(DefaultWorkerProcessFactory.class));
     }
 
     @Test

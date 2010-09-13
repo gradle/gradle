@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.publish.maven;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.api.internal.file.FileResolver;
@@ -25,7 +26,7 @@ import org.gradle.api.internal.file.FileResolver;
 /**
  * @author Hans Dockter
  */
-public class DefaultMavenPomFactory implements MavenPomFactory {
+public class DefaultMavenPomFactory implements Factory<MavenPom> {
     private ConfigurationContainer configurationContainer;
     private Conf2ScopeMappingContainer conf2ScopeMappingContainer;
     private PomDependenciesConverter pomDependenciesConverter;
@@ -40,7 +41,7 @@ public class DefaultMavenPomFactory implements MavenPomFactory {
         this.fileResolver = fileResolver;
     }
 
-    public MavenPom createMavenPom() {
+    public MavenPom create() {
         return new DefaultMavenPom(configurationContainer,
                 new DefaultConf2ScopeMappingContainer(conf2ScopeMappingContainer.getMappings()), pomDependenciesConverter, fileResolver);
     }

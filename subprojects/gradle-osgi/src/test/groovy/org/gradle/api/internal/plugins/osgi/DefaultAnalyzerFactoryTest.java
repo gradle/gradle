@@ -23,7 +23,7 @@ import org.junit.Test;import static org.junit.Assert.assertNotNull;
 public class DefaultAnalyzerFactoryTest {
     @Test
     public void create() {
-        ContainedVersionAnalyzer analyzer = new DefaultAnalyzerFactory().createAnalyzer();
+        ContainedVersionAnalyzer analyzer = new DefaultAnalyzerFactory().create();
         assertNotNull(analyzer);
     }
 }

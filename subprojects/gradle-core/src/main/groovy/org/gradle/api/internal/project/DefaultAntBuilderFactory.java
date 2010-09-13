@@ -16,12 +16,14 @@
 package org.gradle.api.internal.project;
 
 import org.apache.tools.ant.BuildListener;
+import org.gradle.api.AntBuilder;
 import org.gradle.api.Project;
+import org.gradle.api.internal.Factory;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultAntBuilderFactory implements AntBuilderFactory {
+public class DefaultAntBuilderFactory implements Factory<AntBuilder> {
     private final BuildListener buildListener;
     private final Project project;
 
@@ -30,7 +32,7 @@ public class DefaultAntBuilderFactory implements AntBuilderFactory {
         this.project = project;
     }
 
-    public DefaultAntBuilder createAntBuilder() {
+    public DefaultAntBuilder create() {
         DefaultAntBuilder antBuilder = new DefaultAntBuilder(project);
         antBuilder.getProject().setBaseDir(project.getProjectDir());
         antBuilder.getProject().removeBuildListener((BuildListener) antBuilder.getProject().getBuildListeners().get(0));

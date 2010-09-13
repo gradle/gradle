@@ -34,6 +34,23 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         0 * output._
     }
 
+    def rendersErrorOutputEvent() {
+        StyledTextOutput output = Mock()
+        StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
+        RenderableOutputEvent event = Mock()
+
+        when:
+        renderer.onOutput(event)
+
+        then:
+        1 * event.logLevel >> LogLevel.ERROR
+        1 * event.render(!null) >> { args -> args[0].text('text') }
+        1 * output.style(StyledTextOutput.Style.Error)
+        1 * output.text('text')
+        1 * output.style(StyledTextOutput.Style.Normal)
+        0 * output._
+    }
+
     def rendersException() {
         StyledTextOutput output = Mock()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)

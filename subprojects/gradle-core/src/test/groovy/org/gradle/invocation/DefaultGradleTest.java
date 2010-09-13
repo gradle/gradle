@@ -91,7 +91,7 @@ public class DefaultGradleTest {
     @Test
     public void defaultValues() {
         assertThat(gradle.getParent(), sameInstance(parent));
-        assertThat(gradle.getServiceRegistryFactory(), sameInstance(gradleServiceRegistryMock));
+        assertThat(gradle.getServices(), sameInstance(gradleServiceRegistryMock));
         assertThat(gradle.getProjectRegistry(), sameInstance(projectRegistry));
         assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
     }

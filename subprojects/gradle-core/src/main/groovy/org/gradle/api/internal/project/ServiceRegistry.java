@@ -15,7 +15,39 @@
  */
 package org.gradle.api.internal.project;
 
-public interface ServiceRegistry
-{
+import org.gradle.api.internal.Factory;
+
+/**
+ * A registry of services.
+ */
+public interface ServiceRegistry {
+    /**
+     * Locates the service of the given type. There is a single instance for each service type.
+     *
+     * @param serviceType The service type.
+     * @param <T>         The service type.
+     * @return The service instance. Never returns null.
+     * @throws IllegalArgumentException When there is no service of the given type available.
+     */
     <T> T get(Class<T> serviceType) throws IllegalArgumentException;
+
+    /**
+     * Locates a factory which can create services of the given type.
+     *
+     * @param type The service type that the factory should create.
+     * @param <T>  The service type that the factory should create.
+     * @return The factory. Never returns null.
+     * @throws IllegalArgumentException When there is no factory available for services of the given type.
+     */
+    <T> Factory<? extends T> getFactory(Class<T> type) throws IllegalArgumentException;
+
+    /**
+     * Creates a new service instance of the given type.
+     *
+     * @param type The service type
+     * @param <T>  The service type.
+     * @return The instance. Never returns null.
+     * @throws IllegalArgumentException When there is no factory available for services of the given type.
+     */
+    <T> T newInstance(Class<T> type) throws IllegalArgumentException;
 }

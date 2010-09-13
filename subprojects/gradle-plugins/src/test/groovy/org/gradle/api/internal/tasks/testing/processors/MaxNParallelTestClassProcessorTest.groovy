@@ -16,16 +16,16 @@
 
 package org.gradle.api.internal.tasks.testing.processors
 
-import spock.lang.Specification
-import org.gradle.api.internal.tasks.testing.TestClassProcessorFactory
-import org.gradle.api.internal.tasks.testing.TestResultProcessor
-import org.gradle.api.internal.tasks.testing.TestClassRunInfo
 import org.gradle.api.internal.tasks.testing.TestClassProcessor
-import org.gradle.messaging.actor.ActorFactory
+import org.gradle.api.internal.tasks.testing.TestClassRunInfo
+import org.gradle.api.internal.tasks.testing.TestResultProcessor
 import org.gradle.messaging.actor.Actor
+import org.gradle.messaging.actor.ActorFactory
+import spock.lang.Specification
+import org.gradle.api.internal.Factory
 
 class MaxNParallelTestClassProcessorTest extends Specification {
-    private final TestClassProcessorFactory factory = Mock()
+    private final Factory<TestClassProcessor> factory = Mock()
     private final TestResultProcessor resultProcessor = Mock()
     private final TestResultProcessor asyncResultProcessor = Mock()
     private final Actor resultProcessorActor = Mock()
