@@ -15,10 +15,14 @@
  */
 package org.gradle.execution;
 
+import com.google.common.collect.LinkedHashMultimap;
+import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.util.GUtil;
 import org.gradle.util.NameMatcher;
 
@@ -32,78 +36,76 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     private final List<String> names;
     private String description;
     private TaskGraphExecuter executer;
+    private final TaskNameResolver taskNameResolver;
 
     public TaskNameResolvingBuildExecuter(Collection<String> names) {
+        this(names, new TaskNameResolver());
+    }
+
+    TaskNameResolvingBuildExecuter(Collection<String> names, TaskNameResolver taskNameResolver) {
+        this.taskNameResolver = taskNameResolver;
         this.names = new ArrayList<String>(names);
     }
 
+    public List<String> getNames() {
+        return names;
+    }
+
     public void select(GradleInternal gradle) {
-        Map<String, Collection<Task>> selectedTasks = doSelect(gradle, names);
+        SetMultimap<String, Task> selectedTasks = doSelect(gradle, names, taskNameResolver);
 
         this.executer = gradle.getTaskGraph();
-        for (Collection<Task> tasksForName : selectedTasks.values()) {
-            executer.addTasks(tasksForName);
+        for (String name : selectedTasks.keySet()) {
+            executer.addTasks(selectedTasks.get(name));
         }
-        if (selectedTasks.size() == 1) {
+        if (selectedTasks.keySet().size() == 1) {
             description = String.format("primary task %s", GUtil.toString(selectedTasks.keySet()));
         } else {
             description = String.format("primary tasks %s", GUtil.toString(selectedTasks.keySet()));
         }
     }
 
-    static List<Collection<Task>> select(GradleInternal gradle, Iterable<String> names) {
-        return new ArrayList<Collection<Task>>(doSelect(gradle, names).values());
+    static Set<Task> select(GradleInternal gradle, Iterable<String> names) {
+        return new LinkedHashSet<Task>(doSelect(gradle, names, new TaskNameResolver()).values());
     }
 
-    private static Map<String, Collection<Task>> doSelect(GradleInternal gradle, Iterable<String> paths) {
+    private static SetMultimap<String, Task> doSelect(GradleInternal gradle, Iterable<String> paths, TaskNameResolver taskNameResolver) {
 
-        Map<String, Collection<Task>> allProjectsTasksByName = null;
-
-        Map<String, Collection<Task>> matches = new LinkedHashMap<String, Collection<Task>>();
+        SetMultimap<String, Task> matches = LinkedHashMultimap.create();
         for (String path : paths) {
-            Map<String, Collection<Task>> tasksByName;
+            Multimap<String, Task> tasksByName;
             String baseName;
             String prefix;
 
-            Project project = gradle.getDefaultProject();
+            ProjectInternal project = gradle.getDefaultProject();
 
             if (path.contains(Project.PATH_SEPARATOR)) {
                 String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
                 projectPath = projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
                 project = findProject(project, projectPath);
                 baseName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
-                Task match = project.getTasks().findByName(baseName);
-                if (match != null) {
-                    matches.put(path, Collections.singleton(match));
-                    continue;
-                }
-
-                tasksByName = new HashMap<String, Collection<Task>>();
-                for (Task task : project.getTasks().getAll()) {
-                    tasksByName.put(task.getName(), Collections.singleton(task));
-                }
-
                 prefix = project.getPath() + Project.PATH_SEPARATOR;
+
+                tasksByName = taskNameResolver.select(baseName, project);
             }
             else {
-                Set<Task> tasks = project.getTasksByName(path, true);
-                if (!tasks.isEmpty()) {
-                    matches.put(path, tasks);
-                    continue;
-                }
-                if (allProjectsTasksByName == null) {
-                    allProjectsTasksByName = buildTaskMap(project);
-                }
-                tasksByName = allProjectsTasksByName;
                 baseName = path;
                 prefix = "";
+
+                tasksByName = taskNameResolver.selectAll(path, project);
+            }
+
+            Collection<Task> tasks = tasksByName.get(baseName);
+            if (!tasks.isEmpty()) {
+                matches.putAll(path, tasks);
+                continue;
             }
 
             NameMatcher matcher = new NameMatcher();
             String actualName = matcher.find(baseName, tasksByName.keySet());
 
             if (actualName != null) {
-                matches.put(prefix + actualName, tasksByName.get(actualName));
+                matches.putAll(prefix + actualName, tasksByName.get(actualName));
                 continue;
             }
 
@@ -113,7 +115,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         return matches;
     }
 
-    private static Project findProject(Project startFrom, String path) {
+    private static ProjectInternal findProject(ProjectInternal startFrom, String path) {
         if (path.equals(Project.PATH_SEPARATOR)) {
             return startFrom.getRootProject();
         }
@@ -135,22 +137,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
             throw new TaskSelectionException(matcher.formatErrorMessage("project", current));
         }
 
-        return current;
-    }
-
-    private static Map<String, Collection<Task>> buildTaskMap(Project defaultProject) {
-        Map<String, Collection<Task>> tasksByName = new HashMap<String, Collection<Task>>();
-        for (Project project : defaultProject.getAllprojects()) {
-            for (Task task : project.getTasks().getAll()) {
-                Collection<Task> tasksForName = tasksByName.get(task.getName());
-                if (tasksForName == null) {
-                    tasksForName = new HashSet<Task>();
-                    tasksByName.put(task.getName(), tasksForName);
-                }
-                tasksForName.add(task);
-            }
-        }
-        return tasksByName;
+        return (ProjectInternal) current;
     }
 
     public String getDisplayName() {

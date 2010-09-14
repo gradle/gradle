@@ -29,7 +29,6 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
 import org.gradle.api.internal.artifacts.DefaultModule;
 import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
-import org.gradle.api.internal.artifacts.configurations.ResolverProvider;
 import org.gradle.api.internal.artifacts.dsl.DefaultArtifactHandler;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactFactory;
 import org.gradle.api.internal.artifacts.dsl.SharedConventionRepositoryHandlerFactory;
@@ -46,9 +45,8 @@ import org.gradle.api.internal.plugins.DefaultProjectsPluginContainer;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
-import org.gradle.api.internal.tasks.DefaultTaskContainer;
+import org.gradle.api.internal.tasks.DefaultTaskContainerFactory;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
-import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.logging.LoggingManagerInternal;
@@ -79,7 +77,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
 
     protected FileOperations createFileOperations() {
-        return new DefaultFileOperations(get(FileResolver.class), get(TaskResolver.class), get(TemporaryFileProvider.class));
+        return new DefaultFileOperations(get(FileResolver.class), project.getTasks(), get(TemporaryFileProvider.class));
     }
 
     protected TemporaryFileProvider createTemporaryFileProvider() {
@@ -98,9 +96,8 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         return new DefaultProjectsPluginContainer(get(PluginRegistry.class), project);
     }
 
-    protected TaskContainerInternal createTaskContainerInternal() {
-        ClassGenerator classGenerator = get(ClassGenerator.class);
-        return classGenerator.newInstance(DefaultTaskContainer.class, project, classGenerator, get(ITaskFactory.class));
+    protected Factory<TaskContainerInternal> createTaskContainerInternal() {
+        return new DefaultTaskContainerFactory(get(ClassGenerator.class), get(ITaskFactory.class), project);
     }
 
     protected Convention createConvention() {
@@ -116,7 +113,7 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
     }
     
     protected ConfigurationContainer createConfigurationContainer() {
-        return get(ConfigurationContainerFactory.class).createConfigurationContainer(get(ResolverProvider.class),
+        return get(ConfigurationContainerFactory.class).createConfigurationContainer(project.getRepositories(),
                 get(DependencyMetaDataProvider.class), project);
     }
 
@@ -174,4 +171,5 @@ public class ProjectInternalServiceRegistry extends DefaultServiceRegistry imple
         }
         throw new UnsupportedOperationException();
     }
+
 }

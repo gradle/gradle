@@ -124,7 +124,7 @@ public class BuiltInTaskBuildExecuterTest {
 
     private void expectTaskCreated() {
         context.checking(new Expectations(){{
-            allowing(gradle).getServiceRegistryFactory();
+            allowing(gradle).getServices();
             will(returnValue(serviceRegistryFactory));
 
             allowing(serviceRegistryFactory).get(ITaskFactory.class);

@@ -17,15 +17,17 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.util.Matchers;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class ProjectDefaultsBuildExecuterTest {
@@ -49,7 +51,9 @@ public class ProjectDefaultsBuildExecuterTest {
 
         TestProjectDefaultsBuildExecuter executer = new TestProjectDefaultsBuildExecuter();
         executer.select(gradle);
-        assertThat(executer.actualDelegate, Matchers.reflectionEquals((Object) new TaskNameResolvingBuildExecuter(toList("a", "b"))));
+        assertThat(executer.actualDelegate, instanceOf(TaskNameResolvingBuildExecuter.class));
+        TaskNameResolvingBuildExecuter delegate = (TaskNameResolvingBuildExecuter) executer.actualDelegate;
+        assertThat(delegate.getNames(), equalTo(toList("a", "b")));
     }
 
     @Test public void createsDescription() {

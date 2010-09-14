@@ -49,7 +49,7 @@ public class DeleteTest extends AbstractConventionTaskTest {
         super.setUp();
         delete = createTask(Delete.class);
         DefaultFileOperations fileOperations = (DefaultFileOperations) ((DefaultProject)
-                delete.getProject()).getServiceRegistryFactory().get(FileOperations.class);
+                delete.getProject()).getServices().get(FileOperations.class);
         fileOperations.setDeleteAction(deleteAction);
     }
 

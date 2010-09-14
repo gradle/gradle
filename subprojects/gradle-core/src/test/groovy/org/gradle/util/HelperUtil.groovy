@@ -86,7 +86,7 @@ class HelperUtil {
                 projectDir ?: new File(parentProject.getProjectDir(), name),
                 new StringScriptSource("test build file", null),
                 parentProject.gradle,
-                parentProject.gradle.serviceRegistryFactory
+                parentProject.gradle.services
         )
         parentProject.addChildProject project
         parentProject.projectRegistry.addProject project

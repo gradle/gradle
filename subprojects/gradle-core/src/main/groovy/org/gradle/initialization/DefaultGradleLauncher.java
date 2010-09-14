@@ -133,7 +133,7 @@ public class DefaultGradleLauncher extends GradleLauncher {
         buildListener.projectsLoaded(gradle);
 
         // Configure build
-        buildConfigurer.process(gradle.getRootProject());
+        buildConfigurer.configure(gradle);
         buildListener.projectsEvaluated(gradle);
 
         if (upTo == Stage.Configure) {

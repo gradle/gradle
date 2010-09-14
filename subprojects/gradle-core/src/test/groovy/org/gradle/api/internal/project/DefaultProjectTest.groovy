@@ -155,7 +155,7 @@ class DefaultProjectTest {
 
         context.checking {
             allowing(projectServiceRegistryFactoryMock).createFor(withParam(notNullValue())); will(returnValue(serviceRegistryMock))
-            allowing(serviceRegistryMock).get(TaskContainerInternal); will(returnValue(taskContainerMock))
+            allowing(serviceRegistryMock).newInstance(TaskContainerInternal); will(returnValue(taskContainerMock))
             allowing(taskContainerMock).getAsDynamicObject(); will(returnValue(new BeanDynamicObject(new TaskContainerDynamicObject(someTask: testTask))))
             allowing(serviceRegistryMock).get(RepositoryHandler); will(returnValue(repositoryHandlerMock))
             allowing(serviceRegistryMock).getFactory(RepositoryHandler); will(returnValue(repositoryHandlerFactoryMock))
@@ -800,8 +800,9 @@ def scriptMethod(Closure closure) {
 
     @Test void testProperties() {
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue([:] as Module))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as Module))
             ignoring(fileOperationsMock)
+            ignoring(taskContainerMock)
         }
         project.additional = 'additional'
 

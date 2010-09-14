@@ -73,5 +73,5 @@ public interface GradleInternal extends Gradle {
      */
     BuildListener getBuildListenerBroadcaster();
 
-    ServiceRegistryFactory getServiceRegistryFactory();
+    ServiceRegistryFactory getServices();
 }

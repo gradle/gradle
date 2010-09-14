@@ -9,3 +9,11 @@ Build tasks
 clean - Deletes the build directory (build)
 dists - Builds the distribution [:api:libs, :webapp:libs]
     libs - Builds the JAR
+
+Help tasks
+----------
+dependencies - Displays a list of the dependencies of root project 'projectReports'.
+help - Displays a help message
+projects - Displays a list of the projects in this build.
+properties - Displays a list of the properties of root project 'projectReports'.
+tasks - Displays a list of the tasks in root project 'projectReports'.

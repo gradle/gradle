@@ -322,7 +322,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected MessagingServer createMessagingServer() {
         return new TcpMessagingServer(get(ClassLoaderFactory.class).getRootClassLoader());
     }
-    
+
+    protected BuildConfigurer createBuildConfigurer() {
+        return new DefaultBuildConfigurer(
+                new ProjectEvaluationConfigurer(),
+                new ProjectDependencies2TaskResolver(),
+                new ImplicitTasksConfigurer());
+    }
+
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);

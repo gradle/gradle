@@ -81,7 +81,7 @@ public class ProjectFactoryTest {
         }});
         final ServiceRegistryFactory gradleServices = serviceRegistryFactory.createFor(gradle);
         context.checking(new Expectations() {{
-            allowing(gradle).getServiceRegistryFactory();
+            allowing(gradle).getServices();
             will(returnValue(gradleServices));
             allowing(gradle).getStartParameter();
             will(returnValue(startParameterStub));
