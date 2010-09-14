@@ -198,7 +198,7 @@ public class DefaultGradleLauncherTest {
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
             one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
-            one(buildConfigurerMock).process(expectedRootProject);
+            one(buildConfigurerMock).configure(gradleMock);
         }});
         BuildResult buildResult = gradleLauncher.getBuildAnalysis();
         assertThat(buildResult.getFailure(), nullValue());
@@ -233,7 +233,7 @@ public class DefaultGradleLauncherTest {
         expectBuildListenerCallbacks();
         context.checking(new Expectations() {{
             one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
-            one(buildConfigurerMock).process(expectedRootProject);
+            one(buildConfigurerMock).configure(gradleMock);
         }});
 
         gradleLauncher.getBuildAnalysis();
@@ -328,7 +328,7 @@ public class DefaultGradleLauncherTest {
         context.checking(new Expectations() {
             {
                 one(buildLoaderMock).load(expectedRootProjectDescriptor, gradleMock, testGradleProperties);
-                one(buildConfigurerMock).process(expectedRootProject);
+                one(buildConfigurerMock).configure(gradleMock);
                 one(taskExecuterMock).addTasks(expectedTasks.get(0));
                 one(taskExecuterMock).addTasks(expectedTasks.get(1));
             }

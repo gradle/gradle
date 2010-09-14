@@ -28,6 +28,7 @@ import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -46,6 +47,8 @@ public abstract class AbstractReportTask extends ConventionTask {
                 return getOutputFile() != null;
             }
         });
+        projects = new HashSet<Project>();
+        projects.add(getProject());
     }
 
     @TaskAction

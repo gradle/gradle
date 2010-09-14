@@ -65,7 +65,7 @@
             task name to uniquely identify the task. For example, in the sample build above, you can execute task
             <literal>dist</literal> by running <userinput>gradle d</userinput>:</para>
         <sample id="abbreviateTaskName" dir="userguide/tutorial/excludeTasks" title="Abbreviated task name">
-            <output args="d"/>
+            <output args="di"/>
         </sample>
         <para>You can also abbreviate each word in a camel case task name. For example, you can execute task <literal>compileTest</literal>
             by running <userinput>gradle compTest</userinput> or even <userinput>gradle cT</userinput></para>

@@ -17,10 +17,12 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
+import org.gradle.util.GUtil;
 
 import java.io.IOException;
 
@@ -53,7 +55,8 @@ public class TaskReportTask extends AbstractReportTask {
         renderer.addDefaultTasks(project.getDefaultTasks());
 
         TaskReportModel model = new TaskReportModel();
-        model.calculate(project.getTasks().getAll());
+        ProjectInternal projectInternal = (ProjectInternal) project;
+        model.calculate(GUtil.addSets(projectInternal.getTasks(), projectInternal.getImplicitTasks()));
 
         for (String group : model.getGroups()) {
             renderer.startTaskGroup(group);

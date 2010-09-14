@@ -73,7 +73,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     private static Logger buildLogger = Logging.getLogger(Project.class);
     private ServiceRegistryFactory services;
 
-    private final Project rootProject;
+    private final ProjectInternal rootProject;
 
     private final GradleInternal gradle;
 
@@ -197,7 +197,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return repositoryHandlerFactory.create();
     }
 
-    public Project getRootProject() {
+    public ProjectInternal getRootProject() {
         return rootProject;
     }
 

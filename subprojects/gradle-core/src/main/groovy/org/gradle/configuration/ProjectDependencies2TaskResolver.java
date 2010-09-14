@@ -25,25 +25,20 @@ import org.slf4j.LoggerFactory;
 /**
  * @author Hans Dockter
  */
-public class ProjectDependencies2TaskResolver {
+public class ProjectDependencies2TaskResolver implements Action<Project> {
     private static Logger logger = LoggerFactory.getLogger(ProjectDependencies2TaskResolver.class);
 
-    public void resolve(Project rootProject) {
-        Action<Project> projectAction = new Action<Project>() {
-            public void execute(Project project) {
-                for (Project dependsOnProject : project.getDependsOnProjects()) {
-                    logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);
-                    for (Task task : project.getTasks()) {
-                        String taskName = task.getName();
-                        Task dependentTask = dependsOnProject.getTasks().findByName(taskName);
-                        if (dependentTask != null) {
-                            logger.debug("Setting task dependencies for task: {}", taskName);
-                            task.dependsOn(dependentTask);
-                        }
-                    }
+    public void execute(Project project) {
+        for (Project dependsOnProject : project.getDependsOnProjects()) {
+            logger.debug("Checking task dependencies for project: {} dependsOn: {}", project, dependsOnProject);
+            for (Task task : project.getTasks()) {
+                String taskName = task.getName();
+                Task dependentTask = dependsOnProject.getTasks().findByName(taskName);
+                if (dependentTask != null) {
+                    logger.debug("Setting task dependencies for task: {}", taskName);
+                    task.dependsOn(dependentTask);
                 }
             }
-        };
-        rootProject.allprojects(projectAction);
+        }
     }
 }

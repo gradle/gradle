@@ -800,8 +800,9 @@ def scriptMethod(Closure closure) {
 
     @Test void testProperties() {
         context.checking {
-            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue([:] as Module))
+            allowing(dependencyMetaDataProviderMock).getModule(); will(returnValue({} as Module))
             ignoring(fileOperationsMock)
+            ignoring(taskContainerMock)
         }
         project.additional = 'additional'
 

@@ -30,6 +30,8 @@ import org.gradle.api.internal.tasks.TaskExecuter;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.CacheRepository;
 import org.gradle.cache.DefaultCacheRepository;
+import org.gradle.configuration.BuildConfigurer;
+import org.gradle.configuration.DefaultBuildConfigurer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.groovy.scripts.DefaultScriptCompilerFactory;
@@ -211,6 +213,12 @@ public class TopLevelBuildServiceRegistryTest {
     public void providesAnExecutorFactory() {
         assertThat(factory.get(ExecutorFactory.class), instanceOf(DefaultExecutorFactory.class));
         assertThat(factory.get(ExecutorFactory.class), sameInstance(factory.get(ExecutorFactory.class)));
+    }
+
+    @Test
+    public void providesABuildConfigurer() {
+        assertThat(factory.get(BuildConfigurer.class), instanceOf(DefaultBuildConfigurer.class));
+        assertThat(factory.get(BuildConfigurer.class), sameInstance(factory.get(BuildConfigurer.class)));
     }
 
     private ListenerManager expectListenerManagerCreated() {

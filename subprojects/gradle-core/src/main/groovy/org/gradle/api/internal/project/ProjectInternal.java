@@ -32,6 +32,8 @@ import org.gradle.logging.StandardOutputCapture;
 public interface ProjectInternal extends Project, ProjectIdentifier, ScriptAware, FileOperations, DomainObjectContext {
     ProjectInternal getParent();
 
+    ProjectInternal getRootProject();
+
     Project evaluate();
 
     TaskContainerInternal getTasks();
