@@ -20,6 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
@@ -29,7 +30,13 @@ public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
         Task task = tasks.add("help");
         task.setDescription("Displays a help message");
         task.setGroup("help");
-        task = tasks.add("projects");
+        task.doFirst(new Action<Task>() {
+            public void execute(Task task) {
+                System.out.println();
+                System.out.println("This is the help message.");
+            }
+        });
+        task = tasks.add("projects", ProjectReportTask.class);
         task.setDescription("Displays a list of the projects in this build.");
         task.setGroup("help");
         task = tasks.add("tasks", TaskReportTask.class);

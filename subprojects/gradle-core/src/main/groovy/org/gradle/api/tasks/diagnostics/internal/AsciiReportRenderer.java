@@ -15,10 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.gradle.api.Action;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ResolvedConfiguration;
 import org.gradle.api.artifacts.ResolvedDependency;
+import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
@@ -31,8 +33,9 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  *
  * @author Phil Messenger
  */
-public class AsciiReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
+public class AsciiReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     private boolean hasConfigs;
+    private GraphRenderer renderer;
 
     @Override
     public void startProject(Project project) {
@@ -48,12 +51,18 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
         super.completeProject(project);
     }
 
-    public void startConfiguration(Configuration configuration) {
+    public void startConfiguration(final Configuration configuration) {
+        if (hasConfigs) {
+            getTextOutput().println();
+        }
         hasConfigs = true;
-        getTextOutput().println();
-        getTextOutput().style(Identifier).text(configuration.getName()).style(Normal);
-        getTextOutput().style(Description).text(getDescription(configuration)).style(Normal);
-        getTextOutput().println();
+        renderer = new GraphRenderer(getTextOutput());
+        renderer.visit(new Action<StyledTextOutput>() {
+            public void execute(StyledTextOutput styledTextOutput) {
+                getTextOutput().style(Identifier).text(configuration.getName()).style(Normal);
+                getTextOutput().style(Description).text(getDescription(configuration)).style(Normal);
+            }
+        }, true);
     }
 
     private String getDescription(Configuration configuration) {
@@ -69,23 +78,27 @@ public class AsciiReportRenderer extends TextProjectReportRenderer implements De
             getTextOutput().style(Info).text("No dependencies").style(Normal).println();
             return;
         }
-        renderChildren(mergedRoots, "");
+        renderChildren(mergedRoots);
     }
 
-    private void render(MergedResolvedDependency resolvedDependency, String prefix, boolean lastChild) throws IOException {
-        getTextOutput().style(Info).text(prefix + "+--- ").style(Normal);
-        getTextOutput().text(resolvedDependency.getName());
-        getTextOutput().style(Info).format(" [%s]", resolvedDependency.getConfiguration()).style(Normal).println();
-
-        renderChildren(mergeChildren(resolvedDependency.getChildren()), prefix + (lastChild ? "     " : "|    "));
+    private void render(final MergedResolvedDependency resolvedDependency, boolean lastChild) {
+        renderer.visit(new Action<StyledTextOutput>() {
+            public void execute(StyledTextOutput styledTextOutput) {
+                getTextOutput().text(resolvedDependency.getName());
+                getTextOutput().style(Info).format(" [%s]", resolvedDependency.getConfiguration()).style(Normal);
+            }
+        }, lastChild);
+        renderChildren(mergeChildren(resolvedDependency.getChildren()));
     }
 
-    private void renderChildren(Set<MergedResolvedDependency> children, String prefix) throws IOException {
+    private void renderChildren(Set<MergedResolvedDependency> children) {
+        renderer.startChildren();
         List<MergedResolvedDependency> mergedChildren = new ArrayList<MergedResolvedDependency>(children);
         for (int i = 0; i < mergedChildren.size(); i++) {
             MergedResolvedDependency dependency = mergedChildren.get(i);
-            render(dependency, prefix, i == mergedChildren.size() - 1);
+            render(dependency, i == mergedChildren.size() - 1);
         }
+        renderer.completeChildren();
     }
 
     private Set<MergedResolvedDependency> mergeChildren(Set<ResolvedDependency> children) {

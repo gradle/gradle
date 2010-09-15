@@ -32,7 +32,7 @@ import static org.gradle.logging.StyledTextOutput.Style.*;
  *
  * @author Hans Dockter
  */
-public class TaskReportRenderer extends TextProjectReportRenderer {
+public class TaskReportRenderer extends TextReportRenderer {
     private boolean currentProjectHasTasks;
     private boolean currentProjectHasRules;
     private boolean hasContent;
@@ -42,7 +42,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
     public void startProject(Project project) {
         currentProjectHasTasks = false;
         currentProjectHasRules = false;
-        hasContent = true;
+        hasContent = false;
         detail = false;
         super.startProject(project);
     }
@@ -65,9 +65,9 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
 
     public void startTaskGroup(String taskGroup) {
         if (!GUtil.isTrue(taskGroup)) {
-            addHeader(currentProjectHasTasks ? "Other tasks" : "Tasks");
+            addSubheading(currentProjectHasTasks ? "Other tasks" : "Tasks");
         } else {
-            addHeader(StringUtils.capitalize(taskGroup) + " tasks");
+            addSubheading(StringUtils.capitalize(taskGroup) + " tasks");
         }
         currentProjectHasTasks = true;
     }
@@ -103,16 +103,12 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
         getTextOutput().println();
     }
 
-    private void addHeader(String header) {
+    private void addSubheading(String header) {
         if (hasContent) {
             getTextOutput().println();
         }
         hasContent = true;
-        getTextOutput().style(Header).println(header);
-        for (int i = 0; i < header.length(); i++) {
-            getTextOutput().text("-");
-        }
-        getTextOutput().style(Normal).println();
+        writeSubheading(header);
     }
 
     private String getDescription(TaskDetails task) {
@@ -136,7 +132,7 @@ public class TaskReportRenderer extends TextProjectReportRenderer {
      */
     public void addRule(Rule rule) {
         if (!currentProjectHasRules) {
-            addHeader("Rules");
+            addSubheading("Rules");
         }
         getTextOutput().println(GUtil.elvis(rule.getDescription(), ""));
         currentProjectHasRules = true;

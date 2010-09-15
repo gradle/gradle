@@ -15,31 +15,28 @@
  */
 package org.gradle.configuration
 
-import org.gradle.api.Task
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.tasks.TaskContainerInternal
 import org.gradle.api.tasks.diagnostics.DependencyReportTask
+import org.gradle.api.tasks.diagnostics.ProjectReportTask
 import org.gradle.api.tasks.diagnostics.PropertyReportTask
 import org.gradle.api.tasks.diagnostics.TaskReportTask
+import org.gradle.util.HelperUtil
 import spock.lang.Specification
 
 class ImplicitTasksConfigurerTest extends Specification {
     private final ImplicitTasksConfigurer configurer = new ImplicitTasksConfigurer()
-    private final ProjectInternal project = Mock()
-    private final TaskContainerInternal tasks = Mock()
+    private final ProjectInternal project = HelperUtil.createRootProject()
 
     def addsImplicitTasksToProject() {
-        Task task = Mock()
-
         when:
         configurer.execute(project)
 
         then:
-        _ * project.implicitTasks >> tasks
-        1 * tasks.add('help') >> task
-        1 * tasks.add('projects') >> task
-        1 * tasks.add('tasks', TaskReportTask) >> task
-        1 * tasks.add('dependencies', DependencyReportTask) >> task
-        1 * tasks.add('properties', PropertyReportTask) >> task
+        project.implicitTasks['help'] instanceof DefaultTask
+        project.implicitTasks['projects'] instanceof ProjectReportTask
+        project.implicitTasks['tasks'] instanceof TaskReportTask
+        project.implicitTasks['dependencies'] instanceof DependencyReportTask
+        project.implicitTasks['properties'] instanceof PropertyReportTask
     }
 }

@@ -23,7 +23,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.logging.StyledTextOutputFactory;
 
 import java.io.File;
@@ -54,7 +54,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     @TaskAction
     public void generate() {
         try {
-            ProjectReportRenderer renderer = getRenderer();
+            ReportRenderer renderer = getRenderer();
             File outputFile = getOutputFile();
             if (outputFile != null) {
                 renderer.setOutputFile(outputFile);
@@ -73,7 +73,7 @@ public abstract class AbstractReportTask extends ConventionTask {
         }
     }
 
-    protected abstract ProjectReportRenderer getRenderer();
+    protected abstract ReportRenderer getRenderer();
 
     protected abstract void generate(Project project) throws IOException;
 

@@ -42,26 +42,36 @@ class AsciiReportRendererTest extends Specification {
     }
 
     def writesConfigurationHeader() {
-        Configuration configuration = Mock()
-        _ * configuration.getName() >> 'configName'
-        _ * configuration.getDescription() >> 'description'
+        Configuration configuration1 = Mock()
+        _ * configuration1.getName() >> 'config1'
+        _ * configuration1.getDescription() >> 'description'
+        Configuration configuration2 = Mock()
+        _ * configuration2.getName() >> 'config2'
 
         when:
-        renderer.startConfiguration(configuration);
-        renderer.completeConfiguration(configuration);
+        renderer.startConfiguration(configuration1);
+        renderer.completeConfiguration(configuration1);
+        renderer.startConfiguration(configuration2);
+        renderer.completeConfiguration(configuration2);
 
         then:
-        textOutput.value.readLines() == ['', 'configName - description']
+        textOutput.value.readLines() == [
+                'config1 - description',
+                '',
+                'config2'
+        ]
     }
 
     def rendersDependencyTreeForConfiguration() {
-        ResolvedConfiguration configuration = Mock()
+        ResolvedConfiguration resolvedConfig = Mock()
+        Configuration configuration = Mock()
         ResolvedDependency dep1 = Mock()
         ResolvedDependency dep11 = Mock()
         ResolvedDependency dep2 = Mock()
         ResolvedDependency dep21 = Mock()
         ResolvedDependency dep22 = Mock()
-        _ * configuration.getFirstLevelModuleDependencies() >> {[dep1, dep2] as LinkedHashSet}
+        _ * configuration.name >> 'config'
+        _ * resolvedConfig.getFirstLevelModuleDependencies() >> {[dep1, dep2] as LinkedHashSet}
         _ * dep1.getChildren() >> {[dep11] as LinkedHashSet}
         _ * dep1.getName() >> 'dep1'
         _ * dep1.getConfiguration() >> 'config1'
@@ -79,15 +89,17 @@ class AsciiReportRendererTest extends Specification {
         _ * dep22.getConfiguration() >> 'config2.2'
 
         when:
-        renderer.render(configuration)
+        renderer.startConfiguration(configuration)
+        renderer.render(resolvedConfig)
 
         then:
         textOutput.value.readLines() == [
+                'config',
                 '+--- dep1 [config1]',
-                '|    +--- dep1.1 [config1.1]',
-                '+--- dep2 [config2]',
+                '|    \\--- dep1.1 [config1.1]',
+                '\\--- dep2 [config2]',
                 '     +--- dep2.1 [config2.1]',
-                '     +--- dep2.2 [config2.2]'
+                '     \\--- dep2.2 [config2.2]'
         ]
     }
 
