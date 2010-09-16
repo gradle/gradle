@@ -24,10 +24,14 @@ import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.util.GUtil;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.logging.StyledTextOutput.Style.Description;
+import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 /**
  * <p>Displays a list of projects in the build. It is used when you use the project list command-line option.</p>
@@ -47,6 +51,9 @@ public class ProjectReportTask extends DefaultTask {
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
                 styledTextOutput.text(StringUtils.capitalize(project.toString()));
+                if (GUtil.isTrue(project.getDescription())) {
+                    getTextOutput().style(Description).format(" - %s", project.getDescription()).style(Normal);
+                }
             }
         }, lastChild);
         renderer.startChildren();

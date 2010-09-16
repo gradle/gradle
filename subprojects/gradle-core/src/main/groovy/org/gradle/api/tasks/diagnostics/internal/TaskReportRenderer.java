@@ -90,7 +90,9 @@ public class TaskReportRenderer extends TextReportRenderer {
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
         getTextOutput().style(UserInput).text(task.getPath()).style(Normal);
-        getTextOutput().style(Description).text(getDescription(task)).style(Normal);
+        if (GUtil.isTrue(task.getDescription())) {
+            getTextOutput().style(Description).format(" - %s", task.getDescription()).style(Normal);
+        }
         if (detail) {
             SortedSet<String> sortedDependencies = new TreeSet<String>();
             for (String dependency : task.getDependencies()) {
@@ -109,10 +111,6 @@ public class TaskReportRenderer extends TextReportRenderer {
         }
         hasContent = true;
         writeSubheading(header);
-    }
-
-    private String getDescription(TaskDetails task) {
-        return GUtil.isTrue(task.getDescription()) ? " - " + task.getDescription() : "";
     }
 
     /**

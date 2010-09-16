@@ -128,6 +128,15 @@
                 <output args="-q -t --all"/>
             </sample>
         </section>
+        <section>
+            <title>Listing projects</title>
+            <para>Running <userinput>gradle projects</userinput> gives you a list of the projects in the build, displayed
+                in a hierarchy. Here is an example:
+            </para>
+            <sample id="projectListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about projects">
+                <output args="-q projects"/>
+            </sample>
+        </section>
         <section id="sec:listing_dependencies">
             <title>Listing project dependencies</title>
             <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>

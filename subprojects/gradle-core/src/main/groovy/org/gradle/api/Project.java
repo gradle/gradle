@@ -270,6 +270,20 @@ public interface Project extends Comparable<Project> {
     String getName();
 
     /**
+     * Returns the description of this project.
+     *
+     * @return the description. May return null.
+     */
+    String getDescription();
+
+    /**
+     * Sets a description for this project.
+     *
+     * @param description The description of the project. Might be null.
+     */
+    void setDescription(String description);
+
+    /**
      * <p>Returns the group of this project. Gradle always uses the toString() value of a group. The group defaults to
      * the path with dots a separators.</p> <p/> <p>You can access this property in your build file using
      * <code>group</code></p>

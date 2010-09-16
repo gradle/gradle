@@ -30,7 +30,9 @@ class ProjectReportTaskTest extends AbstractSpockTaskTest {
     }
 
     def rendersReport() {
+        project.description = 'this is the root project'
         Project child1 = HelperUtil.createChildProject(project, "child1")
+        child1.description = 'this is a subproject'
         HelperUtil.createChildProject(child1, "child1")
         HelperUtil.createChildProject(project, "child2")
         task.textOutput = new TestStyledTextOutput()
@@ -44,8 +46,8 @@ class ProjectReportTaskTest extends AbstractSpockTaskTest {
 Build 'test'
 ------------------------------------------------------------
 
-Root project 'test'
-+--- Project ':child1'
+Root project 'test' - this is the root project
++--- Project ':child1' - this is a subproject
 |    \\--- Project ':child1:child1'
 \\--- Project ':child2'
 ''')

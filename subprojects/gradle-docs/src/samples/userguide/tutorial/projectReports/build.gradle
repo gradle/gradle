@@ -46,13 +46,6 @@ subprojects {
     repositories {
         mavenCentral()
     }
-    dependencies {
-        if (project.name == 'webapp') {
-        	compile project(path: ':api', configuration: 'compile'), "commons-io:commons-io:1.2"
-		} else {
-			compile "org.codehaus.groovy:groovy-all:1.7.4"
-		}
-    }
     task libs {
         if (project.name == 'webapp') {
             dependsOn ':api:libs' 
@@ -61,6 +54,20 @@ subprojects {
         group = 'build'
     }
     tasks.addRule(new TestRule())
+}
+
+project(':api') {
+    description = 'The shared API for the application'
+    dependencies {
+        compile "org.codehaus.groovy:groovy-all:1.7.4"
+    }
+}
+
+project(':webapp') {
+    description = 'The Web application implementation'
+    dependencies {
+        compile project(path: ':api', configuration: 'compile'), "commons-io:commons-io:1.2"
+    }
 }
 
 class TestRule implements Rule {
