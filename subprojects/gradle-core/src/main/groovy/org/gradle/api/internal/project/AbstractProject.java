@@ -142,6 +142,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private DynamicObjectHelper dynamicObjectHelper;
 
+    private String description;
+
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
@@ -271,6 +273,14 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public String getName() {
         return name;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Object getGroup() {

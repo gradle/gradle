@@ -29,7 +29,7 @@ import java.util.Set;
  *
  * @author Phil Messenger
  */
-public class GraphvizReportRenderer extends TextProjectReportRenderer implements DependencyReportRenderer {
+public class GraphvizReportRenderer extends TextReportRenderer implements DependencyReportRenderer {
     @Override
     public void startProject(Project project) {
         // Do nothing

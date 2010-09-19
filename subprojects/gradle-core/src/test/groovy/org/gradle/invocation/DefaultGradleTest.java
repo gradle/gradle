@@ -24,6 +24,7 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.api.internal.initialization.ScriptClassLoaderProvider;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.api.internal.project.IProjectRegistry;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
@@ -47,7 +48,7 @@ import static org.junit.Assert.*;
 
 @RunWith(JUnit4.class)
 public class DefaultGradleTest {
-    private final JUnit4Mockery context = new JUnit4Mockery(){{
+    private final JUnit4Mockery context = new JUnit4Mockery() {{
         setImposteriser(ClassImposteriser.INSTANCE);
     }};
     private final StartParameter parameter = new StartParameter();
@@ -65,7 +66,7 @@ public class DefaultGradleTest {
 
     @Before
     public void setUp() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(serviceRegistryFactoryMock).createFor(with(any(DefaultGradle.class)));
             will(returnValue(gradleServiceRegistryMock));
             allowing(gradleServiceRegistryMock).get(ScriptHandler.class);
@@ -95,7 +96,7 @@ public class DefaultGradleTest {
         assertThat(gradle.getProjectRegistry(), sameInstance(projectRegistry));
         assertThat(gradle.getTaskGraph(), sameInstance(taskExecuter));
     }
-    
+
     @Test
     public void usesGradleVersion() {
         assertThat(gradle.getGradleVersion(), equalTo(new GradleVersion().getVersion()));
@@ -138,7 +139,7 @@ public class DefaultGradleTest {
     @Test
     public void broadcastsBeforeProjectEvaluateEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(listenerManager).addListener(ProjectEvaluationListener.class, "beforeEvaluate", closure);
         }});
 
@@ -148,7 +149,7 @@ public class DefaultGradleTest {
     @Test
     public void broadcastsAfterProjectEvaluateEventsToClosures() {
         final Closure closure = HelperUtil.TEST_CLOSURE;
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(listenerManager).addListener(ProjectEvaluationListener.class, "afterEvaluate", closure);
         }});
 
@@ -158,9 +159,22 @@ public class DefaultGradleTest {
     @Test
     public void usesSpecifiedLogger() {
         final Object logger = new Object();
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(listenerManager).useLogger(logger);
         }});
         gradle.useLogger(logger);
+    }
+
+    @Test
+    public void hasToString() {
+        assertThat(gradle.toString(), equalTo("build"));
+
+        final ProjectInternal project = context.mock(ProjectInternal.class);
+        context.checking(new Expectations(){{
+            allowing(project).getName();
+            will(returnValue("rootProject"));
+        }});
+        gradle.setRootProject(project);
+        assertThat(gradle.toString(), equalTo("build 'rootProject'"));
     }
 }

@@ -17,8 +17,10 @@ package org.gradle.execution;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.util.GUtil;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,15 +28,17 @@ import java.util.List;
  */
 public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
     private List<String> defaultTasks;
+    private String displayName;
 
     public void select(GradleInternal gradle) {
         if (getDelegate() == null) {
             // Gather the default tasks from this first group project
             ProjectInternal project = gradle.getDefaultProject();
             defaultTasks = project.getDefaultTasks();
+            displayName = String.format("project default tasks %s", GUtil.toString(defaultTasks));
             if (defaultTasks.size() == 0) {
-                throw new TaskSelectionException(String.format(
-                        "No tasks have been specified and %s has not defined any default tasks.", project));
+                defaultTasks = Arrays.asList(ImplicitTasksConfigurer.HELP_TASK);
+                displayName = String.format("default task %s", GUtil.toString(defaultTasks));
             }
             setDelegate(new TaskNameResolvingBuildExecuter(defaultTasks));
         }
@@ -44,6 +48,6 @@ public class ProjectDefaultsBuildExecuter extends DelegatingBuildExecuter {
 
     @Override
     public String getDisplayName() {
-        return String.format("project default tasks %s", GUtil.toString(defaultTasks));
+        return displayName;
     }
 }

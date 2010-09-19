@@ -20,26 +20,35 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.diagnostics.DependencyReportTask;
+import org.gradle.api.tasks.diagnostics.ProjectReportTask;
 import org.gradle.api.tasks.diagnostics.PropertyReportTask;
 import org.gradle.api.tasks.diagnostics.TaskReportTask;
 
 public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
+    private static final String HELP_GROUP = "help";
+    public static final String HELP_TASK = "help";
+
     public void execute(ProjectInternal project) {
         TaskContainerInternal tasks = project.getImplicitTasks();
-        Task task = tasks.add("help");
+
+        Task task = tasks.add(HELP_TASK, Help.class);
         task.setDescription("Displays a help message");
-        task.setGroup("help");
-        task = tasks.add("projects");
+        task.setGroup(HELP_GROUP);
+
+        task = tasks.add("projects", ProjectReportTask.class);
         task.setDescription("Displays a list of the projects in this build.");
-        task.setGroup("help");
+        task.setGroup(HELP_GROUP);
+
         task = tasks.add("tasks", TaskReportTask.class);
         task.setDescription(String.format("Displays a list of the tasks in %s.", project));
-        task.setGroup("help");
+        task.setGroup(HELP_GROUP);
+
         task = tasks.add("dependencies", DependencyReportTask.class);
         task.setDescription(String.format("Displays a list of the dependencies of %s.", project));
-        task.setGroup("help");
+        task.setGroup(HELP_GROUP);
+
         task = tasks.add("properties", PropertyReportTask.class);
         task.setDescription(String.format("Displays a list of the properties of %s.", project));
-        task.setGroup("help");
+        task.setGroup(HELP_GROUP);
     }
 }

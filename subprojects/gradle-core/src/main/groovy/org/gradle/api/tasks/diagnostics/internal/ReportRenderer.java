@@ -24,7 +24,7 @@ import java.io.IOException;
 /**
  * <p>A {@code ProjectReportRenderer} is responsible for rendering the model of a project report.</p>
  */
-public interface ProjectReportRenderer {
+public interface ReportRenderer {
     /**
      * Sets the text output for the report. This method must be called before any other methods on this renderer.
      *

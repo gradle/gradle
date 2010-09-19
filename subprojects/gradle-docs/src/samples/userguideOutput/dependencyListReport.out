@@ -2,6 +2,7 @@
 ------------------------------------------------------------
 Root Project
 ------------------------------------------------------------
+
 No configurations
 
 ------------------------------------------------------------
@@ -9,7 +10,7 @@ Project :api
 ------------------------------------------------------------
 
 compile
-+--- org.codehaus.groovy:groovy-all:1.7.4 [default]
+\--- org.codehaus.groovy:groovy-all:1.7.4 [default]
 
 ------------------------------------------------------------
 Project :webapp
@@ -17,5 +18,5 @@ Project :webapp
 
 compile
 +--- projectReports:api:1.0-SNAPSHOT [compile]
-|    +--- org.codehaus.groovy:groovy-all:1.7.4 [default]
-+--- commons-io:commons-io:1.2 [default]
+|    \--- org.codehaus.groovy:groovy-all:1.7.4 [default]
+\--- commons-io:commons-io:1.2 [default]

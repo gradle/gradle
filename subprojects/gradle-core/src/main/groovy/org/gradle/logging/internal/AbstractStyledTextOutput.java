@@ -63,7 +63,7 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
     }
 
     public StyledTextOutput text(Object text) {
-        doAppend(text.toString());
+        doAppend(text == null ? "null" : text.toString());
         return this;
     }
 

@@ -18,6 +18,7 @@ package org.gradle.launcher;
 import org.gradle.*;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
@@ -106,7 +107,9 @@ public class Main {
     private void showUsage(PrintStream out) {
         String appName = System.getProperty("org.gradle.appname", "gradle");
         out.println();
-        out.format("USAGE: %s [option...] [task...]%n", appName);
+        out.print("USAGE: ");
+        new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
+        out.println();
         out.println();
         parameterConverter.showHelp(out);
     }

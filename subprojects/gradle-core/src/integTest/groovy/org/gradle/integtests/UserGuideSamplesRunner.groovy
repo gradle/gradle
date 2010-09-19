@@ -94,7 +94,7 @@ class UserGuideSamplesRunner extends Runner {
             if (executer instanceof GradleDistributionExecuter) {
                 ((GradleDistributionExecuter) executer).setInProcessStartParameterModifier(createModifier(rootProjectDir))
             }
-            
+
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
                 String expectedResult = replaceWithPlatformNewLines(dist.userGuideOutputDir.file(run.outputFile).text)
@@ -121,7 +121,7 @@ class UserGuideSamplesRunner extends Runner {
         for (; pos < actualLines.size() && pos < expectedLines.size(); pos++) {
             String expectedLine = expectedLines[pos]
             String actualLine = actualLines[pos]
-            boolean matches = actualLine == expectedLine
+            boolean matches = compare(expectedLine, actualLine)
             if (!matches) {
                 if (expectedLine.contains(actualLine)) {
                     Assert.fail("Missing text at line ${pos + 1}.${NL}Expected: ${expectedLine}${NL}Actual: ${actualLine}${NL}---${NL}Actual output:${NL}$actual${NL}---")
@@ -148,21 +148,32 @@ class UserGuideSamplesRunner extends Runner {
 
     List<String> normaliseOutput(List<String> lines) {
         lines.inject(new ArrayList<String>()) { List values, String line ->
-            if (line.matches('Total time: .+ secs')) {
-                values << 'Total time: 1 secs'
-            } else if (line.matches('Download .+')) {
+            if (line.matches('Download .+')) {
                 // ignore
             } else {
-                // Normalise default object toString() values
-                line = line.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
-                // Normalise $samplesDir
-                line = line.replaceAll(java.util.regex.Pattern.quote(dist.samplesDir.absolutePath), '/home/user/gradle/samples')
-                // Normalise file separators
-                line = line.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
                 values << line
             }
             values
         }
+    }
+
+    boolean compare(String expected, String actual) {
+        if (actual == expected) {
+            return true
+        }
+
+        if (expected == 'Total time: 1 secs') {
+            return actual.matches('Total time: .+ secs')
+        }
+        
+        // Normalise default object toString() values
+        actual = actual.replaceAll('(\\w+(\\.\\w+)*)@\\p{XDigit}+', '$1@12345')
+        // Normalise $samplesDir
+        actual = actual.replaceAll(java.util.regex.Pattern.quote(dist.samplesDir.absolutePath), '/home/user/gradle/samples')
+        // Normalise file separators
+        actual = actual.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
+
+        return actual == expected
     }
 
     static GradleDistributionExecuter.StartParameterModifier createModifier(File rootProjectDir) {

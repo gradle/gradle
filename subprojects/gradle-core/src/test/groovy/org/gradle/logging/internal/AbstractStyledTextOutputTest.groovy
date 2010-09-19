@@ -26,6 +26,14 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.value == 'some message'
     }
 
+    def writesNullText() {
+        when:
+        output.text(null)
+
+        then:
+        output.value == 'null'
+    }
+
     def writesEndOfLine() {
         when:
         output.println()

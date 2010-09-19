@@ -25,7 +25,7 @@ import java.io.IOException;
  *
  * @author Phil Messenger
  */
-public interface DependencyReportRenderer extends ProjectReportRenderer {
+public interface DependencyReportRenderer extends ReportRenderer {
     /**
      * Starts rendering the given configuration.
      * @param configuration The configuration.

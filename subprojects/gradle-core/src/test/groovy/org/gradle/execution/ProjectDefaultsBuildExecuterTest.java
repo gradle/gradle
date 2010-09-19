@@ -27,7 +27,6 @@ import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.assertThat;
-import static org.junit.Assert.fail;
 
 @RunWith (org.jmock.integration.junit4.JMock.class)
 public class ProjectDefaultsBuildExecuterTest {
@@ -51,6 +50,7 @@ public class ProjectDefaultsBuildExecuterTest {
 
         TestProjectDefaultsBuildExecuter executer = new TestProjectDefaultsBuildExecuter();
         executer.select(gradle);
+
         assertThat(executer.actualDelegate, instanceOf(TaskNameResolvingBuildExecuter.class));
         TaskNameResolvingBuildExecuter delegate = (TaskNameResolvingBuildExecuter) executer.actualDelegate;
         assertThat(delegate.getNames(), equalTo(toList("a", "b")));
@@ -67,19 +67,20 @@ public class ProjectDefaultsBuildExecuterTest {
         assertThat(executer.getDisplayName(), equalTo("project default tasks 'a', 'b'"));
     }
 
-    @Test public void failsWhenNoProjectDefaultTasksSpecified() {
+    @Test public void usesHelpTaskWhenProjectHasNoDefaultTasks() {
         context.checking(new Expectations() {{
             one(project).getDefaultTasks();
             will(returnValue(toList()));
         }});
 
-        BuildExecuter executer = new ProjectDefaultsBuildExecuter();
-        try {
-            executer.select(gradle);
-            fail();
-        } catch (TaskSelectionException e) {
-            assertThat(e.getMessage(), equalTo("No tasks have been specified and [project] has not defined any default tasks."));
-        }
+        TestProjectDefaultsBuildExecuter executer = new TestProjectDefaultsBuildExecuter();
+        executer.select(gradle);
+
+        assertThat(executer.actualDelegate, instanceOf(TaskNameResolvingBuildExecuter.class));
+        TaskNameResolvingBuildExecuter delegate = (TaskNameResolvingBuildExecuter) executer.actualDelegate;
+        assertThat(delegate.getNames(), equalTo(toList("help")));
+
+        assertThat(executer.getDisplayName(), equalTo("default task 'help'"));
     }
 
     private static class TestProjectDefaultsBuildExecuter extends ProjectDefaultsBuildExecuter {
