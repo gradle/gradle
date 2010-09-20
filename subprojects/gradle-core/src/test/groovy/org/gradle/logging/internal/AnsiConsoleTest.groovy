@@ -325,7 +325,21 @@ class TestColorMap implements ColorMap {
     def Ansi.Attribute statusBarOn = Ansi.Attribute.RESET
     def Ansi.Attribute statusBarOff = Ansi.Attribute.RESET
 
-    Color getColourFor(Style style) {
-        style == StyledTextOutput.Style.Header ? Color.YELLOW : Color.DEFAULT
+    ColorMap.Color getStatusBarColor() {
+        if (statusBarOn == Ansi.Attribute.RESET) {
+            return {} as ColorMap.Color
+        }
+        return [on: {ansi -> ansi.a(statusBarOn) },
+                off: {ansi -> ansi.a(statusBarOff) }
+        ] as ColorMap.Color
+    }
+
+    ColorMap.Color getColourFor(Style style) {
+        if (style != StyledTextOutput.Style.Header) {
+            return {} as ColorMap.Color
+        }
+        return [on: {ansi -> ansi.fg(Ansi.Color.YELLOW) },
+                off: {ansi -> ansi.fg(Ansi.Color.DEFAULT) }
+        ] as ColorMap.Color
     }
 }

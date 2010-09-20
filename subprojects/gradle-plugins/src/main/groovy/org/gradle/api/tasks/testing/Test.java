@@ -43,7 +43,7 @@ import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
 import org.gradle.process.internal.DefaultJavaForkOptions;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.util.ConfigureUtil;
 import org.slf4j.LoggerFactory;
 
@@ -78,7 +78,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     public Test() {
         testListenerBroadcaster = getServices().get(ListenerManager.class).createAnonymousBroadcaster(
                 TestListener.class);
-        this.testExecuter = new DefaultTestExecuter(getServices().get(WorkerProcessFactory.class), getServices().get(
+        this.testExecuter = new DefaultTestExecuter(getServices().getFactory(WorkerProcessBuilder.class), getServices().get(
                 ActorFactory.class));
         options = new DefaultJavaForkOptions(getServices().get(FileResolver.class));
         options.setEnableAssertions(true);

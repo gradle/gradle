@@ -26,6 +26,6 @@ import org.junit.Test;
 public class DeployTaskFactoryTest {
     @Test
     public void create() {
-        assertTrue(new DefaultDeployTaskFactory().createDeployTask() instanceof CustomDeployTask);
+        assertTrue(new DefaultDeployTaskFactory().create() instanceof CustomDeployTask);
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.PublishFilter;
-import org.gradle.api.internal.artifacts.publish.maven.MavenPomFactory;
+import org.gradle.api.internal.Factory;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -40,7 +40,7 @@ public class BasePomFilterContainerTest {
     private static final String TEST_NAME = "testName";
     
     private BasePomFilterContainer pomFilterContainer;
-    protected MavenPomFactory mavenPomFactoryMock;
+    protected Factory<MavenPom> mavenPomFactoryMock;
     protected MavenPom pomMock;
     protected PomFilter pomFilterMock;
     protected PublishFilter publishFilterMock;
@@ -55,12 +55,12 @@ public class BasePomFilterContainerTest {
     @Before
     public void setUp() {
         pomFilterMock = context.mock(PomFilter.class);
-        mavenPomFactoryMock = context.mock(MavenPomFactory.class);
+        mavenPomFactoryMock = context.mock(Factory.class);
         pomMock = context.mock(MavenPom.class);
         publishFilterMock = context.mock(PublishFilter.class);
         context.checking(new Expectations() {
             {
-                allowing(mavenPomFactoryMock).createMavenPom();
+                allowing(mavenPomFactoryMock).create();
                 will(returnValue(pomMock));
             }
         });

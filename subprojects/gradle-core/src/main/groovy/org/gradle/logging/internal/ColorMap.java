@@ -19,9 +19,13 @@ import org.fusesource.jansi.Ansi;
 import org.gradle.logging.StyledTextOutput;
 
 public interface ColorMap {
-    Ansi.Color getColourFor(StyledTextOutput.Style style);
+    Color getColourFor(StyledTextOutput.Style style);
 
-    Ansi.Attribute getStatusBarOn();
+    Color getStatusBarColor();
+    
+    interface Color {
+        void on(Ansi ansi);
 
-    Ansi.Attribute getStatusBarOff();
+        void off(Ansi ansi);
+    }
 }

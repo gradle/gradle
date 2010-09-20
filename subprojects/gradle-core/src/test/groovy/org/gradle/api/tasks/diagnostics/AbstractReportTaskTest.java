@@ -17,7 +17,7 @@ package org.gradle.api.tasks.diagnostics;
 
 import org.gradle.api.Project;
 import org.gradle.api.internal.project.DefaultProject;
-import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.TemporaryFolder;
@@ -44,14 +44,14 @@ public class AbstractReportTaskTest {
     private final DefaultProject project = createRootProject();
     private Runnable generator;
     private TestReportTask task;
-    private ProjectReportRenderer renderer;
+    private ReportRenderer renderer;
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Before
     public void setUp() throws Exception {
         generator = context.mock(Runnable.class);
-        renderer = context.mock(ProjectReportRenderer.class);
+        renderer = context.mock(ReportRenderer.class);
         task = HelperUtil.createTask(TestReportTask.class, project);
         task.setGenerator(generator);
         task.setRenderer(renderer);
@@ -136,17 +136,17 @@ public class AbstractReportTaskTest {
 
     public static class TestReportTask extends AbstractReportTask {
         private Runnable generator;
-        private ProjectReportRenderer renderer;
+        private ReportRenderer renderer;
 
         public void setGenerator(Runnable generator) {
             this.generator = generator;
         }
 
-        public ProjectReportRenderer getRenderer() {
+        public ReportRenderer getRenderer() {
             return renderer;
         }
 
-        public void setRenderer(ProjectReportRenderer renderer) {
+        public void setRenderer(ReportRenderer renderer) {
             this.renderer = renderer;
         }
 

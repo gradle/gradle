@@ -24,9 +24,9 @@ import java.io.*;
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
- * <p>A basic {@link ProjectReportRenderer} which writes out a text report.
+ * <p>A basic {@link ReportRenderer} which writes out a text report.
  */
-public class TextProjectReportRenderer implements ProjectReportRenderer {
+public class TextReportRenderer implements ReportRenderer {
     public static final String SEPARATOR = "------------------------------------------------------------";
     private StyledTextOutput textOutput;
     private boolean close;
@@ -41,13 +41,13 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
     }
 
     public void startProject(Project project) {
-        textOutput.println().style(Header).println(SEPARATOR);
+        String header;
         if (project.getRootProject() == project) {
-            textOutput.println("Root Project");
+            header = "Root Project";
         } else {
-            textOutput.formatln("Project %s", project.getPath());
+            header = String.format("Project %s", project.getPath());
         }
-        textOutput.text(SEPARATOR).style(Normal).println();
+        writeHeading(header);
     }
 
     public void completeProject(Project project) {
@@ -72,7 +72,21 @@ public class TextProjectReportRenderer implements ProjectReportRenderer {
         }
     }
 
-    protected StyledTextOutput getTextOutput() {
+    public StyledTextOutput getTextOutput() {
         return textOutput;
+    }
+
+    public void writeHeading(String heading) {
+        textOutput.println().style(Header).println(SEPARATOR);
+        textOutput.println(heading);
+        textOutput.text(SEPARATOR).style(Normal).println().println();
+    }
+
+    public void writeSubheading(String heading) {
+        getTextOutput().style(Header).println(heading);
+        for (int i = 0; i < heading.length(); i++) {
+            getTextOutput().text("-");
+        }
+        getTextOutput().style(Normal).println();
     }
 }

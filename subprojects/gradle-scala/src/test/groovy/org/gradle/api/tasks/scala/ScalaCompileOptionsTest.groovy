@@ -58,7 +58,10 @@ public class ScalaCompileOptionsTest {
     }
 
     @Test public void testOptionMapContainsOptimize() {
-        assertOnOffValue('optimize', 'optimise', false)
+        assertFalse(compileOptions.optionMap().containsKey('optimise'))
+
+        compileOptions.optimize = true
+        assertThat(compileOptions.optionMap()['optimise'], equalTo('on'))
     }
 
     @Test public void testOptionMapContainsEncodingIfSpecified() {

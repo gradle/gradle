@@ -67,7 +67,7 @@ class JavaPluginConvention {
 
     JavaPluginConvention(Project project) {
         this.project = project
-        def classGenerator = project.serviceRegistryFactory.get(ClassGenerator)
+        def classGenerator = project.services.get(ClassGenerator)
         sourceSets = classGenerator.newInstance(DefaultSourceSetContainer.class, project.fileResolver, project.tasks, classGenerator)
         dependencyCacheDirName = 'dependency-cache'
         docsDirName = 'docs'

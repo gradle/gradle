@@ -174,14 +174,10 @@ public class AnsiConsole implements Console {
                 ansi.cursorLeft(displayedText.length() - prefix.length());
             }
             if (prefix.length() < text.length()) {
-                Ansi.Attribute on = colorMap.getStatusBarOn();
-                if (on != Ansi.Attribute.RESET) {
-                    ansi.a(on);
-                }
+                ColorMap.Color color = colorMap.getStatusBarColor();
+                color.on(ansi);
                 ansi.a(text.substring(prefix.length()));
-                if (on != Ansi.Attribute.RESET) {
-                    ansi.a(colorMap.getStatusBarOff());
-                }
+                color.off(ansi);
             }
             if (displayedText.length() > text.length()) {
                 ansi.eraseLine(Ansi.Erase.FORWARD);
@@ -226,10 +222,8 @@ public class AnsiConsole implements Console {
                         extraEol = false;
                     }
 
-                    Ansi.Color colour = colorMap.getColourFor(style);
-                    if (colour != Ansi.Color.DEFAULT) {
-                        ansi.fg(colour);
-                    }
+                    ColorMap.Color color = colorMap.getColourFor(style);
+                    color.on(ansi);
 
                     Iterator<String> tokenizer = new LineSplitter(text);
                     while (tokenizer.hasNext()) {
@@ -242,9 +236,8 @@ public class AnsiConsole implements Console {
                         }
                         ansi.a(token);
                     }
-                    if (style != Style.Normal) {
-                        ansi.fg(Ansi.Color.DEFAULT);
-                    }
+
+                    color.off(ansi);
                 }
             });
         }

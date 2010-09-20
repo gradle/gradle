@@ -115,7 +115,7 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 
 <para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
 It is also available on the <ulink url="website:userguide.html">Gradle web site</ulink>.
-Typing <command>gradle -h</command> prints the command line help. Typing <command>gradle -t</command> shows all the
+Typing <command>gradle help</command> prints the command line help. Typing <command>gradle tasks</command> shows all the
 tasks of a Gradle build.
 </para>
 

@@ -21,7 +21,6 @@ import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 
 /**
@@ -46,7 +45,7 @@ public class TaskInternalServiceRegistry extends DefaultServiceRegistry implemen
     }
 
     protected LoggingManagerInternal createLoggingManager() {
-        return get(LoggingManagerFactory.class).create();
+        return getFactory(LoggingManagerInternal.class).create();
     }
 
     public ServiceRegistryFactory createFor(Object domainObject) {

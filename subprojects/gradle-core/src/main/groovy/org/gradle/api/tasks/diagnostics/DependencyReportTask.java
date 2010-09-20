@@ -19,7 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.tasks.diagnostics.internal.AsciiReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.DependencyReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.ProjectReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 
 import java.io.IOException;
 import java.util.Comparator;
@@ -40,7 +40,7 @@ public class DependencyReportTask extends AbstractReportTask {
 
     private Set<Configuration> configurations;
 
-    public ProjectReportRenderer getRenderer() {
+    public ReportRenderer getRenderer() {
         return renderer;
     }
 

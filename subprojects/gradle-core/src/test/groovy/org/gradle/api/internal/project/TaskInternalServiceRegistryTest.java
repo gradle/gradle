@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.TaskOutputsInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -23,7 +24,6 @@ import org.gradle.api.internal.tasks.DefaultTaskInputs;
 import org.gradle.api.internal.tasks.DefaultTaskOutputs;
 import org.gradle.api.logging.LoggingManager;
 import org.gradle.api.tasks.TaskInputs;
-import org.gradle.logging.LoggingManagerFactory;
 import org.gradle.logging.LoggingManagerInternal;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -32,8 +32,9 @@ import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class TaskInternalServiceRegistryTest {
@@ -65,11 +66,11 @@ public class TaskInternalServiceRegistryTest {
     
     @Test
     public void createsALoggingManagerAndStdOutputCapture() {
-        final LoggingManagerFactory loggingManagerFactory = context.mock(LoggingManagerFactory.class);
+        final Factory<LoggingManagerInternal> loggingManagerFactory = context.mock(Factory.class);
         final LoggingManager loggingManager = context.mock(LoggingManagerInternal.class);
 
         context.checking(new Expectations(){{
-            allowing(parent).get(LoggingManagerFactory.class);
+            allowing(parent).getFactory(LoggingManagerInternal.class);
             will(returnValue(loggingManagerFactory));
             one(loggingManagerFactory).create();
             will(returnValue(loggingManager));

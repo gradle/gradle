@@ -16,36 +16,34 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.StartParameter;
-import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.PublishModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.repositories.DefaultInternalRepository;
+import org.gradle.api.internal.artifacts.repositories.InternalRepository;
 import org.gradle.api.internal.plugins.DefaultPluginRegistry;
 import org.gradle.api.internal.plugins.PluginRegistry;
 import org.gradle.execution.DefaultTaskGraphExecuter;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerBroadcast;
 import org.gradle.listener.ListenerManager;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.gradle.util.MultiParentClassLoader;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.hamcrest.Matchers.sameInstance;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class GradleInternalServiceRegistryTest {
-    private final JUnit4Mockery context = new JUnit4Mockery() {{
-        setImposteriser(ClassImposteriser.INSTANCE);    
-    }};
-    
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
     private final GradleInternal gradle = context.mock(GradleInternal.class);
     private final ServiceRegistry parent = context.mock(ServiceRegistry.class);
     private final GradleInternalServiceRegistry registry = new GradleInternalServiceRegistry(parent, gradle);
@@ -56,7 +54,7 @@ public class GradleInternalServiceRegistryTest {
 
     @Before
     public void setUp() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(parent).get(PublishModuleDescriptorConverter.class);
             will(returnValue(publishModuleDescriptorConverter));
             allowing(parent).get(ListenerManager.class);
@@ -89,7 +87,7 @@ public class GradleInternalServiceRegistryTest {
 
     @Test
     public void providesATaskGraphExecuter() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionGraphListener.class);
             will(returnValue(new ListenerBroadcast<TaskExecutionGraphListener>(TaskExecutionGraphListener.class)));
             one(listenerManager).createAnonymousBroadcaster(TaskExecutionListener.class);

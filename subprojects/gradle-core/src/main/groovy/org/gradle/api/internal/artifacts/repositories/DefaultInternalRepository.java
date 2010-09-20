@@ -17,7 +17,10 @@ package org.gradle.api.internal.artifacts.repositories;
 
 import org.apache.ivy.core.IvyContext;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.module.descriptor.*;
+import org.apache.ivy.core.module.descriptor.Artifact;
+import org.apache.ivy.core.module.descriptor.DependencyArtifactDescriptor;
+import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
+import org.apache.ivy.core.module.descriptor.ModuleDescriptor;
 import org.apache.ivy.core.report.ArtifactDownloadReport;
 import org.apache.ivy.core.report.DownloadReport;
 import org.apache.ivy.core.report.DownloadStatus;
@@ -31,8 +34,8 @@ import org.apache.ivy.plugins.repository.file.FileResource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.Project;
+import org.gradle.api.artifacts.Module;
 import org.gradle.api.artifacts.ResolverContainer;
-import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvider;
 import org.gradle.api.internal.artifacts.ivyservice.DefaultIvyDependencyPublisher;
 import org.gradle.api.internal.artifacts.ivyservice.ModuleDescriptorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.moduleconverter.dependencies.DependencyDescriptorFactory;
@@ -86,9 +89,9 @@ public class DefaultInternalRepository extends BasicResolver implements Internal
             return null;
         }
         Project project = gradle.getRootProject().project(projectPathValue);
-        DependencyMetaDataProvider dependencyMetaDataProvider = ((ProjectInternal) project).getServiceRegistryFactory().get(DependencyMetaDataProvider.class);
+        Module projectModule = ((ProjectInternal) project).getModule();
         ModuleDescriptor projectDescriptor = moduleDescriptorConverter.convert(project.getConfigurations().getAll(),
-                dependencyMetaDataProvider.getModule(), IvyContext.getContext().getIvy().getSettings());
+                projectModule, IvyContext.getContext().getIvy().getSettings());
 
         for (DependencyArtifactDescriptor artifactDescriptor : descriptor.getAllDependencyArtifacts()) {
             for (Artifact artifact : projectDescriptor.getAllArtifacts()) {

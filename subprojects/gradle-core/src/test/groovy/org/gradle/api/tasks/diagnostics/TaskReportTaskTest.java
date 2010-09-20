@@ -15,10 +15,11 @@
  */
 package org.gradle.api.tasks.diagnostics;
 
-import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.Task;
-import org.gradle.api.tasks.TaskContainer;
+import org.gradle.api.internal.project.AbstractProject;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
@@ -46,22 +47,21 @@ import static org.gradle.util.WrapUtil.*;
 @RunWith(JMock.class)
 public class TaskReportTaskTest {
     private final JUnit4Mockery context = new JUnit4GroovyMockery();
-    private TaskReportRenderer renderer;
-    private Project project;
+    private final TaskReportRenderer renderer = context.mock(TaskReportRenderer.class);
+    private final ProjectInternal project = context.mock(AbstractProject.class);
+    private final TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class);
+    private final TaskContainerInternal implicitTasks = context.mock(TaskContainerInternal.class);
     private TaskReportTask task;
-    private TaskContainer taskContainer;
 
     @Before
     public void setup() {
-        renderer = context.mock(TaskReportRenderer.class);
-        project = context.mock(Project.class);
-        taskContainer = context.mock(TaskContainer.class);
-
         context.checking(new Expectations(){{
             allowing(project).absolutePath("list");
             will(returnValue(":path"));
             allowing(project).getTasks();
             will(returnValue(taskContainer));
+            allowing(project).getImplicitTasks();
+            will(returnValue(implicitTasks));
             allowing(project).getConvention();
             will(returnValue(null));
         }});
@@ -82,8 +82,11 @@ public class TaskReportTaskTest {
             allowing(project).getDefaultTasks();
             will(returnValue(testDefaultTasks));
 
-            one(taskContainer).getAll();
-            will(returnValue(toLinkedSet(task2, task3, task4, task1)));
+            one(taskContainer).iterator();
+            will(returnIterator(toLinkedSet(task2, task3, task4, task1)));
+
+            one(implicitTasks).iterator();
+            will(returnIterator(toLinkedSet()));
 
             allowing(taskContainer).getRules();
             will(returnValue(toList()));
@@ -131,8 +134,11 @@ public class TaskReportTaskTest {
             allowing(project).getDefaultTasks();
             will(returnValue(defaultTasks));
 
-            one(taskContainer).getAll();
-            will(returnValue(toSet()));
+            one(taskContainer).iterator();
+            will(returnIterator(toLinkedSet()));
+
+            one(implicitTasks).iterator();
+            will(returnIterator(toLinkedSet()));
 
             one(taskContainer).getRules();
             will(returnValue(toList(rule1, rule2)));

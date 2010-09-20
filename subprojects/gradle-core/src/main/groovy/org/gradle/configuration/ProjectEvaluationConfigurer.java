@@ -13,9 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.configuration;
 
-package org.gradle.logging;
+import org.gradle.api.Action;
+import org.gradle.api.internal.project.ProjectInternal;
 
-public interface LoggingManagerFactory {
-    LoggingManagerInternal create();
+public class ProjectEvaluationConfigurer implements Action<ProjectInternal> {
+    public void execute(ProjectInternal projectInternal) {
+        projectInternal.evaluate();
+    }
 }

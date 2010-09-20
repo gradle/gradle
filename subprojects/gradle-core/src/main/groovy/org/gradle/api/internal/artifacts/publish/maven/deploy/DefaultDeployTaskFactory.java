@@ -15,11 +15,13 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
+import org.gradle.api.internal.Factory;
+
 /**
  * @author Hans Dockter
  */
-public class DefaultDeployTaskFactory implements DeployTaskFactory {
-    public CustomDeployTask createDeployTask() {
+public class DefaultDeployTaskFactory implements Factory<CustomDeployTask> {
+    public CustomDeployTask create() {
         return new CustomDeployTask();
     }
 }

@@ -54,7 +54,7 @@ public class ProjectFactory implements IProjectFactory {
                 projectDescriptor.getProjectDir(),
                 source,
                 gradle,
-                gradle.getServiceRegistryFactory());
+                gradle.getServices());
 
         if (parent != null) {
             parent.addChildProject(project);

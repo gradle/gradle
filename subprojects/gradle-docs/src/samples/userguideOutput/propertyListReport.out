@@ -2,6 +2,7 @@
 ------------------------------------------------------------
 Project :api
 ------------------------------------------------------------
+
 additionalProperties: {}
 all: [task ':api:clean', task ':api:libs']
 allprojects: [project ':api']

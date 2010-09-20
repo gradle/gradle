@@ -57,6 +57,11 @@ public class DefaultGradle implements GradleInternal {
         distributionLocator = services.get(GradleDistributionLocator.class);
     }
 
+    @Override
+    public String toString() {
+        return rootProject == null ? "build" : String.format("build '%s'", rootProject.getName());
+    }
+
     public Gradle getParent() {
         return parent;
     }
@@ -155,7 +160,7 @@ public class DefaultGradle implements GradleInternal {
         return this;
     }
 
-    public ServiceRegistryFactory getServiceRegistryFactory() {
+    public ServiceRegistryFactory getServices() {
         return services;
     }
 }

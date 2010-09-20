@@ -19,29 +19,30 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.InstallTask;
 import org.apache.tools.ant.Project;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
+import org.gradle.api.internal.Factory;
 import org.gradle.logging.LoggingManagerInternal;
 
 /**
  * @author Hans Dockter
  */
 public class BaseMavenInstaller extends AbstractMavenResolver {
-    private InstallTaskFactory installTaskFactory = new DefaultInstallTaskFactory();
+    private Factory<CustomInstallTask> installTaskFactory = new DefaultInstallTaskFactory();
 
     public BaseMavenInstaller(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         super(name, pomFilterContainer, artifactPomContainer, loggingManager);
     }
 
     protected InstallDeployTaskSupport createPreConfiguredTask(Project project) {
-        InstallTask installTask = installTaskFactory.createInstallTask();
+        InstallTask installTask = installTaskFactory.create();
         installTask.setProject(project);
         return installTask;
     }
 
-    public InstallTaskFactory getInstallTaskFactory() {
+    public Factory<CustomInstallTask> getInstallTaskFactory() {
         return installTaskFactory;
     }
 
-    public void setInstallTaskFactory(InstallTaskFactory installTaskFactory) {
+    public void setInstallTaskFactory(Factory<CustomInstallTask> installTaskFactory) {
         this.installTaskFactory = installTaskFactory;
     }
 }

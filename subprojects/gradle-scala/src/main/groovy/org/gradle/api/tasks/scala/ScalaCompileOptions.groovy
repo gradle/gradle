@@ -136,7 +136,7 @@ public class ScalaCompileOptions extends AbstractOptions {
     }
 
     List excludedFieldsFromOptionMap() {
-        ['useCompileDaemon']
+        ['useCompileDaemon'] + (optimize ? [] : ['optimize'])
     }
 
     private String toOnOffString(value) {

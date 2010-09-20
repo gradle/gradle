@@ -36,11 +36,11 @@ import static org.junit.Assert.assertThat;
 import static org.junit.Assert.assertTrue;
 
 @RunWith(JMock.class)
-public class TextProjectReportRendererTest {
+public class TextReportRendererTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
     @Rule
     public final TemporaryFolder testDir = new TemporaryFolder();
-    private final TextProjectReportRenderer renderer = new TextProjectReportRenderer();
+    private final TextReportRenderer renderer = new TextReportRenderer();
 
     @Test
     public void writesReportToAFile() throws IOException {

@@ -65,7 +65,7 @@
             task name to uniquely identify the task. For example, in the sample build above, you can execute task
             <literal>dist</literal> by running <userinput>gradle d</userinput>:</para>
         <sample id="abbreviateTaskName" dir="userguide/tutorial/excludeTasks" title="Abbreviated task name">
-            <output args="d"/>
+            <output args="di"/>
         </sample>
         <para>You can also abbreviate each word in a camel case task name. For example, you can execute task <literal>compileTest</literal>
             by running <userinput>gradle compTest</userinput> or even <userinput>gradle cT</userinput></para>
@@ -126,6 +126,15 @@
             </para>
             <sample id="taskListAllReport" dir="userguide/tutorial/projectReports" title="Obtaining more information about tasks">
                 <output args="-q -t --all"/>
+            </sample>
+        </section>
+        <section>
+            <title>Listing projects</title>
+            <para>Running <userinput>gradle projects</userinput> gives you a list of the projects in the build, displayed
+                in a hierarchy. Here is an example:
+            </para>
+            <sample id="projectListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about projects">
+                <output args="-q projects"/>
             </sample>
         </section>
         <section id="sec:listing_dependencies">

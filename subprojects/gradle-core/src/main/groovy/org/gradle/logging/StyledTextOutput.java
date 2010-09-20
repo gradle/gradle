@@ -46,6 +46,10 @@ public interface StyledTextOutput extends Appendable {
          */
         ProgressStatus,
         /**
+         * Some failure message
+         */
+        Failure,
+        /**
          * General purpose informational text
          */
         Info,

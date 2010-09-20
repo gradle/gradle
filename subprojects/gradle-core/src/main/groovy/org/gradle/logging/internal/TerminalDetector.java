@@ -37,7 +37,18 @@ public class TerminalDetector implements Spec<FileDescriptor> {
             }
         }
 
-        // Use jna-posix
-        return PosixUtil.current().isatty(element);
+        // Use jna-posix to determine if we're connected to a terminal
+        if (!PosixUtil.current().isatty(element)) {
+            return false;
+        }
+
+        // Dumb terminal doesn't support control codes. Should really be using termcap database.
+        String term = System.getenv("TERM");
+        if (term != null && term.equals("dumb")) {
+            return false;
+        }
+
+        // Assume a terminal
+        return true;
     }
 }

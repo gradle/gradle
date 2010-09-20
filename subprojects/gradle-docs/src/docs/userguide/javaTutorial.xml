@@ -57,7 +57,7 @@
             a number of tasks to your project.</para>
         <tip>
             <title>What tasks are available?</title>
-            <para>You can use <userinput>gradle -t</userinput> to list the tasks of a project. This will let you see
+            <para>You can use <userinput>gradle tasks</userinput> to list the tasks of a project. This will let you see
             the tasks that the Java plugin has added to your project.
         </para></tip>
 

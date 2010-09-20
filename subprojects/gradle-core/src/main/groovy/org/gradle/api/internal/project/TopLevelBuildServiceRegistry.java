@@ -21,7 +21,7 @@ import org.apache.ivy.plugins.resolver.ChainResolver;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.artifacts.dsl.RepositoryHandlerFactory;
+import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.execution.TaskActionListener;
 import org.gradle.api.internal.*;
 import org.gradle.api.internal.artifacts.ConfigurationContainerFactory;
@@ -53,7 +53,7 @@ import org.gradle.configuration.*;
 import org.gradle.groovy.scripts.*;
 import org.gradle.initialization.*;
 import org.gradle.listener.ListenerManager;
-import org.gradle.logging.LoggingManagerFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.messaging.actor.internal.DefaultActorFactory;
@@ -62,7 +62,7 @@ import org.gradle.messaging.concurrent.ExecutorFactory;
 import org.gradle.messaging.remote.MessagingServer;
 import org.gradle.messaging.remote.internal.TcpMessagingServer;
 import org.gradle.process.internal.DefaultWorkerProcessFactory;
-import org.gradle.process.internal.WorkerProcessFactory;
+import org.gradle.process.internal.WorkerProcessBuilder;
 import org.gradle.process.internal.child.WorkerProcessClassPathProvider;
 import org.gradle.util.*;
 
@@ -134,10 +134,10 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                                         get(TaskArtifactStateRepository.class))));
     }
 
-    protected RepositoryHandlerFactory createRepositoryHandlerFactory() {
+    protected Factory<RepositoryHandler> createRepositoryHandlerFactory() {
         return new DefaultRepositoryHandlerFactory(
                 new DefaultResolverFactory(
-                        get(LoggingManagerFactory.class)),
+                        getFactory(LoggingManagerInternal.class)),
                 get(ClassGenerator.class));
     }
 
@@ -277,7 +277,7 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
                 get(ImportsReader.class),
                 get(ScriptHandlerFactory.class),
                 get(ClassLoader.class),
-                get(LoggingManagerFactory.class));
+                getFactory(LoggingManagerInternal.class));
     }
 
     protected MultiParentClassLoader createRootClassLoader() {
@@ -307,13 +307,13 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
 
     protected ScriptHandlerFactory createScriptHandlerFactory() {
         return new DefaultScriptHandlerFactory(
-                get(RepositoryHandlerFactory.class),
+                getFactory(RepositoryHandler.class),
                 get(ConfigurationContainerFactory.class),
                 new DependencyMetaDataProviderImpl(), 
                 get(DependencyFactory.class));
     }
 
-    protected WorkerProcessFactory createWorkerProcessFactory() {
+    protected Factory<WorkerProcessBuilder> createWorkerProcessFactory() {
         ClassPathRegistry classPathRegistry = get(ClassPathRegistry.class);
         return new DefaultWorkerProcessFactory(startParameter.getLogLevel(), get(MessagingServer.class), classPathRegistry,
                 new IdentityFileResolver(), new LongIdGenerator());
@@ -322,7 +322,14 @@ public class TopLevelBuildServiceRegistry extends DefaultServiceRegistry impleme
     protected MessagingServer createMessagingServer() {
         return new TcpMessagingServer(get(ClassLoaderFactory.class).getRootClassLoader());
     }
-    
+
+    protected BuildConfigurer createBuildConfigurer() {
+        return new DefaultBuildConfigurer(
+                new ProjectEvaluationConfigurer(),
+                new ProjectDependencies2TaskResolver(),
+                new ImplicitTasksConfigurer());
+    }
+
     public ServiceRegistryFactory createFor(Object domainObject) {
         if (domainObject instanceof GradleInternal) {
             return new GradleInternalServiceRegistry(this, (GradleInternal) domainObject);

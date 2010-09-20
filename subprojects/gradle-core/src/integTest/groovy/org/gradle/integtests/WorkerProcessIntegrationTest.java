@@ -190,7 +190,7 @@ public class WorkerProcessIntegrationTest {
         }
 
         public void start() {
-            WorkerProcessBuilder builder = workerFactory.newProcess();
+            WorkerProcessBuilder builder = workerFactory.create();
             builder.applicationClasspath(classPathRegistry.getClassPathFiles("ANT"));
             builder.sharedPackages("org.apache.tools.ant");
             builder.getJavaCommand().systemProperty("test.system.property", "value");

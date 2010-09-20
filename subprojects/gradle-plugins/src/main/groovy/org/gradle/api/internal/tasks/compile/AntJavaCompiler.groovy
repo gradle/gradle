@@ -18,12 +18,11 @@ package org.gradle.api.internal.tasks.compile
 
 import org.gradle.api.AntBuilder
 import org.gradle.api.file.FileCollection
-import org.slf4j.Logger
-import org.slf4j.LoggerFactory
-
 import org.gradle.api.tasks.WorkResult
 import org.gradle.api.tasks.compile.CompileOptions
-import org.gradle.api.internal.project.AntBuilderFactory
+import org.gradle.api.internal.Factory
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * @author Hans Dockter
@@ -37,9 +36,9 @@ class AntJavaCompiler implements JavaCompiler {
     String sourceCompatibility;
     String targetCompatibility;
     CompileOptions compileOptions = new CompileOptions()
-    final AntBuilderFactory antBuilderFactory
+    final Factory<AntBuilder> antBuilderFactory
 
-    def AntJavaCompiler(AntBuilderFactory antBuilderFactory) {
+    def AntJavaCompiler(Factory<AntBuilder> antBuilderFactory) {
         this.antBuilderFactory = antBuilderFactory
     }
 
@@ -48,7 +47,7 @@ class AntJavaCompiler implements JavaCompiler {
     }
 
     WorkResult execute() {
-        def ant = antBuilderFactory.createAntBuilder()
+        def ant = antBuilderFactory.create()
         
         createAntClassPath(ant, classpath)
         Map otherArgs = [

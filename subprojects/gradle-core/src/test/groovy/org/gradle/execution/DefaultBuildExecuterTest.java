@@ -18,20 +18,22 @@ package org.gradle.execution;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.specs.Spec;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.util.Collections;
 import java.util.List;
+
+import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.assertThat;
 
 @RunWith(JMock.class)
 public class DefaultBuildExecuterTest {
@@ -60,7 +62,9 @@ public class DefaultBuildExecuterTest {
     public void usesNameResolvingExecuterWhenTaskNamesProvided() {
         List<String> taskNames = toList("a", "b");
         DefaultBuildExecuter executer = new DefaultBuildExecuter(taskNames, Collections.EMPTY_LIST);
-        assertThat(executer.getDelegate(), reflectionEquals((Object) new TaskNameResolvingBuildExecuter(taskNames)));
+        assertThat(executer.getDelegate(), instanceOf(TaskNameResolvingBuildExecuter.class));
+        TaskNameResolvingBuildExecuter delegate = (TaskNameResolvingBuildExecuter) executer.getDelegate();
+        assertThat(delegate.getNames(), equalTo(taskNames));
     }
 
     @Test
@@ -74,7 +78,9 @@ public class DefaultBuildExecuterTest {
     @Test
     public void usesNameResolvingExecuterAndNameFilterWhenTaskNamesAndExcludePatternsProvided() {
         DefaultBuildExecuter executer = new DefaultBuildExecuter(toList("a"), toList("b"));
-        assertThat(executer.getDelegate(), reflectionEquals((Object) new TaskNameResolvingBuildExecuter(toList("a"))));
+        assertThat(executer.getDelegate(), instanceOf(TaskNameResolvingBuildExecuter.class));
+        TaskNameResolvingBuildExecuter delegate = (TaskNameResolvingBuildExecuter) executer.getDelegate();
+        assertThat(delegate.getNames(), equalTo(toList("a")));
 
         checkNameFilterApplied(executer);
     }
@@ -84,8 +90,16 @@ public class DefaultBuildExecuterTest {
         executer.setDelegate(delegate);
 
         context.checking(new Expectations(){{
-            one(project).getTasksByName("b", true);
-            will(returnValue(toSet(context.mock(Task.class))));
+            Task task = context.mock(Task.class);
+            TaskContainerInternal taskContainer = context.mock(TaskContainerInternal.class);
+            allowing(project).getSubprojects();
+            will(returnValue(toSet()));
+            allowing(project).getTasks();
+            will(returnValue(taskContainer));
+            one(taskContainer).findByName("b");
+            will(returnValue(task));
+            allowing(task).getName();
+            will(returnValue("b"));
             one(taskExecuter).useFilter(with(notNullValue(Spec.class)));
             one(delegate).select(gradle);
         }});

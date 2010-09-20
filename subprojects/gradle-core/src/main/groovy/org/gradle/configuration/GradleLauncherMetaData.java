@@ -13,8 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.process.internal;
+package org.gradle.configuration;
 
-public interface WorkerProcessFactory {
-    WorkerProcessBuilder newProcess();
+import org.gradle.util.UncheckedException;
+
+import java.io.IOException;
+
+public class GradleLauncherMetaData {
+    public void describeCommand(Appendable output, String... args) {
+        try {
+            String appName = System.getProperty("org.gradle.appname", "gradle");
+            output.append(appName);
+            for (String arg : args) {
+                output.append(' ');
+                output.append(arg);
+            }
+        } catch (IOException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+    }
 }

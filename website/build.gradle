@@ -116,6 +116,7 @@ task html(dependsOn: userguideContent) << {
         from(webSrcDir) {
             include 'css/**'
             include 'img/**'
+			include 'other-resources/**'
         }
         from(generatedDocs) {
             include 'base.css'

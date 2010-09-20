@@ -21,15 +21,23 @@ import org.gradle.api.tasks.testing.TestListener;
 import org.gradle.api.tasks.testing.TestResult;
 import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class TestLogger implements TestListener {
     private final ProgressLoggerFactory factory;
-    private ProgressLogger logger;
+    private final Logger logger;
+    private ProgressLogger progressLogger;
     private long totalTests;
     private long failedTests;
 
     public TestLogger(ProgressLoggerFactory factory) {
+        this(factory, LoggerFactory.getLogger(TestLogger.class));
+    }
+
+    TestLogger(ProgressLoggerFactory factory, Logger logger) {
         this.factory = factory;
+        this.logger = logger;
     }
 
     public void beforeTest(TestDescriptor testDescriptor) {
@@ -38,7 +46,7 @@ public class TestLogger implements TestListener {
     public void afterTest(TestDescriptor testDescriptor, TestResult result) {
         totalTests += result.getTestCount();
         failedTests += result.getFailedTestCount();
-        logger.progress(summary());
+        progressLogger.progress(summary());
     }
 
     private String summary() {
@@ -63,13 +71,16 @@ public class TestLogger implements TestListener {
 
     public void beforeSuite(TestDescriptor suite) {
         if (suite.getParent() == null) {
-            logger = factory.start(TestLogger.class.getName());
+            progressLogger = factory.start(TestLogger.class.getName());
         }
     }
 
     public void afterSuite(TestDescriptor suite, TestResult result) {
         if (suite.getParent() == null) {
-            logger.completed(failedTests > 0 ? summary() : "");
+            if (failedTests > 0) {
+                logger.error(summary());
+            }
+            progressLogger.completed();
         }
     }
 }
