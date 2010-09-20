@@ -233,9 +233,9 @@ class UserGuideSamplesRunner extends Runner {
         samplesByDir.values().collect {List<GradleRun> dirSamples ->
             Collection<GradleRun> runs = dirSamples.findAll {it.args}
             if (!runs) {
-                // No samples in this dir have any args, so just run gradle -t in the dir
+                // No samples in this dir have any args, so just run gradle tasks in the dir
                 def sample = dirSamples[0]
-                sample.args = ['-t']
+                sample.args = ['tasks']
                 sample
             } else {
                 return runs

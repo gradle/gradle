@@ -154,7 +154,7 @@
     <section>
         <title>Adding a description to a task</title>
         <para>You can add a description to your task. This description is for example displayed when executing
-            <code>gradle -t</code>.
+            <userinput>gradle tasks</userinput>.
         </para>
         <sample id="describeTask" dir="userguide/tasks/defineAndConfigure" title="Adding a description to a task">
             <sourcefile file="build.gradle"/>
@@ -237,8 +237,8 @@
             <sourcefile file="build.gradle" snippet="task-rule"/>
             <output args="-q pingServer1"/>
         </sample>
-        <para>The String parameter is used as a description for the rule. This description is shown when doing
-            for example <code>gradle -t</code>.
+        <para>The String parameter is used as a description for the rule. This description is shown when running
+            for example <userinput>gradle tasks</userinput>.
         </para>
         <para>Rules not just work for calling tasks from the command line. You can also create dependsOn relations
             on rule based tasks:

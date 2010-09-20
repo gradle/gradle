@@ -24,7 +24,8 @@
 
     <para>The Project report plugin adds some tasks to your project which generate reports containing useful
         information about your build. Those tasks generate exactly the same content as the command line reports triggered
-        by <literal>-t</literal>, <literal>-n</literal>, <literal>-r</literal> (see <xref linkend="sec:obtaining_information_about_your_build"/>).
+        by <userinput>gradle tasks</userinput>, <userinput>gradle dependencies</userinput> and
+        <userinput>gradle properties</userinput> (see<xref linkend="sec:obtaining_information_about_your_build"/>).
         In contrast to the command line reports, the report plugin generates the reports into a file. There is also an
         aggregating task that depends on all report tasks added by the plugin.
     </para>

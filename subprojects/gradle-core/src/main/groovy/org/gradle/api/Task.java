@@ -468,7 +468,7 @@ public interface Task extends Comparable<Task> {
 
     /**
      * Sets a description for this task. This should describe what the task does to the user of the build. The
-     * description will be displayed when <code>gradle -t</code> is called.
+     * description will be displayed when <code>gradle tasks</code> is called.
      *
      * @param description The description of the task. Might be null.
      */
