@@ -18,61 +18,112 @@ package org.gradle.logging.internal;
 import org.fusesource.jansi.Ansi;
 import org.gradle.logging.StyledTextOutput;
 
-import java.util.EnumMap;
+import java.util.HashMap;
 import java.util.Map;
 
 import static org.fusesource.jansi.Ansi.Color.*;
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
 public class DefaultColorMap implements ColorMap {
-    private final Map<StyledTextOutput.Style, Ansi.Color> defaults = new EnumMap<StyledTextOutput.Style, Ansi.Color>(StyledTextOutput.Style.class);
-    private final Map<StyledTextOutput.Style, Ansi.Color> colours = new EnumMap<StyledTextOutput.Style, Ansi.Color>(StyledTextOutput.Style.class);
+    private static final String STATUSBAR = "statusbar";
+    private static final String BOLD = "bold";
+    private final Map<String, String> defaults = new HashMap<String, String>();
+    private final Map<String, Color> colors = new HashMap<String, Color>();
     private boolean useColor = true;
+    private final Color noDecoration = new Color() {
+        public void on(Ansi ansi) {
+        }
+
+        public void off(Ansi ansi) {
+        }
+    };
+    private final Color bold = new Color() {
+        public void on(Ansi ansi) {
+            ansi.a(Ansi.Attribute.INTENSITY_BOLD);
+        }
+
+        public void off(Ansi ansi) {
+            ansi.a(Ansi.Attribute.INTENSITY_BOLD_OFF);
+        }
+    };
 
     public DefaultColorMap() {
-        defaults.put(Header, DEFAULT);
-        defaults.put(Info, YELLOW);
-        defaults.put(Description, YELLOW);
-//        defaults.put(ProgressStatus, YELLOW);
-        defaults.put(Identifier, GREEN);
-        defaults.put(UserInput, GREEN);
-//        defaults.put(Error, RED);
+//        addDefault(Header, DEFAULT);
+        addDefault(Info, YELLOW);
+        addDefault(Description, YELLOW);
+        addDefault(ProgressStatus, YELLOW);
+        addDefault(Identifier, GREEN);
+        addDefault(UserInput, GREEN);
+        addDefault(Failure, RED);
+//        addDefault(Error, RED);
+        defaults.put(STATUSBAR, BOLD);
+    }
+
+    private void addDefault(StyledTextOutput.Style style, Ansi.Color color) {
+        defaults.put(style.name().toLowerCase(), color.name());
     }
 
     public void setUseColor(boolean useColor) {
         this.useColor = useColor;
     }
 
-    public Ansi.Attribute getStatusBarOn() {
-//        return Ansi.Attribute.INTENSITY_BOLD;
-        return Ansi.Attribute.RESET;
+    public Color getStatusBarColor() {
+        return getColor(STATUSBAR);
     }
 
-    public Ansi.Attribute getStatusBarOff() {
-//        return Ansi.Attribute.INTENSITY_BOLD_OFF;
-        return Ansi.Attribute.RESET;
+    public Color getColourFor(StyledTextOutput.Style style) {
+        return getColor(style.name().toLowerCase());
     }
 
-    public Ansi.Color getColourFor(StyledTextOutput.Style style) {
+    private Color getColor(String name) {
         if (!useColor) {
-            return DEFAULT;
+            return noDecoration;
         }
-        
-        Ansi.Color color = colours.get(style);
+
+        Color color = colors.get(name);
         if (color == null) {
-            color = getColor(style);
-            colours.put(style, color);
+            color = createColor(name);
+            colors.put(name, color);
         }
+
         return color;
     }
 
-    private Ansi.Color getColor(StyledTextOutput.Style style) {
-        String override = System.getProperty(String.format("org.gradle.color.%s", style.name().toLowerCase()));
-        if (override != null) {
-            return Ansi.Color.valueOf(override.toUpperCase());
-        } else {
-            Ansi.Color color = defaults.get(style);
-            return color == null ? DEFAULT : color;
+    private Color createColor(String name) {
+        String colorSpec = System.getProperty(String.format("org.gradle.color.%s", name), defaults.get(name));
+
+        if (colorSpec != null) {
+            if (colorSpec.equalsIgnoreCase(BOLD)) {
+                String terminalProgram = System.getenv("TERM_PROGRAM");
+                if (terminalProgram != null && terminalProgram.equals("iTerm.app")) {
+                    // iTerm displays bold as red (by default), so don't bother
+                    return noDecoration;
+                }
+                return bold;
+            }
+
+            Ansi.Color ansiColor = Ansi.Color.valueOf(colorSpec.toUpperCase());
+            if (ansiColor != DEFAULT) {
+                return new ForegroundColor(ansiColor);
+            }
+        }
+
+        return noDecoration;
+    }
+
+    private static class ForegroundColor implements Color {
+        private final Ansi.Color ansiColor;
+
+        public ForegroundColor(Ansi.Color ansiColor) {
+            this.ansiColor = ansiColor;
+        }
+
+        public void on(Ansi ansi) {
+            ansi.fg(ansiColor);
+        }
+
+        public void off(Ansi ansi) {
+            ansi.fg(DEFAULT);
         }
     }
 }
