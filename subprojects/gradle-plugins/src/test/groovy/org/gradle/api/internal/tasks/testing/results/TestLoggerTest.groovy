@@ -23,12 +23,14 @@ import org.gradle.logging.ProgressLoggerFactory
 import org.gradle.logging.ProgressLogger
 import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestResult
+import org.slf4j.Logger
 
 class TestLoggerTest extends Specification {
     private final ProgressLoggerFactory factory = Mock()
     private final ProgressLogger progressLogger = Mock()
     private final TestDescriptor rootSuite = suite(true)
-    private final TestLogger logger = new TestLogger(factory)
+    private final Logger errorLogger = Mock()
+    private final TestLogger logger = new TestLogger(factory, errorLogger)
 
     def startsProgressLoggerWhenRootSuiteIsStartedAndStopsWhenRootSuiteIsCompleted() {
         when:
@@ -41,7 +43,7 @@ class TestLoggerTest extends Specification {
         logger.afterSuite(rootSuite, result())
 
         then:
-        1 * progressLogger.completed('')
+        1 * progressLogger.completed()
     }
 
     def logsCountOfTestsExecuted() {
@@ -67,7 +69,7 @@ class TestLoggerTest extends Specification {
         logger.afterSuite(rootSuite, result())
 
         then:
-        1 * progressLogger.completed('')
+        1 * progressLogger.completed()
     }
 
     def logsCountOfFailedTests() {
@@ -93,7 +95,8 @@ class TestLoggerTest extends Specification {
         logger.afterSuite(rootSuite, result())
 
         then:
-        1 * progressLogger.completed('2 tests completed, 1 failure')
+        1 * errorLogger.error('2 tests completed, 1 failure')
+        1 * progressLogger.completed()
     }
 
     def ignoresSuitesOtherThanTheRootSuite() {
@@ -113,7 +116,7 @@ class TestLoggerTest extends Specification {
         logger.afterSuite(rootSuite, result())
 
         then:
-        1 * progressLogger.completed('')
+        1 * progressLogger.completed()
     }
 
     private def test() {
