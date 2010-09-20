@@ -33,15 +33,15 @@ public class Help extends DefaultTask {
         output.println();
         output.formatln("Welcome to Gradle %s.", new GradleVersion().getVersion());
         output.println();
-        output.text("To run a build, run: ").style(UserInput);
+        output.text("To run a build, run ").style(UserInput);
         metaData.describeCommand(output, "<task-name> ...");
         output.style(Normal).println();
         output.println();
-        output.text("To see a list of available tasks, run: ").style(UserInput);
+        output.text("To see a list of available tasks, run ").style(UserInput);
         metaData.describeCommand(output, "tasks");
         output.style(Normal).println();
         output.println();
-        output.text("To see a list of command-line options, run: ").style(UserInput);
+        output.text("To see a list of command-line options, run ").style(UserInput);
         metaData.describeCommand(output, "-?");
         output.style(Normal).println();
     }
