@@ -78,7 +78,11 @@ public class CopySpecImpl implements CopySpec, ReadableCopySpec {
 
     public CopySpec from(Object... sourcePaths) {
         for (Object sourcePath : sourcePaths) {
-            this.sourcePaths.add(sourcePath);
+            if (sourcePath instanceof CopySpec) {
+                with((CopySpec) sourcePath);
+            } else {
+                this.sourcePaths.add(sourcePath);
+            }
         }
         return this;
     }
