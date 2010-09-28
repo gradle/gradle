@@ -7,6 +7,7 @@ import org.w3c.dom.Node
 class DomBuilder extends BuilderSupport {
     Document document
     Node parent
+    List elements = []
 
     def DomBuilder(Document document) {
         this.document = document
@@ -18,10 +19,16 @@ class DomBuilder extends BuilderSupport {
         this.parent = parent
     }
 
+    def DomBuilder(Document document, Element parent) {
+        this.document = document
+        this.parent = parent
+    }
+
     protected Element createNode(Object name) {
         Element element = document.createElement(name as String)
         if (getCurrent() == null) {
-            parent.appendChild(element)
+            elements << element
+            parent?.appendChild(element)
         }
         return element
     }

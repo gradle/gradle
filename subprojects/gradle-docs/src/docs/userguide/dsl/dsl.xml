@@ -1,9 +1,30 @@
-<chapter id="dsl" xmlns:xi="http://www.w3.org/2001/XInclude">
-    <title>The Gradle DSL</title>
+<appendix id="dsl">
+    <title>Build script reference</title>
     <note>
         <para>This chapter is under construction.</para>
     </note>
     <para>This chapter describes the various types which make up the Gradle build DSL.</para>
-    <xi:include href='org.gradle.api.tasks.bundling.Tar.xml'/>
-    <xi:include href='org.gradle.api.tasks.bundling.Zip.xml'/>
-</chapter>
+
+    <!--
+    -
+    - To Add more types to this chapter, add them to one of the following tables. The contents of
+    - ${classname}.xml for each type listed below is added to this chapter.
+    -
+    -->
+
+    <table>
+        <title>Core types</title>
+        <tr>
+            <td>org.gradle.api.Project</td>
+        </tr>
+    </table>
+    <table>
+        <title>Tasks</title>
+        <tr>
+            <td>org.gradle.api.tasks.bundling.Tar</td>
+        </tr>
+        <tr>
+            <td>org.gradle.api.tasks.bundling.Zip</td>
+        </tr>
+    </table>
+</appendix>

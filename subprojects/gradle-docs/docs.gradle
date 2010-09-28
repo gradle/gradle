@@ -68,6 +68,7 @@ tasks.withType(UserGuideTransformTask).allObjects { task->
 }
 tasks.withType(AssembleDslDocTask).allObjects { task ->
     task.classpath = configurations.userGuideTask
+    task.classDocbookDir = new File(userguideSrcDir, 'dsl')
 }
 
 task samples(type: ExtractSnippetsTask) {
@@ -119,8 +120,18 @@ task dslDocbook(type: AssembleDslDocTask) {
     destFile = new File(docbookSrc, 'dsl.xml')
 }
 
-task dslHtml(type: Docbook2Xhtml, dependsOn: dslDocbook) {
-    source dslDocbook.destFile
+task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook]) {
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
+    sourceFile = dslDocbook.destFile
+    destFile = new File(docbookSrc, 'dsl-standalone.xml')
+    javadocUrl = '../javadoc'
+    groovydocUrl = '../groovydoc'
+    websiteUrl = 'http://www.gradle.org'
+}
+
+task dslHtml(type: Docbook2Xhtml, dependsOn: dslStandaloneDocbook) {
+    source dslStandaloneDocbook.destFile
     destDir = new File(docsDir, 'dsl')
     stylesheetName = 'userGuideHtml.xsl'
     resources = fileTree {

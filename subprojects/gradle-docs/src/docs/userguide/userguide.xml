@@ -56,8 +56,6 @@
     <xi:include href='plugins.xml'/>
     <xi:include href='standardPlugins.xml'/>
     <xi:include href='standardTasks.xml'/>
-    <!-- this is generated -->
-    <xi:include href='../../../build/src/docbook/dsl.xml'/>
     <xi:include href='javaPlugin.xml'/>
     <xi:include href='groovyPlugin.xml'/>
     <xi:include href='scalaPlugin.xml'/>
@@ -81,6 +79,8 @@
     <xi:include href='initscripts.xml'/>
     <xi:include href='gradleWrapper.xml'/>
     <xi:include href='embedding.xml'/>
+    <!-- this is generated -->
+    <xi:include href='../../../build/src/docbook/dsl.xml'/>
     <!-- this is generated -->
     <xi:include href='../../../build/src/docbook/samplesList.xml'/>
     <xi:include href='potentialTraps.xml'/>
