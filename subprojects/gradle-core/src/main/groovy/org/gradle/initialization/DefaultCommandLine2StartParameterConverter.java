@@ -73,6 +73,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String HELP = "h";
     private static final String GUI = "gui";
     private static final String ALL = "all";
+    private static final String PROFILE = "profile";
 
     private final OptionParser parser = new OptionParser() {
         {
@@ -125,6 +126,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             acceptsAll(WrapUtil.toList(EXCLUDE_TASK, "exclude-task"), "Specify a task to be excluded from execution.")
                     .withRequiredArg().ofType(String.class);
             acceptsAll(WrapUtil.toList(NO_COLOR), "Do not use color in the console output.");
+            acceptsAll(WrapUtil.toList(PROFILE), "Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
             acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
         }};
 
@@ -288,6 +290,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         startParameter.setLogLevel(getLogLevel(options));
         if (options.has(NO_COLOR)) {
             startParameter.setColorOutput(false);
+        }
+
+        if (options.has(PROFILE)) {
+            startParameter.setProfile(true);
         }
     }
 

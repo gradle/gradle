@@ -119,6 +119,12 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
+            <term><option>--profile</option></term>
+            <listitem><para>Profiles build execution time and generates a report in the
+                &lt;build_dir>/reports/profile directory.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
             <term><option>-q</option>, <option>--quiet</option></term>
             <listitem><para>Log errors only. See <xref linkend="logging"/>.</para></listitem>
         </varlistentry>

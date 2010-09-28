@@ -85,6 +85,7 @@ public class BuildSourceBuilder {
         StartParameter startParameterArg = startParameter.newInstance();
         startParameterArg.setProjectProperties(startParameter.getProjectProperties());
         startParameterArg.setSearchUpwards(false);
+        startParameterArg.setProfile(startParameter.isProfile());
 
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build

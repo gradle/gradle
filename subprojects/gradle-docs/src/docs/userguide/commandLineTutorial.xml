@@ -157,6 +157,25 @@
                 <output args="-q --properties :api" ignoreExtraLines="true"/>
             </sample>
         </section>
+        <section id="sec:profiling_build">
+            <title>Profiling a build</title>
+            <para>The <userinput>--profile</userinput> command line option will record some useful timing information
+            while your build is running and write a report to the <filename>build/reports/profile</filename> directory.
+            The report will be named using the time when the build was run.
+            </para>
+            <para>This report lists summary times and details for both the configuration phase and task execution.  The
+                times for configuration and task execution are sorted with the most expensive operations first.  The task
+                execution results also indicate if any tasks were skipped (and the reason) or if tasks that were not skipped
+                did no work.
+            </para>
+            <para>Builds which utilize a buildSrc directory will generate a second profile report for buildSrc in the
+                <filename>buildSrc/build</filename> directory.                
+            </para>
+            <imageobject>
+                <imagedata fileref="img/profile.png" width="903px" depth="477px"/>
+            </imageobject>
+
+        </section>
     </section>
 
     <section>

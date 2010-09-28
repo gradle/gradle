@@ -30,6 +30,7 @@ import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
+import org.gradle.profile.ProfileListener;
 import org.gradle.util.WrapUtil;
 
 /**
@@ -71,6 +72,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public GradleLauncher newInstance(StartParameter startParameter) {
+        long profilingStarted = System.currentTimeMillis();
         TopLevelBuildServiceRegistry serviceRegistry = new TopLevelBuildServiceRegistry(sharedServices, startParameter);
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
@@ -84,6 +86,10 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
         listenerManager.addListener(tracker);
         listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
+
+        if (startParameter.isProfile()) {
+            listenerManager.addListener(new ProfileListener(profilingStarted));
+        }
 
         DefaultGradle gradle = new DefaultGradle(
                 tracker.getCurrentBuild(),

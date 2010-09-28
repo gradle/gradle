@@ -66,6 +66,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
     private StartParameter actualStartParameter;
+    private boolean expectedProfile;
+
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
 
@@ -108,6 +110,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
+        assertEquals(expectedProfile, startParameter.isProfile());
     }
 
     private void checkConversion(final boolean embedded, final boolean noTasks, String... args) {
@@ -401,5 +404,11 @@ public class DefaultCommandLine2StartParameterConverterTest {
         File script2 = new File("init2.gradle");
         expectedInitScripts.add(script2);
         checkConversion("-Iinit1.gradle", "-Iinit2.gradle");
+    }
+
+    @Test
+    public void withProfile() {
+        expectedProfile = true;
+        checkConversion("--profile");
     }
 }
