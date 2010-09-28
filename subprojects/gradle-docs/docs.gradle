@@ -17,6 +17,7 @@
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
+import org.gradle.build.docs.AssembleDslDocTask
 
 apply plugin: 'base'
 
@@ -65,6 +66,9 @@ tasks.withType(UserGuideTransformTask).allObjects { task->
     task.dependsOn samples
     task.snippetsDir = samples.snippetsDir
 }
+tasks.withType(AssembleDslDocTask).allObjects { task ->
+    task.classpath = configurations.userGuideTask
+}
 
 task samples(type: ExtractSnippetsTask) {
     source samplesSrcDir
@@ -109,8 +113,29 @@ task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
+task dslDocbook(type: AssembleDslDocTask) {
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['dsl/*.xml'])
+    sourceFile = new File(userguideSrcDir, 'dsl/dsl.xml')
+    destFile = new File(docbookSrc, 'dsl.xml')
+}
+
+task dslHtml(type: Docbook2Xhtml, dependsOn: dslDocbook) {
+    source dslDocbook.destFile
+    destDir = new File(docsDir, 'dsl')
+    stylesheetName = 'userGuideHtml.xsl'
+    resources = fileTree {
+        from userguideSrcDir
+        include 'img/*.png'
+    }
+    resources += fileTree {
+        from cssSrcDir
+        include '*.css'
+    }
+}
+
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, dslDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'userguide.xml')
     javadocUrl = '../javadoc'
@@ -119,6 +144,8 @@ task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samples
 }
 
 task remoteUserguideDocbook(type: UserGuideTransformTask, dependsOn: samples) {
+    inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'remoteUserguide.xml')
     doFirst {
@@ -177,6 +204,7 @@ task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
 }
 
 task javadoc(type: Javadoc) {
+    group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.allJava }
     destinationDir = new File(docsDir, 'javadoc')
     classpath = files(groovyProjects().collect {project -> [project.sourceSets.main.compileClasspath, project.sourceSets.main.classes] })
@@ -202,6 +230,7 @@ task checkstyleApi(type: Checkstyle) {
 }
 
 task groovydoc(type: Groovydoc) {
+    group = 'documentation'
     source groovyProjects().collect {project -> project.sourceSets.main.groovy }
     destinationDir = new File(docsDir, 'groovydoc')
     includes = javadoc.includes
@@ -231,6 +260,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
 
 task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
+    inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
     destFile = new File(docbookSrc, 'website.xml')
     tags << 'website'
@@ -256,9 +286,17 @@ task websiteDocs(type: Docbook2Xhtml, dependsOn: websiteDocsSrc) {
     }
 }
 
-task userguide(dependsOn: [userguideHtml, userguideSingleHtml, userguidePdf], description: 'Generates the userguide')
+task userguide {
+    dependsOn userguideHtml, userguideSingleHtml, userguidePdf
+    description = 'Generates the userguide'
+    group = 'documentation'
+}
 
-task docs(dependsOn: [javadoc, groovydoc, userguide, distDocs, samplesDocs])
+task docs {
+    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs
+    description = 'Generates all documentation'
+    group = 'documentation'
+}
 
 task uploadDocs(dependsOn: docs) << {
     ftp(action: 'mkdir', remotedir: remoteLocations.docsRemoteDir)

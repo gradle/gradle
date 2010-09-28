@@ -11,6 +11,9 @@ import org.w3c.dom.Element
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.tasks.OutputFile
 
+/**
+ * Generates a chapter containing a summary of the readme files for the samples.
+ */
 class AssembleSamplesDocTask extends SourceTask {
     @OutputFile
     File destFile
@@ -74,9 +77,7 @@ class AssembleSamplesDocTask extends SourceTask {
                                     filename(sample.dir)
                                 }
                             }
-                            td {
-                                appendChild sample.firstPara
-                            }
+                            td(sample.firstPara)
                         }
                     }
                 }

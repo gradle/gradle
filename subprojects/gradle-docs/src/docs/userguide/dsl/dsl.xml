@@ -1,0 +1,9 @@
+<chapter id="dsl" xmlns:xi="http://www.w3.org/2001/XInclude">
+    <title>The Gradle DSL</title>
+    <note>
+        <para>This chapter is under construction.</para>
+    </note>
+    <para>This chapter describes the various types which make up the Gradle build DSL.</para>
+    <xi:include href='org.gradle.api.tasks.bundling.Tar.xml'/>
+    <xi:include href='org.gradle.api.tasks.bundling.Zip.xml'/>
+</chapter>

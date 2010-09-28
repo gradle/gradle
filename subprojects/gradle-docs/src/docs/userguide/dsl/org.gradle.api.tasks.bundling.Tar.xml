@@ -1,0 +1,47 @@
+<section>
+    <title>org.gradle.api.tasks.bundling.Tar</title>
+    <section>
+        <title>Description</title>
+        <para>Assembles a TAR archive.</para>
+    </section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>archiveName</literal></td>
+                <td><classname>String</classname></td>
+                <td>The archive name. If the name has not been explicitly set, the pattern for the name is:
+                    <literal>[baseName]-[appendix]-[version]-[classifier].[extension]</literal>.</td>
+            </tr>
+            <tr>
+                <td><literal>destinationDir</literal></td>
+                <td><classname>File</classname></td>
+                <td>The directory where the archive is generated into.</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Signature</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>from</literal></td>
+                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
+                <td>Specifies source files or directories to include in the archive.</td>
+            </tr>
+        </table>
+    </section>
+</section>
