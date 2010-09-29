@@ -1,4 +1,5 @@
 <section>
+    <para>Generates an IDEA project file.</para>
     <section>
         <title>Properties</title>
         <table>
@@ -10,13 +11,12 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>archiveName</literal></td>
-                <td>The archive name. If the name has not been explicitly set, the pattern for the name is:
-                    <literal>[baseName]-[appendix]-[version]-[classifier].[extension]</literal>.</td>
+                <td><literal>outputFile</literal></td>
+                <td>The ipr file.</td>
             </tr>
             <tr>
-                <td><literal>destinationDir</literal></td>
-                <td>The directory where the archive is generated into.</td>
+                <td><literal>javaVersion</literal></td>
+                <td>The java version used for defining the project sdk.</td>
             </tr>
         </table>
     </section>
@@ -30,6 +30,11 @@
                     <td>Description</td>
                 </tr>
             </thead>
+            <tr>
+                <td><literal>withXml</literal></td>
+                <td><literal>IdeaProject withXml(Closure closure)</literal></td>
+                <td>Adds a closure to be called when the ipr xml has been created.</td>
+            </tr>
         </table>
     </section>
 </section>

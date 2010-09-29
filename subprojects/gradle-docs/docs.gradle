@@ -18,6 +18,7 @@ import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
 import org.gradle.build.docs.AssembleDslDocTask
+import org.gradle.build.docs.ExtractDslMetaDataTask
 
 apply plugin: 'base'
 
@@ -114,9 +115,15 @@ task samplesDocs(type: Docbook2Xhtml, dependsOn: samplesDocbook) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task dslDocbook(type: AssembleDslDocTask) {
+task dslMetaData(type: ExtractDslMetaDataTask) {
+    source { groovydoc.source }
+    destFile = new File(docbookSrc, 'dsl-meta-data.bin')
+}
+
+task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['dsl/*.xml'])
     sourceFile = new File(userguideSrcDir, 'dsl/dsl.xml')
+    metaDataFile = dslMetaData.destFile
     destFile = new File(docbookSrc, 'dsl.xml')
 }
 

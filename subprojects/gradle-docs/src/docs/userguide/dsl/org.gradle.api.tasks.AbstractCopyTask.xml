@@ -10,13 +10,12 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>archiveName</literal></td>
-                <td>The archive name. If the name has not been explicitly set, the pattern for the name is:
-                    <literal>[baseName]-[appendix]-[version]-[classifier].[extension]</literal>.</td>
+                <td><literal>includes</literal></td>
+                <td>The set of include patterns.</td>
             </tr>
             <tr>
-                <td><literal>destinationDir</literal></td>
-                <td>The directory where the archive is generated into.</td>
+                <td><literal>excludes</literal></td>
+                <td>The set of exclude patterns.</td>
             </tr>
         </table>
     </section>
@@ -30,6 +29,11 @@
                     <td>Description</td>
                 </tr>
             </thead>
+            <tr>
+                <td><literal>from</literal></td>
+                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
+                <td>Specifies source files or directories to include.</td>
+            </tr>
         </table>
     </section>
 </section>

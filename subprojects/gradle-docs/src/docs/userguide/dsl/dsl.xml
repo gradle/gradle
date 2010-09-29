@@ -21,6 +21,9 @@
     <table>
         <title>Tasks</title>
         <tr>
+            <td>org.gradle.plugins.idea.IdeaProject</td>
+        </tr>
+        <tr>
             <td>org.gradle.api.tasks.bundling.Tar</td>
         </tr>
         <tr>

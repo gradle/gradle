@@ -14,6 +14,8 @@ import org.gradle.api.tasks.InputDirectory
 class AssembleDslDocTask extends DefaultTask {
     @InputFile
     File sourceFile
+    @InputFile
+    File metaDataFile
     @InputDirectory
     File classDocbookDir
     @OutputFile
@@ -32,7 +34,18 @@ class AssembleDslDocTask extends DefaultTask {
     private def transformDocument(Document document) {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
-                DslModel model = new DslModel(classDocbookDir, document, classpath)
+                Map<String, ClassMetaData> classes;
+                Thread.currentThread().contextClassLoader = ClassMetaData.classLoader
+                metaDataFile.withInputStream { InputStream instr ->
+                    ObjectInputStream ois = new ObjectInputStream(instr) {
+                        @Override protected Class<?> resolveClass(ObjectStreamClass objectStreamClass) {
+                            return AssembleDslDocTask.classLoader.loadClass(objectStreamClass.name)
+                        }
+
+                    }
+                    classes = ois.readObject()
+                }
+                DslModel model = new DslModel(classDocbookDir, document, classpath, classes)
                 def root = document.documentElement
                 root.table.each { Element table ->
                     insertTypes(table, model)
@@ -42,7 +55,6 @@ class AssembleDslDocTask extends DefaultTask {
     }
 
     def insertTypes(Element typeTable, DslModel model) {
-        Element root = typeTable.ownerDocument.documentElement
         typeTable.addFirst {
             thead {
                 tr {
@@ -53,23 +65,28 @@ class AssembleDslDocTask extends DefaultTask {
         }
 
         typeTable.tr.each { Element tr ->
-            String className = tr.td[0].text().trim()
-            ClassDoc classDoc = model.getClassDoc(className)
+            insertType(tr, model)
+        }
+    }
 
-            root << classDoc.classSection
+    def insertType(Element tr, DslModel model) {
+        String className = tr.td[0].text().trim()
+        ClassDoc classDoc = model.getClassDoc(className)
+        Element root = tr.ownerDocument.documentElement
 
-            tr.td[0].children = {
-                link(linkend: classDoc.id, classDoc.classSimpleName)
-            }
+        root << classDoc.classSection
 
-            Element classSection = root.lastChild
-            classSection['@id'] = classDoc.id
-            classSection.addFirst {
-                title(classDoc.classSimpleName)
-            }
-            tr << {
-                td(classDoc.description)
-            }
+        tr.td[0].children = {
+            link(linkend: classDoc.id, classDoc.classSimpleName)
+        }
+
+        Element classSection = root.lastChild
+        classSection['@id'] = classDoc.id
+        classSection.addFirst {
+            title(classDoc.classSimpleName)
+        }
+        tr << {
+            td(classDoc.description)
         }
     }
 }

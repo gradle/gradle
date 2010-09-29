@@ -1,5 +1,4 @@
 <section>
-    <extends>org.gradle.api.tasks.bundling.AbstractArchiveTask</extends>
     <para>Assembles a TAR archive.</para>
     <section>
         <title>Properties</title>
@@ -13,7 +12,6 @@
             </thead>
             <tr>
                 <td><literal>compression</literal></td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Compression"/></td>
                 <td>The compression to use for this archive.</td>
             </tr>
         </table>

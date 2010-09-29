@@ -12,12 +12,10 @@
             </thead>
             <tr>
                 <td><literal>name</literal></td>
-                <td><classname>String</classname></td>
                 <td>The name of the project.</td>
             </tr>
             <tr>
                 <td><literal>path</literal></td>
-                <td><classname>String</classname></td>
                 <td>The path of the project.</td>
             </tr>
         </table>

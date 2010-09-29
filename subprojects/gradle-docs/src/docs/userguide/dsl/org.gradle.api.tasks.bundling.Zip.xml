@@ -1,5 +1,4 @@
 <section>
-    <extends>org.gradle.api.tasks.bundling.AbstractArchiveTask</extends>
     <para>Assembles a ZIP archive.</para>
     <section>
         <title>Properties</title>
