@@ -132,7 +132,7 @@ configure(groovyProjects()) {
             configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
             source sourceSet.allGroovy
             classpath = sourceSet.compileClasspath
-            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}.xml")
+            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}-groovy.xml")
         }
     }
 }
