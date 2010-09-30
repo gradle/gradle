@@ -76,7 +76,7 @@ a {
     color: black;
 }
 
-.book > .titlepage > .title {
+.book .titlepage div.title {
     text-align: right;
     page-break-after: always;
     border: none;
@@ -84,7 +84,7 @@ a {
     margin: 0;
     padding-top: 24%;
     padding-left: 0;
-    padding-right: 0;
+    padding-right: 5%;
     padding-bottom: 0;
 }
 

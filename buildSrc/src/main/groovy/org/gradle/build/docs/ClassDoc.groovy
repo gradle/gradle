@@ -9,19 +9,29 @@ class ClassDoc {
     final String classSimpleName
     final ClassMetaData classMetaData
 
-    ClassDoc(String className, Element classSection, ClassMetaData classMetaData, DslModel model) {
+    ClassDoc(String className, Element classSection, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model) {
         this.classSection = classSection
         this.className = className
         id = "dsl:$className"
         classSimpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
 
+        classSection['@id'] = id
+        classSection.addFirst {
+            title(classSimpleName)
+        }
+
         propertiesTable.tr.each { Element tr ->
-            String propName = tr.td[0].text().trim()
+            def cells = tr.td
+            if (cells.size() != 2) {
+                throw new RuntimeException("Expected 2 cells in <tr>, found: $tr")
+            }
+            String propName = cells[0].text().trim()
             String type = classMetaData.classProperties[propName]
             if (!type) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.classProperties.keySet()}")
             }
+            tr.td[0].children = { literal(propName) }
             tr.td[0] + {
                 td {
                     if (type.startsWith('org.gradle')) {
@@ -45,15 +55,20 @@ class ClassDoc {
             }
         }
 
-        if (hasDescription) {
-            description + {
-                section {
-                    title('API Documentation')
-                    para {
-                        apilink('class': className, lang: lang)
-                    }
+        classSection.section[0].addBefore {
+            section {
+                title('API Documentation')
+                para {
+                    apilink('class': className, lang: lang)
                 }
             }
+        }
+
+        extensionMetaData.extensionClasses.each { Map map ->
+            ClassDoc extensionClassDoc = model.getClassDoc(map.extensionClass)
+            classSection << extensionClassDoc.classSection
+            
+            classSection.lastChild.title[0].text = "${map.plugin} - ${extensionClassDoc.classSimpleName}"
         }
     }
 

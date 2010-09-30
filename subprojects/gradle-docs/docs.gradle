@@ -123,7 +123,8 @@ task dslMetaData(type: ExtractDslMetaDataTask) {
 task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['dsl/*.xml'])
     sourceFile = new File(userguideSrcDir, 'dsl/dsl.xml')
-    metaDataFile = dslMetaData.destFile
+    classMetaDataFile = dslMetaData.destFile
+    pluginsMetaDataFile = new File(userguideSrcDir, 'dsl/plugins.xml')
     destFile = new File(docbookSrc, 'dsl.xml')
 }
 
@@ -216,6 +217,7 @@ task userguideXhtml(type: Docbook2Xhtml, dependsOn: remoteUserguideDocbook) {
 }
 
 task userguidePdf(type: Xhtml2Pdf, dependsOn: userguideXhtml) {
+    inputs.dir cssSrcDir
     sourceFile = userguideXhtml.destFile
     destFile = new File(userguideDir, 'userguide.pdf')
     classpath = configurations.userGuideTask

@@ -36,4 +36,14 @@ class BuildableDOMCategory {
             parent.insertBefore(element, firstChild)
         }
     }
+
+    public static addBefore(Element sibling, Closure cl) {
+        DomBuilder builder = new DomBuilder(sibling.ownerDocument, null)
+        cl.delegate = builder
+        cl.call()
+        def parent = sibling.parentNode
+        builder.elements.each { element ->
+            parent.insertBefore(element, sibling)
+        }
+    }
 }

@@ -11,11 +11,11 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>outputFile</literal></td>
+                <td>outputFile</td>
                 <td>The ipr file.</td>
             </tr>
             <tr>
-                <td><literal>javaVersion</literal></td>
+                <td>javaVersion</td>
                 <td>The java version used for defining the project sdk.</td>
             </tr>
         </table>

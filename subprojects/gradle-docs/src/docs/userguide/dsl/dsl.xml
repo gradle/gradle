@@ -7,7 +7,7 @@
 
     <!--
     -
-    - To Add more types to this chapter, add them to one of the following tables. The contents of
+    - To add more types to this chapter, add them to one of the following tables. The contents of
     - ${classname}.xml for each type listed below is added to this chapter.
     -
     -->
@@ -17,9 +17,12 @@
         <tr>
             <td>org.gradle.api.Project</td>
         </tr>
+        <tr>
+            <td>org.gradle.api.tasks.SourceSet</td>
+        </tr>
     </table>
     <table>
-        <title>Tasks</title>
+        <title>Task types</title>
         <tr>
             <td>org.gradle.plugins.idea.IdeaProject</td>
         </tr>

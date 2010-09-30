@@ -15,7 +15,9 @@ class AssembleDslDocTask extends DefaultTask {
     @InputFile
     File sourceFile
     @InputFile
-    File metaDataFile
+    File classMetaDataFile
+    @InputFile
+    File pluginsMetaDataFile
     @InputDirectory
     File classDocbookDir
     @OutputFile
@@ -34,24 +36,49 @@ class AssembleDslDocTask extends DefaultTask {
     private def transformDocument(Document document) {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
-                Map<String, ClassMetaData> classes;
-                Thread.currentThread().contextClassLoader = ClassMetaData.classLoader
-                metaDataFile.withInputStream { InputStream instr ->
-                    ObjectInputStream ois = new ObjectInputStream(instr) {
-                        @Override protected Class<?> resolveClass(ObjectStreamClass objectStreamClass) {
-                            return AssembleDslDocTask.classLoader.loadClass(objectStreamClass.name)
-                        }
-
-                    }
-                    classes = ois.readObject()
-                }
-                DslModel model = new DslModel(classDocbookDir, document, classpath, classes)
+                Map<String, ClassMetaData> classes = loadClassMetaData()
+                Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
+                DslModel model = new DslModel(classDocbookDir, document, classpath, classes, extensions)
                 def root = document.documentElement
                 root.table.each { Element table ->
                     insertTypes(table, model)
                 }
             }
         }
+    }
+
+    def loadPluginsMetaData() {
+        XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
+        provider.parse(pluginsMetaDataFile)
+        Map<String, ExtensionMetaData> extensions = [:]
+        provider.root.plugin.each { Element plugin ->
+            def description = plugin.'@description'
+            plugin.extends.each { Element e ->
+                def targetClass = e.'@targetClass'
+                def extensionClass = e.'@extensionClass'
+                def extension = extensions[targetClass]
+                if (!extension) {
+                    extension = new ExtensionMetaData(targetClass)
+                    extensions[targetClass] = extension
+                }
+                extension.add(description, extensionClass)
+            }
+        }
+        return extensions
+    }
+
+    def loadClassMetaData() {
+        Map<String, ClassMetaData> classes;
+        classMetaDataFile.withInputStream { InputStream instr ->
+            ObjectInputStream ois = new ObjectInputStream(instr) {
+                @Override protected Class<?> resolveClass(ObjectStreamClass objectStreamClass) {
+                    return AssembleDslDocTask.classLoader.loadClass(objectStreamClass.name)
+                }
+
+            }
+            classes = ois.readObject()
+        }
+        return classes
     }
 
     def insertTypes(Element typeTable, DslModel model) {
@@ -76,16 +103,10 @@ class AssembleDslDocTask extends DefaultTask {
 
         root << classDoc.classSection
 
-        tr.td[0].children = {
-            link(linkend: classDoc.id, classDoc.classSimpleName)
-        }
-
-        Element classSection = root.lastChild
-        classSection['@id'] = classDoc.id
-        classSection.addFirst {
-            title(classDoc.classSimpleName)
-        }
-        tr << {
+        tr.children = {
+            td {
+                link(linkend: classDoc.id, classDoc.classSimpleName)
+            }
             td(classDoc.description)
         }
     }

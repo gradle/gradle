@@ -10,12 +10,8 @@
                 </tr>
             </thead>
             <tr>
-                <td>includes</td>
-                <td>The set of include patterns.</td>
-            </tr>
-            <tr>
-                <td>excludes</td>
-                <td>The set of exclude patterns.</td>
+                <td>reportsDirName</td>
+                <td>The name of the reports directory, relative to the project's build directory.</td>
             </tr>
         </table>
     </section>
@@ -29,11 +25,6 @@
                     <td>Description</td>
                 </tr>
             </thead>
-            <tr>
-                <td><literal>from</literal></td>
-                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
-                <td>Specifies source files or directories to include.</td>
-            </tr>
         </table>
     </section>
 </section>

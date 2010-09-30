@@ -11,7 +11,7 @@
                 </tr>
             </thead>
             <tr>
-                <td><literal>compression</literal></td>
+                <td>compression</td>
                 <td>The compression to use for this archive.</td>
             </tr>
         </table>

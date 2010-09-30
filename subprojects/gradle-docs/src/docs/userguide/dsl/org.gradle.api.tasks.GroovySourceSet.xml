@@ -10,12 +10,10 @@
                 </tr>
             </thead>
             <tr>
-                <td>includes</td>
-                <td>The set of include patterns.</td>
-            </tr>
-            <tr>
-                <td>excludes</td>
-                <td>The set of exclude patterns.</td>
+                <td>groovy</td>
+                <td>The source to be compiled by the Groovy compiler for this source set. Any Java source present in
+                    this set will be passed to the Groovy compiler for joint compilation.
+                </td>
             </tr>
         </table>
     </section>
@@ -29,11 +27,6 @@
                     <td>Description</td>
                 </tr>
             </thead>
-            <tr>
-                <td><literal>from</literal></td>
-                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
-                <td>Specifies source files or directories to include.</td>
-            </tr>
         </table>
     </section>
 </section>

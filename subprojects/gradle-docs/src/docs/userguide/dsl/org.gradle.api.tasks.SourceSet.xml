@@ -1,4 +1,5 @@
 <section>
+    <para>Represents a logical group of Java source and resources.</para>
     <section>
         <title>Properties</title>
         <table>
@@ -10,12 +11,16 @@
                 </tr>
             </thead>
             <tr>
-                <td>includes</td>
-                <td>The set of include patterns.</td>
+                <td>name</td>
+                <td>The name of the source set.</td>
             </tr>
             <tr>
-                <td>excludes</td>
-                <td>The set of exclude patterns.</td>
+                <td>compileClasspath</td>
+                <td>The classpath used to compile this source.</td>
+            </tr>
+            <tr>
+                <td>runtimeClasspath</td>
+                <td>The classpath used to execute this source.</td>
             </tr>
         </table>
     </section>
@@ -29,11 +34,6 @@
                     <td>Description</td>
                 </tr>
             </thead>
-            <tr>
-                <td><literal>from</literal></td>
-                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
-                <td>Specifies source files or directories to include.</td>
-            </tr>
         </table>
     </section>
 </section>
