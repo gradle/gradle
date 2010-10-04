@@ -31,9 +31,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.execution.BuiltInTaskBuildExecuter;
-import org.gradle.execution.DependencyReportBuildExecuter;
-import org.gradle.execution.TaskReportBuildExecuter;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
 import org.gradle.util.Clock;
 import org.hamcrest.Matcher;
@@ -44,7 +41,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static org.gradle.util.Matchers.*;
+import static org.gradle.util.Matchers.containsLine;
+import static org.gradle.util.Matchers.hasMessage;
+import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -86,13 +85,13 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public InProcessGradleExecuter withTaskList() {
-        parameter.setBuildExecuter(new TaskReportBuildExecuter(BuiltInTaskBuildExecuter.ALL_PROJECTS_WILDCARD, true));
+        parameter.setTaskNames(toList("tasks"));
         return this;
     }
 
     @Override
     public InProcessGradleExecuter withDependencyList() {
-        parameter.setBuildExecuter(new DependencyReportBuildExecuter(BuiltInTaskBuildExecuter.ALL_PROJECTS_WILDCARD));
+        parameter.setTaskNames(toList("dependencies"));
         return this;
     }
 

@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.project.AbstractProject;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.util.GUtil;
 import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
@@ -298,6 +299,33 @@ public class TaskNameResolvingBuildExecuterTest {
     }
 
     @Test
+    public void canConfigureSingleTaskUsingCommandLineOptions() {
+        final TaskWithBooleanProperty task1 = task("name1", TaskWithBooleanProperty.class);
+        final Task task2 = task("name2");
+
+        context.checking(new Expectations() {{
+            one(resolver).selectAll("name1", project);
+            will(returnValue(tasks(task1)));
+            one(resolver).selectAll("name2", project);
+            will(returnValue(tasks(task2)));
+
+            Sequence sequence = context.sequence("tasks");
+
+            one(task1).setSomeFlag(true);
+
+            one(taskExecuter).addTasks(toSet(task1));
+            inSequence(sequence);
+
+            one(taskExecuter).addTasks(toSet(task2));
+            inSequence(sequence);
+        }});
+
+        TaskNameResolvingBuildExecuter executer = new TaskNameResolvingBuildExecuter(toList("name1", "--all", "name2"), resolver);
+        executer.select(gradle);
+        assertThat(executer.getDisplayName(), equalTo("primary tasks 'name1', 'name2'"));
+    }
+
+    @Test
     public void failsWhenUnknownTaskNameIsProvided() {
         final Task task1 = task("t1");
         final Task task2 = task("t2");
@@ -332,8 +360,12 @@ public class TaskNameResolvingBuildExecuterTest {
         }
     }
 
-    private Task task(final String name) {
-        final Task task = context.mock(Task.class);
+    private Task task(String name) {
+        return task(name, Task.class);
+    }
+
+    private <T extends Task> T task(final String name, Class<T> taskType) {
+        final T task = context.mock(taskType);
         context.checking(new Expectations(){{
             allowing(task).getName();
             will(returnValue(name));
@@ -353,4 +385,8 @@ public class TaskNameResolvingBuildExecuterTest {
         return map;
     }
 
+    public abstract class TaskWithBooleanProperty implements Task {
+        @CommandLineOption(options = "all", description = "Some boolean flag")
+        public void setSomeFlag(boolean flag) { }
+    }
 }

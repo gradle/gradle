@@ -13,21 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import java.lang.annotation.*;
 
-public class PropertyReportBuildExecuter extends BuiltInTaskBuildExecuter<PropertyReportTask> {
-    public PropertyReportBuildExecuter(String path) {
-        super(path);
-    }
+/**
+ * Marks a property as available from the command-line.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Inherited
+public @interface CommandLineOption {
+    /**
+     * The command-line options to map to this property.
+     *
+     * @return The command-line options.
+     */
+    String[] options();
 
-    @Override
-    protected Class<PropertyReportTask> getTaskType() {
-        return PropertyReportTask.class;
-    }
-
-    public String getDisplayName() {
-        return "property list";
-    }
+    /**
+     * The description of this command-line option.
+     *
+     * @return The description.
+     */
+    String description();
 }

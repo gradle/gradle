@@ -15,6 +15,8 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.util.GUtil;
+
 import java.util.*;
 
 public class ParsedCommandLine {
@@ -29,6 +31,11 @@ public class ParsedCommandLine {
                 optionsByString.put(optionStr, parsedOption);
             }
         }
+    }
+
+    @Override
+    public String toString() {
+        return String.format("options: %s, extraArguments: %s", GUtil.toString(presentOptions), GUtil.toString(extraArguments));
     }
 
     public boolean hasOption(String option) {

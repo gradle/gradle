@@ -24,6 +24,7 @@ public class CommandLineOption {
     private final Set<String> options;
     private Class<?> argumentType = Void.TYPE;
     private String description;
+    private String subcommand;
 
     public CommandLineOption(Iterable<String> options) {
         this.options = GUtil.addSets(options);
@@ -40,6 +41,15 @@ public class CommandLineOption {
 
     public CommandLineOption hasArguments() {
         argumentType = List.class;
+        return this;
+    }
+
+    public String getSubcommand() {
+        return subcommand;
+    }
+
+    public CommandLineOption mapsToSubcommand(String command) {
+        this.subcommand = command;
         return this;
     }
 

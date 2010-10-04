@@ -201,7 +201,7 @@ class CommandLineParserTest extends Specification {
         result.option('a').values == ['arg1', 'arg2', 'arg3', 'arg4']
     }
 
-    def parsesCommandLineWithNonOptions() {
+    def parsesCommandLineWithSubcommand() {
         parser.option('a')
 
         expect:
@@ -209,8 +209,50 @@ class CommandLineParserTest extends Specification {
         result.extraArguments == ['a']
         !result.hasOption('a')
 
-        result = parser.parse(['-a', 'a'])
+        result = parser.parse(['a', 'b'])
+        result.extraArguments == ['a', 'b']
+        !result.hasOption('a')
+    }
+
+    def parsesCommandLineWithOptionsAndSubcommand() {
+        parser.option('a')
+
+        expect:
+        def result = parser.parse(['-a', 'a'])
         result.extraArguments == ['a']
+        result.hasOption('a')
+
+        result = parser.parse(['a', '-a'])
+        result.extraArguments == ['a', '-a']
+        !result.hasOption('a')
+    }
+
+    def parsesCommandLineWithOptionsAndSubcommandWhenMixedOptionsAllowed() {
+        parser.option('a')
+        parser.allowMixedSubcommandsAndOptions()
+
+        expect:
+        def result = parser.parse(['-a', 'a'])
+        result.extraArguments == ['a']
+        result.hasOption('a')
+
+        result = parser.parse(['a', '-a'])
+        result.extraArguments == ['a']
+        result.hasOption('a')
+    }
+
+    def parsesCommandLineWithSubcommandThatHasOptions() {
+        expect:
+        def result = parser.parse(['a', '--option', 'b'])
+        result.extraArguments == ['a', '--option', 'b']
+    }
+    
+    def canTreatOptionAsSubcommand() {
+        parser.option('a').mapsToSubcommand('subcmd')
+
+        expect:
+        def result = parser.parse(['-a', '--option', 'b'])
+        result.extraArguments == ['subcmd', '--option', 'b']
         result.hasOption('a')
     }
 

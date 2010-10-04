@@ -24,9 +24,7 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.DependencyReportBuildExecuter;
-import org.gradle.execution.PropertyReportBuildExecuter;
-import org.gradle.execution.TaskReportBuildExecuter;
+import org.gradle.configuration.ImplicitTasksConfigurer;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -66,10 +64,10 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String EXCLUDE_TASK = "x";
     private static final String HELP = "h";
     private static final String GUI = "gui";
-    private static final String ALL = "all";
     private static final String PROFILE = "profile";
 
     private final CommandLineParser parser = new CommandLineParser() {{
+        allowMixedSubcommandsAndOptions();
         option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
         option(VERSION, "version").hasDescription("Print version info.");
@@ -79,10 +77,9 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         option(INFO, "info").hasDescription("Set log level to info.");
         option(STACKTRACE, "stacktrace").hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
         option(FULL_STACKTRACE, "full-stacktrace").hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
-        option(TASKS, "tasks").hasDescription("Show list of available tasks.");
-        option(ALL).hasDescription("Show additional details in the task listing.");
-        option(PROPERTIES, "properties").hasDescription("Show list of all available project properties.");
-        option(DEPENDENCIES, "dependencies").hasDescription("Show list of all project dependencies.");
+        option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.");
+        option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties.");
+        option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies.");
         option(GUI).hasDescription("Launches a GUI application");
         option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
         option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
@@ -204,11 +201,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
         }
 
-        if (options.hasOption(TASKS) && options.hasOption(PROPERTIES)) {
-            throw new CommandLineArgumentException(String.format(
-                    "Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
-        }
-
         if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES) && options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
             throw new CommandLineArgumentException(String.format(
                     "Error: The -%s and -%s options cannot be used together.", PROJECT_DEPENDENCY_TASK_NAMES,
@@ -224,13 +216,7 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                     normalizedTaskNames));
         }
 
-        if (options.hasOption(TASKS)) {
-            startParameter.setBuildExecuter(new TaskReportBuildExecuter(getSingleArgument(options), options.hasOption(ALL)));
-        } else if (options.hasOption(PROPERTIES)) {
-            startParameter.setBuildExecuter(new PropertyReportBuildExecuter(getSingleArgument(options)));
-        } else if (options.hasOption(DEPENDENCIES)) {
-            startParameter.setBuildExecuter(new DependencyReportBuildExecuter(getSingleArgument(options)));
-        } else if (!options.getExtraArguments().isEmpty()) {
+        if (!options.getExtraArguments().isEmpty()) {
             startParameter.setTaskNames(options.getExtraArguments());
         }
 
@@ -254,10 +240,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         if (options.hasOption(PROFILE)) {
             startParameter.setProfile(true);
         }
-    }
-
-    private String getSingleArgument(ParsedCommandLine options) {
-        return options.getExtraArguments().isEmpty() ? null : options.getExtraArguments().get(0);
     }
 
     public void showHelp(OutputStream out) {

@@ -24,7 +24,7 @@
             the command <userinput>gradle compile test</userinput> will execute the <literal>compile</literal> and
             <literal>test</literal> tasks. Gradle will execute the tasks in the order that they are listed on the
             command-line, and will also execute the dependencies for each task. Each task is executed once only,
-            regardless of why it is included in the build: whether it was specified on the command-line, or it a
+            regardless of how it came to be included in the build: whether it was specified on the command-line, or it a
             dependency of another task, or both. Let's look at an example.</para>
         <para>
             Below four tasks are defined. Both <literal>dist</literal> and <literal>test</literal> depend on the
@@ -95,23 +95,18 @@
         <para>Gradle provides several command-line options which show particular details of your build. This can be
             useful for understanding the structure and dependencies of your build, and for debugging problems.
         </para>
-        <para>If a report option is used without additional parameters, the respective report is generated for the current project.
-           If you add append <literal>?</literal> to the option the report is generated for the current project and all its subprojects.
-           If you add append a <link linkend="sec:project_and_task_paths">project path</link> the report will be generated for the
-            specified project.
-        </para>
         <para>In addition to the command-line options shown below, you can also use the
             <link linkend="project_reports_plugin">project report plugin</link> to add tasks to your project which will
             generate these reports.
         </para>
         <section id="sec:listing_tasks">
             <title>Listing tasks</title>
-            <para>Running <userinput>gradle --tasks</userinput> or <userinput>gradle -t</userinput>
-                gives you a list of the main tasks which make up the selected project. This report shows the default
-                tasks for the project, if any, and a description for each task. Below is an example of this report:
+            <para>Running <userinput>gradle tasks</userinput> gives you a list of the main tasks which make up the
+                selected project. This report shows the default tasks for the project, if any, and a description for
+                each task. Below is an example of this report:
             </para>
             <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about tasks">
-                <output args="-q -t"/>
+                <output args="-q tasks"/>
             </sample>
             <para>By default, this report shows only those tasks which have been assigned to a task group. You can do this
                 by setting the <literal>group</literal> property for the task. You can also set the <literal>description</literal>
@@ -120,12 +115,12 @@
             <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Changing the content of the task report">
                 <sourcefile file="build.gradle" snippet="add-task-to-report"/>
             </sample>
-            <para>You can obtain more information in the task listing by adding the <option>--all</option> option. With
+            <para>You can obtain more information in the task listing using the <option>--all</option> option. With
                 this option, the task report lists all tasks in the project, grouped by main task, and the dependencies
                 for each task. Here is an example:
             </para>
             <sample id="taskListAllReport" dir="userguide/tutorial/projectReports" title="Obtaining more information about tasks">
-                <output args="-q -t --all"/>
+                <output args="-q tasks --all"/>
             </sample>
         </section>
         <section>
@@ -139,22 +134,22 @@
         </section>
         <section id="sec:listing_dependencies">
             <title>Listing project dependencies</title>
-            <para id="para:commandline_dependency_report">Running <userinput>gradle --dependencies</userinput>
+            <para id="para:commandline_dependency_report">Running <userinput>gradle dependencies</userinput>
                 gives you a list of the dependencies of the selected project, broken down by configuration.  For each
                 configuration, the direct and transitive dependencies of that configuration are shown in a tree. Below
                 is an example of this report:
             </para>
             <sample id="dependencyListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about dependencies">
-                <output args="-q --dependencies ?"/>
+                <output args="-q dependencies api:dependencies webapp:dependencies"/>
             </sample>
         </section>
         <section id="sec:listing_properties">
             <title>Listing project properties</title>
-            <para>Running <userinput>gradle --properties</userinput> gives you a list of the properties of the selected
+            <para>Running <userinput>gradle properties</userinput> gives you a list of the properties of the selected
                 project. This is a snippet from the output:
             </para>
             <sample id="propertyListReport" dir="userguide/tutorial/projectReports" title="Information about properties">
-                <output args="-q --properties :api" ignoreExtraLines="true"/>
+                <output args="-q api:properties" ignoreExtraLines="true"/>
             </sample>
         </section>
         <section id="sec:profiling_build">

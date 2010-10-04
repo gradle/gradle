@@ -22,91 +22,114 @@ import java.io.OutputStream;
 import java.util.*;
 
 /**
- * A GNU-style command-line parser.
+ * <p>A command-line parser which supports a command/subcommand style command-line interface. Supports the following
+ * syntax:</p>
+ * <pre>
+ * &lt;option>* (&lt;subcommand> &lt;subcommand-option>*)*
+ * </pre>
  *
- * <ul>
- * <li>Short options are a '-' followed by a single character. For example: '-a'.</li>
- * <li>Long options are '--' followed by multiple characters. For example: '--long-option'.</li>
- * <li>Options can take arguments. The argument follows the option. For example: '-a arg' or '--long arg'.</li>
- * <li>Arguments can be attached to the option using '='. For example: '-a=arg' or '--long=arg'.</li>
- * <li>Arguments can be attached to short options. For example: '-aarg'.</li>
- * <li>Short options can be combined. For example '-ab' is equivalent to '-a -b'.</li>
- * <li>Anything else is treated as an extra argument. This includes a single '-'.</li>
- * <li>'--' indicates the end of the options. Anything following is not parsed and is treated as extra arguments
- * .</li>
- * </ul>
+ * <ul> <li>Short options are a '-' followed by a single character. For example: {@code -a}.</li>
+ *
+ * <li>Long options are '--' followed by multiple characters. For example: {@code --long-option}.</li>
+ *
+ * <li>Options can take arguments. The argument follows the option. For example: {@code -a arg} or {@code --long
+ * arg}.</li>
+ *
+ * <li>Arguments can be attached to the option using '='. For example: {@code -a=arg} or {@code --long=arg}.</li>
+ *
+ * <li>Arguments can be attached to short options. For example: {@code -aarg}.</li>
+ *
+ * <li>Short options can be combined. For example {@code -ab} is equivalent to {@code -a -b}.</li>
+ *
+ * <li>Anything else is treated as an extra argument. This includes a single {@code -} character.</li>
+ *
+ * <li>'--' indicates the end of the options. Anything following is not parsed and is treated as extra arguments.</li>
+ *
+ * <li>The parser is forgiving, and allows '--' to be used with short options and '-' to be used with long
+ * options.</li>
+ *
+ * <li>subcommands and their options do not need to be known at parse time.</li> </ul>
  */
 public class CommandLineParser {
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();
+    private boolean allowMixedOptions;
 
-    public ParsedCommandLine parse(String[] commandLine) {
+    /**
+     * Parses the given command-line.
+     *
+     * @param commandLine The command-line.
+     * @return The parsed command line.
+     * @throws org.gradle.CommandLineArgumentException
+     *          On parse failure.
+     */
+    public ParsedCommandLine parse(String[] commandLine) throws CommandLineArgumentException {
         return parse(Arrays.asList(commandLine));
     }
 
+    /**
+     * Parses the given command-line.
+     *
+     * @param commandLine The command-line.
+     * @return The parsed command line.
+     * @throws org.gradle.CommandLineArgumentException
+     *          On parse failure.
+     */
     public ParsedCommandLine parse(Iterable<String> commandLine) {
         ParsedCommandLine parsedCommandLine = new ParsedCommandLine(new HashSet<CommandLineOption>(optionsByString.values()));
-        OptionParseState needArgFor = null;
-        boolean optionsFinished = false;
+        ParseState parseState = new BeforeSubcommand(parsedCommandLine);
         for (String arg : commandLine) {
-            if (!optionsFinished && arg.matches("-.+")) {
-                if (needArgFor != null) {
-                    needArgFor.argumentMissing();
-                }
+            if (parseState.maybeStartOption(arg)) {
                 if (arg.equals("--")) {
-                    optionsFinished = true;
+                    parseState = new OptionsComplete(parsedCommandLine);
                 } else if (arg.matches("--[^=]+")) {
-                    OptionParseState parsedOption = addOption(parsedCommandLine, arg, arg.substring(2));
-                    needArgFor = parsedOption.asNextArg();
+                    OptionParseState parsedOption = parseState.addOption(arg, arg.substring(2));
+                    parseState = parsedOption.asNextArg();
                 } else if (arg.matches("--[^=]+=.*")) {
                     int endArg = arg.indexOf('=');
-                    OptionParseState parsedOption = addOption(parsedCommandLine, arg, arg.substring(2, endArg));
+                    OptionParseState parsedOption = parseState.addOption(arg, arg.substring(2, endArg));
                     parsedOption.addArgument(arg.substring(endArg + 1));
                 } else if (arg.matches("-[^=]=.*")) {
-                    OptionParseState parsedOption = addOption(parsedCommandLine, arg, arg.substring(1, 2));
+                    OptionParseState parsedOption = parseState.addOption(arg, arg.substring(1, 2));
                     parsedOption.addArgument(arg.substring(3));
                 } else {
                     assert arg.matches("-[^-].*");
                     String option = arg.substring(1);
                     if (optionsByString.containsKey(option)) {
-                        OptionParseState parsedOption = addOption(parsedCommandLine, arg, option);
-                        needArgFor = parsedOption.asNextArg();
+                        OptionParseState parsedOption = parseState.addOption(arg, option);
+                        parseState = parsedOption.asNextArg();
                     } else {
                         String option1 = arg.substring(1, 2);
-                        OptionParseState parsedOption = addOption(parsedCommandLine, arg, option1);
+                        OptionParseState parsedOption = parseState.addOption(arg, option1);
                         if (parsedOption.getHasArgument()) {
                             parsedOption.addArgument(arg.substring(2));
                         } else {
                             for (int i = 2; i < arg.length(); i++) {
                                 String optionStr = arg.substring(i, i + 1);
-                                parsedOption = addOption(parsedCommandLine, arg, optionStr);
+                                parsedOption = parseState.addOption(arg, optionStr);
                                 parsedOption.argumentMissing();
                             }
                         }
                     }
                 }
-            }
-            else if (needArgFor != null) {
-                needArgFor.addArgument(arg);
-                needArgFor = null;
             } else {
-                parsedCommandLine.addExtraValue(arg);
+                parseState = parseState.onExtraValue(arg);
             }
         }
-        if (needArgFor != null) {
-            needArgFor.argumentMissing();
-        }
+
+        parseState.complete();
         return parsedCommandLine;
     }
 
-    private OptionParseState addOption(ParsedCommandLine parsedCommandLine, String fullArg, String option) {
-        ParsedCommandLineOption parsedOption = parsedCommandLine.addOption(option);
-        String fullOptionStr = fullArg.startsWith("--") ? "--" + option : "-" + option;
-        if (parsedOption == null) {
-            throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", fullOptionStr));
-        }
-        return new OptionParseState(parsedOption, fullOptionStr);
+    public CommandLineParser allowMixedSubcommandsAndOptions() {
+        allowMixedOptions = true;
+        return this;
     }
 
+    /**
+     * Prints a usage message to the given stream.
+     *
+     * @param out The output stream to write to.
+     */
     public void printUsage(OutputStream out) {
         Formatter formatter = new Formatter(out);
         Set<CommandLineOption> orderedOptions = new TreeSet<CommandLineOption>(new OptionComparator());
@@ -139,6 +162,12 @@ public class CommandLineParser {
         formatter.flush();
     }
 
+    /**
+     * Defines a new option. By default, the option takes no arguments and has no description.
+     *
+     * @param options The options values.
+     * @return The option, which can be further configured.
+     */
     public CommandLineOption option(String... options) {
         for (String option : options) {
             if (optionsByString.containsKey(option)) {
@@ -155,24 +184,88 @@ public class CommandLineParser {
         return option;
     }
 
-    private static class OptionParseState {
-        private final ParsedCommandLineOption option;
-        private final String actualArg;
+    private static class OptionString {
+        private final String arg;
+        private final String option;
 
-        private OptionParseState(ParsedCommandLineOption option, String actualArg) {
+        private OptionString(String arg, String option) {
+            this.arg = arg;
             this.option = option;
-            this.actualArg = actualArg;
+        }
+
+        public String getDisplayName() {
+            return arg.startsWith("--") ? "--" + option : "-" + option;
+        }
+
+        @Override
+        public String toString() {
+            return getDisplayName();
+        }
+    }
+
+    private static abstract class ParseState {
+        public boolean maybeStartOption(String arg) {
+            return arg.matches("-.+");
+        }
+
+        public abstract ParseState onExtraValue(String arg);
+
+        public void complete() {
+        }
+
+        public OptionParseState addOption(String arg, String option) {
+            return addOption(new OptionString(arg, option));
+        }
+
+        public abstract OptionParseState addOption(OptionString option);
+    }
+
+    private static class OptionParseState extends ParseState {
+        private final ParsedCommandLineOption option;
+        private final OptionString actualOption;
+        private final ParseState nextState;
+
+        private OptionParseState(ParsedCommandLineOption option, OptionString actualOption, ParseState nextState) {
+            this.option = option;
+            this.actualOption = actualOption;
+            this.nextState = nextState;
+        }
+
+        @Override
+        public boolean maybeStartOption(String arg) {
+            if (super.maybeStartOption(arg)) {
+                argumentMissing();
+                return true;
+            } else {
+                return false;
+            }
+        }
+
+        @Override
+        public ParseState onExtraValue(String arg) {
+            addArgument(arg);
+            return nextState;
+        }
+
+        @Override
+        public void complete() {
+            argumentMissing();
+        }
+
+        @Override
+        public OptionParseState addOption(OptionString option) {
+            throw new UnsupportedOperationException();
         }
 
         public void addArgument(String argument) {
             if (!getHasArgument()) {
-                throw new CommandLineArgumentException(String.format("Command-line option '%s' does not take an argument.", actualArg));
+                throw new CommandLineArgumentException(String.format("Command-line option '%s' does not take an argument.", actualOption));
             }
             if (argument.length() == 0) {
-                throw new CommandLineArgumentException(String.format("An empty argument was provided for command-line option '%s'.", actualArg));
+                throw new CommandLineArgumentException(String.format("An empty argument was provided for command-line option '%s'.", actualOption));
             }
             if (!option.getValues().isEmpty() && !option.getOption().getAllowsMultipleArguments()) {
-                throw new CommandLineArgumentException(String.format("Multiple arguments were provided for command-line option '%s'.", actualArg));
+                throw new CommandLineArgumentException(String.format("Multiple arguments were provided for command-line option '%s'.", actualOption));
             }
             option.addArgument(argument);
         }
@@ -181,15 +274,90 @@ public class CommandLineParser {
             return option.getOption().getAllowsArguments();
         }
 
-        public OptionParseState asNextArg() {
-            return getHasArgument() ? this : null;
+        public ParseState asNextArg() {
+            return getHasArgument() ? this : nextState;
         }
 
         public void argumentMissing() {
             if (!getHasArgument()) {
                 return;
             }
-            throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", actualArg));
+            throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", actualOption));
+        }
+    }
+
+    private static class GlobalParseState extends ParseState {
+        final ParsedCommandLine commandLine;
+
+        GlobalParseState(ParsedCommandLine commandLine) {
+            this.commandLine = commandLine;
+        }
+
+        @Override
+        public OptionParseState addOption(OptionString option) {
+            ParsedCommandLineOption parsedOption = commandLine.addOption(option.option);
+            if (parsedOption == null) {
+                return onUnknownOption(option);
+            }
+            if (parsedOption.getOption().getSubcommand() != null) {
+                ParseState nextState = onExtraValue(parsedOption.getOption().getSubcommand());
+                return new OptionParseState(parsedOption, option, nextState);
+            }
+            return new OptionParseState(parsedOption, option, this);
+        }
+
+        OptionParseState onUnknownOption(OptionString option) {
+            throw new CommandLineArgumentException(String.format("Unknown command-line option '%s'.", option));
+        }
+
+        @Override
+        public ParseState onExtraValue(String arg) {
+            commandLine.addExtraValue(arg);
+            return this;
+        }
+    }
+
+    private class BeforeSubcommand extends GlobalParseState {
+        BeforeSubcommand(ParsedCommandLine commandLine) {
+            super(commandLine);
+        }
+
+        @Override
+        public ParseState onExtraValue(String arg) {
+            super.onExtraValue(arg);
+            return new AfterSubcommand(commandLine);
+        }
+    }
+
+    private class AfterSubcommand extends GlobalParseState {
+        AfterSubcommand(ParsedCommandLine commandLine) {
+            super(commandLine);
+        }
+
+        @Override
+        public OptionParseState addOption(OptionString option) {
+            if (allowMixedOptions) {
+                return super.addOption(option);
+            } else {
+                return onUnknownOption(option);
+            }
+        }
+
+        @Override
+        OptionParseState onUnknownOption(OptionString option) {
+            commandLine.addExtraValue(option.arg);
+            return new OptionParseState(new ParsedCommandLineOption(new CommandLineOption(Collections.singleton(option.option))), option, this);
+        }
+    }
+
+    private static class OptionsComplete extends GlobalParseState {
+        OptionsComplete(ParsedCommandLine commandLine) {
+            super(commandLine);
+        }
+
+        @Override
+        public boolean maybeStartOption(String arg) {
+            return false;
         }
     }
 
