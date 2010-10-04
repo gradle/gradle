@@ -83,7 +83,7 @@ that's likely to change over time. This version executes the command via GradleP
         TestExecutionInteraction executionInteraction = new TestExecutionInteraction();
 
         //execute a command. We don't really care what the command is, just something that generates output
-        TestUtility.executeBlocking( gradlePluginLord, "tasks", "Test Execution", executionInteraction, 60 )
+        TestUtility.executeBlocking( gradlePluginLord, "tasks", "Test Execution", executionInteraction, 80 )
 
         verifyLiveOutputObtained( executionInteraction );
     }
@@ -112,7 +112,7 @@ that's likely to change over time. This version executes the command via GradleR
                                             org.gradle.StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS,
                                             executionInteraction);
 
-        executionInteraction.waitForCompletion(60, TimeUnit.SECONDS)
+        executionInteraction.waitForCompletion(80, TimeUnit.SECONDS)
 
         verifyLiveOutputObtained( executionInteraction );
     }
