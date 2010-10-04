@@ -1,4 +1,4 @@
-package org.gradle.build.docs
+package org.gradle.build.docs.dsl
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputFile
@@ -10,7 +10,13 @@ import org.w3c.dom.Document
 import groovy.xml.dom.DOMCategory
 import org.w3c.dom.Element
 import org.gradle.api.tasks.InputDirectory
+import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.build.docs.BuildableDOMCategory
 
+/**
+ * Generates the docbook source for the DSL documentation. Uses meta-data extracted from the source, meta-data about the
+ * plugins, plus a docbook template file.
+ */
 class AssembleDslDocTask extends DefaultTask {
     @InputFile
     File sourceFile

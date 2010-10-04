@@ -1,4 +1,4 @@
-package org.gradle.build.docs
+package org.gradle.build.docs.dsl
 
 class ExtensionMetaData {
     final String targetClass

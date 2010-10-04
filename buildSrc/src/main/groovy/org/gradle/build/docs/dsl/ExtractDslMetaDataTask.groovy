@@ -1,4 +1,4 @@
-package org.gradle.build.docs
+package org.gradle.build.docs.dsl
 
 import org.codehaus.groovy.groovydoc.GroovyFieldDoc
 import org.codehaus.groovy.groovydoc.GroovyMethodDoc
@@ -10,6 +10,10 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 
+/**
+ * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
+ * for later use in generating the docbook source for the DSL.
+ */
 class ExtractDslMetaDataTask extends SourceTask {
     @OutputFile
     def File destFile
@@ -38,7 +42,10 @@ class ExtractDslMetaDataTask extends SourceTask {
             doc.methods().each { GroovyMethodDoc method ->
                 if (method.name().matches("get.+")) {
                     String propName = method.name()[3].toLowerCase() + method.name().substring(4)
-                    classMetaData.addProperty(propName, method.returnType().qualifiedTypeName())
+                    classMetaData.addReadableProperty(propName, method.returnType().qualifiedTypeName())
+                } else if (method.name().matches("set.+")) {
+                    String propName = method.name()[3].toLowerCase() + method.name().substring(4)
+                    classMetaData.addWriteableProperty(propName, method.returnType().qualifiedTypeName())
                 }
             }
 
@@ -50,7 +57,8 @@ class ExtractDslMetaDataTask extends SourceTask {
             doc.resolve(rootDoc)
 
             doc.properties().each { GroovyFieldDoc field ->
-                classMetaData.addProperty(field.name(), field.type().qualifiedTypeName())
+                classMetaData.addReadableProperty(field.name(), field.type().qualifiedTypeName())
+                classMetaData.addWriteableProperty(field.name(), field.type().qualifiedTypeName())
             }
         }
 

@@ -17,8 +17,8 @@
 import org.gradle.build.docs.UserGuideTransformTask
 import org.gradle.build.docs.ExtractSnippetsTask
 import org.gradle.build.docs.AssembleSamplesDocTask
-import org.gradle.build.docs.AssembleDslDocTask
-import org.gradle.build.docs.ExtractDslMetaDataTask
+import org.gradle.build.docs.dsl.AssembleDslDocTask
+import org.gradle.build.docs.dsl.ExtractDslMetaDataTask
 
 apply plugin: 'base'
 

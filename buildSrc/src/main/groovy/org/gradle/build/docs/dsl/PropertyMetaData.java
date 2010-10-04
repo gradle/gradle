@@ -13,23 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs;
+package org.gradle.build.docs.dsl;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.Map;
 
-public class ClassMetaData implements Serializable {
-    final String superClassName;
-    final boolean groovy;
-    final Map<String, String> classProperties = new HashMap<String, String>();
+public class PropertyMetaData implements Serializable {
+    private String type;
+    private boolean writeable;
 
-    public ClassMetaData(String superClassName, boolean isGroovy) {
-        this.superClassName = superClassName;
-        groovy = isGroovy;
+    public String getType() {
+        return type;
     }
 
-    public void addProperty(String name, String type) {
-        classProperties.put(name, type);
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isWriteable() {
+        return writeable;
+    }
+
+    public void setWriteable(boolean writeable) {
+        this.writeable = writeable;
     }
 }

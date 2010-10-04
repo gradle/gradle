@@ -1,6 +1,7 @@
-package org.gradle.build.docs
+package org.gradle.build.docs.dsl
 
 import org.w3c.dom.Document
+import org.gradle.build.docs.XIncludeAwareXmlProvider
 
 class DslModel {
     private final File classDocbookDir

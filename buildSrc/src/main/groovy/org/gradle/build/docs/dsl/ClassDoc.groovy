@@ -1,4 +1,4 @@
-package org.gradle.build.docs
+package org.gradle.build.docs.dsl
 
 import org.w3c.dom.Element
 
@@ -27,12 +27,13 @@ class ClassDoc {
                 throw new RuntimeException("Expected 2 cells in <tr>, found: $tr")
             }
             String propName = cells[0].text().trim()
-            String type = classMetaData.classProperties[propName]
-            if (!type) {
+            PropertyMetaData property = classMetaData.classProperties[propName]
+            if (!property) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.classProperties.keySet()}")
             }
+            String type = property.type
             tr.td[0].children = { literal(propName) }
-            tr.td[0] + {
+            tr.td[0].addAfter {
                 td {
                     if (type.startsWith('org.gradle')) {
                         apilink('class': type)
@@ -40,6 +41,9 @@ class ClassDoc {
                         classname(type.tokenize('.').last())
                     } else {
                         classname(type)
+                    }
+                    if (!property.writeable) {
+                        text(" (read-only)")
                     }
                 }
             }
