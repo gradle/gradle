@@ -17,24 +17,18 @@ package org.gradle.initialization;
 
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
-import joptsimple.OptionException;
-import joptsimple.OptionParser;
-import joptsimple.OptionSet;
 import org.gradle.CacheUsage;
 import org.gradle.CommandLineArgumentException;
 import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.initialization.Settings;
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.execution.DependencyReportBuildExecuter;
 import org.gradle.execution.PropertyReportBuildExecuter;
 import org.gradle.execution.TaskReportBuildExecuter;
-import org.gradle.util.WrapUtil;
 
 import java.io.File;
-import java.io.IOException;
 import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,60 +69,37 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String ALL = "all";
     private static final String PROFILE = "profile";
 
-    private final OptionParser parser = new OptionParser() {
-        {
-            acceptsAll(WrapUtil.toList(NO_SEARCH_UPWARDS, "no-search-upward"), String.format(
-                    "Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-            acceptsAll(WrapUtil.toList(CACHE, "cache"),
-                    "Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'")
-                    .withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(VERSION, "version"), "Print version info.");
-            acceptsAll(WrapUtil.toList(DEBUG, "debug"), "Log in debug mode (includes normal stacktrace).");
-            acceptsAll(WrapUtil.toList(QUIET, "quiet"), "Log errors only.");
-            acceptsAll(WrapUtil.toList(DRY_RUN, "dry-run"), "Runs the builds with all task actions disabled.");
-            acceptsAll(WrapUtil.toList(INFO, "info"), "Set log level to info.");
-            acceptsAll(WrapUtil.toList(STACKTRACE, "stacktrace"),
-                    "Print out the stacktrace also for user exceptions (e.g. compile error).");
-            acceptsAll(WrapUtil.toList(FULL_STACKTRACE, "full-stacktrace"),
-                    "Print out the full (very verbose) stacktrace for any exceptions.");
-            acceptsAll(WrapUtil.toList(TASKS, "tasks"), "Show list of available tasks.").
-                    withOptionalArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(ALL), "Show additional details in the task listing.");
-            acceptsAll(WrapUtil.toList(PROPERTIES, "properties"), "Show list of all available project properties.").
-                    withOptionalArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(DEPENDENCIES, "dependencies"), "Show list of all project dependencies.").
-                    withOptionalArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(GUI), "Launches a GUI application");
-            acceptsAll(WrapUtil.toList(PROJECT_DIR, "project-dir"),
-                    "Specifies the start directory for Gradle. Defaults to current directory.").withRequiredArg()
-                    .ofType(String.class);
-            acceptsAll(WrapUtil.toList(GRADLE_USER_HOME, "gradle-user-home"),
-                    "Specifies the gradle user home directory.").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(INIT_SCRIPT, "init-script"), "Specifies an initialization script.")
-                    .withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(SETTINGS_FILE, "settings-file"), "Specifies the settings file.")
-                    .withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(BUILD_FILE, "build-file"), "Specifies the build file.").withRequiredArg().ofType(
-                    String.class);
-            acceptsAll(WrapUtil.toList(SYSTEM_PROP, "system-prop"),
-                    "Set system property of the JVM (e.g. -Dmyprop=myvalue).").withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(PROJECT_PROP, "project-prop"),
-                    "Set project property for the build script (e.g. -Pmyprop=myvalue).").withRequiredArg().ofType(
-                    String.class);
-            acceptsAll(WrapUtil.toList(EMBEDDED_SCRIPT, "embedded"), "Specify an embedded build script.")
-                    .withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks"),
-                    "Specify additional tasks for building project dependencies.").withRequiredArg().ofType(
-                    String.class);
-            acceptsAll(WrapUtil.toList(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild"),
-                    "Do not rebuild project dependencies.");
-            acceptsAll(WrapUtil.toList(NO_OPT), "Ignore any task optimization.");
-            acceptsAll(WrapUtil.toList(EXCLUDE_TASK, "exclude-task"), "Specify a task to be excluded from execution.")
-                    .withRequiredArg().ofType(String.class);
-            acceptsAll(WrapUtil.toList(NO_COLOR), "Do not use color in the console output.");
-            acceptsAll(WrapUtil.toList(PROFILE), "Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
-            acceptsAll(WrapUtil.toList(HELP, "?", "help"), "Shows this help message");
-        }};
+    private final CommandLineParser parser = new CommandLineParser() {{
+        option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
+        option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
+        option(VERSION, "version").hasDescription("Print version info.");
+        option(DEBUG, "debug").hasDescription("Log in debug mode (includes normal stacktrace).");
+        option(QUIET, "quiet").hasDescription("Log errors only.");
+        option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
+        option(INFO, "info").hasDescription("Set log level to info.");
+        option(STACKTRACE, "stacktrace").hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
+        option(FULL_STACKTRACE, "full-stacktrace").hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
+        option(TASKS, "tasks").hasDescription("Show list of available tasks.");
+        option(ALL).hasDescription("Show additional details in the task listing.");
+        option(PROPERTIES, "properties").hasDescription("Show list of all available project properties.");
+        option(DEPENDENCIES, "dependencies").hasDescription("Show list of all project dependencies.");
+        option(GUI).hasDescription("Launches a GUI application");
+        option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
+        option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
+        option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
+        option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
+        option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
+        option(SYSTEM_PROP, "system-prop").hasArguments().hasDescription("Set system property of the JVM (e.g. -Dmyprop=myvalue).");
+        option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
+        option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.");
+        option(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks").hasArguments().hasDescription("Specify additional tasks for building project dependencies.");
+        option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
+        option(NO_OPT).hasDescription("Ignore any task optimization.");
+        option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
+        option(NO_COLOR).hasDescription("Do not use color in the console output.");
+        option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
+        option(HELP, "?", "help").hasDescription("Shows this help message");
+    }};
 
     private static BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
@@ -155,74 +126,63 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     }
 
     public void convert(String[] args, StartParameter startParameter) {
-        OptionSet options;
-        try {
-            options = parser.parse(args);
-        } catch (OptionException e) {
-            throw new CommandLineArgumentException(e.getMessage());
-        }
+        ParsedCommandLine options = parser.parse(args);
 
-        if (options.has(HELP)) {
+        if (options.hasOption(HELP)) {
             startParameter.setShowHelp(true);
             return;
         }
 
-        if (options.has(VERSION)) {
+        if (options.hasOption(VERSION)) {
             startParameter.setShowVersion(true);
             return;
         }
 
-        if (options.has(GUI)) {
+        if (options.hasOption(GUI)) {
             startParameter.setLaunchGUI(true);
         }
 
-        if (options.has(SYSTEM_PROP)) {
-            List<String> props = (List<String>) options.valuesOf(SYSTEM_PROP);
-            for (String keyValueExpression : props) {
-                String[] elements = keyValueExpression.split("=");
-                startParameter.getSystemPropertiesArgs().put(elements[0], elements.length == 1 ? "" : elements[1]);
-            }
+        for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
+            String[] elements = keyValueExpression.split("=");
+            startParameter.getSystemPropertiesArgs().put(elements[0], elements.length == 1 ? "" : elements[1]);
         }
 
-        if (options.has(PROJECT_PROP)) {
-            List<String> props = (List<String>) options.valuesOf(PROJECT_PROP);
-            for (String keyValueExpression : props) {
-                String[] elements = keyValueExpression.split("=");
-                startParameter.getProjectProperties().put(elements[0], elements.length == 1 ? "" : elements[1]);
-            }
+        for (String keyValueExpression : options.option(PROJECT_PROP).getValues()) {
+            String[] elements = keyValueExpression.split("=");
+            startParameter.getProjectProperties().put(elements[0], elements.length == 1 ? "" : elements[1]);
         }
 
-        if (options.has(NO_SEARCH_UPWARDS)) {
+        if (options.hasOption(NO_SEARCH_UPWARDS)) {
             startParameter.setSearchUpwards(false);
         }
 
-        if (options.has(PROJECT_DIR)) {
-            startParameter.setProjectDir(new File((String) options.valueOf(PROJECT_DIR)));
+        if (options.hasOption(PROJECT_DIR)) {
+            startParameter.setProjectDir(new File(options.option(PROJECT_DIR).getValue()));
         }
-        if (options.hasArgument(GRADLE_USER_HOME)) {
-            startParameter.setGradleUserHomeDir(new File((String) options.valueOf(GRADLE_USER_HOME)));
+        if (options.hasOption(GRADLE_USER_HOME)) {
+            startParameter.setGradleUserHomeDir(new File(options.option(GRADLE_USER_HOME).getValue()));
         }
-        if (options.hasArgument(BUILD_FILE)) {
-            startParameter.setBuildFile(new File((String) options.valueOf(BUILD_FILE)));
+        if (options.hasOption(BUILD_FILE)) {
+            startParameter.setBuildFile(new File(options.option(BUILD_FILE).getValue()));
         }
-        if (options.hasArgument(SETTINGS_FILE)) {
-            startParameter.setSettingsFile(new File((String) options.valueOf(SETTINGS_FILE)));
+        if (options.hasOption(SETTINGS_FILE)) {
+            startParameter.setSettingsFile(new File(options.option(SETTINGS_FILE).getValue()));
         }
 
-        for (String script : (List<String>) options.valuesOf(INIT_SCRIPT)) {
+        for (String script : options.option(INIT_SCRIPT).getValues()) {
             startParameter.addInitScript(new File(script));
         }
 
-        if (options.has(CACHE)) {
+        if (options.hasOption(CACHE)) {
             try {
-                startParameter.setCacheUsage(CacheUsage.fromString(options.valueOf(CACHE).toString()));
+                startParameter.setCacheUsage(CacheUsage.fromString(options.option(CACHE).getValue()));
             } catch (InvalidUserDataException e) {
                 throw new CommandLineArgumentException(e.getMessage());
             }
         }
 
-        if (options.has(EMBEDDED_SCRIPT)) {
-            if (options.has(BUILD_FILE) || options.has(NO_SEARCH_UPWARDS) || options.has(SETTINGS_FILE)) {
+        if (options.hasOption(EMBEDDED_SCRIPT)) {
+            if (options.hasOption(BUILD_FILE) || options.hasOption(NO_SEARCH_UPWARDS) || options.hasOption(SETTINGS_FILE)) {
                 System.err.println(String.format(
                         "Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
@@ -230,91 +190,90 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
                         "Error: The -%s option can't be used together with the -%s, -%s or -%s options.",
                         EMBEDDED_SCRIPT, BUILD_FILE, SETTINGS_FILE, NO_SEARCH_UPWARDS));
             }
-            startParameter.useEmbeddedBuildFile((String) options.valueOf(EMBEDDED_SCRIPT));
+            startParameter.useEmbeddedBuildFile(options.option(EMBEDDED_SCRIPT).getValue());
         }
 
-        if (options.has(FULL_STACKTRACE)) {
-            if (options.has(STACKTRACE)) {
+        if (options.hasOption(FULL_STACKTRACE)) {
+            if (options.hasOption(STACKTRACE)) {
                 throw new CommandLineArgumentException(String.format(
                         "Error: The -%s option can't be used together with the -%s option.", FULL_STACKTRACE,
                         STACKTRACE));
             }
             startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS_FULL);
-        } else if (options.has(STACKTRACE)) {
+        } else if (options.hasOption(STACKTRACE)) {
             startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
         }
 
-        if (options.has(TASKS) && options.has(PROPERTIES)) {
+        if (options.hasOption(TASKS) && options.hasOption(PROPERTIES)) {
             throw new CommandLineArgumentException(String.format(
                     "Error: The -%s and -%s options cannot be used together.", TASKS, PROPERTIES));
         }
 
-        if (options.has(PROJECT_DEPENDENCY_TASK_NAMES) && options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
+        if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES) && options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
             throw new CommandLineArgumentException(String.format(
                     "Error: The -%s and -%s options cannot be used together.", PROJECT_DEPENDENCY_TASK_NAMES,
                     NO_PROJECT_DEPENDENCY_REBUILD));
-        } else if (options.has(NO_PROJECT_DEPENDENCY_REBUILD)) {
+        } else if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
             startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
-        } else if (options.has(PROJECT_DEPENDENCY_TASK_NAMES)) {
+        } else if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES)) {
             List<String> normalizedTaskNames = new ArrayList<String>();
-            for (Object o : options.valuesOf(PROJECT_DEPENDENCY_TASK_NAMES)) {
-                String taskName = (String) o;
-                normalizedTaskNames.add(taskName.trim());
+            for (String taskName : options.option(PROJECT_DEPENDENCY_TASK_NAMES).getValues()) {
+                normalizedTaskNames.add(taskName);
             }
             startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(
                     normalizedTaskNames));
         }
 
-        if (options.has(TASKS)) {
-            startParameter.setBuildExecuter(new TaskReportBuildExecuter((String) options.valueOf(TASKS), options.has(ALL)));
-        } else if (options.has(PROPERTIES)) {
-            startParameter.setBuildExecuter(new PropertyReportBuildExecuter((String) options.valueOf(PROPERTIES)));
-        } else if (options.has(DEPENDENCIES)) {
-            startParameter.setBuildExecuter(new DependencyReportBuildExecuter((String) options.valueOf(DEPENDENCIES)));
-        } else if (!options.nonOptionArguments().isEmpty()) {
-            startParameter.setTaskNames(options.nonOptionArguments());
+        if (options.hasOption(TASKS)) {
+            startParameter.setBuildExecuter(new TaskReportBuildExecuter(getSingleArgument(options), options.hasOption(ALL)));
+        } else if (options.hasOption(PROPERTIES)) {
+            startParameter.setBuildExecuter(new PropertyReportBuildExecuter(getSingleArgument(options)));
+        } else if (options.hasOption(DEPENDENCIES)) {
+            startParameter.setBuildExecuter(new DependencyReportBuildExecuter(getSingleArgument(options)));
+        } else if (!options.getExtraArguments().isEmpty()) {
+            startParameter.setTaskNames(options.getExtraArguments());
         }
 
-        if (options.has(DRY_RUN)) {
+        if (options.hasOption(DRY_RUN)) {
             startParameter.setDryRun(true);
         }
 
-        if (options.has(NO_OPT)) {
+        if (options.hasOption(NO_OPT)) {
             startParameter.setNoOpt(true);
         }
 
-        if (options.has(EXCLUDE_TASK)) {
-            startParameter.setExcludedTaskNames((List<String>) options.valuesOf(EXCLUDE_TASK));
+        if (options.hasOption(EXCLUDE_TASK)) {
+            startParameter.setExcludedTaskNames(options.option(EXCLUDE_TASK).getValues());
         }
 
         startParameter.setLogLevel(getLogLevel(options));
-        if (options.has(NO_COLOR)) {
+        if (options.hasOption(NO_COLOR)) {
             startParameter.setColorOutput(false);
         }
 
-        if (options.has(PROFILE)) {
+        if (options.hasOption(PROFILE)) {
             startParameter.setProfile(true);
         }
     }
 
-    public void showHelp(OutputStream out) {
-        try {
-            parser.printHelpOn(out);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    private String getSingleArgument(ParsedCommandLine options) {
+        return options.getExtraArguments().isEmpty() ? null : options.getExtraArguments().get(0);
     }
 
-    private LogLevel getLogLevel(OptionSet options) {
+    public void showHelp(OutputStream out) {
+        parser.printUsage(out);
+    }
+
+    private LogLevel getLogLevel(ParsedCommandLine options) {
         LogLevel logLevel = null;
-        if (options.has(QUIET)) {
+        if (options.hasOption(QUIET)) {
             logLevel = LogLevel.QUIET;
         }
-        if (options.has(INFO)) {
+        if (options.hasOption(INFO)) {
             quitWithErrorIfLogLevelAlreadyDefined(logLevel, INFO);
             logLevel = LogLevel.INFO;
         }
-        if (options.has(DEBUG)) {
+        if (options.hasOption(DEBUG)) {
             quitWithErrorIfLogLevelAlreadyDefined(logLevel, DEBUG);
             logLevel = LogLevel.DEBUG;
         }

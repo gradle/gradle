@@ -61,6 +61,7 @@ public class Main {
         try {
             startParameter = parameterConverter.convert(args);
         } catch (Exception e) {
+            System.err.println();
             System.err.println(e.getMessage());
             showUsage(System.err);
             buildCompleter.exit(e);
@@ -105,13 +106,13 @@ public class Main {
     }
 
     private void showUsage(PrintStream out) {
-        String appName = System.getProperty("org.gradle.appname", "gradle");
         out.println();
         out.print("USAGE: ");
         new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
         parameterConverter.showHelp(out);
+        out.println();
     }
 
     public interface BuildCompleter {

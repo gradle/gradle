@@ -40,8 +40,7 @@ dependencies {
 
     compile libraries.ivy, "com.jcraft:jsch:0.1.42@jar", 'com.jcraft:jzlib:1.0.7@jar'
 
-    compile libraries.jopt_simple,
-            libraries.ant,
+    compile libraries.ant,
             libraries.ant_nodeps,
             libraries.logback_classic,
             libraries.logback_core,

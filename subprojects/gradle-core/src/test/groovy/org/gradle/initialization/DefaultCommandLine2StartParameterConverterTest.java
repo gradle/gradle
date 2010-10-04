@@ -288,7 +288,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withProjectDependencyTaskNames() {
         expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(WrapUtil.toList("task1",
                 "task2"));
-        checkConversion("-Atask1", "-A task2");
+        checkConversion("-Atask1", "-A", "task2");
     }
 
     @Test
@@ -338,7 +338,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withShowTasksAndPath() {
         String somePath = ":SomeProject";
-        checkConversion(false, true, "-t" + somePath);
+        checkConversion(false, true, "-t", somePath);
         BuildExecuter expectedExecuter = new TaskReportBuildExecuter(somePath, false);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
@@ -353,7 +353,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withShowPropertiesAndPath() {
         String somePath = ":SomeProject";
-        checkConversion(false, true, "-r" + somePath);
+        checkConversion(false, true, "-r", somePath);
         BuildExecuter expectedExecuter = new PropertyReportBuildExecuter(somePath);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
@@ -368,7 +368,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withShowDependenciesAndPath() {
         String somePath = ":SomeProject";
-        checkConversion(false, true, "-n" + somePath);
+        checkConversion(false, true, "-n", somePath);
         BuildExecuter expectedExecuter = new DependencyReportBuildExecuter(somePath);
         assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
     }
@@ -392,7 +392,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Test(expected = CommandLineArgumentException.class)
     public void withUpperAAndLowerAParameter() {
-        checkConversion("-a -Atask1");
+        checkConversion("-a", "-Atask1");
     }
 
     @Test
