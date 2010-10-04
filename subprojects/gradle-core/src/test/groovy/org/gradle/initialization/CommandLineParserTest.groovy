@@ -247,12 +247,13 @@ class CommandLineParserTest extends Specification {
 
         expect:
         parser.printUsage(outstr)
-        outstr.toString() == '''-a, --long-option                    this is option a
---another-long-option                this is a long option
--B
--b
--y, -z, --end-option, --last-option  this is the last option
-'''
+        outstr.toString().readLines() == [
+                '-a, --long-option                    this is option a',
+                '--another-long-option                this is a long option',
+                '-B',
+                '-b',
+                '-y, -z, --end-option, --last-option  this is the last option'
+        ]
     }
 
     def parseFailsWhenCommandLineContainsUnknownShortOption() {
