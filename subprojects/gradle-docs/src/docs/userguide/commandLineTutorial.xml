@@ -92,16 +92,31 @@
 
     <section id="sec:obtaining_information_about_your_build">
         <title>Obtaining information about your build</title>
-        <para>Gradle provides several command-line options which show particular details of your build. This can be
+        <para>Gradle provides several built-in tasks which show particular details of your build. This can be
             useful for understanding the structure and dependencies of your build, and for debugging problems.
         </para>
-        <para>In addition to the command-line options shown below, you can also use the
+        <para>In addition to the built-in tasks shown below, you can also use the
             <link linkend="project_reports_plugin">project report plugin</link> to add tasks to your project which will
             generate these reports.
         </para>
+        <section>
+            <title>Listing projects</title>
+            <para>Running <userinput>gradle projects</userinput> gives you a list of the sub-projects of the selected project,
+                displayed in a hierarchy. Here is an example:
+            </para>
+            <sample id="projectListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about projects">
+                <output args="-q projects"/>
+            </sample>
+            <para>The report shows the description of each project, if specified. You can provide a description for a project
+                by setting the <literal>description</literal> property:
+            </para>
+            <sample id="projectListReport" dir="userguide/tutorial/projectReports" title="Providing a description for a project">
+                <sourcefile file="build.gradle" snippet="project-description"/>
+            </sample>
+        </section>
         <section id="sec:listing_tasks">
             <title>Listing tasks</title>
-            <para>Running <userinput>gradle tasks</userinput> gives you a list of the main tasks which make up the
+            <para>Running <userinput>gradle tasks</userinput> gives you a list of the main tasks of the
                 selected project. This report shows the default tasks for the project, if any, and a description for
                 each task. Below is an example of this report:
             </para>
@@ -110,7 +125,7 @@
             </sample>
             <para>By default, this report shows only those tasks which have been assigned to a task group. You can do this
                 by setting the <literal>group</literal> property for the task. You can also set the <literal>description</literal>
-                property, to provide a description to be included in the report for the task.
+                property, to provide a description to be included in the report.
             </para>
             <sample id="taskListReport" dir="userguide/tutorial/projectReports" title="Changing the content of the task report">
                 <sourcefile file="build.gradle" snippet="add-task-to-report"/>
@@ -121,15 +136,6 @@
             </para>
             <sample id="taskListAllReport" dir="userguide/tutorial/projectReports" title="Obtaining more information about tasks">
                 <output args="-q tasks --all"/>
-            </sample>
-        </section>
-        <section>
-            <title>Listing projects</title>
-            <para>Running <userinput>gradle projects</userinput> gives you a list of the projects in the build, displayed
-                in a hierarchy. Here is an example:
-            </para>
-            <sample id="projectListReport" dir="userguide/tutorial/projectReports" title="Obtaining information about projects">
-                <output args="-q projects"/>
             </sample>
         </section>
         <section id="sec:listing_dependencies">

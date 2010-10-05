@@ -29,11 +29,12 @@ task libs {
     description = 'Builds the JAR'
 }
 
-// START SNIPPET add-task-to-report
 task dists {
-// END SNIPPET add-task-to-report
     dependsOn libs
+}
+
 // START SNIPPET add-task-to-report
+dists {
     description = 'Builds the distribution'
     group = 'build'
 }
@@ -57,7 +58,9 @@ subprojects {
 }
 
 project(':api') {
-    description = 'The shared API for the application'
+// START SNIPPET project-description
+description = 'The shared API for the application'
+// END SNIPPET project-description
     dependencies {
         compile "org.codehaus.groovy:groovy-all:1.7.4"
     }
