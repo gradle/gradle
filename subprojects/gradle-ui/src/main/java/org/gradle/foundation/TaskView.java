@@ -15,6 +15,8 @@
  */
 package org.gradle.foundation;
 
+import org.gradle.util.GUtil;
+
 import java.io.Serializable;
 
 /**
@@ -29,23 +31,17 @@ public class TaskView implements Comparable<TaskView>, Serializable {
     private String name;
     private String description;
     private boolean isDefault;
-            //whether or not this is one of potentially manny default tasks for its project.
+            //whether or not this is one of potentially many default tasks for its project.
 
     /**
-     * Instantiates an immutable view of a task. This is only meant to be called internally whenever generating a hierachy
+     * Instantiates an immutable view of a task. This is only meant to be called internally whenever generating a hierarchy
      * of projects and tasks.
      */
     /*package*/ TaskView(ProjectView project, String name, String description, boolean isDefault) {
         this.project = project;
         this.name = name;
         this.isDefault = isDefault;
-
-        if (description == null || description.trim().equals("")) {
-            this.description
-                    = "";  //just make a blank or null description empty so we don't have to check for null everywhere.
-        } else {
-            this.description = description;
-        }
+        this.description = GUtil.elvis(description, "");
     }
 
     public ProjectView getProject() {

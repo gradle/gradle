@@ -56,6 +56,8 @@ public class TestUtility {
         context.checking(new Expectations() {{
             allowing(project).getName();
             will(returnValue(name));
+            allowing(project).getDescription();
+            will(returnValue(null));
             allowing(project).getBuildFile();
             will(returnValue(new File(buildFilePath)));
             allowing(project).getDepth();
@@ -80,15 +82,10 @@ public class TestUtility {
      * empty array to set no sub projects.
     */
     public static void attachSubProjects(JUnit4Mockery context, final Project parentProject, Project... subProjectArray) {
-        final Set<Project> set = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
-
-        if (subProjectArray != null && subProjectArray.length != 0) {
-            set.addAll(Arrays.asList(subProjectArray));
-
-            //set the parent project of the sub projects
-            for (int index = 0; index < subProjectArray.length; index++) {
-                final Project subProject = subProjectArray[index];
-
+        final Map<String, Project> childProjects = new LinkedHashMap<String, Project>();
+        if (subProjectArray != null) {
+            for (final Project subProject : subProjectArray) {
+                childProjects.put(String.valueOf(childProjects.size()), subProject);
                 context.checking(new Expectations() {{
                     allowing(subProject).getParent();
                     will(returnValue(parentProject));
@@ -98,8 +95,8 @@ public class TestUtility {
 
         //populate the subprojects (this may be an empty set)
         context.checking(new Expectations() {{
-            allowing(parentProject).getSubprojects();
-            will(returnValue(set));
+            allowing(parentProject).getChildProjects();
+            will(returnValue(childProjects));
         }});
     }
 
@@ -155,8 +152,8 @@ public class TestUtility {
 
         //populate the task container (this may be an empty set)
         context.checking(new Expectations() {{
-            allowing(taskContainer).getAll();
-            will(returnValue(set));
+            allowing(taskContainer).iterator();
+            will(returnIterator(set));
         }});
     }
 

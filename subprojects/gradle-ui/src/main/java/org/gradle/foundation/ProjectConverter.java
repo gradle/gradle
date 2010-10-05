@@ -20,11 +20,7 @@ import org.gradle.api.Task;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * This converts Gradle's projects into ProjectView objects. These can be safely reused unlike Gradle's projects.
@@ -62,12 +58,12 @@ public class ProjectConverter {
      * @param rootLevelProject a root level project.
      */
     public void addRootLevelProject(Project rootLevelProject) {
-        ProjectView rootLevelProjectView = new ProjectView(rootLevelProject.getName(), rootLevelProject.getBuildFile());
+        ProjectView rootLevelProjectView = new ProjectView(null, rootLevelProject.getName(), rootLevelProject.getBuildFile(), rootLevelProject.getDescription());
         projectMap.put(rootLevelProject, rootLevelProjectView);
 
         rootLevelResultingProjects.add(rootLevelProjectView);
 
-        addSubProjects(rootLevelProject, rootLevelProjectView, 1);
+        addSubProjects(rootLevelProject, rootLevelProjectView);
 
         addTasks(rootLevelProject, rootLevelProjectView);
 
@@ -75,31 +71,22 @@ public class ProjectConverter {
     }
 
     /**
-     * Adds all sub projects of the specifed GradleProject.
+     * Adds all sub projects of the specified GradleProject.
      *
      * @param parentProject the source parent project. Where we get the sub projects from.
      * @param parentProjectView the destination of the sub projects from parentProject.
      */
-    private void addSubProjects(Project parentProject, ProjectView parentProjectView, int currentDepth) {
-        Set<Project> subProjects = parentProject.getSubprojects();
-        Iterator<Project> iterator = subProjects.iterator();
-        while (iterator.hasNext()) {
-            Project subProject = iterator.next();
-            int depth = subProject.getDepth();
-            if (depth
-                    == currentDepth)   //at the root, we seem to be getting all projects regardless of their depth (that is we'll get root:subproject1:subproject2 as the root's subproject). We'll ignore these and then add them to our hierarchy when we get to the correct depth.
-            {
-                ProjectView projectView = new ProjectView(subProject.getName(), subProject.getBuildFile());
-                projectMap.put(subProject, projectView);
+    private void addSubProjects(Project parentProject, ProjectView parentProjectView) {
+        Collection<Project> subProjects = parentProject.getChildProjects().values();
+        for (Project subProject : subProjects) {
+            ProjectView projectView = new ProjectView(parentProjectView, subProject.getName(), subProject.getBuildFile(), subProject.getDescription());
+            projectMap.put(subProject, projectView);
 
-                parentProjectView.addSubProject(projectView);
+            addTasks(subProject, projectView);
 
-                addTasks(subProject, projectView);
+            projectView.sortSubProjectsAndTasks();
 
-                projectView.sortSubProjectsAndTasks();
-
-                addSubProjects(subProject, projectView, currentDepth + 1);
-            }
+            addSubProjects(subProject, projectView);
         }
     }
 
@@ -111,8 +98,7 @@ public class ProjectConverter {
      */
     private void addTasks(Project project, ProjectView projectView) {
         List<String> defaultTasks = project.getDefaultTasks();
-        Set<Task> tasks = project.getTasks().getAll();
-        for (Task task : tasks) {
+        for (Task task : project.getTasks()) {
             String taskName = task.getName();
 
             boolean isDefault = defaultTasks.contains(taskName);
@@ -126,10 +112,7 @@ public class ProjectConverter {
      * them to ProjectViews. Obviously, this must be done after converting all Projects to ProjectViews.
      */
     private void buildDependencies() {
-        Iterator<Project> projectIterator = projectMap.keySet().iterator();
-        while (projectIterator.hasNext()) {
-            Project project = projectIterator.next();
-
+        for (Project project : projectMap.keySet()) {
             ProjectView projectView = projectMap.get(project);
 
             List<ProjectView> projectViewList = getProjectViews(project.getDependsOnProjects());

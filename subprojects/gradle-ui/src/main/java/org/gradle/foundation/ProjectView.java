@@ -15,6 +15,8 @@
  */
 package org.gradle.foundation;
 
+import org.gradle.util.GUtil;
+
 import java.io.File;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -31,22 +33,28 @@ import java.util.List;
  * @author mhunsicker
  */
 public class ProjectView implements Comparable<ProjectView>, Serializable {
-    private String name;
-    private ProjectView parentProject;
-            //will be null for any project until it is added as a sub project to another project. It is null for the root project always.
-    private List<ProjectView> subProjects = new ArrayList<ProjectView>();
-    private List<TaskView> tasks = new ArrayList<TaskView>();
-    private List<ProjectView> dependsOnProjects = new ArrayList<ProjectView>();
+    private final String name;
+    private final ProjectView parentProject;
+            // It is null for the root project.
+    private final List<ProjectView> subProjects = new ArrayList<ProjectView>();
+    private final List<TaskView> tasks = new ArrayList<TaskView>();
+    private final List<ProjectView> dependsOnProjects = new ArrayList<ProjectView>();
 
-    private File buildFile;
+    private final File buildFile;
+    private final String description;
 
     /**
      * Instantiates an immutable view of a project. This is only meant to be called internally whenever generating a
-     * hierachy of projects and tasks.
+     * hierarchy of projects and tasks.
      */
-    /*package*/ ProjectView(String name, File buildFile) {
+    /*package*/ ProjectView(ProjectView parentProject, String name, File buildFile, String description) {
+        this.parentProject = parentProject;
         this.name = name;
         this.buildFile = buildFile;
+        this.description = GUtil.elvis(description, "");
+        if (parentProject != null) {
+            parentProject.addSubProject(this);
+        }
     }
 
     public String getName() {
@@ -57,16 +65,16 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
         return buildFile;
     }
 
+    public String getDescription() {
+        return description;
+    }
+
     public String toString() {
         return name;
     }
 
     public ProjectView getParentProject() {
         return parentProject;
-    }
-
-    protected void setParentProject(ProjectView parentProject) {
-        this.parentProject = parentProject;
     }
 
     public int compareTo(ProjectView otherProject) {
@@ -87,7 +95,6 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
      * generating a hierachy of projects and tasks.
      */
     /*package*/ void addSubProject(ProjectView subProject) {
-        subProject.setParentProject(this);
         subProjects.add(subProject);
     }
 

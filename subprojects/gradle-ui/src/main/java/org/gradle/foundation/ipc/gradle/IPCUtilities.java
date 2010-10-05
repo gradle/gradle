@@ -41,7 +41,7 @@ public class IPCUtilities {
 
         ExecuteGradleCommandClientProtocol protocol = new ExecuteGradleCommandClientProtocol(gradle);
         GradleClient client = new GradleClient();
-        client.start(protocol, port.intValue());
+        client.start(protocol, port);
     }
 
     /**
@@ -61,8 +61,7 @@ public class IPCUtilities {
         }
 
         try {
-            int port = Integer.parseInt(portText);
-            return new Integer(port);
+            return Integer.parseInt(portText);
         } catch (NumberFormatException e) {
             LOGGER.error("Invalid " + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + " system property", e);
             return null;
@@ -84,6 +83,6 @@ public class IPCUtilities {
 
         TaskListClientProtocol protocol = new TaskListClientProtocol(gradle);
         GradleClient client = new GradleClient();
-        client.start(protocol, port.intValue());
+        client.start(protocol, port);
     }
 }

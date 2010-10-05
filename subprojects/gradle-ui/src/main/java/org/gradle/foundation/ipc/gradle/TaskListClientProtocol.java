@@ -15,9 +15,8 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
-import org.gradle.BuildListener;
+import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
-import org.gradle.api.initialization.Settings;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -66,7 +65,7 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
      * Listener used to delegate gradle messages to our listeners.
      *
      */
-    private class RefreshTaskListBuildListener implements BuildListener, StandardOutputListener
+    private class RefreshTaskListBuildListener extends BuildAdapter implements StandardOutputListener
     {
         private ClientProcess client;
         private StringBuffer allOutputText = new StringBuffer(); //this is potentially threaded, so use StringBuffer instead of StringBuilder
@@ -81,41 +80,11 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
         }
 
        /**
-        * <p>Called when the build is started.</p>
-        *
-        * @param gradle The build which is being started. Never null.
-        */
-       public void buildStarted( Gradle gradle ) { }
-
-       /**
-        * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
-        * ready to use to load the build projects.</p>
-        *
-        * @param settings The settings. Never null.
-        */
-       public void settingsEvaluated( Settings settings ) { }
-
-       /**
-        * <p>Called when the projects for the build have been created from the settings. None of the projects have been
-        * evaluated.</p>
-        *
-        * @param gradle The build which has been loaded. Never null.
-        */
-       public void projectsLoaded( Gradle gradle ) { }
-
-       /**
-        * <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are
-        * ready to use to populate the task graph.</p>
-        *
-        * @param gradle The build which has been evaluated. Never null.
-        */
-       public void projectsEvaluated( Gradle gradle ) { }
-
-       /**
         * <p>Called when the build is completed. All selected tasks have been executed.</p>
         *
-        * @param result The result of the build. Never null.
+        * @param buildResult The result of the build. Never null.
         */
+       @Override
        public void buildFinished( BuildResult buildResult )
        {
          boolean wasSuccessful = buildResult.getFailure() == null;
@@ -128,7 +97,7 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
              String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());
              output += details;
 
-             client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE, output, new Boolean(wasSuccessful));
+             client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE, output, wasSuccessful);
          } else {
              ProjectConverter buildExecuter = new ProjectConverter();
              List<ProjectView> projects = new ArrayList<ProjectView>();
