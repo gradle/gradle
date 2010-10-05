@@ -109,7 +109,7 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-no-color</option></term>
+            <term><option>--no-color</option></term>
             <listitem><para>Do not use color in the console output.</para></listitem>
         </varlistentry>
         <varlistentry>

@@ -20,7 +20,8 @@ import org.gradle.groovy.scripts.ScriptSource;
 import java.util.List;
 
 /**
- * A {@code LocationAwareException} is an exception which can be annotated with a location in a script.
+ * A {@code LocationAwareException} is an exception which can be annotated with a location in a script. Note that
+ * most implementations of this interface are generated dynamically by an {@link org.gradle.api.internal.ExceptionAnalyser}.
  */
 public interface LocationAwareException {
     /**

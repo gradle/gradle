@@ -55,7 +55,7 @@ public class ParsedCommandLine {
         return extraArguments;
     }
 
-    public void addExtraValue(String value) {
+    void addExtraValue(String value) {
         extraArguments.add(value);
     }
 
