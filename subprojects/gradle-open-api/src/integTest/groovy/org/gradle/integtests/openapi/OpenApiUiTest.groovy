@@ -402,7 +402,7 @@ public class OpenApiUiTest {
 
       //make sure that the actual request is the normal refresh request with our
       //(this line is really what we're trying to test)
-      Assert.assertThat( request.getFullCommandLine(), startsWith("-t -xtest") )
+      Assert.assertThat( request.getFullCommandLine(), startsWith("tasks -xtest") )
 
       testRequestObserver.waitForRequestExecutionComplete(80, TimeUnit.SECONDS)
 
