@@ -40,7 +40,7 @@ public class ImplicitTasksConfigurer implements Action<ProjectInternal> {
         task.setGroup(HELP_GROUP);
 
         task = tasks.add(PROJECTS_TASK, ProjectReportTask.class);
-        task.setDescription("Displays a list of the projects in this build.");
+        task.setDescription(String.format("Displays a list of the sub-projects of %s.", project));
         task.setGroup(HELP_GROUP);
 
         task = tasks.add(TASKS_TASK, TaskReportTask.class);

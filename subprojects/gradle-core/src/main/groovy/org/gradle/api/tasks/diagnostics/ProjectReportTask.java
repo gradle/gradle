@@ -21,7 +21,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
-import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
@@ -30,8 +31,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
-import static org.gradle.logging.StyledTextOutput.Style.Description;
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
+import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
  * <p>Displays a list of projects in the build. It is used when you use the project list command-line option.</p>
@@ -41,10 +41,34 @@ public class ProjectReportTask extends DefaultTask {
 
     @TaskAction
     void listProjects() {
-        TextReportRenderer renderer = new TextReportRenderer();
-        renderer.setOutput(textOutput);
-        renderer.writeHeading(StringUtils.capitalize(getProject().getGradle().toString()));
-        render(getProject().getRootProject(), new GraphRenderer(textOutput), true);
+        GradleLauncherMetaData metaData = new GradleLauncherMetaData();
+        Project project = getProject();
+
+        textOutput.println();
+        render(project, new GraphRenderer(textOutput), true);
+        if (project.getChildProjects().isEmpty()) {
+            textOutput.style(Info).text("No sub-projects").style(Normal).println();
+        }
+
+        textOutput.println();
+        textOutput.text("To see a list of the tasks of a particular project, run ");
+        textOutput.style(UserInput);
+        metaData.describeCommand(textOutput, String.format("<project-path>:%s", ImplicitTasksConfigurer.TASKS_TASK));
+        textOutput.style(Normal).println();
+
+        textOutput.text("For example, try running ");
+        textOutput.style(UserInput);
+        Project exampleProject = project.getChildProjects().isEmpty() ? project : getChildren(project).get(0);
+        metaData.describeCommand(textOutput, exampleProject.absolutePath(ImplicitTasksConfigurer.TASKS_TASK));
+        textOutput.style(Normal).println();
+
+        if (project != project.getRootProject()) {
+            textOutput.println();
+            textOutput.text("To see a list of all the projects in this build, run ");
+            textOutput.style(UserInput);
+            metaData.describeCommand(textOutput, project.getRootProject().absolutePath(ImplicitTasksConfigurer.PROJECTS_TASK));
+            textOutput.style(Normal).println();
+        }
     }
 
     private void render(final Project project, GraphRenderer renderer, boolean lastChild) {
@@ -57,12 +81,17 @@ public class ProjectReportTask extends DefaultTask {
             }
         }, lastChild);
         renderer.startChildren();
-        List<Project> children = new ArrayList<Project>(project.getChildProjects().values());
-        Collections.sort(children);
+        List<Project> children = getChildren(project);
         for (Project child : children) {
             render(child, renderer, child == children.get(children.size() - 1));
         }
         renderer.completeChildren();
+    }
+
+    private List<Project> getChildren(Project project) {
+        List<Project> children = new ArrayList<Project>(project.getChildProjects().values());
+        Collections.sort(children);
+        return children;
     }
 
     public StyledTextOutput getTextOutput() {
