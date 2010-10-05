@@ -16,20 +16,20 @@
 package org.gradle.gradleplugin.foundation;
 
 import org.codehaus.groovy.runtime.StackTraceUtils;
+import org.gradle.StartParameter;
 import org.gradle.api.LocationAwareException;
 import org.gradle.api.internal.DefaultClassPathProvider;
-import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.foundation.CommandLineAssistant;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
 import org.gradle.foundation.common.ObserverLord;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.queue.ExecutionQueue;
+import org.gradle.gradleplugin.foundation.favorites.FavoriteTask;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
@@ -37,11 +37,7 @@ import org.gradle.gradleplugin.foundation.request.Request;
 import org.gradle.util.GUtil;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Formatter;
-import java.util.List;
-import java.util.Iterator;
+import java.util.*;
 import java.util.concurrent.LinkedBlockingQueue;
 
 /**
@@ -556,7 +552,7 @@ public class GradlePluginLord {
        //we'll request a task list since there is no way to do a no op. We're not really interested
         //in what's being executed, just the ability to get the task list (which must be populated as
         //part of executing anything).
-        String fullCommandLine = '-' + DefaultCommandLine2StartParameterConverter.TASKS;
+        String fullCommandLine = ImplicitTasksConfigurer.TASKS_TASK;
 
         if( additionalCommandLineArguments != null )
         {
