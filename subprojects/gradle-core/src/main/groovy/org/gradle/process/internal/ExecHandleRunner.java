@@ -16,6 +16,8 @@
 
 package org.gradle.process.internal;
 
+import org.gradle.util.AutoFlushOutputStream;
+
 import java.util.concurrent.Executor;
 
 /**
@@ -68,7 +70,7 @@ public class ExecHandleRunner implements Runnable {
                 errorOutputRunner = new ExecOutputHandleRunner("read process error output", process.getErrorStream(),
                         execHandle.getErrorOutput());
                 standardInputRunner = new ExecOutputHandleRunner("write process standard input",
-                        execHandle.getStandardInput(), process.getOutputStream());
+                        execHandle.getStandardInput(), new AutoFlushOutputStream(process.getOutputStream()));
             }
             synchronized (lock) {
                 this.process = process;
