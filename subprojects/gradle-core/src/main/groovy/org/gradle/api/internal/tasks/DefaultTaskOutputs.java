@@ -63,6 +63,11 @@ public class DefaultTaskOutputs implements TaskOutputsInternal {
         return this;
     }
 
+    public TaskOutputs file(Object path) {
+        files(path);
+        return this;
+    }
+
     public TaskOutputs dir(Object path) {
         files(path);
         return this;
