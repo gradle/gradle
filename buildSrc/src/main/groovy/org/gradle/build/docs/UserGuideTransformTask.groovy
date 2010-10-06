@@ -198,7 +198,7 @@ public class UserGuideTransformTask extends DefaultTask {
                             exampleElement.appendChild(outputTitle)
 
                             Element screenElement = doc.createElement('screen')
-                            File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}")
+                            File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
                             screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
                             exampleElement.appendChild(screenElement)
                         } else if (child.name() == 'test') {

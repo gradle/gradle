@@ -89,6 +89,11 @@
                     <td>The absolute path of the project.</td>
                 </tr>
                 <tr>
+                    <td><literal>description</literal></td>
+                    <td><classname>String</classname></td>
+                    <td>A description for the project.</td>
+                </tr>
+                <tr>
                     <td><literal>buildFile</literal></td>
                     <td><classname>File</classname></td>
                     <td>The build script.</td>
