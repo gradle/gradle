@@ -335,7 +335,7 @@ public class MultithreadedTestCase {
      *
      * @param tick The expected clock tick.
      */
-    private void expectLater(final int tick) {
+    public void expectLater(final int tick) {
         final Thread targetThread = Thread.currentThread();
         LOGGER.debug("Thread {} expecting tick {}", targetThread, tick);
         start(new Runnable() {

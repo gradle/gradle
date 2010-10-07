@@ -16,8 +16,10 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.util.AutoFlushOutputStream;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
+import org.gradle.util.DisconnectableInputStream;
 
+import java.io.InputStream;
 import java.util.concurrent.Executor;
 
 /**
@@ -58,6 +60,7 @@ public class ExecHandleRunner implements Runnable {
             ExecOutputHandleRunner standardOutputRunner;
             ExecOutputHandleRunner errorOutputRunner;
             ExecOutputHandleRunner standardInputRunner;
+            InputStream instr = new DisconnectableInputStream(execHandle.getStandardInput(), new DefaultExecutorFactory());
             Process process;
 
             // This big fat static lock is here for windows. When starting multiple processes concurrently, the stdout
@@ -70,7 +73,7 @@ public class ExecHandleRunner implements Runnable {
                 errorOutputRunner = new ExecOutputHandleRunner("read process error output", process.getErrorStream(),
                         execHandle.getErrorOutput());
                 standardInputRunner = new ExecOutputHandleRunner("write process standard input",
-                        execHandle.getStandardInput(), new AutoFlushOutputStream(process.getOutputStream()));
+                        instr, process.getOutputStream());
             }
             synchronized (lock) {
                 this.process = process;
@@ -83,6 +86,7 @@ public class ExecHandleRunner implements Runnable {
             execHandle.started();
 
             exitCode = process.waitFor();
+            instr.close();
         } catch (Throwable t) {
             execHandle.failed(t);
             return;
