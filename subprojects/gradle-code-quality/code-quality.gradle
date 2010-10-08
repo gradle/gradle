@@ -19,19 +19,19 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    compile "org.codenarc:CodeNarc:0.9@jar"
+    compile "org.codenarc:CodeNarc:0.10@jar"
     compile libraries.slf4j_api
- 
-    runtime libraries.log4j_to_slf4j,
-            "org.gmetrics:GMetrics:0.2@jar"
 
-    def BEAN_UTILS = ["commons-beanutils:commons-beanutils-core:1.7.0@jar", "commons-collections:commons-collections:2.0@jar", libraries.jcl_to_slf4j]
-    runtime "checkstyle:checkstyle:5.1@jar",
-            libraries.antlr,
-            libraries.jcl_to_slf4j,
+    // CodeNarc dependencies
+    runtime libraries.log4j_to_slf4j,
+            "org.gmetrics:GMetrics:0.3@jar"
+
+    // Checkstyle dependencies
+    runtime "com.puppycrawl.tools:checkstyle:5.2@jar",
             libraries.google_collections,
-            BEAN_UTILS
-    
+            libraries.antlr,
+            "commons-beanutils:commons-beanutils-core:1.8.3@jar"
+
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
