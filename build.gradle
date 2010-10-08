@@ -56,7 +56,7 @@ libraries = [
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         google_collections: 'com.google.collections:google-collections:1.0@jar',
         groovy: 'org.codehaus.groovy:groovy-all:1.7.5@jar',
-        ivy: 'org.apache.ivy:ivy:2.2.0-rc1@jar',
+        ivy: 'org.apache.ivy:ivy:2.2.0@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         slf4j_api: 'org.slf4j:slf4j-api:1.6.1@jar',
         jcl_to_slf4j: 'org.slf4j:jcl-over-slf4j:1.6.1@jar',
@@ -70,8 +70,8 @@ libraries = [
 
 libraries.spock = ['org.spockframework:spock-core:0.4-groovy-1.7@jar', libraries.groovy, 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2']
 libraries.groovy_depends = [libraries.groovy, libraries.commons_cli]
-libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.22@jar", "org.mortbay.jetty:jetty-util:6.1.22@jar",
-        "javax.servlet:servlet-api:2.5@jar"]
+libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.25@jar", "org.mortbay.jetty:jetty-util:6.1.25@jar",
+        "org.mortbay.jetty:servlet-api:2.5-20081211@jar"]
 
 allprojects {
     group = 'org.gradle'

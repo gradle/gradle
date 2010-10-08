@@ -21,13 +21,13 @@ dependencies {
 
     compile libraries.slf4j_api,
             libraries.jetty_depends,
-            "org.mortbay.jetty:jetty-plus:6.1.22@jar"
+            "org.mortbay.jetty:jetty-plus:6.1.25@jar"
 
     runtime "org.mortbay.jetty:jsp-api-2.1:6.1.14@jar",
             "org.mortbay.jetty:jsp-2.1:6.1.14@jar",
             "org.eclipse.jdt:core:3.1.1@jar",
-            "org.mortbay.jetty:jetty-naming:6.1.22@jar",
-            "org.mortbay.jetty:jetty-annotations:6.1.22@jar"
+            "org.mortbay.jetty:jetty-naming:6.1.25@jar",
+            "org.mortbay.jetty:jetty-annotations:6.1.25@jar"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
