@@ -34,7 +34,7 @@ public class Help extends DefaultTask {
         output.formatln("Welcome to Gradle %s.", new GradleVersion().getVersion());
         output.println();
         output.text("To run a build, run ").style(UserInput);
-        metaData.describeCommand(output, "<task-name> ...");
+        metaData.describeCommand(output, "<task> ...");
         output.style(Normal).println();
         output.println();
         output.text("To see a list of available tasks, run ").style(UserInput);

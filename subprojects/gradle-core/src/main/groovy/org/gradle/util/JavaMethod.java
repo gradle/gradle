@@ -32,6 +32,12 @@ public class JavaMethod<T, R> {
         method.setAccessible(true);
     }
 
+    public JavaMethod(Class<T> target, Class<R> returnType, Method method) {
+        this.returnType = returnType;
+        this.method = method;
+        method.setAccessible(true);
+    }
+
     private Method findMethod(Class target, String name, Class<?>[] paramTypes) {
         for (Method method : target.getDeclaredMethods()) {
             if (Modifier.isStatic(method.getModifiers())) {

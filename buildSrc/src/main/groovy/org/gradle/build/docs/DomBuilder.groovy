@@ -6,15 +6,29 @@ import org.w3c.dom.Node
 
 class DomBuilder extends BuilderSupport {
     Document document
+    Node parent
+    List elements = []
 
-    def DomBuilder(document) {
-        this.document = document;
+    def DomBuilder(Document document) {
+        this.document = document
+        this.parent = document
+    }
+    
+    def DomBuilder(Element parent) {
+        this.document = parent.ownerDocument
+        this.parent = parent
+    }
+
+    def DomBuilder(Document document, Element parent) {
+        this.document = document
+        this.parent = parent
     }
 
     protected Element createNode(Object name) {
         Element element = document.createElement(name as String)
-        if (document.documentElement == null) {
-            document.appendChild(element)
+        if (getCurrent() == null) {
+            elements << element
+            parent?.appendChild(element)
         }
         return element
     }
@@ -29,7 +43,11 @@ class DomBuilder extends BuilderSupport {
 
     protected Element createNode(Object name, Map attributes, Object value) {
         Element element = createNode(name, attributes)
-        element.appendChild(document.createTextNode(value as String))
+        if (value instanceof Node) {
+            element.appendChild(document.importNode(value, true))       
+        } else {
+            element.appendChild(document.createTextNode(value as String))
+        }
         return element
     }
 

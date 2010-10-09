@@ -28,7 +28,7 @@ test.testReport = false
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    groovy 'org.codehaus.groovy:groovy-all:1.7.3'
+    groovy 'org.codehaus.groovy:groovy-all:1.7.5'
 }
 <% } %>
 

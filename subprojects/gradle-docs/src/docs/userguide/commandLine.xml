@@ -109,13 +109,19 @@
             </para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-no-color</option></term>
+            <term><option>--no-color</option></term>
             <listitem><para>Do not use color in the console output.</para></listitem>
         </varlistentry>
         <varlistentry>
             <term><option>-p</option>, <option>--project-dir</option></term>
             <listitem><para>Specifies the start directory for Gradle. Defaults to current directory.
                 See <xref linkend="sec:selecting_build"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>--profile</option></term>
+            <listitem><para>Profiles build execution time and generates a report in the
+                &lt;build_dir>/reports/profile directory.
             </para></listitem>
         </varlistentry>
         <varlistentry>

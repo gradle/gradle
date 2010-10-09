@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.CommandLineOption;
 import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
 import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
@@ -42,6 +43,7 @@ public class TaskReportTask extends AbstractReportTask {
         this.renderer = renderer;
     }
 
+    @CommandLineOption(options = "all", description = "Show additional tasks and detail.")
     public void setShowDetail(boolean detail) {
         this.detail = detail;
     }

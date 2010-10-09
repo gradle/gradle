@@ -67,12 +67,20 @@ public interface TaskOutputs {
     FileCollection getFiles();
 
     /**
-     * Registers some output files/directories for this task.
+     * Registers some output files for this task.
      *
      * @param paths The output files. The given paths are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      * @return this
      */
     TaskOutputs files(Object... paths);
+
+    /**
+     * Registers some output file for this task.
+     *
+     * @param path The output file. The given path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @return this
+     */
+    TaskOutputs file(Object path);
 
     /**
      * Registers an output directory for this task.

@@ -55,6 +55,7 @@ public class Main {
         try {
             startParameter = parameterConverter.convert(args);
         } catch (Exception e) {
+            System.err.println();
             System.err.println(e.getMessage());
             showUsage(System.err);
             buildCompleter.exit(e);
@@ -96,6 +97,7 @@ public class Main {
         out.println();
         out.println();
         parameterConverter.showHelp(out);
+        out.println();
     }
 
     public interface BuildCompleter {

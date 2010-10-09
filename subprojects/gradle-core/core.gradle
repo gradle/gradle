@@ -40,8 +40,7 @@ dependencies {
 
     compile libraries.ivy, "com.jcraft:jsch:0.1.42@jar", 'com.jcraft:jzlib:1.0.7@jar'
 
-    compile libraries.jopt_simple,
-            libraries.ant,
+    compile libraries.ant,
             libraries.ant_nodeps,
             libraries.logback_classic,
             libraries.logback_core,
@@ -53,7 +52,7 @@ dependencies {
             libraries.google_collections,
             "commons-collections:commons-collections:3.2.1@jar",
             "slide:webdavlib:2.0@jar",
-            "org.apache.maven:maven-ant-tasks:2.1.0@jar",
+            "org.apache.maven:maven-ant-tasks:2.1.1@jar",
             libraries.asm_all,
             'org.fusesource.jansi:jansi:1.2.1',
             'org.jruby.ext.posix:jna-posix:1.0.3',

@@ -48,6 +48,7 @@ public class ExecOutputHandleRunner implements Runnable {
                     break;
                 }
                 outputStream.write(buffer, 0, nread);
+                outputStream.flush();
             }
             new CompositeStoppable(inputStream, outputStream).stop();
         } catch (Throwable t) {

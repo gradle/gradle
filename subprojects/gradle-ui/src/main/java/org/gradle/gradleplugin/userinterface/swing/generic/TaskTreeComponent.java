@@ -493,6 +493,11 @@ public class TaskTreeComponent {
             interaction.projectInvoked(project);
         }
 
+        @Override
+        public String getDescription() {
+            return project.getDescription();
+        }
+
         public ProjectView getProject() {
             return project;
         }

@@ -24,8 +24,7 @@ dependencies {
 
     compile libraries.dom4j,
             libraries.commons_io,
-            libraries.slf4j_api,
-            libraries.jopt_simple
+            libraries.slf4j_api
 
     runtime libraries.jaxen
 

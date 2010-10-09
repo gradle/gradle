@@ -1,0 +1,39 @@
+<section>
+    <para>Represents a logical group of Java source and resources.</para>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>name</td>
+                <td>The name of the source set.</td>
+            </tr>
+            <tr>
+                <td>compileClasspath</td>
+                <td>The classpath used to compile this source.</td>
+            </tr>
+            <tr>
+                <td>runtimeClasspath</td>
+                <td>The classpath used to execute this source.</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Signature</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

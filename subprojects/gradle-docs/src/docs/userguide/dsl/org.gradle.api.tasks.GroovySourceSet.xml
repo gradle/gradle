@@ -1,0 +1,32 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>groovy</td>
+                <td>The source to be compiled by the Groovy compiler for this source set. Any Java source present in
+                    this set will be passed to the Groovy compiler for joint compilation.
+                </td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Signature</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+        </table>
+    </section>
+</section>

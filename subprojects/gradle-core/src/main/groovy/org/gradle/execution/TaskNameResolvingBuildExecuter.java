@@ -18,14 +18,15 @@ package org.gradle.execution;
 import com.google.common.collect.LinkedHashMultimap;
 import com.google.common.collect.Multimap;
 import com.google.common.collect.SetMultimap;
-import org.apache.commons.lang.StringUtils;
-import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.CommandLineOption;
+import org.gradle.initialization.CommandLineParser;
+import org.gradle.initialization.ParsedCommandLine;
 import org.gradle.util.GUtil;
-import org.gradle.util.NameMatcher;
+import org.gradle.util.JavaMethod;
 
+import java.lang.reflect.Method;
 import java.util.*;
 
 /**
@@ -52,7 +53,7 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
     }
 
     public void select(GradleInternal gradle) {
-        SetMultimap<String, Task> selectedTasks = doSelect(gradle, names, taskNameResolver);
+        Multimap<String, Task> selectedTasks = doSelect(gradle, names, taskNameResolver);
 
         this.executer = gradle.getTaskGraph();
         for (String name : selectedTasks.keySet()) {
@@ -65,79 +66,43 @@ public class TaskNameResolvingBuildExecuter implements BuildExecuter {
         }
     }
 
-    static Set<Task> select(GradleInternal gradle, Iterable<String> names) {
-        return new LinkedHashSet<Task>(doSelect(gradle, names, new TaskNameResolver()).values());
-    }
-
-    private static SetMultimap<String, Task> doSelect(GradleInternal gradle, Iterable<String> paths, TaskNameResolver taskNameResolver) {
-
+    private Multimap<String, Task> doSelect(GradleInternal gradle, List<String> paths, TaskNameResolver taskNameResolver) {
         SetMultimap<String, Task> matches = LinkedHashMultimap.create();
-        for (String path : paths) {
-            Multimap<String, Task> tasksByName;
-            String baseName;
-            String prefix;
+        TaskSelector selector = new TaskSelector(taskNameResolver);
+        List<String> remainingPaths = paths;
+        while (!remainingPaths.isEmpty()) {
+            String path = remainingPaths.get(0);
+            selector.selectTasks(gradle, path);
 
-            ProjectInternal project = gradle.getDefaultProject();
-
-            if (path.contains(Project.PATH_SEPARATOR)) {
-                String projectPath = StringUtils.substringBeforeLast(path, Project.PATH_SEPARATOR);
-                projectPath = projectPath.length() == 0 ? Project.PATH_SEPARATOR : projectPath;
-                project = findProject(project, projectPath);
-                baseName = StringUtils.substringAfterLast(path, Project.PATH_SEPARATOR);
-                prefix = project.getPath() + Project.PATH_SEPARATOR;
-
-                tasksByName = taskNameResolver.select(baseName, project);
-            }
-            else {
-                baseName = path;
-                prefix = "";
-
-                tasksByName = taskNameResolver.selectAll(path, project);
+            CommandLineParser commandLineParser = new CommandLineParser();
+            Set<Task> tasks = selector.getTasks();
+            Map<String, JavaMethod<Task, ?>> options = new HashMap<String, JavaMethod<Task, ?>>();
+            if (tasks.size() == 1) {
+                for (Class<?> type = tasks.iterator().next().getClass(); type != Object.class; type = type.getSuperclass()) {
+                    for (Method method : type.getDeclaredMethods()) {
+                        CommandLineOption commandLineOption = method.getAnnotation(CommandLineOption.class);
+                        if (commandLineOption != null) {
+                            commandLineParser.option(commandLineOption.options()).hasDescription(commandLineOption.description());
+                            options.put(commandLineOption.options()[0], new JavaMethod<Task, Object>(Task.class, Object.class, method));
+                        }
+                    }
+                }
             }
 
-            Collection<Task> tasks = tasksByName.get(baseName);
-            if (!tasks.isEmpty()) {
-                matches.putAll(path, tasks);
-                continue;
+            ParsedCommandLine commandLine = commandLineParser.parse(remainingPaths.subList(1, remainingPaths.size()));
+            for (Map.Entry<String, JavaMethod<Task, ?>> entry : options.entrySet()) {
+                if (commandLine.hasOption(entry.getKey())) {
+                    for (Task task : tasks) {
+                        entry.getValue().invoke(task, true);
+                    }
+                }
             }
+            remainingPaths = commandLine.getExtraArguments();
 
-            NameMatcher matcher = new NameMatcher();
-            String actualName = matcher.find(baseName, tasksByName.keySet());
-
-            if (actualName != null) {
-                matches.putAll(prefix + actualName, tasksByName.get(actualName));
-                continue;
-            }
-
-            throw new TaskSelectionException(matcher.formatErrorMessage("task", project));
+            matches.putAll(selector.getTaskName(), tasks);
         }
 
         return matches;
-    }
-
-    private static ProjectInternal findProject(ProjectInternal startFrom, String path) {
-        if (path.equals(Project.PATH_SEPARATOR)) {
-            return startFrom.getRootProject();
-        }
-        Project current = startFrom;
-        if (path.startsWith(Project.PATH_SEPARATOR)) {
-            current = current.getRootProject();
-            path = path.substring(1);
-        }
-        for (String pattern : path.split(Project.PATH_SEPARATOR)) {
-            Map<String, Project> children = current.getChildProjects();
-
-            NameMatcher matcher = new NameMatcher();
-            Project child = matcher.find(pattern, children);
-            if (child != null) {
-                current = child;
-                continue;
-            }
-
-            throw new TaskSelectionException(matcher.formatErrorMessage("project", current));
-        }
-
-        return (ProjectInternal) current;
     }
 
     public String getDisplayName() {

@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='more_about_tasks' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='more_about_tasks'>
     <title>More about Tasks</title>
     <para>In the introductory tutorial (<xref linkend='tutorial_using_tasks'/>) you have learned how to
         create simple tasks. You have also learned how to add additional behavior to these tasks later on. And you have
@@ -227,11 +227,68 @@
         </sample>
         </section>
     </section>
-    
+
+    <section>
+        <title>Skipping tasks that are up-to-date</title>
+        <para>If you are using one of the tasks that come with Gradle, such as a task added by the Java plugin,
+            you might have noticed that Gradle will skip tasks that are up-to-date. This behaviour is also available
+            for your tasks, not just for built-in tasks.
+        </para>
+        <section>
+            <title>Declaring a task's inputs and outputs</title>
+            <para>
+                Let's have a look at an example. Here our task generates several output files from a source XML file. Let's
+                run it a couple of times.
+            </para>
+            <sample id="generatorTask" dir="userguide/tasks/incrementalBuild/noInputsAndOutputs" title="A generator task">
+                <sourcefile file="build.gradle"/>
+                <output args="transform" ignoreExtraLines="true"/>
+                <output args="transform" ignoreExtraLines="true"/>
+            </sample>
+            <para>Notice that Gradle executes this task a second time, and does not skip the task even though nothing has
+                changed. Our example task was defined using an action closure. Gradle has no idea what the closure does and
+                cannot automatically figure out whether the task is up-to-date or not. To use Gradle's up-to-date checking,
+                you need to declare the inputs and outputs of the task.
+            </para>
+            <para>Each task has an <literal>inputs</literal> and <literal>outputs</literal> property, which you use to
+                declare the inputs and outputs of the task. Below, we have changed our example to declare that it takes
+                the source XML file as an input and produces output to a destination directory. Let's run it a couple
+                of times.
+            </para>
+            <sample id="incrementalTask" dir="userguide/tasks/incrementalBuild/inputsAndOutputs" title="Declaring the inputs and outputs of a task">
+                <sourcefile file="build.gradle"/>
+                <output args="transform" outputFile="generatorTask.out" ignoreExtraLines="true"/>
+                <output args="transform" ignoreExtraLines="true"/>
+            </sample>
+            <para>Now, Gradle knows which files to check to determine whether the task is up-to-date or not.</para>
+
+            <para>The task's <literal>inputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskInputs"/>.
+                The task's <literal>outputs</literal> property is of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>.
+            </para>
+        </section>
+        <section>
+            <title>How does it work?</title>
+            <para>
+                Before a task is executed for the first time, Gradle takes a snapshot of the inputs. This snapshot contains
+                the set of input files and a hash of the contents of each file. Gradle then executes the task. If the
+                task completes successfully, Gradle takes a snapshot of the outputs. This snapshot contains the set of
+                output files and a hash of the contents of each file. Gradle takes note of any files created, changed or
+                deleted in the output directories of the task. Gradle persists both snapshots for next time the task
+                is executed.
+            </para>
+            <para>
+                Each time after that, before the task is executed, Gradle takes a new snapshot of the inputs and outputs.
+                If the new snapshots are the same as the previous snapshots, Gradle assumes that the outputs are up to
+                date and skips the task. If they are not the same, Gradle executes the task. Gradle persists both snapshots
+                for next time the task is executed.
+            </para>
+        </section>
+    </section>
+
     <section>
         <title>Task rules</title>
         <para>Sometimes you want to have a task which behavior depends on a large or infinite number value range
-            of parameters. A very nice and expressive way to provide such tasks are task rules: 
+            of parameters. A very nice and expressive way to provide such tasks are task rules:
         </para>
         <sample id="taskRule" dir="userguide/tasks/addRules" title="Task rule">
             <sourcefile file="build.gradle" snippet="task-rule"/>

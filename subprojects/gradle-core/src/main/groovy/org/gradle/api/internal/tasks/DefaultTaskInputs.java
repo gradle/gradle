@@ -49,6 +49,11 @@ public class DefaultTaskInputs implements TaskInputs {
         return this;
     }
 
+    public TaskInputs file(Object path) {
+        files(path);
+        return this;
+    }
+
     public TaskInputs dir(Object dirPath) {
         inputFiles.from(resolver.resolveFilesAsTree(dirPath));
         return this;

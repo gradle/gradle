@@ -122,7 +122,9 @@
             <xsl:apply-templates select="." mode="class.value"/>
         </xsl:param>
         <div class="{$class}">
-            <xsl:call-template name="formal.object.heading"/>
+            <xsl:if test="title">
+                <xsl:call-template name="formal.object.heading"/>
+            </xsl:if>
             <div class="{$class}-contents">
                 <table>
                     <xsl:copy-of select="@*[not(local-name()='id')]"/>

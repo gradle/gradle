@@ -1,0 +1,40 @@
+<section>
+    <para>Generates an IDEA project file.</para>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>outputFile</td>
+                <td>The ipr file.</td>
+            </tr>
+            <tr>
+                <td>javaVersion</td>
+                <td>The java version used for defining the project sdk.</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Signature</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>withXml</literal></td>
+                <td><literal>IdeaProject withXml(Closure closure)</literal></td>
+                <td>Adds a closure to be called when the ipr xml has been created.</td>
+            </tr>
+        </table>
+    </section>
+</section>

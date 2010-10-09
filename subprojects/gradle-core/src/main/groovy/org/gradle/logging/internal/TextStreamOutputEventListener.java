@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * A {@link org.gradle.logging.internal.OutputEventListener} implementation which assigns log levels to text output
- * events with no associated log level. This implementation is thread-safe.
+ * events that have no associated log level. This implementation is thread-safe.
  */
 public class TextStreamOutputEventListener implements OutputEventListener {
     private final OutputEventListener listener;

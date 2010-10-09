@@ -21,6 +21,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.util.GUtil;
 
+import java.io.IOException;
 import java.util.List;
 import java.util.SortedSet;
 import java.util.TreeSet;
@@ -89,7 +90,7 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
-        getTextOutput().style(UserInput).text(task.getPath()).style(Normal);
+        getTextOutput().style(Identifier).text(task.getPath()).style(Normal);
         if (GUtil.isTrue(task.getDescription())) {
             getTextOutput().style(Description).format(" - %s", task.getDescription()).style(Normal);
         }
@@ -134,5 +135,15 @@ public class TaskReportRenderer extends TextReportRenderer {
         }
         getTextOutput().println(GUtil.elvis(rule.getDescription(), ""));
         currentProjectHasRules = true;
+    }
+
+    @Override
+    public void complete() throws IOException {
+        if (!detail) {
+            getTextOutput().println();
+            getTextOutput().text("To see all tasks and more detail, run with ").style(UserInput).text("--all").style(Normal).text(".");
+            getTextOutput().println();
+        }
+        super.complete();
     }
 }

@@ -13,17 +13,28 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution
+package org.gradle.api.internal.tasks;
 
-import org.gradle.api.tasks.diagnostics.PropertyReportTask
-import spock.lang.Specification
+import java.lang.annotation.*;
 
-class PropertyReportBuildExecuterTest extends Specification {
-    private final PropertyReportBuildExecuter executer = new PropertyReportBuildExecuter("path")
-    
-    def constructsAPropertyReportTask() {
-        expect:
-        executer.taskType == PropertyReportTask
-        executer.displayName == 'property list'
-    }
+/**
+ * Marks a property as available from the command-line.
+ */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.METHOD)
+@Inherited
+public @interface CommandLineOption {
+    /**
+     * The command-line options to map to this property.
+     *
+     * @return The command-line options.
+     */
+    String[] options();
+
+    /**
+     * The description of this command-line option.
+     *
+     * @return The description.
+     */
+    String description();
 }

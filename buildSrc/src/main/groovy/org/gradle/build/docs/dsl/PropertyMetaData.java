@@ -13,17 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution
+package org.gradle.build.docs.dsl;
 
-import org.gradle.api.tasks.diagnostics.DependencyReportTask
-import spock.lang.Specification
+import java.io.Serializable;
 
-class DependencyReportBuildExecuterTest extends Specification {
-    private final DependencyReportBuildExecuter executer = new DependencyReportBuildExecuter("path")
-    
-    def constructsADependencyReportTask() {
-        expect:
-        executer.taskType == DependencyReportTask
-        executer.displayName == 'dependency list'
+public class PropertyMetaData implements Serializable {
+    private String type;
+    private boolean writeable;
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
+
+    public boolean isWriteable() {
+        return writeable;
+    }
+
+    public void setWriteable(boolean writeable) {
+        this.writeable = writeable;
     }
 }

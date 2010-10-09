@@ -49,6 +49,14 @@ public interface TaskInputs {
     TaskInputs files(Object... paths);
 
     /**
+     * Registers some input file for this task.
+     *
+     * @param path The input file. The given path is evaluated as for {@link org.gradle.api.Project#file(Object)}.
+     * @return this
+     */
+    TaskInputs file(Object path);
+
+    /**
      * Registers an input directory hierarchy. All files found under the given directory are treated as input files for
      * this task.
      *

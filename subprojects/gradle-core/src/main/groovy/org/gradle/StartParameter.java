@@ -88,6 +88,7 @@ public class StartParameter {
     private boolean dryRun;
     private boolean noOpt;
     private boolean colorOutput = true;
+    private boolean profile;
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the
@@ -125,6 +126,7 @@ public class StartParameter {
         startParameter.showVersion = showVersion;
         startParameter.dryRun = dryRun;
         startParameter.noOpt = noOpt;
+        startParameter.profile = profile;
         return startParameter;
     }
 
@@ -141,6 +143,7 @@ public class StartParameter {
         startParameter.cacheUsage = cacheUsage;
         startParameter.logLevel = logLevel;
         startParameter.colorOutput = colorOutput;
+        startParameter.profile = profile;
         return startParameter;
     }
 
@@ -561,6 +564,22 @@ public class StartParameter {
         this.stopDaemon = stopDaemon;
     }
 
+    /**
+     * Specifies if a profile report should be generated.
+     * @param profile true if a profile report should be generated
+     */
+    public void setProfile(boolean profile) {
+        this.profile = profile;
+    }
+
+    /**
+     * Returns true if a profile report will be generated.
+     * @return
+     */
+    public boolean isProfile() {
+        return profile;
+    }
+
     @Override
     public String toString() {
         return "StartParameter{" +
@@ -585,6 +604,7 @@ public class StartParameter {
                 ", launchGUI=" + launchGUI +
                 ", dryRun=" + dryRun +
                 ", noOpt=" + noOpt +
+                ", profile=" + profile +
                 '}';
     }
 }

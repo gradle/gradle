@@ -42,7 +42,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
     boolean isIgnoreExitValue();
 
     /**
-     * Sets the standard input stream for the process executing the command.
+     * Sets the standard input stream for the process executing the command. The stream is closed after the process
+     * completes.
      * 
      * @param inputStream The standard input stream for the command process.
      *
@@ -56,7 +57,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
     InputStream getStandardInput();
 
     /**
-     * Sets the standard output stream for the process executing the command.
+     * Sets the standard output stream for the process executing the command. The stream is closed after the process
+     * completes.
      *
      * @param outputStream The standard output stream for the command process.
      *
@@ -65,7 +67,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
     BaseExecSpec setStandardOutput(OutputStream outputStream);
 
     /**
-     * Sets the error output stream for the process executing the command.
+     * Sets the error output stream for the process executing the command. The stream is closed after the process
+     * completes.
      *
      * @param outputStream The standard output error stream for the command process.
      *

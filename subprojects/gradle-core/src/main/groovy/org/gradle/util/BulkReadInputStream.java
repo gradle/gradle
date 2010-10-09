@@ -13,21 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.execution;
+package org.gradle.util;
 
-import org.gradle.api.tasks.diagnostics.PropertyReportTask;
+import java.io.IOException;
+import java.io.InputStream;
 
-public class PropertyReportBuildExecuter extends BuiltInTaskBuildExecuter<PropertyReportTask> {
-    public PropertyReportBuildExecuter(String path) {
-        super(path);
+public abstract class BulkReadInputStream extends InputStream {
+    @Override
+    public int read() throws IOException {
+        byte[] buffer = new byte[1];
+        while (true) {
+            int nread = read(buffer);
+            if (nread < 0) {
+                return -1;
+            }
+            if (nread == 1) {
+                return 0xff & buffer[0];
+            }
+        }
     }
 
     @Override
-    protected Class<PropertyReportTask> getTaskType() {
-        return PropertyReportTask.class;
-    }
-
-    public String getDisplayName() {
-        return "property list";
-    }
+    public abstract int read(byte[] bytes, int pos, int count) throws IOException;
 }

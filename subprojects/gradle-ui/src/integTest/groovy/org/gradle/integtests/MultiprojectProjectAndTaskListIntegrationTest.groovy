@@ -228,7 +228,7 @@ class MultiprojectProjectAndTaskListIntegrationTest {
       gradlePluginLord.setGradleHomeDirectory(dist.gradleHomeDir);
 
       //refresh the projects and wait. This will throw an exception if it fails.
-      TestUtility.refreshProjectsBlocking(gradlePluginLord, 80, TimeUnit.SECONDS);
+      TestUtility.refreshProjectsBlocking(gradlePluginLord, 100, TimeUnit.SECONDS);
 
       //get the root project
       List<ProjectView> projects = gradlePluginLord.getProjects();

@@ -16,7 +16,7 @@
 package org.gradle.execution;
 
 import com.google.common.collect.LinkedHashMultimap;
-import com.google.common.collect.Multimap;
+import com.google.common.collect.SetMultimap;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,16 +25,16 @@ import java.util.Collections;
 
 public class TaskNameResolver {
     
-    public Multimap<String, Task> select(String name, Project project) {
+    public SetMultimap<String, Task> select(String name, Project project) {
         return select(name, (ProjectInternal) project, Collections.<Project>emptySet());
     }
 
-    public Multimap<String, Task> selectAll(String name, Project project) {
+    public SetMultimap<String, Task> selectAll(String name, Project project) {
         return select(name, (ProjectInternal) project, project.getSubprojects());
     }
 
-    private Multimap<String, Task> select(String name, ProjectInternal project, Iterable<Project> additionalProjects) {
-        Multimap<String, Task> selected = LinkedHashMultimap.create();
+    private SetMultimap<String, Task> select(String name, ProjectInternal project, Iterable<Project> additionalProjects) {
+        SetMultimap<String, Task> selected = LinkedHashMultimap.create();
         Task task = project.getTasks().findByName(name);
         if (task != null) {
             selected.put(task.getName(), task);

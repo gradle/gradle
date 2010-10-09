@@ -23,10 +23,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.execution.*;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
-import org.gradle.util.Matchers;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
 import org.junit.After;
@@ -39,7 +37,8 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.Assert.*;
 
 /**
@@ -66,6 +65,8 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
     private boolean expectedColorOutput = true;
     private StartParameter actualStartParameter;
+    private boolean expectedProfile;
+
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
 
@@ -85,12 +86,12 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     private void checkConversion(String... args) {
-        checkConversion(false, false, args);
+        checkConversion(false, args);
     }
 
-    private void checkStartParameter(StartParameter startParameter, boolean emptyTasks) {
+    private void checkStartParameter(StartParameter startParameter) {
         assertEquals(expectedBuildFile, startParameter.getBuildFile());
-        assertEquals(emptyTasks ? new ArrayList() : expectedTaskNames, startParameter.getTaskNames());
+        assertEquals(expectedTaskNames, startParameter.getTaskNames());
         assertEquals(expectedProjectDependenciesBuildInstruction,
                 startParameter.getProjectDependenciesBuildInstruction());
         assertEquals(expectedProjectDir.getAbsoluteFile(), startParameter.getCurrentDir().getAbsoluteFile());
@@ -108,12 +109,13 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
+        assertEquals(expectedProfile, startParameter.isProfile());
     }
 
-    private void checkConversion(final boolean embedded, final boolean noTasks, String... args) {
+    private void checkConversion(final boolean embedded, String... args) {
         actualStartParameter = new DefaultCommandLine2StartParameterConverter().convert(args);
         // We check the params passed to the build factory
-        checkStartParameter(actualStartParameter, noTasks);
+        checkStartParameter(actualStartParameter);
         if (embedded) {
             assertThat(actualStartParameter.getBuildScriptSource().getResource().getText(), equalTo(expectedEmbeddedScript));
         } else {
@@ -244,7 +246,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test
     public void withEmbeddedScript() {
         expectedSearchUpwards = false;
-        checkConversion(true, false, "-e", expectedEmbeddedScript);
+        checkConversion(true, "-e", expectedEmbeddedScript);
     }
 
     @Test(expected = CommandLineArgumentException.class)
@@ -285,7 +287,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     public void withProjectDependencyTaskNames() {
         expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(WrapUtil.toList("task1",
                 "task2"));
-        checkConversion("-Atask1", "-A task2");
+        checkConversion("-Atask1", "-A", "task2");
     }
 
     @Test
@@ -314,67 +316,33 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Test
     public void withShowTasks() {
-        checkConversion(false, true, "-t");
-        BuildExecuter expectedExecuter = new TaskReportBuildExecuter(null, false);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+        expectedTaskNames = toList("tasks");
+        checkConversion(false, "-t");
     }
 
     @Test
     public void withShowAllTasks() {
-        checkConversion(false, true, "-t", "--all");
-        BuildExecuter expectedExecuter = new TaskReportBuildExecuter(null, true);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+        expectedTaskNames = toList("tasks", "--all");
+        checkConversion(false, "-t", "--all");
     }
 
     @Test
     public void withShowTasksAndEmbeddedScript() {
         expectedSearchUpwards = false;
-        checkConversion(true, true, "-e", expectedEmbeddedScript, "-t");
-    }
-
-    @Test
-    public void withShowTasksAndPath() {
-        String somePath = ":SomeProject";
-        checkConversion(false, true, "-t" + somePath);
-        BuildExecuter expectedExecuter = new TaskReportBuildExecuter(somePath, false);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+        expectedTaskNames = toList("tasks");
+        checkConversion(true, "-e", expectedEmbeddedScript, "-t");
     }
 
     @Test
     public void withShowProperties() {
-        checkConversion(false, true, "-r");
-        BuildExecuter expectedExecuter = new PropertyReportBuildExecuter(null);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
-    }
-
-    @Test
-    public void withShowPropertiesAndPath() {
-        String somePath = ":SomeProject";
-        checkConversion(false, true, "-r" + somePath);
-        BuildExecuter expectedExecuter = new PropertyReportBuildExecuter(somePath);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
+        expectedTaskNames = toList("properties");
+        checkConversion(false, "-r");
     }
 
     @Test
     public void withShowDependencies() {
-        checkConversion(false, true, "-n");
-        BuildExecuter expectedExecuter = new DependencyReportBuildExecuter(null);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
-    }
-
-    @Test
-    public void withShowDependenciesAndPath() {
-        String somePath = ":SomeProject";
-        checkConversion(false, true, "-n" + somePath);
-        BuildExecuter expectedExecuter = new DependencyReportBuildExecuter(somePath);
-        assertThat(actualStartParameter.getBuildExecuter(), Matchers.reflectionEquals(expectedExecuter));
-    }
-
-    @Test(expected = CommandLineArgumentException.class)
-    public void withShowTasksPropertiesAndDependencies() {
-        checkConversion("-r", "-t");
-        checkConversion("-r", "-n");
-        checkConversion("-r", "-n", "-t");
+        expectedTaskNames = toList("dependencies");
+        checkConversion(false, "-n");
     }
 
     @Test(expected = CommandLineArgumentException.class)
@@ -389,7 +357,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Test(expected = CommandLineArgumentException.class)
     public void withUpperAAndLowerAParameter() {
-        checkConversion("-a -Atask1");
+        checkConversion("-a", "-Atask1");
     }
 
     @Test
@@ -402,4 +370,22 @@ public class DefaultCommandLine2StartParameterConverterTest {
         expectedInitScripts.add(script2);
         checkConversion("-Iinit1.gradle", "-Iinit2.gradle");
     }
+
+    @Test
+    public void withProfile() {
+        expectedProfile = true;
+        checkConversion("--profile");
+    }
+
+    @Test(expected = CommandLineArgumentException.class)
+    public void withUnknownOption() {
+        checkConversion("--unknown");
+    }
+
+    @Test
+    public void withTaskAndTaskOption() {
+        expectedTaskNames = toList("someTask", "--some-task-option");
+        checkConversion("someTask", "--some-task-option");
+    }
+
 }

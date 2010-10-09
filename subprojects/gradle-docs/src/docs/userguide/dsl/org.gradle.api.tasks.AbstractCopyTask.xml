@@ -1,0 +1,39 @@
+<section>
+    <section>
+        <title>Properties</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>includes</td>
+                <td>The set of include patterns.</td>
+            </tr>
+            <tr>
+                <td>excludes</td>
+                <td>The set of exclude patterns.</td>
+            </tr>
+        </table>
+    </section>
+    <section>
+        <title>Methods</title>
+        <table>
+            <thead>
+                <tr>
+                    <td>Name</td>
+                    <td>Signature</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td><literal>from</literal></td>
+                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
+                <td>Specifies source files or directories to include.</td>
+            </tr>
+        </table>
+    </section>
+</section>

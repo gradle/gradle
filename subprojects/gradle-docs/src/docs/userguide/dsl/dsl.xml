@@ -1,0 +1,36 @@
+<appendix id="dsl">
+    <title>Build script reference</title>
+    <note>
+        <para>This chapter is under construction.</para>
+    </note>
+    <para>This chapter describes the various types which make up the Gradle build DSL.</para>
+
+    <!--
+    -
+    - To add more types to this chapter, add them to one of the following tables. The contents of
+    - ${classname}.xml for each type listed below is added to this chapter.
+    -
+    -->
+
+    <table>
+        <title>Core types</title>
+        <tr>
+            <td>org.gradle.api.Project</td>
+        </tr>
+        <tr>
+            <td>org.gradle.api.tasks.SourceSet</td>
+        </tr>
+    </table>
+    <table>
+        <title>Task types</title>
+        <tr>
+            <td>org.gradle.plugins.idea.IdeaProject</td>
+        </tr>
+        <tr>
+            <td>org.gradle.api.tasks.bundling.Tar</td>
+        </tr>
+        <tr>
+            <td>org.gradle.api.tasks.bundling.Zip</td>
+        </tr>
+    </table>
+</appendix>

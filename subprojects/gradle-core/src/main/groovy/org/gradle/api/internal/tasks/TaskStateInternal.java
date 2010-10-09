@@ -46,7 +46,7 @@ public class TaskStateInternal implements TaskState {
     }
 
     /**
-     * Marks this task as executed.
+     * Marks this task as executed with no failure.
      */
     public void executed() {
         this.executed = true;

@@ -31,7 +31,6 @@ public class ConsoleBackedProgressRenderer implements OutputEventListener {
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
             operations.addLast("");
-
         } else if (event instanceof ProgressCompleteEvent) {
             operations.removeLast();
             updateText();
