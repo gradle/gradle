@@ -30,10 +30,8 @@ import java.util.Map;
  * This is a slightly modified version as shipped with polyglot Maven.
  */
 public class CustomModelBuilder extends ModelBuilder {
-    private Model model;
 
     public CustomModelBuilder(Model model) {
-        this.model = model;
         ExecuteManager executeManager = new ExecuteManagerImpl();
         setProp(executeManager.getClass(), executeManager, "log",
                 new PlexusLoggerAdapter(LoggerFactory.getLogger(ExecuteManagerImpl.class)));

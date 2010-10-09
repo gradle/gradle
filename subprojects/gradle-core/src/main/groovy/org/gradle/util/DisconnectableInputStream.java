@@ -27,7 +27,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * An {@code InputStream} which reads from the source {@code InputStream}. In addition, when the {@code InputStream} is
  * closed, all threads blocked reading from the stream will receive an end-of-stream.
  */
-public class DisconnectableInputStream extends InputStream {
+public class DisconnectableInputStream extends BulkReadInputStream {
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private final byte[] buffer;
@@ -103,20 +103,6 @@ public class DisconnectableInputStream extends InputStream {
                 }
             }
         });
-    }
-
-    @Override
-    public int read() throws IOException {
-        byte[] buffer = new byte[1];
-        while (true) {
-            int nread = read(buffer);
-            if (nread < 0) {
-                return -1;
-            }
-            if (nread == 1) {
-                return 0xff & buffer[0];
-            }
-        }
     }
 
     @Override

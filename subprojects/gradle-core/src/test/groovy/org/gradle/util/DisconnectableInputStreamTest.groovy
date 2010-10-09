@@ -140,6 +140,7 @@ class DisconnectableInputStreamTest extends MultithreadedTestCase {
         def source = stream()
         source.onRead { buffer, pos, count ->
             syncAt(1)
+            syncAt(2)
             return count
         }
 
@@ -150,11 +151,13 @@ class DisconnectableInputStreamTest extends MultithreadedTestCase {
                 def nread = instr.read(new byte[20])
                 assertThat(nread, equalTo(-1))
             }
+            syncAt(2)
         }
 
         run {
             syncAt(1)
             instr.close()
+            syncAt(2)
         }
     }
 

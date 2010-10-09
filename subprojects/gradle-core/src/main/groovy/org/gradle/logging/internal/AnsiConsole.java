@@ -32,7 +32,6 @@ public class AnsiConsole implements Console {
     private final Flushable flushable;
     private LabelImpl statusBar;
     private final TextAreaImpl textArea;
-    private Widget bottomWidget;
     private final Screen container;
     private final ColorMap colorMap;
 
@@ -42,7 +41,6 @@ public class AnsiConsole implements Console {
         this.colorMap = colorMap;
         container = new Screen();
         textArea = new TextAreaImpl(container);
-        bottomWidget = textArea;
     }
 
     public Label getStatusBar() {
@@ -50,11 +48,10 @@ public class AnsiConsole implements Console {
             statusBar = new LabelImpl(container);
             render(new Action<Ansi>() {
                 public void execute(Ansi ansi) {
-                    bottomWidget.removeFromLastLine(ansi);
-                    statusBar.draw(ansi);
+                    textArea.onDeactivate(ansi);
+                    statusBar.onActivate(ansi);
                 }
             });
-            bottomWidget = statusBar;
         }
         return statusBar;
     }
@@ -86,25 +83,31 @@ public class AnsiConsole implements Console {
 
     private interface Widget {
         /**
-         * Removes content of this widget from the last line of the screen. Leaves cursor at left edge of bottom-most
-         * line.
+         * Called when this widget becomes the active widget. The active widget is the widget at the bottom of the
+         * screen. When called, the cursor will be positioned at the left edge of bottom-most line of the screen.
          */
-        void removeFromLastLine(Ansi ansi);
+        void onActivate(Ansi ansi);
+
+        /**
+         * Called when this widget is no longer the active widget. Should Remove content of this widget from the last
+         * line of the screen and leave the cursor at left edge of bottom-most line.
+         */
+        void onDeactivate(Ansi ansi);
     }
 
     private class Screen implements Container {
         public void redraw(Widget widget, final Action<Ansi> drawOperation) {
-            final LabelImpl currentStatusBar = statusBar;
             if (widget == textArea) {
                 render(new Action<Ansi>() {
                     public void execute(Ansi ansi) {
-                        if (currentStatusBar != null) {
-                            currentStatusBar.removeFromLastLine(ansi);
+                        if (statusBar != null) {
+                            statusBar.onDeactivate(ansi);
+                            textArea.onActivate(ansi);
                         }
                         drawOperation.execute(ansi);
-                        if (currentStatusBar != null) {
-                            textArea.removeFromLastLine(ansi);
-                            currentStatusBar.draw(ansi);
+                        if (statusBar != null) {
+                            textArea.onDeactivate(ansi);
+                            statusBar.onActivate(ansi);
                         }
                     }
                 });
@@ -123,12 +126,11 @@ public class AnsiConsole implements Console {
                 throw new UnsupportedOperationException();
             }
             if (widget == statusBar) {
-                assert bottomWidget == statusBar;
                 render(new Action<Ansi>() {
                     public void execute(Ansi ansi) {
-                        statusBar.removeFromLastLine(ansi);
+                        statusBar.onDeactivate(ansi);
+                        textArea.onActivate(ansi);
                         statusBar = null;
-                        bottomWidget = textArea;
                     }
                 });
             }
@@ -160,12 +162,16 @@ public class AnsiConsole implements Console {
             container.close(this);
         }
 
-        public void removeFromLastLine(Ansi ansi) {
+        public void onDeactivate(Ansi ansi) {
             if (displayedText.length() > 0) {
                 ansi.cursorLeft(displayedText.length());
                 ansi.eraseLine(Ansi.Erase.FORWARD);
                 displayedText = "";
             }
+        }
+
+        public void onActivate(Ansi ansi) {
+            draw(ansi);
         }
 
         public void draw(Ansi ansi) {
@@ -196,10 +202,18 @@ public class AnsiConsole implements Console {
             this.container = container;
         }
 
-        public void removeFromLastLine(Ansi ansi) {
+        public void onDeactivate(Ansi ansi) {
             if (width > 0) {
                 ansi.newline();
                 extraEol = true;
+            }
+        }
+
+        public void onActivate(Ansi ansi) {
+            if (extraEol) {
+                ansi.cursorUp(1);
+                ansi.cursorRight(width);
+                extraEol = false;
             }
         }
 
@@ -216,12 +230,6 @@ public class AnsiConsole implements Console {
             }
             container.redraw(this, new Action<Ansi>() {
                 public void execute(Ansi ansi) {
-                    if (extraEol) {
-                        ansi.cursorUp(1);
-                        ansi.cursorRight(width);
-                        extraEol = false;
-                    }
-
                     ColorMap.Color color = colorMap.getColourFor(style);
                     color.on(ansi);
 

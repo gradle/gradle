@@ -218,7 +218,30 @@ class AnsiConsoleTest {
     }
 
     @Test
-    public void showsMostRecentlyCreatedStatusBarOnly() {
+    public void removesStatusBarWhenClosedAndThereIsTextInMainArea() {
+        def statusBar = console.getStatusBar()
+
+        context.checking {
+            one(ansi).a('some message')
+            one(ansi).newline()
+            one(ansi).a('text')
+        }
+
+        console.mainArea.append('some message')
+        statusBar.text = 'text'
+
+        context.checking {
+            one(ansi).cursorLeft(4)
+            one(ansi).eraseLine(Ansi.Erase.FORWARD)
+            one(ansi).cursorUp(1)
+            one(ansi).cursorRight(12)
+        }
+
+        statusBar.close();
+    }
+
+    @Test
+    public void canRedisplayStatusBarAfterItIsClosed() {
         context.checking {
             one(ansi).a('first')
         }
