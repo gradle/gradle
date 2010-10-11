@@ -31,6 +31,10 @@ dependencies {
             libraries.ant,
             'org.testng:testng:5.12.1'
 
+    // This is for the ant junit task. Without it, we get file locking problems with some jvms because the default
+    // transformer does not close files
+    runtime 'xalan:xalan:2.7.1'
+
     testCompile libraries.xmlunit
 
     testCompile project(path: ':core', configuration: 'testFixtures')
