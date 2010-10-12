@@ -98,7 +98,7 @@ public class JavaPlugin implements Plugin<Project> {
 
         SourceSet mainSourceSet = pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME);
         Javadoc javadoc = project.getTasks().add(JAVADOC_TASK_NAME, Javadoc.class);
-        javadoc.setDescription("Generates the javadoc for the source code.");
+        javadoc.setDescription("Generates the javadoc for the main source code.");
         javadoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
         javadoc.setClasspath(mainSourceSet.getClasses().plus(mainSourceSet.getCompileClasspath()));
         javadoc.setSource(mainSourceSet.getAllJava());
@@ -109,7 +109,7 @@ public class JavaPlugin implements Plugin<Project> {
         project.getTasks().getByName(JavaBasePlugin.CHECK_TASK_NAME).dependsOn(TEST_TASK_NAME);
         Jar jar = project.getTasks().add(JAR_TASK_NAME, Jar.class);
         jar.getManifest().from(pluginConvention.getManifest());
-        jar.setDescription("Generates a jar archive with all the compiled classes.");
+        jar.setDescription("Assembles a jar archive containing the main classes.");
         jar.setGroup(BasePlugin.BUILD_GROUP);
         jar.from(pluginConvention.getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getClasses());
         jar.getMetaInf().from(new Callable() {

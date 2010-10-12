@@ -43,7 +43,7 @@ Root project 'test' - this is the root project
 |    \\--- Project ':child1:child1'
 \\--- Project ':child2'
 
-To see a list of the tasks of a particular project, run gradle <project-path>:tasks
+To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
 ''')
     }
@@ -61,7 +61,7 @@ For example, try running gradle :child1:tasks
 Root project 'test' - this is the root project
 No sub-projects
 
-To see a list of the tasks of a particular project, run gradle <project-path>:tasks
+To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
 ''')
     }
@@ -79,7 +79,7 @@ For example, try running gradle :tasks
 Project ':child1'
 No sub-projects
 
-To see a list of the tasks of a particular project, run gradle <project-path>:tasks
+To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
 
 To see a list of all the projects in this build, run gradle :projects

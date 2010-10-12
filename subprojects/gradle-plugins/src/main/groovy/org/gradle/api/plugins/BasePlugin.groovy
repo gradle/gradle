@@ -54,7 +54,7 @@ class BasePlugin implements Plugin<Project> {
 
     private Task addAssemble(Project project) {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
-        assembleTask.description = "Builds all Jar, War, Zip, and Tar archives.";
+        assembleTask.description = "Assembles all Jar, War, Zip, and Tar archives.";
         assembleTask.group = BUILD_GROUP
         assembleTask.dependsOn { project.tasks.withType(AbstractArchiveTask.class).all }
     }
@@ -102,7 +102,7 @@ class BasePlugin implements Plugin<Project> {
 
     private void configureBuildConfigurationRule(Project project) {
         String prefix = "build";
-        String description = "Pattern: ${prefix}<ConfigurationName>: Builds the artifacts belonging to a configuration."
+        String description = "Pattern: ${prefix}<ConfigurationName>: Assembles the artifacts of a configuration."
         Rule rule = [
                 getDescription: {
                     description
@@ -126,7 +126,7 @@ class BasePlugin implements Plugin<Project> {
     }
 
     private void configureUploadRules(final Project project) {
-        String description = "Pattern: upload<ConfigurationName>: Uploads the project artifacts of a configuration to a public Gradle repository."
+        String description = "Pattern: upload<ConfigurationName>: Assembles and uploads the artifacts belonging to a configuration."
         Rule rule = [
                 getDescription: {
                     description

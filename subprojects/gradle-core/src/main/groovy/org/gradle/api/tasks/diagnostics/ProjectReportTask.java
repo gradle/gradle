@@ -51,7 +51,7 @@ public class ProjectReportTask extends DefaultTask {
         }
 
         textOutput.println();
-        textOutput.text("To see a list of the tasks of a particular project, run ");
+        textOutput.text("To see a list of the tasks of a project, run ");
         textOutput.style(UserInput);
         metaData.describeCommand(textOutput, String.format("<project-path>:%s", ImplicitTasksConfigurer.TASKS_TASK));
         textOutput.style(Normal).println();
