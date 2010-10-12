@@ -104,8 +104,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
-        assertEquals(expectedShowHelp, startParameter.isShowHelp());
-        assertEquals(expectedShowVersion, startParameter.isShowVersion());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
@@ -229,18 +227,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
         checkConversion("-x", "excluded");
         expectedExcludedTasks.add("excluded2");
         checkConversion("-x", "excluded", "-x", "excluded2");
-    }
-
-    @Test
-    public void withShowHelp() {
-        expectedShowHelp = true;
-        checkConversion("-h");
-    }
-
-    @Test
-    public void withShowVersion() {
-        expectedShowVersion = true;
-        checkConversion("-v");
     }
 
     @Test

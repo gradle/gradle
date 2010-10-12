@@ -48,7 +48,10 @@ import java.util.*;
  * <li>The parser is forgiving, and allows '--' to be used with short options and '-' to be used with long
  * options.</li>
  *
- * <li>subcommands and their options do not need to be known at parse time.</li> </ul>
+ * <li>The set of options must be known at parse time. Subcommands and their options do not need to be known at parse
+ * time. Use {@link ParsedCommandLine#getExtraArguments()} to obtain the non-option command-line arguments.</li>
+ *
+ * </ul>
  */
 public class CommandLineParser {
     private Map<String, CommandLineOption> optionsByString = new HashMap<String, CommandLineOption>();

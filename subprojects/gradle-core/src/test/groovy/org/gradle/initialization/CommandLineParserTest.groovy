@@ -101,6 +101,16 @@ class CommandLineParserTest extends Specification {
         result.option('a').values == ['value=arg']
     }
 
+    def parsesShortOptionWithDashCharacterInAttachedArgument() {
+        parser.option('a').hasArgument()
+
+        expect:
+        def result = parser.parse(['-avalue-arg'])
+        result.hasOption('a')
+        result.option('a').value == 'value-arg'
+        result.option('a').values == ['value-arg']
+    }
+
     def parsesCombinedShortOptions() {
         parser.option('a')
         parser.option('b')

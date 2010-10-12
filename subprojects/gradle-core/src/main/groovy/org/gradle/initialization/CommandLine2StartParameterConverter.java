@@ -18,8 +18,6 @@ package org.gradle.initialization;
 import org.gradle.CommandLineArgumentException;
 import org.gradle.StartParameter;
 
-import java.io.OutputStream;
-
 /**
  * @author Hans Dockter
  */
@@ -28,5 +26,5 @@ public interface CommandLine2StartParameterConverter {
 
     void convert(String[] args, StartParameter parameter) throws CommandLineArgumentException;
 
-    void showHelp(OutputStream out);
+    void configure(CommandLineParser parser);
 }

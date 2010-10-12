@@ -27,7 +27,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 
 import java.io.File;
-import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -57,46 +56,11 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String PROJECT_PROP = "P";
     private static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
-    private static final String VERSION = "v";
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";
     private static final String NO_OPT = "no-opt";
     private static final String EXCLUDE_TASK = "x";
-    private static final String HELP = "h";
-    private static final String GUI = "gui";
     private static final String PROFILE = "profile";
-
-    private final CommandLineParser parser = new CommandLineParser() {{
-        allowMixedSubcommandsAndOptions();
-        option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
-        option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
-        option(VERSION, "version").hasDescription("Print version info.");
-        option(DEBUG, "debug").hasDescription("Log in debug mode (includes normal stacktrace).");
-        option(QUIET, "quiet").hasDescription("Log errors only.");
-        option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        option(INFO, "info").hasDescription("Set log level to info.");
-        option(STACKTRACE, "stacktrace").hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
-        option(FULL_STACKTRACE, "full-stacktrace").hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
-        option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.");
-        option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties.");
-        option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies.");
-        option(GUI).hasDescription("Launches a GUI application");
-        option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
-        option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
-        option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
-        option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
-        option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
-        option(SYSTEM_PROP, "system-prop").hasArguments().hasDescription("Set system property of the JVM (e.g. -Dmyprop=myvalue).");
-        option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
-        option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.");
-        option(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks").hasArguments().hasDescription("Specify additional tasks for building project dependencies.");
-        option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
-        option(NO_OPT).hasDescription("Ignore any task optimization.");
-        option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        option(NO_COLOR).hasDescription("Do not use color in the console output.");
-        option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
-        option(HELP, "?", "help").hasDescription("Shows this help message");
-    }};
 
     private static BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
@@ -116,6 +80,35 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
     }
 
+    public void configure(CommandLineParser parser) {
+        parser.allowMixedSubcommandsAndOptions();
+        parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
+        parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
+        parser.option(DEBUG, "debug").hasDescription("Log in debug mode (includes normal stacktrace).");
+        parser.option(QUIET, "quiet").hasDescription("Log errors only.");
+        parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
+        parser.option(INFO, "info").hasDescription("Set log level to info.");
+        parser.option(STACKTRACE, "stacktrace").hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
+        parser.option(FULL_STACKTRACE, "full-stacktrace").hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
+        parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.");
+        parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties.");
+        parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies.");
+        parser.option(PROJECT_DIR, "project-dir").hasArgument().hasDescription("Specifies the start directory for Gradle. Defaults to current directory.");
+        parser.option(GRADLE_USER_HOME, "gradle-user-home").hasArgument().hasDescription("Specifies the gradle user home directory.");
+        parser.option(INIT_SCRIPT, "init-script").hasArguments().hasDescription("Specifies an initialization script.");
+        parser.option(SETTINGS_FILE, "settings-file").hasArgument().hasDescription("Specifies the settings file.");
+        parser.option(BUILD_FILE, "build-file").hasArgument().hasDescription("Specifies the build file.");
+        parser.option(SYSTEM_PROP, "system-prop").hasArguments().hasDescription("Set system property of the JVM (e.g. -Dmyprop=myvalue).");
+        parser.option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
+        parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.");
+        parser.option(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks").hasArguments().hasDescription("Specify additional tasks for building project dependencies.");
+        parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
+        parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
+        parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
+        parser.option(NO_COLOR).hasDescription("Do not use color in the console output.");
+        parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
+    }
+
     public StartParameter convert(String[] args) {
         StartParameter startParameter = new StartParameter();
         convert(args, startParameter);
@@ -123,21 +116,9 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     }
 
     public void convert(String[] args, StartParameter startParameter) {
+        CommandLineParser parser = new CommandLineParser();
+        configure(parser);
         ParsedCommandLine options = parser.parse(args);
-
-        if (options.hasOption(HELP)) {
-            startParameter.setShowHelp(true);
-            return;
-        }
-
-        if (options.hasOption(VERSION)) {
-            startParameter.setShowVersion(true);
-            return;
-        }
-
-        if (options.hasOption(GUI)) {
-            startParameter.setLaunchGUI(true);
-        }
 
         for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
             String[] elements = keyValueExpression.split("=");
@@ -240,10 +221,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         if (options.hasOption(PROFILE)) {
             startParameter.setProfile(true);
         }
-    }
-
-    public void showHelp(OutputStream out) {
-        parser.printUsage(out);
     }
 
     private LogLevel getLogLevel(ParsedCommandLine options) {

@@ -74,9 +74,6 @@ public class StartParameter {
     private ShowStacktrace showStacktrace = ShowStacktrace.INTERNAL_EXCEPTIONS;
     private File buildFile;
     private List<File> initScripts = new ArrayList<File>();
-    private boolean showHelp;
-    private boolean showVersion;
-    private boolean launchGUI;
     private boolean dryRun;
     private boolean noOpt;
     private boolean colorOutput = true;
@@ -114,8 +111,6 @@ public class StartParameter {
         startParameter.logLevel = logLevel;
         startParameter.colorOutput = colorOutput;
         startParameter.showStacktrace = showStacktrace;
-        startParameter.showHelp = showHelp;
-        startParameter.showVersion = showVersion;
         startParameter.dryRun = dryRun;
         startParameter.noOpt = noOpt;
         startParameter.profile = profile;
@@ -380,22 +375,6 @@ public class StartParameter {
         this.cacheUsage = cacheUsage;
     }
 
-    public boolean isShowHelp() {
-        return showHelp;
-    }
-
-    public void setShowHelp(boolean showHelp) {
-        this.showHelp = showHelp;
-    }
-
-    public boolean isShowVersion() {
-        return showVersion;
-    }
-
-    public void setShowVersion(boolean showVersion) {
-        this.showVersion = showVersion;
-    }
-
     public boolean isDryRun() {
         return dryRun;
     }
@@ -503,17 +482,6 @@ public class StartParameter {
     }
 
     /**
-       Determines whether or not the GUI was requested to be launched.
-    */
-    public boolean isLaunchGUI() {
-        return launchGUI;
-    }
-
-    public void setLaunchGUI(boolean launchGUI) {
-        this.launchGUI = launchGUI;
-    }
-
-    /**
      * Returns true if logging output should be displayed in color when Gradle is running in a terminal which supports
      * color output. The default value is true.
      *
@@ -567,9 +535,6 @@ public class StartParameter {
                 ", showStacktrace=" + showStacktrace +
                 ", buildFile=" + buildFile +
                 ", initScripts=" + initScripts +
-                ", showHelp=" + showHelp +
-                ", showVersion=" + showVersion +
-                ", launchGUI=" + launchGUI +
                 ", dryRun=" + dryRun +
                 ", noOpt=" + noOpt +
                 ", profile=" + profile +

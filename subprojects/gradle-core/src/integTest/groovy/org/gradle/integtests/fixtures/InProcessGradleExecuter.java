@@ -172,9 +172,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     public void assertCanExecute() {
         assertNull(getExecutable());
         assertTrue(getEnvironmentVars().isEmpty());
-        assertFalse(parameter.isShowHelp());
-        assertFalse(parameter.isShowVersion());
-        assertFalse(parameter.isLaunchGUI());
     }
 
     public boolean canExecute() {

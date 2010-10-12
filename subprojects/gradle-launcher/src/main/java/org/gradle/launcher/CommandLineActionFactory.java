@@ -21,13 +21,18 @@ import org.gradle.api.logging.Logging;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.ParsedCommandLine;
 import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
 
 public class CommandLineActionFactory {
+    private static final String HELP = "h";
+    private static final String GUI = "gui";
+    private static final String VERSION = "v";
     private static Logger logger = Logging.getLogger(CommandLineActionFactory.class);
     private final BuildCompleter buildCompleter;
     private final CommandLine2StartParameterConverter startParameterConverter;
@@ -50,56 +55,68 @@ public class CommandLineActionFactory {
      * @return The action to execute.
      */
     Runnable convert(String[] args) {
-        final StartParameter startParameter;
+        CommandLineParser parser = new CommandLineParser();
+        startParameterConverter.configure(parser);
+        parser.option(HELP, "?", "help").hasDescription("Shows this help message");
+        parser.option(VERSION, "version").hasDescription("Print version info.");
+        parser.option(GUI).hasDescription("Launches a GUI application");
+
         try {
+            ParsedCommandLine commandLine = parser.parse(args);
+            if (commandLine.hasOption(HELP)) {
+                return new ShowUsageAction(parser);
+            }
+            if (commandLine.hasOption(VERSION)) {
+                return new ShowVersionAction();
+            }
+            if (commandLine.hasOption(GUI)) {
+                return new ShowGuiAction();
+            }
+
+            StartParameter startParameter;
             startParameter = startParameterConverter.convert(args);
+            return new RunBuildAction(startParameter);
         } catch (CommandLineArgumentException e) {
-            return new CommandLineParseFailureAction(e);
+            return new CommandLineParseFailureAction(parser, e);
         }
-
-        if (startParameter.isShowHelp()) {
-            return new ShowUsageAction();
-        }
-
-        if (startParameter.isShowVersion()) {
-            return new ShowVersionAction();
-        }
-
-        if (startParameter.isLaunchGUI()) {
-            return new ShowGuiAction();
-        }
-
-        return new RunBuildAction(startParameter);
     }
 
-    private void showUsage(PrintStream out) {
+    private void showUsage(PrintStream out, CommandLineParser parser) {
         out.println();
         out.print("USAGE: ");
         new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
         out.println();
         out.println();
-        startParameterConverter.showHelp(out);
+        parser.printUsage(out);
         out.println();
     }
 
     private class CommandLineParseFailureAction implements Runnable {
         private final Exception e;
+        private final CommandLineParser parser;
 
-        public CommandLineParseFailureAction(Exception e) {
+        public CommandLineParseFailureAction(CommandLineParser parser, Exception e) {
+            this.parser = parser;
             this.e = e;
         }
 
         public void run() {
             System.err.println();
             System.err.println(e.getMessage());
-            showUsage(System.err);
+            showUsage(System.err, parser);
             buildCompleter.exit(e);
         }
     }
 
     private class ShowUsageAction implements Runnable {
+        private final CommandLineParser parser;
+
+        public ShowUsageAction(CommandLineParser parser) {
+            this.parser = parser;
+        }
+
         public void run() {
-            showUsage(System.out);
+            showUsage(System.out, parser);
             buildCompleter.exit(null);
         }
     }
@@ -111,7 +128,7 @@ public class CommandLineActionFactory {
         }
     }
 
-    private class ShowGuiAction implements Runnable {
+    class ShowGuiAction implements Runnable {
         public void run() {
             BlockingApplication.launchAndBlock();
             buildCompleter.exit(null);

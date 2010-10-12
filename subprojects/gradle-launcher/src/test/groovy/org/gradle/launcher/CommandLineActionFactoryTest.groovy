@@ -52,6 +52,7 @@ class CommandLineActionFactoryTest extends Specification {
         def action = factory.convert(args)
 
         then:
+        1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
         1 * startParameterConverter.convert(args) >> { throw failure }
 
         when:
@@ -60,78 +61,58 @@ class CommandLineActionFactoryTest extends Specification {
         then:
         outputs.stdErr.contains('<broken>')
         outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
-        1 * startParameterConverter.showHelp(System.err)
+        outputs.stdErr.contains('--help')
+        outputs.stdErr.contains('--some-build-option')
         1 * buildCompleter.exit(failure)
     }
 
     def displaysUsageMessage() {
         when:
-        def action = factory.convert(args)
-
-        then:
-        1 * startParameterConverter.convert(args) >> {
-            startParameter.showHelp = true
-            return startParameter
-        }
-
-        when:
+        def action = factory.convert(option)
         action.run()
 
         then:
+        _ * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
-        1 * startParameterConverter.showHelp(System.out)
+        outputs.stdOut.contains('--help')
+        outputs.stdOut.contains('--some-build-option')
         1 * buildCompleter.exit(null)
+
+        where:
+        option << ['-h', '-?', '--help']
     }
 
     def usesSystemPropertyForGradleAppName() {
         System.setProperty("org.gradle.appname", "gradle-app");
 
         when:
-        def action = factory.convert(args)
-
-        then:
-        1 * startParameterConverter.convert(args) >> {
-            startParameter.showHelp = true
-            return startParameter
-        }
-
-        when:
+        def action = factory.convert('-?')
         action.run()
 
         then:
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
-        1 * startParameterConverter.showHelp(System.out)
         1 * buildCompleter.exit(null)
     }
 
     def displaysVersionMessage() {
         when:
-        def action = factory.convert(args)
-
-        then:
-        1 * startParameterConverter.convert(args) >> {
-            startParameter.showVersion = true
-            return startParameter
-        }
-
-        when:
+        def action = factory.convert(option)
         action.run()
 
         then:
         outputs.stdOut.contains(new GradleVersion().prettyPrint())
         1 * buildCompleter.exit(null)
+
+        where:
+        option << ['-v', '--version']
     }
 
     def launchesGUI() {
         when:
-        def action = factory.convert(args)
+        def action = factory.convert('--gui')
 
         then:
-        1 * startParameterConverter.convert(args) >> {
-            startParameter.launchGUI = true
-            return startParameter
-        }
-        action != null
+        action instanceof CommandLineActionFactory.ShowGuiAction
     }
 
     def executesBuild() {
