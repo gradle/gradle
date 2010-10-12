@@ -48,6 +48,10 @@ public class BuildExceptionReporter extends BuildAdapter {
             return;
         }
 
+        reportException(failure);
+    }
+
+    public void reportException(Throwable failure) {
         FailureDetails details = new FailureDetails(failure);
         if (failure instanceof GradleException) {
             reportBuildFailure((GradleException) failure, details);

@@ -15,108 +15,55 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.*;
-import org.gradle.api.logging.Logger;
+import org.gradle.BuildExceptionReporter;
+import org.gradle.StartParameter;
 import org.gradle.api.logging.Logging;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.util.Clock;
-import org.gradle.util.GradleVersion;
-
-import java.io.PrintStream;
+import org.slf4j.Logger;
 
 /**
  * @author Hans Dockter
  */
 public class Main {
-    private static Logger logger = Logging.getLogger(Main.class);
-
     private final String[] args;
-    private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
-    private CommandLine2StartParameterConverter parameterConverter = new DefaultCommandLine2StartParameterConverter();
 
     public Main(String[] args) {
         this.args = args;
     }
 
     public static void main(String[] args) {
-        new Main(args).execute();
-    }
-
-    void setBuildCompleter(BuildCompleter buildCompleter) {
-        this.buildCompleter = buildCompleter;
-    }
-
-    public void setParameterConverter(CommandLine2StartParameterConverter parameterConverter) {
-        this.parameterConverter = parameterConverter;
+        try {
+            new Main(args).execute();
+            System.exit(0);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            System.exit(1);
+        }
     }
 
     public void execute() {
-        Clock buildTimeClock = new Clock();
-
-        StartParameter startParameter = null;
-
+        BuildCompleter buildCompleter = createBuildCompleter();
+        Logger logger = createLogger();
         try {
-            startParameter = parameterConverter.convert(args);
-        } catch (Exception e) {
-            System.err.println();
-            System.err.println(e.getMessage());
-            showUsage(System.err);
-            buildCompleter.exit(e);
-        }
-
-        if (startParameter.isShowHelp()) {
-            showUsage(System.out);
+            CommandLineActionFactory actionFactory = createActionFactory(buildCompleter);
+            Runnable action = actionFactory.convert(args);
+            action.run();
             buildCompleter.exit(null);
-        }
-
-        if (startParameter.isShowVersion()) {
-            System.out.println(new GradleVersion().prettyPrint());
-            buildCompleter.exit(null);
-        }
-
-        if (startParameter.isLaunchGUI()) {
-            try {
-                BlockingApplication.launchAndBlock();
-            } catch (Throwable e) {
-                logger.error("Failed to run the UI.", e);
-                buildCompleter.exit(e);
-            }
-
-            buildCompleter.exit(null);
-        }
-
-        BuildListener resultLogger = new BuildLogger(logger, buildTimeClock, startParameter);
-        try {
-            GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-
-            gradleLauncher.useLogger(resultLogger);
-
-            BuildResult buildResult = gradleLauncher.run();
-            if (buildResult.getFailure() != null) {
-                buildCompleter.exit(buildResult.getFailure());
-            }
         } catch (Throwable e) {
-            resultLogger.buildFinished(new BuildResult(null, e));
+            new BuildExceptionReporter(logger, new StartParameter()).reportException(e);
             buildCompleter.exit(e);
         }
-        buildCompleter.exit(null);
     }
 
-    private void showUsage(PrintStream out) {
-        out.println();
-        out.print("USAGE: ");
-        new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
-        out.println();
-        out.println();
-        parameterConverter.showHelp(out);
-        out.println();
+    Logger createLogger() {
+        return Logging.getLogger(Main.class);
     }
 
-    public interface BuildCompleter {
-        void exit(Throwable failure);
+    CommandLineActionFactory createActionFactory(BuildCompleter buildCompleter) {
+        return new CommandLineActionFactory(buildCompleter);
+    }
+
+    BuildCompleter createBuildCompleter() {
+        return new ProcessExitBuildCompleter();
     }
 
     private static class ProcessExitBuildCompleter implements BuildCompleter {
