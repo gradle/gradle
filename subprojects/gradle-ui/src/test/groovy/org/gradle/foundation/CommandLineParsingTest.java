@@ -16,7 +16,7 @@
 package org.gradle.foundation;
 
 import junit.framework.TestCase;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 
 /**
  * This tests aspects of command line parsing that the UI does.
@@ -33,24 +33,24 @@ public class CommandLineParsingTest extends TestCase {
      */
     public void testOverridingLogLevel() {
         //first try it with the log level at the end
-        String commandLine = ":build:something -" + DefaultCommandLine2StartParameterConverter.DEBUG;
+        String commandLine = ":build:something -d";
 
         CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
         String[] arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasLogLevelDefined(arguments));
 
         //now try it with the log level in the middle
-        commandLine = ":build:something -" + DefaultCommandLine2StartParameterConverter.DEBUG + " :clean";
+        commandLine = ":build:something -d :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasLogLevelDefined(arguments));
 
         //now try it with the log level at the beginning
-        commandLine = "-" + DefaultCommandLine2StartParameterConverter.DEBUG + " :clean";
+        commandLine = "-d :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasLogLevelDefined(arguments));
 
         //now try it with 'info' instead of debug
-        commandLine = "-" + DefaultCommandLine2StartParameterConverter.INFO + " :clean";
+        commandLine = "-i :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasLogLevelDefined(arguments));
 
@@ -70,24 +70,24 @@ public class CommandLineParsingTest extends TestCase {
      */
     public void testOverridingStackTraceLevel() {
         //first try it with the stack trace level at the end
-        String commandLine = ":build:something -" + DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE;
+        String commandLine = ":build:something -" + DefaultCommandLineConverter.FULL_STACKTRACE;
 
         CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
         String[] arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 
         //now try it with the stack trace level in the middle
-        commandLine = ":build:something -" + DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE + " :clean";
+        commandLine = ":build:something -" + DefaultCommandLineConverter.FULL_STACKTRACE + " :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 
         //now try it with the stack trace level at the beginning
-        commandLine = "-" + DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE + " :clean";
+        commandLine = "-" + DefaultCommandLineConverter.FULL_STACKTRACE + " :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 
         //now try it with a different stack trace level
-        commandLine = "-" + DefaultCommandLine2StartParameterConverter.STACKTRACE + " :clean";
+        commandLine = "-" + DefaultCommandLineConverter.STACKTRACE + " :clean";
         arguments = CommandLineAssistant.breakUpCommandLine(commandLine);
         assertTrue(commandLineAssistant.hasShowStacktraceDefined(arguments));
 

@@ -16,7 +16,7 @@
 package org.gradle.foundation.ipc.gradle;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -273,15 +273,14 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
       File initStriptPath = getInitScriptFile();
       if( initStriptPath != null )
       {
-          executionCommandLine.add( "-" + DefaultCommandLine2StartParameterConverter.INIT_SCRIPT );
+          executionCommandLine.add( "-" + DefaultCommandLineConverter.INIT_SCRIPT );
           executionCommandLine.add( initStriptPath.getAbsolutePath() );
           executionInfo.initStriptPath = initStriptPath;
       }
 
       //add the log level if its not present
         if (!commandLineAssistant.hasLogLevelDefined(individualCommandLineArguments)) {
-            String logLevelText = commandLineAssistant.getCommandLine2StartParameterConverter().getLogLevelCommandLine(
-                    logLevel);
+            String logLevelText = commandLineAssistant.getLoggingCommandLineConverter().getLogLevelCommandLine(logLevel);
             if (logLevelText != null && !"".equals(logLevelText)) {
             executionCommandLine.add( '-' + logLevelText );
       }
@@ -289,8 +288,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
 
       //add the stack trace level if its not present
         if (!commandLineAssistant.hasShowStacktraceDefined(individualCommandLineArguments)) {
-            String stackTraceLevelText = commandLineAssistant.getCommandLine2StartParameterConverter()
-                    .getShowStacktraceCommandLine(stackTraceLevel);
+            String stackTraceLevelText = commandLineAssistant.getCommandLineConverter().getShowStacktraceCommandLine(stackTraceLevel);
             if (stackTraceLevelText != null) {
             executionCommandLine.add( '-' + stackTraceLevelText );
       }

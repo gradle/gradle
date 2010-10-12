@@ -33,13 +33,15 @@ import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.profile.ProfileListener;
 import org.gradle.util.WrapUtil;
 
+import java.util.Arrays;
+
 /**
  * @author Hans Dockter
  */
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final ServiceRegistry sharedServices;
     private final NestedBuildTracker tracker;
-    private CommandLine2StartParameterConverter commandLine2StartParameterConverter;
+    private CommandLineConverter<StartParameter> commandLineConverter;
 
     public DefaultGradleLauncherFactory(ServiceRegistry loggingServices) {
         this(new GlobalServicesRegistry(loggingServices));
@@ -55,7 +57,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         // Start logging system
         sharedServices.newInstance(LoggingManagerInternal.class).setLevel(LogLevel.LIFECYCLE).start();
 
-        commandLine2StartParameterConverter = sharedServices.get(CommandLine2StartParameterConverter.class);
+        commandLineConverter = sharedServices.get(CommandLineConverter.class);
         tracker = new NestedBuildTracker();
 
         // Register default loggers 
@@ -64,11 +66,11 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     }
 
     public StartParameter createStartParameter(String[] commandLineArgs) {
-        return commandLine2StartParameterConverter.convert(commandLineArgs);
+        return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }
 
     public GradleLauncher newInstance(String[] commandLineArgs) {
-        return newInstance(commandLine2StartParameterConverter.convert(commandLineArgs));
+        return newInstance(createStartParameter(commandLineArgs));
     }
 
     public GradleLauncher newInstance(StartParameter startParameter) {
@@ -117,9 +119,9 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
                 loggingManager);
     }
 
-    public void setCommandLine2StartParameterConverter(
-            CommandLine2StartParameterConverter commandLine2StartParameterConverter) {
-        this.commandLine2StartParameterConverter = commandLine2StartParameterConverter;
+    public void setCommandLineConverter(
+            CommandLineConverter<StartParameter> commandLineConverter) {
+        this.commandLineConverter = commandLineConverter;
     }
 
     private static class BuildCleanupListener extends BuildAdapter {

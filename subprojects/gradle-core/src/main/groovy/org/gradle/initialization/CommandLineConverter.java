@@ -16,15 +16,14 @@
 package org.gradle.initialization;
 
 import org.gradle.CommandLineArgumentException;
-import org.gradle.StartParameter;
 
 /**
  * @author Hans Dockter
  */
-public interface CommandLine2StartParameterConverter {
-    StartParameter convert(String[] args) throws CommandLineArgumentException;
-
-    void convert(String[] args, StartParameter parameter) throws CommandLineArgumentException;
+public interface CommandLineConverter<T> {
+    T convert(Iterable<String> args) throws CommandLineArgumentException;
+    
+    T convert(ParsedCommandLine args, T target) throws CommandLineArgumentException;
 
     void configure(CommandLineParser parser);
 }

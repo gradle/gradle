@@ -20,7 +20,6 @@ import org.gradle.CacheUsage;
 import org.gradle.CommandLineArgumentException;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.UriScriptSource;
@@ -39,12 +38,13 @@ import java.util.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultCommandLine2StartParameterConverterTest {
+public class DefaultCommandLineConverterTest {
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
     private File expectedProjectDir;
@@ -69,6 +69,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
+    private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
 
     @Before
     public void setUp() throws IOException {
@@ -111,7 +112,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     private void checkConversion(final boolean embedded, String... args) {
-        actualStartParameter = new DefaultCommandLine2StartParameterConverter().convert(args);
+        actualStartParameter = commandLineConverter.convert(Arrays.asList(args));
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter);
         if (embedded) {
@@ -248,19 +249,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test(expected = CommandLineArgumentException.class)
     public void withEmbeddedScriptAndConflictingSpecifySettingsFileOption() {
         checkConversion("-e", "someScript", "-csomeFile", "clean");
-    }
-
-    @Test
-    public void withConflictingLoggingOptionsDQ() {
-        List<String> illegalOptions = toList("dq", "di", "qd", "qi", "iq", "id");
-        for (String illegalOption : illegalOptions) {
-            try {
-                checkConversion("-" + illegalOption, "clean");
-            } catch (InvalidUserDataException e) {
-                continue;
-            }
-            fail("Expected InvalidUserDataException");
-        }
     }
 
     @Test

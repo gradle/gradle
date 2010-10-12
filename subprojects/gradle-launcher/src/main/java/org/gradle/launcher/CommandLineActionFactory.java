@@ -20,14 +20,14 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.CommandLineParser;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.initialization.ParsedCommandLine;
+import org.gradle.initialization.*;
+import org.gradle.initialization.CommandLineConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
+import java.util.List;
 
 public class CommandLineActionFactory {
     private static final String HELP = "h";
@@ -35,14 +35,14 @@ public class CommandLineActionFactory {
     private static final String VERSION = "v";
     private static Logger logger = Logging.getLogger(CommandLineActionFactory.class);
     private final BuildCompleter buildCompleter;
-    private final CommandLine2StartParameterConverter startParameterConverter;
+    private final CommandLineConverter<StartParameter> startParameterConverter;
     private final Clock buildTimeClock = new Clock();
 
     public CommandLineActionFactory(BuildCompleter buildCompleter) {
-        this(buildCompleter, new DefaultCommandLine2StartParameterConverter());
+        this(buildCompleter, new DefaultCommandLineConverter());
     }
 
-    CommandLineActionFactory(BuildCompleter buildCompleter, CommandLine2StartParameterConverter startParameterConverter) {
+    CommandLineActionFactory(BuildCompleter buildCompleter, CommandLineConverter<StartParameter> startParameterConverter) {
         this.buildCompleter = buildCompleter;
         this.startParameterConverter = startParameterConverter;
     }
@@ -54,7 +54,7 @@ public class CommandLineActionFactory {
      * @param args The command-line arguments.
      * @return The action to execute.
      */
-    Runnable convert(String[] args) {
+    Runnable convert(List<String> args) {
         CommandLineParser parser = new CommandLineParser();
         startParameterConverter.configure(parser);
         parser.option(HELP, "?", "help").hasDescription("Shows this help message");
@@ -73,8 +73,8 @@ public class CommandLineActionFactory {
                 return new ShowGuiAction();
             }
 
-            StartParameter startParameter;
-            startParameter = startParameterConverter.convert(args);
+            StartParameter startParameter = new StartParameter();
+            startParameterConverter.convert(commandLine, startParameter);
             return new RunBuildAction(startParameter);
         } catch (CommandLineArgumentException e) {
             return new CommandLineParseFailureAction(parser, e);

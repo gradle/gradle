@@ -23,8 +23,9 @@ import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.configuration.ImplicitTasksConfigurer;
+import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -35,7 +36,7 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class DefaultCommandLine2StartParameterConverter implements CommandLine2StartParameterConverter {
+public class DefaultCommandLineConverter implements CommandLineConverter<StartParameter> {
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
     private static final String PROJECT_DEPENDENCY_TASK_NAMES = "A";
@@ -46,10 +47,6 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     public static final String TASKS = "t";
     private static final String PROPERTIES = "r";
     private static final String DEPENDENCIES = "n";
-    public static final String DEBUG = "d";
-    public static final String INFO = "i";
-    public static final String QUIET = "q";
-    public static final String NO_COLOR = "no-color";
     public static final String FULL_STACKTRACE = "S";
     public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
@@ -62,32 +59,24 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
     private static final String EXCLUDE_TASK = "x";
     private static final String PROFILE = "profile";
 
-    private static BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
     private static BiMap<String, StartParameter.ShowStacktrace> showStacktraceMap = HashBiMap.create();
+    private final CommandLineConverter<LoggingConfiguration> loggingConfigurationCommandLineConverter = new LoggingCommandLineConverter();
 
     //Initialize bi-directional maps so you can convert these back and forth from their command line options to their
     //object representation.
 
     static {
-        logLevelMap.put(QUIET, LogLevel.QUIET);
-        logLevelMap.put(INFO, LogLevel.INFO);
-        logLevelMap.put(DEBUG, LogLevel.DEBUG);
-        logLevelMap.put("", LogLevel.LIFECYCLE);
-        //there are also other log levels that gradle doesn't support command-line-wise.
-
         showStacktraceMap.put(FULL_STACKTRACE, StartParameter.ShowStacktrace.ALWAYS_FULL);
         showStacktraceMap.put(STACKTRACE, StartParameter.ShowStacktrace.ALWAYS);
         //showStacktraceMap.put( , StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS ); there is no command argument for this. Rather, the lack of an argument means 'default to this'.
     }
 
     public void configure(CommandLineParser parser) {
+        loggingConfigurationCommandLineConverter.configure(parser);
         parser.allowMixedSubcommandsAndOptions();
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
-        parser.option(DEBUG, "debug").hasDescription("Log in debug mode (includes normal stacktrace).");
-        parser.option(QUIET, "quiet").hasDescription("Log errors only.");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(INFO, "info").hasDescription("Set log level to info.");
         parser.option(STACKTRACE, "stacktrace").hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
         parser.option(FULL_STACKTRACE, "full-stacktrace").hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
         parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks.");
@@ -105,20 +94,19 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
-        parser.option(NO_COLOR).hasDescription("Do not use color in the console output.");
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
     }
 
-    public StartParameter convert(String[] args) {
-        StartParameter startParameter = new StartParameter();
-        convert(args, startParameter);
-        return startParameter;
-    }
-
-    public void convert(String[] args, StartParameter startParameter) {
+    public StartParameter convert(Iterable<String> args) throws CommandLineArgumentException {
         CommandLineParser parser = new CommandLineParser();
         configure(parser);
-        ParsedCommandLine options = parser.parse(args);
+        return convert(parser.parse(args), new StartParameter());
+    }
+
+    public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {
+        LoggingConfiguration loggingConfiguration = loggingConfigurationCommandLineConverter.convert(options, new LoggingConfiguration());
+        startParameter.setLogLevel(loggingConfiguration.getLogLevel());
+        startParameter.setColorOutput(loggingConfiguration.isColorOutput());
 
         for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
             String[] elements = keyValueExpression.split("=");
@@ -213,87 +201,20 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
             startParameter.setExcludedTaskNames(options.option(EXCLUDE_TASK).getValues());
         }
 
-        startParameter.setLogLevel(getLogLevel(options));
-        if (options.hasOption(NO_COLOR)) {
-            startParameter.setColorOutput(false);
-        }
-
         if (options.hasOption(PROFILE)) {
             startParameter.setProfile(true);
         }
+
+        return startParameter;
     }
 
-    private LogLevel getLogLevel(ParsedCommandLine options) {
-        LogLevel logLevel = null;
-        if (options.hasOption(QUIET)) {
-            logLevel = LogLevel.QUIET;
-        }
-        if (options.hasOption(INFO)) {
-            quitWithErrorIfLogLevelAlreadyDefined(logLevel, INFO);
-            logLevel = LogLevel.INFO;
-        }
-        if (options.hasOption(DEBUG)) {
-            quitWithErrorIfLogLevelAlreadyDefined(logLevel, DEBUG);
-            logLevel = LogLevel.DEBUG;
-        }
-        if (logLevel == null) {
-            logLevel = LogLevel.LIFECYCLE;
-        }
-        return logLevel;
-    }
-
-    /*
-       This returns the log level object represented by the command line argument
-       @param  commandLineArgument a single command line argument (with no '-')
-       @return the corresponding log level or null if it doesn't match any.
-       @author mhunsicker
-    */
-
-    public LogLevel getLogLevel(String commandLineArgument) {
-        LogLevel logLevel = logLevelMap.get(commandLineArgument);
-        if (logLevel == null) {
-            return null;
-        }
-
-        return logLevel;
-    }
-
-    /*
-       This returns the command line argument that represents the specified
-       log level.
-       @param  logLevel       the log level.
-       @return the command line argument or null if this level cannot be
-                represented on the command line.
-       @author mhunsicker
-    */
-
-    public String getLogLevelCommandLine(LogLevel logLevel) {
-        String commandLine = logLevelMap.inverse().get(logLevel);
-        if (commandLine == null) {
-            return null;
-        }
-
-        return commandLine;
-    }
-
-    /*
-       This returns the log levels that are supported on the command line.
-       @return a collection of available log levels
-       @author mhunsicker
-    */
-
-    public Collection<LogLevel> getLogLevels() {
-        return Collections.unmodifiableCollection(logLevelMap.values());
-    }
-
-    /*
-       This returns the stack trace level object represented by the command
-       line argument
-       @param  commandLineArgument a single command line argument (with no '-')
-       @return the corresponding stack trace level or null if it doesn't match any.
-       @author mhunsicker
-    */
-
+    /**
+     * This returns the stack trace level object represented by the command line argument
+     *
+     * @param commandLineArgument a single command line argument (with no '-')
+     * @return the corresponding stack trace level or null if it doesn't match any.
+     * @author mhunsicker
+     */
     public StartParameter.ShowStacktrace getShowStacktrace(String commandLineArgument) {
         StartParameter.ShowStacktrace showStacktrace = showStacktraceMap.get(commandLineArgument);
         if (showStacktrace == null) {
@@ -303,16 +224,13 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         return showStacktrace;
     }
 
-    /*
-       This returns the command line argument that represents the specified
-       stack trace level.
-
-       @param  showStacktrace the stack trace level.
-       @return the command line argument or null if this level cannot be
-                represented on the command line.
-       @author mhunsicker
-    */
-
+    /**
+     * This returns the command line argument that represents the specified stack trace level.
+     *
+     * @param showStacktrace the stack trace level.
+     * @return the command line argument or null if this level cannot be represented on the command line.
+     * @author mhunsicker
+     */
     public String getShowStacktraceCommandLine(StartParameter.ShowStacktrace showStacktrace) {
         String commandLine = showStacktraceMap.inverse().get(showStacktrace);
         if (commandLine == null) {
@@ -322,23 +240,13 @@ public class DefaultCommandLine2StartParameterConverter implements CommandLine2S
         return commandLine;
     }
 
-    /*
-       This returns the ShowStacktrace levels that are supported on the command
-       line.
-       @return a collection of available ShowStacktrace levels
-       @author mhunsicker
-    */
-
+    /**
+     * This returns the ShowStacktrace levels that are supported on the command line.
+     *
+     * @return a collection of available ShowStacktrace levels
+     * @author mhunsicker
+     */
     public Collection<StartParameter.ShowStacktrace> getShowStacktrace() {
         return Collections.unmodifiableCollection(showStacktraceMap.values());
-    }
-
-    private void quitWithErrorIfLogLevelAlreadyDefined(LogLevel logLevel, String option) {
-        if (logLevel != null) {
-            System.err.println(String.format(
-                    "Error: The log level is already defined by another option. Therefore the option %s is invalid.",
-                    option));
-            throw new InvalidUserDataException();
-        }
     }
 }

@@ -31,7 +31,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.CommandLineParser;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.util.Clock;
 import org.hamcrest.Matcher;
 
@@ -115,7 +116,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleExecuter withArguments(List<String> args) {
-        new DefaultCommandLine2StartParameterConverter().convert(args.toArray(new String[args.size()]), parameter);
+        CommandLineParser parser = new CommandLineParser();
+        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+        converter.configure(parser);
+        converter.convert(parser.parse(args), parameter);
         return this;
     }
 

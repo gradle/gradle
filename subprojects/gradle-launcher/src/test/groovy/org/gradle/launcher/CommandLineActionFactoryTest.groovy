@@ -15,7 +15,7 @@
  */
 package org.gradle.launcher
 
-import org.gradle.initialization.CommandLine2StartParameterConverter
+import org.gradle.initialization.CommandLineConverter
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
@@ -29,13 +29,12 @@ class CommandLineActionFactoryTest extends Specification {
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
     final BuildCompleter buildCompleter = Mock()
-    final CommandLine2StartParameterConverter startParameterConverter = Mock()
+    final CommandLineConverter<StartParameter> startParameterConverter = Mock()
     final GradleLauncherFactory gradleLauncherFactory = Mock()
     final GradleLauncher gradleLauncher = Mock()
     final BuildResult buildResult = Mock()
     final CommandLineActionFactory factory = new CommandLineActionFactory(buildCompleter, startParameterConverter)
-    final StartParameter startParameter = new StartParameter()
-    final String[] args = ['args']
+    final List<String> args = ['args']
 
     def setup() {
         GradleLauncher.injectCustomFactory(gradleLauncherFactory)
@@ -53,7 +52,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
-        1 * startParameterConverter.convert(args) >> { throw failure }
+        1 * startParameterConverter.convert(!null, !null) >> { throw failure }
 
         when:
         action.run()
@@ -68,7 +67,7 @@ class CommandLineActionFactoryTest extends Specification {
 
     def displaysUsageMessage() {
         when:
-        def action = factory.convert(option)
+        def action = factory.convert([option])
         action.run()
 
         then:
@@ -86,7 +85,7 @@ class CommandLineActionFactoryTest extends Specification {
         System.setProperty("org.gradle.appname", "gradle-app");
 
         when:
-        def action = factory.convert('-?')
+        def action = factory.convert(['-?'])
         action.run()
 
         then:
@@ -96,7 +95,7 @@ class CommandLineActionFactoryTest extends Specification {
 
     def displaysVersionMessage() {
         when:
-        def action = factory.convert(option)
+        def action = factory.convert([option])
         action.run()
 
         then:
@@ -109,7 +108,7 @@ class CommandLineActionFactoryTest extends Specification {
 
     def launchesGUI() {
         when:
-        def action = factory.convert('--gui')
+        def action = factory.convert(['--gui'])
 
         then:
         action instanceof CommandLineActionFactory.ShowGuiAction
@@ -120,13 +119,13 @@ class CommandLineActionFactoryTest extends Specification {
         def action = factory.convert(args)
 
         then:
-        1 * startParameterConverter.convert(args) >> { startParameter }
+        1 * startParameterConverter.convert(!null, !null)
 
         when:
         action.run()
 
         then:
-        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
+        1 * gradleLauncherFactory.newInstance(!null) >> gradleLauncher
         1 * gradleLauncher.run() >> buildResult
         1 * buildResult.failure >> null
         1 * buildCompleter.exit(null)
@@ -139,13 +138,13 @@ class CommandLineActionFactoryTest extends Specification {
         def action = factory.convert(args)
 
         then:
-        1 * startParameterConverter.convert(args) >> { startParameter }
+        1 * startParameterConverter.convert(!null, !null)
 
         when:
         action.run()
 
         then:
-        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
+        1 * gradleLauncherFactory.newInstance(!null) >> gradleLauncher
         1 * gradleLauncher.run() >> buildResult
         1 * buildResult.failure >> failure
         1 * buildCompleter.exit(failure)

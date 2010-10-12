@@ -16,13 +16,13 @@
 package org.gradle.initialization;
 
 import org.gradle.StartParameter;
-import org.gradle.util.WrapUtil;
-import org.hamcrest.Matchers;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.gradle.util.WrapUtil.*;
+import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -31,12 +31,12 @@ import static org.junit.Assert.assertThat;
  */
 public class DefaultGradleLauncherFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
-    private final CommandLine2StartParameterConverter parameterConverter = context.mock(CommandLine2StartParameterConverter.class);
+    private final CommandLineConverter<StartParameter> parameterConverter = context.mock(CommandLineConverter.class);
     private final DefaultGradleLauncherFactory factory = new DefaultGradleLauncherFactory();
 
     @Before
     public void setUp() {
-        factory.setCommandLine2StartParameterConverter(parameterConverter);
+        factory.setCommandLineConverter(parameterConverter);
     }
 
     @Test
@@ -48,9 +48,10 @@ public class DefaultGradleLauncherFactoryTest {
     @Test
     public void newInstanceWithCommandLineArgs() {
         final StartParameter startParameter = new StartParameter();
-        final String[] commandLineArgs = WrapUtil.toArray("A", "B");
+        final String[] commandLineArgs = toArray("A", "B");
         context.checking(new Expectations() {{
-            allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
+            allowing(parameterConverter).convert(toList("A", "B"));
+            will(returnValue(startParameter));
         }});
         assertNotNull(factory.newInstance(commandLineArgs));
     }
@@ -58,12 +59,13 @@ public class DefaultGradleLauncherFactoryTest {
     @Test
     public void createStartParameter() {
         final StartParameter startParameter = new StartParameter();
-        final String[] commandLineArgs = WrapUtil.toArray("A", "B");
+        final String[] commandLineArgs = toArray("A", "B");
         context.checking(new Expectations() {{
-            allowing(parameterConverter).convert(commandLineArgs); will(returnValue(startParameter));
+            allowing(parameterConverter).convert(toList("A", "B"));
+            will(returnValue(startParameter));
         }});
 
         assertThat(factory.createStartParameter(commandLineArgs),
-            Matchers.sameInstance(startParameter));
+            sameInstance(startParameter));
     }
 }

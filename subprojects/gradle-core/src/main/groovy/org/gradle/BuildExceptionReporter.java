@@ -19,7 +19,8 @@ import org.codehaus.groovy.runtime.StackTraceUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 import org.gradle.util.GUtil;
 import org.gradle.execution.TaskSelectionException;
 import org.slf4j.Logger;
@@ -99,7 +100,7 @@ public class BuildExceptionReporter extends BuildAdapter {
         details.summary.format("Build aborted because of an internal error.");
         details.details.format("Build aborted because of an unexpected internal error. Please file an issue at: www.gradle.org.");
         details.resolution.format("Run with -%s option to get additional debug info.",
-                DefaultCommandLine2StartParameterConverter.DEBUG);
+                LoggingCommandLineConverter.DEBUG);
         details.exception = ExceptionStyle.Full;
     }
 
@@ -127,7 +128,7 @@ public class BuildExceptionReporter extends BuildAdapter {
         assert failure.getCause() == null;
         details.summary.format("Could not determine which tasks to execute.");
         details.details.format("%s", getMessage(failure));
-        details.resolution.format("Run with -%s to get a list of available tasks.", DefaultCommandLine2StartParameterConverter.TASKS);
+        details.resolution.format("Run with -%s to get a list of available tasks.", DefaultCommandLineConverter.TASKS);
     }
 
     private void formatGenericFailure(GradleException failure, boolean stacktrace, boolean fullStacktrace,
@@ -136,11 +137,11 @@ public class BuildExceptionReporter extends BuildAdapter {
         if (!fullStacktrace) {
             if (!stacktrace) {
                 details.resolution.format("Run with -%s or -%s option to get more details. ",
-                        DefaultCommandLine2StartParameterConverter.STACKTRACE,
-                        DefaultCommandLine2StartParameterConverter.DEBUG);
+                        DefaultCommandLineConverter.STACKTRACE,
+                        LoggingCommandLineConverter.DEBUG);
             }
             details.resolution.format("Run with -%s option to get the full (very verbose) stacktrace.",
-                    DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE);
+                    DefaultCommandLineConverter.FULL_STACKTRACE);
         }
 
         if (failure instanceof LocationAwareException) {

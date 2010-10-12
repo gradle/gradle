@@ -20,6 +20,8 @@ import org.gradle.StartParameter;
 import org.gradle.api.logging.Logging;
 import org.slf4j.Logger;
 
+import java.util.Arrays;
+
 /**
  * @author Hans Dockter
  */
@@ -45,7 +47,7 @@ public class Main {
         Logger logger = createLogger();
         try {
             CommandLineActionFactory actionFactory = createActionFactory(buildCompleter);
-            Runnable action = actionFactory.convert(args);
+            Runnable action = actionFactory.convert(Arrays.asList(args));
             action.run();
             buildCompleter.exit(null);
         } catch (Throwable e) {
