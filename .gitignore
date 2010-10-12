@@ -8,9 +8,10 @@
 /subprojects/*/build
 /website/build
 /performanceTest/build
-/subprojects/gradle-core/ide
+/subprojects/*/ide
 *.iml
 *.ipr
+*.iws
 gradle.iws
 *.classpath
 *.project
