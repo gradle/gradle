@@ -16,7 +16,19 @@
 package org.gradle.logging;
 
 public interface StyledTextOutputFactory {
+    /**
+     * Creates a {@code StyledTextOutput} with the given category and the standard output log level.
+     *
+     * @param logCategory The log category.
+     * @return the output
+     */
     StyledTextOutput create(String logCategory);
 
+    /**
+     * Creates a {@code StyledTextOutput} with the given category and the standard output log level.
+     *
+     * @param logCategory The log category.
+     * @return the output
+     */
     StyledTextOutput create(Class logCategory);
 }
