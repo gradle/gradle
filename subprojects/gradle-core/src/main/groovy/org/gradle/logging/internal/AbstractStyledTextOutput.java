@@ -18,6 +18,9 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.StyledTextOutput;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
     private static final String EOL = System.getProperty("line.separator");
 
@@ -64,6 +67,15 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
 
     public StyledTextOutput text(Object text) {
         doAppend(text == null ? "null" : text.toString());
+        return this;
+    }
+
+    public StyledTextOutput exception(Throwable throwable) {
+        StringWriter out = new StringWriter();
+        PrintWriter writer = new PrintWriter(out);
+        throwable.printStackTrace(writer);
+        writer.close();
+        text(out.toString());
         return this;
     }
 

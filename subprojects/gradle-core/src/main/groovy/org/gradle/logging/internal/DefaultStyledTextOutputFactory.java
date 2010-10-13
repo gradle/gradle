@@ -15,6 +15,7 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.TimeProvider;
@@ -33,6 +34,10 @@ public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
     }
 
     public StyledTextOutput create(String logCategory) {
-        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, timeProvider);
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, null, timeProvider);
+    }
+
+    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory.getName(), logLevel, timeProvider);
     }
 }

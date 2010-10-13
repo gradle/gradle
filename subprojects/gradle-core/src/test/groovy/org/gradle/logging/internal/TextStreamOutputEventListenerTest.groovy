@@ -35,6 +35,18 @@ class TextStreamOutputEventListenerTest extends Specification {
         0 * target._
     }
 
+    def doesNotChangeLogLevelWhenEventAlreadyHasALogLevel() {
+        StyledTextOutputEvent event = Mock()
+
+        when:
+        listener.onOutput(event)
+
+        then:
+        1 * event.logLevel >> LogLevel.INFO
+        1 * target.onOutput(event)
+        0 * target._
+    }
+
     def doesNotForwardLogLevelChangeEvents() {
         StyledTextOutputEvent event = Mock()
         StyledTextOutputEvent transformed = Mock()

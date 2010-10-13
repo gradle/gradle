@@ -18,8 +18,6 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 
-import java.io.PrintWriter;
-import java.io.StringWriter;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -61,7 +59,7 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         }
     }
 
-    private class OutputEventTextOutputImpl extends AbstractStyledTextOutput implements OutputEventTextOutput {
+    private class OutputEventTextOutputImpl extends AbstractStyledTextOutput {
         private final StyledTextOutput textOutput;
         private boolean atEndOfLine = true;
 
@@ -78,26 +76,6 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
         protected void doAppend(String text) {
             atEndOfLine = text.length() >= EOL.length() && text.endsWith(EOL);
             textOutput.text(text);
-        }
-
-        @Override
-        public OutputEventTextOutput text(Object text) {
-            super.text(text);
-            return this;
-        }
-
-        public OutputEventTextOutput println() {
-            super.println();
-            return this;
-        }
-
-        public OutputEventTextOutput exception(Throwable throwable) {
-            StringWriter out = new StringWriter();
-            PrintWriter writer = new PrintWriter(out);
-            throwable.printStackTrace(writer);
-            writer.close();
-            text(out.toString());
-            return this;
         }
     }
 }

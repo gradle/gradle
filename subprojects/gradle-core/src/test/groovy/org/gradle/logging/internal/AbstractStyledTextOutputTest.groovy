@@ -105,6 +105,14 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         then:
         output.value == toNative('[message]\n')
     }
+
+    def formatsException() {
+        when:
+        output.exception(new RuntimeException('broken'))
+
+        then:
+        output.value.startsWith('java.lang.RuntimeException: broken')
+    }
 }
 
 class TestStyledTextOutput extends AbstractStyledTextOutput {

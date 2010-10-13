@@ -16,6 +16,7 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
 
 public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
 
@@ -30,5 +31,5 @@ public abstract class RenderableOutputEvent extends CategorisedOutputEvent {
      *
      * @param output The output to render to.
      */
-    public abstract void render(OutputEventTextOutput output);
+    public abstract void render(StyledTextOutput output);
 }

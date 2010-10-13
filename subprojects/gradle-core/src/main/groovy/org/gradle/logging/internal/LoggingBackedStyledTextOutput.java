@@ -17,6 +17,7 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
+import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.util.LineBufferingOutputStream;
 import org.gradle.util.TimeProvider;
@@ -35,8 +36,8 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private Style style = Style.Normal;
     private boolean styleChange;
 
-    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, TimeProvider timeProvider) {
-        outstr = new LineBufferingOutputStream(new LogAction(listener, category, timeProvider), true);
+    public LoggingBackedStyledTextOutput(OutputEventListener listener, String category, LogLevel logLevel, TimeProvider timeProvider) {
+        outstr = new LineBufferingOutputStream(new LogAction(listener, category, logLevel, timeProvider), true);
     }
 
     public StyledTextOutput style(Style style) {
@@ -62,12 +63,14 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
     private class LogAction implements Action<String> {
         private final OutputEventListener listener;
         private final String category;
+        private final LogLevel logLevel;
         private final TimeProvider timeProvider;
         private List<StyledTextOutputEvent.Span> spans;
 
-        public LogAction(OutputEventListener listener, String category, TimeProvider timeProvider) {
+        public LogAction(OutputEventListener listener, String category, LogLevel logLevel, TimeProvider timeProvider) {
             this.listener = listener;
             this.category = category;
+            this.logLevel = logLevel;
             this.timeProvider = timeProvider;
         }
 
@@ -89,7 +92,7 @@ public class LoggingBackedStyledTextOutput extends AbstractStyledTextOutput {
                 spans = Collections.singletonList(span);
             }
 
-            StyledTextOutputEvent event = new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, spans);
+            StyledTextOutputEvent event = new StyledTextOutputEvent(timeProvider.getCurrentTime(), category, logLevel, spans);
             spans = null;
             
             listener.onOutput(event);

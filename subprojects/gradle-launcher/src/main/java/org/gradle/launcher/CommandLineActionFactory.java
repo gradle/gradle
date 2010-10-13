@@ -17,15 +17,12 @@ package org.gradle.launcher;
 
 import org.gradle.*;
 import org.gradle.api.internal.project.ServiceRegistry;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.*;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
-import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
@@ -38,9 +35,7 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String GUI = "gui";
     private static final String VERSION = "v";
-    private static Logger logger = Logging.getLogger(CommandLineActionFactory.class);
     private final BuildCompleter buildCompleter;
-    private final Clock buildTimeClock = new Clock();
 
     public CommandLineActionFactory(BuildCompleter buildCompleter) {
         this.buildCompleter = buildCompleter;
@@ -71,7 +66,7 @@ public class CommandLineActionFactory {
         try {
             ParsedCommandLine commandLine = parser.parse(args);
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingServices.get(CommandLineConverter.class);
-            loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
+            loggingConfiguration = loggingConfigurationConverter.convert(commandLine);
             action = createAction(parser, commandLine, startParameterConverter, loggingServices);
         } catch (CommandLineArgumentException e) {
             action = new CommandLineParseFailureAction(parser, e);
@@ -103,8 +98,7 @@ public class CommandLineActionFactory {
             return new ShowGuiAction();
         }
 
-        StartParameter startParameter = new StartParameter();
-        startParameterConverter.convert(commandLine, startParameter);
+        StartParameter startParameter = startParameterConverter.convert(commandLine);
         return new RunBuildAction(startParameter, loggingServices);
     }
 
@@ -174,7 +168,6 @@ public class CommandLineActionFactory {
         public void run() {
             GradleLauncherFactory gradleLauncherFactory = createGradleLauncherFactory(loggingServices);
             GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter);
-            gradleLauncher.useLogger(new BuildLogger(logger, buildTimeClock, startParameter));
             BuildResult buildResult = gradleLauncher.run();
             buildCompleter.exit(buildResult.getFailure());
         }

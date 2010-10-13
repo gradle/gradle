@@ -15,39 +15,51 @@
  */
 package org.gradle;
 
-import static org.hamcrest.Matchers.*;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
+import org.gradle.util.Clock;
+import org.gradle.util.JUnit4GroovyMockery;
 import org.jmock.Expectations;
-import org.jmock.lib.legacy.ClassImposteriser;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-import org.gradle.api.logging.Logger;
-import org.gradle.util.Clock;
+
+import static org.gradle.logging.StyledTextOutput.Style.*;
 
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class BuildResultLoggerTest {
-    private final JUnit4Mockery context = new JUnit4Mockery(){{
-        setImposteriser(ClassImposteriser.INSTANCE);
-    }};
-    private Logger logger;
+    private final JUnit4Mockery context = new JUnit4GroovyMockery();
+    private StyledTextOutputFactory textOutputFactory;
+    private StyledTextOutput textOutput;
     private BuildListener listener;
     private Clock buildTimeClock;
 
     @Before
     public void setup() {
-        logger = context.mock(Logger.class);
+        textOutput = context.mock(StyledTextOutput.class);
         buildTimeClock = context.mock(Clock.class);
-        listener = new BuildResultLogger(logger, buildTimeClock);
+        textOutputFactory = context.mock(StyledTextOutputFactory.class);
+        listener = new BuildResultLogger(textOutputFactory, buildTimeClock);
     }
 
     @Test
     public void logsBuildSuccessAndTotalTime() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(buildTimeClock).getTime();
             will(returnValue("10s"));
-            one(logger).lifecycle(String.format("%nBUILD SUCCESSFUL%n"));
-            one(logger).lifecycle(with(startsWith("Total time: 10s")));
+            one(textOutputFactory).create(BuildResultLogger.class, LogLevel.LIFECYCLE);
+            will(returnValue(textOutput));
+            one(textOutput).println();
+            one(textOutput).style(Success);
+            will(returnValue(textOutput));
+            one(textOutput).text("BUILD SUCCESSFUL");
+            will(returnValue(textOutput));
+            one(textOutput).style(Normal);
+            one(textOutput).println();
+            one(textOutput).println();
+            one(textOutput).formatln("Total time: %s", "10s");
         }});
 
         listener.buildFinished(new BuildResult(null, null));
@@ -55,11 +67,20 @@ public class BuildResultLoggerTest {
 
     @Test
     public void logsBuildFailedAndTotalTime() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(buildTimeClock).getTime();
             will(returnValue("10s"));
-            one(logger).error(String.format("%nBUILD FAILED%n"));
-            one(logger).lifecycle(with(startsWith("Total time: 10s")));
+            one(textOutputFactory).create(BuildResultLogger.class, LogLevel.ERROR);
+            will(returnValue(textOutput));
+            one(textOutput).println();
+            one(textOutput).style(Failure);
+            will(returnValue(textOutput));
+            one(textOutput).text("BUILD FAILED");
+            will(returnValue(textOutput));
+            one(textOutput).style(Normal);
+            one(textOutput).println();
+            one(textOutput).println();
+            one(textOutput).formatln("Total time: %s", "10s");
         }});
 
         listener.buildFinished(new BuildResult(null, new RuntimeException()));

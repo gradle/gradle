@@ -19,7 +19,7 @@ import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.gradle.CommandLineArgumentException;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.initialization.CommandLineConverter;
+import org.gradle.initialization.AbstractCommandLineConverter;
 import org.gradle.initialization.CommandLineParser;
 import org.gradle.initialization.ParsedCommandLine;
 import org.gradle.logging.LoggingConfiguration;
@@ -27,7 +27,7 @@ import org.gradle.logging.LoggingConfiguration;
 import java.util.Collection;
 import java.util.Collections;
 
-public class LoggingCommandLineConverter implements CommandLineConverter<LoggingConfiguration> {
+public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
     public static final String DEBUG = "d";
     public static final String INFO = "i";
     public static final String QUIET = "q";
@@ -41,18 +41,13 @@ public class LoggingCommandLineConverter implements CommandLineConverter<Logging
         logLevelMap.put("", LogLevel.LIFECYCLE);
     }
 
-    public LoggingConfiguration convert(Iterable<String> args) throws CommandLineArgumentException {
-        CommandLineParser parser = new CommandLineParser();
-        configure(parser);
-        return convert(parser.parse(args), new LoggingConfiguration());
-    }
-
-    public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration target) throws CommandLineArgumentException {
-        target.setLogLevel(getLogLevel(commandLine));
+    public LoggingConfiguration convert(ParsedCommandLine commandLine) throws CommandLineArgumentException {
+        LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
+        loggingConfiguration.setLogLevel(getLogLevel(commandLine));
         if (commandLine.hasOption(NO_COLOR)) {
-            target.setColorOutput(false);
+            loggingConfiguration.setColorOutput(false);
         }
-        return target;
+        return loggingConfiguration;
     }
 
     private LogLevel getLogLevel(ParsedCommandLine options) {

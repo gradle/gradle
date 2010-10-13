@@ -22,10 +22,11 @@ import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.logging.Logger;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.Clock;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * A {@link org.gradle.BuildListener} which logs the build progress.
@@ -34,10 +35,10 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
     private final Logger logger;
     private final List<BuildListener> resultLoggers = new ArrayList<BuildListener>();
 
-    public BuildLogger(Logger logger, Clock buildTimeClock, StartParameter startParameter) {
+    public BuildLogger(Logger logger, StyledTextOutputFactory textOutputFactory, Clock buildTimeClock, StartParameter startParameter) {
         this.logger = logger;
         resultLoggers.add(new BuildExceptionReporter(logger, startParameter));
-        resultLoggers.add(new BuildResultLogger(logger, buildTimeClock));
+        resultLoggers.add(new BuildResultLogger(textOutputFactory, buildTimeClock));
     }
 
     public void buildStarted(Gradle gradle) {

@@ -15,14 +15,16 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
+import static org.gradle.util.WrapUtil.toList;
+import static org.hamcrest.Matchers.sameInstance;
 import static org.junit.Assert.assertNotNull;
 import static org.junit.Assert.assertThat;
 
@@ -39,6 +41,22 @@ public class DefaultGradleLauncherFactoryTest {
         factory.setCommandLineConverter(parameterConverter);
     }
 
+    @After
+    public void tearDown() {
+        GradleLauncher.injectCustomFactory(null);
+    }
+
+    @Test
+    public void registersSelfWithGradleLauncher() {
+        final StartParameter startParameter = new StartParameter();
+        context.checking(new Expectations() {{
+            allowing(parameterConverter).convert(toList("a"));
+            will(returnValue(startParameter));
+        }});
+
+        assertThat(GradleLauncher.createStartParameter("a"), sameInstance(startParameter));
+    }
+    
     @Test
     public void newInstanceWithStartParameter() {
         final StartParameter startParameter = new StartParameter();
@@ -48,24 +66,21 @@ public class DefaultGradleLauncherFactoryTest {
     @Test
     public void newInstanceWithCommandLineArgs() {
         final StartParameter startParameter = new StartParameter();
-        final String[] commandLineArgs = toArray("A", "B");
         context.checking(new Expectations() {{
             allowing(parameterConverter).convert(toList("A", "B"));
             will(returnValue(startParameter));
         }});
-        assertNotNull(factory.newInstance(commandLineArgs));
+        assertNotNull(factory.newInstance("A", "B"));
     }
 
     @Test
     public void createStartParameter() {
         final StartParameter startParameter = new StartParameter();
-        final String[] commandLineArgs = toArray("A", "B");
         context.checking(new Expectations() {{
             allowing(parameterConverter).convert(toList("A", "B"));
             will(returnValue(startParameter));
         }});
 
-        assertThat(factory.createStartParameter(commandLineArgs),
-            sameInstance(startParameter));
+        assertThat(factory.createStartParameter("A", "B"), sameInstance(startParameter));
     }
 }

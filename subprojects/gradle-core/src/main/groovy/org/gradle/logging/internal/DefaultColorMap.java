@@ -26,6 +26,7 @@ import static org.fusesource.jansi.Ansi.Attribute.*;
 import static org.fusesource.jansi.Ansi.Attribute.ITALIC;
 import static org.fusesource.jansi.Ansi.Color.*;
 import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.logging.StyledTextOutput.Style.Success;
 
 public class DefaultColorMap implements ColorMap {
     private static final String STATUSBAR = "statusbar";
@@ -48,6 +49,7 @@ public class DefaultColorMap implements ColorMap {
         addDefault(ProgressStatus, YELLOW);
         addDefault(Identifier, GREEN);
         addDefault(UserInput, GREEN);
+        addDefault(Success, GREEN);
         addDefault(Failure, RED);
 //        addDefault(Error, RED);
         defaults.put(STATUSBAR, BOLD);

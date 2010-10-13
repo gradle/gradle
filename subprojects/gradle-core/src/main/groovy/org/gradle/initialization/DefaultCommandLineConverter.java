@@ -36,7 +36,7 @@ import java.util.List;
 /**
  * @author Hans Dockter
  */
-public class DefaultCommandLineConverter implements CommandLineConverter<StartParameter> {
+public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
     private static final String PROJECT_DEPENDENCY_TASK_NAMES = "A";
@@ -97,14 +97,12 @@ public class DefaultCommandLineConverter implements CommandLineConverter<StartPa
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
     }
 
-    public StartParameter convert(Iterable<String> args) throws CommandLineArgumentException {
-        CommandLineParser parser = new CommandLineParser();
-        configure(parser);
-        return convert(parser.parse(args), new StartParameter());
+    public StartParameter convert(ParsedCommandLine args) throws CommandLineArgumentException {
+        return convert(args, new StartParameter());
     }
 
     public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {
-        LoggingConfiguration loggingConfiguration = loggingConfigurationCommandLineConverter.convert(options, new LoggingConfiguration());
+        LoggingConfiguration loggingConfiguration = loggingConfigurationCommandLineConverter.convert(options);
         startParameter.setLogLevel(loggingConfiguration.getLogLevel());
         startParameter.setColorOutput(loggingConfiguration.isColorOutput());
 

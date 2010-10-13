@@ -59,6 +59,7 @@ class CommandLineActionFactoryTest extends Specification {
 
     def setup() {
         _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
+        _ * loggingConfigurationConverter.convert(!null) >> new LoggingConfiguration()
         Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
         _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory
         _ * loggingManagerFactory.create() >> loggingManager
@@ -72,7 +73,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
-        1 * startParameterConverter.convert(!null, !null) >> { throw failure }
+        1 * startParameterConverter.convert(!null) >> { throw failure }
 
         when:
         action.run()
@@ -139,13 +140,13 @@ class CommandLineActionFactoryTest extends Specification {
     }
 
     def executesBuild() {
-        def startParameter;
+        def startParameter = new StartParameter();
 
         when:
         def action = factory.convert(['args'])
 
         then:
-        1 * startParameterConverter.convert(!null, !null) >> { args -> startParameter = args[1] }
+        1 * startParameterConverter.convert(!null) >> startParameter
 
         when:
         action.run()
@@ -160,13 +161,13 @@ class CommandLineActionFactoryTest extends Specification {
 
     def executesFailedBuild() {
         def RuntimeException failure = new RuntimeException()
-        def startParameter;
+        def startParameter = new StartParameter();
 
         when:
         def action = factory.convert(['args'])
 
         then:
-        1 * startParameterConverter.convert(!null, !null) >> { args -> startParameter = args[1] }
+        1 * startParameterConverter.convert(!null) >> startParameter
 
         when:
         action.run()

@@ -16,6 +16,7 @@
 package org.gradle.logging.internal;
 
 import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
 
 public class LogEvent extends RenderableOutputEvent {
     private final String message;
@@ -35,7 +36,7 @@ public class LogEvent extends RenderableOutputEvent {
         return throwable;
     }
 
-    public void render(OutputEventTextOutput output) {
+    public void render(StyledTextOutput output) {
         output.text(message);
         output.println();
         if (throwable != null) {

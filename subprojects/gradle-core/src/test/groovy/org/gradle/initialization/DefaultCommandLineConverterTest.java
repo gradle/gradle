@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
 import org.gradle.CommandLineArgumentException;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
@@ -26,7 +25,6 @@ import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -58,8 +56,6 @@ public class DefaultCommandLineConverterTest {
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
-    private boolean expectedShowHelp;
-    private boolean expectedShowVersion;
     private StartParameter.ShowStacktrace expectedShowStackTrace = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
@@ -74,11 +70,6 @@ public class DefaultCommandLineConverterTest {
     @Before
     public void setUp() throws IOException {
         expectedProjectDir = new File("").getCanonicalFile();
-    }
-
-    @After
-    public void tearDown() {
-        GradleLauncher.injectCustomFactory(null);
     }
 
     @Test

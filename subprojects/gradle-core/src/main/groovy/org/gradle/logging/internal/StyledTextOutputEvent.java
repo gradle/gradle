@@ -53,7 +53,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
         this(timestamp, category, logLevel, Arrays.asList(spans));
     }
 
-    private StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
+    public StyledTextOutputEvent(long timestamp, String category, LogLevel logLevel, List<Span> spans) {
         super(timestamp, category, logLevel);
         this.spans = new ArrayList<Span>(spans);
     }
@@ -80,7 +80,7 @@ public class StyledTextOutputEvent extends RenderableOutputEvent {
     }
 
     @Override
-    public void render(OutputEventTextOutput output) {
+    public void render(StyledTextOutput output) {
         for (Span span : spans) {
             output.style(span.style);
             output.text(span.text);

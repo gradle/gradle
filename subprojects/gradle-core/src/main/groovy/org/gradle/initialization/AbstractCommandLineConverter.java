@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,14 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.initialization;
 
-import org.gradle.logging.StyledTextOutput;
+import org.gradle.CommandLineArgumentException;
 
-public interface OutputEventTextOutput extends StyledTextOutput {
-    OutputEventTextOutput text(Object text);
-
-    OutputEventTextOutput println();
-
-    OutputEventTextOutput exception(Throwable throwable);
+public abstract class AbstractCommandLineConverter<T> implements CommandLineConverter<T> {
+    public T convert(Iterable<String> args) throws CommandLineArgumentException {
+        CommandLineParser parser = new CommandLineParser();
+        configure(parser);
+        return convert(parser.parse(args));
+    }
 }

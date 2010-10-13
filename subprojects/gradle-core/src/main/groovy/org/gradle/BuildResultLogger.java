@@ -15,27 +15,38 @@
  */
 package org.gradle;
 
-import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.Clock;
+
+import static org.gradle.logging.StyledTextOutput.Style.Failure;
+import static org.gradle.logging.StyledTextOutput.Style.Normal;
+import static org.gradle.logging.StyledTextOutput.Style.Success;
 
 /**
  * A {@link BuildListener} which logs the final result of the build.
  */
 public class BuildResultLogger extends BuildAdapter {
-    private final Logger logger;
+    private final StyledTextOutputFactory textOutputFactory;
     private final Clock buildTimeClock;
 
-    public BuildResultLogger(Logger logger, Clock buildTimeClock) {
-        this.logger = logger;
+    public BuildResultLogger(StyledTextOutputFactory textOutputFactory, Clock buildTimeClock) {
+        this.textOutputFactory = textOutputFactory;
         this.buildTimeClock = buildTimeClock;
     }
 
     public void buildFinished(BuildResult result) {
+        LogLevel logLevel = result.getFailure() == null ? LogLevel.LIFECYCLE : LogLevel.ERROR;
+        StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, logLevel);
+        textOutput.println();
         if (result.getFailure() == null) {
-            logger.lifecycle(String.format("%nBUILD SUCCESSFUL%n"));
+            textOutput.style(Success).text("BUILD SUCCESSFUL").style(Normal);
         } else {
-            logger.error(String.format("%nBUILD FAILED%n"));
+            textOutput.style(Failure).text("BUILD FAILED").style(Normal);
         }
-        logger.lifecycle(String.format("Total time: %s", buildTimeClock.getTime()));
+        textOutput.println();
+        textOutput.println();
+        textOutput.formatln("Total time: %s", buildTimeClock.getTime());
     }
 }
