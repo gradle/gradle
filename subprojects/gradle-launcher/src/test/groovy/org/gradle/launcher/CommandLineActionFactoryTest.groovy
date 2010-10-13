@@ -22,6 +22,10 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.*
+import org.gradle.api.internal.project.ServiceRegistry
+import org.gradle.logging.LoggingConfiguration
+import org.gradle.logging.LoggingManagerInternal
+import org.gradle.api.internal.Factory
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
@@ -33,22 +37,38 @@ class CommandLineActionFactoryTest extends Specification {
     final GradleLauncherFactory gradleLauncherFactory = Mock()
     final GradleLauncher gradleLauncher = Mock()
     final BuildResult buildResult = Mock()
-    final CommandLineActionFactory factory = new CommandLineActionFactory(buildCompleter, startParameterConverter)
-    final List<String> args = ['args']
+    final ServiceRegistry loggingServices = Mock()
+    final CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = Mock()
+    final LoggingManagerInternal loggingManager = Mock()
+    final CommandLineActionFactory factory = new CommandLineActionFactory(buildCompleter) {
+        @Override
+        ServiceRegistry createLoggingServices() {
+            return loggingServices
+        }
 
-    def setup() {
-        GradleLauncher.injectCustomFactory(gradleLauncherFactory)
+        @Override
+        CommandLineConverter<StartParameter> createStartParameterConverter() {
+            return startParameterConverter
+        }
+
+        @Override
+        GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
+            return gradleLauncherFactory
+        }
     }
 
-    def cleanup() {
-        GradleLauncher.injectCustomFactory(null)
+    def setup() {
+        _ * loggingServices.get(CommandLineConverter) >> loggingConfigurationConverter
+        Factory<LoggingManagerInternal> loggingManagerFactory = Mock()
+        _ * loggingServices.getFactory(LoggingManagerInternal) >> loggingManagerFactory
+        _ * loggingManagerFactory.create() >> loggingManager
     }
 
     def reportsCommandLineParseFailure() {
         def failure = new CommandLineArgumentException('<broken>')
 
         when:
-        def action = factory.convert(args)
+        def action = factory.convert([])
 
         then:
         1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
@@ -58,6 +78,7 @@ class CommandLineActionFactoryTest extends Specification {
         action.run()
 
         then:
+        1 * loggingManager.start()
         outputs.stdErr.contains('<broken>')
         outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
         outputs.stdErr.contains('--help')
@@ -72,6 +93,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         _ * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
+        1 * loggingManager.start()
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
         outputs.stdOut.contains('--help')
         outputs.stdOut.contains('--some-build-option')
@@ -99,6 +121,7 @@ class CommandLineActionFactoryTest extends Specification {
         action.run()
 
         then:
+        1 * loggingManager.start()
         outputs.stdOut.contains(new GradleVersion().prettyPrint())
         1 * buildCompleter.exit(null)
 
@@ -111,21 +134,25 @@ class CommandLineActionFactoryTest extends Specification {
         def action = factory.convert(['--gui'])
 
         then:
-        action instanceof CommandLineActionFactory.ShowGuiAction
+        action instanceof CommandLineActionFactory.WithLoggingAction
+        action.action instanceof CommandLineActionFactory.ShowGuiAction
     }
 
     def executesBuild() {
+        def startParameter;
+
         when:
-        def action = factory.convert(args)
+        def action = factory.convert(['args'])
 
         then:
-        1 * startParameterConverter.convert(!null, !null)
+        1 * startParameterConverter.convert(!null, !null) >> { args -> startParameter = args[1] }
 
         when:
         action.run()
 
         then:
-        1 * gradleLauncherFactory.newInstance(!null) >> gradleLauncher
+        1 * loggingManager.start()
+        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
         1 * gradleLauncher.run() >> buildResult
         1 * buildResult.failure >> null
         1 * buildCompleter.exit(null)
@@ -133,18 +160,20 @@ class CommandLineActionFactoryTest extends Specification {
 
     def executesFailedBuild() {
         def RuntimeException failure = new RuntimeException()
+        def startParameter;
 
         when:
-        def action = factory.convert(args)
+        def action = factory.convert(['args'])
 
         then:
-        1 * startParameterConverter.convert(!null, !null)
+        1 * startParameterConverter.convert(!null, !null) >> { args -> startParameter = args[1] }
 
         when:
         action.run()
 
         then:
-        1 * gradleLauncherFactory.newInstance(!null) >> gradleLauncher
+        1 * loggingManager.start()
+        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
         1 * gradleLauncher.run() >> buildResult
         1 * buildResult.failure >> failure
         1 * buildCompleter.exit(failure)

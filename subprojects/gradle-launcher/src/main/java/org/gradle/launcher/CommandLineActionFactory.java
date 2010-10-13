@@ -16,69 +16,96 @@
 package org.gradle.launcher;
 
 import org.gradle.*;
+import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
 import org.gradle.initialization.*;
-import org.gradle.initialization.CommandLineConverter;
-import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.LoggingConfiguration;
+import org.gradle.logging.LoggingManagerInternal;
+import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.Clock;
 import org.gradle.util.GradleVersion;
 
 import java.io.PrintStream;
 import java.util.List;
 
+/**
+ * Responsible for converting a set of command-line arguments into a {@link Runnable} action.
+ */
 public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String GUI = "gui";
     private static final String VERSION = "v";
     private static Logger logger = Logging.getLogger(CommandLineActionFactory.class);
     private final BuildCompleter buildCompleter;
-    private final CommandLineConverter<StartParameter> startParameterConverter;
     private final Clock buildTimeClock = new Clock();
 
     public CommandLineActionFactory(BuildCompleter buildCompleter) {
-        this(buildCompleter, new DefaultCommandLineConverter());
-    }
-
-    CommandLineActionFactory(BuildCompleter buildCompleter, CommandLineConverter<StartParameter> startParameterConverter) {
         this.buildCompleter = buildCompleter;
-        this.startParameterConverter = startParameterConverter;
     }
 
     /**
      * Converts the given command-line arguments to a {@code Runnable} action which performs the action requested by the
-     * command-line args.
+     * command-line args. Does not have any side-effects. Each action will call the supplied {@link
+     * org.gradle.launcher.BuildCompleter} once it has completed.
      *
      * @param args The command-line arguments.
      * @return The action to execute.
      */
     Runnable convert(List<String> args) {
         CommandLineParser parser = new CommandLineParser();
+
+        CommandLineConverter<StartParameter> startParameterConverter = createStartParameterConverter();
         startParameterConverter.configure(parser);
+
         parser.option(HELP, "?", "help").hasDescription("Shows this help message");
         parser.option(VERSION, "version").hasDescription("Print version info.");
         parser.option(GUI).hasDescription("Launches a GUI application");
 
+        LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
+        ServiceRegistry loggingServices = createLoggingServices();
+
+        Runnable action;
         try {
             ParsedCommandLine commandLine = parser.parse(args);
-            if (commandLine.hasOption(HELP)) {
-                return new ShowUsageAction(parser);
-            }
-            if (commandLine.hasOption(VERSION)) {
-                return new ShowVersionAction();
-            }
-            if (commandLine.hasOption(GUI)) {
-                return new ShowGuiAction();
-            }
-
-            StartParameter startParameter = new StartParameter();
-            startParameterConverter.convert(commandLine, startParameter);
-            return new RunBuildAction(startParameter);
+            CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingServices.get(CommandLineConverter.class);
+            loggingConfigurationConverter.convert(commandLine, loggingConfiguration);
+            action = createAction(parser, commandLine, startParameterConverter, loggingServices);
         } catch (CommandLineArgumentException e) {
-            return new CommandLineParseFailureAction(parser, e);
+            action = new CommandLineParseFailureAction(parser, e);
         }
+
+        return new WithLoggingAction(loggingConfiguration, loggingServices, action);
+    }
+
+    CommandLineConverter<StartParameter> createStartParameterConverter() {
+        return new DefaultCommandLineConverter();
+    }
+
+    ServiceRegistry createLoggingServices() {
+        return new LoggingServiceRegistry();
+    }
+
+    GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
+        return new DefaultGradleLauncherFactory(loggingServices);
+    }
+
+    private Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, ServiceRegistry loggingServices) {
+        if (commandLine.hasOption(HELP)) {
+            return new ShowUsageAction(parser);
+        }
+        if (commandLine.hasOption(VERSION)) {
+            return new ShowVersionAction();
+        }
+        if (commandLine.hasOption(GUI)) {
+            return new ShowGuiAction();
+        }
+
+        StartParameter startParameter = new StartParameter();
+        startParameterConverter.convert(commandLine, startParameter);
+        return new RunBuildAction(startParameter, loggingServices);
     }
 
     private void showUsage(PrintStream out, CommandLineParser parser) {
@@ -137,16 +164,39 @@ public class CommandLineActionFactory {
 
     private class RunBuildAction implements Runnable {
         private final StartParameter startParameter;
+        private final ServiceRegistry loggingServices;
 
-        public RunBuildAction(StartParameter startParameter) {
+        public RunBuildAction(StartParameter startParameter, ServiceRegistry loggingServices) {
             this.startParameter = startParameter;
+            this.loggingServices = loggingServices;
         }
-        
+
         public void run() {
-            GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+            GradleLauncherFactory gradleLauncherFactory = createGradleLauncherFactory(loggingServices);
+            GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter);
             gradleLauncher.useLogger(new BuildLogger(logger, buildTimeClock, startParameter));
             BuildResult buildResult = gradleLauncher.run();
             buildCompleter.exit(buildResult.getFailure());
+        }
+    }
+
+    class WithLoggingAction implements Runnable {
+        private final LoggingConfiguration loggingConfiguration;
+        private final ServiceRegistry loggingServices;
+        private final Runnable action;
+
+        public WithLoggingAction(LoggingConfiguration loggingConfiguration, ServiceRegistry loggingServices, Runnable action) {
+            this.loggingConfiguration = loggingConfiguration;
+            this.loggingServices = loggingServices;
+            this.action = action;
+        }
+
+        public void run() {
+            LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
+            loggingManager.setLevel(loggingConfiguration.getLogLevel());
+            loggingManager.colorStdOutAndStdErr(loggingConfiguration.isColorOutput());
+            loggingManager.start();
+            action.run();
         }
     }
 }

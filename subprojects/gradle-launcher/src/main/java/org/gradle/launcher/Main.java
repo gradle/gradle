@@ -23,6 +23,8 @@ import org.slf4j.Logger;
 import java.util.Arrays;
 
 /**
+ * The main command-line entry-point for Gradle.
+ *
  * @author Hans Dockter
  */
 public class Main {

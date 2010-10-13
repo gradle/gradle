@@ -18,6 +18,7 @@ package org.gradle.logging;
 
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.DefaultServiceRegistry;
+import org.gradle.initialization.CommandLineConverter;
 import org.gradle.logging.internal.*;
 import org.gradle.util.TimeProvider;
 import org.gradle.util.TrueTimeProvider;
@@ -30,6 +31,10 @@ public class LoggingServiceRegistry extends DefaultServiceRegistry {
 
     public LoggingServiceRegistry() {
         stdoutListener = new TextStreamOutputEventListener(get(OutputEventListener.class));
+    }
+
+    protected CommandLineConverter<LoggingConfiguration> createCommandLineConverter() {
+        return new LoggingCommandLineConverter();
     }
 
     protected TimeProvider createTimeProvider() {
