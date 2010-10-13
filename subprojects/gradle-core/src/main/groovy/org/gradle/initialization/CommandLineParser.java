@@ -102,14 +102,15 @@ public class CommandLineParser {
                         parseState = parsedOption.asNextArg();
                     } else {
                         String option1 = arg.substring(1, 2);
-                        OptionParseState parsedOption = parseState.addOption(arg, option1);
+                        OptionParseState parsedOption = parseState.addOption("-" + option1, option1);
                         if (parsedOption.getHasArgument()) {
                             parsedOption.addArgument(arg.substring(2));
                         } else {
+                            parseState = parsedOption.argumentMissing();
                             for (int i = 2; i < arg.length(); i++) {
                                 String optionStr = arg.substring(i, i + 1);
-                                parsedOption = parseState.addOption(arg, optionStr);
-                                parsedOption.argumentMissing();
+                                parsedOption = parseState.addOption("-" + optionStr, optionStr);
+                                parseState = parsedOption.argumentMissing();
                             }
                         }
                     }
@@ -281,9 +282,9 @@ public class CommandLineParser {
             return getHasArgument() ? this : nextState;
         }
 
-        public void argumentMissing() {
+        public ParseState argumentMissing() {
             if (!getHasArgument()) {
-                return;
+                return nextState;
             }
             throw new CommandLineArgumentException(String.format("No argument was provided for command-line option '%s'.", actualOption));
         }

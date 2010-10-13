@@ -266,6 +266,44 @@ class CommandLineParserTest extends Specification {
         result.hasOption('a')
     }
 
+    def canCombineSubcommandShortOptionWithOtherShortOptions() {
+        parser.option('a').mapsToSubcommand('subcmd')
+        parser.option('b')
+
+        when:
+        def result = parser.parse(['-abc', '--option', 'b'])
+
+        then:
+        result.extraArguments == ['subcmd', '-b', '-c', '--option', 'b']
+        result.hasOption('a')
+        !result.hasOption('b')
+
+        when:
+        result = parser.parse(['-bac', '--option', 'b'])
+
+        then:
+        result.extraArguments == ['subcmd', '-c', '--option', 'b']
+        result.hasOption('a')
+        result.hasOption('b')
+
+        when:
+        parser.allowMixedSubcommandsAndOptions()
+        result = parser.parse(['-abc', '--option', 'b'])
+
+        then:
+        result.extraArguments == ['subcmd', '-c', '--option', 'b']
+        result.hasOption('a')
+        result.hasOption('b')
+
+        when:
+        result = parser.parse(['-bac', '--option', 'b'])
+
+        then:
+        result.extraArguments == ['subcmd', '-c', '--option', 'b']
+        result.hasOption('a')
+        result.hasOption('b')
+    }
+
     def singleDashIsNotConsideredAnOption() {
         expect:
         def result = parser.parse(['-'])
