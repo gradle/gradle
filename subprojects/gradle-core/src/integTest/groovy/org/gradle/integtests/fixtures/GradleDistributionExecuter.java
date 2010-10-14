@@ -33,7 +33,7 @@ import java.io.File;
  * executing Gradle in the current process.
  */
 public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
-    private static final String NOFORK_SYS_PROP = "org.gradle.integtest.nofork";
+    private static final String FORK_SYS_PROP = "org.gradle.integtest.fork";
     private static final boolean FORK;
     private GradleDistribution dist;
     private StartParameterModifier inProcessStartParameterModifier;
@@ -41,7 +41,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     private boolean userHomeSet;
 
     static {
-        FORK = System.getProperty(NOFORK_SYS_PROP, "false").equalsIgnoreCase("false");
+        FORK = !System.getProperty(FORK_SYS_PROP, "true").equalsIgnoreCase("false");
     }
 
     public GradleDistributionExecuter(GradleDistribution dist) {
