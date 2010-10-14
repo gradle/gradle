@@ -93,8 +93,10 @@ class JavaBasePluginTest extends Specification {
         then:
         task.sourceCompatibility == project.sourceCompatibility.toString()
 
-        task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test)
+        task = project.createTask('customTest', type: Test.class)
         task.workingDir == project.projectDir
+        task.testResultsDir == project.testResultsDir
+        task.testReportDir == project.testReportDir
 
         task = project.createTask('customJavadoc', type: Javadoc)
         task.destinationDir == project.file("$project.docsDir/javadoc")
