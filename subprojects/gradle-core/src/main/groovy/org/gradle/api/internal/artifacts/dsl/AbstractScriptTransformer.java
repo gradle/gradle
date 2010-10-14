@@ -50,6 +50,10 @@ public abstract class AbstractScriptTransformer extends CompilationUnit.SourceUn
     }
 
     protected ClassNode getScriptClass(SourceUnit source) {
+        if (source.getAST().getStatementBlock().getStatements().isEmpty() && source.getAST().getMethods().isEmpty()) {
+            // There is no script class when there are no statements or methods declared in the script
+            return null;
+        }
         return source.getAST().getClasses().get(0);
     }
 
