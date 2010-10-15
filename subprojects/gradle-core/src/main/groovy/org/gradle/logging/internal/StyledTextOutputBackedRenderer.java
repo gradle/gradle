@@ -67,9 +67,9 @@ public class StyledTextOutputBackedRenderer implements OutputEventListener {
             this.textOutput = textOutput;
         }
 
-        public StyledTextOutput style(Style style) {
+        @Override
+        protected void doStyleChange(Style style) {
             textOutput.style(style);
-            return this;
         }
 
         @Override

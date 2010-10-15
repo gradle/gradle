@@ -16,8 +16,8 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
+import org.gradle.logging.internal.StreamingStyledTextOutput;
 import org.gradle.logging.internal.TestStyledTextOutput;
-import org.gradle.logging.internal.WriterBackedStyledTextOutput;
 import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
@@ -46,7 +46,7 @@ public class TextReportRendererTest {
     public void writesReportToAFile() throws IOException {
         File outFile = new File(testDir.getDir(), "report.txt");
         renderer.setOutputFile(outFile);
-        assertThat(renderer.getTextOutput(), instanceOf(WriterBackedStyledTextOutput.class));
+        assertThat(renderer.getTextOutput(), instanceOf(StreamingStyledTextOutput.class));
 
         renderer.complete();
 

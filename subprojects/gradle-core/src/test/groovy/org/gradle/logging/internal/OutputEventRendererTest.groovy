@@ -195,7 +195,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(complete('status'))
 
         then:
-        console.value.readLines() == ['description', 'info', 'error', 'description status']
+        console.value.readLines() == ['description', 'info', '{error}error', '{normal}description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdOutIsTerminal() {
@@ -208,7 +208,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(complete('status'))
 
         then:
-        console.value.readLines() == ['description', 'info', 'description status']
+        console.value.readLines() == ['description', 'info', 'description {progressstatus}status{normal}']
     }
 
     def rendersLogEventsWhenOnlyStdErrIsTerminal() {
@@ -221,7 +221,7 @@ class OutputEventRendererTest extends OutputSpecification {
         renderer.onOutput(complete('status'))
 
         then:
-        console.value.readLines() == ['error']
+        console.value.readLines() == ['{error}error', '{normal}']
     }
 }
 

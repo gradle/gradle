@@ -37,9 +37,9 @@ public class OutputEventRenderer implements OutputEventListener, LoggingConfigur
     private LogLevel logLevel = LogLevel.LIFECYCLE;
 
     public OutputEventRenderer() {
-        OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stdoutListeners.getSource())), false));
+        OutputEventListener stdOutChain = onNonError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stdoutListeners.getSource())), false));
         formatters.add(stdOutChain);
-        OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StandardOutputListenerBackedStyledTextOutput(stderrListeners.getSource())), false));
+        OutputEventListener stdErrChain = onError(new ProgressLogEventGenerator(new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(stderrListeners.getSource())), false));
         formatters.add(stdErrChain);
     }
 

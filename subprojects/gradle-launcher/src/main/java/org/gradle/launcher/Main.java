@@ -17,8 +17,7 @@ package org.gradle.launcher;
 
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
-import org.gradle.api.logging.Logging;
-import org.slf4j.Logger;
+import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 import java.util.Arrays;
 
@@ -46,20 +45,15 @@ public class Main {
 
     public void execute() {
         BuildCompleter buildCompleter = createBuildCompleter();
-        Logger logger = createLogger();
         try {
             CommandLineActionFactory actionFactory = createActionFactory(buildCompleter);
             Runnable action = actionFactory.convert(Arrays.asList(args));
             action.run();
             buildCompleter.exit(null);
         } catch (Throwable e) {
-            new BuildExceptionReporter(logger, new StartParameter()).reportException(e);
+            new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter()).reportException(e);
             buildCompleter.exit(e);
         }
-    }
-
-    Logger createLogger() {
-        return Logging.getLogger(Main.class);
     }
 
     CommandLineActionFactory createActionFactory(BuildCompleter buildCompleter) {

@@ -21,7 +21,6 @@ import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.Clock;
 
 import static org.gradle.logging.StyledTextOutput.Style.Failure;
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
 import static org.gradle.logging.StyledTextOutput.Style.Success;
 
 /**
@@ -37,13 +36,12 @@ public class BuildResultLogger extends BuildAdapter {
     }
 
     public void buildFinished(BuildResult result) {
-        LogLevel logLevel = result.getFailure() == null ? LogLevel.LIFECYCLE : LogLevel.ERROR;
-        StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, logLevel);
+        StyledTextOutput textOutput = textOutputFactory.create(BuildResultLogger.class, LogLevel.LIFECYCLE);
         textOutput.println();
         if (result.getFailure() == null) {
-            textOutput.style(Success).text("BUILD SUCCESSFUL").style(Normal);
+            textOutput.withStyle(Success).text("BUILD SUCCESSFUL");
         } else {
-            textOutput.style(Failure).text("BUILD FAILED").style(Normal);
+            textOutput.withStyle(Failure).text("BUILD FAILED");
         }
         textOutput.println();
         textOutput.println();

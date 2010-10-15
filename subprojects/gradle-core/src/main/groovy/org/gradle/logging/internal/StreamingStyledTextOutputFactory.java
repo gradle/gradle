@@ -13,19 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal
+package org.gradle.logging.internal;
 
-import org.gradle.api.logging.StandardOutputListener
+import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
 
-class StandardOutputListenerBackedStyledTextOutputTest extends OutputSpecification {
-    private final StandardOutputListener listener = Mock()
-    private final StandardOutputListenerBackedStyledTextOutput output = new StandardOutputListenerBackedStyledTextOutput(listener)
+public class StreamingStyledTextOutputFactory extends AbstractStyledTextOutputFactory {
+    private final Appendable target;
 
-    def forwardsTextToListener() {
-        when:
-        output.text('text')
+    public StreamingStyledTextOutputFactory(Appendable target) {
+        this.target = target;
+    }
 
-        then:
-        listener.onOutput('text')
+    public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        return new StreamingStyledTextOutput(target);
     }
 }

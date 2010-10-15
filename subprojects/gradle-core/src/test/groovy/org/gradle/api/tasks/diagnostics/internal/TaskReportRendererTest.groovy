@@ -17,17 +17,16 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Rule
-import org.junit.Test
-import static org.junit.Assert.*
-import groovy.io.PlatformLineWriter
 import org.gradle.logging.internal.TestStyledTextOutput
 import org.junit.Before
+import org.junit.Test
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
  */
 class TaskReportRendererTest {
-    private final TestStyledTextOutput writer = new TestStyledTextOutput()
+    private final TestStyledTextOutput writer = new TestStyledTextOutput().ignoreStyle()
     private final TaskReportRenderer renderer = new TaskReportRenderer()
 
     @Before
@@ -65,7 +64,7 @@ Rules
 rule1Description
 rule2Description
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+        assertEquals(expected, writer.getValue())
     }
 
     @Test public void testWritesTaskAndDependenciesWithDetail() {
@@ -99,7 +98,7 @@ Rules
 rule1Description
 rule2Description
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+        assertEquals(expected, writer.getValue())
     }
 
     @Test public void testWritesTasksForSingleGroup() {
@@ -113,7 +112,7 @@ rule2Description
 -----------
 :task1
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+        assertEquals(expected, writer.getValue())
     }
 
     @Test public void testWritesTasksForMultipleGroups() {
@@ -134,7 +133,7 @@ Other tasks
 -----------
 :task2
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+        assertEquals(expected, writer.getValue())
     }
 
     @Test public void testWritesTasksForDefaultGroup() {
@@ -148,7 +147,7 @@ Other tasks
 -----
 :task1
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+        assertEquals(expected, writer.getValue())
     }
 
     @Test public void testProjectWithNoTasksAndNoRules() {
@@ -156,7 +155,7 @@ Other tasks
 
         def expected = '''No tasks
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
+        assertEquals(expected, writer.getValue())
     }
 
     @Test public void testProjectWithRulesAndNoTasks() {
@@ -171,12 +170,6 @@ Rules
 -----
 someDescription
 '''
-        assertEquals(replaceWithPlatformNewLines(expected), writer.toString())
-    }
-
-    String replaceWithPlatformNewLines(String text) {
-        StringWriter stringWriter = new StringWriter()
-        new PlatformLineWriter(stringWriter).withWriter { it.write(text) }
-        stringWriter.toString()
+        assertEquals(expected, writer.getValue())
     }
 }

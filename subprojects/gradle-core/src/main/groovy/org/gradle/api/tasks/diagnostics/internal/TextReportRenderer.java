@@ -17,11 +17,12 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
 import org.gradle.logging.StyledTextOutput;
-import org.gradle.logging.internal.WriterBackedStyledTextOutput;
+import org.gradle.logging.internal.StreamingStyledTextOutput;
 
 import java.io.*;
 
-import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.logging.StyledTextOutput.Style.Header;
+import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 /**
  * <p>A basic {@link ReportRenderer} which writes out a text report.
@@ -37,7 +38,7 @@ public class TextReportRenderer implements ReportRenderer {
 
     public void setOutputFile(File file) throws IOException {
         cleanupWriter();
-        setWriter(new WriterBackedStyledTextOutput(new BufferedWriter(new FileWriter(file))), true);
+        setWriter(new StreamingStyledTextOutput(new BufferedWriter(new FileWriter(file))), true);
     }
 
     public void startProject(Project project) {

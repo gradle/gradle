@@ -16,19 +16,15 @@
 package org.gradle.launcher
 
 import spock.lang.Specification
-import org.slf4j.Logger
+import org.junit.Rule
+import org.gradle.util.RedirectStdOutAndErr
 
 class MainTest extends Specification {
+    @Rule final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
     final BuildCompleter completer = Mock()
     final CommandLineActionFactory factory = Mock()
-    final Logger logger = Mock()
     final String[] args = ['arg']
     final Main main = new Main(args) {
-        @Override
-        Logger createLogger() {
-            logger
-        }
-
         @Override
         BuildCompleter createBuildCompleter() {
             completer
@@ -58,7 +54,7 @@ class MainTest extends Specification {
 
     def reportsActionExecutionFailure() {
         Runnable action = Mock()
-        RuntimeException failure = new RuntimeException()
+        RuntimeException failure = new RuntimeException('broken')
 
         when:
         main.execute()
@@ -66,7 +62,8 @@ class MainTest extends Specification {
         then:
         1 * factory.convert(args) >> action
         1 * action.run() >> { throw failure }
-        1 * logger.error({it.contains('internal error')}, failure)
+        outputs.stdErr.contains('internal error')
+        outputs.stdErr.contains('java.lang.RuntimeException: broken')
         1 * completer.exit(failure)
         0 * factory._
         0 * action._
@@ -74,14 +71,15 @@ class MainTest extends Specification {
     }
 
     def reportsActionCreationFailure() {
-        RuntimeException failure = new RuntimeException()
+        RuntimeException failure = new RuntimeException('broken')
 
         when:
         main.execute()
 
         then:
         1 * factory.convert(args) >> { throw failure }
-        1 * logger.error({it.contains('internal error')}, failure)
+        outputs.stdErr.contains('internal error')
+        outputs.stdErr.contains('java.lang.RuntimeException: broken')
         1 * completer.exit(failure)
         0 * factory._
         0 * completer._

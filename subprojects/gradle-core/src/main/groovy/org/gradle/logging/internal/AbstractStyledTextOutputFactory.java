@@ -15,17 +15,20 @@
  */
 package org.gradle.logging.internal;
 
-import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.LogLevel;
+import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 
-public class StandardOutputListenerBackedStyledTextOutput extends AbstractStyledTextOutput {
-    private final StandardOutputListener listener;
-
-    public StandardOutputListenerBackedStyledTextOutput(StandardOutputListener listener) {
-        this.listener = listener;
+public abstract class AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
+    public StyledTextOutput create(Class logCategory) {
+        return create(logCategory.getName());
     }
 
-    @Override
-    protected void doAppend(String text) {
-        listener.onOutput(text);
+    public StyledTextOutput create(String logCategory) {
+        return create(logCategory, null);
+    }
+
+    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
+        return create(logCategory.getName(), logLevel);
     }
 }

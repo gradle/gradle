@@ -20,7 +20,7 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.TimeProvider;
 
-public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
+public class DefaultStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final OutputEventListener outputEventListener;
     private final TimeProvider timeProvider;
 
@@ -29,15 +29,7 @@ public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
         this.timeProvider = timeProvider;
     }
 
-    public StyledTextOutput create(Class logCategory) {
-        return create(logCategory.getName());
-    }
-
-    public StyledTextOutput create(String logCategory) {
-        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, null, timeProvider);
-    }
-
-    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
-        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory.getName(), logLevel, timeProvider);
+    public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, logLevel, timeProvider);
     }
 }

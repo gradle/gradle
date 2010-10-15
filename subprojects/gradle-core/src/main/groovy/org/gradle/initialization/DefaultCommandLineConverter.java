@@ -44,7 +44,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
     private static final String SETTINGS_FILE = "c";
-    public static final String TASKS = "t";
+    private static final String TASKS = "t";
     private static final String PROPERTIES = "r";
     private static final String DEPENDENCIES = "n";
     public static final String FULL_STACKTRACE = "S";

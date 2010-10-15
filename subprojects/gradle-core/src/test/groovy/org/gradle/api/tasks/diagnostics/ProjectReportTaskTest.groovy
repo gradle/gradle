@@ -31,7 +31,7 @@ class ProjectReportTaskTest extends Specification {
         child1.description = 'this is a subproject'
         HelperUtil.createChildProject(child1, "child1")
         HelperUtil.createChildProject(project, "child2")
-        task.textOutput = new TestStyledTextOutput()
+        task.textOutput = new TestStyledTextOutput().ignoreStyle()
 
         when:
         task.listProjects()
@@ -51,31 +51,31 @@ For example, try running gradle :child1:tasks
     def rendersReportForRootProjectWithNoChildren() {
         ProjectReportTask task = HelperUtil.createTask(ProjectReportTask, project)
         project.description = 'this is the root project'
-        task.textOutput = new TestStyledTextOutput()
+        task.textOutput = new TestStyledTextOutput().ignoreStyle()
 
         when:
         task.listProjects()
 
         then:
-        task.textOutput.value == toNative('''
+        task.textOutput.value == '''
 Root project 'test' - this is the root project
 No sub-projects
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :tasks
-''')
+'''
     }
 
     def rendersReportForNonRootProjectWithNoChildren() {
         Project child1 = HelperUtil.createChildProject(project, "child1")
         ProjectReportTask task = HelperUtil.createTask(ProjectReportTask, child1)
-        task.textOutput = new TestStyledTextOutput()
+        task.textOutput = new TestStyledTextOutput().ignoreStyle()
 
         when:
         task.listProjects()
 
         then:
-        task.textOutput.value == toNative('''
+        task.textOutput.value == '''
 Project ':child1'
 No sub-projects
 
@@ -83,7 +83,7 @@ To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
 
 To see a list of all the projects in this build, run gradle :projects
-''')
+'''
     }
 
     def String toNative(String value) {

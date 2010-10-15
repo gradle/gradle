@@ -88,12 +88,26 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput append(CharSequence csq, int start, int end);
 
     /**
-     * Switches to a new style.
+     * Switches to a new style. The default style is {@link Style#Normal}.
      *
      * @param style The style.
      * @return this
      */
     StyledTextOutput style(Style style);
+
+    /**
+     * Creates a copy of this output which uses the given style. This can be used to generate text in a different style
+     * and then return to the current style. For example:
+     * <pre>
+     * output.style(Info)
+     * output.withStyle(Description).format("%s %s", name, description) // output in Description style
+     * output.println(" text") // output in Info style
+     * </pre>
+     *
+     * @param style The temporary style
+     * @return the copy
+     */
+    StyledTextOutput withStyle(Style style);
 
     /**
      * Appends text using the current style.

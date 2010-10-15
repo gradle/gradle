@@ -90,9 +90,9 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
-        getTextOutput().style(Identifier).text(task.getPath()).style(Normal);
+        getTextOutput().withStyle(Identifier).text(task.getPath());
         if (GUtil.isTrue(task.getDescription())) {
-            getTextOutput().style(Description).format(" - %s", task.getDescription()).style(Normal);
+            getTextOutput().withStyle(Description).format(" - %s", task.getDescription());
         }
         if (detail) {
             SortedSet<String> sortedDependencies = new TreeSet<String>();
@@ -100,7 +100,7 @@ public class TaskReportRenderer extends TextReportRenderer {
                 sortedDependencies.add(dependency);
             }
             if (sortedDependencies.size() > 0) {
-                getTextOutput().style(Info).format(" [%s]", GUtil.join(sortedDependencies, ", ")).style(Normal);
+                getTextOutput().withStyle(Info).format(" [%s]", GUtil.join(sortedDependencies, ", "));
             }
         }
         getTextOutput().println();
@@ -119,7 +119,7 @@ public class TaskReportRenderer extends TextReportRenderer {
      */
     public void completeTasks() {
         if (!currentProjectHasTasks) {
-            getTextOutput().style(Info).println("No tasks").style(Normal);
+            getTextOutput().withStyle(Info).println("No tasks");
             hasContent = true;
         }
     }

@@ -37,7 +37,7 @@ public class BuildLogger implements BuildListener, TaskExecutionGraphListener {
 
     public BuildLogger(Logger logger, StyledTextOutputFactory textOutputFactory, Clock buildTimeClock, StartParameter startParameter) {
         this.logger = logger;
-        resultLoggers.add(new BuildExceptionReporter(logger, startParameter));
+        resultLoggers.add(new BuildExceptionReporter(textOutputFactory, startParameter));
         resultLoggers.add(new BuildResultLogger(textOutputFactory, buildTimeClock));
     }
 
