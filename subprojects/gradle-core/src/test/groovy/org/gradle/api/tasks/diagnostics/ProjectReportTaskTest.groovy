@@ -37,7 +37,7 @@ class ProjectReportTaskTest extends Specification {
         task.listProjects()
 
         then:
-        task.textOutput.value == toNative('''
+        task.textOutput.value == '''
 Root project 'test' - this is the root project
 +--- Project ':child1' - this is a subproject
 |    \\--- Project ':child1:child1'
@@ -45,7 +45,7 @@ Root project 'test' - this is the root project
 
 To see a list of the tasks of a project, run gradle <project-path>:tasks
 For example, try running gradle :child1:tasks
-''')
+'''
     }
 
     def rendersReportForRootProjectWithNoChildren() {

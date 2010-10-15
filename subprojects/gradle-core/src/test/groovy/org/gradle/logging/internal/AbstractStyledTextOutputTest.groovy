@@ -41,7 +41,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.println()
 
         then:
-        output.value == System.getProperty('line.separator')
+        output.rawValue == System.getProperty('line.separator')
     }
 
     def appendsCharacter() {
@@ -187,7 +187,11 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
             }
         }
     }
-    
+
+    def String getRawValue() {
+        return result.toString()
+    }
+
     /**
      * Returns the normalised value of this text output. Normalises:
      * - style changes to {style} where _style_ is the lowercase name of the style.
@@ -199,8 +203,8 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
 
         String eol = System.getProperty('line.separator')
         boolean inStackTrace = false
-        new StringTokenizer(result.toString(), eol, true).each { String line ->
-            if (line == eol) {
+        new StringTokenizer(result.toString().replaceAll(eol, '\n'), '\n', true).each { String line ->
+            if (line == '\n') {
                 if (!inStackTrace) {
                     normalised.append('\n')
                 }
