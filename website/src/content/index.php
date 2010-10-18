@@ -66,7 +66,7 @@
             <li><a href="http://www.corp.carrier.com">Carrier</a></li>
             <li><a href="http://www.fcc-fac.ca/">FCC</a></li>
             <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
-            <li style="color:white"><a href="http://www.gradle.org" style="color:white">Dummy</a></li>
+            <li><a href="http://www.hibernate.org">Hibernate</a></li>
             <li style="color:white"><a href="http://www.gradle.org" style="color:white">Dummy</a></li>
         </ul>
     </div>
