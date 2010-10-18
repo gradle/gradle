@@ -104,11 +104,6 @@
             <listitem><para>Runs the build with all task actions disabled.</para> </listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-n</option>, <option>--dependencies</option></term>
-            <listitem><para>Show list of all project dependencies. See <xref linkend="sec:listing_dependencies"/>.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>--no-color</option></term>
             <listitem><para>Do not use color in the console output.</para></listitem>
         </varlistentry>
@@ -129,17 +124,8 @@
             <listitem><para>Log errors only. See <xref linkend="logging"/>.</para></listitem>
         </varlistentry>
         <varlistentry>
-            <term><option>-r</option>, <option>--properties</option></term>
-            <listitem><para>Show list of all available project properties. See <xref linkend="sec:listing_properties"/>.</para></listitem>
-        </varlistentry>
-        <varlistentry>
             <term><option>-s</option>, <option>--stacktrace</option></term>
             <listitem><para>Print out the stacktrace also for user exceptions (e.g. compile error). See <xref linkend="logging"/>.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-t</option>, <option>--tasks</option></term>
-            <listitem><para>Show list of available tasks. See <xref linkend="sec:listing_tasks"/>.
             </para></listitem>
         </varlistentry>
         <varlistentry>
@@ -158,6 +144,24 @@
             </para></listitem>
         </varlistentry>
     </variablelist>
-    
+
+    <para>The following options are deprecated and will be removed in a future version of Gradle:</para>
+    <variablelist>
+        <varlistentry>
+            <term><option>-n</option>, <option>--dependencies</option></term>
+            <listitem><para>(deprecated) Show list of all project dependencies. See <xref linkend="sec:listing_dependencies"/>.
+            </para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-r</option>, <option>--properties</option></term>
+            <listitem><para>(deprecated) Show list of all available project properties. See <xref linkend="sec:listing_properties"/>.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><option>-t</option>, <option>--tasks</option></term>
+            <listitem><para>(deprecated) Show list of available tasks. See <xref linkend="sec:listing_tasks"/>.
+            </para></listitem>
+        </varlistentry>
+    </variablelist>
+
     <para>The same information is printed to the console when you execute <userinput>gradle -h</userinput>.</para>
 </appendix>
