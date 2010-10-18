@@ -137,25 +137,6 @@ public class GUtil {
             }
         };
     }
-
-    public static Comparator<String> emptyLast(final Comparator<String> comparator) {
-        return new Comparator<String>() {
-            public int compare(String o1, String o2) {
-                boolean o1Empty = o1 == null || o1.length() == 0;
-                boolean o2Empty = o2 == null || o2.length() == 0;
-                if (o1Empty && o2Empty) {
-                    return 0;
-                }
-                if (o1Empty && !o2Empty) {
-                    return 1;
-                }
-                if (!o1Empty && o2Empty) {
-                    return -1;
-                }
-                return comparator.compare(o1, o2);
-            }
-        };
-    }
     
     public static Map addMaps(Map map1, Map map2) {
         HashMap map = new HashMap();

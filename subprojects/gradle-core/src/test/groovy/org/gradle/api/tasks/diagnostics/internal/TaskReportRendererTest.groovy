@@ -121,7 +121,7 @@ rule2Description
         renderer.addDefaultTasks([])
         renderer.startTaskGroup('group')
         renderer.addTask(task)
-        renderer.startTaskGroup('')
+        renderer.startTaskGroup('other')
         renderer.addTask(task2)
         renderer.completeTasks()
 
