@@ -166,6 +166,6 @@ class BasePlugin implements Plugin<Project> {
                 setDescription("Configuration for the default artifacts.");
 
         configurations.add(Dependency.DEFAULT_CONFIGURATION).extendsFrom(archivesConfiguration).
-                setDescription("Configuration the default artifacts and its dependencies.");
+                setDescription("Configuration for the default artifacts and their dependencies.");
     }
 }
