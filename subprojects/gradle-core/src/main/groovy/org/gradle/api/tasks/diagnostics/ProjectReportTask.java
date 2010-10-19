@@ -59,13 +59,13 @@ public class ProjectReportTask extends DefaultTask {
 
         textOutput.text("For example, try running ");
         Project exampleProject = project.getChildProjects().isEmpty() ? project : getChildren(project).get(0);
-        metaData.describeCommand(textOutput.withStyle(UserInput), exampleProject.absolutePath(ImplicitTasksConfigurer.TASKS_TASK));
+        metaData.describeCommand(textOutput.withStyle(UserInput), exampleProject.absoluteProjectPath(ImplicitTasksConfigurer.TASKS_TASK));
         textOutput.println();
 
         if (project != project.getRootProject()) {
             textOutput.println();
             textOutput.text("To see a list of all the projects in this build, run ");
-            metaData.describeCommand(textOutput.withStyle(UserInput), project.getRootProject().absolutePath(ImplicitTasksConfigurer.PROJECTS_TASK));
+            metaData.describeCommand(textOutput.withStyle(UserInput), project.getRootProject().absoluteProjectPath(ImplicitTasksConfigurer.PROJECTS_TASK));
             textOutput.println();
         }
     }

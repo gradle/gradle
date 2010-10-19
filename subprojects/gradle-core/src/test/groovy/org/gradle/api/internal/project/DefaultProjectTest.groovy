@@ -1024,6 +1024,35 @@ def scriptMethod(Closure closure) {
         }
         assertThat(project.getModule(), equalTo(moduleDummyResolve))
     }
+
+    @Test void convertsAbsolutePathToAbsolutePath() {
+        assertThat(project.absoluteProjectPath(':'), equalTo(':'))
+        assertThat(project.absoluteProjectPath(':other'), equalTo(':other'))
+        assertThat(child1.absoluteProjectPath(':'), equalTo(':'))
+        assertThat(child1.absoluteProjectPath(':other'), equalTo(':other'))
+    }
+
+    @Test void convertsRelativePathToAbsolutePath() {
+        assertThat(project.absoluteProjectPath('task'), equalTo(':task'))
+        assertThat(project.absoluteProjectPath('sub:other'), equalTo(':sub:other'))
+        assertThat(child1.absoluteProjectPath('task'), equalTo(':child1:task'))
+        assertThat(child1.absoluteProjectPath('sub:other'), equalTo(':child1:sub:other'))
+    }
+
+    @Test void convertsRelativePathToRelativePath() {
+        assertThat(project.relativeProjectPath('task'), equalTo('task'))
+        assertThat(project.relativeProjectPath('sub:other'), equalTo('sub:other'))
+    }
+
+    @Test void convertsAbsolutePathToRelativePath() {
+        assertThat(project.relativeProjectPath(':'), equalTo(':'))
+        assertThat(project.relativeProjectPath(':task'), equalTo('task'))
+        assertThat(project.relativeProjectPath(':sub:other'), equalTo('sub:other'))
+        assertThat(child1.relativeProjectPath(':child1'), equalTo(':child1'))
+        assertThat(child1.relativeProjectPath(':child1:task'), equalTo('task'))
+        assertThat(child1.relativeProjectPath(':child12:task'), equalTo(':child12:task'))
+        assertThat(child1.relativeProjectPath(':sub:other'), equalTo(':sub:other'))
+    }
 }
 
 class TaskContainerDynamicObject {

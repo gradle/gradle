@@ -163,7 +163,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
             path = Project.PATH_SEPARATOR;
             depth = 0;
         } else {
-            path = parent.absolutePath(name);
+            path = parent.absoluteProjectPath(name);
             depth = parent.getDepth() + 1;
         }
 
@@ -434,9 +434,25 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public String absolutePath(String path) {
+        DeprecationLogger.nagUser("Project.absolutePath()", "Project.absoluteProjectPath()");
+        return absoluteProjectPath(path);
+    }
+
+    public String absoluteProjectPath(String path) {
         if (!isAbsolutePath(path)) {
             String prefix = this == rootProject ? "" : Project.PATH_SEPARATOR;
             return this.path + prefix + path;
+        }
+        return path;
+    }
+
+    public String relativeProjectPath(String path) {
+        if (this == rootProject) {
+            return path.startsWith(Project.PATH_SEPARATOR) && path.length() > 1 ? path.substring(1) : path;
+        }
+        String prefix = this.path + Project.PATH_SEPARATOR;
+        if (path.startsWith(prefix)) {
+            return path.substring(prefix.length());
         }
         return path;
     }
@@ -457,7 +473,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         if (!isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        return projectRegistry.getProject(isAbsolutePath(path) ? path : absolutePath(path));
+        return projectRegistry.getProject(isAbsolutePath(path) ? path : absoluteProjectPath(path));
     }
 
     public Set<Project> getAllprojects() {

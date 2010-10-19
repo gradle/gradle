@@ -16,5 +16,5 @@
 package org.gradle.api.internal;
 
 public interface DomainObjectContext {
-    String absolutePath(String name);
+    String absoluteProjectPath(String name);
 }
