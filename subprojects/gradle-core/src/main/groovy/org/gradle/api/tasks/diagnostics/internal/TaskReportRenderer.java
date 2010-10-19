@@ -96,8 +96,8 @@ public class TaskReportRenderer extends TextReportRenderer {
         }
         if (detail) {
             SortedSet<String> sortedDependencies = new TreeSet<String>();
-            for (String dependency : task.getDependencies()) {
-                sortedDependencies.add(dependency);
+            for (TaskDetails dependency : task.getDependencies()) {
+                sortedDependencies.add(dependency.getPath());
             }
             if (sortedDependencies.size() > 0) {
                 getTextOutput().withStyle(Info).format(" [%s]", GUtil.join(sortedDependencies, ", "));

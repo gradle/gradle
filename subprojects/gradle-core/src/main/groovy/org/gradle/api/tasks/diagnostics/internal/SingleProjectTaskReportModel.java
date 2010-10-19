@@ -61,15 +61,15 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         for (Task task : result.getTopLevelNodes()) {
             Set<Task> nodesForThisTask = new TreeSet<Task>(result.getNodes(task));
             Set<TaskDetails> children = new LinkedHashSet<TaskDetails>();
-            Set<String> dependencies = new TreeSet<String>();
+            Set<TaskDetails> dependencies = new LinkedHashSet<TaskDetails>();
             for (Task node : nodesForThisTask) {
                 if (node != task) {
                     children.add(new TaskDetailsImpl(node, factory.create(node), Collections.<TaskDetails>emptySet(),
-                            Collections.<String>emptySet()));
+                            Collections.<TaskDetails>emptySet()));
                 }
                 for (Task dep : node.getTaskDependencies().getDependencies(node)) {
                     if (topLevelTasks.contains(dep) || !tasks.contains(dep)) {
-                        dependencies.add(tasks.contains(dep) ? dep.getName() : dep.getPath());
+                        dependencies.add(factory.create(dep));
                     }
                 }
             }
@@ -94,9 +94,9 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
         private final Task task;
         private final TaskDetails details;
         private final Set<TaskDetails> children;
-        private final Set<String> dependencies;
+        private final Set<TaskDetails> dependencies;
 
-        public TaskDetailsImpl(Task task, TaskDetails details, Set<TaskDetails> children, Set<String> dependencies) {
+        public TaskDetailsImpl(Task task, TaskDetails details, Set<TaskDetails> children, Set<TaskDetails> dependencies) {
             this.task = task;
             this.details = details;
             this.children = children;
@@ -124,7 +124,7 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             return task;
         }
 
-        public Set<String> getDependencies() {
+        public Set<TaskDetails> getDependencies() {
             return dependencies;
         }
 

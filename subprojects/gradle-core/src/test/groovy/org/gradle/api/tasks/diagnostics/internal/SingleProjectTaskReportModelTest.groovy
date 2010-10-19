@@ -22,7 +22,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
     def setup() {
         _ * factory.create(!null) >> {args ->
             def task = args[0]
-            [getPath: { task.path} ] as TaskDetails
+            [getPath: { task.path }, getName: { task.name }] as TaskDetails
         }
     }
 
@@ -87,10 +87,10 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group4') as List).first()
-        t.dependencies == ['task2', 'task3'] as Set
+        t.dependencies*.name as Set == ['task2', 'task3'] as Set
     }
 
-    def usesTaskPathForExternalDependencies() {
+    def dependenciesIncludeExternalTasks() {
         def task1 = task('task1')
         def task2 = task('task2', 'other')
         def task3 = task('task3', 'group', task1, task2)
@@ -100,7 +100,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group') as List).first()
-        t.dependencies == [':task1', 'task2'] as Set
+        t.dependencies*.name as Set == ['task1', 'task2'] as Set
     }
 
     def dependenciesDoNotIncludeTheChildrenOfOtherTopLevelTasks() {
@@ -115,7 +115,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group2') as List).first()
-        t.dependencies == ['task2'] as Set
+        t.dependencies*.name as Set == ['task2'] as Set
     }
 
     def addsAGroupThatContainsTheTasksWithNoGroup() {
@@ -171,6 +171,6 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
         then:
         TaskDetails t = (model.getTasksForGroup('group1') as List).first()
         t.children*.task == [task1]
-        t.dependencies == [':other2'] as Set
+        t.dependencies*.name == ['other2']
     }
 }

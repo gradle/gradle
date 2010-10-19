@@ -68,9 +68,11 @@ rule2Description
     }
 
     @Test public void testWritesTaskAndDependenciesWithDetail() {
-        TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[':task11', ':task12'] as LinkedHashSet}] as TaskDetails
+        TaskDetails task11 = [getPath: {':task11'}] as TaskDetails
+        TaskDetails task12 = [getPath: {':task12'}] as TaskDetails
+        TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[task11, task12] as Set}] as TaskDetails
         TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
-        TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[':task1'] as Set}] as TaskDetails
+        TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[task1] as Set}] as TaskDetails
         Rule rule1 = [getDescription: {'rule1Description'}] as Rule
         Rule rule2 = [getDescription: {'rule2Description'}] as Rule
 

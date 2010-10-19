@@ -83,7 +83,7 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
             return task.getDescription();
         }
 
-        public Set<String> getDependencies() {
+        public Set<TaskDetails> getDependencies() {
             return task.getDependencies();
         }
     }

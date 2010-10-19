@@ -51,7 +51,7 @@ public class TaskDetailsFactory {
                 return task.getDescription();
             }
 
-            public Set<String> getDependencies() {
+            public Set<TaskDetails> getDependencies() {
                 return Collections.emptySet();
             }
 
