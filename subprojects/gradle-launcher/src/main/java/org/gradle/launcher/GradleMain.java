@@ -36,15 +36,18 @@ public class GradleMain {
         processGradleUserHome(bootStrapDebug);
 
         ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry();
-        URL[] classpath = classPathRegistry.getClassPathUrls("GRADLE_RUNTIME");
-        ClassLoader parentClassloader = ClassLoader.getSystemClassLoader().getParent();
+        URL[] antClasspath = classPathRegistry.getClassPathUrls("ANT");
+        URL[] runtimeClasspath = classPathRegistry.getClassPathUrls("GRADLE_RUNTIME");
+        ClassLoader rootClassLoader = ClassLoader.getSystemClassLoader().getParent();
         if (bootStrapDebug) {
-            System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
-            System.out.println("Adding the following files to new lib classloader: " + Arrays.toString(classpath));
+            System.out.println("Parent Classloader of new context classloader is: " + rootClassLoader);
+            System.out.println("Using Ant classpath: " + Arrays.toString(antClasspath));
+            System.out.println("Using runtime classpath: " + Arrays.toString(runtimeClasspath));
         }
-        URLClassLoader libClassLoader = new URLClassLoader(classpath, parentClassloader);
-        Thread.currentThread().setContextClassLoader(libClassLoader);
-        Class mainClass = libClassLoader.loadClass("org.gradle.launcher.Main");
+        URLClassLoader antClassLoader = new URLClassLoader(antClasspath, rootClassLoader);
+        URLClassLoader runtimeClassLoader = new URLClassLoader(runtimeClasspath, antClassLoader);
+        Thread.currentThread().setContextClassLoader(runtimeClassLoader);
+        Class mainClass = runtimeClassLoader.loadClass("org.gradle.launcher.Main");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[]{args});
     }
