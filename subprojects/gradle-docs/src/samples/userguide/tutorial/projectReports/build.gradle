@@ -24,13 +24,13 @@ allprojects {
     }
 }
 
-task libs {
-    dependsOn { subprojects*.libs }
-    description = 'Builds the JAR'
+task docs {
+    description = 'Builds the documentation'
 }
 
 task dists {
-    dependsOn libs
+    dependsOn { subprojects*.libs }
+    dependsOn docs
 }
 
 // START SNIPPET add-task-to-report
@@ -47,12 +47,13 @@ subprojects {
     repositories {
         mavenCentral()
     }
+    task compile {
+        description = 'Compiles the source files'
+    }
     task libs {
-        if (project.name == 'webapp') {
-            dependsOn ':api:libs' 
-        }
-        description = 'Builds the JAR'
         group = 'build'
+        description = 'Builds the JAR'
+        dependsOn compile
     }
     tasks.addRule(new TestRule())
 }
@@ -70,6 +71,9 @@ project(':webapp') {
     description = 'The Web application implementation'
     dependencies {
         compile project(path: ':api', configuration: 'compile'), "commons-io:commons-io:1.2"
+    }
+    libs {
+        dependsOn ':api:libs'
     }
 }
 

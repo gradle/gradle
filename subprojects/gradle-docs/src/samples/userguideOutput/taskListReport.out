@@ -9,6 +9,7 @@ Build tasks
 -----------
 clean - Deletes the build directory (build)
 dists - Builds the distribution
+libs - Builds the JAR
 
 Help tasks
 ----------

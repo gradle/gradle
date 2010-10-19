@@ -17,7 +17,9 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import java.util.Set;
 
-public interface TaskDetails extends Comparable<TaskDetails> {
+public interface TaskDetails {
+    String getName();
+
     String getPath();
 
     String getDescription();

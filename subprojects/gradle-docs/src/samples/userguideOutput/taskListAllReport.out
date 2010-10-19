@@ -7,9 +7,15 @@ Default tasks: dists
 
 Build tasks
 -----------
+api:clean - Deletes the build directory (build)
+api:libs - Builds the JAR
+    api:compile - Compiles the source files
 clean - Deletes the build directory (build)
 dists - Builds the distribution [:api:libs, :webapp:libs]
-    libs - Builds the JAR
+    docs - Builds the documentation
+webapp:clean - Deletes the build directory (build)
+webapp:libs - Builds the JAR [:api:libs]
+    webapp:compile - Compiles the source files
 
 Help tasks
 ----------

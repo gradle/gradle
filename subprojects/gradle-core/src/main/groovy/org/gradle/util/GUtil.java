@@ -16,14 +16,14 @@
 
 package org.gradle.util;
 
-import org.gradle.api.UncheckedIOException;
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.UncheckedIOException;
 
 import java.io.*;
 import java.net.URL;
 import java.util.*;
-import java.util.regex.Pattern;
 import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * @author Hans Dockter
@@ -133,11 +133,15 @@ public class GUtil {
     public static Comparator<String> caseInsensitive() {
         return new Comparator<String>() {
             public int compare(String o1, String o2) {
-                return o1.compareToIgnoreCase(o2);
+                int diff = o1.compareToIgnoreCase(o2);
+                if (diff != 0) {
+                    return diff;
+                }
+                return o1.compareTo(o2);
             }
         };
     }
-    
+
     public static Map addMaps(Map map1, Map map2) {
         HashMap map = new HashMap();
         map.putAll(map1);
@@ -283,5 +287,24 @@ public class GUtil {
             throw new UncheckedIOException(e);
         }
         return outputStream.toByteArray();
+    }
+
+    public static <T> Comparator<T> last(final Comparator<? super T> comparator, final T lastValue) {
+        return new Comparator<T>() {
+            public int compare(T o1, T o2) {
+                boolean o1Last = comparator.compare(o1, lastValue) == 0;
+                boolean o2Last = comparator.compare(o2, lastValue) == 0;
+                if (o1Last && o2Last) {
+                    return 0;
+                }
+                if (o1Last && !o2Last) {
+                    return 1;
+                }
+                if (!o1Last && o2Last) {
+                    return -1;
+                }
+                return comparator.compare(o1, o2);
+            }
+        };
     }
 }
