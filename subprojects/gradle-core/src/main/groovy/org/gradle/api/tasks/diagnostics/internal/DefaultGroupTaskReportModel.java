@@ -23,13 +23,19 @@ import java.util.Comparator;
 import java.util.Set;
 
 public class DefaultGroupTaskReportModel implements TaskReportModel {
+    public static final String OTHER_GROUP = "other";
     private SetMultimap<String, TaskDetails> groups;
 
     public void build(TaskReportModel model) {
-        Comparator<String> keyComparator = GUtil.last(GUtil.last(GUtil.caseInsensitive(), "other"), "");
+        final Comparator<String> stringComparator = GUtil.caseInsensitive();
+        Comparator<String> keyComparator = GUtil.last(GUtil.last(stringComparator, OTHER_GROUP), TaskReportModel.DEFAULT_GROUP);
         Comparator<TaskDetails> taskComparator = new Comparator<TaskDetails>() {
             public int compare(TaskDetails task1, TaskDetails task2) {
-                return GUtil.caseInsensitive().compare(task1.getPath(), task2.getPath());
+                int diff = stringComparator.compare(task1.getName(), task2.getName());
+                if (diff != 0) {
+                    return diff;
+                }
+                return stringComparator.compare(task1.getPath(), task2.getPath());
             }
         };
         groups = TreeMultimap.create(keyComparator, taskComparator);
@@ -37,17 +43,17 @@ public class DefaultGroupTaskReportModel implements TaskReportModel {
             groups.putAll(group, model.getTasksForGroup(group));
         }
         String otherGroupName = findOtherGroup(groups.keySet());
-        if (otherGroupName != null && groups.keySet().contains("")) {
-            groups.putAll(otherGroupName, groups.removeAll(""));
+        if (otherGroupName != null && groups.keySet().contains(TaskReportModel.DEFAULT_GROUP)) {
+            groups.putAll(otherGroupName, groups.removeAll(TaskReportModel.DEFAULT_GROUP));
         }
-        if (groups.keySet().contains("") && groups.keySet().size() > 1) {
-            groups.putAll("other", groups.removeAll(""));
+        if (groups.keySet().contains(TaskReportModel.DEFAULT_GROUP) && groups.keySet().size() > 1) {
+            groups.putAll(OTHER_GROUP, groups.removeAll(TaskReportModel.DEFAULT_GROUP));
         }
     }
 
     private String findOtherGroup(Set<String> groupNames) {
         for (String groupName : groupNames) {
-            if (groupName.equalsIgnoreCase("other")) {
+            if (groupName.equalsIgnoreCase(OTHER_GROUP)) {
                 return groupName;
             }
         }
