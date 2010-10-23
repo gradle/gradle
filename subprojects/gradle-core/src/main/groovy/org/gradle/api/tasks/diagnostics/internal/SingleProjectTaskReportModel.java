@@ -21,6 +21,7 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.DirectedGraph;
 import org.gradle.api.internal.GraphAggregator;
 import org.gradle.util.GUtil;
+import org.gradle.util.Path;
 
 import java.util.*;
 
@@ -103,12 +104,8 @@ public class SingleProjectTaskReportModel implements TaskReportModel {
             this.dependencies = dependencies;
         }
 
-        public String getPath() {
+        public Path getPath() {
             return details.getPath();
-        }
-
-        public String getName() {
-            return details.getName();
         }
 
         public String getDescription() {

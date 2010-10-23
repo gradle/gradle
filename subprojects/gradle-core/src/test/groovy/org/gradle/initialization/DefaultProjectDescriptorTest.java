@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.util.Path;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -72,8 +73,7 @@ public class DefaultProjectDescriptorTest {
         final IProjectDescriptorRegistry projectDescriptorRegistryMock = context.mock(IProjectDescriptorRegistry.class);
         projectDescriptor.setProjectDescriptorRegistry(projectDescriptorRegistryMock);
         context.checking(new Expectations() {{
-            one(projectDescriptorRegistryMock).changeDescriptorPath(projectDescriptor.getPath(),
-                    Project.PATH_SEPARATOR + newName);
+            one(projectDescriptorRegistryMock).changeDescriptorPath(Path.path(TEST_NAME), Path.path(Project.PATH_SEPARATOR + newName));
         }});
         projectDescriptor.setName(newName);
         assertEquals(newName, projectDescriptor.getName());

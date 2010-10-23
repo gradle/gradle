@@ -18,30 +18,28 @@ package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Rule
 import org.gradle.logging.internal.TestStyledTextOutput
-import org.junit.Before
-import org.junit.Test
-import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
  */
-class TaskReportRendererTest {
+class TaskReportRendererTest extends TaskModelSpecification {
     private final TestStyledTextOutput writer = new TestStyledTextOutput().ignoreStyle()
     private final TaskReportRenderer renderer = new TaskReportRenderer()
 
-    @Before
-    public void setup() {
+    def setup() {
         renderer.output = writer
     }
 
-    @Test public void testWritesTaskAndDependenciesWithNoDetail() {
-        TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[':task11', ':task12'] as LinkedHashSet}] as TaskDetails
-        TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
-        TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[':task1'] as Set}] as TaskDetails
+    def writesTaskAndDependenciesWithDetailDisabled() {
+        TaskDetails task1 = taskDetails(':task1', description: 'task1Description')
+        TaskDetails task2 = taskDetails(':task2')
+        TaskDetails task3 = taskDetails(':task3')
         Rule rule1 = [getDescription: {'rule1Description'}] as Rule
         Rule rule2 = [getDescription: {'rule2Description'}] as Rule
 
         List testDefaultTasks = ['task1', 'task2']
+
+        when:
         renderer.showDetail(false)
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.startTaskGroup('group')
@@ -52,7 +50,8 @@ class TaskReportRendererTest {
         renderer.addRule(rule1)
         renderer.addRule(rule2)
 
-        def expected = '''Default tasks: task1, task2
+        then:
+        writer.value == '''Default tasks: task1, task2
 
 Group tasks
 -----------
@@ -64,19 +63,19 @@ Rules
 rule1Description
 rule2Description
 '''
-        assertEquals(expected, writer.getValue())
     }
 
-    @Test public void testWritesTaskAndDependenciesWithDetail() {
-        TaskDetails task11 = [getPath: {':task11'}] as TaskDetails
-        TaskDetails task12 = [getPath: {':task12'}] as TaskDetails
-        TaskDetails task1 = [getPath: {':task1'}, getDescription: {'task1Description'}, getDependencies: {[task11, task12] as Set}] as TaskDetails
-        TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
-        TaskDetails task3 = [getPath: {':task3'}, getDescription: {null}, getDependencies: {[task1] as Set}] as TaskDetails
+    def writesTaskAndDependenciesWithDetail() {
+        TaskDetails task11 = taskDetails(':task11')
+        TaskDetails task12 = taskDetails(':task12')
+        TaskDetails task1 = taskDetails(':task1', description: 'task1Description', dependencies: [task11, task12])
+        TaskDetails task2 = taskDetails(':task2')
+        TaskDetails task3 = taskDetails(':task3', dependencies: [task1])
         Rule rule1 = [getDescription: {'rule1Description'}] as Rule
         Rule rule2 = [getDescription: {'rule2Description'}] as Rule
-
         List testDefaultTasks = ['task1', 'task2']
+
+        when:
         renderer.showDetail(true)
         renderer.addDefaultTasks(testDefaultTasks)
         renderer.startTaskGroup('group')
@@ -87,7 +86,8 @@ rule2Description
         renderer.addRule(rule1)
         renderer.addRule(rule2)
 
-        def expected = '''Default tasks: task1, task2
+        then:
+        writer.value == '''Default tasks: task1, task2
 
 Group tasks
 -----------
@@ -100,26 +100,29 @@ Rules
 rule1Description
 rule2Description
 '''
-        assertEquals(expected, writer.getValue())
     }
 
-    @Test public void testWritesTasksForSingleGroup() {
-        TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+    def writesTasksForSingleGroup() {
+        TaskDetails task = taskDetails(':task1')
+
+        when:
         renderer.addDefaultTasks([])
         renderer.startTaskGroup('group')
         renderer.addTask(task)
         renderer.completeTasks()
 
-        def expected = '''Group tasks
+        then:
+        writer.value == '''Group tasks
 -----------
 :task1
 '''
-        assertEquals(expected, writer.getValue())
     }
 
-    @Test public void testWritesTasksForMultipleGroups() {
-        TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
-        TaskDetails task2 = [getPath: {':task2'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+    def writesTasksForMultipleGroups() {
+        TaskDetails task = taskDetails(':task1')
+        TaskDetails task2 = taskDetails(':task2')
+
+        when:
         renderer.addDefaultTasks([])
         renderer.startTaskGroup('group')
         renderer.addTask(task)
@@ -127,7 +130,8 @@ rule2Description
         renderer.addTask(task2)
         renderer.completeTasks()
 
-        def expected = '''Group tasks
+        then:
+        writer.value == '''Group tasks
 -----------
 :task1
 
@@ -135,43 +139,46 @@ Other tasks
 -----------
 :task2
 '''
-        assertEquals(expected, writer.getValue())
     }
 
-    @Test public void testWritesTasksForDefaultGroup() {
-        TaskDetails task = [getPath: {':task1'}, getDescription: {null}, getDependencies: {[] as Set}] as TaskDetails
+    def writesTasksForDefaultGroup() {
+        TaskDetails task = taskDetails(':task1')
+
+        when:
         renderer.addDefaultTasks([])
         renderer.startTaskGroup('')
         renderer.addTask(task)
         renderer.completeTasks()
 
-        def expected = '''Tasks
+        then:
+        writer.value == '''Tasks
 -----
 :task1
 '''
-        assertEquals(expected, writer.getValue())
     }
 
-    @Test public void testProjectWithNoTasksAndNoRules() {
+    def writesProjectWithNoTasksAndNoRules() {
+        when:
         renderer.completeTasks()
 
-        def expected = '''No tasks
+        then:
+        writer.value == '''No tasks
 '''
-        assertEquals(expected, writer.getValue())
     }
 
-    @Test public void testProjectWithRulesAndNoTasks() {
+    def writesProjectWithRulesAndNoTasks() {
         String ruleDescription = "someDescription"
 
+        when:
         renderer.completeTasks()
         renderer.addRule([getDescription: {ruleDescription}] as Rule)
 
-        def expected = '''No tasks
+        then:
+        writer.value == '''No tasks
 
 Rules
 -----
 someDescription
 '''
-        assertEquals(expected, writer.getValue())
     }
 }

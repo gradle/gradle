@@ -25,6 +25,7 @@ import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.Path;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -172,7 +173,7 @@ public class TaskReportTaskTest {
         return new BaseMatcher<TaskDetails>() {
             public boolean matches(Object o) {
                 TaskDetails other = (TaskDetails) o;
-                return other.getPath().equals(task.getName());
+                return other.getPath().equals(Path.path(task.getName()));
             }
 
             public void describeTo(Description description) {

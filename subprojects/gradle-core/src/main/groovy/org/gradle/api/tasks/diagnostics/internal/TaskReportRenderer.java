@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.util.GUtil;
+import org.gradle.util.Path;
 
 import java.io.IOException;
 import java.util.List;
@@ -95,7 +96,7 @@ public class TaskReportRenderer extends TextReportRenderer {
             getTextOutput().withStyle(Description).format(" - %s", task.getDescription());
         }
         if (detail) {
-            SortedSet<String> sortedDependencies = new TreeSet<String>();
+            SortedSet<Path> sortedDependencies = new TreeSet<Path>();
             for (TaskDetails dependency : task.getDependencies()) {
                 sortedDependencies.add(dependency.getPath());
             }

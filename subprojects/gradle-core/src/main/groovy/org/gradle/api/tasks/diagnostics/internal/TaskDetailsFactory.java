@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.util.Path;
 
 import java.util.Collections;
 import java.util.Set;
@@ -39,12 +40,8 @@ public class TaskDetailsFactory {
             path = task.getPath();
         }
         return new TaskDetails() {
-            public String getName() {
-                return task.getName();
-            }
-
-            public String getPath() {
-                return path;
+            public Path getPath() {
+                return Path.path(path);
             }
 
             public String getDescription() {

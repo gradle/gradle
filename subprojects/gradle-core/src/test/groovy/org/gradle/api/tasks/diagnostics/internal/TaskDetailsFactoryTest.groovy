@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Task
 import org.gradle.api.Project
+import org.gradle.util.Path
 
 class TaskDetailsFactoryTest extends TaskModelSpecification {
     final Project project = Mock()
@@ -36,7 +37,7 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
 
         expect:
         def details = factory.create(task)
-        details.path == 'task'
+        details.path == Path.path('task')
     }
 
     def createsDetailsForTaskInSubProject() {
@@ -46,7 +47,7 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
 
         expect:
         def details = factory.create(task)
-        details.path == 'sub:task'
+        details.path == Path.path('sub:task')
     }
 
     def createsDetailsForTaskInOtherProject() {
@@ -56,7 +57,7 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
 
         expect:
         def details = factory.create(task)
-        details.path == ':other:task'
+        details.path == Path.path(':other:task')
     }
 
     def providesValuesForOtherProperties() {
@@ -66,7 +67,6 @@ class TaskDetailsFactoryTest extends TaskModelSpecification {
 
         expect:
         def details = factory.create(task)
-        details.name == 'task'
         details.description == 'description'
         details.dependencies.isEmpty()
         details.children.isEmpty()

@@ -17,6 +17,7 @@ package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
+import org.gradle.util.Path;
 
 import java.util.*;
 
@@ -67,12 +68,8 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
             this.task = task;
         }
 
-        public String getName() {
-            return task.getName();
-        }
-
-        public String getPath() {
-            return task.getName();
+        public Path getPath() {
+            return Path.path(task.getPath().getName());
         }
 
         public Set<TaskDetails> getChildren() {

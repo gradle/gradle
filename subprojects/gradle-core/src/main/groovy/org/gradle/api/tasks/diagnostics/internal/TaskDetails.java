@@ -15,12 +15,12 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.gradle.util.Path;
+
 import java.util.Set;
 
 public interface TaskDetails {
-    String getName();
-
-    String getPath();
+    Path getPath();
 
     String getDescription();
 

@@ -18,24 +18,36 @@ package org.gradle.api.tasks.diagnostics.internal;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.util.GUtil;
+import org.gradle.util.Path;
 
 import java.util.Comparator;
 import java.util.Set;
 
 public class DefaultGroupTaskReportModel implements TaskReportModel {
     public static final String OTHER_GROUP = "other";
+    private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
     private SetMultimap<String, TaskDetails> groups;
 
     public void build(TaskReportModel model) {
-        final Comparator<String> stringComparator = GUtil.caseInsensitive();
-        Comparator<String> keyComparator = GUtil.last(GUtil.last(stringComparator, OTHER_GROUP), TaskReportModel.DEFAULT_GROUP);
+        Comparator<String> keyComparator = GUtil.last(GUtil.last(STRING_COMPARATOR, OTHER_GROUP), TaskReportModel.DEFAULT_GROUP);
         Comparator<TaskDetails> taskComparator = new Comparator<TaskDetails>() {
             public int compare(TaskDetails task1, TaskDetails task2) {
-                int diff = stringComparator.compare(task1.getName(), task2.getName());
+                int diff = STRING_COMPARATOR.compare(task1.getPath().getName(), task2.getPath().getName());
                 if (diff != 0) {
                     return diff;
                 }
-                return stringComparator.compare(task1.getPath(), task2.getPath());
+                Path parent1 = task1.getPath().getParent();
+                Path parent2 = task2.getPath().getParent();
+                if (parent1 == null && parent2 != null) {
+                    return -1;
+                }
+                if (parent1 != null && parent2 == null) {
+                    return 1;
+                }
+                if (parent1 == null) {
+                    return 0;
+                }
+                return parent1.compareTo(parent2);
             }
         };
         groups = TreeMultimap.create(keyComparator, taskComparator);

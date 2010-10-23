@@ -16,14 +16,15 @@
 package org.gradle.initialization;
 
 import org.gradle.api.internal.project.DefaultProjectRegistry;
+import org.gradle.util.Path;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultProjectDescriptorRegistry extends DefaultProjectRegistry<DefaultProjectDescriptor> implements IProjectDescriptorRegistry {
 
-    public void changeDescriptorPath(String oldPath, String newPath) {
-        DefaultProjectDescriptor projectDescriptor = removeProject(oldPath);
+    public void changeDescriptorPath(Path oldPath, Path newPath) {
+        DefaultProjectDescriptor projectDescriptor = removeProject(oldPath.toString());
         projectDescriptor.setPath(newPath);
         addProject(projectDescriptor);
     }

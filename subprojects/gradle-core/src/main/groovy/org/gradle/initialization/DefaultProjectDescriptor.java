@@ -15,15 +15,15 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.Project;
+import org.gradle.api.initialization.ProjectDescriptor;
 import org.gradle.api.internal.project.ProjectIdentifier;
-import org.gradle.util.PathHelper;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.Path;
 
 import java.io.File;
-import java.util.Set;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 /**
  * @author Hans Dockter
@@ -34,7 +34,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     private DefaultProjectDescriptor parent;
     private Set<ProjectDescriptor> children = new LinkedHashSet<ProjectDescriptor>();
     private IProjectDescriptorRegistry projectDescriptorRegistry;
-    private String path;
+    private Path path;
     private String buildFileName = Project.DEFAULT_BUILD_FILE;
 
     public DefaultProjectDescriptor(DefaultProjectDescriptor parent, String name, File dir,
@@ -50,20 +50,16 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
         }
     }
 
-    private String path(String name) {
+    private Path path(String name) {
         if (isRootDescriptor()) {
-            return path = Project.PATH_SEPARATOR;
+            return path = Path.ROOT;
         } else {
             return parent.absolutePath(name);
         }
     }
 
-    private String absolutePath(String path) {
-        if (!PathHelper.isAbsolutePath(path)) {
-            String prefix = isRootDescriptor() ? "" : Project.PATH_SEPARATOR;
-            return this.path + prefix + path;
-        }
-        return path;
+    private Path absolutePath(String path) {
+        return this.path.resolve(path);
     }
 
     private boolean isRootDescriptor() {
@@ -75,7 +71,7 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public void setName(String name) {
-        projectDescriptorRegistry.changeDescriptorPath(getPath(), path(name));
+        projectDescriptorRegistry.changeDescriptorPath(path, path(name));
         this.name = name;
     }
 
@@ -100,10 +96,10 @@ public class DefaultProjectDescriptor implements ProjectDescriptor, ProjectIdent
     }
 
     public String getPath() {
-        return path;
+        return path.toString();
     }
 
-    void setPath(String path) {
+    void setPath(Path path) {
         this.path = path;
     }
 

@@ -18,16 +18,22 @@ package org.gradle.api.tasks.diagnostics.internal
 import spock.lang.Specification
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.api.Task
+import org.gradle.util.Path
 
 class TaskModelSpecification extends Specification {
     def taskDetails(String path) {
+        return taskDetails([:], path)
+    }
+
+    def taskDetails(Map properties, String path) {
         TaskDetails task = Mock()
-        _ * task.path >> path
-        _ * task.name >> { path.split(':').last() }
+        _ * task.path >> Path.path(path)
         _ * task.toString() >> path
+        _ * task.description >> properties.description
+        _ * task.dependencies >> ((properties.dependencies ?: []) as Set)
         return task
     }
-    
+
     def task(String name, String group = null, Task... dependencies) {
         Task task = Mock()
         _ * task.toString() >> name

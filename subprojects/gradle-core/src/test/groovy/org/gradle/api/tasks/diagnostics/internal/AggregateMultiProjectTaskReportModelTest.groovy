@@ -72,7 +72,7 @@ class AggregateMultiProjectTaskReportModelTest extends TaskModelSpecification {
         model.build()
 
         then:
-        model.getTasksForGroup('group')*.path as Set == ['task', 'other'] as Set
+        model.getTasksForGroup('group')*.path*.path as Set == ['task', 'other'] as Set
     }
 
     def handlesGroupWhichIsNotPresentInEachProject() {

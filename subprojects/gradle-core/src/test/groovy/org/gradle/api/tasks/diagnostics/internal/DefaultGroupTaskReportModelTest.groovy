@@ -61,21 +61,22 @@ class DefaultGroupTaskReportModelTest extends TaskModelSpecification {
     }
 
     def taskNamesAreOrderedCaseInsensitiveByNameThenPath() {
-        def task1 = taskDetails(':A')
-        def task2 = taskDetails(':a:A')
-        def task3 = taskDetails(':B:A')
-        def task4 = taskDetails(':c:A')
-        def task5 = taskDetails(':a:a')
-        def task6 = taskDetails(':b:Abc')
-        def task7 = taskDetails(':b')
+        def task1 = taskDetails('task_A')
+        def task2 = taskDetails('a:task_A')
+        def task3 = taskDetails('a:a:task_A')
+        def task4 = taskDetails('B:task_A')
+        def task5 = taskDetails('c:task_A')
+        def task6 = taskDetails('b:task_a')
+        def task7 = taskDetails('a:task_Abc')
+        def task8 = taskDetails('task_b')
         _ * target.groups >> ['group']
-        _ * target.getTasksForGroup('group') >> ([task6, task3, task7, task4, task5, task1, task2] as LinkedHashSet)
+        _ * target.getTasksForGroup('group') >> ([task6, task3, task7, task4, task5, task1, task8, task2] as LinkedHashSet)
 
         when:
         model.build(target)
 
         then:
-        model.getTasksForGroup('group') as List == [task1, task2, task3, task4, task5, task6, task7]
+        model.getTasksForGroup('group') as List == [task1, task2, task3, task4, task5, task6, task7, task8]
     }
 
     def renamesDefaultGroupWhenOtherGroupNotPresent() {

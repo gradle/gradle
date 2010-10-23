@@ -15,6 +15,8 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
+import org.gradle.util.Path
+
 class SingleProjectTaskReportModelTest extends TaskModelSpecification {
     final TaskDetailsFactory factory = Mock()
     final SingleProjectTaskReportModel model = new SingleProjectTaskReportModel(factory)
@@ -22,7 +24,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
     def setup() {
         _ * factory.create(!null) >> {args ->
             def task = args[0]
-            [getPath: { task.path }, getName: { task.name }] as TaskDetails
+            [getPath: { Path.path(task.path) }, getName: { task.name }] as TaskDetails
         }
     }
 
@@ -87,7 +89,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group4') as List).first()
-        t.dependencies*.name as Set == ['task2', 'task3'] as Set
+        t.dependencies*.path*.name as Set == ['task2', 'task3'] as Set
     }
 
     def dependenciesIncludeExternalTasks() {
@@ -100,7 +102,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group') as List).first()
-        t.dependencies*.name as Set == ['task1', 'task2'] as Set
+        t.dependencies*.path*.name as Set == ['task1', 'task2'] as Set
     }
 
     def dependenciesDoNotIncludeTheChildrenOfOtherTopLevelTasks() {
@@ -115,7 +117,7 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
 
         then:
         TaskDetails t = (model.getTasksForGroup('group2') as List).first()
-        t.dependencies*.name as Set == ['task2'] as Set
+        t.dependencies*.path*.name as Set == ['task2'] as Set
     }
 
     def addsAGroupThatContainsTheTasksWithNoGroup() {
@@ -171,6 +173,6 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
         then:
         TaskDetails t = (model.getTasksForGroup('group1') as List).first()
         t.children*.task == [task1]
-        t.dependencies*.name == ['other2']
+        t.dependencies*.path*.name == ['other2']
     }
 }
