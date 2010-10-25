@@ -134,7 +134,7 @@ public interface SourceSet {
     SourceSet java(Closure configureClosure);
 
     /**
-     * All Java source for this source set. This includes, for example, source which is directly compiled, and source
+     * All Java source files for this source set. This includes, for example, source which is directly compiled, and source
      * which is indirectly compiled through joint compilation.
      *
      * @return the Java source. Never returns null.
@@ -142,7 +142,7 @@ public interface SourceSet {
     FileTree getAllJava();
 
     /**
-     * All source for this source set.
+     * All source files for this source set.
      *
      * @return the source. Never returns null.
      */

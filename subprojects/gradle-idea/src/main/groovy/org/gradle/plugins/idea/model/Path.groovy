@@ -24,7 +24,7 @@ class Path {
     /**
      * The url of the path. Must not be null
      */
-    String url
+    final String url
 
     def Path(rootDir, rootDirString, file) {
         String path = getRelativePath(rootDir, rootDirString, file)

@@ -25,7 +25,7 @@ class ModulePath extends Path {
     /**
      * The path string of this path.
      */
-    String path
+    final String path
 
     def ModulePath(rootDir, rootDirString, file) {
         super(rootDir, rootDirString, file)
