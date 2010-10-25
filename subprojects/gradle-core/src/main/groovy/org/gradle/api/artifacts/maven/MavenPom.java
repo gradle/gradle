@@ -188,19 +188,19 @@ public interface MavenPom {
     MavenPom whenConfigured(Action<MavenPom> action);
 
     /**
-     * <p>Adds a closure to be called when the pom xml has been created. The xml is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
+     * <p>Adds a closure to be called when the POM XML has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.</p>
      *
-     * @param closure The closure to execute when the pom xml has been created.
+     * @param closure The closure to execute when the POM XML has been created.
      * @return this
      */
     MavenPom withXml(Closure closure);
 
     /**
-     * <p>Adds an action to be called when the pom xml has been created. The xml is passed to the action as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The xml might be modified.</p>
+     * <p>Adds an action to be called when the POM XML has been created. The XML is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.</p>
      *
-     * @param action The action to execute when the pom xml has been created.
+     * @param action The action to execute when the POM XML has been created.
      * @return this
      */
     MavenPom withXml(Action<XmlProvider> action);
