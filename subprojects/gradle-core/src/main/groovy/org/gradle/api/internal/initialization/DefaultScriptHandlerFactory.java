@@ -82,7 +82,7 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     }
 
     private static class BasicDomainObjectContext implements DomainObjectContext {
-        public String absolutePath(String name) {
+        public String absoluteProjectPath(String name) {
             return name;
         }
     }

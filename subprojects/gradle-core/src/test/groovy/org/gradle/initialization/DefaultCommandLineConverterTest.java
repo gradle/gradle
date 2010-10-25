@@ -18,16 +18,13 @@ package org.gradle.initialization;
 
 import org.gradle.CacheUsage;
 import org.gradle.CommandLineArgumentException;
-import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
-import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.WrapUtil;
-import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -39,12 +36,13 @@ import java.util.*;
 import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
  */
-public class DefaultCommandLine2StartParameterConverterTest {
+public class DefaultCommandLineConverterTest {
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
     private File expectedProjectDir;
@@ -58,8 +56,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     private CacheUsage expectedCacheUsage = CacheUsage.ON;
     private boolean expectedSearchUpwards = true;
     private boolean expectedDryRun;
-    private boolean expectedShowHelp;
-    private boolean expectedShowVersion;
     private StartParameter.ShowStacktrace expectedShowStackTrace = StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS;
     private String expectedEmbeddedScript = "somescript";
     private LogLevel expectedLogLevel = LogLevel.LIFECYCLE;
@@ -69,15 +65,11 @@ public class DefaultCommandLine2StartParameterConverterTest {
 
     @Rule
     public TemporaryFolder testDir = new TemporaryFolder();
+    private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
 
     @Before
     public void setUp() throws IOException {
         expectedProjectDir = new File("").getCanonicalFile();
-    }
-
-    @After
-    public void tearDown() {
-        GradleLauncher.injectCustomFactory(null);
     }
 
     @Test
@@ -104,8 +96,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
         assertEquals(expectedLogLevel, startParameter.getLogLevel());
         assertEquals(expectedColorOutput, startParameter.isColorOutput());
         assertEquals(expectedDryRun, startParameter.isDryRun());
-        assertEquals(expectedShowHelp, startParameter.isShowHelp());
-        assertEquals(expectedShowVersion, startParameter.isShowVersion());
         assertEquals(expectedShowStackTrace, startParameter.getShowStacktrace());
         assertEquals(expectedExcludedTasks, startParameter.getExcludedTaskNames());
         assertEquals(expectedInitScripts, startParameter.getInitScripts());
@@ -113,7 +103,7 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     private void checkConversion(final boolean embedded, String... args) {
-        actualStartParameter = new DefaultCommandLine2StartParameterConverter().convert(args);
+        actualStartParameter = commandLineConverter.convert(Arrays.asList(args));
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter);
         if (embedded) {
@@ -232,18 +222,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     }
 
     @Test
-    public void withShowHelp() {
-        expectedShowHelp = true;
-        checkConversion("-h");
-    }
-
-    @Test
-    public void withShowVersion() {
-        expectedShowVersion = true;
-        checkConversion("-v");
-    }
-
-    @Test
     public void withEmbeddedScript() {
         expectedSearchUpwards = false;
         checkConversion(true, "-e", expectedEmbeddedScript);
@@ -262,19 +240,6 @@ public class DefaultCommandLine2StartParameterConverterTest {
     @Test(expected = CommandLineArgumentException.class)
     public void withEmbeddedScriptAndConflictingSpecifySettingsFileOption() {
         checkConversion("-e", "someScript", "-csomeFile", "clean");
-    }
-
-    @Test
-    public void withConflictingLoggingOptionsDQ() {
-        List<String> illegalOptions = toList("dq", "di", "qd", "qi", "iq", "id");
-        for (String illegalOption : illegalOptions) {
-            try {
-                checkConversion("-" + illegalOption, "clean");
-            } catch (InvalidUserDataException e) {
-                continue;
-            }
-            fail("Expected InvalidUserDataException");
-        }
     }
 
     @Test

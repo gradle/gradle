@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2009 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,19 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.util
+package org.gradle.initialization;
 
-import static org.junit.Assert.assertFalse
-import static org.junit.Assert.assertTrue
-import org.junit.Test
+import org.gradle.CommandLineArgumentException;
 
 /**
  * @author Hans Dockter
  */
-class PathHelperTest {
-    @Test public void absolutePath() {
-        assertTrue(PathHelper.isAbsolutePath(":path"))
-        assertFalse(PathHelper.isAbsolutePath("path"))
-    }
+public interface CommandLineConverter<T> {
+    T convert(Iterable<String> args) throws CommandLineArgumentException;
+    
+    T convert(ParsedCommandLine args) throws CommandLineArgumentException;
+
+    void configure(CommandLineParser parser);
 }

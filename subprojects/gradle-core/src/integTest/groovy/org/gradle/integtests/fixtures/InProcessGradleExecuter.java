@@ -17,7 +17,6 @@
 package org.gradle.integtests.fixtures;
 
 import junit.framework.AssertionFailedError;
-import org.gradle.BuildLogger;
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
 import org.gradle.StartParameter;
@@ -28,11 +27,10 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.execution.TaskExecutionListener;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.util.Clock;
+import org.gradle.initialization.CommandLineParser;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.hamcrest.Matcher;
 
 import java.io.File;
@@ -115,7 +113,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     @Override
     public GradleExecuter withArguments(List<String> args) {
-        new DefaultCommandLine2StartParameterConverter().convert(args.toArray(new String[args.size()]), parameter);
+        CommandLineParser parser = new CommandLineParser();
+        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+        converter.configure(parser);
+        converter.convert(parser.parse(args), parameter);
         return this;
     }
 
@@ -150,7 +151,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private BuildResult doRun(OutputListenerImpl outputListener, OutputListenerImpl errorListener,
+    private BuildResult doRun(final OutputListenerImpl outputListener, OutputListenerImpl errorListener,
                               BuildListenerImpl listener) {
         assertCanExecute();
         if (isQuiet()) {
@@ -158,8 +159,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
         gradleLauncher.addListener(listener);
-        gradleLauncher.useLogger(new BuildLogger(Logging.getLogger(InProcessGradleExecuter.class), new Clock(),
-                parameter));
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
         try {
@@ -172,9 +171,6 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     public void assertCanExecute() {
         assertNull(getExecutable());
         assertTrue(getEnvironmentVars().isEmpty());
-        assertFalse(parameter.isShowHelp());
-        assertFalse(parameter.isShowVersion());
-        assertFalse(parameter.isLaunchGUI());
     }
 
     public boolean canExecute() {
@@ -185,7 +181,8 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
         return true;
     }
-    private class BuildListenerImpl implements TaskExecutionGraphListener {
+
+    private static class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new ArrayList<String>();
         private final List<String> skippedTasks = new ArrayList<String>();
 
@@ -195,7 +192,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private class OutputListenerImpl implements StandardOutputListener {
+    private static class OutputListenerImpl implements StandardOutputListener {
         private StringWriter writer = new StringWriter();
 
         @Override
@@ -208,7 +205,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
     }
 
-    private class TaskListenerImpl implements TaskExecutionListener {
+    private static class TaskListenerImpl implements TaskExecutionListener {
         private final List<Task> planned;
         private final List<String> executedTasks;
         private final List<String> skippedTasks;

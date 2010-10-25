@@ -15,12 +15,20 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.logging.StyledTextOutputFactory;
 
-public interface OutputEventTextOutput extends StyledTextOutput {
-    OutputEventTextOutput text(Object text);
+public abstract class AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
+    public StyledTextOutput create(Class logCategory) {
+        return create(logCategory.getName());
+    }
 
-    OutputEventTextOutput println();
+    public StyledTextOutput create(String logCategory) {
+        return create(logCategory, null);
+    }
 
-    OutputEventTextOutput exception(Throwable throwable);
+    public StyledTextOutput create(Class logCategory, LogLevel logLevel) {
+        return create(logCategory.getName(), logLevel);
+    }
 }

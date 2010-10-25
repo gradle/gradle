@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.project;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
@@ -24,9 +25,9 @@ import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.initialization.ClassLoaderFactory;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderFactory;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -43,8 +44,8 @@ public class GlobalServicesRegistry extends DefaultServiceRegistry {
         super(loggingServices);
     }
 
-    protected CommandLine2StartParameterConverter createCommandLine2StartParameterConverter() {
-        return new DefaultCommandLine2StartParameterConverter();
+    protected CommandLineConverter<StartParameter> createCommandLine2StartParameterConverter() {
+        return new DefaultCommandLineConverter();
     }
 
     protected ClassPathRegistry createClassPathRegistry() {

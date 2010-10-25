@@ -21,7 +21,6 @@ import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
 
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
 import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
 public class Help extends DefaultTask {
@@ -33,16 +32,16 @@ public class Help extends DefaultTask {
         output.println();
         output.formatln("Welcome to Gradle %s.", new GradleVersion().getVersion());
         output.println();
-        output.text("To run a build, run ").style(UserInput);
-        metaData.describeCommand(output, "<task> ...");
-        output.style(Normal).println();
+        output.text("To run a build, run ");
+        metaData.describeCommand(output.withStyle(UserInput), "<task> ...");
         output.println();
-        output.text("To see a list of available tasks, run ").style(UserInput);
-        metaData.describeCommand(output, "tasks");
-        output.style(Normal).println();
         output.println();
-        output.text("To see a list of command-line options, run ").style(UserInput);
-        metaData.describeCommand(output, "-?");
-        output.style(Normal).println();
+        output.text("To see a list of available tasks, run ");
+        metaData.describeCommand(output.withStyle(UserInput), "tasks");
+        output.println();
+        output.println();
+        output.text("To see a list of command-line options, run ");
+        metaData.describeCommand(output.withStyle(UserInput), "-?");
+        output.println();
     }
 }

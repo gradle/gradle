@@ -26,6 +26,7 @@ import static org.fusesource.jansi.Ansi.Attribute.*;
 import static org.fusesource.jansi.Ansi.Attribute.ITALIC;
 import static org.fusesource.jansi.Ansi.Color.*;
 import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.logging.StyledTextOutput.Style.Success;
 
 public class DefaultColorMap implements ColorMap {
     private static final String STATUSBAR = "statusbar";
@@ -42,19 +43,24 @@ public class DefaultColorMap implements ColorMap {
     };
 
     public DefaultColorMap() {
-//        addDefault(Header, DEFAULT);
-        addDefault(Info, YELLOW);
-        addDefault(Description, YELLOW);
-        addDefault(ProgressStatus, YELLOW);
-        addDefault(Identifier, GREEN);
-        addDefault(UserInput, GREEN);
-        addDefault(Failure, RED);
-        addDefault(Error, RED);
-        defaults.put(STATUSBAR, BOLD);
+        addDefault(Info, "yellow");
+        addDefault(Error, "default");
+        addDefault(Header, "default");
+        addDefault(Description, "yellow");
+        addDefault(ProgressStatus, "yellow");
+        addDefault(Identifier, "green");
+        addDefault(UserInput, "bold");
+        addDefault(Success, "default");
+        addDefault(Failure, "red");
+        addDefault(STATUSBAR, "bold");
     }
 
-    private void addDefault(StyledTextOutput.Style style, Ansi.Color color) {
-        defaults.put(style.name().toLowerCase(), color.name());
+    private void addDefault(StyledTextOutput.Style style, String color) {
+        addDefault(style.name().toLowerCase(), color);
+    }
+
+    private void addDefault(String style, String color) {
+        defaults.put(style, color);
     }
 
     public void setUseColor(boolean useColor) {

@@ -24,7 +24,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.ResolvedDependency
 
 class AsciiReportRendererTest extends Specification {
-    private final TestStyledTextOutput textOutput = new TestStyledTextOutput()
+    private final TestStyledTextOutput textOutput = new TestStyledTextOutput().ignoreStyle()
     private final AsciiReportRenderer renderer = new AsciiReportRenderer()
     private final Project project = HelperUtil.createRootProject()
 

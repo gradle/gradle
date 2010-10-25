@@ -44,7 +44,7 @@ public class PropertyReportTaskTest {
         renderer = context.mock(PropertyReportRenderer.class);
 
         context.checking(new Expectations() {{
-            allowing(project).absolutePath("list");
+            allowing(project).absoluteProjectPath("list");
             will(returnValue(":path"));
             allowing(project).getConvention();
             will(returnValue(null));

@@ -15,12 +15,18 @@
  */
 package org.gradle.api.tasks.diagnostics.internal
 
-import spock.lang.Specification
-import org.gradle.api.Task
-import org.gradle.api.tasks.TaskDependency
+import org.gradle.util.Path
 
-class TaskReportModelTest extends Specification {
-    private final TaskReportModel model = new TaskReportModel()
+class SingleProjectTaskReportModelTest extends TaskModelSpecification {
+    final TaskDetailsFactory factory = Mock()
+    final SingleProjectTaskReportModel model = new SingleProjectTaskReportModel(factory)
+
+    def setup() {
+        _ * factory.create(!null) >> {args ->
+            def task = args[0]
+            [getPath: { Path.path(task.path) }, getName: { task.name }] as TaskDetails
+        }
+    }
 
     def groupsTasksBasedOnTheirGroup() {
         def task1 = task('task1', 'group1')
@@ -28,10 +34,10 @@ class TaskReportModelTest extends Specification {
         def task3 = task('task3', 'group1')
 
         when:
-        model.calculate([task1, task2, task3])
+        model.build([task1, task2, task3])
 
         then:
-        model.groups as List == ['group1', 'group2']
+        model.groups == ['group1', 'group2'] as Set
         model.getTasksForGroup('group1')*.task == [task1, task3]
         model.getTasksForGroup('group2')*.task == [task2]
     }
@@ -43,10 +49,10 @@ class TaskReportModelTest extends Specification {
         def task4 = task('task4', 'c')
 
         when:
-        model.calculate([task2, task3, task4, task1])
+        model.build([task2, task3, task4, task1])
 
         then:
-        model.groups as List == ['a', 'B', 'c']
+        model.groups == ['a', 'B', 'c'] as Set
         model.getTasksForGroup('a')*.task == [task1]
         model.getTasksForGroup('B')*.task == [task2, task3]
         model.getTasksForGroup('c')*.task == [task4]
@@ -60,15 +66,15 @@ class TaskReportModelTest extends Specification {
         def task5 = task('task5', 'group2', task4)
 
         when:
-        model.calculate([task1, task2, task3, task4, task5])
+        model.build([task1, task2, task3, task4, task5])
 
         then:
         TaskDetails t = (model.getTasksForGroup('group1') as List).first()
         t.task == task3
-        t.children*.task as List == [task1, task2]
+        t.children*.task == [task1, task2]
         t = (model.getTasksForGroup('group2') as List).first()
         t.task == task5
-        t.children*.task as List == [task4]
+        t.children*.task == [task4]
     }
 
     def theDependenciesOfATopLevelTaskAreTheUnionOfTheDependenciesOfItsChildren() {
@@ -79,26 +85,26 @@ class TaskReportModelTest extends Specification {
         def task5 = task('task5', 'group4', task3, task4)
 
         when:
-        model.calculate([task1, task2, task3, task4, task5])
+        model.build([task1, task2, task3, task4, task5])
 
         then:
         TaskDetails t = (model.getTasksForGroup('group4') as List).first()
-        t.dependencies as List == ['task2', 'task3']
+        t.dependencies*.path*.name as Set == ['task2', 'task3'] as Set
     }
 
-    def usesTaskPathForExternalDependencies() {
+    def dependenciesIncludeExternalTasks() {
         def task1 = task('task1')
         def task2 = task('task2', 'other')
         def task3 = task('task3', 'group', task1, task2)
 
         when:
-        model.calculate([task2, task3])
+        model.build([task2, task3])
 
         then:
         TaskDetails t = (model.getTasksForGroup('group') as List).first()
-        t.dependencies as List == [':task1', 'task2']
+        t.dependencies*.path*.name as Set == ['task1', 'task2'] as Set
     }
-    
+
     def dependenciesDoNotIncludeTheChildrenOfOtherTopLevelTasks() {
         def task1 = task('task1')
         def task2 = task('task2', 'group1', task1)
@@ -107,44 +113,52 @@ class TaskReportModelTest extends Specification {
         def task5 = task('task5', 'group2', task3, task4)
 
         when:
-        model.calculate([task1, task2, task3, task4, task5])
+        model.build([task1, task2, task3, task4, task5])
 
         then:
         TaskDetails t = (model.getTasksForGroup('group2') as List).first()
-        t.dependencies as List == ['task2']
+        t.dependencies*.path*.name as Set == ['task2'] as Set
     }
 
-    def addsAGroupContainingTheTasksWithNoGroup() {
+    def addsAGroupThatContainsTheTasksWithNoGroup() {
         def task1 = task('task1')
-        def task2 = task('task2', 'group1', task1)
+        def task2 = task('task2', 'group', task1)
         def task3 = task('task3')
         def task4 = task('task4', task2)
         def task5 = task('task5', task3, task4)
 
         when:
-        model.calculate([task1, task2, task3, task4, task5])
+        model.build([task1, task2, task3, task4, task5])
 
         then:
-        model.groups as List == ['group1', '']
+        model.groups == ['group', ''] as Set
         def tasks = model.getTasksForGroup('') as List
         tasks*.task == [task5]
         def t = tasks.first()
         t.task == task5
-        t.children*.task as List == [task3, task4]
+        t.children*.task == [task3, task4]
     }
-    
+
     def addsAGroupWhenThereAreNoTasksWithAGroup() {
         def task1 = task('task1')
         def task2 = task('task2', task1)
         def task3 = task('task3')
 
         when:
-        model.calculate([task1, task2, task3])
+        model.build([task1, task2, task3])
 
         then:
-        model.groups as List == ['']
+        model.groups == [''] as Set
         def tasks = model.getTasksForGroup('') as List
         tasks*.task == [task2, task3]
+    }
+
+    def buildsModelWhenThereAreNoTasks() {
+        when:
+        model.build([])
+
+        then:
+        model.groups as List == []
     }
 
     def ignoresReachableTasksOutsideTheProject() {
@@ -154,24 +168,11 @@ class TaskReportModelTest extends Specification {
         def task2 = task('task2', 'group1', task1)
 
         when:
-        model.calculate([task1, task2])
+        model.build([task1, task2])
 
         then:
         TaskDetails t = (model.getTasksForGroup('group1') as List).first()
-        t.children*.task as List == [task1]
-        t.dependencies as List == [':other2']
-    }
-
-    def task(String name, String group = null, Task... dependencies) {
-        Task task = Mock()
-        _ * task.toString() >> name
-        _ * task.name >> name
-        _ * task.path >> ":$name"
-        _ * task.group >> group
-        _ * task.compareTo(!null) >> { args -> name.compareTo(args[0].name) }
-        TaskDependency dep = Mock()
-        _ * dep.getDependencies(task) >> {dependencies as Set}
-        _ * task.taskDependencies >> dep
-        return task
+        t.children*.task == [task1]
+        t.dependencies*.path*.name == ['other2']
     }
 }

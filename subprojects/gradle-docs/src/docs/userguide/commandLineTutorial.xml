@@ -185,7 +185,7 @@
             command line, but you don't want the tasks to be executed. You can use the <option>-m</option> option for this.
             For example <userinput>gradle -m clean compile</userinput> shows you all tasks to be executed as
             part of the <literal>clean</literal> and <literal>compile</literal> tasks.
-            This is complementary to the <option>-t</option> option, which shows you the tasks which are available for
+            This is complementary to the <option>tasks</option> task, which shows you the tasks which are available for
             execution.
         </para>
     </section>

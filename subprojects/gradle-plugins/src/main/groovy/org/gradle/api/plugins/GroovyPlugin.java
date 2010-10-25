@@ -46,7 +46,7 @@ public class GroovyPlugin implements Plugin<Project> {
 
     private void configureGroovydoc(final Project project) {
         Groovydoc groovyDoc = project.getTasks().add(GROOVYDOC_TASK_NAME, Groovydoc.class);
-        groovyDoc.setDescription("Generates the groovydoc for the source code.");
+        groovyDoc.setDescription("Generates the groovydoc for the main source code.");
         groovyDoc.setGroup(JavaBasePlugin.DOCUMENTATION_GROUP);
         groovyDoc.setSource(mainGroovy(project.getConvention()).getGroovy());
     }

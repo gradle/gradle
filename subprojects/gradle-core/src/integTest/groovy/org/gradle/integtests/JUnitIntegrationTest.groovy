@@ -108,7 +108,7 @@ public class JUnitIntegrationTest {
         failure = executer.withTasks('test').withArguments('-Dtest.single=NotATest').runWithFailure()
         failure.assertHasCause('Could not find matching test for pattern: NotATest')
     }
-    
+
     @Test
     public void canUseTestSuperClassesFromAnotherProject() {
         TestFile testDir = dist.getTestDir();
@@ -180,7 +180,7 @@ public class JUnitIntegrationTest {
         result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner$SomeInner')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
-        result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')        
+        result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
     }
 
     @Test
@@ -345,5 +345,15 @@ public class JUnitIntegrationTest {
         assertThat(result.getOutput(), containsLine("FINISH [test testFail(SomeTest)] [testFail] [junit.framework.AssertionFailedError: message]"));
         assertThat(result.getOutput(), containsLine("START [test testError(SomeTest)] [testError]"));
         assertThat(result.getOutput(), containsLine("FINISH [test testError(SomeTest)] [testError] [java.lang.RuntimeException: message]"));
+    }
+
+    @Test
+    public void canHaveMultipleTestTaskInstances() {
+        executer.withTasks('check').run()
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.Test1', 'org.gradle.Test2')
+        result.testClass('org.gradle.Test1').assertTestPassed('ok')
+        result.testClass('org.gradle.Test2').assertTestPassed('ok')
     }
 }

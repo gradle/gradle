@@ -25,6 +25,7 @@ import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
 import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.Path;
 import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
@@ -56,7 +57,7 @@ public class TaskReportTaskTest {
     @Before
     public void setup() {
         context.checking(new Expectations(){{
-            allowing(project).absolutePath("list");
+            allowing(project).absoluteProjectPath("list");
             will(returnValue(":path"));
             allowing(project).getTasks();
             will(returnValue(taskContainer));
@@ -64,6 +65,10 @@ public class TaskReportTaskTest {
             will(returnValue(implicitTasks));
             allowing(project).getConvention();
             will(returnValue(null));
+            allowing(project).getAllprojects();
+            will(returnValue(toSet(project)));
+            allowing(project).getSubprojects();
+            will(returnValue(toSet()));
         }});
 
         task = HelperUtil.createTask(TaskReportTask.class);
@@ -168,7 +173,7 @@ public class TaskReportTaskTest {
         return new BaseMatcher<TaskDetails>() {
             public boolean matches(Object o) {
                 TaskDetails other = (TaskDetails) o;
-                return other.getPath().equals(task.getName());
+                return other.getPath().equals(Path.path(task.getName()));
             }
 
             public void describeTo(Description description) {
@@ -188,6 +193,10 @@ public class TaskReportTaskTest {
             will(returnValue(name));
             allowing(task).getPath();
             will(returnValue(':' + name));
+            allowing(task).getProject();
+            will(returnValue(project));
+            allowing(project).relativeProjectPath(':' + name);
+            will(returnValue(name));
             allowing(task).getGroup();
             will(returnValue(taskGroup));
             allowing(task).compareTo(with(Matchers.notNullValue(Task.class)));

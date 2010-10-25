@@ -23,9 +23,9 @@ import org.gradle.api.internal.GradleDistributionLocator;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.initialization.ClassLoaderFactory;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
+import org.gradle.initialization.CommandLineConverter;
 import org.gradle.initialization.DefaultClassLoaderFactory;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
 import org.gradle.logging.*;
@@ -41,8 +41,8 @@ public class GlobalServicesRegistryTest {
 
     @Test
     public void providesCommandLineArgsConverter() {
-        assertThat(registry.get(CommandLine2StartParameterConverter.class), instanceOf(
-                DefaultCommandLine2StartParameterConverter.class));
+        assertThat(registry.get(CommandLineConverter.class), instanceOf(
+                DefaultCommandLineConverter.class));
     }
 
     @Test

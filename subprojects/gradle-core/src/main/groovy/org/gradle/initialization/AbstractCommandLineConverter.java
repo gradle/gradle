@@ -15,17 +15,12 @@
  */
 package org.gradle.initialization;
 
-import org.gradle.StartParameter;
+import org.gradle.CommandLineArgumentException;
 
-import java.io.OutputStream;
-
-/**
- * @author Hans Dockter
- */
-public interface CommandLine2StartParameterConverter {
-    StartParameter convert(String[] args);
-
-    void convert(String[] args, StartParameter parameter);
-
-    void showHelp(OutputStream out);
+public abstract class AbstractCommandLineConverter<T> implements CommandLineConverter<T> {
+    public T convert(Iterable<String> args) throws CommandLineArgumentException {
+        CommandLineParser parser = new CommandLineParser();
+        configure(parser);
+        return convert(parser.parse(args));
+    }
 }

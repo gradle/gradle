@@ -15,7 +15,8 @@
  */
 package org.gradle.foundation;
 
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -27,14 +28,19 @@ import java.util.Iterator;
  * @author mhunsicker
  */
 public class CommandLineAssistant {
-    private DefaultCommandLine2StartParameterConverter commandLine2StartParameterConverter;
+    private final DefaultCommandLineConverter commandLineConverter;
+    private final LoggingCommandLineConverter loggingCommandLineConverter = new LoggingCommandLineConverter();
 
     public CommandLineAssistant() {
-        commandLine2StartParameterConverter = new DefaultCommandLine2StartParameterConverter();
+        commandLineConverter = new DefaultCommandLineConverter();
     }
 
-    public DefaultCommandLine2StartParameterConverter getCommandLine2StartParameterConverter() {
-        return commandLine2StartParameterConverter;
+    public DefaultCommandLineConverter getCommandLineConverter() {
+        return commandLineConverter;
+    }
+
+    public LoggingCommandLineConverter getLoggingCommandLineConverter() {
+        return loggingCommandLineConverter;
     }
 
     /**
@@ -82,7 +88,7 @@ public class CommandLineAssistant {
         return hasCommandLineOptionsDefined(commandLineArguments, new CommandLineSearch() {
             public boolean contains(String commandLine) {
 
-                return commandLine2StartParameterConverter.getLogLevel(commandLine) != null;
+                return loggingCommandLineConverter.getLogLevel(commandLine) != null;
             }
         });
     }
@@ -90,7 +96,7 @@ public class CommandLineAssistant {
     public boolean hasShowStacktraceDefined(String[] commandLineArguments) {
         return hasCommandLineOptionsDefined(commandLineArguments, new CommandLineSearch() {
             public boolean contains(String commandLine) {
-                return commandLine2StartParameterConverter.getShowStacktrace(commandLine) != null;
+                return commandLineConverter.getShowStacktrace(commandLine) != null;
             }
         });
     }

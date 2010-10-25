@@ -16,6 +16,7 @@
 
 package org.gradle.initialization;
 
+import org.apache.tools.ant.Project;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.util.ClasspathUtil;
 import org.gradle.util.GFileUtils;
@@ -31,16 +32,17 @@ public class DefaultClassLoaderFactory implements ClassLoaderFactory {
     private final URLClassLoader rootClassLoader;
 
     public DefaultClassLoaderFactory(ClassPathRegistry classPathRegistry) {
-        // Add in tools.jar
-        ClassLoader parent = getClass().getClassLoader();
+        // Add in tools.jar to the Ant classloader
+        ClassLoader antClassloader = Project.class.getClassLoader();
         File toolsJar = Jvm.current().getToolsJar();
         if (toolsJar != null) {
-            ClasspathUtil.addUrl((URLClassLoader) parent, GFileUtils.toURLs(Collections.singleton(toolsJar)));
+            ClasspathUtil.addUrl((URLClassLoader) antClassloader, GFileUtils.toURLs(Collections.singleton(toolsJar)));
         }
 
         // Add in libs for plugins
+        ClassLoader runtimeClassloader = getClass().getClassLoader();
         URL[] classPath = classPathRegistry.getClassPathUrls("GRADLE_PLUGINS");
-        rootClassLoader = new URLClassLoader(classPath, parent);
+        rootClassLoader = new URLClassLoader(classPath, runtimeClassloader);
     }
 
     public ClassLoader getRootClassLoader() {

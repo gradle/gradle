@@ -32,6 +32,7 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
+import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
 /**
  * <p>Displays a list of projects in the build. It is used when you use the project list command-line option.</p>
@@ -47,27 +48,25 @@ public class ProjectReportTask extends DefaultTask {
         textOutput.println();
         render(project, new GraphRenderer(textOutput), true);
         if (project.getChildProjects().isEmpty()) {
-            textOutput.style(Info).text("No sub-projects").style(Normal).println();
+            textOutput.withStyle(Info).text("No sub-projects");
+            textOutput.println();
         }
 
         textOutput.println();
-        textOutput.text("To see a list of the tasks of a particular project, run ");
-        textOutput.style(UserInput);
-        metaData.describeCommand(textOutput, String.format("<project-path>:%s", ImplicitTasksConfigurer.TASKS_TASK));
-        textOutput.style(Normal).println();
+        textOutput.text("To see a list of the tasks of a project, run ");
+        metaData.describeCommand(textOutput.withStyle(UserInput), String.format("<project-path>:%s", ImplicitTasksConfigurer.TASKS_TASK));
+        textOutput.println();
 
         textOutput.text("For example, try running ");
-        textOutput.style(UserInput);
         Project exampleProject = project.getChildProjects().isEmpty() ? project : getChildren(project).get(0);
-        metaData.describeCommand(textOutput, exampleProject.absolutePath(ImplicitTasksConfigurer.TASKS_TASK));
-        textOutput.style(Normal).println();
+        metaData.describeCommand(textOutput.withStyle(UserInput), exampleProject.absoluteProjectPath(ImplicitTasksConfigurer.TASKS_TASK));
+        textOutput.println();
 
         if (project != project.getRootProject()) {
             textOutput.println();
             textOutput.text("To see a list of all the projects in this build, run ");
-            textOutput.style(UserInput);
-            metaData.describeCommand(textOutput, project.getRootProject().absolutePath(ImplicitTasksConfigurer.PROJECTS_TASK));
-            textOutput.style(Normal).println();
+            metaData.describeCommand(textOutput.withStyle(UserInput), project.getRootProject().absoluteProjectPath(ImplicitTasksConfigurer.PROJECTS_TASK));
+            textOutput.println();
         }
     }
 
@@ -76,7 +75,7 @@ public class ProjectReportTask extends DefaultTask {
             public void execute(StyledTextOutput styledTextOutput) {
                 styledTextOutput.text(StringUtils.capitalize(project.toString()));
                 if (GUtil.isTrue(project.getDescription())) {
-                    getTextOutput().style(Description).format(" - %s", project.getDescription()).style(Normal);
+                    getTextOutput().withStyle(Description).format(" - %s", project.getDescription());
                 }
             }
         }, lastChild);

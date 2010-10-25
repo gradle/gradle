@@ -18,8 +18,12 @@ package org.gradle.logging.internal;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.StyledTextOutput;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
+
 public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
     private static final String EOL = System.getProperty("line.separator");
+    private Style style = Style.Normal;
 
     public StyledTextOutput append(char c) {
         text(String.valueOf(c));
@@ -67,9 +71,97 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
         return this;
     }
 
-    protected abstract void doAppend(String text);
+    public StyledTextOutput exception(Throwable throwable) {
+        StringWriter out = new StringWriter();
+        PrintWriter writer = new PrintWriter(out);
+        throwable.printStackTrace(writer);
+        writer.close();
+        text(out.toString());
+        return this;
+    }
+
+    public StyledTextOutput withStyle(Style style) {
+        return new StyleOverrideTextOutput(style, this);
+    }
 
     public StyledTextOutput style(Style style) {
+        if (style != this.style) {
+            this.style = style;
+            doStyleChange(style);
+        }
         return this;
+    }
+
+    public Style getStyle() {
+        return style;
+    }
+    
+    protected abstract void doAppend(String text);
+
+    protected void doStyleChange(Style style) {
+    }
+
+    private static class StyleOverrideTextOutput implements StyledTextOutput {
+        private final Style style;
+        private final AbstractStyledTextOutput textOutput;
+
+        public StyleOverrideTextOutput(Style style, AbstractStyledTextOutput textOutput) {
+            this.style = style;
+            this.textOutput = textOutput;
+        }
+
+        public StyledTextOutput append(char c) {
+            Style original = textOutput.getStyle();
+            textOutput.style(style).append(c).style(original);
+            return this;
+        }
+
+        public StyledTextOutput append(CharSequence csq) {
+            Style original = textOutput.getStyle();
+            textOutput.style(style).append(csq).style(original);
+            return this;
+        }
+
+        public StyledTextOutput append(CharSequence csq, int start, int end) {
+            throw new UnsupportedOperationException();
+        }
+
+        public StyledTextOutput style(Style style) {
+            throw new UnsupportedOperationException();
+        }
+
+        public StyledTextOutput withStyle(Style style) {
+            throw new UnsupportedOperationException();
+        }
+
+        public StyledTextOutput text(Object text) {
+            Style original = textOutput.getStyle();
+            textOutput.style(style).text(text).style(original);
+            return this;
+        }
+
+        public StyledTextOutput println(Object text) {
+            Style original = textOutput.getStyle();
+            textOutput.style(style).text(text).style(original).println();
+            return this;
+        }
+
+        public StyledTextOutput format(String pattern, Object... args) {
+            Style original = textOutput.getStyle();
+            textOutput.style(style).format(pattern, args).style(original);
+            return this;
+        }
+
+        public StyledTextOutput formatln(String pattern, Object... args) {
+            throw new UnsupportedOperationException();
+        }
+
+        public StyledTextOutput println() {
+            throw new UnsupportedOperationException();
+        }
+
+        public StyledTextOutput exception(Throwable throwable) {
+            throw new UnsupportedOperationException();
+        }
     }
 }

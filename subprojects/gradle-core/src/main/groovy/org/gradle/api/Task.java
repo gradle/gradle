@@ -263,6 +263,14 @@ public interface Task extends Comparable<Task> {
     TaskState getState();
 
     /**
+     * Sets whether the task actually did any work.  Most built-in tasks will set this automatically, but
+     * it may be useful to manually indicate this for custom user tasks.
+     * <p>This is useful when combined with onlyIf { dependsOnTaskDidWork() }.
+     * @param didWork indicates if the task did any work
+     */
+    void setDidWork(boolean didWork);
+
+    /**
      * <p>Checks if the task actually did any work.  Even if a Task executes, it may determine that it has nothing to
      * do.  For example, the Compile task may determine that source files have not changed since the last time a the
      * task was run.</p>

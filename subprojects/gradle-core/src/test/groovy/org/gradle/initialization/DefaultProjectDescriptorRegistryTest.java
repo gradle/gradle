@@ -15,6 +15,7 @@
  */
 package org.gradle.initialization;
 
+import org.gradle.util.Path;
 import org.junit.Test;
 import static org.junit.Assert.assertSame;
 import static org.junit.Assert.*;
@@ -44,7 +45,7 @@ public class DefaultProjectDescriptorRegistryTest {
         DefaultProjectDescriptor project = new DefaultProjectDescriptor(null, "name", TEST_DIR, registry);
         registry.addProject(project);
 
-        registry.changeDescriptorPath(":", ":newPath");
+        registry.changeDescriptorPath(Path.path(":"), Path.path(":newPath"));
         assertThat(registry.getProject(":"), nullValue());
         assertThat(registry.getProject(":newPath"), sameInstance(project));
     }

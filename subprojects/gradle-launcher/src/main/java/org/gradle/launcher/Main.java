@@ -15,93 +15,53 @@
  */
 package org.gradle.launcher;
 
-import org.gradle.*;
-import org.gradle.configuration.GradleLauncherMetaData;
-import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
-import org.gradle.util.GradleVersion;
+import org.gradle.BuildExceptionReporter;
+import org.gradle.StartParameter;
+import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
-import java.io.File;
-import java.io.PrintStream;
+import java.util.Arrays;
 
 /**
+ * The main command-line entry-point for Gradle.
+ *
  * @author Hans Dockter
  */
 public class Main {
     private final String[] args;
-    private BuildCompleter buildCompleter = new ProcessExitBuildCompleter();
-    private CommandLine2StartParameterConverter parameterConverter = new DefaultCommandLine2StartParameterConverter();
 
     public Main(String[] args) {
         this.args = args;
     }
 
     public static void main(String[] args) {
-        new Main(args).execute();
-    }
-
-    void setBuildCompleter(BuildCompleter buildCompleter) {
-        this.buildCompleter = buildCompleter;
-    }
-
-    public void setParameterConverter(CommandLine2StartParameterConverter parameterConverter) {
-        this.parameterConverter = parameterConverter;
+        try {
+            new Main(args).execute();
+            System.exit(0);
+        } catch (Throwable throwable) {
+            throwable.printStackTrace();
+            System.exit(1);
+        }
     }
 
     public void execute() {
-        StartParameter startParameter = null;
-
+        BuildCompleter buildCompleter = createBuildCompleter();
         try {
-            startParameter = parameterConverter.convert(args);
-        } catch (Exception e) {
-            System.err.println();
-            System.err.println(e.getMessage());
-            showUsage(System.err);
+            CommandLineActionFactory actionFactory = createActionFactory(buildCompleter);
+            Runnable action = actionFactory.convert(Arrays.asList(args));
+            action.run();
+            buildCompleter.exit(null);
+        } catch (Throwable e) {
+            new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter()).reportException(e);
             buildCompleter.exit(e);
         }
-
-        if (startParameter.isShowHelp()) {
-            showUsage(System.out);
-            buildCompleter.exit(null);
-        }
-
-        if (startParameter.isShowVersion()) {
-            System.out.println(new GradleVersion().prettyPrint());
-            buildCompleter.exit(null);
-        }
-
-        try {
-            if (startParameter.isLaunchGUI()) {
-                BlockingApplication.launchAndBlock();
-            } else if (startParameter.isForeground()) {
-                new GradleDaemon().run(args);
-            } else if (startParameter.isNoDaemon()) {
-                new GradleDaemon().build(new File(System.getProperty("user.dir")), args);
-            } else if (startParameter.isStopDaemon()) {
-                new GradleDaemon().stop();
-            } else {
-                new GradleDaemon().clientMain(new File(System.getProperty("user.dir")), args);
-            }
-        } catch (Throwable throwable) {
-            throwable.printStackTrace();
-            buildCompleter.exit(throwable);
-        }
-        buildCompleter.exit(null);
     }
 
-    private void showUsage(PrintStream out) {
-        out.println();
-        out.print("USAGE: ");
-        new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
-        out.println();
-        out.println();
-        parameterConverter.showHelp(out);
-        out.println();
+    CommandLineActionFactory createActionFactory(BuildCompleter buildCompleter) {
+        return new CommandLineActionFactory(buildCompleter);
     }
 
-    public interface BuildCompleter {
-        void exit(Throwable failure);
+    BuildCompleter createBuildCompleter() {
+        return new ProcessExitBuildCompleter();
     }
 
     private static class ProcessExitBuildCompleter implements BuildCompleter {

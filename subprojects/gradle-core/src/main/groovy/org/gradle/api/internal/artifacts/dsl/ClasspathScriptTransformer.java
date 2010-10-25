@@ -89,6 +89,8 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
         }
 
         ClassNode scriptClass = getScriptClass(source);
+
+        // Remove all the classes other than the main class
         Iterator<ClassNode> classes = source.getAST().getClasses().iterator();
         while (classes.hasNext()) {
             ClassNode classNode = classes.next();
@@ -97,12 +99,15 @@ public abstract class ClasspathScriptTransformer extends AbstractScriptTransform
             }
         }
 
-        for (MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
-            if (!methodNode.getName().equals("run")) {
-                removeMethod(scriptClass, methodNode);
+        // Remove all the methods from the main class
+        if (scriptClass != null) {
+            for (MethodNode methodNode : new ArrayList<MethodNode>(scriptClass.getMethods())) {
+                if (!methodNode.getName().equals("run")) {
+                    removeMethod(scriptClass, methodNode);
+                }
             }
         }
-        
+
         source.getAST().getMethods().clear();
     }
 

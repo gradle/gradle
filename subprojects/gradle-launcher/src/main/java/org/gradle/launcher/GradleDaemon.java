@@ -1,14 +1,17 @@
 package org.gradle.launcher;
 
 import org.gradle.*;
+import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DefaultClassPathRegistry;
+import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.initialization.CommandLine2StartParameterConverter;
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.logging.internal.LoggingOutputInternal;
 import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
@@ -35,7 +38,7 @@ public class GradleDaemon {
 
     public static void main(String[] args) {
         try {
-            new GradleDaemon().run(args);
+            new GradleDaemon(new LoggingServiceRegistry()).run();
             System.exit(0);
         } catch (Throwable throwable) {
             throwable.printStackTrace();
@@ -43,27 +46,31 @@ public class GradleDaemon {
         }
     }
 
-    public GradleDaemon() {
-        loggingServices = new LoggingServiceRegistry();
+    public GradleDaemon(ServiceRegistry loggingServices) {
+        this.loggingServices = loggingServices;
         launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
-    public void run(String[] args) throws Exception {
-        ServerSocket serverSocket = new ServerSocket(PORT);
-        while (true) {
-            LOGGER.lifecycle("Waiting for request");
-            Socket socket = serverSocket.accept();
-            try {
-                OutputStream outputStream = new BufferedOutputStream(socket.getOutputStream());
-                boolean finished = doRun(socket, outputStream);
-                Message.send(new Stop(), outputStream);
-                outputStream.flush();
-                if (finished) {
-                    break;
+    public void run() {
+        try {
+            ServerSocket serverSocket = new ServerSocket(PORT);
+            while (true) {
+                LOGGER.lifecycle("Waiting for request");
+                Socket socket = serverSocket.accept();
+                try {
+                    OutputStream outputStream = new BufferedOutputStream(socket.getOutputStream());
+                    boolean finished = doRun(socket, outputStream);
+                    Message.send(new Stop(), outputStream);
+                    outputStream.flush();
+                    if (finished) {
+                        break;
+                    }
+                } finally {
+                    socket.close();
                 }
-            } finally {
-                socket.close();
             }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
         }
     }
 
@@ -99,7 +106,7 @@ public class GradleDaemon {
         return false;
     }
 
-    public void clientMain(File currentDir, String[] args) {
+    public void clientMain(File currentDir, Iterable<String> args) {
         try {
             Socket socket = connect();
             run(new Build(currentDir, args), socket);
@@ -108,17 +115,19 @@ public class GradleDaemon {
         }
     }
 
-    public void build(File file, String[] args) {
+    public void build(File file, Iterable<String> args) {
         build(new Build(file, args), new Clock());
     }
 
     private void build(Build build, Clock clock) {
-        StartParameter startParameter = new StartParameter();
+        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+        StartParameter startParameter = converter.convert(build.args);
         startParameter.setCurrentDir(build.currentDir);
-        CommandLine2StartParameterConverter converter = new DefaultCommandLine2StartParameterConverter();
-        converter.convert(build.args, startParameter);
+        LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
+        loggingManager.setLevel(startParameter.getLogLevel());
+        loggingManager.start();
 
-        BuildListener resultLogger = new BuildLogger(LOGGER, clock, startParameter);
+        BuildListener resultLogger = new BuildLogger(LOGGER, loggingServices.get(StyledTextOutputFactory.class), clock, startParameter);
         try {
             GradleLauncher launcher = launcherFactory.newInstance(startParameter);
             launcher.useLogger(resultLogger);
@@ -126,6 +135,8 @@ public class GradleDaemon {
         } catch (Throwable e) {
             resultLogger.buildFinished(new BuildResult(null, e));
         }
+
+        loggingManager.stop();
     }
 
     public void stop() {
@@ -139,9 +150,11 @@ public class GradleDaemon {
     private void maybeStop() throws Exception {
         Socket socket = maybeConnect();
         if (socket == null) {
+            LOGGER.info("Gradle daemon is not running.");
             return;
         }
         run(new Stop(), socket);
+        LOGGER.info("Gradle daemon stopped.");
     }
 
     private void run(Command command, Socket socket) throws Exception {
@@ -217,12 +230,12 @@ public class GradleDaemon {
     }
 
     private static class Build extends Command {
-        private final String[] args;
+        private final Iterable<String> args;
         private final File currentDir;
 
-        public Build(File currentDir, String[] args) {
+        public Build(File currentDir, Iterable<String> args) {
             this.currentDir = currentDir;
-            this.args = args;
+            this.args = GUtil.addLists(args);
         }
     }
 }

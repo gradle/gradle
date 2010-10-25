@@ -930,8 +930,26 @@ public interface Project extends Comparable<Project> {
      *
      * @param path The path to convert.
      * @return The absolute path.
+     * @deprecated Use {@link #absoluteProjectPath(String)} instead.
      */
+    @Deprecated
     String absolutePath(String path);
+
+    /**
+     * <p>Converts a name to an absolute project path, resolving names relative to this project.</p>
+     *
+     * @param path The path to convert.
+     * @return The absolute path.
+     */
+    String absoluteProjectPath(String path);
+
+    /**
+     * <p>Converts a name to a project path relative to this project.</p>
+     *
+     * @param path The path to convert.
+     * @return The relative path.
+     */
+    String relativeProjectPath(String path);
 
     /**
      * <p>Returns the <code>AntBuilder</code> for this project. You can use this in your build file to execute ant

@@ -1,5 +1,5 @@
 /*
- * Copyright 2007 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
- 
-package org.gradle.util;
+package org.gradle.launcher;
 
-import org.gradle.api.Project;
-import org.gradle.api.InvalidUserDataException;
-
-/**
- * @author Hans Dockter
- */
-public class PathHelper {
-    public static boolean isAbsolutePath(String path) {
-        if (!GUtil.isTrue(path)) {
-            throw new InvalidUserDataException("A path must be specified!");
-        }
-        return path.startsWith(Project.PATH_SEPARATOR);
-    }
+public interface BuildCompleter {
+    void exit(Throwable failure);
 }

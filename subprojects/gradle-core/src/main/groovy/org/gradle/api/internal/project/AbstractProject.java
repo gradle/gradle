@@ -56,15 +56,14 @@ import org.gradle.process.ExecResult;
 import org.gradle.util.Configurable;
 import org.gradle.util.ConfigureUtil;
 import org.gradle.util.DeprecationLogger;
-import org.gradle.util.PathHelper;
+import org.gradle.util.Path;
 
 import java.io.File;
 import java.net.URI;
 import java.util.*;
 
-import static java.util.Collections.singletonMap;
-import static org.gradle.util.GUtil.addMaps;
-import static org.gradle.util.GUtil.isTrue;
+import static java.util.Collections.*;
+import static org.gradle.util.GUtil.*;
 
 /**
  * @author Hans Dockter
@@ -112,8 +111,6 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private PluginContainer pluginContainer;
 
-    private final String path;
-
     private final int depth;
 
     private TaskContainerInternal taskContainer;
@@ -144,6 +141,8 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     private String description;
 
+    private final Path path;
+
     public AbstractProject(String name,
                            ProjectInternal parent,
                            File projectDir,
@@ -160,11 +159,12 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         this.gradle = gradle;
 
         if (parent == null) {
-            path = Project.PATH_SEPARATOR;
+            path = Path.ROOT;
             depth = 0;
         } else {
-            path = parent.absolutePath(name);
+            String path = parent.absoluteProjectPath(name);
             depth = parent.getDepth() + 1;
+            this.path = Path.path(path);
         }
 
         services = serviceRegistryFactory.createFor(this);
@@ -390,7 +390,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     }
 
     public String getPath() {
-        return path;
+        return path.toString();
     }
 
     public int getDepth() {
@@ -427,22 +427,23 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
     public int compareTo(Project otherProject) {
         int depthCompare = depthCompare(otherProject);
         if (depthCompare == 0) {
-            return path.compareTo(otherProject.getPath());
+            return getPath().compareTo(otherProject.getPath());
         } else {
             return depthCompare;
         }
     }
 
     public String absolutePath(String path) {
-        if (!isAbsolutePath(path)) {
-            String prefix = this == rootProject ? "" : Project.PATH_SEPARATOR;
-            return this.path + prefix + path;
-        }
-        return path;
+        DeprecationLogger.nagUser("Project.absolutePath()", "Project.absoluteProjectPath()");
+        return absoluteProjectPath(path);
     }
 
-    public static boolean isAbsolutePath(String path) {
-        return PathHelper.isAbsolutePath(path);
+    public String absoluteProjectPath(String path) {
+        return this.path.absolutePath(path);
+    }
+
+    public String relativeProjectPath(String path) {
+        return this.path.relativePath(path);
     }
 
     public Project project(String path) {
@@ -457,15 +458,15 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         if (!isTrue(path)) {
             throw new InvalidUserDataException("A path must be specified!");
         }
-        return projectRegistry.getProject(isAbsolutePath(path) ? path : absolutePath(path));
+        return projectRegistry.getProject(absoluteProjectPath(path));
     }
 
     public Set<Project> getAllprojects() {
-        return new TreeSet<Project>(projectRegistry.getAllProjects(this.path));
+        return new TreeSet<Project>(projectRegistry.getAllProjects(getPath()));
     }
 
     public Set<Project> getSubprojects() {
-        return new TreeSet<Project>(projectRegistry.getSubProjects(this.path));
+        return new TreeSet<Project>(projectRegistry.getSubProjects(getPath()));
     }
 
     public void subprojects(Action<? super Project> action) {
@@ -626,7 +627,7 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
 
     public Project childrenDependOnMe() {
         for (Project project : childProjects.values()) {
-            project.dependsOn(this.path, false);
+            project.dependsOn(getPath(), false);
         }
         return this;
     }

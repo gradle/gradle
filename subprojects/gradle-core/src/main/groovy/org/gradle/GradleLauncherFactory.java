@@ -30,7 +30,7 @@ public interface GradleLauncherFactory {
      */
     GradleLauncher newInstance(StartParameter startParameter);
 
-    GradleLauncher newInstance(final String[] commandLineArgs);
+    GradleLauncher newInstance(String... commandLineArgs);
 
-    StartParameter createStartParameter(String[] commandLineArgs);
+    StartParameter createStartParameter(String... commandLineArgs);
 }

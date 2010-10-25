@@ -119,7 +119,7 @@ class JavaPluginTest {
         assertThat(set.runtimeClasspath.sourceCollections, hasItem(project.configurations.runtime))
         assertThat(set.runtimeClasspath, hasItem(new File(project.buildDir, 'classes/custom')))
     }
-    
+
     @Test public void createsStandardTasksAndAppliesMappings() {
         javaPlugin.apply(project)
 
@@ -207,6 +207,17 @@ class JavaPluginTest {
         task = project.tasks[JavaBasePlugin.BUILD_DEPENDENTS_TASK_NAME]
         assertThat(task, instanceOf(DefaultTask))
         assertThat(task, dependsOn(JavaBasePlugin.BUILD_TASK_NAME))
+    }
+
+    @Test public void appliesMappingsToTasksAddedByTheBuildScript() {
+        javaPlugin.apply(project);
+
+        def task = project.createTask('customTest', type: org.gradle.api.tasks.testing.Test.class)
+        assertThat(task.classpath, equalTo(project.sourceSets.test.runtimeClasspath))
+        assertThat(task.testClassesDir, equalTo(project.sourceSets.test.classesDir))
+        assertThat(task.workingDir, equalTo(project.projectDir))
+        assertThat(task.testResultsDir, equalTo(project.testResultsDir))
+        assertThat(task.testReportDir, equalTo(project.testReportDir))
     }
 
     @Test public void buildOtherProjects() {

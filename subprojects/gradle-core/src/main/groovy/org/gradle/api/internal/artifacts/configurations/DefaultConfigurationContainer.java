@@ -44,7 +44,7 @@ public class DefaultConfigurationContainer extends AutoCreateDomainObjectContain
 
     @Override
     protected Configuration create(String name) {
-        return classGenerator.newInstance(DefaultConfiguration.class, context.absolutePath(name), name, this, ivyService);
+        return classGenerator.newInstance(DefaultConfiguration.class, context.absoluteProjectPath(name), name, this, ivyService);
     }
 
     @Override

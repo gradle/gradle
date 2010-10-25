@@ -15,14 +15,16 @@
  */
 package org.gradle.api.tasks.diagnostics.internal;
 
+import org.gradle.util.Path;
+
 import java.util.Set;
 
-public interface TaskDetails extends Comparable<TaskDetails> {
-    String getPath();
+public interface TaskDetails {
+    Path getPath();
 
     String getDescription();
 
-    Set<String> getDependencies();
+    Set<TaskDetails> getDependencies();
 
     Set<TaskDetails> getChildren();
 }

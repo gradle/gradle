@@ -19,7 +19,6 @@ import org.gradle.api.Action;
 import org.gradle.logging.StyledTextOutput;
 
 import static org.gradle.logging.StyledTextOutput.Style.Info;
-import static org.gradle.logging.StyledTextOutput.Style.Normal;
 
 public class GraphRenderer {
     private final StyledTextOutput output;
@@ -36,7 +35,7 @@ public class GraphRenderer {
      */
     public void visit(Action<? super StyledTextOutput> node, boolean lastChild) {
         if (seenRootChildren) {
-            output.style(Info).text(prefix + (lastChild ? "\\--- " : "+--- ")).style(Normal);
+            output.withStyle(Info).text(prefix + (lastChild ? "\\--- " : "+--- "));
         }
         this.lastChild = lastChild;
         node.execute(output);

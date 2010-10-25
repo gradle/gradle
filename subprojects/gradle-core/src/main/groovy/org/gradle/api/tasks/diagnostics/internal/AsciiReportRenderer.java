@@ -46,7 +46,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     @Override
     public void completeProject(Project project) {
         if (!hasConfigs) {
-            getTextOutput().style(Info).println("No configurations").style(Normal);
+            getTextOutput().withStyle(Info).println("No configurations");
         }
         super.completeProject(project);
     }
@@ -59,8 +59,8 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         renderer = new GraphRenderer(getTextOutput());
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
-                getTextOutput().style(Identifier).text(configuration.getName()).style(Normal);
-                getTextOutput().style(Description).text(getDescription(configuration)).style(Normal);
+                getTextOutput().withStyle(Identifier).text(configuration.getName());
+                getTextOutput().withStyle(Description).text(getDescription(configuration));
             }
         }, true);
     }
@@ -75,7 +75,8 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
     public void render(ResolvedConfiguration resolvedConfiguration) throws IOException {
         Set<MergedResolvedDependency> mergedRoots = mergeChildren(resolvedConfiguration.getFirstLevelModuleDependencies());
         if (mergedRoots.isEmpty()) {
-            getTextOutput().style(Info).text("No dependencies").style(Normal).println();
+            getTextOutput().withStyle(Info).text("No dependencies");
+            getTextOutput().println();
             return;
         }
         renderChildren(mergedRoots);
@@ -85,7 +86,7 @@ public class AsciiReportRenderer extends TextReportRenderer implements Dependenc
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
                 getTextOutput().text(resolvedDependency.getName());
-                getTextOutput().style(Info).format(" [%s]", resolvedDependency.getConfiguration()).style(Normal);
+                getTextOutput().withStyle(Info).format(" [%s]", resolvedDependency.getConfiguration());
             }
         }, lastChild);
         renderChildren(mergeChildren(resolvedDependency.getChildren()));

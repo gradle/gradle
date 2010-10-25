@@ -20,7 +20,7 @@ import org.gradle.api.logging.LogLevel
 
 class StyledTextOutputBackedRendererTest extends OutputSpecification {
     def rendersOutputEvent() {
-        StyledTextOutput output = Mock()
+        StyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
         RenderableOutputEvent event = Mock()
 
@@ -29,13 +29,11 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
 
         then:
         1 * event.render(!null) >> { args -> args[0].text('text') }
-        2 * output.style(StyledTextOutput.Style.Normal)
-        1 * output.text('text')
-        0 * output._
+        output.value == 'text'
     }
 
     def rendersErrorOutputEvent() {
-        StyledTextOutput output = Mock()
+        StyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
         RenderableOutputEvent event = Mock()
 
@@ -45,14 +43,11 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         then:
         1 * event.logLevel >> LogLevel.ERROR
         1 * event.render(!null) >> { args -> args[0].text('text') }
-        1 * output.style(StyledTextOutput.Style.Error)
-        1 * output.text('text')
-        1 * output.style(StyledTextOutput.Style.Normal)
-        0 * output._
+        output.value == '{error}text{normal}'
     }
 
     def rendersException() {
-        StyledTextOutput output = Mock()
+        StyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
         RenderableOutputEvent event = Mock()
         def failure = new RuntimeException('broken')
@@ -62,13 +57,11 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
 
         then:
         1 * event.render(!null) >> { args -> args[0].exception(failure) }
-        2 * output.style(StyledTextOutput.Style.Normal)
-        1 * output.text({it.startsWith('java.lang.RuntimeException: broken')})
-        0 * output._
+        output.value == 'java.lang.RuntimeException: broken\n{stacktrace}\n'
     }
 
     def rendersOutputEventWhenInDebugMode() {
-        TestStyledTextOutput output = new TestStyledTextOutput()
+        StyledTextOutput output = new TestStyledTextOutput()
         StyledTextOutputBackedRenderer renderer = new StyledTextOutputBackedRenderer(output)
         RenderableOutputEvent event = event(tenAm, 'message')
 
@@ -77,7 +70,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         renderer.onOutput(event)
 
         then:
-        output.value == toNative('10:00:00.000 [INFO] [category] message\n')
+        output.value == '10:00:00.000 [INFO] [category] message\n'
     }
     
     def continuesLineWhenPreviousOutputEventDidNotEndWithEOL() {
@@ -92,7 +85,7 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         renderer.onOutput(event2)
 
         then:
-        output.value == toNative('10:00:00.000 [INFO] [category] message\n')
+        output.value == '10:00:00.000 [INFO] [category] message\n'
     }
 
     def addsEOLWhenPreviousOutputEventDidNotEndWithEOLAndHadDifferentCategory() {
@@ -107,6 +100,6 @@ class StyledTextOutputBackedRendererTest extends OutputSpecification {
         renderer.onOutput(event2)
 
         then:
-        output.value == toNative('10:00:00.000 [INFO] [category] message\n10:00:00.000 [INFO] [category2] message2')
+        output.value == '10:00:00.000 [INFO] [category] message\n10:00:00.000 [INFO] [category2] message2'
     }
 }

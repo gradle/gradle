@@ -20,6 +20,7 @@ import org.apache.commons.lang.StringUtils;
 import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.util.GUtil;
+import org.gradle.util.Path;
 
 import java.io.IOException;
 import java.util.List;
@@ -66,7 +67,7 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     public void startTaskGroup(String taskGroup) {
         if (!GUtil.isTrue(taskGroup)) {
-            addSubheading(currentProjectHasTasks ? "Other tasks" : "Tasks");
+            addSubheading("Tasks");
         } else {
             addSubheading(StringUtils.capitalize(taskGroup) + " tasks");
         }
@@ -90,17 +91,17 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     private void writeTask(TaskDetails task, String prefix) {
         getTextOutput().text(prefix);
-        getTextOutput().style(Identifier).text(task.getPath()).style(Normal);
+        getTextOutput().withStyle(Identifier).text(task.getPath());
         if (GUtil.isTrue(task.getDescription())) {
-            getTextOutput().style(Description).format(" - %s", task.getDescription()).style(Normal);
+            getTextOutput().withStyle(Description).format(" - %s", task.getDescription());
         }
         if (detail) {
-            SortedSet<String> sortedDependencies = new TreeSet<String>();
-            for (String dependency : task.getDependencies()) {
-                sortedDependencies.add(dependency);
+            SortedSet<Path> sortedDependencies = new TreeSet<Path>();
+            for (TaskDetails dependency : task.getDependencies()) {
+                sortedDependencies.add(dependency.getPath());
             }
             if (sortedDependencies.size() > 0) {
-                getTextOutput().style(Info).format(" [%s]", GUtil.join(sortedDependencies, ", ")).style(Normal);
+                getTextOutput().withStyle(Info).format(" [%s]", GUtil.join(sortedDependencies, ", "));
             }
         }
         getTextOutput().println();
@@ -119,7 +120,7 @@ public class TaskReportRenderer extends TextReportRenderer {
      */
     public void completeTasks() {
         if (!currentProjectHasTasks) {
-            getTextOutput().style(Info).println("No tasks").style(Normal);
+            getTextOutput().withStyle(Info).println("No tasks");
             hasContent = true;
         }
     }

@@ -15,6 +15,8 @@
  */
 package org.gradle.logging.internal
 
+import org.gradle.logging.StyledTextOutput.Style
+
 class AbstractStyledTextOutputTest extends OutputSpecification {
     private final TestStyledTextOutput output = new TestStyledTextOutput()
 
@@ -39,7 +41,7 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.println()
 
         then:
-        output.value == System.getProperty('line.separator')
+        output.rawValue == System.getProperty('line.separator')
     }
 
     def appendsCharacter() {
@@ -87,9 +89,9 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         output.println('message')
 
         then:
-        output.value == toNative('message\n')
+        output.value == 'message\n'
     }
-    
+
     def formatsText() {
         when:
         output.format('[%s]', 'message')
@@ -97,13 +99,77 @@ class AbstractStyledTextOutputTest extends OutputSpecification {
         then:
         output.value == '[message]'
     }
-    
+
     def formatsTextAndEndOfLine() {
         when:
         output.formatln('[%s]', 'message')
 
         then:
-        output.value == toNative('[message]\n')
+        output.value == '[message]\n'
+    }
+
+    def formatsException() {
+        when:
+        output.exception(new RuntimeException('broken'))
+
+        then:
+        output.value == 'java.lang.RuntimeException: broken\n{stacktrace}\n'
+    }
+
+    def canMixInStyleInformation() {
+        when:
+        output.style(Style.Info).text('info test').style(Style.Normal)
+
+        then:
+        output.value == '{info}info test{normal}'
+    }
+
+    def ignoresStyleChangeWhenAlreadyUsingTheGivenStyle() {
+        when:
+        output.style(Style.Info).text('info test').style(Style.Info)
+
+        then:
+        output.value == '{info}info test'
+    }
+
+    def writesTextWithTemporaryStyleChange() {
+        when:
+        output.style(Style.Info).withStyle(Style.Error).text('some text')
+
+        then:
+        output.value == '{info}{error}some text{info}'
+    }
+
+    def writesTextAndEndOfLineWithTemporaryStyleChange() {
+        when:
+        output.style(Style.Info).withStyle(Style.Error).println('some text')
+
+        then:
+        output.value == '{info}{error}some text{info}\n'
+    }
+
+    def appendsTextWithTemporaryStyleChange() {
+        when:
+        output.style(Style.Info).withStyle(Style.Error).append('some text')
+
+        then:
+        output.value == '{info}{error}some text{info}'
+    }
+
+    def appendsCharacterWithTemporaryStyleChange() {
+        when:
+        output.style(Style.Info).withStyle(Style.Error).append('c' as char)
+
+        then:
+        output.value == '{info}{error}c{info}'
+    }
+
+    def formatsTextWithTemporaryStyleChange() {
+        when:
+        output.style(Style.Info).withStyle(Style.Error).format('[%s]', 'message')
+
+        then:
+        output.value == '{info}{error}[message]{info}'
     }
 }
 
@@ -115,8 +181,48 @@ class TestStyledTextOutput extends AbstractStyledTextOutput {
         result.toString()
     }
 
-    def getValue() {
-        result.toString()
+    def TestStyledTextOutput ignoreStyle() {
+        return new TestStyledTextOutput() {
+            @Override protected void doStyleChange(Style style) {
+            }
+        }
+    }
+
+    def String getRawValue() {
+        return result.toString()
+    }
+
+    /**
+     * Returns the normalised value of this text output. Normalises:
+     * - style changes to {style} where _style_ is the lowercase name of the style.
+     * - line endings to \n
+     * - stack traces to {stacktrace}\n
+     */
+    def String getValue() {
+        StringBuilder normalised = new StringBuilder()
+
+        String eol = System.getProperty('line.separator')
+        boolean inStackTrace = false
+        new StringTokenizer(result.toString().replaceAll(eol, '\n'), '\n', true).each { String line ->
+            if (line == '\n') {
+                if (!inStackTrace) {
+                    normalised.append('\n')
+                }
+            } else if (line.matches(/\s+at .+\(.+\)/)) {
+                if (!inStackTrace) {
+                    normalised.append('{stacktrace}\n')
+                }
+                inStackTrace = true
+            } else {
+                inStackTrace = false
+                normalised.append(line)
+            }
+        }
+        return normalised.toString()
+    }
+
+    @Override protected void doStyleChange(Style style) {
+        result.append("{${style.toString().toLowerCase()}}")
     }
 
     @Override

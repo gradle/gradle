@@ -17,9 +17,10 @@ package org.gradle.logging.internal
 
 import spock.lang.Specification
 import org.gradle.api.logging.LogLevel
+import org.gradle.logging.StyledTextOutput
 
 class LogEventTest extends Specification {
-    private final OutputEventTextOutput output = Mock()
+    private final StyledTextOutput output = Mock()
 
     def renderWritesMessageToTextOutput() {
         when:

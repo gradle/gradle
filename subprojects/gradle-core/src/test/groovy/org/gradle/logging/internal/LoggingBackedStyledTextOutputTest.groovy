@@ -17,11 +17,12 @@ package org.gradle.logging.internal
 
 import org.gradle.util.TimeProvider
 import static org.gradle.logging.StyledTextOutput.Style.*
+import org.gradle.api.logging.LogLevel
 
 class LoggingBackedStyledTextOutputTest extends OutputSpecification {
     private final OutputEventListener listener = Mock()
     private final TimeProvider timeProvider = { 1200L } as TimeProvider
-    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', timeProvider)
+    private final LoggingBackedStyledTextOutput output = new LoggingBackedStyledTextOutput(listener, 'category', LogLevel.INFO, timeProvider)
 
     def forwardsLineOfTextToListener() {
         when:
@@ -37,7 +38,14 @@ class LoggingBackedStyledTextOutputTest extends OutputSpecification {
         output.text('message').println()
 
         then:
-        1 * listener.onOutput({it.spans[0].style == Normal && it.category == 'category' && it.timestamp == 1200 && it.spans[0].text == toNative('message\n')})
+        1 * listener.onOutput(!null) >> { args ->
+            def event = args[0]
+            assert event.spans[0].style == Normal
+            assert event.category == 'category'
+            assert event.logLevel == LogLevel.INFO
+            assert event.timestamp == 1200
+            assert event.spans[0].text == toNative('message\n')
+        }
         0 * listener._
     }
 

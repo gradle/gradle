@@ -141,7 +141,7 @@ public class DefaultConfigurationContainerTest {
 
     private void expectConfigurationCreated(final String name) {
         context.checking(new Expectations(){{
-            one(domainObjectContext).absolutePath(name);
+            one(domainObjectContext).absoluteProjectPath(name);
             will(returnValue(name));
             one(classGenerator).newInstance(DefaultConfiguration.class, name, name, configurationContainer, ivyServiceDummy);
             will(returnValue(new DefaultConfiguration(name, name, configurationContainer, ivyServiceDummy)));

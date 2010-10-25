@@ -16,8 +16,8 @@
 package org.gradle.logging.internal
 
 import org.gradle.api.logging.LogLevel
-import spock.lang.Specification
 import org.gradle.logging.StyledTextOutput
+import spock.lang.Specification
 
 class StyledTextOutputEventTest extends Specification {
 
@@ -29,7 +29,7 @@ class StyledTextOutputEventTest extends Specification {
     }
     
     def rendersToTextOutput() {
-        OutputEventTextOutput output = Mock()
+        StyledTextOutput output = Mock()
         def event = new StyledTextOutputEvent(100, 'category', StyledTextOutput.Style.UserInput, 'message')
 
         when:
@@ -42,7 +42,7 @@ class StyledTextOutputEventTest extends Specification {
     }
     
     def rendersMultipleSpansToTextOutput() {
-        OutputEventTextOutput output = Mock()
+        StyledTextOutput output = Mock()
         List spans = [new StyledTextOutputEvent.Span(StyledTextOutput.Style.UserInput, 'UserInput'),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Normal, 'Normal'),
                 new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, 'Header')

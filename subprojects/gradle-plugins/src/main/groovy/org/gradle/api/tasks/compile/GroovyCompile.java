@@ -49,7 +49,6 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     protected void compile() {
-        // todo We need to understand why it is not good enough to put groovy and ant in the task classpath but also Junit. As we don't understand we put the whole testCompile in it right now. It doesn't hurt, but understanding is better :)
         List<File> taskClasspath = new ArrayList<File>(getGroovyClasspath().getFiles());
         throwExceptionIfTaskClasspathIsEmpty(taskClasspath);
         compiler.setSource(getSource());

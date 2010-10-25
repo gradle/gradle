@@ -36,12 +36,15 @@ public class DefaultTaskExecuter implements TaskExecuter {
 
     public void execute(TaskInternal task, TaskStateInternal state) {
         listener.beforeActions(task);
+        ClassLoader originalClassLoader = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(task.getClass().getClassLoader());
         state.setExecuting(true);
         try {
             GradleException failure = executeActions(task, state);
             state.executed(failure);
         } finally {
             state.setExecuting(false);
+            Thread.currentThread().setContextClassLoader(originalClassLoader);
             listener.afterActions(task);
         }
     }

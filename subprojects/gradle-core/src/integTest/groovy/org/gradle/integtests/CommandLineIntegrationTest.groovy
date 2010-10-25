@@ -47,9 +47,4 @@ public class CommandLineIntegrationTest {
         }
         executer.inDirectory(javaprojectDir).withTasks('classes').run()
     }
-
-    @Test
-    public void canUseVersionCommandLineOption() {
-        executer.withArguments('-v').run()
-    }
 }

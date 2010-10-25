@@ -16,7 +16,7 @@
 package org.gradle.logging;
 
 /**
- * Provides streaming of styled text, that is, a stream of text and styling information. Implementations are not
+ * Provides streaming of styled text, that is, a stream of text with inline styling information. Implementations are not
  * required to be thread-safe.
  */
 public interface StyledTextOutput extends Appendable {
@@ -46,7 +46,11 @@ public interface StyledTextOutput extends Appendable {
          */
         ProgressStatus,
         /**
-         * Some failure message
+         * General purpose success message
+         */
+        Success,
+        /**
+         * General purpose failure message
          */
         Failure,
         /**
@@ -60,7 +64,7 @@ public interface StyledTextOutput extends Appendable {
     }
 
     /**
-     * Appends a character with the current style.
+     * Appends a character using the current style.
      *
      * @param c The character
      * @return this
@@ -68,7 +72,7 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput append(char c);
 
     /**
-     * Appends a sequence of characters with the current style.
+     * Appends a sequence of characters using the current style.
      *
      * @param csq The character sequence
      * @return this.
@@ -76,7 +80,7 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput append(CharSequence csq);
 
     /**
-     * Appends a sequence of characters with the current style.
+     * Appends a sequence of characters using the current style.
      *
      * @param csq The character sequence
      * @return this.
@@ -84,7 +88,7 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput append(CharSequence csq, int start, int end);
 
     /**
-     * Switches to a new style.
+     * Switches to a new style. The default style is {@link Style#Normal}.
      *
      * @param style The style.
      * @return this
@@ -92,7 +96,21 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput style(Style style);
 
     /**
-     * Appends text with the current style.
+     * Creates a copy of this output which uses the given style. This can be used to generate text in a different style
+     * and then return to the current style. For example:
+     * <pre>
+     * output.style(Info)
+     * output.withStyle(Description).format("%s %s", name, description) // output in Description style
+     * output.println(" text") // output in Info style
+     * </pre>
+     *
+     * @param style The temporary style
+     * @return the copy
+     */
+    StyledTextOutput withStyle(Style style);
+
+    /**
+     * Appends text using the current style.
      *
      * @param text The text
      * @return this
@@ -100,7 +118,7 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput text(Object text);
 
     /**
-     * Appends text with the current style and starts a new line.
+     * Appends text using the current style and starts a new line.
      *
      * @param text The text
      * @return this
@@ -108,19 +126,19 @@ public interface StyledTextOutput extends Appendable {
     StyledTextOutput println(Object text);
 
     /**
-     * Appends a formatted string with the current style.
+     * Appends a formatted string using the current style.
      *
      * @param pattern The pattern string
-     * @param args The args for the pattern
+     * @param args    The args for the pattern
      * @return this
      */
     StyledTextOutput format(String pattern, Object... args);
 
     /**
-     * Appends a formatted string with the current style and starts a new line.
+     * Appends a formatted string using the current style and starts a new line.
      *
      * @param pattern The pattern string
-     * @param args The args for the pattern
+     * @param args    The args for the pattern
      * @return this
      */
     StyledTextOutput formatln(String pattern, Object... args);
@@ -131,4 +149,12 @@ public interface StyledTextOutput extends Appendable {
      * @return this
      */
     StyledTextOutput println();
+
+    /**
+     * Appends the stacktrace of the given exception using the current style.
+     *
+     * @param throwable The exception
+     * @return this
+     */
+    StyledTextOutput exception(Throwable throwable);
 }

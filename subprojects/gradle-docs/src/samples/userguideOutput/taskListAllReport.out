@@ -8,13 +8,19 @@ Default tasks: dists
 Build tasks
 -----------
 clean - Deletes the build directory (build)
-dists - Builds the distribution [:api:libs, :webapp:libs]
-    libs - Builds the JAR
+api:clean - Deletes the build directory (build)
+webapp:clean - Deletes the build directory (build)
+dists - Builds the distribution [api:libs, webapp:libs]
+    docs - Builds the documentation
+api:libs - Builds the JAR
+    api:compile - Compiles the source files
+webapp:libs - Builds the JAR [api:libs]
+    webapp:compile - Compiles the source files
 
 Help tasks
 ----------
-dependencies - Displays a list of the dependencies of root project 'projectReports'.
+dependencies - Displays the dependencies of root project 'projectReports'.
 help - Displays a help message
-projects - Displays a list of the sub-projects of root project 'projectReports'.
-properties - Displays a list of the properties of root project 'projectReports'.
-tasks - Displays a list of the tasks in root project 'projectReports'.
+projects - Displays the sub-projects of root project 'projectReports'.
+properties - Displays the properties of root project 'projectReports'.
+tasks - Displays the tasks in root project 'projectReports'.

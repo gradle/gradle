@@ -20,7 +20,6 @@ import org.apache.commons.lang.StringUtils;
 import org.fusesource.jansi.Ansi;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.logging.StyledTextOutput;
 
 import java.io.Flushable;
 import java.io.IOException;
@@ -196,7 +195,6 @@ public class AnsiConsole implements Console {
         private final Container container;
         private int width;
         boolean extraEol;
-        StyledTextOutput.Style style = Style.Normal;
 
         private TextAreaImpl(Container container) {
             this.container = container;
@@ -218,19 +216,13 @@ public class AnsiConsole implements Console {
         }
 
         @Override
-        public StyledTextOutput style(Style style) {
-            this.style = style;
-            return this;
-        }
-
-        @Override
         protected void doAppend(final String text) {
             if (text.length() == 0) {
                 return;
             }
             container.redraw(this, new Action<Ansi>() {
                 public void execute(Ansi ansi) {
-                    ColorMap.Color color = colorMap.getColourFor(style);
+                    ColorMap.Color color = colorMap.getColourFor(getStyle());
                     color.on(ansi);
 
                     Iterator<String> tokenizer = new LineSplitter(text);

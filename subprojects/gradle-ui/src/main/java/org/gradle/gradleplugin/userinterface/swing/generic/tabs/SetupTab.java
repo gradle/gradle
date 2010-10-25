@@ -15,7 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
-import org.gradle.initialization.DefaultCommandLine2StartParameterConverter;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -24,6 +24,7 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
+import org.gradle.logging.internal.LoggingCommandLineConverter;
 
 import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
@@ -274,7 +275,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     * This creates an array of wrapper objects suitable for passing to the constructor of the log level combo box.
     */
     private Vector<LogLevelWrapper> getLogLevelWrappers() {
-        Collection<LogLevel> collection = new DefaultCommandLine2StartParameterConverter().getLogLevels();
+        Collection<LogLevel> collection = new LoggingCommandLineConverter().getLogLevels();
 
         Vector<LogLevelWrapper> wrappers = new Vector<LogLevelWrapper>();
 
@@ -309,7 +310,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
             this.toString = Character.toUpperCase(temp.charAt(0)) + temp.substring(1);
 
             //add the command line character to the end (so if an error message says use a log level, you can easily translate)
-            String commandLineCharacter = new DefaultCommandLine2StartParameterConverter().getLogLevelCommandLine( logLevel );
+            String commandLineCharacter = new LoggingCommandLineConverter().getLogLevelCommandLine( logLevel );
             if( commandLineCharacter != null && !commandLineCharacter.equals( "" ))
             {
                this.toString += " (-" + commandLineCharacter + ")";
@@ -348,8 +349,8 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         panel.setBorder(BorderFactory.createTitledBorder("Stack Trace Output"));
 
         showNoStackTraceRadioButton = new JRadioButton("Exceptions Only");
-        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + DefaultCommandLine2StartParameterConverter.STACKTRACE + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
-        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLine2StartParameterConverter.FULL_STACKTRACE + ")" );
+        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + DefaultCommandLineConverter.STACKTRACE + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
+        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLineConverter.FULL_STACKTRACE + ")" );
 
         showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS);
         showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.ALWAYS);

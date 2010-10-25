@@ -22,8 +22,8 @@ import org.gradle.api.Project;
 import org.gradle.api.Task;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.ClassGenerator;
-import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.util.GUtil;
 
 import java.util.HashMap;

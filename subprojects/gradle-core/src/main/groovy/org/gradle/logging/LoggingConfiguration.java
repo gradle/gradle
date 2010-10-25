@@ -13,19 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.logging.internal;
+package org.gradle.logging;
 
-import org.gradle.api.logging.StandardOutputListener;
+import org.gradle.api.logging.LogLevel;
 
-public class StandardOutputListenerBackedStyledTextOutput extends AbstractStyledTextOutput {
-    private final StandardOutputListener listener;
+public class LoggingConfiguration {
+    private LogLevel logLevel = LogLevel.LIFECYCLE;
+    private boolean colorOutput = true;
 
-    public StandardOutputListenerBackedStyledTextOutput(StandardOutputListener listener) {
-        this.listener = listener;
+    public LogLevel getLogLevel() {
+        return logLevel;
     }
 
-    @Override
-    protected void doAppend(String text) {
-        listener.onOutput(text);
+    public void setLogLevel(LogLevel logLevel) {
+        this.logLevel = logLevel;
+    }
+
+    public boolean isColorOutput() {
+        return colorOutput;
+    }
+
+    public void setColorOutput(boolean colorOutput) {
+        this.colorOutput = colorOutput;
     }
 }

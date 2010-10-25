@@ -15,11 +15,12 @@
  */
 package org.gradle.logging.internal;
 
+import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.TimeProvider;
 
-public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
+public class DefaultStyledTextOutputFactory extends AbstractStyledTextOutputFactory implements StyledTextOutputFactory {
     private final OutputEventListener outputEventListener;
     private final TimeProvider timeProvider;
 
@@ -28,11 +29,7 @@ public class DefaultStyledTextOutputFactory implements StyledTextOutputFactory {
         this.timeProvider = timeProvider;
     }
 
-    public StyledTextOutput create(Class logCategory) {
-        return create(logCategory.getName());
-    }
-
-    public StyledTextOutput create(String logCategory) {
-        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, timeProvider);
+    public StyledTextOutput create(String logCategory, LogLevel logLevel) {
+        return new LoggingBackedStyledTextOutput(outputEventListener, logCategory, logLevel, timeProvider);
     }
 }

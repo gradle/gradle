@@ -19,10 +19,7 @@ import org.gradle.api.Project;
 import org.gradle.api.Rule;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.CommandLineOption;
-import org.gradle.api.tasks.diagnostics.internal.ReportRenderer;
-import org.gradle.api.tasks.diagnostics.internal.TaskDetails;
-import org.gradle.api.tasks.diagnostics.internal.TaskReportModel;
-import org.gradle.api.tasks.diagnostics.internal.TaskReportRenderer;
+import org.gradle.api.tasks.diagnostics.internal.*;
 import org.gradle.util.GUtil;
 
 import java.io.IOException;
@@ -56,9 +53,24 @@ public class TaskReportTask extends AbstractReportTask {
         renderer.showDetail(isDetail());
         renderer.addDefaultTasks(project.getDefaultTasks());
 
-        TaskReportModel model = new TaskReportModel();
+        AggregateMultiProjectTaskReportModel aggregateModel = new AggregateMultiProjectTaskReportModel(!isDetail());
+        TaskDetailsFactory taskDetailsFactory = new TaskDetailsFactory(project);
+
+        SingleProjectTaskReportModel projectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
         ProjectInternal projectInternal = (ProjectInternal) project;
-        model.calculate(GUtil.addSets(projectInternal.getTasks(), projectInternal.getImplicitTasks()));
+        projectTaskModel.build(GUtil.addSets(projectInternal.getTasks(), projectInternal.getImplicitTasks()));
+        aggregateModel.add(projectTaskModel);
+
+        for (Project subprojects : project.getSubprojects()) {
+            SingleProjectTaskReportModel subprojectTaskModel = new SingleProjectTaskReportModel(taskDetailsFactory);
+            subprojectTaskModel.build(subprojects.getTasks().getAll());
+            aggregateModel.add(subprojectTaskModel);
+        }
+
+        aggregateModel.build();
+
+        DefaultGroupTaskReportModel model = new DefaultGroupTaskReportModel();
+        model.build(aggregateModel);
 
         for (String group : model.getGroups()) {
             renderer.startTaskGroup(group);

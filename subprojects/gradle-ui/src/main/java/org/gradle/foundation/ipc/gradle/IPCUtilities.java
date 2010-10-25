@@ -70,7 +70,7 @@ public class IPCUtilities {
 
     /**
      * This starts a gradle client that sends a task list back to the server. It expects the port number to set as a
-     * system property. You probably should be executing the "-t" command. Note: this is using gradle to find the port.
+     * system property. You probably should be executing the "tasks" command. Note: this is using gradle to find the port.
      * See getPort().
      *
      * @param gradle the gradle launcher object.

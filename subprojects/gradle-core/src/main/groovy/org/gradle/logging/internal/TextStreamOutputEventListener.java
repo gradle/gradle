@@ -46,7 +46,10 @@ public class TextStreamOutputEventListener implements OutputEventListener {
     }
 
     private void onTextEvent(StyledTextOutputEvent textOutputEvent) {
-        StyledTextOutputEvent transformedEvent = textOutputEvent.withLogLevel(logLevel.get());
-        listener.onOutput(transformedEvent);
+        if (textOutputEvent.getLogLevel() != null) {
+            listener.onOutput(textOutputEvent);
+        } else {
+            listener.onOutput(textOutputEvent.withLogLevel(logLevel.get()));
+        }
     }
 }

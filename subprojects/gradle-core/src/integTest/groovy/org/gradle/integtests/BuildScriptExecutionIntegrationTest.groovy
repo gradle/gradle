@@ -48,4 +48,34 @@ class BuildScriptExecutionIntegrationTest extends AbstractIntegrationTest {
         assertThat(result.error, containsString('error message'))
         assertThat(result.error, not(containsString('quiet message')))
     }
+
+    @Test
+    public void buildScriptCanContainATaskDefinition() {
+        testFile('build.gradle') << '''
+            task t(type: SomeTask)
+
+            class SomeTask extends DefaultTask {
+            }
+'''
+
+        inTestDirectory().withTaskList().run()
+    }
+
+    @Test
+    public void buildScriptCanContainOnlyClassDefinitions() {
+        testFile('build.gradle') << '''
+            class TestComparable implements Comparable<TestComparable>, SomeInterface {
+                int compareTo(TestComparable t) {
+                    return 0
+                }
+                void main() { }
+            }
+
+            interface SomeInterface {
+                void main()
+            }
+'''
+
+        inTestDirectory().withTaskList().run()
+    }
 }
