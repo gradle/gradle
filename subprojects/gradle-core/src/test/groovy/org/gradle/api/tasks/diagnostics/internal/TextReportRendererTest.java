@@ -62,6 +62,8 @@ public class TextReportRendererTest {
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
             will(returnValue(project));
+            allowing(project).getDescription();
+            will(returnValue(null));
         }});
 
         renderer.setOutput(textOutput);
@@ -71,7 +73,7 @@ public class TextReportRendererTest {
 
         assertThat(textOutput.toString(), containsLine("Root Project"));
     }
-    
+
     @Test
     public void writeSubProjectHeader() throws IOException {
         final Project project = context.mock(Project.class);
@@ -80,6 +82,8 @@ public class TextReportRendererTest {
         context.checking(new Expectations() {{
             allowing(project).getRootProject();
             will(returnValue(context.mock(Project.class, "root")));
+            allowing(project).getDescription();
+            will(returnValue(null));
             allowing(project).getPath();
             will(returnValue("<path>"));
         }});
@@ -90,5 +94,25 @@ public class TextReportRendererTest {
         renderer.complete();
 
         assertThat(textOutput.toString(), containsLine("Project <path>"));
+    }
+
+    @Test
+    public void includesProjectDescriptionInHeader() throws IOException {
+        final Project project = context.mock(Project.class);
+        TestStyledTextOutput textOutput = new TestStyledTextOutput();
+
+        context.checking(new Expectations() {{
+            allowing(project).getRootProject();
+            will(returnValue(project));
+            allowing(project).getDescription();
+            will(returnValue("this is the root project"));
+        }});
+
+        renderer.setOutput(textOutput);
+        renderer.startProject(project);
+        renderer.completeProject(project);
+        renderer.complete();
+
+        assertThat(textOutput.toString(), containsLine("Root Project - this is the root project"));
     }
 }
