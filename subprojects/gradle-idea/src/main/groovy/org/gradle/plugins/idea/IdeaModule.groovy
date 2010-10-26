@@ -16,15 +16,18 @@
 package org.gradle.plugins.idea
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.idea.model.ModuleLibrary
+import org.gradle.plugins.idea.model.Path
+import org.gradle.plugins.idea.model.PathFactory
+import org.gradle.plugins.idea.model.VariableReplacement
 import org.gradle.api.artifacts.*
 import org.gradle.api.tasks.*
-import org.gradle.plugins.idea.model.*
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.artifacts.maven.XmlProvider
 
 /**
  * Generates an IDEA module file.
@@ -290,7 +293,9 @@ public class IdeaModule extends ConventionTask {
     }
 
     protected Path getPath(File file) {
-        new Path(getOutputFile().parentFile, '$MODULE_DIR$', file)
+        PathFactory factory = new PathFactory()
+        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
+        return factory.path(file)
     }
 
     /**

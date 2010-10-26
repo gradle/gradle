@@ -15,19 +15,16 @@
  */
 package org.gradle.plugins.idea
 
-import org.gradle.api.DefaultTask
-
-import org.gradle.api.tasks.TaskAction
-
 import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
-import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.OutputFile
-import org.gradle.plugins.idea.model.Path
-import org.gradle.plugins.idea.model.Project
-import org.gradle.plugins.idea.model.ModulePath
+import org.gradle.api.DefaultTask
 import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.TaskAction
+import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.idea.model.ModulePath
+import org.gradle.plugins.idea.model.Project
 
 /**
  * Generates an IDEA project file.
@@ -80,16 +77,6 @@ public class IdeaProject extends DefaultTask {
         Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader,
                 beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions)
         outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
-    }
-
-    /**
-     * Returns a relative URL to the given file in the standard URL format used by IDEA.  The resulting
-     * URL is relative to the project output directory, using the $PROJECT_DIR$ macro.
-     * @param file The file to which the relative path should point.
-     * @return The relative URL as a String. 
-     */
-    String projectURL(File file) {
-       return new Path(outputFile.parentFile, '$PROJECT_DIR$', file).url
     }
 
     /**

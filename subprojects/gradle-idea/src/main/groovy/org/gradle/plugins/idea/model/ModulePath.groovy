@@ -27,26 +27,21 @@ class ModulePath extends Path {
      */
     final String path
 
-    def ModulePath(rootDir, rootDirString, file) {
+    def ModulePath(File rootDir, String rootDirString, File file) {
         super(rootDir, rootDirString, file)
-        path = getRelativePath(rootDir, rootDirString, file)
+        path = relPath
     }
 
-    def ModulePath(url) {
-        super(url)
-    }
-
-    def ModulePath(url, path) {
+    def ModulePath(String url, String path) {
         super(url)
         assert path != null
         this.path = path;
     }
 
-
     boolean equals(o) {
         if (this.is(o)) { return true }
 
-        if (getClass() != o.class) { return false }
+        if (o== null || getClass() != o.class) { return false }
         if (!super.equals(o)) { return false }
 
         ModulePath that = (ModulePath) o;

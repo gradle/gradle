@@ -65,7 +65,7 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
 
 String getExpectedXml(Project subProject, String filename) {
     def cache = new File(gradle.gradleUserHomeDir, "/cache")
-    def path = org.gradle.plugins.idea.model.Path.getRelativePath(subProject.projectDir, '$MODULE_DIR$', cache)
+    def path = cache.absolutePath
     return rootProject.file("expectedFiles/$filename").text.replace('@CACHE_DIR@', path)
 }
 

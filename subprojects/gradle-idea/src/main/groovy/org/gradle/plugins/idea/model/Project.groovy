@@ -25,7 +25,7 @@ import org.gradle.api.internal.XmlTransformer
  */
 class Project {
     /**
-     * A set of {@link ModulePath} instances pointing to the modules contained in the ipr.
+     * A set of {@link Path} instances pointing to the modules contained in the ipr.
      */
     Set modulePaths = []
 

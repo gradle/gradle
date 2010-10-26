@@ -26,12 +26,24 @@ class Path {
      */
     final String url
 
-    def Path(rootDir, rootDirString, file) {
-        String path = getRelativePath(rootDir, rootDirString, file)
-        url = relativePathToURI(path)
+    /**
+     * The relative path of the path. Must not be null
+     */
+    final String relPath
+
+    def Path(File rootDir, String rootDirString, File file) {
+        relPath = getRelativePath(rootDir, rootDirString, file)
+        url = relativePathToURI(relPath)
     }
 
-    def Path(url) {
+    def Path(File file) {
+        // IDEA doesn't like the result of file.toURI()
+        url = relativePathToURI(file.absolutePath)
+        relPath = null
+    }
+
+    def Path(String url) {
+        this.relPath = null
         this.url = url
     }
 
@@ -40,7 +52,7 @@ class Path {
         return rootDirString + '/' + relpath
     }
 
-    public static String relativePathToURI(String relpath) {
+    private String relativePathToURI(String relpath) {
         if (relpath.endsWith('.jar')) {
             return 'jar://' + relpath + '!/';
         } else {
@@ -49,7 +61,7 @@ class Path {
     }
 
     // This gets a relative path even if neither path is an ancestor of the other.
-    // implemenation taken from http://www.devx.com/tips/Tip/13737 and slighly modified
+    // implementation taken from http://www.devx.com/tips/Tip/13737 and slighly modified
     //@param relativeTo  the destinationFile
     //@param fromFile    where the relative path starts
 
@@ -96,7 +108,7 @@ class Path {
     boolean equals(o) {
         if (this.is(o)) { return true }
 
-        if (getClass() != o.class) { return false }
+        if (o == null || getClass() != o.class) { return false }
 
         Path path = (Path) o;
 
