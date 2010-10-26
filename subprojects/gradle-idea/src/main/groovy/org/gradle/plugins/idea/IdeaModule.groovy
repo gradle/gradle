@@ -16,13 +16,18 @@
 package org.gradle.plugins.idea
 
 import org.gradle.api.Action
+import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.idea.model.ModuleLibrary
+import org.gradle.plugins.idea.model.Path
+import org.gradle.plugins.idea.model.PathFactory
+import org.gradle.plugins.idea.model.VariableReplacement
 import org.gradle.api.artifacts.*
 import org.gradle.api.tasks.*
-import org.gradle.plugins.idea.model.*
 
 /**
  * Generates an IDEA module file.
@@ -105,7 +110,7 @@ public class IdeaModule extends ConventionTask {
      */
     @InputFiles @Optional
     File gradleCacheHome
-                                 
+
     /**
      * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
      * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
@@ -115,7 +120,7 @@ public class IdeaModule extends ConventionTask {
 
     private ListenerBroadcast<Action> beforeConfiguredActions = new ListenerBroadcast<Action>(Action.class);
     private ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+    private XmlTransformer withXmlActions = new XmlTransformer();
 
     def IdeaModule() {
         outputs.upToDateWhen { false }
@@ -125,12 +130,12 @@ public class IdeaModule extends ConventionTask {
     void updateXML() {
         Reader xmlreader = getOutputFile().exists() ? new FileReader(getOutputFile()) : null;
         org.gradle.plugins.idea.model.Module module = new org.gradle.plugins.idea.model.Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
-                getDependencies(), getVariableReplacement(), javaVersion, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
+                getDependencies(), getVariableReplacement(), javaVersion, xmlreader, beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions)
         getOutputFile().withWriter {Writer writer -> module.toXml(writer)}
     }
 
     protected Path getContentPath() {
-       getPath(project.projectDir)
+        getPath(project.projectDir)
     }
 
     protected Path getOutputPath() {
@@ -288,11 +293,31 @@ public class IdeaModule extends ConventionTask {
     }
 
     protected Path getPath(File file) {
-        new Path(getOutputFile().parentFile, '$MODULE_DIR$', file)
+        PathFactory factory = new PathFactory()
+        factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
+        return factory.path(file)
     }
 
+    /**
+     * Adds a closure to be called when the IML XML has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
+     *
+     * @param closure The closure to execute when the IML XML has been created.
+     * @return this
+     */
     void withXml(Closure closure) {
-        withXmlActions.add("execute", closure);
+        withXmlActions.addAction(closure)
+    }
+
+    /**
+     * Adds an action to be called when the IML XML has been created. The XML is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
+     *
+     * @param closure The action to execute when the IML XML has been created.
+     * @return this
+     */
+    void withXml(Action<XmlProvider> action) {
+        withXmlActions.addAction(action)
     }
 
     void beforeConfigured(Closure closure) {

@@ -15,12 +15,13 @@
  */
 package org.gradle.plugins.idea
 
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.listener.ListenerBroadcast
 import org.gradle.plugins.idea.model.Workspace
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.Action
 
 /**
  * Generates an IDEA workspace file.
@@ -34,7 +35,7 @@ public class IdeaWorkspace extends DefaultTask {
     @OutputFile
     File outputFile
 
-    private ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+    private XmlTransformer withXmlActions = new XmlTransformer()
 
     def IdeaWorkspace() {
         outputs.upToDateWhen { false }
@@ -47,7 +48,25 @@ public class IdeaWorkspace extends DefaultTask {
         outputFile.withWriter { Writer writer -> workspace.toXml(writer) }
     }
 
+    /**
+     * Adds a closure to be called when the IWS XML has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
+     *
+     * @param closure The closure to execute when the IWS XML has been created.
+     * @return this
+     */
     void withXml(Closure closure) {
-        withXmlActions.add("execute", closure);
+        withXmlActions.addAction(closure);
+    }
+
+    /**
+     * Adds an action to be called when the IWS XML has been created. The XML is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
+     *
+     * @param closure The action to execute when the IWS XML has been created.
+     * @return this
+     */
+    void withXml(Action<? super XmlProvider> action) {
+        withXmlActions.addAction(action)
     }
 }

@@ -133,8 +133,8 @@ public class DefaultSettingsConverter implements SettingsConverter {
         chainResolver.setChangingPattern(".*-SNAPSHOT");
         chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
         chainResolver.setReturnFirst(true);
-        for (Object classpathResolver : classpathResolvers) {
-            chainResolver.add((DependencyResolver) classpathResolver);
+        for (DependencyResolver classpathResolver : classpathResolvers) {
+            chainResolver.add(classpathResolver);
         }
         return chainResolver;
     }

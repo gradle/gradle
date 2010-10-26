@@ -22,6 +22,9 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.plugins.eclipse.model.Container
 import org.gradle.plugins.eclipse.model.Classpath
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.Action
 
 /**
  * Generates an Eclipse <i>.classpath</i> file.
@@ -77,6 +80,8 @@ public class EclipseClasspath extends AbstractXmlGeneratorTask {
 
     protected ModelFactory modelFactory = new ModelFactory()
 
+    protected XmlTransformer withXmlActions = new XmlTransformer();
+
     def EclipseClasspath() {
         outputs.upToDateWhen { false }
     }
@@ -105,5 +110,25 @@ public class EclipseClasspath extends AbstractXmlGeneratorTask {
     void variables(Map variables) {
         assert variables != null
         this.variables.putAll variables
+    }
+
+    /**
+     * Adds a closure to be called when the .classpath XML has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
+     *
+     * @param closure The closure to execute when the .classpath XML has been created.
+     */
+    void withXml(Closure closure) {
+        withXmlActions.addAction(closure);
+    }
+
+    /**
+     * Adds an action to be called when the .classpath XML has been created. The XML is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
+     *
+     * @param action The action to execute when the .classpath XML has been created.
+     */
+    void withXml(Action<? super XmlProvider> action) {
+        withXmlActions.addAction(action);
     }
 }

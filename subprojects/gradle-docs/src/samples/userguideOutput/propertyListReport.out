@@ -1,6 +1,6 @@
 
 ------------------------------------------------------------
-Project :api
+Project :api - The shared API for the application
 ------------------------------------------------------------
 
 additionalProperties: {}

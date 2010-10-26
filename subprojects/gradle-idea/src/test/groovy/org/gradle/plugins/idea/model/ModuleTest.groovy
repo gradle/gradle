@@ -16,7 +16,8 @@
 package org.gradle.plugins.idea.model
 
 import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.XmlTransformer
 import spock.lang.Specification
 
 /**
@@ -145,10 +146,9 @@ class ModuleTest extends Specification {
 
     def beforeConfigured() {
         def constructorSourceFolders = [new Path('a')] as Set
-        ListenerBroadcast beforeConfiguredActions = new ListenerBroadcast(Action)
-        beforeConfiguredActions.add("execute") { Module module ->
+        Action beforeConfiguredActions = { Module module ->
             module.sourceFolders.clear()
-        }
+        } as Action
 
         when:
         module = createModule(sourceFolders: constructorSourceFolders, reader: customModuleReader, beforeConfiguredActions: beforeConfiguredActions)
@@ -161,12 +161,11 @@ class ModuleTest extends Specification {
         def constructorSourceFolder = new Path('a')
         def configureActionSourceFolder = new Path("c")
 
-        ListenerBroadcast whenConfiguredActions = new ListenerBroadcast(Action)
-        whenConfiguredActions.add("execute") { Module module ->
+        Action whenConfiguredActions = { Module module ->
             assert module.sourceFolders.contains((CUSTOM_SOURCE_FOLDERS as List)[0])
             assert module.sourceFolders.contains(constructorSourceFolder)
             module.sourceFolders.add(configureActionSourceFolder)
-        }
+        } as Action
 
         when:
         module = createModule(sourceFolders: [constructorSourceFolder] as Set, reader: customModuleReader,
@@ -183,12 +182,13 @@ class ModuleTest extends Specification {
     }
 
     def withXml() {
-        ListenerBroadcast withXmlActions = new ListenerBroadcast(Action)
+        XmlTransformer withXmlActions = new XmlTransformer()
         module = createModule(reader: customModuleReader, withXmlActions: withXmlActions)
 
         when:
         def modifiedVersion
-        withXmlActions.add("execute") { xml ->
+        withXmlActions.addAction { XmlProvider provider ->
+            def xml = provider.asNode()
             xml.@version += 'x'
             modifiedVersion = xml.@version
         }
@@ -206,10 +206,11 @@ class ModuleTest extends Specification {
     }
 
     private Module createModule(Map customArgs) {
-        ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
+        Action dummyBroadcast = Mock()
+        XmlTransformer xmlTransformer = new XmlTransformer()
         Map args = [contentPath: null, sourceFolders: [] as Set, testSourceFolders: [] as Set, excludeFolders: [] as Set, outputDir: null, testOutputDir: null,
-                moduleLibraries: [] as Set, dependencyVariableReplacement: VariableReplacement.NO_REPLACEMENT, javaVersion: null, 
-                reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: dummyBroadcast] + customArgs
+                moduleLibraries: [] as Set, dependencyVariableReplacement: VariableReplacement.NO_REPLACEMENT, javaVersion: null,
+                reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: xmlTransformer] + customArgs
         return new Module(args.contentPath, args.sourceFolders, args.testSourceFolders, args.excludeFolders, args.outputDir, args.testOutputDir,
                 args.moduleLibraries, args.dependencyVariableReplacement, args.javaVersion, args.reader,
                 args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions)

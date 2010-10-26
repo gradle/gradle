@@ -27,6 +27,7 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.artifacts.maven.XmlProvider;
+import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.api.internal.artifacts.publish.maven.pombuilder.CustomModelBuilder;
 import org.gradle.api.internal.file.FileResolver;
@@ -45,7 +46,7 @@ public class DefaultMavenPom implements MavenPom {
     private MavenProject mavenProject = new MavenProject();
     private Conf2ScopeMappingContainer scopeMappings;
     private ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+    private XmlTransformer withXmlActions = new XmlTransformer();
     private ConfigurationContainer configurations;
 
     public DefaultMavenPom(ConfigurationContainer configurationContainer, Conf2ScopeMappingContainer scopeMappings, PomDependenciesConverter pomDependenciesConverter,
@@ -207,13 +208,7 @@ public class DefaultMavenPom implements MavenPom {
         try {
             final StringWriter stringWriter = new StringWriter();
             mavenProject.writeModel(stringWriter);
-            final StringBuilder stringBuilder = new StringBuilder(stringWriter.toString());
-            withXmlActions.getSource().execute(new XmlProvider() {
-                public StringBuilder asString() {
-                    return stringBuilder;
-                }
-            });
-            IOUtils.write(stringBuilder.toString(), pomWriter);
+            withXmlActions.transform(stringWriter.toString(), pomWriter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
@@ -232,14 +227,12 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom withXml(final Closure closure) {
-        withXmlActions.add("execute", closure);
+        withXmlActions.addAction(closure);
         return this;
     }
 
     public DefaultMavenPom withXml(final Action<XmlProvider> action) {
-        withXmlActions.add(action);
+        withXmlActions.addAction(action);
         return this;
     }
-
-
 }

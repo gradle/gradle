@@ -23,6 +23,9 @@ import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Link
 import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.plugins.eclipse.model.Project
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.Action
 
 /**
  * Generates an Eclipse <i>.project</i> file.
@@ -67,13 +70,15 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
      * The build commands to be added to this Eclipse project.
      */
     List<BuildCommand> buildCommands = []
-    
+
     /**
      * The links to be added to this Eclipse project.
      */
     Set<Link> links = new LinkedHashSet<Link>();
 
     protected ModelFactory modelFactory = new ModelFactory()
+
+    def XmlTransformer withXmlActions = new XmlTransformer();
 
     def EclipseProject() {
         outputs.upToDateWhen { false }
@@ -109,7 +114,7 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
      *
      * @param args A map with arguments, where the key is the name of the argument and the value the value.
      * @param buildCommand The name of the build command.
-     * @see #buildCommand(String) 
+     * @see #buildCommand(String)
      */
     void buildCommand(Map args, String buildCommand) {
         assert buildCommand != null
@@ -120,7 +125,7 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
      * Adds a build command to the eclipse project.
      *
      * @param buildCommand The name of the build command
-     * @see #buildCommand(Map, String) 
+     * @see #buildCommand(Map, String)
      */
     void buildCommand(String buildCommand) {
         assert buildCommand != null
@@ -138,5 +143,25 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
         }
         this.links.add(new Link(args.name, args.type, args.location, args.locationUri))
+    }
+
+    /**
+     * Adds a closure to be called when the .project XML has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
+     *
+     * @param closure The closure to execute when the .project XML has been created.
+     */
+    void withXml(Closure closure) {
+        withXmlActions.addAction(closure);
+    }
+
+    /**
+     * Adds an action to be called when the .project XML has been created. The XML is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
+     *
+     * @param action The action to execute when the .project XML has been created.
+     */
+    void withXml(Action<? super XmlProvider> action) {
+        withXmlActions.addAction(action);
     }
 }

@@ -365,8 +365,8 @@
                 <td>
                     <literal><code>withXml { arg -> }</code></literal>
                 </td>
-                <td><code>groovy.util.Node</code></td>
-                <td><code>groovy.util.Node</code></td>
+                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
+                <td><apilink class="org.gradle.api.artifacts.maven.XmlProvider"/></td>
                 <td><code>['org.eclipse.wst.common.component': groovy.util.Node, 'org.eclipse.wst.common.project.facet.core': groovy.util.Node]</code></td>
                 <td>The root node of the XML just before the XML is written to disk.</td>
             </tr>

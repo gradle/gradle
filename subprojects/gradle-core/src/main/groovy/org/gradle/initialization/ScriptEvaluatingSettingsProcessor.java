@@ -38,10 +38,6 @@ public class ScriptEvaluatingSettingsProcessor implements SettingsProcessor {
 
     private ScriptPluginFactory configurerFactory;
 
-    public ScriptEvaluatingSettingsProcessor() {
-
-    }
-
     public ScriptEvaluatingSettingsProcessor(ScriptPluginFactory configurerFactory,
                                              SettingsFactory settingsFactory) {
         this.configurerFactory = configurerFactory;

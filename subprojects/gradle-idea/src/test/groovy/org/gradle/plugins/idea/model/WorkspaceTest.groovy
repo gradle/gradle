@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.idea.model
 
-import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.XmlTransformer
 import spock.lang.Specification
 
 /**
@@ -49,12 +49,13 @@ class WorkspaceTest extends Specification {
     }
 
     def withXml() {
-        ListenerBroadcast withXmlActions = new ListenerBroadcast(Action)
+        XmlTransformer withXmlActions = new XmlTransformer()
         workspace = createWorkspace(reader: customWorkspaceReader, withXmlActions: withXmlActions)
 
         when:
         def modifiedVersion
-        withXmlActions.add("execute") { xml ->
+        withXmlActions.addAction { XmlProvider provider ->
+            def xml = provider.asNode()
             xml.@version += 'x'
             modifiedVersion = xml.@version
         }
@@ -72,7 +73,7 @@ class WorkspaceTest extends Specification {
     }
 
     private Workspace createWorkspace(Map customArgs) {
-        ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
+        XmlTransformer dummyBroadcast = new XmlTransformer()
         Map args = [reader: null, withXmlActions: dummyBroadcast] + customArgs
         return new Workspace(args.reader, args.withXmlActions)
     }

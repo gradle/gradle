@@ -25,11 +25,6 @@ import org.gradle.listener.ListenerBroadcast
 class AbstractXmlGeneratorTask extends ConventionTask {
     ListenerBroadcast<Action> beforeConfiguredActions = new ListenerBroadcast<Action>(Action.class);
     ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
-    ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
-
-    void withXml(Closure closure) {
-        withXmlActions.add("execute", closure);
-    }
 
     void beforeConfigured(Closure closure) {
         beforeConfiguredActions.add("execute", closure);
