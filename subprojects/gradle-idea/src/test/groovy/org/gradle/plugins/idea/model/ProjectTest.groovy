@@ -16,7 +16,8 @@
 package org.gradle.plugins.idea.model
 
 import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.XmlTransformer
 import spock.lang.Specification
 
 /**
@@ -69,10 +70,9 @@ class ProjectTest extends Specification {
     }
 
     def beforeConfigured() {
-        ListenerBroadcast beforeConfiguredActions = new ListenerBroadcast(Action)
-        beforeConfiguredActions.add("execute") { Project ideaProject ->
+        Action beforeConfiguredActions = { Project ideaProject ->
             ideaProject.modulePaths.clear()
-        }
+        } as Action
         def modulePaths = [new ModulePath("a", "b")] as Set
 
         when:
@@ -86,16 +86,14 @@ class ProjectTest extends Specification {
         def moduleFromInitialXml = null
         def moduleFromProjectConstructor = new ModulePath("a", "b")
         def moduleAddedInWhenConfiguredAction = new ModulePath("c", "d")
-        ListenerBroadcast beforeConfiguredActions = new ListenerBroadcast(Action)
-        beforeConfiguredActions.add("execute") { Project ideaProject ->
+        Action beforeConfiguredActions = { Project ideaProject ->
             moduleFromInitialXml = (ideaProject.modulePaths as List)[0]
-        }
-        ListenerBroadcast whenConfiguredActions = new ListenerBroadcast(Action)
-        whenConfiguredActions.add("execute") { Project ideaProject ->
+        } as Action
+        Action whenConfiguredActions = { Project ideaProject ->
             assert ideaProject.modulePaths.contains(moduleFromInitialXml)
             assert ideaProject.modulePaths.contains(moduleFromProjectConstructor)
             ideaProject.modulePaths.add(moduleAddedInWhenConfiguredAction)
-        }
+        } as Action
 
         when:
         project = createProject(modulePaths: [moduleFromProjectConstructor] as Set, reader: customProjectReader,
@@ -113,12 +111,13 @@ class ProjectTest extends Specification {
     }
 
     def withXml() {
-        ListenerBroadcast withXmlActions = new ListenerBroadcast(Action)
+        XmlTransformer withXmlActions = new XmlTransformer()
         project = createProject(reader: customProjectReader, withXmlActions: withXmlActions)
 
         when:
         def modifiedVersion
-        withXmlActions.add("execute") { xml ->
+        withXmlActions.addAction { XmlProvider provider ->
+            def xml = provider.asNode()
             xml.@version += 'x'
             modifiedVersion = xml.@version
         }
@@ -132,9 +131,10 @@ class ProjectTest extends Specification {
     }
 
     private Project createProject(Map customArgs) {
-        ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
+        Action dummyBroadcast = Mock()
+        XmlTransformer xmlTransformer = new XmlTransformer()
         Map args = [modulePaths: [] as Set, javaVersion: "1.6", wildcards: [] as Set, reader: null,
-                beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: dummyBroadcast] + customArgs
+                beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: xmlTransformer] + customArgs
         return new Project(args.modulePaths, args.javaVersion, args.wildcards, args.reader,
                 args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions)
     }

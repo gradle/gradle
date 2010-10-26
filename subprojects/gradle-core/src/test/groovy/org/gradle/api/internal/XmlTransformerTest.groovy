@@ -73,7 +73,7 @@ class XmlTransformerTest extends Specification {
         }
     }
 
-    def canTransformToAWriter() {
+    def canTransformStringToAWriter() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
         StringWriter writer = new StringWriter()
@@ -87,6 +87,36 @@ class XmlTransformerTest extends Specification {
             def provider = args[0]
             provider.asNode().appendNode('child1')
         }
+    }
+
+    def canTransformNodeToAWriter() {
+        Action<XmlProvider> action = Mock()
+        transformer.addAction(action)
+        StringWriter writer = new StringWriter()
+        Node node = new XmlParser().parseText('<xml/>')
+
+        when:
+        transformer.transform(node, writer)
+
+        then:
+        writer.toString() == '<xml>\n  <child1/>\n</xml>\n'
+        1 * action.execute(!null) >> { args ->
+            def provider = args[0]
+            provider.asNode().appendNode('child1')
+        }
+    }
+
+    def canUseAClosureAsAnAction() {
+        transformer.addAction { provider ->
+            provider.asNode().appendNode('child1')
+        }
+        StringWriter writer = new StringWriter()
+
+        when:
+        transformer.transform('<xml/>', writer)
+
+        then:
+        writer.toString() == '<xml>\n  <child1/>\n</xml>\n'
     }
 
     def canChainActions() {

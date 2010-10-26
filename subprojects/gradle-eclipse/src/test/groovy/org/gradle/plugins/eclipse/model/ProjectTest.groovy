@@ -22,6 +22,8 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.plugins.eclipse.EclipseProject
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.artifacts.maven.XmlProvider
 
 /**
  * @author Hans Dockter
@@ -154,12 +156,13 @@ public class ProjectTest extends Specification {
     }
 
     def withXml() {
-        ListenerBroadcast withXmlActions = new ListenerBroadcast(Action)
+        XmlTransformer withXmlActions = new XmlTransformer()
         Project project = createProject(reader: customProjectReader, withXmlActions: withXmlActions)
 
         when:
         def newName
-        withXmlActions.add("execute") { Node xml ->
+        withXmlActions.addAction { XmlProvider provider ->
+            def xml = provider.asNode()
             newName = xml.name.text() + 'x'
             xml.remove(xml.name)
             xml.appendNode('name', newName)
@@ -175,8 +178,9 @@ public class ProjectTest extends Specification {
 
     private Project createProject(Map customArgs) {
         ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
+        XmlTransformer transformer = new XmlTransformer()
         Map args = [name: null, comment: null, referencedProjects: [] as Set, natures: [], buildCommands: [],
-                links: [] as Set, reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: dummyBroadcast] + customArgs
+                links: [] as Set, reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: transformer] + customArgs
         EclipseProject eclipseProjectStub = Mock()
         eclipseProjectStub.getProjectName() >> args.name
         eclipseProjectStub.getComment() >> args.comment

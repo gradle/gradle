@@ -33,7 +33,7 @@ class ClasspathFactory {
         List entries = getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project)
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
-        return new Classpath(eclipseClasspath, entries, inputReader)
+        return new Classpath(eclipseClasspath.beforeConfiguredActions.source, eclipseClasspath.whenConfiguredActions.source, eclipseClasspath.withXmlActions, entries, inputReader)
     }
 
     List getEntriesFromSourceSets(def sourceSets, def project) {

@@ -24,6 +24,8 @@ import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.plugins.eclipse.model.Wtp
 import org.gradle.plugins.eclipse.model.WbResource
 import org.gradle.plugins.eclipse.model.WbProperty
+import org.gradle.api.Action
+import org.gradle.listener.ListenerBroadcast
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP.
@@ -100,6 +102,8 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
 
     protected ModelFactory modelFactory = new ModelFactory()
 
+    def ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+
     def EclipseWtp() {
         outputs.upToDateWhen { false }
     }
@@ -107,7 +111,7 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
     @TaskAction
     protected void generateXml() {
         Wtp wtp = modelFactory.createWtp(this)
-        wtp.toXml(orgEclipseWstCommonComponentOutputFile, orgEclipseWstCommonProjectFacetCoreOutputFile)    
+        wtp.toXml(orgEclipseWstCommonComponentOutputFile, orgEclipseWstCommonProjectFacetCoreOutputFile)
     }
 
     /**
@@ -146,5 +150,9 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
      */
     void resource(Map args) {
         resources.add(new WbResource(args.deployPath, args.sourcePath))
+    }
+
+    void withXml(Closure closure) {
+        withXmlActions.add("execute", closure);
     }
 }

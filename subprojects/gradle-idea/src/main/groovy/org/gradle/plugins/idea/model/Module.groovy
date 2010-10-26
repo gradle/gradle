@@ -16,7 +16,7 @@
 package org.gradle.plugins.idea.model
 
 import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.internal.XmlTransformer
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
@@ -66,15 +66,15 @@ class Module {
 
     private Node xml
 
-    private ListenerBroadcast<Action> withXmlActions
+    private XmlTransformer withXmlActions
 
     def Module(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Path outputDir, Path testOutputDir, Set dependencies,
                VariableReplacement dependencyVariableReplacement, String javaVersion, Reader inputXml,
-               ListenerBroadcast<Action> beforeConfiguredActions, ListenerBroadcast<Action> whenConfiguredActions,
-               ListenerBroadcast<Action> withXmlActions) {
+               Action<Module> beforeConfiguredAction, Action<Module> whenConfiguredAction,
+               XmlTransformer withXmlActions) {
         initFromXml(inputXml, dependencyVariableReplacement)
 
-        beforeConfiguredActions.source.execute(this)
+        beforeConfiguredAction.execute(this)
 
         this.contentPath = contentPath
         this.sourceFolders.addAll(sourceFolders);
@@ -92,7 +92,7 @@ class Module {
         }
         this.withXmlActions = withXmlActions;
 
-        whenConfiguredActions.source.execute(this)
+        whenConfiguredAction.execute(this)
     }
 
     private def initFromXml(Reader inputXml, VariableReplacement dependencyVariableReplacement) {
@@ -171,11 +171,7 @@ class Module {
         removeDependenciesFromXml()
         addDependenciesToXml()
 
-        withXmlActions.source.execute(xml)
-
-        PrintWriter printWriter = new PrintWriter(writer)
-        new XmlNodePrinter(printWriter).print(xml)
-        printWriter.flush()
+        withXmlActions.transform(xml, writer)
     }
 
     private def addJdkToXml() {

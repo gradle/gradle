@@ -17,11 +17,11 @@ package org.gradle.plugins.eclipse.model;
 
 
 import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.plugins.eclipse.EclipseClasspath
 
 /**
  * @author Hans Dockter
@@ -103,14 +103,13 @@ public class ClasspathTest extends Specification {
 
     def beforeConfigured() {
         def constructorEntries = [createSomeLibrary()]
-        ListenerBroadcast beforeConfiguredActions = new ListenerBroadcast(Action)
-        beforeConfiguredActions.add("execute") { Classpath classpath ->
+        Action beforeConfiguredAction = { Classpath classpath ->
             classpath.entries.clear()
-        }
+        } as Action
 
         when:
         Classpath classpath = createClasspath(entries: constructorEntries, reader: customClasspathReader,
-                beforeConfiguredActions: beforeConfiguredActions)
+                beforeConfiguredActions: beforeConfiguredAction)
 
         then:
         createClasspath(reader: getToXmlReader(classpath)).entries == DEFAULT_ENTRIES + constructorEntries
@@ -121,12 +120,11 @@ public class ClasspathTest extends Specification {
         def configureActionEntry = createSomeLibrary()
         configureActionEntry.path = constructorEntry.path + 'Other'
 
-        ListenerBroadcast whenConfiguredActions = new ListenerBroadcast(Action)
-        whenConfiguredActions.add("execute") { Classpath classpath ->
+        Action whenConfiguredActions = { Classpath classpath ->
             assert classpath.entries.contains((CUSTOM_ENTRIES as List)[0])
             assert classpath.entries.contains(constructorEntry)
             classpath.entries.add(configureActionEntry)
-        }
+        } as Action
 
         when:
         Classpath classpath = createClasspath(entries: [constructorEntry], reader: customClasspathReader,
@@ -138,12 +136,12 @@ public class ClasspathTest extends Specification {
     }
 
     def withXml() {
-        ListenerBroadcast withXmlActions = new ListenerBroadcast(Action)
+        XmlTransformer withXmlActions = new XmlTransformer()
         Classpath classpath = createClasspath(reader: customClasspathReader, withXmlActions: withXmlActions)
 
         when:
-        withXmlActions.add("execute") { Node xml ->
-            xml.classpathentry.find { it.@kind == 'output' }.@path = 'newPath'
+        withXmlActions.addAction { XmlProvider xml ->
+            xml.asNode().classpathentry.find { it.@kind == 'output' }.@path = 'newPath'
         }
 
         then:
@@ -159,13 +157,10 @@ public class ClasspathTest extends Specification {
     }
 
     private Classpath createClasspath(Map customArgs) {
-        ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
-        Map args = [entries: [], reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: dummyBroadcast] + customArgs
-        EclipseClasspath eclipseClasspathStub = Mock()
-        eclipseClasspathStub.getBeforeConfiguredActions() >> args.beforeConfiguredActions
-        eclipseClasspathStub.getWhenConfiguredActions() >> args.whenConfiguredActions
-        eclipseClasspathStub.getWithXmlActions() >> args.withXmlActions
-        return new Classpath(eclipseClasspathStub, args.entries, args.reader)
+        Action dummyBroadcast = Mock()
+        XmlTransformer transformer = new XmlTransformer()
+        Map args = [entries: [], reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: transformer] + customArgs
+        return new Classpath(args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, args.entries, args.reader)
     }
 
     private StringReader getToXmlReader(Classpath classpath) {

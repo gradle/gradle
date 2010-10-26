@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.idea.model
 
-import org.gradle.listener.ListenerBroadcast
 import org.gradle.api.Action
+import org.gradle.api.internal.XmlTransformer
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
@@ -41,19 +41,19 @@ class Project {
 
     private Node xml
     
-    private ListenerBroadcast<Action> withXmlActions
+    private XmlTransformer withXmlActions
 
-    def Project(Set modulePaths, String javaVersion, Set wildcards, Reader inputXml, ListenerBroadcast<Action> beforeConfiguredActions,
-                ListenerBroadcast<Action> whenConfiguredActions, ListenerBroadcast<Action> withXmlActions) {
+    def Project(Set modulePaths, String javaVersion, Set wildcards, Reader inputXml, Action<Project> beforeConfiguredAction,
+                Action<Project> whenConfiguredAction, XmlTransformer withXmlActions) {
         initFromXml(inputXml, javaVersion)
 
-        beforeConfiguredActions.source.execute(this)
+        beforeConfiguredAction.execute(this)
 
         this.modulePaths.addAll(modulePaths)
         this.wildcards.addAll(wildcards)
         this.withXmlActions = withXmlActions
 
-        whenConfiguredActions.source.execute(this)
+        whenConfiguredAction.execute(this)
     }
 
     private def initFromXml(Reader inputXml, String javaVersion) {
@@ -97,11 +97,7 @@ class Project {
         findProjectRootManager().@languageLevel = jdk.languageLevel
         findProjectRootManager().@'project-jdk-name' = jdk.projectJdkName
 
-        withXmlActions.source.execute(xml)
-
-        PrintWriter printWriter = new PrintWriter(writer)
-        new XmlNodePrinter(printWriter).print(xml)
-        printWriter.flush()
+        withXmlActions.transform(xml, writer)
     }
 
     private def findProjectRootManager() {

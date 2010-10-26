@@ -20,7 +20,6 @@ import org.apache.commons.io.IOUtils;
 import org.apache.maven.model.Dependency;
 import org.apache.maven.model.Model;
 import org.apache.maven.project.MavenProject;
-import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.codehaus.groovy.runtime.InvokerHelper;
 import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
@@ -209,7 +208,7 @@ public class DefaultMavenPom implements MavenPom {
         try {
             final StringWriter stringWriter = new StringWriter();
             mavenProject.writeModel(stringWriter);
-            IOUtils.write(withXmlActions.transform(stringWriter.toString()), pomWriter);
+            withXmlActions.transform(stringWriter.toString(), pomWriter);
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         } finally {
@@ -228,7 +227,7 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom withXml(final Closure closure) {
-        withXmlActions.addAction((Action<XmlProvider>) DefaultGroovyMethods.asType(closure, Action.class));
+        withXmlActions.addAction(closure);
         return this;
     }
 

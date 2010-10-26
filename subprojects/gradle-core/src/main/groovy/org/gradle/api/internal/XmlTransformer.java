@@ -15,10 +15,12 @@
  */
 package org.gradle.api.internal;
 
+import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlNodePrinter;
 import groovy.util.XmlParser;
 import groovy.xml.XmlUtil;
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.maven.XmlProvider;
@@ -39,6 +41,10 @@ public class XmlTransformer implements Transformer<String> {
         actions.add(provider);
     }
 
+    public void addAction(Closure closure) {
+        actions.add((Action<XmlProvider>) DefaultGroovyMethods.asType(closure, Action.class));
+    }
+
     public String transform(String original) {
         return doTransform(original).toString();
     }
@@ -47,11 +53,19 @@ public class XmlTransformer implements Transformer<String> {
         doTransform(original).writeTo(destination);
     }
 
+    public void transform(Node original, Writer destination) {
+        doTransform(original).writeTo(destination);
+    }
+
     private XmlProviderImpl doTransform(String original) {
         XmlProviderImpl provider = new XmlProviderImpl(original);
-        for (Action<? super XmlProvider> action : actions) {
-            action.execute(provider);
-        }
+        provider.apply(actions);
+        return provider;
+    }
+
+    private XmlProviderImpl doTransform(Node original) {
+        XmlProviderImpl provider = new XmlProviderImpl(original);
+        provider.apply(actions);
         return provider;
     }
 
@@ -63,6 +77,16 @@ public class XmlTransformer implements Transformer<String> {
 
         public XmlProviderImpl(String original) {
             this.stringValue = original;
+        }
+
+        public XmlProviderImpl(Node original) {
+            this.node = original;
+        }
+
+        public void apply(Iterable<Action<? super XmlProvider>> actions) {
+            for (Action<? super XmlProvider> action : actions) {
+                action.execute(this);
+            }
         }
 
         @Override

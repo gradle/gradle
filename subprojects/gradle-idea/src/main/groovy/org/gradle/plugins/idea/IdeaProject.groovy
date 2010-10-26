@@ -26,6 +26,8 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.plugins.idea.model.Path
 import org.gradle.plugins.idea.model.Project
 import org.gradle.plugins.idea.model.ModulePath
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.XmlTransformer
 
 /**
  * Generates an IDEA project file.
@@ -59,7 +61,7 @@ public class IdeaProject extends DefaultTask {
 
     private ListenerBroadcast<Action> beforeConfiguredActions = new ListenerBroadcast<Action>(Action.class);
     private ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+    private XmlTransformer withXmlActions = new XmlTransformer();
 
     def IdeaProject() {
         outputs.upToDateWhen { false }
@@ -75,7 +77,8 @@ public class IdeaProject extends DefaultTask {
             }
             result
         }
-        Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions)
+        Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader,
+                beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions)
         outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
     }
 
@@ -90,14 +93,26 @@ public class IdeaProject extends DefaultTask {
     }
 
     /**
-     * Adds a closure to be called when the ipr xml has been created. The xml is passed to the closure as a
-     * parameter in form of a {@link groovy.util.Node}. The xml might be modified.
+     * Adds a closure to be called when the IPR XML has been created. The XML is passed to the closure as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
      *
-     * @param closure The closure to execute when the ipr xml has been created.
+     * @param closure The closure to execute when the IPR XML has been created.
      * @return this
      */
     IdeaProject withXml(Closure closure) {
-        withXmlActions.add("execute", closure);
+        withXmlActions.addAction(closure)
+        return this;
+    }
+
+    /**
+     * Adds an action to be called when the IPR XML has been created. The XML is passed to the action as a
+     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
+     *
+     * @param closure The action to execute when the IPR XML has been created.
+     * @return this
+     */
+    IdeaProject withXml(Action<? super XmlProvider> action) {
+        withXmlActions.addAction(action)
         return this;
     }
 
