@@ -70,7 +70,7 @@ class PathTest extends Specification {
 
     def generatesUrlAndPathForFileOnDifferentFilesystemToRootDir() {
         def fileSystemRoots = findFileSystemRoots()
-        if (fileSystemRoots == 1) {
+        if (fileSystemRoots.size() == 1) {
             return
         }
         def rootDir = new File(fileSystemRoots[0], 'root')
