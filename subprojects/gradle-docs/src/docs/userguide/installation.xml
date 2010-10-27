@@ -83,17 +83,15 @@ some zip front ends for Mac OS X don't restore the file permissions properly.
 
 <screen>
 ------------------------------------------------------------
-Gradle 0.9-rc-1
+Gradle 0.9-rc-2
 ------------------------------------------------------------
 
-Gradle buildtime: Tuesday, 3 August 2010 6:59:23 PM EST
-Groovy: 1.7.3
+Gradle build time: Wednesday, 27 October 2010 5:05:52 PM EST
+Groovy: 1.7.5
 Ant: Apache Ant version 1.8.1 compiled on April 30 2010
-Ivy: 2.2.0-rc1
-Java: 1.6.0_20
-JVM: 16.3-b01
-JVM Vendor: Sun Microsystems Inc.
-OS Name: Linux
+Ivy: 2.2.0
+JVM: 1.6.0_20 (Sun Microsystems Inc. 16.3-b01)
+OS: Linux 2.6.35-22-generic amd64
 </screen>
 
 </section>
