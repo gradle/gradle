@@ -97,8 +97,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(PROFILE).hasDescription("Profiles build execution time and generates a report in the <build_dir>/reports/profile directory.");
     }
 
-    public StartParameter convert(ParsedCommandLine args) throws CommandLineArgumentException {
-        return convert(args, new StartParameter());
+    @Override
+    protected StartParameter newInstance() {
+        return new StartParameter();
     }
 
     public StartParameter convert(ParsedCommandLine options, StartParameter startParameter) throws CommandLineArgumentException {

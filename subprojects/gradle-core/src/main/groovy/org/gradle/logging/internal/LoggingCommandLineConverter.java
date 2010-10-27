@@ -41,8 +41,12 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
         logLevelMap.put("", LogLevel.LIFECYCLE);
     }
 
-    public LoggingConfiguration convert(ParsedCommandLine commandLine) throws CommandLineArgumentException {
-        LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
+    @Override
+    protected LoggingConfiguration newInstance() {
+        return new LoggingConfiguration();
+    }
+
+    public LoggingConfiguration convert(ParsedCommandLine commandLine, LoggingConfiguration loggingConfiguration) throws CommandLineArgumentException {
         loggingConfiguration.setLogLevel(getLogLevel(commandLine));
         if (commandLine.hasOption(NO_COLOR)) {
             loggingConfiguration.setColorOutput(false);
