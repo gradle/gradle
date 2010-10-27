@@ -63,7 +63,7 @@ abstract class PageInfoImpl implements PageInfo {
 }
 
 class LocalPage extends PageInfoImpl {
-    def LocalPage(layout, uri) {
+    def LocalPage(LocalLayout layout, URI uri) {
         super(layout, uri);
     }
 
@@ -73,7 +73,7 @@ class LocalPage extends PageInfoImpl {
 }
 
 class IgnoredPage extends PageInfoImpl {
-    def IgnoredPage(layout, uri) {
+    def IgnoredPage(LocalLayout layout, URI uri) {
         super(layout, uri);
     }
 
