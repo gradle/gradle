@@ -65,7 +65,7 @@ class XmlTransformerTest extends Specification {
         def result = transformer.transform('<xml/>')
 
         then:
-        result == '<?xml version="1.0" encoding="UTF-8"?>\n<xml>\n  <child1/>\n</xml>\n'
+        result == toNative('<?xml version="1.0" encoding="UTF-8"?>\n<xml>\n  <child1/>\n</xml>\n')
         1 * action.execute(!null) >> { args ->
             def provider = args[0]
             def document = provider.asElement().ownerDocument
@@ -125,27 +125,27 @@ class XmlTransformerTest extends Specification {
         Action<XmlProvider> elementAction = Mock()
         Action<XmlProvider> stringAction2 = Mock()
         transformer.addAction(stringAction)
-        transformer.addAction(nodeAction)
         transformer.addAction(elementAction)
+        transformer.addAction(nodeAction)
         transformer.addAction(stringAction2)
 
         when:
         def result = transformer.transform('<xml/>')
 
         then:
-        result == '<?xml version="1.0" encoding="UTF-8"?>\n<some-xml>\n  <child1/>\n<child2/>\n</some-xml>\n<!-- end -->'
+        result == '<some-xml>\n  <child1/>\n  <child2/>\n</some-xml>\n<!-- end -->'
         1 * stringAction.execute(!null) >> { args ->
             def provider = args[0]
             provider.asString().insert(1, 'some-')
         }
-        1 * nodeAction.execute(!null) >> { args ->
-            def provider = args[0]
-            provider.asNode().appendNode('child1')
-        }
         1 * elementAction.execute(!null) >> { args ->
             def provider = args[0]
             def document = provider.asElement().ownerDocument
-            provider.asElement().appendChild(document.createElement('child2'))
+            provider.asElement().appendChild(document.createElement('child1'))
+        }
+        1 * nodeAction.execute(!null) >> { args ->
+            def provider = args[0]
+            provider.asNode().appendNode('child2')
         }
         1 * stringAction2.execute(!null) >> { args ->
             def provider = args[0]
@@ -172,5 +172,9 @@ class XmlTransformerTest extends Specification {
             def provider = args[0]
             provider.asNode().appendNode('child2')
         }
+    }
+
+    def String toNative(String value) {
+        return value.replaceAll('\n', System.getProperty('line.separator'))
     }
 }
