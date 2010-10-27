@@ -367,13 +367,17 @@ task testedDists(dependsOn: [assemble, check, integTest, 'openApi:integTest', ':
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 
-task install(type: Install, description: 'Installs the minimal distribution into directory $gradle_installPath') {
+task install(type: Install) {
+    description = 'Installs the minimal distribution into directory $gradle_installPath'
+    group = 'build'
     dependsOn binZip.taskDependencies
     with binDistImage
     installDirProperyName = 'gradle_installPath'
 }
 
-task installAll(type: Install, description: 'Installs the full distribution into directory $gradle_installPath') {
+task installAll(type: Install) {
+    description = 'Installs the full distribution into directory $gradle_installPath'
+    group = 'build'
     dependsOn allZip.taskDependencies
     with allDistImage
     installDirProperyName = 'gradle_installPath'
@@ -400,25 +404,36 @@ gradle.taskGraph.whenReady {graph ->
     }
 }
 
-task developerBuild(dependsOn: [clean, testedDists])
-task ciBuild(dependsOn: [clean, testedDists])
+task developerBuild {
+    description = 'Builds distributions and runs pre-checkin checks'
+    group = 'build'
+    dependsOn clean, testedDists
+}
+
+task ciBuild {
+    description = 'Build performed by the CI server'
+    dependsOn clean, testedDists
+}
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(ciBuild)) {
         subprojects { reportsDirName = "$rootProject.reportsDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
     }
 }
 
-task release(dependsOn: [uploadDists, ':docs:uploadDocs']) << {
-    // Update the version properties in gradle.properties
-//    Properties props = new Properties()
-//    File propsFile = file('gradle.properties')
-//    propsFile.withReader { props.load(it) }
-//    props.previousVersion = props.nextVersion
-//    def nextVersion = props.nextVersion.split('\\.')
-//    nextVersion[1] = (nextVersion[1] as Integer) +1
-//    props.nextVersion = nextVersion.join('.')
-//    propsFile.withWriter { props.store(it, 'properties') }
-// todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
+// A marker task which causes the release version to be used when it is present in the task graph
+task releaseVersion
+
+task releaseDists {
+    description = 'Builds the release artifacts'
+    group = 'release'
+    dependsOn releaseVersion, assemble
+}
+
+task release {
+    description = 'Builds, tests and uploads the release artifacts'
+    group = 'release'
+    dependsOn releaseVersion, releaseDists, testedDists, uploadDists, ':docs:uploadDocs'
+    // todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
 }
 
 task wrapper(type: Wrapper, dependsOn: binZip)
@@ -428,8 +443,6 @@ wrapper.doFirst {task ->
         jarPath = 'wrapper'
     }
 }
-
-task rebuildWrapper(dependsOn: [clean, wrapper])
 
 def groovyProjects() {
     subprojects.findAll { project -> project.name != 'docs' }
@@ -472,7 +485,7 @@ class Version {
         buildTime = new Date(timestampFile.lastModified())
 
         project.gradle.taskGraph.whenReady {graph ->
-            if (!graph.hasTask(':release')) {
+            if (!graph.hasTask(':releaseVersion')) {
                 this.versionNumber += "-" + getTimestamp()
                 release = false
             } else {
