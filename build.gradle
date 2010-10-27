@@ -14,13 +14,14 @@
  * limitations under the License.
  */
 
-import java.text.SimpleDateFormat
 import java.util.jar.Attributes
 import org.gradle.api.artifacts.repositories.WebdavResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 import org.gradle.build.samples.WrapperProjectCreator
-import java.util.regex.Pattern
+import org.gradle.build.Version
+import org.gradle.build.Install
+import org.gradle.build.Git
 
 /**
  * For building Gradle you usually don't need to specify any properties. Only certain functionality of the Gradle requires
@@ -423,17 +424,25 @@ gradle.taskGraph.whenReady {graph ->
 // A marker task which causes the release version to be used when it is present in the task graph
 task releaseVersion
 
-task releaseDists {
+task tag {
+    doLast {
+        def git = new Git(project)
+        git.checkNoModifications()
+        git.tag("REL_$version", "Release $version")
+        git.branch("RB_$version")
+    }
+}
+
+task releaseArtifacts {
     description = 'Builds the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, assemble
+    dependsOn releaseVersion, tag, assemble, ':docs:websiteDocs'
 }
 
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, releaseDists, testedDists, uploadDists, ':docs:uploadDocs'
-    // todo rewrite release functionality for Git. Until then we have to do tagging and branching manually.
+    dependsOn releaseVersion, releaseArtifacts, testedDists, uploadDists, ':docs:uploadDocs'
 }
 
 task wrapper(type: Wrapper, dependsOn: binZip)
@@ -455,100 +464,5 @@ def runtimeProjects() {
 def pluginProjects() {
     ['plugins', 'codeQuality', 'jetty', 'antlr', 'wrapper', 'osgi', 'maven', 'eclipse', 'idea', 'announce', 'scala'].collect {
         project(it)
-    }
-}
-
-class Version {
-    String versionNumber
-    Date buildTime
-    Boolean release = null
-
-    def Version(project) {
-        this.versionNumber = project.nextVersion
-        File timestampFile = new File(project.buildDir, 'timestamp.txt')
-        if (!timestampFile.isFile()) {
-            timestampFile.parentFile.mkdirs()
-            timestampFile.createNewFile()
-        } else {
-            boolean uptodate = true
-            def modified = timestampFile.lastModified()
-            project.project(':core').fileTree('src/main').visit {fte ->
-                if (fte.file.isFile() && fte.lastModified > modified) {
-                    uptodate = false
-                    fte.stopVisiting()
-                }
-            }
-            if (!uptodate) {
-                timestampFile.setLastModified(new Date().time)
-            }
-        }
-        buildTime = new Date(timestampFile.lastModified())
-
-        project.gradle.taskGraph.whenReady {graph ->
-            if (!graph.hasTask(':releaseVersion')) {
-                this.versionNumber += "-" + getTimestamp()
-                release = false
-            } else {
-                release = true
-            }
-        }
-    }
-
-    String toString() {
-        versionNumber
-    }
-
-    String getTimestamp() {
-        new SimpleDateFormat('yyyyMMddHHmmssZ').format(buildTime)
-    }
-
-    boolean isRelease() {
-        if (release == null) {
-            throw new GradleException("Can't determine whether this is a release build before the task graph is populated")
-        }
-        return release
-    }
-
-    String getDistributionUrl() {
-        if (release) {
-            'https://dav.codehaus.org/dist/gradle'
-        } else {
-            'https://dav.codehaus.org/snapshots.dist/gradle'
-        }
-    }
-}
-
-class Install extends Sync {
-
-    String installDirProperyName
-    File installDir
-
-    def Install() {
-        addPropertyCheck()
-        doLast {
-            ant.chmod(file: "$installDir/bin/gradle", perm: 'ugo+x')
-        }
-    }
-
-    private void addPropertyCheck() {
-        project.gradle.taskGraph.whenReady {graph ->
-            if (graph.hasTask(path)) {
-                // Do this early to ensure that the properties we need have been set, and fail early
-                if (!project.hasProperty(installDirProperyName)) {
-                    throw new RuntimeException("You can't install without setting the $installDirProperyName property.")
-                }
-                installDir = project.file(this.project."$installDirProperyName")
-                if (installDir.file) {
-                    throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
-                }
-                if (installDir.directory) {
-                    File libDir = new File(installDir, "lib")
-                    if (!libDir.directory || !libDir.list().findAll { it.matches('gradle.*\\.jar')}) {
-                        throw new RuntimeException("Install directory $installDir does not look like a Gradle installation. Cannot delete it to install.")
-                    }
-                }
-                into installDir
-            }
-        }
     }
 }
