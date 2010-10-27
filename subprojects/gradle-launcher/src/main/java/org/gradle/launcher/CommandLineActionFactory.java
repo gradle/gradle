@@ -23,6 +23,7 @@ import org.gradle.initialization.*;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
+import org.gradle.util.GFileUtils;
 import org.gradle.util.GradleVersion;
 
 import java.io.File;
@@ -121,13 +122,13 @@ public class CommandLineActionFactory {
         if (commandLine.hasOption(NO_DAEMON)) {
             return new Runnable() {
                 public void run() {
-                    new GradleDaemon(loggingServices).build(new File(""), commandLine.getExtraArguments());
+                    new GradleDaemon(loggingServices).build(new File(System.getProperty("user.dir")), commandLine.getExtraArguments());
                 }
             };
         }
         return new Runnable() {
             public void run() {
-                new GradleDaemon(loggingServices).clientMain(new File(""), args);
+                new GradleDaemon(loggingServices).clientMain(new File(System.getProperty("user.dir")), args);
             }
         };
     }

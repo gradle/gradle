@@ -3,7 +3,6 @@ package org.gradle.launcher;
 import org.gradle.*;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -108,7 +107,7 @@ public class GradleDaemon {
 
     public void clientMain(File currentDir, Iterable<String> args) {
         try {
-            Socket socket = connect();
+            Socket socket = connect(args);
             run(new Build(currentDir, args), socket);
         } catch (Throwable t) {
             throw UncheckedException.asUncheckedException(t);
@@ -121,8 +120,9 @@ public class GradleDaemon {
 
     private void build(Build build, Clock clock) {
         DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
-        StartParameter startParameter = converter.convert(build.args);
+        StartParameter startParameter = new StartParameter();
         startParameter.setCurrentDir(build.currentDir);
+        converter.convert(build.args, startParameter);
         LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
         loggingManager.setLevel(startParameter.getLogLevel());
         loggingManager.start();
@@ -178,7 +178,11 @@ public class GradleDaemon {
         }
     }
 
-    private Socket connect() throws Exception {
+    private Socket connect(Iterable<String> args) throws Exception {
+        DefaultCommandLineConverter converter = new DefaultCommandLineConverter();
+        StartParameter startParameter = converter.convert(args);
+        File userHomeDir = startParameter.getGradleUserHomeDir();
+
         Socket socket = maybeConnect();
         if (socket != null) {
             return socket;
@@ -194,6 +198,7 @@ public class GradleDaemon {
                 File.pathSeparator));
         daemonArgs.add(GradleDaemon.class.getName());
         ProcessBuilder builder = new ProcessBuilder(daemonArgs);
+        builder.directory(userHomeDir);
         Process process = builder.start();
         process.getOutputStream().close();
         process.getErrorStream().close();
