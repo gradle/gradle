@@ -1,16 +1,3 @@
-import org.custommonkey.xmlunit.Diff
-import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
-import org.custommonkey.xmlunit.XMLAssert
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'xmlunit:xmlunit:1.3'
-    }
-}
-
 defaultTasks 'idea', 'cleanIdea'
 
 allprojects {
@@ -36,36 +23,8 @@ subprojects {
     version = '1.0'
 }
 
-ideaModule.doLast {
-    compareXmlWithIgnoringOrder(file('expectedFiles/expectedRootModule.xml').text,
-            file("${project.name}.iml").text)
-}
-
-ideaProject.doLast {
-    compareXmlWithIgnoringOrder(file('expectedFiles/expectedProjectFile.xml').text,
-            file("${project.name}.ipr").text)
-}
-
-ideaWorkspace.doLast {
-    compareXmlWithIgnoringOrder(file('expectedFiles/expectedIwsFile.xml').text,
-            file("${project.name}.iws").text )
-}
-
 cleanIdea.doLast {
     assert !file("${project.name}.iml").isFile()
     assert !file("${project.name}.ipr").isFile()
     assert !file("${project.name}.iws").isFile()
 }
-
-void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
-    Diff diff = new Diff(expectedXml, actualXml)
-    diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
-    XMLAssert.assertXMLEqual(diff, true);
-}
-
-String getExpectedXml(Project subProject, String filename) {
-    def cache = new File(gradle.gradleUserHomeDir, "/cache")
-    def path = cache.absolutePath.replace(File.separator, '/')
-    return rootProject.file("expectedFiles/$filename").text.replace('@CACHE_DIR@', path)
-}
-

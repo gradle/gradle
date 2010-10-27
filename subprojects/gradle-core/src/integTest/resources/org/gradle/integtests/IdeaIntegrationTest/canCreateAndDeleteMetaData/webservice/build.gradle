@@ -10,10 +10,6 @@ dependencies {
     }
 }
 
-ideaModule.doLast {
-    compareXmlWithIgnoringOrder(getExpectedXml(project, 'expectedWebserviceModule.xml'), file("webservice.iml").text)
-}
-
 cleanIdea.doLast {
     assert !file("webservice/webservice.iml").isFile()
 }

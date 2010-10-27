@@ -2,10 +2,6 @@ dependencies {
     runtime 'commons-collections:commons-collections:3.2@jar'
 }
 
-ideaModule.doLast {
-    compareXmlWithIgnoringOrder(getExpectedXml(project, 'expectedApiModule.xml'), file("api.iml").text)
-}
-
 cleanIdea.doLast {
     assert !file("api/api.iml").isFile()
 }
