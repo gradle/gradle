@@ -309,7 +309,7 @@ task websiteUserguide(type: Docbook2Xhtml, dependsOn: websiteUserguideSrc) {
 task websiteProperties {
     def propertiesFile = new File(websiteDocs, 'version.properties')
     inputs.property 'version', { version.toString() }
-    outputs.file propertiesFile
+    outputs.files propertiesFile
     doLast {
         def properties = new Properties()
         properties.version = version.toString()
