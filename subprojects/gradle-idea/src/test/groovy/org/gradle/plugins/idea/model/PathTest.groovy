@@ -60,25 +60,54 @@ class PathTest extends Specification {
 
     def generatesUrlAndPathForFileWithNoRootDir() {
         def file = tmpDir.file('a')
+        def relpath = file.absolutePath.replace(File.separator, '/')
 
         expect:
         def path = new Path(file)
-        path.url == "file://${file.absolutePath}"
-        path.relPath == null
+        path.url == "file://${relpath}"
+        path.relPath == relpath
+    }
+
+    def generatesUrlAndPathForFileOnDifferentFilesystemToRootDir() {
+        def fileSystemRoots = findFileSystemRoots()
+        if (fileSystemRoots == 1) {
+            return
+        }
+        def rootDir = new File(fileSystemRoots[0], 'root')
+        def file = new File(fileSystemRoots[1], 'file')
+        def relpath = file.absolutePath.replace(File.separator, '/')
+
+        expect:
+        def path = new Path(rootDir, '$ROOT_DIR$', file)
+        path.url == "file://${relpath}"
+        path.relPath == relpath
     }
 
     def generatesUrlAndPathForJarFileWithNoRootDir() {
         def file = tmpDir.file('a.jar')
+        def relpath = file.absolutePath.replace(File.separator, '/')
 
         expect:
         def path = new Path(file)
-        path.url == "jar://${file.absolutePath}!/"
-        path.relPath == null
+        path.url == "jar://${relpath}!/"
+        path.relPath == relpath
     }
 
     def pathsAreEqualWhenTheyHaveTheSameUrl() {
         expect:
         Matchers.strictlyEquals(new Path(tmpDir.dir, '$ROOT_DIR$', tmpDir.file('file')), new Path('file://$ROOT_DIR$/file'))
         new Path('file://$ROOT_DIR$/file') != new Path('file://$ROOT_DIR$/other')
+    }
+
+    def findFileSystemRoots() {
+        File.listRoots().inject([]) {List result, File root ->
+            try {
+                new File(root, 'file').canonicalFile
+                result << root
+            } catch (IOException e) {
+                // skip
+            }
+            return result
+        }
     }
 }
