@@ -28,6 +28,7 @@ import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.junit.Assert
 import org.slf4j.LoggerFactory
 import org.slf4j.Logger
+import org.gradle.util.Jvm
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class CompatibilityIntegrationTest {
@@ -37,22 +38,32 @@ class CompatibilityIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
 
     private final PreviousGradleVersionExecuter gradle09rc1 = dist.previousVersion('0.9-rc-1')
+    private final PreviousGradleVersionExecuter gradle09rc2 = dist.previousVersion('0.9-rc-2')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        [gradle09rc1].each {
+        [gradle09rc1, gradle09rc2].each {
             checkCanBuildUsing(dist, it)
         }
     }
 
     @Test
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        [gradle09rc1].each {
+        [gradle09rc1, gradle09rc2].each {
             checkCanBuildUsing(it, dist)
         }
     }
 
     def checkCanBuildUsing(BasicGradleDistribution openApiVersion, BasicGradleDistribution buildVersion) {
+        if (!buildVersion.worksWith(Jvm.current())) {
+            System.out.println("skipping $buildVersion as it does not work with ${Jvm.current()}.")
+            return
+        }
+        if (!openApiVersion.worksWith(Jvm.current())) {
+            System.out.println("skipping $openApiVersion as it does not work with ${Jvm.current()}.")
+            return
+        }
+
         def testClasses = AbstractClassPathProvider.getClasspathForClass(CrossVersionBuilder.class)
         def junitJar = AbstractClassPathProvider.getClasspathForClass(Assert.class)
         def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }

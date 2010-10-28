@@ -15,6 +15,8 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.util.Jvm;
+
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -84,4 +86,6 @@ public interface GradleExecuter {
      * @return The result.
      */
     ExecutionFailure runWithFailure();
+
+    boolean worksWith(Jvm jvm);
 }

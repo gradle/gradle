@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.GradleDistribution
 
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.GradleExecuter
+import org.gradle.util.Jvm
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class BackwardsCompatibilityIntegrationTest {
@@ -31,19 +32,24 @@ class BackwardsCompatibilityIntegrationTest {
     @Rule public final TestResources resources = new TestResources()
     private final GradleExecuter gradle08 = dist.previousVersion('0.8')
     private final GradleExecuter gradle09rc1 = dist.previousVersion('0.9-rc-1')
+    private final GradleExecuter gradle09rc2 = dist.previousVersion('0.9-rc-2')
 
     @Test
     public void canBuildJavaProject() {
         dist.testFile('buildSrc/src/main/groovy').assertIsDir()
 
         // Upgrade and downgrade
-        eachVersion([gradle08, gradle09rc1, executer, gradle09rc1, gradle08]) { version ->
+        eachVersion([gradle08, gradle09rc1, gradle09rc2, executer, gradle09rc2, gradle09rc1, gradle08]) { version ->
             version.inDirectory(dist.testDir).withTasks('build').run()
         }
     }
 
     def eachVersion(Iterable<GradleExecuter> versions, Closure cl) {
         versions.each { version ->
+            if (!version.worksWith(Jvm.current())) {
+                System.out.println("skipping $version as it does not work with ${Jvm.current()}.")
+                return
+            }
             try {
                 System.out.println("building using $version");
                 cl.call(version)

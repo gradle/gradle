@@ -16,10 +16,7 @@
 
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.GradleVersion;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
-import org.gradle.util.TestFileContext;
+import org.gradle.util.*;
 import org.junit.rules.MethodRule;
 import org.junit.runners.model.FrameworkMethod;
 import org.junit.runners.model.Statement;
@@ -52,6 +49,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
 
     public GradleDistribution() {
         this.userHome = USER_HOME_DIR;
+    }
+
+    public boolean worksWith(Jvm jvm) {
+        return jvm.isJava5Compatible();
     }
 
     public void requireOwnUserHomeDir() {

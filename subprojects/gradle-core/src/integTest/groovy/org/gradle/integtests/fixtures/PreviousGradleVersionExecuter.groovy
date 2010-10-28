@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.fixtures
 
+import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
@@ -28,6 +29,11 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
 
     def String toString() {
         "Gradle $version"
+    }
+
+    @Override
+    boolean worksWith(Jvm jvm) {
+        return version == '0.9-rc-1' ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }
 
     protected ExecutionResult doRun() {

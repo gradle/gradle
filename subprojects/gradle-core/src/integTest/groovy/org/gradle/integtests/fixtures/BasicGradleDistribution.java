@@ -15,10 +15,13 @@
  */
 package org.gradle.integtests.fixtures;
 
+import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 
 public interface BasicGradleDistribution {
     TestFile getGradleHomeDir();
 
     String getVersion();
+
+    boolean worksWith(Jvm jvm);
 }
