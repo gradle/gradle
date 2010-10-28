@@ -19,8 +19,10 @@ import groovy.text.TemplateEngine
 import java.util.regex.Matcher
 
 // we only need a test source set
-apply plugin: 'groovy-base'
+apply plugin: 'groovy'
 apply plugin: 'code-quality'
+apply plugin: 'idea'
+apply plugin: 'eclipse'
 
 repositories {
     mavenCentral()
@@ -36,28 +38,14 @@ dependencies {
         }
     }
     groovy localGroovy()
-    integTestCompile 'junit:junit:4.7'
-    integTestCompile 'net.sourceforge.htmlunit:htmlunit:2.7'
-}
-sourceSets {
-    integTest {
-        compileClasspath = configurations.integTestCompile
-        runtimeClasspath = classes + compileClasspath
-    }
+    testCompile 'junit:junit:4.7'
+    testCompile 'net.sourceforge.htmlunit:htmlunit:2.7'
 }
 
 webSrcDir = file('src')
 
 gradleCorePath = projectDir.parentFile
-
-gradleCoreProperties = GUtil.loadProperties(new File(gradleCorePath, Project.GRADLE_PROPERTIES))
-
-version = gradleCoreProperties.previousVersion
-stableVersion = '0.8'
-releases = [new Release(title: 'Current Release', version: version)]
-if (stableVersion != version) {
-    releases << new Release(title: 'Current Stable Release', version: stableVersion)
-}
+File generatedDocs = new File("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs")
 
 //buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 buildWebsiteDir = new File(buildDir, 'website')
@@ -67,11 +55,6 @@ checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
 checkstyleConfigFileName = "$checkstyleConfigDir/checkstyle.xml"
 codeNarcConfigFileName = "$gradleCorePath/config/codenarc.xml"
 
-task ide(type: Sync) {
-    into "ide/lib"
-    from { configurations.integTestCompile.copyRecursive {dep -> !(dep instanceof ProjectDependency)}.files }
-}
-
 task userguideContent << {
     def startParams = gradle.startParameter.newBuild()
     startParams.taskNames = ['websiteDocs']
@@ -80,7 +63,20 @@ task userguideContent << {
     launcher.run().rethrowFailure()
 }
 
-task html(dependsOn: userguideContent) << {
+releases = []
+task configureReleases << {
+    gradleCoreProperties = GUtil.loadProperties(new File(generatedDocs, 'version.properties'))
+
+    version = gradleCoreProperties.version
+    releases << new Release(title: 'Current Release', version: version)
+    stableVersion = '0.8'
+    if (stableVersion != version) {
+        releases << new Release(title: 'Current Stable Release', version: stableVersion)
+    }
+    releases << new Release(title: 'Previous Release', version: '0.7')
+}
+
+task html(dependsOn: configureReleases) << {
     buildWebsiteDir.mkdirs()
     File webContentSrcDir = new File(webSrcDir, 'content')
     def engine = new SimpleTemplateEngine()
@@ -94,7 +90,6 @@ task html(dependsOn: userguideContent) << {
 
     List pages = []
     webContentSrcDir.eachFileMatch(~/^.+?\.html$/) { pages << new Page(srcFile: it) }
-    File generatedDocs = new File("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs")
     generatedDocs.eachFileMatch(~/^.+?\.html$/) {
         if (it.name != 'userguide.html' && it.name != 'website.html') {
             pages << new GeneratedPage(srcFile: it)
@@ -116,7 +111,7 @@ task html(dependsOn: userguideContent) << {
         from(webSrcDir) {
             include 'css/**'
             include 'img/**'
-			include 'other-resources/**'
+            include 'other-resources/**'
         }
         from(generatedDocs) {
             include 'base.css'
@@ -128,9 +123,8 @@ task html(dependsOn: userguideContent) << {
     }
 }
 
-task integTest(type: Test, dependsOn: html) {
-    testClassesDir = sourceSets.integTest.classesDir
-    classpath = sourceSets.integTest.runtimeClasspath
+test {
+    dependsOn html
     systemProperties 'test.base.uri': buildWebsiteDir.toURI()
     inputs.dir buildWebsiteDir
 }

@@ -37,9 +37,9 @@ class Path {
     }
 
     def Path(File file) {
-        // IDEA doesn't like the result of file.toURI()
-        url = relativePathToURI(file.absolutePath)
-        relPath = null
+        // IDEA doesn't like the result of file.toURI() so use the absolute path instead
+        relPath = file.absolutePath.replace(File.separator, '/')
+        url = relativePathToURI(relPath)
     }
 
     def Path(String url) {
@@ -49,7 +49,7 @@ class Path {
 
     public static String getRelativePath(File rootDir, String rootDirString, File file) {
         String relpath = getRelativePath(rootDir, file)
-        return rootDirString + '/' + relpath
+        return relpath != null ? rootDirString + '/' + relpath : file.absolutePath.replace(File.separator, '/')
     }
 
     private String relativePathToURI(String relpath) {
@@ -71,10 +71,11 @@ class Path {
 
     private static List getPathList(File f) {
         List list = []
-        File r = f.getCanonicalFile()
+        File r = f.canonicalFile
         while (r != null) {
-            list.add(r.getName())
-            r = r.getParentFile()
+            File parent = r.parentFile
+            list.add(parent ? r.name : r.absolutePath)
+            r = parent
         }
 
         return list
@@ -86,6 +87,12 @@ class Path {
         // eliminate the common root
         int i = r.size() - 1
         int j = f.size() - 1
+
+        if (r[i] != f[j]) {
+            // no common root
+            return null
+        }
+
         while ((i >= 0) && (j >= 0) && (r[i] == f[j])) {
             i--
             j--
@@ -93,16 +100,19 @@ class Path {
 
         // for each remaining level in the relativeTo path, add a ..
         for (; i >= 0; i--) {
-            s.append('..').append('/')
+            s.append('../')
         }
 
         // for each level in the file path, add the path
         for (; j >= 1; j--) {
             s.append(f[j]).append('/')
         }
+        // add the file name
+        if (j == 0) {
+            s.append(f[j])
+        }
 
-        // add the file name and return the result
-        return s.append(f[j]).toString()
+        return s.toString()
     }
 
     boolean equals(o) {

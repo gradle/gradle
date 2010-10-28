@@ -34,10 +34,11 @@ class PathFactoryTest extends Specification {
     def createsPathForAFileNotUnderARootDir() {
         factory.addPathVariable('ROOT_DIR', tmpDir.dir)
         def file = tmpDir.dir.parentFile.file('a')
+        def relpath = file.absolutePath.replace(File.separator, '/')
 
         expect:
         def path = factory.path(file)
-        path.url == "file://$file.absolutePath"
+        path.url == "file://$relpath"
     }
 
     def usesTheClosestAncestorRootDirForAFileUnderMultipleRootDirs() {

@@ -112,6 +112,35 @@ class WebsitePageImpl implements WebsitePage {
     }
 }
 
+class BinaryWebsitePage implements WebsitePage {
+    private final PageInfo page
+
+    BinaryWebsitePage(PageInfo page) {
+        this.page = page;
+    }
+
+    @Override
+    String toString() {
+        return page.toString()
+    }
+
+    boolean isLocal() {
+        return true
+    }
+
+    PageInfo resolve(String path) {
+        return page.resolve(path)
+    }
+
+    URI getURI() {
+        return page.getURI()
+    }
+
+    Collection<Link> getLocalLinks() {
+        return []
+    }
+}
+
 class LinkImpl implements Link {
     private final HtmlAnchor anchor
     private final HtmlUnitBrowser browser
@@ -141,6 +170,9 @@ class LinkImpl implements Link {
             if (e.cause instanceof FileNotFoundException) {
                 throw new PageNotFoundException("Page $target not found for link on page $referent", e);
             }
+        }
+        if (!(targetPage instanceof HtmlPage)) {
+            return new BinaryWebsitePage(target)
         }
         return new WebsitePageImpl(browser, targetPage, target)
     }

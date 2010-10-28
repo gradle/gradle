@@ -56,6 +56,7 @@ distDocsDir = new File(buildDir, 'distDocs')
 samplesDir = file("$buildDir/samples")
 docbookSrc = new File(project.buildDir, 'src/docbook')
 samplesSrcDir = file('src/samples')
+websiteDocs = new File(buildDir, 'websiteDocs')
 
 tasks.withType(Docbook2Xhtml).allObjects { task->
     task.dependsOn userguideStyleSheets
@@ -278,7 +279,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
+task websiteUserguideSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook, dslDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
@@ -291,9 +292,8 @@ task websiteDocsSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleShee
     }
 }
 
-task websiteDocs(type: Docbook2Xhtml, dependsOn: websiteDocsSrc) {
-    File websiteDocs = new File(buildDir, 'websiteDocs')
-    source websiteDocsSrc.destFile
+task websiteUserguide(type: Docbook2Xhtml, dependsOn: websiteUserguideSrc) {
+    source websiteUserguideSrc.destFile
     destFile = new File(websiteDocs, 'website.html')
     stylesheetName = 'websiteHtml.xsl'
     resources = fileTree {
@@ -304,6 +304,22 @@ task websiteDocs(type: Docbook2Xhtml, dependsOn: websiteDocsSrc) {
         from cssSrcDir
         include '*.css'
     }
+}
+
+task websiteProperties {
+    def propertiesFile = new File(websiteDocs, 'version.properties')
+    inputs.property 'version', { version.toString() }
+    outputs.files propertiesFile
+    doLast {
+        def properties = new Properties()
+        properties.version = version.toString()
+        propertiesFile.parentFile.mkdirs()
+        propertiesFile.withWriter { writer -> properties.store(writer, 'documentation version properties') }
+    }
+}
+
+task websiteDocs {
+    dependsOn websiteUserguide, websiteProperties
 }
 
 task userguide {

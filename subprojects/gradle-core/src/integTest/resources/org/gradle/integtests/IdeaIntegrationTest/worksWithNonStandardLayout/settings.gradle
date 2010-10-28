@@ -1,0 +1,6 @@
+include 'a child', 'top-level'
+
+rootProject.name = 'root'
+rootProject.projectDir = file('root')
+project(':top-level').projectDir = settingsDir
+project(':a child').projectDir = file('a child project')
