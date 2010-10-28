@@ -19,9 +19,28 @@ import org.gradle.util.Jvm;
 import org.gradle.util.TestFile;
 
 public interface BasicGradleDistribution {
+    /**
+     * Returns the root directory of the installed distribution
+     */
     TestFile getGradleHomeDir();
 
+    /**
+     * Returns the binary distribution.
+     */
+    TestFile getBinDistribution();
+
+    /**
+     * Returns the version of this distribution.
+     */
     String getVersion();
 
+    /**
+     * Creates an executer which will use this distribution.
+     */
+    GradleExecuter executer();
+
+    /**
+     * Returns true if this distribution supports the given JVM.
+     */
     boolean worksWith(Jvm jvm);
 }

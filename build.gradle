@@ -436,13 +436,13 @@ task tag {
 task releaseArtifacts {
     description = 'Builds the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, tag, assemble, ':docs:websiteDocs'
+    dependsOn releaseVersion, assemble, ':docs:websiteDocs'
 }
 
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, releaseArtifacts, testedDists, uploadDists, ':docs:uploadDocs'
+    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadDists, ':docs:uploadDocs'
 }
 
 task wrapper(type: Wrapper, dependsOn: binZip)

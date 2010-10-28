@@ -1,0 +1,11 @@
+
+task wrapper(type: Wrapper) {
+    doFirst {
+        gradleVersion = distVersion
+        urlRoot = new File(project.distZip).parentFile.toURI().toString()
+    }
+}
+
+task hello {
+    doLast { println "hello from $gradle.gradleVersion" }
+}

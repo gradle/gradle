@@ -91,6 +91,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         return new GradleVersion().getVersion();
     }
 
+    public TestFile getBinDistribution() {
+        return getDistributionsDir().file(String.format("gradle-%s-bin.zip", getVersion()));
+    }
+
     /**
      * The samples from the distribution. These are usually shared with other tests.
      */
@@ -135,13 +139,17 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     }
 
     /**
-     * Returns an executer which can execute a previous version of Gradle.
+     * Returns a previous version of Gradle.
      *
      * @param version The Gradle version
      * @return An executer
      */
-    public PreviousGradleVersionExecuter previousVersion(String version) {
+    public BasicGradleDistribution previousVersion(String version) {
         return new PreviousGradleVersionExecuter(this, version);
+    }
+
+    public GradleExecuter executer() {
+        return new GradleDistributionExecuter(this);
     }
 
     /**

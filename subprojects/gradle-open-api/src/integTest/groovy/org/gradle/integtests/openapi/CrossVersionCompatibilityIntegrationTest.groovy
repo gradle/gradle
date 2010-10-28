@@ -15,30 +15,27 @@
  */
 package org.gradle.integtests.openapi
 
+import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.integtests.DistributionIntegrationTestRunner
+import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.PreviousGradleVersionExecuter
 import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Jvm
+import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.internal.AbstractClassPathProvider
-import org.gradle.integtests.fixtures.BasicGradleDistribution
-import org.junit.Assert
-import org.slf4j.LoggerFactory
 import org.slf4j.Logger
-import org.gradle.util.Jvm
+import org.slf4j.LoggerFactory
 
 @RunWith(DistributionIntegrationTestRunner.class)
-class CompatibilityIntegrationTest {
-    private final Logger logger = LoggerFactory.getLogger(CompatibilityIntegrationTest)
+class CrossVersionCompatibilityIntegrationTest {
+    private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
     @Rule public final GradleDistribution dist = new GradleDistribution()
-    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
     @Rule public final TestResources resources = new TestResources()
 
-    private final PreviousGradleVersionExecuter gradle09rc1 = dist.previousVersion('0.9-rc-1')
-    private final PreviousGradleVersionExecuter gradle09rc2 = dist.previousVersion('0.9-rc-2')
+    private final BasicGradleDistribution gradle09rc1 = dist.previousVersion('0.9-rc-1')
+    private final BasicGradleDistribution gradle09rc2 = dist.previousVersion('0.9-rc-2')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
