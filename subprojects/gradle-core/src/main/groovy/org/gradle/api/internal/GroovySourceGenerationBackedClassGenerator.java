@@ -96,6 +96,7 @@ public class GroovySourceGenerationBackedClassGenerator extends AbstractClassGen
         }
 
         public void addDynamicMethods() {
+            src.format("def hasProperty(String name) { getAsDynamicObject().hasProperty(name); }%n");
             src.format("void setProperty(String name, Object value) { getAsDynamicObject().setProperty(name, value); }%n");
             src.format("def propertyMissing(String name) { getAsDynamicObject().getProperty(name); }%n");
             src.format("def methodMissing(String name, Object params) { getAsDynamicObject().invokeMethod(name, (Object[])params); }%n");

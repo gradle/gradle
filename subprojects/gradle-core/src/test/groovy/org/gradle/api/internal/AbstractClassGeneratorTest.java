@@ -29,9 +29,10 @@ import org.junit.Test;
 import java.util.*;
 import java.util.concurrent.Callable;
 
-import static org.gradle.util.HelperUtil.*;
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.HelperUtil.TEST_CLOSURE;
+import static org.gradle.util.HelperUtil.call;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.WrapUtil.toList;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -300,6 +301,7 @@ public abstract class AbstractClassGeneratorTest {
 
         call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
+        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
         assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
         assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
         assertThat(call("{ it.invokeMethod('conventionMethod', 'value') }", bean), equalTo((Object) "[value]"));
@@ -314,6 +316,7 @@ public abstract class AbstractClassGeneratorTest {
 
         call("{ it.conventionProperty = 'value' }", bean);
         assertThat(conventionObject.getConventionProperty(), equalTo("value"));
+        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
         assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
         assertThat(call("{ it.conventionMethod('value') }", bean), equalTo((Object) "[value]"));
         assertThat(call("{ it.invokeMethod('conventionMethod', 'value') }", bean), equalTo((Object) "[value]"));
@@ -324,6 +327,7 @@ public abstract class AbstractClassGeneratorTest {
         Bean bean = generator.generate(Bean.class).newInstance();
 
         call("{ it.metaClass.getConventionProperty = { -> 'value'} }", bean);
+        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
         assertThat(call("{ it.getConventionProperty() }", bean), equalTo((Object) "value"));
         assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
     }
@@ -333,6 +337,7 @@ public abstract class AbstractClassGeneratorTest {
         TestDecoratedGroovyBean bean = generator.generate(TestDecoratedGroovyBean.class).newInstance();
 
         call("{ it.metaClass.getConventionProperty = { -> 'value'} }", bean);
+        assertThat(call("{ it.hasProperty('conventionProperty') }", bean), notNullValue());
         assertThat(call("{ it.getConventionProperty() }", bean), equalTo((Object) "value"));
         assertThat(call("{ it.conventionProperty }", bean), equalTo((Object) "value"));
     }

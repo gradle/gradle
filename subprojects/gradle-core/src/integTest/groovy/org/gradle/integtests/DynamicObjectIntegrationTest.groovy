@@ -149,13 +149,20 @@ class DynamicObjectIntegrationTest {
             javaTask.custom = 'another value'
             groovyTask.custom = 'another value'
             assert !project.hasProperty('custom')
+            assert defaultTask.hasProperty('custom')
             assert defaultTask.custom == 'another value'
             assert defaultTask.doStuff() == 'method'
             assert javaTask.doStuff() == 'method'
             assert groovyTask.doStuff() == 'method'
+            assert configurations.test.hasProperty('custom')
             assert configurations.test.custom == 'value'
             assert configurations.test.doStuff() == 'method'
-            configurations.test.dependencies.each { assert it.custom == 'value' }
+            configurations.test.dependencies.each {
+                assert it.hasProperty('custom')
+                assert it.custom == 'value'
+                assert it.getProperty('custom') == 'value'
+            }
+            assert repositories.hasProperty('custom')
             assert repositories.custom == 'repository'
             assert repositories.doStuff() == 'method'
             repositories {

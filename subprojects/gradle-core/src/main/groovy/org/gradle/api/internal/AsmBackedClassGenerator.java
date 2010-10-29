@@ -365,7 +365,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
         private void addGetter(Method method, MethodCodeBody body) throws Exception {
             String methodDescriptor = Type.getMethodDescriptor(method);
-            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, method.getName(), methodDescriptor,
+            String methodName = method.getName();
+            addGetter(methodName, methodDescriptor, body);
+        }
+
+        private void addGetter(String methodName, String methodDescriptor, MethodCodeBody body) throws Exception {
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, methodName, methodDescriptor,
                     null, new String[0]);
             methodVisitor.visitCode();
             body.add(methodVisitor);
@@ -397,6 +402,31 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     // END
                 }
             });
+
+            // GENERATE public boolean hasProperty(String name) { return getAsDynamicObject().hasProperty(name) }
+
+            String methodDescriptor = Type.getMethodDescriptor(Type.getType(Boolean.TYPE), new Type[]{Type.getType(String.class)});
+            MethodVisitor methodVisitor = visitor.visitMethod(Opcodes.ACC_PUBLIC, "hasProperty", methodDescriptor, null, new String[0]);
+            methodVisitor.visitCode();
+
+            // GENERATE getAsDynamicObject().hasProperty(name);
+
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 0);
+            String getAsDynamicObjectDesc = Type.getMethodDescriptor(DynamicObjectAware.class.getDeclaredMethod(
+                    "getAsDynamicObject"));
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEVIRTUAL, generatedType.getInternalName(),
+                    "getAsDynamicObject", getAsDynamicObjectDesc);
+
+            methodVisitor.visitVarInsn(Opcodes.ALOAD, 1);
+            String getPropertyDesc = Type.getMethodDescriptor(DynamicObject.class.getDeclaredMethod(
+                    "hasProperty", String.class));
+            methodVisitor.visitMethodInsn(Opcodes.INVOKEINTERFACE, dynamicObjectType.getInternalName(),
+                    "hasProperty", getPropertyDesc);
+
+            // END
+            methodVisitor.visitInsn(Opcodes.IRETURN);
+            methodVisitor.visitMaxs(0, 0);
+            methodVisitor.visitEnd();
 
             // GENERATE public void setProperty(String name, Object value) { getAsDynamicObject().setProperty(name, value); }
 

@@ -16,10 +16,9 @@
 package org.gradle.api.internal.project.taskfactory;
 
 import org.gradle.api.*;
+import org.gradle.api.internal.AsmBackedClassGenerator;
 import org.gradle.api.internal.ConventionTask;
-import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.internal.GroovySourceGenerationBackedClassGenerator;
 import org.gradle.api.internal.project.DefaultProject;
 import org.gradle.api.plugins.Convention;
 import org.gradle.api.tasks.ConventionValue;
@@ -27,12 +26,16 @@ import org.gradle.api.tasks.TaskInstantiationException;
 import org.gradle.util.GUtil;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.WrapUtil;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -48,7 +51,7 @@ public class TaskFactoryTest {
 
     @Before
     public void setUp() {
-        taskFactory = new TaskFactory(new GroovySourceGenerationBackedClassGenerator());
+        taskFactory = new TaskFactory(new AsmBackedClassGenerator());
         testProject = HelperUtil.createRootProject();
         empyArgMap = new HashMap();
     }
