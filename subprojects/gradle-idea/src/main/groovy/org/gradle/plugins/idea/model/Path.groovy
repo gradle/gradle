@@ -31,28 +31,37 @@ class Path {
      */
     final String relPath
 
+    final String canonicalUrl
+
     def Path(File rootDir, String rootDirString, File file) {
         relPath = getRelativePath(rootDir, rootDirString, file)
         url = relativePathToURI(relPath)
+        canonicalUrl = relativePathToURI(file.absolutePath.replace(File.separator, '/'))
     }
 
     def Path(File file) {
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
         relPath = file.absolutePath.replace(File.separator, '/')
         url = relativePathToURI(relPath)
+        canonicalUrl = url
     }
 
     def Path(String url) {
-        this.relPath = null
-        this.url = url
+        this(url, url)
     }
 
-    public static String getRelativePath(File rootDir, String rootDirString, File file) {
+    def Path(String url, String canonicalUrl) {
+        this.relPath = null
+        this.url = url
+        this.canonicalUrl = canonicalUrl
+    }
+
+    private static String getRelativePath(File rootDir, String rootDirString, File file) {
         String relpath = getRelativePath(rootDir, file)
         return relpath != null ? rootDirString + '/' + relpath : file.absolutePath.replace(File.separator, '/')
     }
 
-    private String relativePathToURI(String relpath) {
+    private static String relativePathToURI(String relpath) {
         if (relpath.endsWith('.jar')) {
             return 'jar://' + relpath + '!/';
         } else {
@@ -122,18 +131,19 @@ class Path {
 
         Path path = (Path) o;
 
-        if (url != path.url) { return false }
+        if (canonicalUrl != path.canonicalUrl) { return false }
 
         return true;
     }
 
     int hashCode() {
-        return url.hashCode();
+        return canonicalUrl.hashCode();
     }
 
     public String toString() {
         return "Path{" +
                 "url='" + url + '\'' +
+                ", canonicalUrl='" + canonicalUrl + '\'' +
                 '}';
     }
 }

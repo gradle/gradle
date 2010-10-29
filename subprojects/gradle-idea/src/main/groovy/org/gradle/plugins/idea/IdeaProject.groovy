@@ -25,6 +25,7 @@ import org.gradle.api.tasks.TaskAction
 import org.gradle.listener.ListenerBroadcast
 import org.gradle.plugins.idea.model.ModulePath
 import org.gradle.plugins.idea.model.Project
+import org.gradle.plugins.idea.model.PathFactory
 
 /**
  * Generates an IDEA project file.
@@ -66,17 +67,24 @@ public class IdeaProject extends DefaultTask {
 
     @TaskAction
     void updateXML() {
+        PathFactory pathFactory = getPathFactory()
         Reader xmlreader = outputFile.exists() ? new FileReader(outputFile) : null;
         Set modules = subprojects.inject(new LinkedHashSet()) { result, subproject ->
             if (subproject.plugins.hasPlugin(IdeaPlugin)) {
                 File imlFile = subproject.ideaModule.outputFile
-                result << new ModulePath(outputFile.parentFile, '$PROJECT_DIR$', imlFile)
+                result << new ModulePath(pathFactory.relativePath('PROJECT_DIR', imlFile))
             }
             result
         }
         Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader,
-                beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions)
+                beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions, pathFactory)
         outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
+    }
+
+    private PathFactory getPathFactory() {
+        PathFactory factory = new PathFactory()
+        factory.addPathVariable('PROJECT_DIR', outputFile.parentFile)
+        return factory
     }
 
     /**

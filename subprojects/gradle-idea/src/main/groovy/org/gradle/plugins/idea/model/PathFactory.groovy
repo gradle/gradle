@@ -17,12 +17,21 @@ package org.gradle.plugins.idea.model
 
 class PathFactory {
     private final List<Map> variables = []
+    private final Map<String, File> varsByName = [:]
 
     void addPathVariable(String name, File dir) {
         variables << [name: "\$${name}\$", prefix: dir.absolutePath + File.separator, dir: dir]
+        varsByName[name] = dir
     }
 
+    /**
+     * Creates a path for the given file.
+     */
     Path path(File file) {
+        createFile(file.canonicalFile)
+    }
+
+    private Path createFile(File file) {
         Map match = null
         for (variable in variables) {
             if (file.absolutePath == variable.dir.absolutePath) {
@@ -35,7 +44,7 @@ class PathFactory {
                 }
             }
         }
-        
+
         if (match) {
             return new Path(match.dir, match.name, file)
         }
@@ -43,7 +52,33 @@ class PathFactory {
         return new Path(file)
     }
 
+    /**
+     * Creates a path relative to the given path variable.
+     */
+    Path relativePath(String pathVar, File file) {
+        return new Path(varsByName[pathVar], "\$${pathVar}\$", file)
+    }
+
+    /**
+     * Creates a path for the given URL.
+     */
     Path path(String url) {
-        return new Path(url)
+        String expandedUrl = url
+        for (variable in variables) {
+            expandedUrl = expandedUrl.replace(variable.name, variable.prefix)
+        }
+        if (expandedUrl.toLowerCase().startsWith('file://')) {
+            expandedUrl = toUrl('file', new File(expandedUrl.substring(7)).canonicalFile)
+        } else if (expandedUrl.toLowerCase().startsWith('jar://')) {
+            def parts = expandedUrl.substring(6).split('!')
+            if (parts.length == 2) {
+                expandedUrl = toUrl('jar', new File(parts[0]).canonicalFile) + '!' + parts[1]
+            }
+        }
+        return new Path(url, expandedUrl)
+    }
+
+    def toUrl(String scheme, File file) {
+        return scheme + '://' + file.absolutePath.replace(File.separator, '/')
     }
 }

@@ -66,13 +66,14 @@ class Module {
 
     private Node xml
 
-    private XmlTransformer withXmlActions
+    private final XmlTransformer withXmlActions
+    private final PathFactory pathFactory
 
     def Module(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Path outputDir, Path testOutputDir, Set dependencies,
-               VariableReplacement dependencyVariableReplacement, String javaVersion, Reader inputXml,
-               Action<Module> beforeConfiguredAction, Action<Module> whenConfiguredAction,
-               XmlTransformer withXmlActions) {
-        initFromXml(inputXml, dependencyVariableReplacement)
+               String javaVersion, Reader inputXml, Action<Module> beforeConfiguredAction, Action<Module> whenConfiguredAction,
+               XmlTransformer withXmlActions, PathFactory pathFactory) {
+        this.pathFactory = pathFactory
+        initFromXml(inputXml)
 
         beforeConfiguredAction.execute(this)
 
@@ -95,13 +96,13 @@ class Module {
         whenConfiguredAction.execute(this)
     }
 
-    private def initFromXml(Reader inputXml, VariableReplacement dependencyVariableReplacement) {
+    private def initFromXml(Reader inputXml) {
         Reader reader = inputXml ?: new InputStreamReader(getClass().getResourceAsStream('defaultModule.xml'))
         xml = new XmlParser().parse(reader)
         readJdkFromXml()
         readSourceAndExcludeFolderFromXml()
         readOutputDirsFromXml()
-        readDependenciesFromXml(dependencyVariableReplacement)
+        readDependenciesFromXml()
     }
 
     private def readJdkFromXml() {
@@ -116,24 +117,24 @@ class Module {
     private def readOutputDirsFromXml() {
         def outputDirUrl = findOutputDir()?.@url
         def testOutputDirUrl = findTestOutputDir()?.@url
-        this.outputDir = outputDirUrl ? new Path(outputDirUrl) : null
-        this.testOutputDir = testOutputDirUrl ? new Path(testOutputDirUrl) : null
+        this.outputDir = outputDirUrl ? pathFactory.path(outputDirUrl) : null
+        this.testOutputDir = testOutputDirUrl ? pathFactory.path(testOutputDirUrl) : null
     }
 
-    private def readDependenciesFromXml(VariableReplacement dependencyVariableReplacement) {
+    private def readDependenciesFromXml() {
         return findOrderEntries().each { orderEntry ->
             switch (orderEntry.@type) {
                 case "module-library":
                     Set classes = orderEntry.library.CLASSES.root.collect {
-                        new Path(dependencyVariableReplacement.replace(it.@url))
+                        pathFactory.path(it.@url)
                     }
                     Set javadoc = orderEntry.library.JAVADOC.root.collect {
-                        new Path(dependencyVariableReplacement.replace(it.@url))
+                        pathFactory.path(it.@url)
                     }
                     Set sources = orderEntry.library.SOURCES.root.collect {
-                        new Path(dependencyVariableReplacement.replace(it.@url))
+                        pathFactory.path(it.@url)
                     }
-                    Set jarDirectories = orderEntry.library.jarDirectory.collect { new JarDirectory(new Path(it.@url), Boolean.parseBoolean(it.@recursive)) }
+                    Set jarDirectories = orderEntry.library.jarDirectory.collect { new JarDirectory(pathFactory.path(it.@url), Boolean.parseBoolean(it.@recursive)) }
                     def moduleLibrary = new ModuleLibrary(classes, javadoc, sources, jarDirectories, orderEntry.@scope)
                     dependencies.add(moduleLibrary)
                     break
@@ -146,13 +147,13 @@ class Module {
     private def readSourceAndExcludeFolderFromXml() {
         findSourceFolder().each { sourceFolder ->
             if (sourceFolder.@isTestSource == 'false') {
-                this.sourceFolders.add(new Path(sourceFolder.@url))
+                this.sourceFolders.add(pathFactory.path(sourceFolder.@url))
             } else {
-                this.testSourceFolders.add(new Path(sourceFolder.@url))
+                this.testSourceFolders.add(pathFactory.path(sourceFolder.@url))
             }
         }
         findExcludeFolder().each { excludeFolder ->
-            this.excludeFolders.add(new Path(excludeFolder.@url))
+            this.excludeFolders.add(pathFactory.path(excludeFolder.@url))
         }
     }
 
@@ -324,20 +325,5 @@ class Module {
                 ", outputDir=" + outputDir +
                 ", testOutputDir=" + testOutputDir +
                 '}';
-    }
-}
-
-// todo make this an inner class once codenarc understands groovy inner classes
-public class VariableReplacement {
-    public static final VariableReplacement NO_REPLACEMENT = new VariableReplacement()
-
-    String replacable
-    String replacer
-
-    String replace(String source) {
-        if (replacable && replacer != null) {
-            return source.replace(replacable, replacer)
-        }
-        return source
     }
 }

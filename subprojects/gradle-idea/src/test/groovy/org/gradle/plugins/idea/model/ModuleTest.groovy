@@ -24,80 +24,51 @@ import spock.lang.Specification
  * @author Hans Dockter
  */
 class ModuleTest extends Specification {
-    def static final CUSTOM_SOURCE_FOLDERS = [new Path('file://$MODULE_DIR$/src')] as LinkedHashSet
-    def static final CUSTOM_TEST_SOURCE_FOLDERS = [new Path('file://$MODULE_DIR$/srcTest')] as LinkedHashSet
-    def static final CUSTOM_EXCLUDE_FOLDERS = [new Path('file://$MODULE_DIR$/target')] as LinkedHashSet
-    def customDependencies = [
-            new ModuleLibrary([new Path('file://$MODULE_DIR$/gradle/lib')] as Set,
-                    [new Path('file://$MODULE_DIR$/gradle/javadoc')] as Set, [new Path('file://$MODULE_DIR$/gradle/src')] as Set,
+    final PathFactory pathFactory = new PathFactory()
+    final customSourceFolders = [path('file://$MODULE_DIR$/src')] as LinkedHashSet
+    final customTestSourceFolders = [path('file://$MODULE_DIR$/srcTest')] as LinkedHashSet
+    final customExcludeFolders = [path('file://$MODULE_DIR$/target')] as LinkedHashSet
+    final customDependencies = [
+            new ModuleLibrary([path('file://$MODULE_DIR$/gradle/lib')] as Set,
+                    [path('file://$MODULE_DIR$/gradle/javadoc')] as Set, [path('file://$MODULE_DIR$/gradle/src')] as Set,
                     [] as Set, null),
-            new ModuleLibrary([new Path('file://$MODULE_DIR$/ant/lib'), new Path('jar://$GRADLE_CACHE$/gradle.jar!/')] as Set, [] as Set, [] as Set,
-                    [new JarDirectory(new Path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
+            new ModuleLibrary([path('file://$MODULE_DIR$/ant/lib'), path('jar://$GRADLE_CACHE$/gradle.jar!/')] as Set, [] as Set, [] as Set,
+                    [new JarDirectory(path('file://$MODULE_DIR$/ant/lib'), false)] as Set, "RUNTIME"),
             new ModuleDependency('someModule', null)]
 
     Module module
-
-//    def setup() {
-//        customDependencies.each { println it }
-//    }
 
     def initWithReader() {
         module = createModule(reader: customModuleReader)
 
         expect:
         module.javaVersion == "1.6"
-        module.sourceFolders == CUSTOM_SOURCE_FOLDERS
-        module.testSourceFolders == CUSTOM_TEST_SOURCE_FOLDERS
-        module.excludeFolders == CUSTOM_EXCLUDE_FOLDERS
-        module.outputDir == new Path('file://$MODULE_DIR$/out')
-        module.testOutputDir == new Path('file://$MODULE_DIR$/outTest')
+        module.sourceFolders == customSourceFolders
+        module.testSourceFolders == customTestSourceFolders
+        module.excludeFolders == customExcludeFolders
+        module.outputDir == path('file://$MODULE_DIR$/out')
+        module.testOutputDir == path('file://$MODULE_DIR$/outTest')
         (module.dependencies as List) == customDependencies
     }
 
-    def initWithReaderAndDependencyVars() {
-        def replacable = '$GRADLE_CACHE$'
-        def replacer = '$MODULE_DIR$/../'
-        module = createModule(dependencyVariableReplacement: new VariableReplacement(replacable: replacable, replacer: replacer), reader: customModuleReader)
-
-        expect:
-        module.sourceFolders == CUSTOM_SOURCE_FOLDERS
-        module.testSourceFolders == CUSTOM_TEST_SOURCE_FOLDERS
-        module.excludeFolders == CUSTOM_EXCLUDE_FOLDERS
-        module.outputDir == new Path('file://$MODULE_DIR$/out')
-        module.testOutputDir == new Path('file://$MODULE_DIR$/outTest')
-        def expectedDependencies = customDependencies.collect { dependency ->
-            if (dependency instanceof ModuleLibrary) {
-                dependency.classes = dependency.classes.collect { Path path ->
-                    Path newPath = path
-                    if (path.url.contains(replacable)) {
-                        newPath = new Path(path.url.replace(replacable, replacer))
-                    }
-                    newPath
-                }
-            }
-            dependency
-        }
-        module.dependencies == (expectedDependencies as Set)
-    }
-
     def initWithReaderAndValues_shouldBeMerged() {
-        def constructorSourceFolders = [new Path('a')] as Set
-        def constructorTestSourceFolders = [new Path('b')] as Set
-        def constructorExcludeFolders = [new Path('c')] as Set
-        def constructorOutputDir = new Path('someOut')
+        def constructorSourceFolders = [path('a')] as Set
+        def constructorTestSourceFolders = [path('b')] as Set
+        def constructorExcludeFolders = [path('c')] as Set
+        def constructorOutputDir = path('someOut')
         def constructorJavaVersion = '1.6'
-        def constructorTestOutputDir = new Path('someTestOut')
+        def constructorTestOutputDir = path('someTestOut')
         def constructorModuleDependencies = [
                 customDependencies[0],
-                new ModuleLibrary([new Path('x')], [], [], [new JarDirectory(new Path('y'), false)], null)] as LinkedHashSet
+                new ModuleLibrary([path('x')], [], [], [new JarDirectory(path('y'), false)], null)] as LinkedHashSet
         module = createModule(sourceFolders: constructorSourceFolders, testSourceFolders: constructorTestSourceFolders,
                 excludeFolders: constructorExcludeFolders, outputDir: constructorOutputDir, testOutputDir: constructorTestOutputDir,
                 moduleLibraries: constructorModuleDependencies, javaVersion: constructorJavaVersion, reader: customModuleReader)
 
         expect:
-        module.sourceFolders == CUSTOM_SOURCE_FOLDERS + constructorSourceFolders
-        module.testSourceFolders == CUSTOM_TEST_SOURCE_FOLDERS + constructorTestSourceFolders
-        module.excludeFolders == CUSTOM_EXCLUDE_FOLDERS + constructorExcludeFolders
+        module.sourceFolders == customSourceFolders + constructorSourceFolders
+        module.testSourceFolders == customTestSourceFolders + constructorTestSourceFolders
+        module.excludeFolders == customExcludeFolders + constructorExcludeFolders
         module.outputDir == constructorOutputDir
         module.testOutputDir == constructorTestOutputDir
         module.javaVersion == constructorJavaVersion
@@ -162,7 +133,7 @@ class ModuleTest extends Specification {
         def configureActionSourceFolder = new Path("c")
 
         Action whenConfiguredActions = { Module module ->
-            assert module.sourceFolders.contains((CUSTOM_SOURCE_FOLDERS as List)[0])
+            assert module.sourceFolders.contains((customSourceFolders as List)[0])
             assert module.sourceFolders.contains(constructorSourceFolder)
             module.sourceFolders.add(configureActionSourceFolder)
         } as Action
@@ -172,7 +143,7 @@ class ModuleTest extends Specification {
                 whenConfiguredActions: whenConfiguredActions)
 
         then:
-        createModule(reader: toXmlReader).sourceFolders == CUSTOM_SOURCE_FOLDERS + ([constructorSourceFolder, configureActionSourceFolder] as LinkedHashSet)
+        createModule(reader: toXmlReader).sourceFolders == customSourceFolders + ([constructorSourceFolder, configureActionSourceFolder] as LinkedHashSet)
     }
 
     private StringReader getToXmlReader() {
@@ -205,14 +176,17 @@ class ModuleTest extends Specification {
         return new InputStreamReader(getClass().getResourceAsStream('defaultModule.xml'))
     }
 
+    private Path path(String url) {
+        pathFactory.path(url)
+    }
+
     private Module createModule(Map customArgs) {
         Action dummyBroadcast = Mock()
         XmlTransformer xmlTransformer = new XmlTransformer()
         Map args = [contentPath: null, sourceFolders: [] as Set, testSourceFolders: [] as Set, excludeFolders: [] as Set, outputDir: null, testOutputDir: null,
-                moduleLibraries: [] as Set, dependencyVariableReplacement: VariableReplacement.NO_REPLACEMENT, javaVersion: null,
+                moduleLibraries: [] as Set, javaVersion: null,
                 reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: xmlTransformer] + customArgs
         return new Module(args.contentPath, args.sourceFolders, args.testSourceFolders, args.excludeFolders, args.outputDir, args.testOutputDir,
-                args.moduleLibraries, args.dependencyVariableReplacement, args.javaVersion, args.reader,
-                args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions)
+                args.moduleLibraries, args.javaVersion, args.reader, args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, pathFactory)
     }
 }

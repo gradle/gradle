@@ -93,9 +93,9 @@ class PathTest extends Specification {
         path.relPath == relpath
     }
 
-    def pathsAreEqualWhenTheyHaveTheSameUrl() {
+    def pathsAreEqualWhenTheyHaveTheSameCanonicalUrl() {
         expect:
-        Matchers.strictlyEquals(new Path(tmpDir.dir, '$ROOT_DIR$', tmpDir.file('file')), new Path('file://$ROOT_DIR$/file'))
+        Matchers.strictlyEquals(new Path('file://$ROOT_DIR$/file'), new Path('file://$ROOT_DIR$/file'))
         new Path('file://$ROOT_DIR$/file') != new Path('file://$ROOT_DIR$/other')
     }
 

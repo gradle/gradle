@@ -19,10 +19,13 @@ import spock.lang.Specification
 import org.gradle.util.Matchers
 
 class ModulePathTest extends Specification {
-    def pathsAreEqualWhenTheirUrlAndPathAreEqual() {
+    def pathsAreEqualWhenTheirPathAndFilePathAreEqual() {
+        Path path = new Path('url')
+        String filePath = 'path'
+
         expect:
-        Matchers.strictlyEquals(new ModulePath('url', 'path'), new ModulePath('url', 'path'))
-        new ModulePath('url', 'path') != new ModulePath('url', 'other')
-        new ModulePath('url', 'path') != new ModulePath('other', 'path')
+        Matchers.strictlyEquals(new ModulePath(path, filePath), new ModulePath(path, filePath))
+        new ModulePath(path, filePath) != new ModulePath(path, 'other')
+        new ModulePath(path, filePath) != new ModulePath(new Path('other'), filePath)
     }
 }

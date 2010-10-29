@@ -25,12 +25,13 @@ import spock.lang.Specification
  */
 class ProjectTest extends Specification {
     Project project
+    final PathFactory pathFactory = new PathFactory()
 
     def initWithReaderAndNoJdkAndNoWildcards() {
         project = createProject(javaVersion: "1.4", reader: customProjectReader)
 
         expect:
-        project.modulePaths == [new ModulePath('file://$PROJECT_DIR$/gradle-idea-plugin.iml', '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
+        project.modulePaths == [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
         project.wildcards == ["?*.gradle", "?*.grails"] as Set
         project.jdk == new Jdk(true, false, "JDK_1_4", "1.4")
     }
@@ -39,7 +40,7 @@ class ProjectTest extends Specification {
         project = createProject(wildcards: ['?*.groovy'] as Set, reader: customProjectReader)
 
         expect:
-        project.modulePaths == [new ModulePath('file://$PROJECT_DIR$/gradle-idea-plugin.iml', '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
+        project.modulePaths == [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
         project.wildcards == ["?*.gradle", "?*.grails", "?*.groovy"] as Set
         project.jdk == new Jdk("1.6")
     }
@@ -73,7 +74,7 @@ class ProjectTest extends Specification {
         Action beforeConfiguredActions = { Project ideaProject ->
             ideaProject.modulePaths.clear()
         } as Action
-        def modulePaths = [new ModulePath("a", "b")] as Set
+        def modulePaths = [new ModulePath(path("a"), "b")] as Set
 
         when:
         project = createProject(modulePaths: modulePaths, reader: customProjectReader, beforeConfiguredActions: beforeConfiguredActions)
@@ -84,8 +85,8 @@ class ProjectTest extends Specification {
 
     def whenConfigured() {
         def moduleFromInitialXml = null
-        def moduleFromProjectConstructor = new ModulePath("a", "b")
-        def moduleAddedInWhenConfiguredAction = new ModulePath("c", "d")
+        def moduleFromProjectConstructor = new ModulePath(path("a"), "b")
+        def moduleAddedInWhenConfiguredAction = new ModulePath(path("c"), "d")
         Action beforeConfiguredActions = { Project ideaProject ->
             moduleFromInitialXml = (ideaProject.modulePaths as List)[0]
         } as Action
@@ -130,12 +131,16 @@ class ProjectTest extends Specification {
         return new InputStreamReader(getClass().getResourceAsStream('customProject.xml'))
     }
 
+    private Path path(String url) {
+        pathFactory.path(url)
+    }
+
     private Project createProject(Map customArgs) {
         Action dummyBroadcast = Mock()
         XmlTransformer xmlTransformer = new XmlTransformer()
         Map args = [modulePaths: [] as Set, javaVersion: "1.6", wildcards: [] as Set, reader: null,
                 beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: xmlTransformer] + customArgs
         return new Project(args.modulePaths, args.javaVersion, args.wildcards, args.reader,
-                args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions)
+                args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, pathFactory)
     }
 }

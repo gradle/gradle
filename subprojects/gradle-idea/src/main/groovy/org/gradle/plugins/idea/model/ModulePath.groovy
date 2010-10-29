@@ -21,48 +21,45 @@ package org.gradle.plugins.idea.model
  * @author Hans Dockter
  */
 
-class ModulePath extends Path {
+class ModulePath {
     /**
      * The path string of this path.
      */
-    final String path
+    final String filePath
 
-    def ModulePath(File rootDir, String rootDirString, File file) {
-        super(rootDir, rootDirString, file)
-        path = relPath
+    final Path path
+
+    def ModulePath(Path path) {
+        this.path = path
+        filePath = path.relPath
     }
 
-    def ModulePath(String url, String path) {
-        super(url)
-        assert path != null
-        this.path = path;
+    def ModulePath(Path path, String filePath) {
+        this.path = path
+        this.filePath = filePath
     }
 
+    String getUrl() {
+        return path.url
+    }
+    
     boolean equals(o) {
         if (this.is(o)) { return true }
 
-        if (o== null || getClass() != o.class) { return false }
-        if (!super.equals(o)) { return false }
+        if (o == null || getClass() != o.class) { return false }
 
         ModulePath that = (ModulePath) o;
-
-        if (path != that.path) { return false }
-
-        return true;
+        return path == that.path && filePath == that.filePath
     }
 
     int hashCode() {
-        int result = super.hashCode();
-
-        result = 31 * result + path.hashCode();
-        return result;
-    }                                
-
+        return path.hashCode() ^ filePath.hashCode()
+    }
 
     public String toString() {
         return "ModulePath{" +
-                "url='" + url +
-                ", path='" + path + '\'' +
+                "path='" + path +
+                ", filePath='" + filePath + '\'' +
                 '}';
     }
 }

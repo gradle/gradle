@@ -1,0 +1,16 @@
+apply plugin: 'java'
+apply plugin: 'idea'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    runtime 'commons-collections:commons-collections:3.2@jar'
+    runtime 'junit:junit:4.7@jar'
+}
+
+ideaModule {
+    gradleCacheVariable = 'CUSTOM_DIR'
+    gradleCacheHome = new File(gradle.gradleUserHomeDir, 'custom')
+}

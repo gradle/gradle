@@ -17,16 +17,16 @@
 
 package org.gradle.integtests
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.TestResources
-import org.junit.Rule
-import org.junit.Test
-import org.junit.runner.RunWith
-import org.gradle.util.TestFile
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.TestFile
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
 
 @RunWith(DistributionIntegrationTestRunner)
 class IdeaIntegrationTest {
@@ -72,7 +72,13 @@ class IdeaIntegrationTest {
         assertHasExpectedContents('root/root.ipr')
         assertHasExpectedContents('root/root.iml')
         assertHasExpectedContents('top-level.iml')
-//        assertHasExpectedContents('a child project/a child.iml')
+    }
+
+    @Test
+    public void mergesModuleDependenciesIntoExistingDependencies() {
+        executer.withTasks('idea').run()
+
+        assertHasExpectedContents('root.iml')
     }
 
     def assertHasExpectedContents(String path) {

@@ -41,10 +41,13 @@ class Project {
 
     private Node xml
     
-    private XmlTransformer withXmlActions
+    private final XmlTransformer withXmlActions
+    private final PathFactory pathFactory
 
     def Project(Set modulePaths, String javaVersion, Set wildcards, Reader inputXml, Action<Project> beforeConfiguredAction,
-                Action<Project> whenConfiguredAction, XmlTransformer withXmlActions) {
+                Action<Project> whenConfiguredAction, XmlTransformer withXmlActions, PathFactory pathFactory) {
+        this.pathFactory = pathFactory
+
         initFromXml(inputXml, javaVersion)
 
         beforeConfiguredAction.execute(this)
@@ -61,7 +64,7 @@ class Project {
         xml = new XmlParser().parse(reader)
 
         findModules().module.each { module ->
-            this.modulePaths.add(new ModulePath(module.@fileurl, module.@filepath))
+            this.modulePaths.add(new ModulePath(pathFactory.path(module.@fileurl), module.@filepath))
         }
 
         findWildcardResourcePatterns().entry.each { entry ->
@@ -81,7 +84,7 @@ class Project {
         findModules().replaceNode {
             modules {
                 modulePaths.each { ModulePath modulePath ->
-                    module(fileurl: modulePath.url, filepath: modulePath.path)
+                    module(fileurl: modulePath.path.url, filepath: modulePath.filePath)
                 }
             }
         }

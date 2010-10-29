@@ -25,7 +25,6 @@ import org.gradle.listener.ListenerBroadcast
 import org.gradle.plugins.idea.model.ModuleLibrary
 import org.gradle.plugins.idea.model.Path
 import org.gradle.plugins.idea.model.PathFactory
-import org.gradle.plugins.idea.model.VariableReplacement
 import org.gradle.api.artifacts.*
 import org.gradle.api.tasks.*
 
@@ -130,7 +129,7 @@ public class IdeaModule extends ConventionTask {
     void updateXML() {
         Reader xmlreader = getOutputFile().exists() ? new FileReader(getOutputFile()) : null;
         org.gradle.plugins.idea.model.Module module = new org.gradle.plugins.idea.model.Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
-                getDependencies(), getVariableReplacement(), javaVersion, xmlreader, beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions)
+                getDependencies(), javaVersion, xmlreader, beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions, getPathFactory())
         getOutputFile().withWriter {Writer writer -> module.toXml(writer)}
     }
 
@@ -163,14 +162,6 @@ public class IdeaModule extends ConventionTask {
         scopes.keySet().inject([] as LinkedHashSet) {result, scope ->
             result + (getModuleLibraries(scope) + getModules(scope))
         }
-    }
-
-    protected getVariableReplacement() {
-        if (getGradleCacheHome() && getGradleCacheVariable()) {
-            String replacer = org.gradle.plugins.idea.model.Path.getRelativePath(getOutputFile().parentFile, '$MODULE_DIR$', getGradleCacheHome())
-            return new VariableReplacement(replacer: replacer, replacable: '$' + getGradleCacheVariable() + '$')
-        }
-        return VariableReplacement.NO_REPLACEMENT
     }
 
     protected Set getModules(String scope) {
@@ -293,9 +284,16 @@ public class IdeaModule extends ConventionTask {
     }
 
     protected Path getPath(File file) {
+        return pathFactory.path(file)
+    }
+
+    protected PathFactory getPathFactory() {
         PathFactory factory = new PathFactory()
         factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
-        return factory.path(file)
+        if (gradleCacheVariable) {
+            factory.addPathVariable(gradleCacheVariable, gradleCacheHome)
+        }
+        return factory
     }
 
     /**
