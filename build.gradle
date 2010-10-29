@@ -172,8 +172,9 @@ ideaModule {
 ideaProject {
     wildcards += ['?*.gradle']
     javaVersion = '1.6'
-    withXml { node ->
-        // Use git
+    withXml { provider ->
+		def node = provider.asNode()
+		// Use git
         def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
         vcsConfig.mapping[0].'@vcs' = 'Git'
 
@@ -190,7 +191,8 @@ ideaProject {
 // Exclude resource directories from compilation and add them back in as classpath resources
 
 ideaProject {
-    withXml { node ->
+    withXml { provider ->
+		def node = provider.asNode()
         def compilerConfig = node.component.find { it.'@name' == 'CompilerConfiguration' }
         def exclude = compilerConfig.appendNode('excludeFromCompile')
         Collection resourceDirs = groovyProjects().collect { project -> project.sourceSets*.resources*.srcDirs }.flatten()
