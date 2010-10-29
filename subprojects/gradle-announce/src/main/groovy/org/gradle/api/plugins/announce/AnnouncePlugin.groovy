@@ -21,6 +21,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
 import org.gradle.api.plugins.announce.internal.DefaultAnnouncerFactory
+import org.scribe.model.Token
 
 /**
  * This plugin allows to send announce messages to twitter.
@@ -30,12 +31,11 @@ import org.gradle.api.plugins.announce.internal.DefaultAnnouncerFactory
 class AnnouncePlugin implements Plugin<Project> {
     public void apply(final Project project) {
         project.convention.plugins.announce = new AnnouncePluginConvention(project)
+        project.tasks.add("twitterHandShake", TwitterHandshake)
     }
 }
 
 class AnnouncePluginConvention {
-    String username
-    String password
     Project project
     AnnouncerFactory announcerFactory
 

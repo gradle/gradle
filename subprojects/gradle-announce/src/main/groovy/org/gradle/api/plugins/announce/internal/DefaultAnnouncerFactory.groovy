@@ -17,6 +17,7 @@ package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.plugins.announce.AnnouncePluginConvention
 import org.gradle.api.plugins.announce.Announcer
+import org.scribe.model.Token
 
 /**
  * @author Hans Dockter
@@ -30,9 +31,23 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
 
     Announcer createAnnouncer(String type) {
         if (type == "twitter") {
-            String username = announcePluginConvention.username
-            String password = announcePluginConvention.password
-            return new Twitter(username, password)
+            String token = null
+            String secret = null
+
+            if(!token || !secret){
+                def file = new File("gradle-announce-twitter.properties")
+                if(!file.exists()){
+                    return new DoNothingAnnouncer()
+                }
+                def properties = new Properties()
+                properties.load new FileInputStream(file)
+                token = properties.get("twitter.token")
+                secret = properties.get("twitter.secret")
+                if(!token || !secret){
+                    return new DoNothingAnnouncer()
+                }
+            }
+            return new Twitter(new Token(token,secret))
         } else if (type == "notify-send") {
             return new NotifySend()
         } else if (type == "snarl") {
