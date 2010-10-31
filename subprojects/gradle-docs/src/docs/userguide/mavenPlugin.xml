@@ -363,7 +363,7 @@
                 </sample>
                 <para>Gradle exclude rules are converted to Maven excludes if possible. Such a conversion is possible if in
                     the Gradle exclude rule the group as well as the module name is specified (as Maven needs both in
-                    contrast to Ivy). Right now excludes-per-configuration are not converted to the Maven POM.
+                    contrast to Ivy). Per-configuration excludes are also included in the Maven POM, if they are convertable.
                 </para>
             </section>
         </section>
