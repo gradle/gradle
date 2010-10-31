@@ -21,7 +21,8 @@ import org.gradle.api.Action
 
 class XmlTransformerTest extends Specification {
     final XmlTransformer transformer = new XmlTransformer()
-
+    final String lineSeparator = System.getProperty('line.separator')
+    
     def returnsOriginalStringWhenNoActions() {
         expect:
         transformer.transform('<xml/>') == '<xml/>'
@@ -65,12 +66,16 @@ class XmlTransformerTest extends Specification {
         def result = transformer.transform('<xml/>')
 
         then:
-        result == '<?xml version="1.0" encoding="UTF-8"?>\n<xml>\n  <child1/>\n</xml>\n'
+        result == toSystemEol('<?xml version="1.0" encoding="UTF-8"?>\n<xml>\n  <child1/>\n</xml>\n')
         1 * action.execute(!null) >> { args ->
             def provider = args[0]
             def document = provider.asElement().ownerDocument
             provider.asElement().appendChild(document.createElement('child1'))
         }
+    }
+    
+    private def toSystemEol(String string) {
+        return string?.replaceAll('\n', lineSeparator)
     }
 
     def canTransformStringToAWriter() {
@@ -133,7 +138,7 @@ class XmlTransformerTest extends Specification {
         def result = transformer.transform('<xml/>')
 
         then:
-        result == '<?xml version="1.0" encoding="UTF-8"?>\n<some-xml>\n  <child1/>\n<child2/>\n</some-xml>\n<!-- end -->'
+        result == toSystemEol('<?xml version="1.0" encoding="UTF-8"?>\n<some-xml>\n  <child1/>\n<child2/>\n</some-xml>\n<!-- end -->')
         1 * stringAction.execute(!null) >> { args ->
             def provider = args[0]
             provider.asString().insert(1, 'some-')
