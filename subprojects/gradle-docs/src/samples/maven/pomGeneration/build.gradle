@@ -14,6 +14,10 @@ repositories {
     flatDir(dirs: "$projectDir/lib")
 }
 
+configurations {
+  runtime.exclude group: 'excludeGroup2', module: 'excludeArtifact2'
+}
+
 dependencies {
     compile("group1:compile:1.0") {
         exclude(group: 'excludeGroup', module: 'excludeArtifact')

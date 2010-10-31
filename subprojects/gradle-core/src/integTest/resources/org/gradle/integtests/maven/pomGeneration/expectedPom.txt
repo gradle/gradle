@@ -49,6 +49,12 @@
       <artifactId>runtime</artifactId>
       <version>1.0</version>
       <scope>runtime</scope>
+      <exclusions>
+        <exclusion>
+          <artifactId>excludeArtifact2</artifactId>
+          <groupId>excludeGroup2</groupId>
+        </exclusion>
+      </exclusions>
       <optional>true</optional>
     </dependency>
     <dependency>
