@@ -8,7 +8,7 @@ apply plugin: 'maven'
 group = 'gradle'
 version = '1.0'
 archivesBaseName = 'mywar'
-buildDirName = 'target'
+buildDir = 'target'
 
 repositories {
     flatDir(dirs: "$projectDir/lib")
