@@ -132,6 +132,31 @@ public class DefaultGradle implements GradleInternal {
         listenerManager.addListener(ProjectEvaluationListener.class, "afterEvaluate", closure);
     }
 
+    @Override
+    public void buildStarted(Closure closure) {
+        listenerManager.addListener(BuildListener.class, "buildStarted", closure);
+    }
+
+    @Override
+    public void settingsEvaluated(Closure closure) {
+        listenerManager.addListener(BuildListener.class, "settingsEvaluated", closure);
+    }
+
+    @Override
+    public void projectsLoaded(Closure closure) {
+        listenerManager.addListener(BuildListener.class, "projectsLoaded", closure);
+    }
+
+    @Override
+    public void projectsEvaluated(Closure closure) {
+        listenerManager.addListener(BuildListener.class, "projectsEvaluated", closure);
+    }
+
+    @Override
+    public void buildFinished(Closure closure) {
+        listenerManager.addListener(BuildListener.class, "buildFinished", closure);
+    }
+
     public void addListener(Object listener) {
         listenerManager.addListener(listener);
     }

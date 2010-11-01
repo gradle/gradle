@@ -109,11 +109,53 @@ public interface Gradle {
     /**
      * Adds a closure to be called immediately after a project is evaluated. The project is passed to the closure as the
      * first parameter. The project evaluation failure, if any, is passed as the second parameter. Both parameters are
-     * options.
+     * optional.
      *
      * @param closure The closure to execute.
      */
     void afterProject(Closure closure);
+
+    /**
+     * Adds a closure to be called when the build is started. This {@code Gradle} instance is passed to the closure as
+     * the first parameter.
+     *
+     * @param closure The closure to execute.
+     */
+    void buildStarted(Closure closure);
+
+    /**
+     * Adds a closure to be called when the build settings have been loaded and evaluated. The settings object is
+     * fully configured and is ready to use to load the build projects. The
+     * {@link org.gradle.api.initialization.Settings} object is passed to the closure as a parameter.
+     *
+     * @param closure The closure to execute.
+     */
+    void settingsEvaluated(Closure closure);
+
+    /**
+     * Adds a closure to be called when the projects for the build have been created from the settings.
+     * None of the projects have been evaluated. This {@code Gradle} instance is passed to the closure as a parameter.
+     *
+     * @param closure The closure to execute.
+     */
+    void projectsLoaded(Closure closure);
+
+    /**
+     * Adds a closure to be called when all projects for the build have been evaluated. The project objects are fully
+     * configured and are ready to use to populate the task graph. This {@code Gradle} instance is passed to
+     * the closure as a parameter.
+     *
+     * @param closure The closure to execute.
+     */
+    void projectsEvaluated(Closure closure);
+
+    /**
+     * Adds a closure to be called when the build is completed. All selected tasks have been executed.
+     * A {@link org.gradle.BuildResult} instance is passed to the closure as a parameter.
+     *
+     * @param closure The closure to execute.
+     */
+    void buildFinished(Closure closure);
 
     /**
      * <p>Adds a {@link BuildListener} to this Build instance. The listener is notified of events which occur during the

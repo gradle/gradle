@@ -17,6 +17,7 @@
 package org.gradle.invocation;
 
 import groovy.lang.Closure;
+import org.gradle.BuildListener;
 import org.gradle.StartParameter;
 import org.gradle.api.ProjectEvaluationListener;
 import org.gradle.api.initialization.dsl.ScriptHandler;
@@ -154,6 +155,56 @@ public class DefaultGradleTest {
         }});
 
         gradle.afterProject(closure);
+    }
+
+    @Test
+    public void broadcastsBuildStartedEventsToClosures() {
+        final Closure closure = HelperUtil.TEST_CLOSURE;
+        context.checking(new Expectations() {{
+            one(listenerManager).addListener(BuildListener.class, "buildStarted", closure);
+        }});
+
+        gradle.buildStarted(closure);
+    }
+
+    @Test
+    public void broadcastsSettingsEvaluatedEventsToClosures() {
+        final Closure closure = HelperUtil.TEST_CLOSURE;
+        context.checking(new Expectations() {{
+            one(listenerManager).addListener(BuildListener.class, "settingsEvaluated", closure);
+        }});
+
+        gradle.settingsEvaluated(closure);
+    }
+
+    @Test
+    public void broadcastsProjectsLoadedEventsToClosures() {
+        final Closure closure = HelperUtil.TEST_CLOSURE;
+        context.checking(new Expectations() {{
+            one(listenerManager).addListener(BuildListener.class, "projectsLoaded", closure);
+        }});
+
+        gradle.projectsLoaded(closure);
+    }
+
+    @Test
+    public void broadcastsProjectsEvaluatedEventsToClosures() {
+        final Closure closure = HelperUtil.TEST_CLOSURE;
+        context.checking(new Expectations() {{
+            one(listenerManager).addListener(BuildListener.class, "projectsEvaluated", closure);
+        }});
+
+        gradle.projectsEvaluated(closure);
+    }
+
+    @Test
+    public void broadcastsBuildFinishedEventsToClosures() {
+        final Closure closure = HelperUtil.TEST_CLOSURE;
+        context.checking(new Expectations() {{
+            one(listenerManager).addListener(BuildListener.class, "buildFinished", closure);
+        }});
+
+        gradle.buildFinished(closure);
     }
 
     @Test
