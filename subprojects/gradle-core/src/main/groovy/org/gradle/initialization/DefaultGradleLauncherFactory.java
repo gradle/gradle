@@ -98,7 +98,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ProfileListener(buildClock.getTimeInMs()));
+            listenerManager.addListener(new ProfileListener(System.currentTimeMillis()));
         }
 
         DefaultGradle gradle = new DefaultGradle(
