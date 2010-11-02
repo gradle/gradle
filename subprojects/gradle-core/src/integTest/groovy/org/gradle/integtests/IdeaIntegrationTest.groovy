@@ -27,6 +27,7 @@ import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
+import junit.framework.AssertionFailedError
 
 @RunWith(DistributionIntegrationTestRunner)
 class IdeaIntegrationTest {
@@ -91,6 +92,10 @@ class IdeaIntegrationTest {
 
         Diff diff = new Diff(expectedXml, file.text)
         diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
-        XMLAssert.assertXMLEqual(diff, true);
+        try {
+            XMLAssert.assertXMLEqual(diff, true)
+        } catch (AssertionFailedError e) {
+            throw new AssertionFailedError("generated file '$path' does not contain the expected contents: ${e.message}.\nExpected:\n${expectedXml}\nActual:\n${file.text}").initCause(e)
+        }
     }
 }
