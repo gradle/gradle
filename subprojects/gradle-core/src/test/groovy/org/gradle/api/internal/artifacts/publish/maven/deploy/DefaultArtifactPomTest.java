@@ -96,7 +96,7 @@ public class DefaultArtifactPomTest {
         checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
                 expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision());
     }
-    
+
     @Test
     public void pomWithClassifierArtifacts() {
         File classifierFile = new File("someClassifierFile");
@@ -111,6 +111,23 @@ public class DefaultArtifactPomTest {
                 classifierArtifact.getModuleRevisionId().getRevision());
     }
 
+    @Test
+    public void pomWithMainArtifactAndMetadataArtifacts() {
+        File metadataFile = new File("someMetadataFile");
+        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), null, "sometype");
+
+        artifactPom.addArtifact(classifierArtifact, metadataFile);
+        artifactPom.addArtifact(expectedArtifact, expectedFile);
+
+        assertThat(artifactPom.getClassifiers(),
+                hasItem(new ClassifierArtifact(null, "sometype", metadataFile)));
+
+        assertEquals(expectedArtifact, artifactPom.getArtifact());
+        assertEquals(expectedFile, artifactPom.getArtifactFile());
+        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
+                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision());
+    }
+    
     @Test(expected = InvalidUserDataException.class)
     public void addClassifierTwiceShouldThrowInvalidUserDataEx() {
         File classifierFile = new File("someClassifierFile");

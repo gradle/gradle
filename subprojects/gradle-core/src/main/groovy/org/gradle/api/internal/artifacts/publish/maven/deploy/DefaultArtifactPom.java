@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
+import com.google.common.collect.Sets;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
@@ -33,6 +34,7 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public class DefaultArtifactPom implements ArtifactPom {
+    private static final Set<String> PACKAGING_TYPES = Sets.newHashSet("war", "jar", "ear");
     private final MavenPom pom;
 
     private Artifact artifact;
@@ -82,10 +84,20 @@ public class DefaultArtifactPom implements ArtifactPom {
             assignArtifactValuesToPom(artifact, pom, false);
             return;
         }
+
         if (this.artifact != null) {
-            throw new InvalidUserDataException("A pom can't have multiple main artifacts. " +
-                    "Already assigned artifact: " + this.artifact + " Artifact trying to assign: " + artifact);
+            // Choose the 'main' artifact based on its type.
+            if (!PACKAGING_TYPES.contains(artifact.getType())) {
+                addClassifierArtifact(artifact, src);
+                return;
+            }
+            if (PACKAGING_TYPES.contains(this.artifact.getType())) {
+                throw new InvalidUserDataException("A pom can't have multiple main artifacts. " +
+                        "Already assigned artifact: " + this.artifact + " Artifact trying to assign: " + artifact);
+            }
+            addClassifierArtifact(this.artifact, this.artifactFile);
         }
+
         this.artifact = artifact;
         this.artifactFile = src;
         assignArtifactValuesToPom(artifact, pom, true);

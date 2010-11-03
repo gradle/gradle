@@ -1,0 +1,24 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+group = 'group'
+version = 1.0
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri("mavenRepo"))
+        }
+    }
+}
+
+task signature {
+    destFile = file("$buildDir/signature.sig")
+    doLast {
+        destFile.text = 'signature'
+    }
+}
+
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
+
+artifacts {
+    archives new DefaultPublishArtifact(jar.baseName, "sig", "sig", null, new Date(), signature.destFile, signature)
+}

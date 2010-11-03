@@ -21,11 +21,13 @@ import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.gradle.integtests.DistributionIntegrationTestRunner
+import org.gradle.integtests.fixtures.TestResources
 
 @RunWith(DistributionIntegrationTestRunner.class)
 class MavenProjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final TestResources testResources = new TestResources()
 
     @Test
     public void handlesSubProjectsWithoutTheMavenPluginApplied() {
@@ -39,49 +41,26 @@ class MavenProjectIntegrationTest {
 
     @Test
     public void canDeployAProjectWithDependencyInMappedAndUnMappedConfiguration() {
-        dist.testFile("build.gradle") << '''
-            apply plugin: 'java'
-            apply plugin: 'maven'
-            group = 'root'
-            repositories { mavenCentral() }
-            configurations { custom }
-            dependencies {
-                custom 'commons-collections:commons-collections:3.2'
-                runtime 'commons-collections:commons-collections:3.2'
-            }
-            uploadArchives {
-                repositories {
-                    mavenDeployer {
-                        repository(url: "file://localhost/$projectDir/pomRepo/")
-                    }
-                }
-            }
-        '''
         executer.withTasks('uploadArchives').run()
+        def module = repo().module('group', 'root', 1.0)
+        module.assertArtifactsDeployed('root-1.0.jar')
     }
-    
+
     @Test
     public void canDeployAProjectWithNoMainArtifact() {
-        def file = dist.testFile("build.gradle") << '''
-            apply plugin: 'java'
-            apply plugin: 'maven'
-            group = 'root'
-            jar.enabled = false
-            task sourceJar(type: Jar) {
-                classifier = 'source'
-            }
-            artifacts {
-                archives sourceJar
-            }
-            uploadArchives {
-                repositories {
-                    mavenDeployer {
-                        repository(url: "file://localhost/$projectDir/pomRepo/")
-                    }
-                }
-            }
-        '''
-        println file.absolutePath
         executer.withTasks('uploadArchives').run()
+        def module = repo().module('group', 'root', 1.0)
+        module.assertArtifactsDeployed('root-1.0-source.jar')
+    }
+
+    @Test
+    public void canDeployAProjectWithMetadataArtifacts() {
+        executer.withTasks('uploadArchives').run()
+        def module = repo().module('group', 'root', 1.0)
+        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.sig')
+    }
+
+    def MavenRepository repo() {
+        new MavenRepository(dist.testFile('mavenRepo'))
     }
 }
