@@ -9,10 +9,10 @@
 /website/build
 /performanceTest/build
 /subprojects/*/ide
-*.iml
-*.ipr
-*.iws
-gradle.iws
+/*.iml
+/subprojects/*/*.iml
+/*.ipr
+/*.iws
 *.classpath
 *.project
 /intTestHomeDir
