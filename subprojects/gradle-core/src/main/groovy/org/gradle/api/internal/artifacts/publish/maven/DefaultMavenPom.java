@@ -31,7 +31,7 @@ import org.gradle.api.internal.XmlTransformer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.api.internal.artifacts.publish.maven.pombuilder.CustomModelBuilder;
 import org.gradle.api.internal.file.FileResolver;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ActionBroadcast;
 
 import java.io.*;
 import java.util.Collections;
@@ -45,7 +45,7 @@ public class DefaultMavenPom implements MavenPom {
     private FileResolver fileResolver;
     private MavenProject mavenProject = new MavenProject();
     private Conf2ScopeMappingContainer scopeMappings;
-    private ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
+    private ActionBroadcast<MavenPom> whenConfiguredActions = new ActionBroadcast<MavenPom>();
     private XmlTransformer withXmlActions = new XmlTransformer();
     private ConfigurationContainer configurations;
 
@@ -165,7 +165,7 @@ public class DefaultMavenPom implements MavenPom {
         }
         effectivePom.getDependencies().addAll(getGeneratedDependencies());
         effectivePom.withXmlActions = withXmlActions;
-        whenConfiguredActions.getSource().execute(effectivePom);
+        whenConfiguredActions.execute(effectivePom);
         return effectivePom;
     }
 
@@ -217,7 +217,7 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom whenConfigured(final Closure closure) {
-        whenConfiguredActions.add("execute", closure);
+        whenConfiguredActions.add(closure);
         return this;
     }
 

@@ -16,19 +16,20 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import com.google.common.collect.Sets;
+import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
+import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author Hans Dockter
@@ -36,12 +37,11 @@ import java.util.Set;
 public class DefaultArtifactPom implements ArtifactPom {
     private static final Set<String> PACKAGING_TYPES = Sets.newHashSet("war", "jar", "ear");
     private final MavenPom pom;
+    private final Map<ArtifactKey, PublishArtifact> artifacts = new HashMap<ArtifactKey, PublishArtifact>();
 
-    private Artifact artifact;
+    private PublishArtifact artifact;
 
-    private File artifactFile;
-
-    private final Set<ClassifierArtifact> classifiers = new HashSet<ClassifierArtifact>();
+    private final Set<PublishArtifact> classifiers = new HashSet<PublishArtifact>();
 
     public DefaultArtifactPom(MavenPom pom) {
         this.pom = pom;
@@ -51,19 +51,15 @@ public class DefaultArtifactPom implements ArtifactPom {
         return pom;
     }
 
-    public File getArtifactFile() {
-        return artifactFile;
-    }
-
-    public Artifact getArtifact() {
+    public PublishArtifact getArtifact() {
         return artifact;
     }
 
-    public Set<ClassifierArtifact> getClassifiers() {
+    public Set<PublishArtifact> getAttachedArtifacts() {
         return Collections.unmodifiableSet(classifiers);
     }
 
-    public void writePom(File pomFile) {
+    public PublishArtifact writePom(final File pomFile) {
         try {
             pomFile.getParentFile().mkdirs();
             FileWriter writer = new FileWriter(pomFile);
@@ -75,12 +71,21 @@ public class DefaultArtifactPom implements ArtifactPom {
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
+
+        return new PomArtifact(pomFile);
     }
 
     public void addArtifact(Artifact artifact, File src) {
         throwExceptionIfArtifactOrSrcIsNull(artifact, src);
-        if (hasClassifier(artifact)) {
-            addClassifierArtifact(artifact, src);
+        PublishArtifact publishArtifact = new MavenArtifact(artifact, src);
+        ArtifactKey artifactKey = new ArtifactKey(publishArtifact);
+        if (this.artifacts.containsKey(artifactKey)) {
+            throw new InvalidUserDataException(String.format("A POM cannot have multiple artifacts with the same type and classifier. Already have %s, trying to add %s.",
+                    this.artifacts.get(artifactKey), publishArtifact));
+        }
+
+        if (publishArtifact.getClassifier() != null) {
+            addArtifact(publishArtifact);
             assignArtifactValuesToPom(artifact, pom, false);
             return;
         }
@@ -88,34 +93,24 @@ public class DefaultArtifactPom implements ArtifactPom {
         if (this.artifact != null) {
             // Choose the 'main' artifact based on its type.
             if (!PACKAGING_TYPES.contains(artifact.getType())) {
-                addClassifierArtifact(artifact, src);
+                addArtifact(publishArtifact);
                 return;
             }
             if (PACKAGING_TYPES.contains(this.artifact.getType())) {
-                throw new InvalidUserDataException("A pom can't have multiple main artifacts. " +
-                        "Already assigned artifact: " + this.artifact + " Artifact trying to assign: " + artifact);
+                throw new InvalidUserDataException("A POM can not have multiple main artifacts. " +
+                        "Already have " + this.artifact + ", trying to add " + publishArtifact);
             }
-            addClassifierArtifact(this.artifact, this.artifactFile);
+            addArtifact(this.artifact);
         }
 
-        this.artifact = artifact;
-        this.artifactFile = src;
+        this.artifact = publishArtifact;
+        this.artifacts.put(artifactKey, publishArtifact);
         assignArtifactValuesToPom(artifact, pom, true);
     }
 
-    private void addClassifierArtifact(Artifact artifact, File artifactFile) {
-        String classifier = getClassifier(artifact);
-        ClassifierArtifact classifierArtifact = new ClassifierArtifact(classifier,
-                artifact.getType(), artifactFile);
-        if (classifiers.contains(classifierArtifact)) {
-            throw new InvalidUserDataException("A pom can't have multiple artifacts for the same classifier=" + classifier +
-                    " Artifact trying to assign: " + artifact);
-        }
-        classifiers.add(classifierArtifact);
-    }
-
-    private boolean hasClassifier(Artifact artifact) {
-        return getClassifier(artifact) != null;
+    private void addArtifact(PublishArtifact artifact) {
+        classifiers.add(artifact);
+        artifacts.put(new ArtifactKey(artifact), artifact);
     }
 
     private String getClassifier(Artifact artifact) {
@@ -143,6 +138,90 @@ public class DefaultArtifactPom implements ArtifactPom {
         }
         if (src == null) {
             throw new InvalidUserDataException("Src file must not be null.");
+        }
+    }
+
+    private static class ArtifactKey {
+        private final String type;
+        private final String classifier;
+
+        private ArtifactKey(PublishArtifact artifact) {
+            this.type = artifact.getType();
+            this.classifier = artifact.getClassifier();
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            ArtifactKey other = (ArtifactKey) o;
+            return ObjectUtils.equals(type, other.type) && ObjectUtils.equals(classifier, other.classifier);
+        }
+
+        @Override
+        public int hashCode() {
+            return ObjectUtils.hashCode(type) ^ ObjectUtils.hashCode(classifier);
+        }
+    }
+
+    private abstract class AbstractMavenArtifact extends AbstractPublishArtifact {
+        private final File file;
+
+        protected AbstractMavenArtifact(File file) {
+            this.file = file;
+        }
+
+        public File getFile() {
+            return file;
+        }
+
+        public String getName() {
+            return pom.getArtifactId();
+        }
+
+        public Date getDate() {
+            return null;
+        }
+    }
+
+    private class MavenArtifact extends AbstractMavenArtifact {
+        private final Artifact artifact;
+
+        private MavenArtifact(Artifact artifact, File file) {
+            super(file);
+            this.artifact = artifact;
+        }
+
+        public String getClassifier() {
+            return DefaultArtifactPom.this.getClassifier(artifact);
+        }
+
+        public String getExtension() {
+            return artifact.getExt();
+        }
+
+        public String getType() {
+            return artifact.getType();
+        }
+    }
+
+    private class PomArtifact extends AbstractMavenArtifact {
+        public PomArtifact(File pomFile) {
+            super(pomFile);
+        }
+
+        public String getExtension() {
+            return "pom";
+        }
+
+        public String getType() {
+            return "pom";
+        }
+
+        public String getClassifier() {
+            return null;
+        }
+
+        public Date getDate() {
+            return null;
         }
     }
 }

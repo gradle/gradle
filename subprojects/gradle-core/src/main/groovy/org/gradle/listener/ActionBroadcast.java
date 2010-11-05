@@ -1,5 +1,5 @@
 /*
- * Copyright 2007-2008 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,18 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.artifacts.publish.maven.deploy;
+package org.gradle.listener;
 
-import org.apache.ivy.core.module.descriptor.Artifact;
+import groovy.lang.Closure;
+import org.gradle.api.Action;
 
-import java.io.File;
-import java.util.Set;
+public class ActionBroadcast<T> implements Action<T> {
+    private final ListenerBroadcast<Action> broadcast = new ListenerBroadcast<Action>(Action.class);
 
-/**
- * @author Hans Dockter
- */
-public interface ArtifactPomContainer {
-    void addArtifact(Artifact artifact, File src);
+    public void execute(T t) {
+        broadcast.getSource().execute(t);
+    }
 
-    Set<DefaultMavenDeployment> createDeployableFilesInfos();
+    public void add(Action<? super T> action) {
+        broadcast.add(action);
+    }
+
+    public void add(Closure action) {
+        broadcast.add("execute", action);
+    }
 }

@@ -25,13 +25,15 @@ import org.gradle.plugins.eclipse.model.Classpath
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.Action
+import org.gradle.listener.ActionBroadcast
+import org.gradle.api.internal.ConventionTask
 
 /**
  * Generates an Eclipse <i>.classpath</i> file.
  *
  * @author Hans Dockter
  */
-public class EclipseClasspath extends AbstractXmlGeneratorTask {
+public class EclipseClasspath extends ConventionTask {
     /**
      * The file that is merged into the to be produced classpath file. This file must not exist.
      */
@@ -81,6 +83,8 @@ public class EclipseClasspath extends AbstractXmlGeneratorTask {
     protected ModelFactory modelFactory = new ModelFactory()
 
     protected XmlTransformer withXmlActions = new XmlTransformer();
+    def ActionBroadcast<Classpath> beforeConfiguredActions = new ActionBroadcast<Classpath>();
+    def ActionBroadcast<Classpath> whenConfiguredActions = new ActionBroadcast<Classpath>();
 
     def EclipseClasspath() {
         outputs.upToDateWhen { false }
@@ -130,5 +134,13 @@ public class EclipseClasspath extends AbstractXmlGeneratorTask {
      */
     void withXml(Action<? super XmlProvider> action) {
         withXmlActions.addAction(action);
+    }
+
+    void beforeConfigured(Closure closure) {
+        beforeConfiguredActions.add(closure);
+    }
+
+    void whenConfigured(Closure closure) {
+        whenConfiguredActions.add(closure);
     }
 }

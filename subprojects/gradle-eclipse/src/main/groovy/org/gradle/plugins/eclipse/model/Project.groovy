@@ -63,7 +63,7 @@ class Project {
     def Project(EclipseProject eclipseProjectTask, Reader inputXml) {
         initFromXml(inputXml)
 
-        eclipseProjectTask.beforeConfiguredActions.source.execute(this)
+        eclipseProjectTask.beforeConfiguredActions.execute(this)
 
         if (eclipseProjectTask.projectName) {
             this.name = eclipseProjectTask.projectName
@@ -79,7 +79,7 @@ class Project {
         this.links.addAll(eclipseProjectTask.links);
         this.xmlTransformer = eclipseProjectTask.withXmlActions
 
-        eclipseProjectTask.whenConfiguredActions.source.execute(this)
+        eclipseProjectTask.whenConfiguredActions.execute(this)
     }
 
     private def initFromXml(Reader inputXml) {

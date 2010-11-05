@@ -19,16 +19,16 @@ import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultArtifact;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.DefaultMavenPom;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.DefaultConf2ScopeMappingContainer;
 import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenciesConverter;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
-import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -39,13 +39,11 @@ import org.junit.Test;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.hasItem;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -53,8 +51,6 @@ import static org.junit.Assert.assertThat;
 public class DefaultArtifactPomTest {
     private DefaultArtifactPom artifactPom;
     private MavenPom testPom;
-    private File expectedFile;
-    private Artifact expectedArtifact;
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -63,8 +59,6 @@ public class DefaultArtifactPomTest {
 
     @Before
     public void setUp() {
-        expectedFile = new File("somePath");
-        expectedArtifact = createTestArtifact("someName");
         testPom = new DefaultMavenPom(context.mock(ConfigurationContainer.class), new DefaultConf2ScopeMappingContainer(),
                 context.mock(PomDependenciesConverter.class), context.mock(FileResolver.class));
         artifactPom = new DefaultArtifactPom(testPom);
@@ -72,108 +66,170 @@ public class DefaultArtifactPomTest {
 
     @Test
     public void pomWithMainArtifact() {
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
+        Artifact mainArtifact = createTestArtifact("someName", null, "mainPackaging");
+        File mainFile = new File("someFile");
 
-        assertEquals(expectedArtifact, artifactPom.getArtifact());
-        assertEquals(expectedFile, artifactPom.getArtifactFile());
-        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
-                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision());
+        artifactPom.addArtifact(mainArtifact, mainFile);
+
+        assertThat(artifactPom.getArtifact().getName(), equalTo("someName"));
+        assertThat(artifactPom.getArtifact().getExtension(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getType(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getClassifier(), nullValue());
+        assertThat(artifactPom.getArtifact().getFile(), equalTo(mainFile));
+
+        assertThat(artifactPom.getPom().getGroupId(), equalTo("org"));
+        assertThat(artifactPom.getPom().getArtifactId(), equalTo("someName"));
+        assertThat(artifactPom.getPom().getVersion(), equalTo("1.0"));
+        assertThat(artifactPom.getPom().getPackaging(), equalTo("mainPackaging"));
     }
 
     @Test
     public void pomWithMainArtifactAndClassifierArtifacts() {
+        Artifact mainArtifact = createTestArtifact("someName", null, "mainPackaging");
+        File mainFile = new File("someFile");
+        Artifact classifierArtifact = createTestArtifact("otherName", "javadoc", "zip");
         File classifierFile = new File("someClassifierFile");
-        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc", "zip");
 
+        artifactPom.addArtifact(mainArtifact, mainFile);
         artifactPom.addArtifact(classifierArtifact, classifierFile);
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
 
-        assertThat(artifactPom.getClassifiers(),
-                hasItem(new ClassifierArtifact("javadoc", "sometype", new File("someFile"))));
+        assertThat(artifactPom.getArtifact().getName(), equalTo("someName"));
+        assertThat(artifactPom.getArtifact().getExtension(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getType(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getClassifier(), nullValue());
+        assertThat(artifactPom.getArtifact().getFile(), equalTo(mainFile));
 
-        assertEquals(expectedArtifact, artifactPom.getArtifact());
-        assertEquals(expectedFile, artifactPom.getArtifactFile());
-        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
-                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision());
+        PublishArtifact artifact = singleItem(artifactPom.getAttachedArtifacts());
+        assertThat(artifact.getName(), equalTo("someName"));
+        assertThat(artifact.getExtension(), equalTo("zip"));
+        assertThat(artifact.getType(), equalTo("zip"));
+        assertThat(artifact.getClassifier(), equalTo("javadoc"));
+        assertThat(artifact.getFile(), equalTo(classifierFile));
+
+        assertThat(artifactPom.getPom().getGroupId(), equalTo("org"));
+        assertThat(artifactPom.getPom().getArtifactId(), equalTo("someName"));
+        assertThat(artifactPom.getPom().getVersion(), equalTo("1.0"));
+        assertThat(artifactPom.getPom().getPackaging(), equalTo("mainPackaging"));
     }
 
     @Test
-    public void pomWithClassifierArtifacts() {
+    public void pomWithClassifierArtifactsOnly() {
         File classifierFile = new File("someClassifierFile");
-        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc", "zip");
+        Artifact classifierArtifact = createTestArtifact("someName", "javadoc", "zip");
 
         artifactPom.addArtifact(classifierArtifact, classifierFile);
 
-        assertThat(artifactPom.getClassifiers(),
-                hasItem(new ClassifierArtifact("javadoc", "sometype", new File("someFile"))));
-        checkPom(classifierArtifact.getModuleRevisionId().getOrganisation(),
-                classifierArtifact.getName(), "jar",
-                classifierArtifact.getModuleRevisionId().getRevision());
+        assertThat(artifactPom.getArtifact(), nullValue());
+
+        PublishArtifact artifact = singleItem(artifactPom.getAttachedArtifacts());
+        assertThat(artifact.getName(), equalTo("someName"));
+        assertThat(artifact.getExtension(), equalTo("zip"));
+        assertThat(artifact.getType(), equalTo("zip"));
+        assertThat(artifact.getClassifier(), equalTo("javadoc"));
+        assertThat(artifact.getFile(), equalTo(classifierFile));
+
+        assertThat(artifactPom.getPom().getGroupId(), equalTo("org"));
+        assertThat(artifactPom.getPom().getArtifactId(), equalTo("someName"));
+        assertThat(artifactPom.getPom().getVersion(), equalTo("1.0"));
+        assertThat(artifactPom.getPom().getPackaging(), equalTo("jar"));
     }
 
     @Test
     public void pomWithMainArtifactAndMetadataArtifacts() {
+        Artifact mainArtifact = createTestArtifact("someName", null, "mainPackaging");
+        File mainFile = new File("someFile");
         File metadataFile = new File("someMetadataFile");
-        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), null, "sometype");
+        Artifact metadataArtifact = createTestArtifact("otherName", null, "sometype");
 
-        artifactPom.addArtifact(classifierArtifact, metadataFile);
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
+        artifactPom.addArtifact(mainArtifact, mainFile);
+        artifactPom.addArtifact(metadataArtifact, metadataFile);
 
-        assertThat(artifactPom.getClassifiers(),
-                hasItem(new ClassifierArtifact(null, "sometype", metadataFile)));
+        assertThat(artifactPom.getArtifact().getName(), equalTo("someName"));
+        assertThat(artifactPom.getArtifact().getExtension(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getType(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getClassifier(), nullValue());
+        assertThat(artifactPom.getArtifact().getFile(), equalTo(mainFile));
 
-        assertEquals(expectedArtifact, artifactPom.getArtifact());
-        assertEquals(expectedFile, artifactPom.getArtifactFile());
-        checkPom(expectedArtifact.getModuleRevisionId().getOrganisation(), expectedArtifact.getName(),
-                expectedArtifact.getType(), expectedArtifact.getModuleRevisionId().getRevision());
+        PublishArtifact artifact = singleItem(artifactPom.getAttachedArtifacts());
+        assertThat(artifact.getName(), equalTo("someName"));
+        assertThat(artifact.getExtension(), equalTo("sometype"));
+        assertThat(artifact.getType(), equalTo("sometype"));
+        assertThat(artifact.getClassifier(), nullValue());
+        assertThat(artifact.getFile(), equalTo(metadataFile));
+
+        assertThat(artifactPom.getPom().getGroupId(), equalTo("org"));
+        assertThat(artifactPom.getPom().getArtifactId(), equalTo("someName"));
+        assertThat(artifactPom.getPom().getVersion(), equalTo("1.0"));
+        assertThat(artifactPom.getPom().getPackaging(), equalTo("mainPackaging"));
     }
     
     @Test(expected = InvalidUserDataException.class)
     public void addClassifierTwiceShouldThrowInvalidUserDataEx() {
         File classifierFile = new File("someClassifierFile");
-        Artifact classifierArtifact = createTestArtifact(expectedArtifact.getName(), "javadoc");
+        Artifact classifierArtifact = createTestArtifact("someName", "javadoc");
         artifactPom.addArtifact(classifierArtifact, classifierFile);
         artifactPom.addArtifact(classifierArtifact, classifierFile);
     }
 
     @Test(expected = InvalidUserDataException.class)
     public void addMainArtifactTwiceShouldThrowInvalidUserDataEx() {
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
+        Artifact mainArtifact = createTestArtifact("someName", null, "mainPackaging");
+        File mainFile = new File("someFile");
+        artifactPom.addArtifact(mainArtifact, mainFile);
+        artifactPom.addArtifact(mainArtifact, mainFile);
+    }
+
+    @Test
+    public void cannotAddMultipleArtifactsWithTheSameTypeAndClassifier() {
+
+        // No classifier
+        Artifact mainArtifact = createTestArtifact("someName", null);
+        artifactPom.addArtifact(mainArtifact, new File("someFile"));
+
+        assertIsDuplicate(mainArtifact, new File("someFile"));
+        assertIsDuplicate(mainArtifact, new File("otherFile"));
+        assertIsDuplicate(createTestArtifact("otherName", null), new File("otherFile"));
+
+        // Classifier
+        Artifact classifierArtifact = createTestArtifact("someName", "classifier");
+        artifactPom.addArtifact(classifierArtifact, new File("classifierFile"));
+
+        assertIsDuplicate(classifierArtifact, new File("someFile"));
+        assertIsDuplicate(classifierArtifact, new File("otherFile"));
+        assertIsDuplicate(createTestArtifact("otherName", "classifier"), new File("otherFile"));
+    }
+
+    private void assertIsDuplicate(Artifact artifact, File file) {
+        try {
+            artifactPom.addArtifact(artifact, file);
+            fail();
+        } catch (InvalidUserDataException e) {
+            assertThat(e.getMessage(), startsWith("A POM cannot have multiple artifacts with the same type and classifier."));
+        }
     }
 
     @Test
     public void initWithCustomPomSettings() {
-        testPom.setArtifactId(expectedArtifact.getName() + "X");
-        testPom.setGroupId(expectedArtifact.getModuleRevisionId().getOrganisation() + "X");
-        testPom.setVersion(expectedArtifact.getModuleRevisionId().getRevision() + "X");
-        testPom.setPackaging(expectedArtifact.getType() + "X");
-        artifactPom = new DefaultArtifactPom(testPom);
-        artifactPom.addArtifact(expectedArtifact, expectedFile);
-        assertEquals(expectedArtifact, artifactPom.getArtifact());
-        assertEquals(expectedFile, artifactPom.getArtifactFile());
-        checkPom(testPom.getGroupId(), testPom.getArtifactId(), testPom.getPackaging(), testPom.getVersion());
-    }
+        Artifact mainArtifact = createTestArtifact("someName", null, "mainPackaging");
+        File mainFile = new File("someFile");
 
-    private void checkPom(String organisation, String name, String type, String revision) {
-        assertEquals(organisation, testPom.getGroupId());
-        assertEquals(name, testPom.getArtifactId());
-        assertEquals(type, testPom.getPackaging());
-        assertEquals(revision, testPom.getVersion());
-    }
+        testPom.setArtifactId("customArtifactId");
+        testPom.setGroupId("customGroupId");
+        testPom.setVersion("customVersion");
+        testPom.setPackaging("customPackaging");
 
-    @Test(expected = InvalidUserDataException.class)
-    public void addArtifactWithArtifactSrcNull() {
-        new DefaultArtifactPom(testPom).addArtifact(expectedArtifact, null);
-    }
+        artifactPom.addArtifact(mainArtifact, mainFile);
 
-    @Test(expected = InvalidUserDataException.class)
-    public void addArtifactWithArtifactNull() {
-        new DefaultArtifactPom(testPom).addArtifact(null, expectedFile);
-    }
-    
-    private Artifact createTestArtifact(String name) {
-        return createTestArtifact(name, null);
+        assertThat(artifactPom.getArtifact().getName(), equalTo("customArtifactId"));
+        assertThat(artifactPom.getArtifact().getExtension(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getType(), equalTo("mainPackaging"));
+        assertThat(artifactPom.getArtifact().getClassifier(), nullValue());
+        assertThat(artifactPom.getArtifact().getFile(), equalTo(mainFile));
+
+        assertThat(artifactPom.getPom().getGroupId(), equalTo("customGroupId"));
+        assertThat(artifactPom.getPom().getArtifactId(), equalTo("customArtifactId"));
+        assertThat(artifactPom.getPom().getVersion(), equalTo("customVersion"));
+        assertThat(artifactPom.getPom().getPackaging(), equalTo("mainPackaging"));
     }
 
     private Artifact createTestArtifact(String name, String classifier) {
@@ -193,11 +249,26 @@ public class DefaultArtifactPomTest {
         final MavenPom mavenPomMock = context.mock(MavenPom.class);
         DefaultArtifactPom artifactPom = new DefaultArtifactPom(mavenPomMock);
         final File somePomFile = new File(tmpDir.getDir(), "someDir/somePath");
-        final Set<Configuration> configurations = WrapUtil.toSet(context.mock(Configuration.class));
         context.checking(new Expectations() {{
-            one(mavenPomMock).writeTo(with(any(FileWriter.class)));       
+            allowing(mavenPomMock).getArtifactId();
+            will(returnValue("artifactId"));
+            one(mavenPomMock).writeTo(with(any(FileWriter.class)));
         }});
-        artifactPom.writePom(somePomFile);
-        assertThat(somePomFile.getParentFile().isDirectory(), equalTo(true));
+
+        PublishArtifact artifact = artifactPom.writePom(somePomFile);
+
+        assertThat(artifact.getName(), equalTo("artifactId"));
+        assertThat(artifact.getType(), equalTo("pom"));
+        assertThat(artifact.getExtension(), equalTo("pom"));
+        assertThat(artifact.getClassifier(), nullValue());
+        assertThat(artifact.getFile(), equalTo(somePomFile));
+
+        assertThat(somePomFile.isFile(), equalTo(true));
+    }
+
+    private <T> T singleItem(Iterable<? extends T> collection) {
+        List<T> elements = GUtil.addLists(collection);
+        assertThat(elements.size(), equalTo(1));
+        return elements.get(0);
     }
 }

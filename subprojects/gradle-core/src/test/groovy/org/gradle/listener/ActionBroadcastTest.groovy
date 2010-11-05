@@ -1,0 +1,48 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package org.gradle.listener
+
+import spock.lang.Specification
+import org.gradle.api.Action
+
+class ActionBroadcastTest extends Specification {
+    final ActionBroadcast<String> broadcast = new ActionBroadcast<String>()
+
+    def broadcastsEventsToAction() {
+        Action<String> action = Mock()
+        broadcast.add(action)
+
+        when:
+        broadcast.execute('value')
+
+        then:
+        1 * action.execute('value')
+        0 * action._
+    }
+
+    def broadcastsEventsToClosure() {
+        Closure action = Mock()
+        broadcast.add(action)
+
+        when:
+        broadcast.execute('value')
+
+        then:
+        _ * action.maximumNumberOfParameters >> 1
+        1 * action.call('value')
+        0 * action._
+    }
+}

@@ -37,4 +37,9 @@ public abstract class AbstractPublishArtifact implements PublishArtifact {
     public void setTaskDependency(TaskDependency taskDependency) {
         this.taskDependency = taskDependency;
     }
+
+    @Override
+    public String toString() {
+        return String.format("%s %s:%s:%s:%s", getClass().getSimpleName(), getName(), getType(), getExtension(), getClassifier());
+    }
 }

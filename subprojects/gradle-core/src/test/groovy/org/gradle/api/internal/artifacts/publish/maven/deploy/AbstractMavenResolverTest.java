@@ -25,10 +25,10 @@ import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
 import org.codehaus.plexus.PlexusContainerException;
-import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.Action;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.maven.*;
+import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
@@ -38,7 +38,6 @@ import org.hamcrest.BaseMatcher;
 import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
-import org.jmock.api.Action;
 import org.jmock.api.Invocation;
 import org.jmock.lib.legacy.ClassImposteriser;
 import org.junit.Before;
@@ -91,13 +90,16 @@ public abstract class AbstractMavenResolverTest {
 
     @Test
     public void deployOrInstall() throws IOException, PlexusContainerException {
-        ClassifierArtifact classifierArtifact = new ClassifierArtifact("someClassifier",
-                "someType", new File("someClassifierFile"));
-        final Set<DeployableFilesInfo> testDeployableFilesInfos = WrapUtil.toSet(
-                new DeployableFilesInfo(new File("pom1.xml"), new File("artifact1.jar"), Collections.<ClassifierArtifact>emptySet()),
-                new DeployableFilesInfo(new File("pom2.xml"), new File("artifact2.jar"), WrapUtil.toSet(classifierArtifact))
+        PublishArtifact classifierArtifact = artifact(new File("classifier.jar"));
+        final DefaultMavenDeployment deployment1 = new DefaultMavenDeployment(artifact(new File("pom1.pom")), artifact(new File("artifact1.jar")), Collections.<PublishArtifact>emptySet());
+        final DefaultMavenDeployment deployment2 = new DefaultMavenDeployment(artifact(new File("pom2.pom")), artifact(new File("artifact2.jar")), WrapUtil.toSet(classifierArtifact));
+        final Set<DefaultMavenDeployment> testDefaultMavenDeployments = WrapUtil.toSet(
+                deployment1,
+                deployment2
         );
         final AttachedArtifact attachedArtifact = new AttachedArtifact();
+        final Action<MavenDeployment> action = context.mock(Action.class);
+
         context.checking(new Expectations() {
             {
                 allowing((CustomInstallDeployTaskSupport) getInstallDeployTask()).getSettings();
@@ -108,25 +110,33 @@ public abstract class AbstractMavenResolverTest {
                 will(returnValue(attachedArtifact));
                 one(artifactPomContainerMock).addArtifact(TEST_ARTIFACT, TEST_JAR_FILE);
                 allowing(artifactPomContainerMock).createDeployableFilesInfos();
-                will(returnValue(testDeployableFilesInfos));
+                will(returnValue(testDefaultMavenDeployments));
+                one(action).execute(deployment1);
+                one(action).execute(deployment2);
             }
         });
+
+        getMavenResolver().beforeDeployment(action);
         getMavenResolver().publish(TEST_IVY_ARTIFACT, TEST_IVY_FILE, true);
         getMavenResolver().publish(TEST_ARTIFACT, TEST_JAR_FILE, true);
-        checkTransaction(testDeployableFilesInfos, attachedArtifact, classifierArtifact);
+        checkTransaction(testDefaultMavenDeployments, attachedArtifact, classifierArtifact);
         assertSame(mavenSettingsMock, getMavenResolver().getSettings());
     }
 
-    protected void checkTransaction(final Set<DeployableFilesInfo> deployableFilesInfos, final AttachedArtifact attachedArtifact, ClassifierArtifact classifierArtifact) throws IOException, PlexusContainerException {
+    private PublishArtifact artifact(File file) {
+        return new DefaultPublishArtifact("name", "ext", "type", null, null, file);
+    }
+
+    protected void checkTransaction(final Set<DefaultMavenDeployment> defaultMavenDeployments, final AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {
         final GrabSettingsFileAction grabSettingsFileAction = new GrabSettingsFileAction();
         context.checking(new Expectations() {
             {
                 one(getInstallDeployTask()).setProject(with(any(Project.class)));
                 one(getInstallDeployTask()).setSettingsFile(with(any(File.class)));
                 will(grabSettingsFileAction);
-                for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
-                    one(getInstallDeployTask()).setFile(deployableFilesInfo.getArtifactFile());
-                    one(getInstallDeployTask()).addPom(with(pomMatcher(deployableFilesInfo.getPomFile(), getInstallDeployTask().getProject())));
+                for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
+                    one(getInstallDeployTask()).setFile(defaultMavenDeployment.getMainArtifact().getFile());
+                    one(getInstallDeployTask()).addPom(with(pomMatcher(defaultMavenDeployment.getPomArtifact().getFile(), getInstallDeployTask().getProject())));
                     one(loggingManagerMock).captureStandardOutput(LogLevel.INFO);
                     will(returnValue(loggingManagerMock));
                     one(loggingManagerMock).start();
@@ -224,7 +234,7 @@ public abstract class AbstractMavenResolverTest {
         assertSame(pomMock, getMavenResolver().pom(testName));
     }
 
-    private static class GrabSettingsFileAction implements Action {
+    private static class GrabSettingsFileAction implements org.jmock.api.Action {
         private File settingsFile;
         private String settingsFileContent;
 

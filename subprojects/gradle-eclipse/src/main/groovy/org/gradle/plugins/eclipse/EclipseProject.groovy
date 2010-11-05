@@ -16,23 +16,25 @@
 package org.gradle.plugins.eclipse;
 
 
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.ConventionTask
+import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Link
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
 import org.gradle.plugins.eclipse.model.Project
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.artifacts.maven.XmlProvider
-import org.gradle.api.Action
+import org.gradle.plugins.eclipse.model.internal.ModelFactory
 
 /**
  * Generates an Eclipse <i>.project</i> file.
  *
  * @author Hans Dockter
  */
-public class EclipseProject extends AbstractXmlGeneratorTask {
+public class EclipseProject extends ConventionTask {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**
@@ -79,6 +81,8 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
     protected ModelFactory modelFactory = new ModelFactory()
 
     def XmlTransformer withXmlActions = new XmlTransformer();
+    def ActionBroadcast<Project> beforeConfiguredActions = new ActionBroadcast<Project>();
+    def ActionBroadcast<Project> whenConfiguredActions = new ActionBroadcast<Project>();
 
     def EclipseProject() {
         outputs.upToDateWhen { false }
@@ -163,5 +167,13 @@ public class EclipseProject extends AbstractXmlGeneratorTask {
      */
     void withXml(Action<? super XmlProvider> action) {
         withXmlActions.addAction(action);
+    }
+
+    void beforeConfigured(Closure closure) {
+        beforeConfiguredActions.add(closure);
+    }
+
+    void whenConfigured(Closure closure) {
+        whenConfiguredActions.add(closure);
     }
 }

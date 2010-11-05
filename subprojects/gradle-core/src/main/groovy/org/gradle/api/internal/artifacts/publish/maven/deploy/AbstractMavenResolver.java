@@ -39,12 +39,12 @@ import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.apache.maven.artifact.ant.Pom;
 import org.apache.maven.settings.Settings;
 import org.apache.tools.ant.Project;
+import org.gradle.api.Action;
 import org.gradle.api.UncheckedIOException;
-import org.gradle.api.artifacts.maven.MavenPom;
-import org.gradle.api.artifacts.maven.MavenResolver;
-import org.gradle.api.artifacts.maven.PomFilterContainer;
-import org.gradle.api.artifacts.maven.PublishFilter;
+import org.gradle.api.artifacts.PublishArtifact;
+import org.gradle.api.artifacts.maven.*;
 import org.gradle.api.logging.LogLevel;
+import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
 
@@ -69,6 +69,8 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     private Settings settings;
 
     private LoggingManagerInternal loggingManager;
+
+    private final ActionBroadcast<MavenDeployment> beforeDeploymentActions = new ActionBroadcast<MavenDeployment>();
 
     public AbstractMavenResolver(String name, PomFilterContainer pomFilterContainer, ArtifactPomContainer artifactPomContainer, LoggingManagerInternal loggingManager) {
         this.name = name;
@@ -169,11 +171,12 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void commitPublishTransaction() throws IOException {
         InstallDeployTaskSupport installDeployTaskSupport = createPreConfiguredTask(AntUtil.createProject());
-        Set<DeployableFilesInfo> deployableFilesInfos = getArtifactPomContainer().createDeployableFilesInfos();
+        Set<DefaultMavenDeployment> defaultMavenDeployments = getArtifactPomContainer().createDeployableFilesInfos();
         File emptySettingsXml = createEmptyMavenSettingsXml();
         installDeployTaskSupport.setSettingsFile(emptySettingsXml);
-        for (DeployableFilesInfo deployableFilesInfo : deployableFilesInfos) {
-            addPomAndArtifact(installDeployTaskSupport, deployableFilesInfo);
+        for (DefaultMavenDeployment defaultMavenDeployment : defaultMavenDeployments) {
+            beforeDeploymentActions.execute(defaultMavenDeployment);
+            addPomAndArtifact(installDeployTaskSupport, defaultMavenDeployment);
             execute(installDeployTaskSupport);
         }
         emptySettingsXml.delete();
@@ -189,13 +192,15 @@ public abstract class AbstractMavenResolver implements MavenResolver {
         }
     }
 
-    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, DeployableFilesInfo deployableFilesInfo) {
+    private void addPomAndArtifact(InstallDeployTaskSupport installOrDeployTask, DefaultMavenDeployment defaultMavenDeployment) {
         Pom pom = new Pom();
         pom.setProject(installOrDeployTask.getProject());
-        pom.setFile(deployableFilesInfo.getPomFile());
+        pom.setFile(defaultMavenDeployment.getPomArtifact().getFile());
         installOrDeployTask.addPom(pom);
-        installOrDeployTask.setFile(deployableFilesInfo.getArtifactFile());
-        for (ClassifierArtifact classifierArtifact : deployableFilesInfo.getClassifierArtifacts()) {
+        if (defaultMavenDeployment.getMainArtifact() != null) {
+            installOrDeployTask.setFile(defaultMavenDeployment.getMainArtifact().getFile());
+        }
+        for (PublishArtifact classifierArtifact : defaultMavenDeployment.getAttachedArtifacts()) {
             AttachedArtifact attachedArtifact = installOrDeployTask.createAttach();
             attachedArtifact.setClassifier(classifierArtifact.getClassifier());
             attachedArtifact.setFile(classifierArtifact.getFile());
@@ -287,5 +292,13 @@ public abstract class AbstractMavenResolver implements MavenResolver {
 
     public void setPomFilterContainer(PomFilterContainer pomFilterContainer) {
         this.pomFilterContainer = pomFilterContainer;
+    }
+
+    public void beforeDeployment(Action<? super MavenDeployment> action) {
+        beforeDeploymentActions.add(action);
+    }
+
+    public void beforeDeployment(Closure action) {
+        beforeDeploymentActions.add(action);
     }
 }

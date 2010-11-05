@@ -2,13 +2,6 @@ apply plugin: 'java'
 apply plugin: 'maven'
 group = 'group'
 version = 1.0
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: uri("mavenRepo"))
-        }
-    }
-}
 
 task signature {
     destFile = file("$buildDir/signature.sig")
@@ -20,5 +13,26 @@ task signature {
 import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 
 artifacts {
-    archives new DefaultPublishArtifact(jar.baseName, "sig", "sig", null, new Date(), signature.destFile, signature)
+    archives new DefaultPublishArtifact(jar.baseName, "jar.sig", "jar.sig", null, new Date(), signature.destFile, signature)
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri("mavenRepo"))
+            beforeDeployment { MavenDeployment deployment ->
+                assert deployment.pomArtifact.file.isFile()
+                assert deployment.pomArtifact.name == 'root'
+                assert deployment.mainArtifact.file == jar.archivePath
+                assert deployment.mainArtifact.name == 'root'
+                assert deployment.artifacts.size() == 3
+                assert deployment.artifacts.contains(deployment.pomArtifact)
+                assert deployment.artifacts.contains(deployment.mainArtifact)
+
+                def pomSignature = file("${buildDir}/pom.sig")
+                pomSignature.text = 'signature'
+                deployment.addArtifact new DefaultPublishArtifact(deployment.pomArtifact.name, "pom.sig", "pom.sig", null, new Date(), pomSignature)
+            }
+        }
+    }
 }

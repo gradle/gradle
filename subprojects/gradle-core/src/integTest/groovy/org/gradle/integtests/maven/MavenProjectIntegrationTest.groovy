@@ -57,7 +57,7 @@ class MavenProjectIntegrationTest {
     public void canDeployAProjectWithMetadataArtifacts() {
         executer.withTasks('uploadArchives').run()
         def module = repo().module('group', 'root', 1.0)
-        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.sig')
+        module.assertArtifactsDeployed('root-1.0.jar', 'root-1.0.jar.sig', 'root-1.0.pom', 'root-1.0.pom.sig')
     }
 
     def MavenRepository repo() {

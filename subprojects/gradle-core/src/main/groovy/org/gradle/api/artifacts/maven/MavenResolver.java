@@ -15,18 +15,38 @@
  */
 package org.gradle.api.artifacts.maven;
 
+import groovy.lang.Closure;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.maven.settings.Settings;
+import org.gradle.api.Action;
 
 /**
  * A {@link org.apache.ivy.plugins.resolver.DependencyResolver} which resolves dependencies from Maven repositories.
- * 
+ *
  * @author Hans Dockter
  */
 public interface MavenResolver extends DependencyResolver, PomFilterContainer {
     /**
-     * Returns a maven settings object. This can be used for example to figure out where the local repository is located.
-     * This property is filled after publishing. Before this property is null.
+     * Returns a maven settings object. This can be used for example to figure out where the local repository is
+     * located. This property is filled after publishing. Before this property is null.
      */
     Settings getSettings();
+
+    /**
+     * Adds an action to be executed immediately before a deployment to this resolver. The action is executed after all
+     * artifacts have been build, including generation of the POM. The action can modify the set of artifacts to be
+     * deployed.
+     *
+     * @param action The action to execute.
+     */
+    void beforeDeployment(Action<? super MavenDeployment> action);
+
+    /**
+     * Adds a closure to be executed immediately before a deployment to this resolver. The closure is passed a {@link
+     * org.gradle.api.artifacts.maven.MavenDeployment} as a parameter. The closure is executed after all artifacts have
+     * been build, including generation of the POM. The closure can modify the set of artifacts to be deployed.
+     *
+     * @param action The closure to execute.
+     */
+    void beforeDeployment(Closure action);
 }

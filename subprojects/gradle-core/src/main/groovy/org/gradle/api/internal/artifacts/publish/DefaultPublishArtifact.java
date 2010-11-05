@@ -41,10 +41,6 @@ public class DefaultPublishArtifact extends AbstractPublishArtifact {
         this.file = file;
     }
 
-    public String toString() {
-        return String.format("DefaultPublishArtifact %s:%s:%s:%s", name, type, extension, classifier);
-    }
-
     public String getName() {
         return name;
     }

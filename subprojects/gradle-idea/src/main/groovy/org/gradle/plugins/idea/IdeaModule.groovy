@@ -21,12 +21,18 @@ import org.gradle.api.internal.ConventionTask
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
-import org.gradle.listener.ListenerBroadcast
 import org.gradle.plugins.idea.model.ModuleLibrary
 import org.gradle.plugins.idea.model.Path
 import org.gradle.plugins.idea.model.PathFactory
-import org.gradle.api.artifacts.*
 import org.gradle.api.tasks.*
+import org.gradle.listener.ActionBroadcast
+import org.gradle.plugins.idea.model.Module
+import org.gradle.api.artifacts.ProjectDependency
+import org.gradle.api.artifacts.ExternalDependency
+import org.gradle.api.artifacts.ResolvedConfiguration
+import org.gradle.api.artifacts.SelfResolvingDependency
+import org.gradle.api.artifacts.ResolvedDependency
+import org.gradle.api.artifacts.Dependency
 
 /**
  * Generates an IDEA module file.
@@ -117,8 +123,8 @@ public class IdeaModule extends ConventionTask {
      */
     Map scopes = [:]
 
-    private ListenerBroadcast<Action> beforeConfiguredActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
+    private ActionBroadcast<Module> beforeConfiguredActions = new ActionBroadcast<Module>();
+    private ActionBroadcast<Module> whenConfiguredActions = new ActionBroadcast<Module>();
     private XmlTransformer withXmlActions = new XmlTransformer();
 
     def IdeaModule() {
@@ -128,8 +134,8 @@ public class IdeaModule extends ConventionTask {
     @TaskAction
     void updateXML() {
         Reader xmlreader = getOutputFile().exists() ? new FileReader(getOutputFile()) : null;
-        org.gradle.plugins.idea.model.Module module = new org.gradle.plugins.idea.model.Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
-                getDependencies(), javaVersion, xmlreader, beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions, getPathFactory())
+        Module module = new Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
+                getDependencies(), javaVersion, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions, getPathFactory())
         getOutputFile().withWriter {Writer writer -> module.toXml(writer)}
     }
 
@@ -319,10 +325,10 @@ public class IdeaModule extends ConventionTask {
     }
 
     void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add("execute", closure);
+        beforeConfiguredActions.add(closure);
     }
 
     void whenConfigured(Closure closure) {
-        whenConfiguredActions.add("execute", closure);
+        whenConfiguredActions.add(closure);
     }
 }

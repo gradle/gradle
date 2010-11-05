@@ -20,7 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ActionBroadcast;
 
 import java.util.Collection;
 import java.util.LinkedHashMap;
@@ -73,16 +73,16 @@ public class DefaultDomainObjectContainer<T> extends AbstractDomainObjectCollect
     }
 
     private static class SetStore<S> implements ObjectStore<S> {
-        private final ListenerBroadcast<Action> addActions = new ListenerBroadcast<Action>(Action.class);
-        private final ListenerBroadcast<Action> removeActions = new ListenerBroadcast<Action>(Action.class);
+        private final ActionBroadcast<S> addActions = new ActionBroadcast<S>();
+        private final ActionBroadcast<S> removeActions = new ActionBroadcast<S>();
         private final Map<S, S> objects = new LinkedHashMap<S, S>();
 
         public void add(S object) {
             S oldValue = objects.put(object, object);
             if (oldValue != null) {
-                removeActions.getSource().execute(oldValue);
+                removeActions.execute(oldValue);
             }
-            addActions.getSource().execute(object);
+            addActions.execute(object);
         }
 
         public Collection<? extends S> getAll() {

@@ -15,24 +15,25 @@
  */
 package org.gradle.plugins.eclipse;
 
+
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
+import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.eclipse.model.Facet
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
-import org.gradle.plugins.eclipse.model.Wtp
-import org.gradle.plugins.eclipse.model.WbResource
 import org.gradle.plugins.eclipse.model.WbProperty
-import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.plugins.eclipse.model.WbResource
+import org.gradle.plugins.eclipse.model.Wtp
+import org.gradle.plugins.eclipse.model.internal.ModelFactory
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP.
  *
  * @author Hans Dockter
  */
-public class EclipseWtp extends AbstractXmlGeneratorTask {
+public class EclipseWtp extends ConventionTask {
     /**
      * The file that is merged into the to be produced org.eclipse.wst.common.component file. This
      * file must not exist.
@@ -102,7 +103,9 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
 
     protected ModelFactory modelFactory = new ModelFactory()
 
-    def ListenerBroadcast<Action> withXmlActions = new ListenerBroadcast<Action>(Action.class);
+    def ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>();
+    def ActionBroadcast<Wtp> beforeConfiguredActions = new ActionBroadcast<Wtp>();
+    def ActionBroadcast<Wtp> whenConfiguredActions = new ActionBroadcast<Wtp>();
 
     def EclipseWtp() {
         outputs.upToDateWhen { false }
@@ -153,6 +156,14 @@ public class EclipseWtp extends AbstractXmlGeneratorTask {
     }
 
     void withXml(Closure closure) {
-        withXmlActions.add("execute", closure);
+        withXmlActions.add(closure);
+    }
+
+    void beforeConfigured(Closure closure) {
+        beforeConfiguredActions.add(closure);
+    }
+
+    void whenConfigured(Closure closure) {
+        whenConfiguredActions.add(closure);
     }
 }

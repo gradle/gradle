@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.publish.maven.deploy;
 
 import org.apache.ivy.core.module.descriptor.Artifact;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 
 import java.io.File;
@@ -25,15 +26,16 @@ import java.util.Set;
  * @author Hans Dockter
  */
 public interface ArtifactPom {
-    Artifact getArtifact();
-
-    File getArtifactFile();
+    /**
+     * @return The main artifact, may be null.
+     */
+    PublishArtifact getArtifact();
 
     MavenPom getPom();
 
     void addArtifact(Artifact artifact, File src);
 
-    Set<ClassifierArtifact> getClassifiers();
+    Set<PublishArtifact> getAttachedArtifacts();
 
-    void writePom(File pomFile);
+    PublishArtifact writePom(File pomFile);
 }

@@ -21,6 +21,7 @@ import org.apache.maven.artifact.ant.RemoteRepository;
 import org.codehaus.plexus.PlexusContainer;
 import org.codehaus.plexus.PlexusContainerException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
@@ -33,7 +34,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Set;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -78,7 +79,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
         mavenDeployer.setUniqueVersion(false);
     }
 
-    protected void checkTransaction(final Set<DeployableFilesInfo> deployableFilesInfos, AttachedArtifact attachedArtifact, ClassifierArtifact classifierArtifact) throws IOException, PlexusContainerException {
+    protected void checkTransaction(final Set<DefaultMavenDeployment> defaultMavenDeployments, AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {
         final Set<File> protocolJars = WrapUtil.toLinkedSet(new File("jar1"), new File("jar1"));
         context.checking(new Expectations() {{
                 allowing(configurationStub).resolve();
@@ -94,7 +95,7 @@ public class BaseMavenDeployerTest extends AbstractMavenResolverTest {
                 one(deployTaskMock).addRemoteRepository(testRepository);
                 one(deployTaskMock).addRemoteSnapshotRepository(testSnapshotRepository);
         }});
-        super.checkTransaction(deployableFilesInfos, attachedArtifact, classifierArtifact);
+        super.checkTransaction(defaultMavenDeployments, attachedArtifact, classifierArtifact);
     }
 
     @Test

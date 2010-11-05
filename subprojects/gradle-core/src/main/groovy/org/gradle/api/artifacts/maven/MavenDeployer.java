@@ -21,17 +21,18 @@ import java.io.File;
 import java.util.Collection;
 
 /**
- * <p>A resolver that can only be used for uploading artifacts to a Maven repository. If you use this resolver for getting
- * dependencies from a Maven repository, an exception is thrown. This resolver support all aspects of Maven deployment,
- * including snapshot deployment and metadata.xml manipulation.</p>
- * <p/>
- * <p>You have to specify at least one repository. Otherwise, if there is only one artifact, usually there is not more to do.
- * If there is more than one artifact you have to decide what to do about this, as a Maven pom can only deal with one artifact.
- * There are two strategies. If you want to deploy only one artifact you have to specify a filter to select this artifact. If you
- * want to deploy more than one artifact, you have to specify filters which select each artifact. Associated with each filter is
- * a separate configurable pom.</p>
+ * <p>A resolver that can only be used for uploading artifacts to a Maven repository. If you use this resolver for
+ * getting dependencies from a Maven repository, an exception is thrown. This resolver support all aspects of Maven
+ * deployment, including snapshot deployment and metadata.xml manipulation.</p>
  *
- * <p>You can create an instance of this type via the {@link org.gradle.api.tasks.Upload#getRepositories()} container</p> 
+ * <p>You have to specify at least one repository. Otherwise, if there is only one artifact, usually there is not more
+ * to do. If there is more than one artifact you have to decide what to do about this, as a Maven pom can only deal with
+ * one artifact. There are two strategies. If you want to deploy only one artifact you have to specify a filter to
+ * select this artifact. If you want to deploy more than one artifact, you have to specify filters which select each
+ * artifact. Associated with each filter is a separate configurable pom.</p>
+ *
+ * <p>You can create an instance of this type via the {@link org.gradle.api.tasks.Upload#getRepositories()}
+ * container</p>
  *
  * @author Hans Dockter
  */
@@ -40,13 +41,13 @@ public interface MavenDeployer extends MavenResolver {
     /**
      * Returns the repository o be used for uploading artifacts.
      *
-     * @see #setRepository(org.apache.maven.artifact.ant.RemoteRepository) 
+     * @see #setRepository(org.apache.maven.artifact.ant.RemoteRepository)
      */
     RemoteRepository getRepository();
 
     /**
-     * Sets the repository to be used for uploading artifacts. If {@link #getRepository()} is not set, this repository is
-     * also used for uploading snapshot artifacts.
+     * Sets the repository to be used for uploading artifacts. If {@link #getRepository()} is not set, this repository
+     * is also used for uploading snapshot artifacts.
      *
      * @param repository The repository to be used
      */
@@ -54,36 +55,34 @@ public interface MavenDeployer extends MavenResolver {
 
     /**
      * Returns the repository o be used for uploading snapshot artifacts.
-     * 
+     *
      * @see #setSnapshotRepository(org.apache.maven.artifact.ant.RemoteRepository)
      */
     RemoteRepository getSnapshotRepository();
 
     /**
-     * Sets the repository to be used for uploading snapshot artifacts. If this is not set, the {@link #getRepository()} is used
-     * for uploading snapshot artifacts.
-     *  
+     * Sets the repository to be used for uploading snapshot artifacts. If this is not set, the {@link #getRepository()}
+     * is used for uploading snapshot artifacts.
+     *
      * @param snapshotRepository The repository to be used
      */
     void setSnapshotRepository(RemoteRepository snapshotRepository);
 
     /**
-     * Out of the box only uploading to the filesysten and via http is supported. If other protocolls should be used, the
-     * appropriate Maven wagon jars have to be passed via this method.
-     * 
-     * @param jars
+     * Out of the box only uploading to the filesysten and via http is supported. If other protocolls should be used,
+     * the appropriate Maven wagon jars have to be passed via this method.
      */
     void addProtocolProviderJars(Collection<File> jars);
 
     /**
-     * Returns whether to assign snapshots a unique version comprised of the timestamp and build number, or to use
-     * the same version each time. Defaults to true.
+     * Returns whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the
+     * same version each time. Defaults to true.
      */
     boolean isUniqueVersion();
 
     /**
-     * Sets whether to assign snapshots a unique version comprised of the timestamp and build number, or to use
-     * the same version each time. Defaults to true.
+     * Sets whether to assign snapshots a unique version comprised of the timestamp and build number, or to use the same
+     * version each time. Defaults to true.
      */
     void setUniqueVersion(boolean uniqueVersion);
 }

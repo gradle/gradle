@@ -16,13 +16,12 @@
 package org.gradle.plugins.eclipse.model;
 
 
-import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.listener.ActionBroadcast
+import org.gradle.plugins.eclipse.EclipseWtp
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.plugins.eclipse.EclipseWtp
 
 /**
  * @author Hans Dockter
@@ -121,8 +120,8 @@ public class WtpTest extends Specification {
     def beforeConfigured() {
         def constructorWbModuleEntries = [createSomeWbModuleEntry()]
         def constructorFacets = [createSomeFacet()]
-        ListenerBroadcast beforeConfiguredActions = new ListenerBroadcast(Action)
-        beforeConfiguredActions.add("execute") { Wtp wtp ->
+        ActionBroadcast beforeConfiguredActions = new ActionBroadcast()
+        beforeConfiguredActions.add { Wtp wtp ->
             wtp.wbModuleEntries.clear()
             wtp.facets.clear()
         }
@@ -145,8 +144,8 @@ public class WtpTest extends Specification {
         def configureActionWbModuleEntry = createSomeWbModuleEntry()
         configureActionWbModuleEntry.name = configureActionWbModuleEntry.name + 'Other'
 
-        ListenerBroadcast whenConfiguredActions = new ListenerBroadcast(Action)
-        whenConfiguredActions.add("execute") { Wtp wtp ->
+        ActionBroadcast whenConfiguredActions = new ActionBroadcast()
+        whenConfiguredActions.add { Wtp wtp ->
             assert wtp.wbModuleEntries.contains(CUSTOM_WB_MODULE_ENTRIES[0])
             assert wtp.wbModuleEntries.contains(constructorWbModuleEntry)
             wtp.wbModuleEntries.add(configureActionWbModuleEntry)
@@ -162,12 +161,12 @@ public class WtpTest extends Specification {
     }
 
     def withXml() {
-        ListenerBroadcast withXmlActions = new ListenerBroadcast(Action)
+        ActionBroadcast withXmlActions = new ActionBroadcast()
         Wtp wtp = createWtp(componentReader: customComponentReader,
                 facetReader: customFacetReader, withXmlActions: withXmlActions)
 
         when:
-        withXmlActions.add("execute") { xmls ->
+        withXmlActions.add { xmls ->
             xmls['org.eclipse.wst.commons.component'].'wb-module'.property.find { it.@name == 'context-root' }.@value = 'newValue'
             xmls['org.eclipse.wst.commons.project.facet.core'].installed.find { it.@facet == 'jst.java' }.@version = '-5x'
         }
@@ -195,7 +194,7 @@ public class WtpTest extends Specification {
     }
 
     private Wtp createWtp(Map customArgs) {
-        ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
+        ActionBroadcast dummyBroadcast = new ActionBroadcast()
         Map args = [wbModuleEntries: [], facets: [], deployName: null, defaultOutput: null, componentReader: null,
                 facetReader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: dummyBroadcast] + customArgs
         EclipseWtp eclipseWtpStub = Mock()

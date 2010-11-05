@@ -17,13 +17,13 @@ package org.gradle.plugins.eclipse.model;
 
 
 import org.gradle.api.Action
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.artifacts.maven.XmlProvider
+import org.gradle.api.internal.XmlTransformer
+import org.gradle.listener.ActionBroadcast
+import org.gradle.plugins.eclipse.EclipseProject
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
-import org.gradle.plugins.eclipse.EclipseProject
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.artifacts.maven.XmlProvider
 
 /**
  * @author Hans Dockter
@@ -124,8 +124,8 @@ public class ProjectTest extends Specification {
 
     def beforeConfigured() {
         def constructorNatures = ['constructorNature'] 
-        ListenerBroadcast beforeConfiguredActions = new ListenerBroadcast(Action)
-        beforeConfiguredActions.add("execute") { Project project ->
+        ActionBroadcast beforeConfiguredActions = new ActionBroadcast()
+        beforeConfiguredActions.add { Project project ->
             project.natures.clear()
         }
 
@@ -140,8 +140,8 @@ public class ProjectTest extends Specification {
         def constructorNature = 'constructorNature'
         def configureActionNature = 'configureNature'
 
-        ListenerBroadcast whenConfiguredActions = new ListenerBroadcast(Action)
-        whenConfiguredActions.add("execute") { Project project ->
+        ActionBroadcast whenConfiguredActions = new ActionBroadcast()
+        whenConfiguredActions.add { Project project ->
             assert project.natures.contains(CUSTOM_NATURES[0])
             assert project.natures.contains(constructorNature)
             project.natures.add(configureActionNature)
@@ -177,7 +177,7 @@ public class ProjectTest extends Specification {
     }
 
     private Project createProject(Map customArgs) {
-        ListenerBroadcast dummyBroadcast = new ListenerBroadcast(Action)
+        Action dummyBroadcast = new ActionBroadcast()
         XmlTransformer transformer = new XmlTransformer()
         Map args = [name: null, comment: null, referencedProjects: [] as Set, natures: [], buildCommands: [],
                 links: [] as Set, reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: transformer] + customArgs

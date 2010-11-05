@@ -63,10 +63,6 @@ public class ArchivePublishArtifact extends AbstractPublishArtifact {
         return GUtil.elvis(date, new Date(archiveTask.getArchivePath().lastModified()));
     }
 
-    public String toString() {
-        return String.format("ArchivePublishArtifact $s:%s:%s:%s", getName(), getType(), getExtension(), getClassifier());
-    }
-
     public AbstractArchiveTask getArchiveTask() {
         return archiveTask;
     }

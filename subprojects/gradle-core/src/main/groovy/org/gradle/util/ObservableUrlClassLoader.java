@@ -17,14 +17,14 @@
 package org.gradle.util;
 
 import org.gradle.api.Action;
-import org.gradle.listener.ListenerBroadcast;
+import org.gradle.listener.ActionBroadcast;
 
 import java.net.URL;
 import java.net.URLClassLoader;
 import java.util.Collection;
 
 public class ObservableUrlClassLoader extends URLClassLoader {
-    private final ListenerBroadcast<Action> broadcast = new ListenerBroadcast<Action>(Action.class);
+    private final ActionBroadcast<ObservableUrlClassLoader> broadcast = new ActionBroadcast<ObservableUrlClassLoader>();
 
     public ObservableUrlClassLoader(ClassLoader parent, URL... urls) {
         super(urls, parent);
@@ -41,7 +41,7 @@ public class ObservableUrlClassLoader extends URLClassLoader {
     @Override
     public void addURL(URL url) {
         super.addURL(url);
-        broadcast.getSource().execute(this);
+        broadcast.execute(this);
     }
 
     public void addURLs(Iterable<URL> urls) {

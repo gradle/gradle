@@ -22,10 +22,10 @@ import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.idea.model.ModulePath
-import org.gradle.plugins.idea.model.Project
 import org.gradle.plugins.idea.model.PathFactory
+import org.gradle.plugins.idea.model.Project
 
 /**
  * Generates an IDEA project file.
@@ -57,8 +57,8 @@ public class IdeaProject extends DefaultTask {
     @Input
     Set wildcards
 
-    private ListenerBroadcast<Action> beforeConfiguredActions = new ListenerBroadcast<Action>(Action.class);
-    private ListenerBroadcast<Action> whenConfiguredActions = new ListenerBroadcast<Action>(Action.class);
+    private ActionBroadcast<Project> beforeConfiguredActions = new ActionBroadcast<Project>();
+    private ActionBroadcast<Project> whenConfiguredActions = new ActionBroadcast<Project>();
     private XmlTransformer withXmlActions = new XmlTransformer();
 
     def IdeaProject() {
@@ -77,7 +77,7 @@ public class IdeaProject extends DefaultTask {
             result
         }
         Project ideaProject = new Project(modules, javaVersion, wildcards, xmlreader,
-                beforeConfiguredActions.source, whenConfiguredActions.source, withXmlActions, pathFactory)
+                beforeConfiguredActions, whenConfiguredActions, withXmlActions, pathFactory)
         outputFile.withWriter {Writer writer -> ideaProject.toXml(writer)}
     }
 
@@ -122,7 +122,7 @@ public class IdeaProject extends DefaultTask {
      * @return this
      */
     IdeaProject beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add("execute", closure);
+        beforeConfiguredActions.add(closure);
         return this;
     }
 
@@ -135,7 +135,7 @@ public class IdeaProject extends DefaultTask {
      * @return this
      */
     IdeaProject whenConfigured(Closure closure) {
-        whenConfiguredActions.add("execute", closure);
+        whenConfiguredActions.add(closure);
         return this;
     }
 }

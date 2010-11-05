@@ -15,7 +15,7 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.listener.ListenerBroadcast
+import org.gradle.api.Action
 import org.gradle.plugins.eclipse.EclipseWtp
 
 /**
@@ -31,13 +31,13 @@ class Wtp {
     private Node orgEclipseWstCommonComponentXml
     private Node orgEclipseWstCommonProjectFacetCoreXml
 
-    private ListenerBroadcast withXmlActions
+    private Action<Map<String, Node>> withXmlActions
 
     Wtp(EclipseWtp eclipseWtp, List wbModuleEntries, Reader inputOrgEclipseWstCommonComponentXml,
         Reader inputOrgEclipseWstCommonProjectFacetCoreXml) {
         initFromXml(inputOrgEclipseWstCommonComponentXml, inputOrgEclipseWstCommonProjectFacetCoreXml)
 
-        eclipseWtp.beforeConfiguredActions.source.execute(this)
+        eclipseWtp.beforeConfiguredActions.execute(this)
 
         this.wbModuleEntries.addAll(wbModuleEntries)
         this.wbModuleEntries.unique()
@@ -48,7 +48,7 @@ class Wtp {
         }
         this.withXmlActions = eclipseWtp.withXmlActions
 
-        eclipseWtp.whenConfiguredActions.source.execute(this)
+        eclipseWtp.whenConfiguredActions.execute(this)
     }
 
     private def initFromXml(Reader inputOrgEclipseWstCommonComponentXml, Reader inputOrgEclipseWstCommonProjectFacetCoreXml) {
@@ -113,7 +113,7 @@ class Wtp {
         facets.each { facet ->
             facet.appendNode(orgEclipseWstCommonProjectFacetCoreXml)
         }
-        withXmlActions.source.execute([
+        withXmlActions.execute([
                 'org.eclipse.wst.commons.component': orgEclipseWstCommonComponentXml,
                 'org.eclipse.wst.commons.project.facet.core': orgEclipseWstCommonProjectFacetCoreXml])
 

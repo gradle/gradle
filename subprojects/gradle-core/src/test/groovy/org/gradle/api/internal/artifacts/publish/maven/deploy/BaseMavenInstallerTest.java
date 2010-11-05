@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 import org.apache.maven.artifact.ant.AttachedArtifact;
 import org.apache.maven.artifact.ant.InstallDeployTaskSupport;
 import org.codehaus.plexus.PlexusContainerException;
+import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenResolver;
 import org.gradle.api.artifacts.maven.PomFilterContainer;
 import org.gradle.api.internal.Factory;
@@ -59,7 +60,7 @@ public class BaseMavenInstallerTest extends AbstractMavenResolverTest {
         mavenInstaller.setInstallTaskFactory(installTaskFactoryMock);
     }
 
-    protected void checkTransaction(final Set<DeployableFilesInfo> deployableUnits, AttachedArtifact attachedArtifact, ClassifierArtifact classifierArtifact) throws IOException, PlexusContainerException {
+    protected void checkTransaction(final Set<DefaultMavenDeployment> deployableUnits, AttachedArtifact attachedArtifact, PublishArtifact classifierArtifact) throws IOException, PlexusContainerException {
         context.checking(new Expectations() {
             {
                 allowing(installTaskFactoryMock).create();
