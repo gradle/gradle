@@ -33,7 +33,12 @@ class ClasspathFactory {
         List entries = getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project)
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
-        return new Classpath(eclipseClasspath.beforeConfiguredActions.source, eclipseClasspath.whenConfiguredActions.source, eclipseClasspath.withXmlActions, entries, inputReader)
+        
+        // for Java/Groovy projects ensure that the default output directory actually exists, to avoid an invalid classpath in Eclipse
+        SourceSet main = eclipseClasspath.sourceSets.findByName('main')
+        return main != null ?
+               new Classpath(eclipseClasspath.beforeConfiguredActions.source, eclipseClasspath.whenConfiguredActions.source, eclipseClasspath.withXmlActions, entries, inputReader, eclipseClasspath.project.relativePath(main.classesDir)) :
+               new Classpath(eclipseClasspath.beforeConfiguredActions.source, eclipseClasspath.whenConfiguredActions.source, eclipseClasspath.withXmlActions, entries, inputReader)
     }
 
     List getEntriesFromSourceSets(def sourceSets, def project) {

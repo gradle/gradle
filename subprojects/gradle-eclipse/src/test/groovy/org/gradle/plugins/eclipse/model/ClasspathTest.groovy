@@ -41,6 +41,14 @@ public class ClasspathTest extends Specification {
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
+    def initWithOutputFolder() {
+        String classesDir = 'build/classes/main' 
+        Classpath classpath = createClasspath(defaultOutputDir: classesDir)
+
+        expect:
+        classpath.entries == [new Output(classesDir)]    
+    }
+    
     def initWithReader() {
         Classpath classpath = createClasspath(reader: customClasspathReader)
 
@@ -48,7 +56,7 @@ public class ClasspathTest extends Specification {
         classpath.entries == DEFAULT_ENTRIES + CUSTOM_ENTRIES
 
     }
-
+    
     def initWithReaderAndValues_shouldBeMerged() {
         def constructorDefaultOutput = 'build'
         def constructorEntries = [createSomeLibrary()]
@@ -160,7 +168,9 @@ public class ClasspathTest extends Specification {
         Action dummyBroadcast = Mock()
         XmlTransformer transformer = new XmlTransformer()
         Map args = [entries: [], reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: transformer] + customArgs
-        return new Classpath(args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, args.entries, args.reader)
+        return args.containsKey('defaultOutputDir') ?
+               new Classpath(args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, args.entries, args.reader, args.defaultOutputDir) :
+               new Classpath(args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, args.entries, args.reader)
     }
 
     private StringReader getToXmlReader(Classpath classpath) {

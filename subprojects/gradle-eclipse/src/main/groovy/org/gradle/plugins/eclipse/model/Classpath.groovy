@@ -25,16 +25,20 @@ import org.gradle.api.Action
  * @author Hans Dockter
  */
 class Classpath {
+    // the default value for the 'output' entry on the classpath
+    private static final DEFAULT_OUTPUT_DIR = 'bin'
+    
     /**
-     * The classpath entries (contains by default an output entry pointing to bin).
+     * The classpath entries.
      */
-    List entries = [new Output('bin')]
+    List entries = []
 
     private Node xml
 
     private XmlTransformer xmlTransformer
 
-    Classpath(Action<Classpath> beforeConfiguredAction, Action<Classpath> whenConfiguredAction, XmlTransformer xmlTransformer, List entries, Reader inputXml) {
+    Classpath(Action<Classpath> beforeConfiguredAction, Action<Classpath> whenConfiguredAction, XmlTransformer xmlTransformer, List entries, Reader inputXml, String defaultOutputDir=DEFAULT_OUTPUT_DIR) {
+        this.entries.add(new Output(defaultOutputDir))
         initFromXml(inputXml)
 
         beforeConfiguredAction.execute(this)
