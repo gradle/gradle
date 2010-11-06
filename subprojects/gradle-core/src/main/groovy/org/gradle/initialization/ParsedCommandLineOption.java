@@ -15,20 +15,12 @@
  */
 package org.gradle.initialization;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ParsedCommandLineOption {
+public class ParsedCommandLineOption implements Serializable {
     private final List<String> values = new ArrayList<String>();
-    private final CommandLineOption option;
-
-    ParsedCommandLineOption(CommandLineOption option) {
-        this.option = option;
-    }
-
-    public CommandLineOption getOption() {
-        return option;
-    }
 
     public String getValue() {
         if (values.isEmpty()) {

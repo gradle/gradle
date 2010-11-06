@@ -23,19 +23,19 @@ import java.io.*;
 import java.lang.reflect.Constructor;
 
 public abstract class Message implements Serializable {
-    public void send(OutputStream outputSteam) throws IOException {
+    public static void send(Object message, OutputStream outputSteam) throws IOException {
         ObjectOutputStream oos = new ExceptionReplacingObjectOutputStream(outputSteam);
         try {
-            oos.writeObject(this);
+            oos.writeObject(message);
         } finally {
             oos.flush();
         }
     }
 
-    public static Message receive(InputStream inputSteam, ClassLoader classLoader)
+    public static Object receive(InputStream inputSteam, ClassLoader classLoader)
             throws IOException, ClassNotFoundException {
         ObjectInputStream ois = new ExceptionReplacingObjectInputStream(inputSteam, classLoader);
-        return (Message) ois.readObject();
+        return ois.readObject();
     }
 
     private static class ExceptionPlaceholder implements Serializable {

@@ -18,6 +18,7 @@ package org.gradle.launcher
 import spock.lang.Specification
 import org.junit.Rule
 import org.gradle.util.RedirectStdOutAndErr
+import org.gradle.api.Action
 
 class MainTest extends Specification {
     @Rule final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
@@ -31,21 +32,20 @@ class MainTest extends Specification {
         }
 
         @Override
-        CommandLineActionFactory createActionFactory(BuildCompleter buildCompleter) {
-            assert buildCompleter == completer
+        CommandLineActionFactory createActionFactory() {
             factory
         }
     }
 
     def createsAndExecutesCommandLineAction() {
-        Runnable action = Mock()
+        Action<BuildCompleter> action = Mock()
 
         when:
         main.execute()
 
         then:
         1 * factory.convert(args) >> action
-        1 * action.run()
+        1 * action.execute(completer)
         1 * completer.exit(null)
         0 * factory._
         0 * action._
@@ -53,7 +53,7 @@ class MainTest extends Specification {
     }
 
     def reportsActionExecutionFailure() {
-        Runnable action = Mock()
+        Action<BuildCompleter> action = Mock()
         RuntimeException failure = new RuntimeException('broken')
 
         when:
@@ -61,7 +61,7 @@ class MainTest extends Specification {
 
         then:
         1 * factory.convert(args) >> action
-        1 * action.run() >> { throw failure }
+        1 * action.execute(completer) >> { throw failure }
         outputs.stdErr.contains('internal error')
         outputs.stdErr.contains('java.lang.RuntimeException: broken')
         1 * completer.exit(failure)

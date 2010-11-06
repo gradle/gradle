@@ -22,8 +22,12 @@ import org.gradle.CommandLineArgumentException;
  */
 public interface CommandLineConverter<T> {
     T convert(Iterable<String> args) throws CommandLineArgumentException;
-    
+
+    T convert(Iterable<String> args, T target) throws CommandLineArgumentException;
+
     T convert(ParsedCommandLine args) throws CommandLineArgumentException;
+
+    T convert(ParsedCommandLine args, T target) throws CommandLineArgumentException;
 
     void configure(CommandLineParser parser);
 }

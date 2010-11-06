@@ -16,6 +16,7 @@
 package org.gradle.launcher;
 
 import org.gradle.*;
+import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
@@ -25,6 +26,7 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 
@@ -35,11 +37,9 @@ public class CommandLineActionFactory {
     private static final String HELP = "h";
     private static final String GUI = "gui";
     private static final String VERSION = "v";
-    private final BuildCompleter buildCompleter;
-
-    public CommandLineActionFactory(BuildCompleter buildCompleter) {
-        this.buildCompleter = buildCompleter;
-    }
+    private static final String FOREGROUND = "foreground";
+    private static final String DAEMON = "daemon";
+    private static final String STOP = "stop";
 
     /**
      * Converts the given command-line arguments to a {@code Runnable} action which performs the action requested by the
@@ -49,7 +49,7 @@ public class CommandLineActionFactory {
      * @param args The command-line arguments.
      * @return The action to execute.
      */
-    Runnable convert(List<String> args) {
+    Action<BuildCompleter> convert(List<String> args) {
         CommandLineParser parser = new CommandLineParser();
 
         CommandLineConverter<StartParameter> startParameterConverter = createStartParameterConverter();
@@ -58,11 +58,14 @@ public class CommandLineActionFactory {
         parser.option(HELP, "?", "help").hasDescription("Shows this help message");
         parser.option(VERSION, "version").hasDescription("Print version info.");
         parser.option(GUI).hasDescription("Launches a GUI application");
+        parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground [experimental].");
+        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to execute the build. Starts the daemon if not running [experimental].");
+        parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running [experimental].");
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
         ServiceRegistry loggingServices = createLoggingServices();
 
-        Runnable action;
+        Action<BuildCompleter> action;
         try {
             ParsedCommandLine commandLine = parser.parse(args);
             CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = loggingServices.get(CommandLineConverter.class);
@@ -87,22 +90,43 @@ public class CommandLineActionFactory {
         return new DefaultGradleLauncherFactory(loggingServices);
     }
 
-    private Runnable createAction(CommandLineParser parser, ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, ServiceRegistry loggingServices) {
+    private Action<BuildCompleter> createAction(CommandLineParser parser, final ParsedCommandLine commandLine, CommandLineConverter<StartParameter> startParameterConverter, final ServiceRegistry loggingServices) {
         if (commandLine.hasOption(HELP)) {
-            return new ShowUsageAction(parser);
+            return new CompleteOnSuccessAction(new ShowUsageAction(parser));
         }
         if (commandLine.hasOption(VERSION)) {
-            return new ShowVersionAction();
+            return new CompleteOnSuccessAction(new ShowVersionAction());
         }
         if (commandLine.hasOption(GUI)) {
-            return new ShowGuiAction();
+            return new CompleteOnSuccessAction(new ShowGuiAction());
+        }
+        if (commandLine.hasOption(FOREGROUND)) {
+            return new CompleteOnSuccessAction(new Runnable() {
+                public void run() {
+                    new GradleDaemon(loggingServices).run();
+                }
+            });
+        }
+        if (commandLine.hasOption(STOP)) {
+            return new CompleteOnSuccessAction(new Runnable() {
+                public void run() {
+                    new GradleDaemon(loggingServices).stop();
+                }
+            });
+        }
+        if (commandLine.hasOption(DAEMON)) {
+            return new CompleteOnSuccessAction(new Runnable() {
+                public void run() {
+                    new GradleDaemon(loggingServices).clientMain(new File(System.getProperty("user.dir")), commandLine);
+                }
+            });
         }
 
         StartParameter startParameter = startParameterConverter.convert(commandLine);
         return new RunBuildAction(startParameter, loggingServices);
     }
 
-    private void showUsage(PrintStream out, CommandLineParser parser) {
+    private static void showUsage(PrintStream out, CommandLineParser parser) {
         out.println();
         out.print("USAGE: ");
         new GradleLauncherMetaData().describeCommand(out, "[option...]", "[task...]");
@@ -112,7 +136,7 @@ public class CommandLineActionFactory {
         out.println();
     }
 
-    private class CommandLineParseFailureAction implements Runnable {
+    private static class CommandLineParseFailureAction implements Action<BuildCompleter> {
         private final Exception e;
         private final CommandLineParser parser;
 
@@ -121,7 +145,7 @@ public class CommandLineActionFactory {
             this.e = e;
         }
 
-        public void run() {
+        public void execute(BuildCompleter buildCompleter) {
             System.err.println();
             System.err.println(e.getMessage());
             showUsage(System.err, parser);
@@ -129,7 +153,7 @@ public class CommandLineActionFactory {
         }
     }
 
-    private class ShowUsageAction implements Runnable {
+    private static class ShowUsageAction implements Runnable {
         private final CommandLineParser parser;
 
         public ShowUsageAction(CommandLineParser parser) {
@@ -138,25 +162,22 @@ public class CommandLineActionFactory {
 
         public void run() {
             showUsage(System.out, parser);
-            buildCompleter.exit(null);
         }
     }
 
-    private class ShowVersionAction implements Runnable {
+    private static class ShowVersionAction implements Runnable {
         public void run() {
             System.out.println(new GradleVersion().prettyPrint());
-            buildCompleter.exit(null);
         }
     }
 
-    class ShowGuiAction implements Runnable {
+    static class ShowGuiAction implements Runnable {
         public void run() {
             BlockingApplication.launchAndBlock();
-            buildCompleter.exit(null);
         }
     }
 
-    private class RunBuildAction implements Runnable {
+    private class RunBuildAction implements Action<BuildCompleter> {
         private final StartParameter startParameter;
         private final ServiceRegistry loggingServices;
 
@@ -165,7 +186,7 @@ public class CommandLineActionFactory {
             this.loggingServices = loggingServices;
         }
 
-        public void run() {
+        public void execute(BuildCompleter buildCompleter) {
             GradleLauncherFactory gradleLauncherFactory = createGradleLauncherFactory(loggingServices);
             GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter);
             BuildResult buildResult = gradleLauncher.run();
@@ -173,23 +194,36 @@ public class CommandLineActionFactory {
         }
     }
 
-    class WithLoggingAction implements Runnable {
-        private final LoggingConfiguration loggingConfiguration;
-        private final ServiceRegistry loggingServices;
+    static class CompleteOnSuccessAction implements Action<BuildCompleter> {
         private final Runnable action;
 
-        public WithLoggingAction(LoggingConfiguration loggingConfiguration, ServiceRegistry loggingServices, Runnable action) {
+        CompleteOnSuccessAction(Runnable action) {
+            this.action = action;
+        }
+
+        public void execute(BuildCompleter buildCompleter) {
+            action.run();
+            buildCompleter.exit(null);
+        }
+    }
+
+    static class WithLoggingAction implements Action<BuildCompleter> {
+        private final LoggingConfiguration loggingConfiguration;
+        private final ServiceRegistry loggingServices;
+        private final Action<BuildCompleter> action;
+
+        public WithLoggingAction(LoggingConfiguration loggingConfiguration, ServiceRegistry loggingServices, Action<BuildCompleter> action) {
             this.loggingConfiguration = loggingConfiguration;
             this.loggingServices = loggingServices;
             this.action = action;
         }
 
-        public void run() {
+        public void execute(BuildCompleter buildCompleter) {
             LoggingManagerInternal loggingManager = loggingServices.getFactory(LoggingManagerInternal.class).create();
             loggingManager.setLevel(loggingConfiguration.getLogLevel());
             loggingManager.colorStdOutAndStdErr(loggingConfiguration.isColorOutput());
             loggingManager.start();
-            action.run();
+            action.execute(buildCompleter);
         }
     }
 }

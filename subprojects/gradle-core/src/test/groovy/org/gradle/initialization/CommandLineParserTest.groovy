@@ -255,9 +255,14 @@ class CommandLineParserTest extends Specification {
         expect:
         def result = parser.parse(['a', '--option', 'b'])
         result.extraArguments == ['a', '--option', 'b']
+
+        parser.allowMixedSubcommandsAndOptions()
+
+        result = parser.parse(['a', '--option', 'b'])
+        result.extraArguments == ['a', '--option', 'b']
     }
-    
-    def canTreatOptionAsSubcommand() {
+
+    def canMapOptionToSubcommand() {
         parser.option('a').mapsToSubcommand('subcmd')
 
         expect:

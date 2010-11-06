@@ -40,7 +40,7 @@ class CommandLineActionFactoryTest extends Specification {
     final ServiceRegistry loggingServices = Mock()
     final CommandLineConverter<LoggingConfiguration> loggingConfigurationConverter = Mock()
     final LoggingManagerInternal loggingManager = Mock()
-    final CommandLineActionFactory factory = new CommandLineActionFactory(buildCompleter) {
+    final CommandLineActionFactory factory = new CommandLineActionFactory() {
         @Override
         ServiceRegistry createLoggingServices() {
             return loggingServices
@@ -76,7 +76,7 @@ class CommandLineActionFactoryTest extends Specification {
         1 * startParameterConverter.convert(!null) >> { throw failure }
 
         when:
-        action.run()
+        action.execute(buildCompleter)
 
         then:
         1 * loggingManager.start()
@@ -90,7 +90,7 @@ class CommandLineActionFactoryTest extends Specification {
     def displaysUsageMessage() {
         when:
         def action = factory.convert([option])
-        action.run()
+        action.execute(buildCompleter)
 
         then:
         _ * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
@@ -109,7 +109,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         when:
         def action = factory.convert(['-?'])
-        action.run()
+        action.execute(buildCompleter)
 
         then:
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
@@ -119,7 +119,7 @@ class CommandLineActionFactoryTest extends Specification {
     def displaysVersionMessage() {
         when:
         def action = factory.convert([option])
-        action.run()
+        action.execute(buildCompleter)
 
         then:
         1 * loggingManager.start()
@@ -136,7 +136,8 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         action instanceof CommandLineActionFactory.WithLoggingAction
-        action.action instanceof CommandLineActionFactory.ShowGuiAction
+        action.action instanceof CommandLineActionFactory.CompleteOnSuccessAction
+        action.action.action instanceof CommandLineActionFactory.ShowGuiAction
     }
 
     def executesBuild() {
@@ -149,7 +150,7 @@ class CommandLineActionFactoryTest extends Specification {
         1 * startParameterConverter.convert(!null) >> startParameter
 
         when:
-        action.run()
+        action.execute(buildCompleter)
 
         then:
         1 * loggingManager.start()
@@ -170,7 +171,7 @@ class CommandLineActionFactoryTest extends Specification {
         1 * startParameterConverter.convert(!null) >> startParameter
 
         when:
-        action.run()
+        action.execute(buildCompleter)
 
         then:
         1 * loggingManager.start()

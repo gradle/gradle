@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.GlobalServicesRegistry;
 import org.gradle.api.internal.project.IProjectFactory;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.project.TopLevelBuildServiceRegistry;
-import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.CacheRepository;
@@ -58,7 +57,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         sharedServices = globalServices;
 
         // Start logging system
-        sharedServices.newInstance(LoggingManagerInternal.class).setLevel(LogLevel.LIFECYCLE).start();
+//        sharedServices.newInstance(LoggingManagerInternal.class).setLevel(LogLevel.LIFECYCLE).start();
 
         commandLineConverter = sharedServices.get(CommandLineConverter.class);
         tracker = new NestedBuildTracker();

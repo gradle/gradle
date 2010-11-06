@@ -162,7 +162,7 @@ class MessageTest extends Specification {
 
     private Object transport(Object arg) {
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        new TestPayloadMessage(payload: arg).send(outputStream);
+        Message.send(new TestPayloadMessage(payload: arg), outputStream);
 
         ByteArrayInputStream inputStream = new ByteArrayInputStream(outputStream.toByteArray());
         def message = Message.receive(inputStream, dest);

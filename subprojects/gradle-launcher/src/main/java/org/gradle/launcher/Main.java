@@ -17,6 +17,7 @@ package org.gradle.launcher;
 
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
+import org.gradle.api.Action;
 import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 import java.util.Arrays;
@@ -46,9 +47,9 @@ public class Main {
     public void execute() {
         BuildCompleter buildCompleter = createBuildCompleter();
         try {
-            CommandLineActionFactory actionFactory = createActionFactory(buildCompleter);
-            Runnable action = actionFactory.convert(Arrays.asList(args));
-            action.run();
+            CommandLineActionFactory actionFactory = createActionFactory();
+            Action<BuildCompleter> action = actionFactory.convert(Arrays.asList(args));
+            action.execute(buildCompleter);
             buildCompleter.exit(null);
         } catch (Throwable e) {
             new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter()).reportException(e);
@@ -56,8 +57,8 @@ public class Main {
         }
     }
 
-    CommandLineActionFactory createActionFactory(BuildCompleter buildCompleter) {
-        return new CommandLineActionFactory(buildCompleter);
+    CommandLineActionFactory createActionFactory() {
+        return new CommandLineActionFactory();
     }
 
     BuildCompleter createBuildCompleter() {
