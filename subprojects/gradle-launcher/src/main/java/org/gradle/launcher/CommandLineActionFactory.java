@@ -104,7 +104,7 @@ public class CommandLineActionFactory {
             return new ActionAdapter(new ShowGuiAction());
         }
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new GradleDaemon(loggingServices));
+            return new ActionAdapter(new DaemonMain(loggingServices));
         }
         if (commandLine.hasOption(STOP)) {
             return new StopDaemonAction(new DaemonConnector(), loggingServices.get(OutputEventListener.class));

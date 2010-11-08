@@ -187,6 +187,6 @@ class CommandLineActionFactoryTest extends Specification {
         then:
         action instanceof WithLoggingAction
         action.action instanceof ActionAdapter
-        action.action.action instanceof GradleDaemon
+        action.action.action instanceof DaemonMain
     }
 }

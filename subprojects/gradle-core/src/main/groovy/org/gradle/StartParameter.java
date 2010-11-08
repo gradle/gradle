@@ -65,7 +65,7 @@ public class StartParameter {
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();
     private Map<String, String> systemPropertiesArgs = new HashMap<String, String>();
-    private File gradleUserHomeDir = new File(GUtil.elvis(System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY), DEFAULT_GRADLE_USER_HOME.getAbsolutePath()));
+    private File gradleUserHomeDir;
     private CacheUsage cacheUsage = CacheUsage.ON;
     private ScriptSource buildScriptSource;
     private ScriptSource settingsScriptSource;
@@ -85,6 +85,15 @@ public class StartParameter {
      * command-line with no arguments.
      */
     public StartParameter() {
+        String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
+        if (gradleUserHome == null) {
+            gradleUserHome = System.getenv("GRADLE_USER_HOME");
+            if (gradleUserHome == null) {
+                gradleUserHome = DEFAULT_GRADLE_USER_HOME.getAbsolutePath();
+            }
+        }
+
+        gradleUserHomeDir = GFileUtils.canonicalise(new File(gradleUserHome));
         setCurrentDir(null);
     }
 
