@@ -15,24 +15,27 @@
  */
 package org.gradle.launcher
 
+import org.gradle.api.internal.Factory
+import org.gradle.api.internal.project.ServiceRegistry
 import org.gradle.initialization.CommandLineConverter
+import org.gradle.launcher.CommandLineActionFactory.ActionAdapter
+import org.gradle.launcher.CommandLineActionFactory.ShowGuiAction
+import org.gradle.launcher.CommandLineActionFactory.WithLoggingAction
+import org.gradle.logging.LoggingConfiguration
+import org.gradle.logging.LoggingManagerInternal
 import org.gradle.util.GradleVersion
 import org.gradle.util.RedirectStdOutAndErr
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.*
-import org.gradle.api.internal.project.ServiceRegistry
-import org.gradle.logging.LoggingConfiguration
-import org.gradle.logging.LoggingManagerInternal
-import org.gradle.api.internal.Factory
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule
     public final RedirectStdOutAndErr outputs = new RedirectStdOutAndErr();
     @Rule
     public final SetSystemProperties sysProperties = new SetSystemProperties();
-    final BuildCompleter buildCompleter = Mock()
+    final ExecutionListener buildCompleter = Mock()
     final CommandLineConverter<StartParameter> startParameterConverter = Mock()
     final GradleLauncherFactory gradleLauncherFactory = Mock()
     final GradleLauncher gradleLauncher = Mock()
@@ -49,11 +52,6 @@ class CommandLineActionFactoryTest extends Specification {
         @Override
         CommandLineConverter<StartParameter> createStartParameterConverter() {
             return startParameterConverter
-        }
-
-        @Override
-        GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
-            return gradleLauncherFactory
         }
     }
 
@@ -84,7 +82,7 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdErr.contains('USAGE: gradle [option...] [task...]')
         outputs.stdErr.contains('--help')
         outputs.stdErr.contains('--some-build-option')
-        1 * buildCompleter.exit(failure)
+        1 * buildCompleter.onFailure(failure)
     }
 
     def displaysUsageMessage() {
@@ -98,7 +96,6 @@ class CommandLineActionFactoryTest extends Specification {
         outputs.stdOut.contains('USAGE: gradle [option...] [task...]')
         outputs.stdOut.contains('--help')
         outputs.stdOut.contains('--some-build-option')
-        1 * buildCompleter.exit(null)
 
         where:
         option << ['-h', '-?', '--help']
@@ -113,7 +110,6 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         outputs.stdOut.contains('USAGE: gradle-app [option...] [task...]')
-        1 * buildCompleter.exit(null)
     }
 
     def displaysVersionMessage() {
@@ -124,7 +120,6 @@ class CommandLineActionFactoryTest extends Specification {
         then:
         1 * loggingManager.start()
         outputs.stdOut.contains(new GradleVersion().prettyPrint())
-        1 * buildCompleter.exit(null)
 
         where:
         option << ['-v', '--version']
@@ -135,49 +130,45 @@ class CommandLineActionFactoryTest extends Specification {
         def action = factory.convert(['--gui'])
 
         then:
-        action instanceof CommandLineActionFactory.WithLoggingAction
-        action.action instanceof CommandLineActionFactory.CompleteOnSuccessAction
-        action.action.action instanceof CommandLineActionFactory.ShowGuiAction
+        action instanceof WithLoggingAction
+        action.action instanceof ActionAdapter
+        action.action.action instanceof ShowGuiAction
     }
 
     def executesBuild() {
-        def startParameter = new StartParameter();
-
         when:
         def action = factory.convert(['args'])
 
         then:
-        1 * startParameterConverter.convert(!null) >> startParameter
-
-        when:
-        action.execute(buildCompleter)
-
-        then:
-        1 * loggingManager.start()
-        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
-        1 * gradleLauncher.run() >> buildResult
-        1 * buildResult.failure >> null
-        1 * buildCompleter.exit(null)
+        action instanceof WithLoggingAction
+        action.action instanceof RunBuildAction
     }
 
-    def executesFailedBuild() {
-        def RuntimeException failure = new RuntimeException()
-        def startParameter = new StartParameter();
-
+    def executesBuildUsingDaemon() {
         when:
-        def action = factory.convert(['args'])
+        def action = factory.convert(['--daemon', 'args'])
 
         then:
-        1 * startParameterConverter.convert(!null) >> startParameter
+        action instanceof WithLoggingAction
+        action.action instanceof DaemonBuildAction
+    }
 
+    def stopsDaemon() {
         when:
-        action.execute(buildCompleter)
+        def action = factory.convert(['--stop'])
 
         then:
-        1 * loggingManager.start()
-        1 * gradleLauncherFactory.newInstance(startParameter) >> gradleLauncher
-        1 * gradleLauncher.run() >> buildResult
-        1 * buildResult.failure >> failure
-        1 * buildCompleter.exit(failure)
+        action instanceof WithLoggingAction
+        action.action instanceof StopDaemonAction
+    }
+
+    def runsDaemonInForeground() {
+        when:
+        def action = factory.convert(['--foreground'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof ActionAdapter
+        action.action.action instanceof GradleDaemon
     }
 }

@@ -13,8 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher;
+package org.gradle.launcher.protocol;
 
-public interface BuildCompleter {
-    void exit(Throwable failure);
+public class Stop extends Command {
 }

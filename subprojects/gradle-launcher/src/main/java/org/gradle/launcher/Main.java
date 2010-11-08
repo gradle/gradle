@@ -47,14 +47,17 @@ public class Main {
     public void execute() {
         BuildCompleter buildCompleter = createBuildCompleter();
         try {
+            // We execute as much as possible inside this try block (including construction of dependencies), so that
+            // the error reporting below is applied to as much code as possible
             CommandLineActionFactory actionFactory = createActionFactory();
-            Action<BuildCompleter> action = actionFactory.convert(Arrays.asList(args));
+            Action<ExecutionListener> action = actionFactory.convert(Arrays.asList(args));
             action.execute(buildCompleter);
-            buildCompleter.exit(null);
         } catch (Throwable e) {
-            new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter()).reportException(e);
-            buildCompleter.exit(e);
+            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter());
+            exceptionReporter.reportException(e);
+            buildCompleter.onFailure(e);
         }
+        buildCompleter.exit();
     }
 
     CommandLineActionFactory createActionFactory() {
@@ -62,12 +65,22 @@ public class Main {
     }
 
     BuildCompleter createBuildCompleter() {
-        return new ProcessExitBuildCompleter();
+        return new ProcessExitExecutionListener();
     }
 
-    private static class ProcessExitBuildCompleter implements BuildCompleter {
-        public void exit(Throwable failure) {
-            System.exit(failure == null ? 0 : 1);
+    interface BuildCompleter extends ExecutionListener {
+        void exit();
+    }
+
+    static class ProcessExitExecutionListener implements BuildCompleter {
+        private boolean failure;
+
+        public void onFailure(Throwable failure) {
+            this.failure = true;
+        }
+
+        public void exit() {
+            System.exit(failure ? 1 : 0);
         }
     }
 }
