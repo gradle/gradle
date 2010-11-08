@@ -25,6 +25,7 @@ import static org.gradle.util.Matchers.*
 import org.gradle.api.tasks.ant.AntTarget
 import java.lang.reflect.Field
 import org.apache.tools.ant.Target
+import org.apache.tools.ant.Task
 
 class DefaultAntBuilderTest {
     private final Project project = HelperUtil.createRootProject()
@@ -107,6 +108,16 @@ class DefaultAntBuilderTest {
         }
         assertThat(ant.prop, equalTo('someValue'))
     }
+
+    @Test
+    public void setsContextClassLoaderDuringExecution() {
+        ClassLoader original = Thread.currentThread().getContextClassLoader()
+        ClassLoader cl = new URLClassLoader([] as URL[])
+        Thread.currentThread().setContextClassLoader(cl)
+        ant.taskdef(name: 'test', classname: TestTask.class.getName())
+        ant.test()
+        Thread.currentThread().setContextClassLoader(original)
+    }
     
     @Test
     public void discardsTasksAfterExecution() {
@@ -124,4 +135,12 @@ class DefaultAntBuilderTest {
         List children = field.get(target)
         assertThat(children, isEmpty())
     }
+}
+
+public class TestTask extends Task {
+    @Override
+    void execute() {
+        assertThat(Thread.currentThread().getContextClassLoader(), sameInstance(org.apache.tools.ant.Project.class.getClassLoader()))
+    }
+
 }

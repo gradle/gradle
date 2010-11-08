@@ -16,6 +16,7 @@
 package org.gradle.api.internal.project.ant;
 
 import groovy.util.AntBuilder;
+import org.apache.tools.ant.Project;
 import org.apache.tools.ant.Target;
 import org.gradle.api.internal.file.ant.AntFileResource;
 import org.gradle.api.internal.file.ant.BaseDirSelector;
@@ -60,6 +61,17 @@ public class BasicAntBuilder extends org.gradle.api.AntBuilder {
 
     public void importBuild(Object antBuildFile) {
         throw new UnsupportedOperationException();
+    }
+
+    @Override
+    protected void nodeCompleted(Object parent, Object node) {
+        ClassLoader original = Thread.currentThread().getContextClassLoader();
+        Thread.currentThread().setContextClassLoader(Project.class.getClassLoader());
+        try {
+            super.nodeCompleted(parent, node);
+        } finally {
+            Thread.currentThread().setContextClassLoader(original);
+        }
     }
 
     protected Object postNodeCompletion(Object parent, Object node) {
