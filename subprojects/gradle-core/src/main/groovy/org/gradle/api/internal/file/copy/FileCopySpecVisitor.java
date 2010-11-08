@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.file.copy;
 
+import org.apache.tools.zip.UnixStat;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.file.FileVisitDetails;
@@ -25,8 +26,10 @@ import java.io.File;
  * @author Steve Appling
  */
 public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
+
     private File baseDestDir;
     private boolean didWork;
+    private ReadableCopySpec spec;
 
     public void startVisit(CopyAction action) {
         baseDestDir = ((FileCopyAction) action).getDestinationDir();
@@ -35,9 +38,14 @@ public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
         }
     }
 
+    public void visitSpec(ReadableCopySpec spec) {
+        this.spec = spec;
+    }
+
     public void visitFile(FileVisitDetails source) {
         File target = source.getRelativePath().getFile(baseDestDir);
         copyFile(source, target);
+        chmod(target);
     }
 
     public boolean getDidWork() {
@@ -49,5 +57,17 @@ public class FileCopySpecVisitor extends EmptyCopySpecVisitor {
         if (copied) {
             didWork = true;
         }
+    }
+
+    void chmod(File destFile) {
+        int fileMode = spec.getFileMode();
+        if (fileMode != UnixStat.DEFAULT_FILE_PERM) {  // if we have default file mode do nothing, otherwise chmod(..)  destFile 
+            FileChmod fileChmod = getFileChmod();
+            fileChmod.chmod(destFile, spec.getFileMode());
+        }
+    }
+
+    FileChmod getFileChmod() {
+        return new AntBasedFileChmod();
     }
 }

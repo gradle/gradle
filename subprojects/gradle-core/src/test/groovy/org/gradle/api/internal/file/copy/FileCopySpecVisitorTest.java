@@ -16,11 +16,12 @@
 
 package org.gradle.api.internal.file.copy;
 
+import org.apache.tools.zip.UnixStat;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.file.FileVisitDetails;
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TestFile;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
@@ -33,14 +34,18 @@ import java.io.File;
 import java.io.IOException;
 
 import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class FileCopySpecVisitorTest {
+
+    public static final int CUSTOM_FILE_MODE = 755;
+
     private File destDir;
     private TestFile sourceDir;
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final FileCopySpecVisitor visitor = new FileCopySpecVisitor();
+
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
 
@@ -52,20 +57,35 @@ public class FileCopySpecVisitorTest {
 
     @Test
     public void plainCopy() {
+
+        final File rootTargetFile = new File(destDir, "rootfile.txt");
+        final File subDirTargetFile = new File(destDir, "subdir/anotherfile.txt");
+
+        FileCopySpecVisitor visitor = new FileCopySpecVisitor() {
+            @Override
+            FileChmod getFileChmod() {
+                final FileChmod fileChmod = context.mock(FileChmod.class);
+                context.checking(new Expectations() {{
+                    one(fileChmod).chmod(subDirTargetFile, CUSTOM_FILE_MODE);
+                }});
+                return fileChmod;
+            }
+        };
+
         visitor.startVisit(action(destDir));
-
         visitor.visitDir(file(new RelativePath(false)));
-
-        visitor.visitFile(file(new RelativePath(true, "rootfile.txt"), new File(destDir, "rootfile.txt")));
+        visitor.visitSpec(spec());
+        visitor.visitFile(file(new RelativePath(true, "rootfile.txt"), rootTargetFile));
 
         RelativePath subDirPath = new RelativePath(false, "subdir");
         visitor.visitDir(file(subDirPath));
-
-        visitor.visitFile(file(new RelativePath(true, "subdir", "anotherfile.txt"), new File(destDir, "subdir/anotherfile.txt")));
+        visitor.visitSpec(spec(CUSTOM_FILE_MODE));
+        visitor.visitFile(file(new RelativePath(true, "subdir", "anotherfile.txt"), subDirTargetFile));
     }
 
     @Test
     public void testThrowsExceptionWhenNoDestinationSet() {
+        FileCopySpecVisitor visitor = new FileCopySpecVisitor();
         try {
             visitor.startVisit(action(null));
             fail();
@@ -74,9 +94,22 @@ public class FileCopySpecVisitorTest {
         }
     }
 
+    private ReadableCopySpec spec() {
+        return spec(UnixStat.DEFAULT_FILE_PERM);
+    }
+
+    private ReadableCopySpec spec(final int fileMode) {
+        final ReadableCopySpec spec = context.mock(ReadableCopySpec.class, String.format("readableCopySpec%s", fileMode));
+        context.checking(new Expectations() {{
+            allowing(spec).getFileMode();
+            will(returnValue(fileMode));
+        }});
+        return spec;
+    }
+
     private FileCopyAction action(final File destDir) {
         final FileCopyAction action = context.mock(FileCopyAction.class);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(action).getDestinationDir();
             will(returnValue(destDir));
         }});
@@ -85,7 +118,7 @@ public class FileCopySpecVisitorTest {
 
     private FileVisitDetails file(final RelativePath relativePath) {
         final FileVisitDetails details = context.mock(FileVisitDetails.class, relativePath.getPathString());
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             allowing(details).getRelativePath();
             will(returnValue(relativePath));
         }});
@@ -94,7 +127,7 @@ public class FileCopySpecVisitorTest {
 
     private FileVisitDetails file(final RelativePath relativePath, final File targetFile) {
         final FileVisitDetails details = file(relativePath);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(details).copyTo(targetFile);
         }});
         return details;
