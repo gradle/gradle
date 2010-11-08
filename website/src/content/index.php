@@ -38,12 +38,8 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradle.biz/training.html">October 11-12, Atlanta</a></li>
-        <li><a href="http://gradle.biz/training.html">October 13-14, Boston</a></li>
-        <li><a href="http://gradle.biz/training.html">October 5-6, M&uuml;nchen</a></li>
-        <li><a href="http://gradle.biz/training.html">October 25-26, London</a></li>
-        <li><a href="http://gradle.biz/training.html">November 8-9, Paris</a></li>
         <li><a href="http://gradle.biz/training.html">Dec 6-7, Reston</a></li>
+        <li>2011 TRAINING DATES SOON TO COME</li>
     </ul>
     <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
 </div>
@@ -52,12 +48,13 @@
     <h2>Who uses Gradle?</h2>
     <div>
         <ul>
+            <li><a href="http://www.hibernate.org">Hibernate</a></li>
             <li><a href="http://www.grails.org">Grails</a></li>
             <li><a href="http://groovy.codehaus.org">Groovy</a></li>
-            <li><a href="http://static.springsource.org/spring-security/site/">Spring Security</a></li>
-            <li><a href="http://gant.codehaus.org/">Gant</a></li>
-            <li><a href="http://gpars.codehaus.org/">GPars</a></li>
-            <li><a href="http://code.google.com/p/spock/">Spock</a></li>
+            <li><a href="http://static.springsource.rg/spring-security/site/">Spring Security</a></li>
+            <li><a href="http://griffon.codehaus.org/">Griffon</a></li>
+            <li><a href="http://gaelyk.appspot.com">Gaelyk</a></li>
+            <li><a href="http://gant.codehaus.org">Gant</a></li>
         </ul>
     </div>
     <div>
@@ -66,7 +63,8 @@
             <li><a href="http://www.corp.carrier.com">Carrier</a></li>
             <li><a href="http://www.fcc-fac.ca/">FCC</a></li>
             <li><a href="http://www.zeppelin.com">Zeppelin</a></li>
-            <li style="color:white"><a href="http://www.gradle.org" style="color:white">Dummy</a></li>
+            <li><a href="http://gpars.codehaus.org">GPars</a></li>
+            <li><a href="http://code.google.com/p/spock/">Spock</a></li>
             <li style="color:white"><a href="http://www.gradle.org" style="color:white">Dummy</a></li>
         </ul>
     </div>
