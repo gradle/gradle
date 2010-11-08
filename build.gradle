@@ -342,7 +342,7 @@ task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':d
         systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
         def forkArgs
         if (noForkIntegTests()) {
-            systemProperties['org.gradle.integtest.fork'] = "false"
+            systemProperties['org.gradle.integtest.executer'] = 'embedded'
             jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
         } else {
             jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'

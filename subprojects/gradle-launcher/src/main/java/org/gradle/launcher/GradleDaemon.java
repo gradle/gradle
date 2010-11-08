@@ -36,6 +36,8 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
 
+import java.util.Properties;
+
 /**
  * The server portion of the build daemon. See {@link org.gradle.launcher.DaemonClientAction} for a description of the
  * protocol.
@@ -125,6 +127,9 @@ public class GradleDaemon implements Runnable {
         loggingManager.setLevel(startParameter.getLogLevel());
         loggingManager.start();
 
+        Properties sysProperties = new Properties();
+        sysProperties.putAll(System.getProperties());
+
         try {
             RunBuildAction action = new RunBuildAction(startParameter, loggingServices) {
                 @Override
@@ -140,6 +145,8 @@ public class GradleDaemon implements Runnable {
         }
 
         loggingManager.stop();
+
+        System.setProperties(sysProperties);
     }
 
     private static class ExecutionListenerImpl implements ExecutionListener {

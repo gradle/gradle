@@ -24,21 +24,20 @@ import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.net.URI;
 import java.nio.ByteBuffer;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 
-public class SocketConnection implements Connection<Message> {
+public class SocketConnection<T> implements Connection<T> {
     private final SocketChannel socket;
-    private final URI localAddress;
-    private final URI remoteAddress;
+    private final Object localAddress;
+    private final Object remoteAddress;
     private final ClassLoader classLoader;
     private final InputStream instr;
     private final OutputStream outstr;
 
-    public SocketConnection(SocketChannel socket, URI localAddress, URI remoteAddress, ClassLoader classLoader) {
+    public SocketConnection(SocketChannel socket, Object localAddress, Object remoteAddress, ClassLoader classLoader) {
         this.socket = socket;
         this.localAddress = localAddress;
         this.remoteAddress = remoteAddress;
@@ -59,9 +58,9 @@ public class SocketConnection implements Connection<Message> {
         return String.format("socket connection at %s with %s", localAddress, remoteAddress);
     }
 
-    public Message receive() {
+    public T receive() {
         try {
-            return (Message) Message.receive(instr, classLoader);
+            return (T) Message.receive(instr, classLoader);
         } catch (Exception e) {
             if (isEndOfStream(e)) {
                 return null;
@@ -80,7 +79,7 @@ public class SocketConnection implements Connection<Message> {
         return false;
     }
 
-    public void dispatch(Message message) {
+    public void dispatch(T message) {
         try {
             Message.send(message, outstr);
             outstr.flush();

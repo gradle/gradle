@@ -31,6 +31,7 @@ import org.gradle.logging.LoggingServiceRegistry;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.util.GradleVersion;
 
+import java.io.File;
 import java.io.PrintStream;
 import java.util.List;
 
@@ -110,8 +111,8 @@ public class CommandLineActionFactory {
         }
 
         StartParameter startParameter = startParameterConverter.convert(commandLine);
-        if (commandLine.hasOption(DAEMON)) {
-            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), new DaemonConnector(), startParameter, commandLine);
+        if (commandLine.hasOption(DAEMON) || System.getProperty("org.gradle.daemon", "false").equals("true")) {
+            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), new DaemonConnector(), startParameter, commandLine, new File(System.getProperty("user.dir")));
         }
 
         return new RunBuildAction(startParameter, loggingServices);

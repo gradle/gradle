@@ -24,8 +24,8 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.gradle.util.WrapUtil;
-import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,18 +34,20 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.equalTo;
-import static org.hamcrest.Matchers.instanceOf;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertThat;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
  */
 public class DefaultCommandLineConverterTest {
+    @Rule
+    public TemporaryFolder testDir = new TemporaryFolder();
+
+    private TestFile currentDir = testDir.file("current-dir");
     private File expectedBuildFile;
     private File expectedGradleUserHome = StartParameter.DEFAULT_GRADLE_USER_HOME;
-    private File expectedProjectDir;
+    private File expectedProjectDir = currentDir;
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
     private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction
@@ -63,14 +65,7 @@ public class DefaultCommandLineConverterTest {
     private StartParameter actualStartParameter;
     private boolean expectedProfile;
 
-    @Rule
-    public TemporaryFolder testDir = new TemporaryFolder();
     private final DefaultCommandLineConverter commandLineConverter = new DefaultCommandLineConverter();
-
-    @Before
-    public void setUp() throws IOException {
-        expectedProjectDir = new File("").getCanonicalFile();
-    }
 
     @Test
     public void withoutAnyOptions() {
@@ -103,7 +98,9 @@ public class DefaultCommandLineConverterTest {
     }
 
     private void checkConversion(final boolean embedded, String... args) {
-        actualStartParameter = commandLineConverter.convert(Arrays.asList(args));
+        actualStartParameter = new StartParameter();
+        actualStartParameter.setCurrentDir(currentDir);
+        commandLineConverter.convert(Arrays.asList(args), actualStartParameter);
         // We check the params passed to the build factory
         checkStartParameter(actualStartParameter);
         if (embedded) {
@@ -115,31 +112,55 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withSpecifiedGradleUserHomeDirectory() {
-        expectedGradleUserHome = testDir.getDir();
-        checkConversion("-g", expectedGradleUserHome.getAbsoluteFile().toString());
+        expectedGradleUserHome = testDir.file("home");
+        checkConversion("-g", expectedGradleUserHome.getAbsolutePath());
+
+        expectedGradleUserHome = currentDir.file("home");
+        checkConversion("-g", "home");
     }
 
     @Test
     public void withSpecifiedProjectDirectory() {
-        expectedProjectDir = testDir.getDir();
-        checkConversion("-p", expectedProjectDir.getAbsoluteFile().toString());
+        expectedProjectDir = testDir.file("project-dir");
+        checkConversion("-p", expectedProjectDir.getAbsolutePath());
+
+        expectedProjectDir = currentDir.file("project-dir");
+        checkConversion("-p", "project-dir");
     }
 
     @Test
     public void withSpecifiedBuildFileName() throws IOException {
-        expectedBuildFile = new File("somename").getCanonicalFile();
+        expectedBuildFile = testDir.file("somename");
+        expectedProjectDir = expectedBuildFile.getParentFile();
+        checkConversion("-b", expectedBuildFile.getAbsolutePath());
+
+        expectedBuildFile = currentDir.file("somename");
+        expectedProjectDir = expectedBuildFile.getParentFile();
         checkConversion("-b", "somename");
     }
 
     @Test
     public void withSpecifiedSettingsFileName() throws IOException {
+        File expectedSettingsFile = currentDir.file("somesettings");
+        expectedProjectDir = expectedSettingsFile.getParentFile();
+
         checkConversion("-c", "somesettings");
 
         assertThat(actualStartParameter.getSettingsScriptSource(), instanceOf(UriScriptSource.class));
-        assertThat(actualStartParameter.getSettingsScriptSource().getResource().getFile(), equalTo(new File(
-                "somesettings").getCanonicalFile()));
+        assertThat(actualStartParameter.getSettingsScriptSource().getResource().getFile(), equalTo(expectedSettingsFile));
     }
 
+    @Test
+    public void withInitScripts() {
+        File script1 = currentDir.file("init1.gradle");
+        expectedInitScripts.add(script1);
+        checkConversion("-Iinit1.gradle");
+
+        File script2 = currentDir.file("init2.gradle");
+        expectedInitScripts.add(script2);
+        checkConversion("-Iinit1.gradle", "-Iinit2.gradle");
+    }
+    
     @Test
     public void withSystemProperties() {
         final String prop1 = "gradle.prop1";
@@ -323,17 +344,6 @@ public class DefaultCommandLineConverterTest {
     @Test(expected = CommandLineArgumentException.class)
     public void withUpperAAndLowerAParameter() {
         checkConversion("-a", "-Atask1");
-    }
-
-    @Test
-    public void withInitScripts() {
-        File script1 = new File("init1.gradle");
-        expectedInitScripts.add(script1);
-        checkConversion("-Iinit1.gradle");
-
-        File script2 = new File("init2.gradle");
-        expectedInitScripts.add(script2);
-        checkConversion("-Iinit1.gradle", "-Iinit2.gradle");
     }
 
     @Test

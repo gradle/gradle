@@ -96,7 +96,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                     }
                     URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
                     LOGGER.debug("Accepted connection from {}.", remoteUri);
-                    action.execute(new ConnectEvent<Connection<Message>>(new SocketConnection(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
+                    action.execute(new ConnectEvent<Connection<Message>>(new SocketConnection<Message>(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
                 }
             } catch (AsynchronousCloseException e) {
                 // Ignore

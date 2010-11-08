@@ -153,6 +153,24 @@ class CommandLineActionFactoryTest extends Specification {
         action.action instanceof DaemonBuildAction
     }
 
+    def executesBuildUsingDaemonWhenSystemPropertyIsSetToTrue() {
+        when:
+        System.properties['org.gradle.daemon'] = 'false'
+        def action = factory.convert(['args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof RunBuildAction
+
+        when:
+        System.properties['org.gradle.daemon'] = 'true'
+        action = factory.convert(['args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof DaemonBuildAction
+    }
+
     def stopsDaemon() {
         when:
         def action = factory.convert(['--stop'])

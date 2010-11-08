@@ -29,19 +29,22 @@ import java.io.File;
  * GradleDistribution}. If not supplied in the constructor, this rule locates a field on the test object with type
  * {@link GradleDistribution}.
  *
- * By default, this executer will execute Gradle in a forked process. There is a system property which enables
- * executing Gradle in the current process.
+ * By default, this executer will execute Gradle in a forked process. There is a system property which enables executing
+ * Gradle in the current process.
  */
 public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
-    private static final String FORK_SYS_PROP = "org.gradle.integtest.fork";
-    private static final boolean FORK;
+    private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
+    private static final Executer EXECUTER;
     private GradleDistribution dist;
-    private StartParameterModifier inProcessStartParameterModifier;
     private boolean workingDirSet;
     private boolean userHomeSet;
 
+    private enum Executer {
+        forking, embedded, daemon
+    }
+
     static {
-        FORK = !System.getProperty(FORK_SYS_PROP, "true").equalsIgnoreCase("false");
+        EXECUTER = Executer.valueOf(System.getProperty(EXECUTER_SYS_PROP, Executer.forking.toString()).toLowerCase());
     }
 
     public GradleDistributionExecuter(GradleDistribution dist) {
@@ -98,10 +101,6 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         return result;
     }
 
-    public void setInProcessStartParameterModifier(StartParameterModifier inProcessStartParameterModifier) {
-        this.inProcessStartParameterModifier = inProcessStartParameterModifier;
-    }
-
     private GradleExecuter configureExecuter() {
         if (!workingDirSet) {
             inDirectory(dist.getTestDir());
@@ -113,7 +112,7 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         if (!getClass().desiredAssertionStatus()) {
             throw new RuntimeException("Assertions must be enabled when running integration tests.");
         }
-        
+
         StartParameter parameter = new StartParameter();
         parameter.setLogLevel(LogLevel.INFO);
         parameter.setSearchUpwards(false);
@@ -123,14 +122,10 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
 
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
-        if (FORK || !inProcessGradleExecuter.canExecute()) {
-            ForkingGradleExecuter forkingGradleExecuter = new ForkingGradleExecuter(dist.getGradleHomeDir());
+        if (EXECUTER != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
+            ForkingGradleExecuter forkingGradleExecuter = EXECUTER == Executer.daemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
             returnedExecuter = forkingGradleExecuter;
-        } else {
-            if (inProcessStartParameterModifier != null) {
-                inProcessStartParameterModifier.modify(inProcessGradleExecuter.getParameter());
-            }
         }
 
         boolean settingsFound = false;
@@ -146,9 +141,5 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         }
 
         return returnedExecuter;
-    }
-
-    public static interface StartParameterModifier {
-        void modify(StartParameter startParameter);
     }
 }

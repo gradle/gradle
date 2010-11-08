@@ -21,5 +21,5 @@ public interface OutgoingConnector {
     /**
      * Creates a connection to the given address.
      */
-    Connection<Message> connect(URI destinationUri);
+    <T> Connection<T> connect(URI destinationUri);
 }

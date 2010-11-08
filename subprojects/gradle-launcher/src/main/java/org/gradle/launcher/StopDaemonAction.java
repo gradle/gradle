@@ -23,7 +23,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.remote.internal.Connection;
 
 public class StopDaemonAction extends DaemonClientAction implements Action<ExecutionListener> {
-    private static final Logger LOGGER = Logging.getLogger(Main.class);
+    private static final Logger LOGGER = Logging.getLogger(StopDaemonAction.class);
     private final DaemonConnector connector;
 
     public StopDaemonAction(DaemonConnector connector, OutputEventListener outputEventListener) {

@@ -58,7 +58,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         return new ForkedExecutionFailure(result);
     }
 
-    private Map doRun(boolean expectFailure) {
+    protected Map doRun(boolean expectFailure) {
         gradleHomeDir.assertIsDir();
 
         CommandBuilder commandBuilder = OperatingSystem.current().isWindows() ? new WindowsCommandBuilder()

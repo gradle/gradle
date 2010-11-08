@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.integtests
 
 import groovy.io.PlatformLineWriter
 import junit.framework.AssertionFailedError
 import org.apache.tools.ant.taskdefs.Delete
-import org.gradle.StartParameter
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.GradleDistributionExecuter.StartParameterModifier
 import org.gradle.util.AntUtil
 import org.junit.Assert
 import org.junit.runner.Description
@@ -91,9 +86,6 @@ class UserGuideSamplesRunner extends Runner {
             println("Test Id: $run.id, dir: $run.subDir, args: $run.args")
             File rootProjectDir = dist.samplesDir.file(run.subDir)
             executer.inDirectory(rootProjectDir).withArguments(run.args as String[]).withEnvironmentVars(run.envs)
-            if (executer instanceof GradleDistributionExecuter) {
-                ((GradleDistributionExecuter) executer).setInProcessStartParameterModifier(createModifier(rootProjectDir))
-            }
 
             ExecutionResult result = run.expectFailure ? executer.runWithFailure() : executer.run()
             if (run.outputFile) {
@@ -174,34 +166,6 @@ class UserGuideSamplesRunner extends Runner {
         actual = actual.replaceAll(java.util.regex.Pattern.quote(File.separator), '/')
 
         return actual == expected
-    }
-
-    static GradleDistributionExecuter.StartParameterModifier createModifier(File rootProjectDir) {
-        {StartParameter parameter ->
-            if (parameter.getCurrentDir() != null) {
-                parameter.setCurrentDir(normalizedPath(parameter.getCurrentDir(), rootProjectDir));
-            }
-            if (parameter.getBuildFile() != null) {
-                parameter.setBuildFile(normalizedPath(parameter.getBuildFile(), rootProjectDir));
-            }
-            List<File> initScripts = new ArrayList<File>();
-            for (File initScript: parameter.getInitScripts()) {
-                initScripts.add(normalizedPath(initScript, rootProjectDir));
-            }
-            parameter.setInitScripts(initScripts);
-        } as StartParameterModifier
-    }
-
-    static File normalizedPath(File path, File rootProjectDir) {
-        String pathName = path.getAbsolutePath();
-        if (!pathName.startsWith(rootProjectDir.getAbsolutePath())) {
-            String currentDirName = new File("").getAbsolutePath();
-            if (!pathName.startsWith(currentDirName)) {
-                throw new RuntimeException("Path " + path + " is neither subdir of Gradle home nor of the root project!.")
-            }
-            pathName = new File(rootProjectDir, pathName.substring(currentDirName.length() + 1)).getAbsolutePath();
-        }
-        return new File(pathName);
     }
 
     static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {

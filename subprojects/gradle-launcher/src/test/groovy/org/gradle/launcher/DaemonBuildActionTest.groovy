@@ -29,7 +29,8 @@ class DaemonBuildActionTest extends Specification {
     final ExecutionListener completer = Mock()
     final ParsedCommandLine commandLine = Mock()
     final StartParameter startParameter = new StartParameter()
-    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, startParameter, commandLine)
+    final File currentDir = new File('current-dir')
+    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, startParameter, commandLine, currentDir)
 
     def runsBuildUsingDaemon() {
         Connection<Object> connection = Mock()
@@ -41,7 +42,7 @@ class DaemonBuildActionTest extends Specification {
         1 * connector.connect(startParameter) >> connection
         1 * connection.dispatch({!null}) >> { args ->
             Build build = args[0]
-            assert build.currentDir == startParameter.currentDir
+            assert build.currentDir == currentDir
             assert build.args == commandLine
         }
         1 * connection.receive() >> new CommandComplete(null)

@@ -23,11 +23,12 @@ import org.gradle.StartParameter;
 import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
+import org.gradle.api.internal.file.BaseDirConverter;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -106,6 +107,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         LoggingConfiguration loggingConfiguration = loggingConfigurationCommandLineConverter.convert(options);
         startParameter.setLogLevel(loggingConfiguration.getLogLevel());
         startParameter.setColorOutput(loggingConfiguration.isColorOutput());
+        FileResolver resolver = new BaseDirConverter(startParameter.getCurrentDir());
 
         for (String keyValueExpression : options.option(SYSTEM_PROP).getValues()) {
             String[] elements = keyValueExpression.split("=");
@@ -122,20 +124,20 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         }
 
         if (options.hasOption(PROJECT_DIR)) {
-            startParameter.setProjectDir(new File(options.option(PROJECT_DIR).getValue()));
+            startParameter.setProjectDir(resolver.resolve(options.option(PROJECT_DIR).getValue()));
         }
         if (options.hasOption(GRADLE_USER_HOME)) {
-            startParameter.setGradleUserHomeDir(new File(options.option(GRADLE_USER_HOME).getValue()));
+            startParameter.setGradleUserHomeDir(resolver.resolve(options.option(GRADLE_USER_HOME).getValue()));
         }
         if (options.hasOption(BUILD_FILE)) {
-            startParameter.setBuildFile(new File(options.option(BUILD_FILE).getValue()));
+            startParameter.setBuildFile(resolver.resolve(options.option(BUILD_FILE).getValue()));
         }
         if (options.hasOption(SETTINGS_FILE)) {
-            startParameter.setSettingsFile(new File(options.option(SETTINGS_FILE).getValue()));
+            startParameter.setSettingsFile(resolver.resolve(options.option(SETTINGS_FILE).getValue()));
         }
 
         for (String script : options.option(INIT_SCRIPT).getValues()) {
-            startParameter.addInitScript(new File(script));
+            startParameter.addInitScript(resolver.resolve(script));
         }
 
         if (options.hasOption(CACHE)) {

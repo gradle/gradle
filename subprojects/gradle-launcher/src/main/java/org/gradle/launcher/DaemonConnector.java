@@ -22,16 +22,17 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
-import org.gradle.messaging.remote.internal.Message;
+import org.gradle.messaging.remote.internal.SocketConnection;
 import org.gradle.util.GUtil;
 import org.gradle.util.Jvm;
 import org.gradle.util.UncheckedException;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.net.ConnectException;
-import java.net.InetAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
+import java.nio.channels.SocketChannel;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
@@ -48,12 +49,12 @@ public class DaemonConnector {
      */
     Connection<Object> maybeConnect() {
         try {
-            Socket socket = new Socket(InetAddress.getByName(null), DAEMON_PORT);
+            SocketChannel socket = SocketChannel.open(new InetSocketAddress(DAEMON_PORT));
             try {
-                return new SocketConnection(socket);
-            } catch (IOException e) {
+                return new SocketConnection<Object>(socket, "launcher", "daemon", getClass().getClassLoader());
+            } catch (Throwable throwable) {
                 socket.close();
-                throw e;
+                throw UncheckedException.asUncheckedException(throwable);
             }
         } catch (ConnectException e) {
             // Ignore
@@ -75,7 +76,7 @@ public class DaemonConnector {
             return connection;
         }
 
-        LOGGER.lifecycle("Starting Gradle daemon");
+        LOGGER.info("Starting Gradle daemon");
         try {
             List<String> daemonArgs = new ArrayList<String>();
             daemonArgs.add(Jvm.current().getJavaExecutable().getAbsolutePath());
@@ -113,14 +114,15 @@ public class DaemonConnector {
      */
     void accept(IncomingConnectionHandler handler) {
         try {
-            ServerSocket serverSocket = new ServerSocket(DAEMON_PORT);
+            ServerSocketChannel serverSocket = ServerSocketChannel.open();
+            serverSocket.socket().bind(new InetSocketAddress(DAEMON_PORT));
             try {
                 final AtomicBoolean finished = new AtomicBoolean();
                 while (!finished.get()) {
                     LOGGER.lifecycle("Waiting for request");
-                    final Socket socket = serverSocket.accept();
+                    final SocketChannel socket = serverSocket.accept();
                     try {
-                        Connection<Object> connection = new SocketConnection(socket);
+                        Connection<Object> connection = new SocketConnection<Object>(socket, "daemon", "client", getClass().getClassLoader());
                         handler.handle(connection, new Stoppable() {
                             public void stop() {
                                 finished.set(true);
@@ -138,43 +140,4 @@ public class DaemonConnector {
         }
     }
 
-    private static class SocketConnection implements Connection<Object> {
-        final OutputStream outputStream;
-        final InputStream inputStream;
-        private final Socket socket;
-
-        public SocketConnection(Socket socket) throws IOException {
-            this.socket = socket;
-            outputStream = new BufferedOutputStream(socket.getOutputStream());
-            inputStream = new BufferedInputStream(socket.getInputStream());
-        }
-
-        public void dispatch(Object message) {
-            try {
-                Message.send(message, outputStream);
-            } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-        }
-
-        public Object receive() {
-            try {
-                return Message.receive(inputStream, getClass().getClassLoader());
-            } catch (Exception e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-        }
-
-        public void requestStop() {
-            throw new UnsupportedOperationException();
-        }
-
-        public void stop() {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-        }
-    }
 }
