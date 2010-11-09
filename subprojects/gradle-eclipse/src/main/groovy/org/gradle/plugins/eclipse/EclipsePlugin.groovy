@@ -126,8 +126,8 @@ public class EclipsePlugin implements Plugin<Project> {
             minusConfigurations = [project.configurations.providedRuntime]
             variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
             resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName
-            orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
-            orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
+            orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component')
+            orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component')
             orgEclipseWstCommonProjectFacetCoreInputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
             orgEclipseWstCommonProjectFacetCoreOutputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         }

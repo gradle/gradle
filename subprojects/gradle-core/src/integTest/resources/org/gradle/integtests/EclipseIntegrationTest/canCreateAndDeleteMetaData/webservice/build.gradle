@@ -14,7 +14,7 @@ dependencies {
 eclipseWtp {
     doLast {
         compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/webserviceWtpComponent.xml").text,
-                file(".settings/org.eclipse.wst.common.component.xml").text)
+                file(".settings/org.eclipse.wst.common.component").text)
         compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/webserviceWtpFacet.xml").text,
                 file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
     }
