@@ -11,6 +11,5 @@ dependencies {
 }
 
 ideaModule {
-    gradleCacheVariable = 'CUSTOM_DIR'
-    gradleCacheHome = new File(gradle.gradleUserHomeDir, 'custom')
+    variables['CUSTOM_DIR'] = new File(gradle.gradleUserHomeDir, 'custom')
 }

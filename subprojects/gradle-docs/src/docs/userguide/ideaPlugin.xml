@@ -244,23 +244,13 @@
                 </tr>
             <tr>
                 <td>
-                    <literal>gradleCacheVariable</literal>
+                    <literal>variables</literal>
                 </td>
-                <td>String</td>
-                <td>null</td>
-                <td>-</td>
-                <td>If this variable is set, dependencies in the existing iml file will be parsed for this variable. If they use it,
-                    it will be replaced with a path that has the $MODULE_DIR$ variable as a root and
-                    then a relative path to  {@link #gradleCacheHome} . That way Gradle can recognize equal dependencies.</td>
-            </tr>
-            <tr>
-                <td>
-                    <literal>gradleCacheVariable</literal>
-                </td>
-                <td>File</td>
-                <td>null</td>
-                <td>The gradle cache dir</td>
-                <td>This property is used in conjunction with <code>gradleCacheVariable</code></td>
+                <td>Map&lt;String, File></td>
+                <td>[:]</td>
+                <td>[:]</td>
+                <td>The variables to be used for replacing absolute paths in the iml entries. For example, you might add
+                    a <literal>GRADLE_USER_HOME</literal> variable to point to the Gradle user home dir.</td>
             </tr>
         </table>
      

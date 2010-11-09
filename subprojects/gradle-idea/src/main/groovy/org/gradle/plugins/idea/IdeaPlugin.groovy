@@ -63,7 +63,6 @@ class IdeaPlugin implements Plugin<Project> {
             conventionMapping.sourceDirs = { [] as Set }
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as Set }
             conventionMapping.testSourceDirs = { [] as Set }
-            conventionMapping.gradleCacheHome = { new File(project.gradle.gradleUserHomeDir, '/cache') }
         }
         project.idea.dependsOn 'ideaModule'
 

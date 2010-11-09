@@ -103,18 +103,10 @@ public class IdeaModule extends ConventionTask {
     boolean downloadJavadoc = false
 
     /**
-     * If this variable is set, dependencies in the existing iml file will be parsed for this variable.
-     * If they use it, it will be replaced with a path that has the $MODULE_DIR$ variable as a root and
-     * then a relative path to  {@link #gradleCacheHome} . That way Gradle can recognize equal dependencies.
+     * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
+     * GRADLE_USER_HOME variable to point to the Gradle user home dir.
      */
-    @Input @Optional
-    String gradleCacheVariable
-
-    /**
-     * This variable is used in conjunction with the {@link #gradleCacheVariable}.
-     */
-    @InputFiles @Optional
-    File gradleCacheHome
+    Map<String, File> variables = [:]
 
     /**
      * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
@@ -296,8 +288,8 @@ public class IdeaModule extends ConventionTask {
     protected PathFactory getPathFactory() {
         PathFactory factory = new PathFactory()
         factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
-        if (gradleCacheVariable) {
-            factory.addPathVariable(gradleCacheVariable, gradleCacheHome)
+        variables.each { key, value ->
+            factory.addPathVariable(key, value)
         }
         return factory
     }
