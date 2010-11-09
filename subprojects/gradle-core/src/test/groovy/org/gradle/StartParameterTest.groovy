@@ -86,10 +86,10 @@ class StartParameterTest {
     }
 
     @Test public void testDefaultWithGradleUserHomeSystemProp() {
-        String gradleUserHome = "/someGradleUserHomePath"
-        System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome)
+        File gradleUserHome = tmpDir.file("someGradleUserHomePath")
+        System.setProperty(StartParameter.GRADLE_USER_HOME_PROPERTY_KEY, gradleUserHome.absolutePath)
         StartParameter parameter = new StartParameter();
-        assertThat(parameter.gradleUserHomeDir, equalTo(new File(gradleUserHome)))
+        assertThat(parameter.gradleUserHomeDir, equalTo(gradleUserHome))
     }
 
     @Test public void testSetCurrentDir() {
