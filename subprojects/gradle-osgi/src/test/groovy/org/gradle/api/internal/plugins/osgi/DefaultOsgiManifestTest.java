@@ -19,6 +19,8 @@ import aQute.lib.osgi.Analyzer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.java.archives.Attributes;
+import org.gradle.api.java.archives.internal.DefaultAttributes;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.util.GUtil;
 import org.gradle.util.WrapUtil;
@@ -33,6 +35,7 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 import java.util.jar.Manifest;
 
 import static org.junit.Assert.*;
@@ -42,6 +45,10 @@ import static org.junit.Assert.*;
  */
 @RunWith(JMock.class)
 public class DefaultOsgiManifestTest {
+    private static final String ARBITRARY_SECTION = "A-Different-Section";
+    private static final String ARBITRARY_ATTRIBUTE = "Silly-Attribute";
+    private static final String ANOTHER_ARBITRARY_ATTRIBUTE = "Serious-Attribute";
+
     private DefaultOsgiManifest osgiManifest;
     private Factory<ContainedVersionAnalyzer> analyzerFactoryMock;
     private ContainedVersionAnalyzer analyzerMock;
@@ -129,7 +136,12 @@ public class DefaultOsgiManifestTest {
         prepareMock();
 
         DefaultManifest manifest = osgiManifest.getEffectiveManifest();
-        DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(getDefaultManifestWithOsgiValues().getAttributes());
+        DefaultManifest defaultManifest = getDefaultManifestWithOsgiValues();
+        DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes());
+        for(Map.Entry<String, Attributes> ent : defaultManifest.getSections().entrySet()) {
+            expectedManifest.attributes(ent.getValue(), ent.getKey());
+        }
+
         assertThat(manifest.getAttributes(), Matchers.equalTo(expectedManifest.getAttributes()));
         assertThat(manifest.getSections(), Matchers.equalTo(expectedManifest.getSections()));
     }
@@ -142,8 +154,11 @@ public class DefaultOsgiManifestTest {
         otherManifest.mainAttributes(WrapUtil.toMap("somekey", "somevalue"));
         otherManifest.mainAttributes(WrapUtil.toMap(Analyzer.BUNDLE_VENDOR, "mergeVendor"));
         osgiManifest.from(otherManifest);
-        DefaultManifest expectedManifest = new DefaultManifest(fileResolver);
-        expectedManifest.attributes(getDefaultManifestWithOsgiValues().getAttributes());
+        DefaultManifest defaultManifest = getDefaultManifestWithOsgiValues();
+        DefaultManifest expectedManifest = new DefaultManifest(fileResolver).attributes(defaultManifest.getAttributes());
+        for(Map.Entry<String, Attributes> ent : defaultManifest.getSections().entrySet()) {
+            expectedManifest.attributes(ent.getValue(), ent.getKey());
+        }
         expectedManifest.attributes(otherManifest.getAttributes());
 
         DefaultManifest manifest = osgiManifest.getEffectiveManifest();
@@ -175,6 +190,7 @@ public class DefaultOsgiManifestTest {
         osgiManifest.instruction(Analyzer.IMPORT_PACKAGE, new String[]{"pack3", "pack4"});
         osgiManifest.setClasspath(fileCollection);
         osgiManifest.setClassesDir(new File("someDir"));
+        addPlainAttributesAndSections(osgiManifest);
     }
 
     private void prepareMock() throws Exception {
@@ -220,6 +236,14 @@ public class DefaultOsgiManifestTest {
         manifest.getAttributes().put(Analyzer.BUNDLE_DOCURL, osgiManifest.getDocURL());
         manifest.getAttributes().put(Analyzer.EXPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.EXPORT_PACKAGE), ","));
         manifest.getAttributes().put(Analyzer.IMPORT_PACKAGE, GUtil.join(osgiManifest.instructionValue(Analyzer.IMPORT_PACKAGE), ","));
+        addPlainAttributesAndSections(manifest);
         return manifest;
+    }
+
+    private void addPlainAttributesAndSections(DefaultManifest manifest) {
+        manifest.getAttributes().put(ARBITRARY_ATTRIBUTE, "I like green eggs and ham.");
+        final Attributes section_atts = new DefaultAttributes();
+        section_atts.put(ANOTHER_ARBITRARY_ATTRIBUTE, "Death is the great equalizer.");
+        manifest.getSections().put(ARBITRARY_SECTION, section_atts);
     }
 }
