@@ -133,6 +133,12 @@ class EclipsePluginTest extends Specification {
         assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
         assert eclipseClasspath.inputFile == project.file('.classpath')
         assert eclipseClasspath.outputFile == project.file('.classpath')
+        def mainSourceSet = project.sourceSets.findByName('main')
+        if (mainSourceSet != null) {
+            assert eclipseClasspath.defaultOutputDir == mainSourceSet.classesDir
+        } else {
+            assert eclipseClasspath.defaultOutputDir == new File(project.buildDir, 'eclipse')
+        }
         assert eclipseClasspath.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
     }
 

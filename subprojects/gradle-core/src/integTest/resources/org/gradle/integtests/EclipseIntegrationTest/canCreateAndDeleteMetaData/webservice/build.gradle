@@ -1,3 +1,4 @@
+apply plugin: 'java'
 apply plugin: 'war'
 
 version = '2.5'
@@ -7,6 +8,7 @@ dependencies {
     providedRuntime "commons-io:commons-io:1.2"
     compile project(':api')
     runtime "commons-lang:commons-lang:2.5"
+    testCompile 'junit:junit:4.7'
 }
 
 eclipseWtp {
@@ -20,6 +22,6 @@ eclipseWtp {
 
 cleanEclipse {
     doLast {
-        assert !file(".settings").isFile()
+        assert !file(".settings").exists()
     }
 }

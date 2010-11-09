@@ -15,9 +15,8 @@
  */
 package org.gradle.plugins.eclipse.model
 
-import org.gradle.api.internal.XmlTransformer
-
 import org.gradle.api.Action
+import org.gradle.api.internal.XmlTransformer
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
@@ -28,7 +27,7 @@ class Classpath {
     /**
      * The classpath entries (contains by default an output entry pointing to bin).
      */
-    List entries = [new Output('bin')]
+    List<ClasspathEntry> entries = []
 
     private Node xml
 
@@ -54,8 +53,8 @@ class Classpath {
 
         xml = new XmlParser().parse(inputXml)
 
-        xml.classpathentry.each { entryNode ->
-            def entry = null
+        xml.classpathentry.each { Node entryNode ->
+            ClasspathEntry entry = null
             switch (entryNode.@kind) {
                 case 'src':
                     def path = entryNode.@path

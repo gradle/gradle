@@ -28,7 +28,6 @@ import spock.lang.Specification
  */
 
 public class ClasspathTest extends Specification {
-    private static final DEFAULT_ENTRIES = [new Output('bin')]
     private static final CUSTOM_ENTRIES = [
             new ProjectDependency("/test2", false, null, [] as Set),
             new Container("org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.6",
@@ -36,7 +35,8 @@ public class ClasspathTest extends Specification {
             new Library("/apache-ant-1.7.1/lib/ant-antlr.jar", false, null, [] as Set, null, null),
             new SourceFolder("src", null, [] as Set, "bin2", [], []),
             new Variable("GRADLE_CACHE/ant-1.6.5.jar", false, null, [] as Set, null, null),
-            new Container("org.eclipse.jdt.USER_LIBRARY/gradle", false, null, [] as Set)]
+            new Container("org.eclipse.jdt.USER_LIBRARY/gradle", false, null, [] as Set),
+            new Output("bin")]
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -45,7 +45,7 @@ public class ClasspathTest extends Specification {
         Classpath classpath = createClasspath(reader: customClasspathReader)
 
         expect:
-        classpath.entries == DEFAULT_ENTRIES + CUSTOM_ENTRIES
+        classpath.entries == CUSTOM_ENTRIES
 
     }
 
@@ -57,7 +57,7 @@ public class ClasspathTest extends Specification {
                 reader: customClasspathReader)
 
         expect:
-        classpath.entries == DEFAULT_ENTRIES + CUSTOM_ENTRIES + constructorEntries
+        classpath.entries == CUSTOM_ENTRIES + constructorEntries
     }
 
     def initWithNullReader() {
@@ -68,7 +68,7 @@ public class ClasspathTest extends Specification {
 
         expect:
         classpath.xml != null
-        classpath.entries == DEFAULT_ENTRIES + constructorEntries
+        classpath.entries == constructorEntries
     }
 
     def toXml() {
@@ -112,7 +112,7 @@ public class ClasspathTest extends Specification {
                 beforeConfiguredActions: beforeConfiguredAction)
 
         then:
-        createClasspath(reader: getToXmlReader(classpath)).entries == DEFAULT_ENTRIES + constructorEntries
+        createClasspath(reader: getToXmlReader(classpath)).entries == constructorEntries
     }
 
     def whenConfigured() {
@@ -131,7 +131,7 @@ public class ClasspathTest extends Specification {
                 whenConfiguredActions: whenConfiguredActions)
 
         then:
-        createClasspath(reader: getToXmlReader(classpath)).entries == DEFAULT_ENTRIES + CUSTOM_ENTRIES +
+        createClasspath(reader: getToXmlReader(classpath)).entries == CUSTOM_ENTRIES +
                 ([constructorEntry, configureActionEntry])
     }
 

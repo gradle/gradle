@@ -100,7 +100,8 @@ public class EclipsePlugin implements Plugin<Project> {
                 sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
-                variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
+                variables = [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+                conventionMapping.defaultOutputDir = { new File(project.buildDir, 'eclipse') }
             }
             project."$ECLIPSE_TASK_NAME".dependsOn eclipseClasspath
             project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseClasspath'
@@ -108,6 +109,7 @@ public class EclipsePlugin implements Plugin<Project> {
         project.plugins.withType(JavaPlugin.class).allPlugins {
             project.configure(project.eclipseClasspath) {
                 plusConfigurations = [project.configurations.testRuntime]
+                conventionMapping.defaultOutputDir = { project.sourceSets.main.classesDir }
             }
         }
     }

@@ -30,7 +30,9 @@ class ClasspathFactory {
     Classpath createClasspath(EclipseClasspath eclipseClasspath) {
         File inputFile = eclipseClasspath.inputFile
         FileReader inputReader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
-        List entries = getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project)
+        List entries = []
+        entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
+        entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
         return new Classpath(eclipseClasspath.beforeConfiguredActions, eclipseClasspath.whenConfiguredActions, eclipseClasspath.withXmlActions, entries, inputReader)

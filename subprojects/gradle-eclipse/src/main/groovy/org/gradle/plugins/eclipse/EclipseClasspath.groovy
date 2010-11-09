@@ -71,6 +71,11 @@ public class EclipseClasspath extends ConventionTask {
     Set<Container> containers = new LinkedHashSet<Container>();
 
     /**
+     * The default output directory for eclipse generated files, eg classes.
+     */
+    File defaultOutputDir;
+
+    /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
      */
     boolean downloadSources = true
