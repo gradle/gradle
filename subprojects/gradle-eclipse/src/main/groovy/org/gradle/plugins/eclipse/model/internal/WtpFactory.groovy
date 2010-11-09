@@ -91,12 +91,12 @@ class WtpFactory {
     }
 
     WbDependentModule createWbDependentModuleEntry(File file, Map variables) {
-        def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value) }
+        def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value.canonicalPath) }
         String handleSnippet = null;
         if (usedVariableEntry) {
-            handleSnippet = "var/$usedVariableEntry.key/${file.canonicalPath.substring(usedVariableEntry.value.length())}"
+            handleSnippet = "var/$usedVariableEntry.key/${file.canonicalPath.substring(usedVariableEntry.value.canonicalPath.length())}"
         } else {
-            handleSnippet = "lib/${file.canonicalPath.substring(usedVariableEntry.value.length())}"
+            handleSnippet = "lib/${file.canonicalPath}"
         }
         handleSnippet = FilenameUtils.separatorsToUnix(handleSnippet)
         return new WbDependentModule('/WEB-INF/lib', "module:/classpath/$handleSnippet")

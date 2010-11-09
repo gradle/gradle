@@ -114,10 +114,10 @@ class ClasspathFactory {
     }
 
     AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map variables) {
-        def usedVariableEntry = variables.find { name, value -> binary.canonicalPath.startsWith(value) }
+        def usedVariableEntry = variables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
         if (usedVariableEntry) {
             String name = usedVariableEntry.key
-            String value = usedVariableEntry.value
+            String value = usedVariableEntry.value.canonicalPath
             String binaryPath = name + binary.canonicalPath.substring(value.length())
             String sourcePath = source ? name + source.canonicalPath.substring(value.length()) : null
             String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null

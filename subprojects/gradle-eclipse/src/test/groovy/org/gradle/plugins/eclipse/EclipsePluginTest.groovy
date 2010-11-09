@@ -139,7 +139,7 @@ class EclipsePluginTest extends Specification {
         } else {
             assert eclipseClasspath.defaultOutputDir == new File(project.buildDir, 'eclipse')
         }
-        assert eclipseClasspath.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+        assert eclipseClasspath.variables == [:]
     }
 
     private void checkEclipseWtp() {
@@ -155,7 +155,7 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreInputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreOutputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "1.4")]
-        assert eclipseWtp.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+        assert eclipseWtp.variables == [:]
         assert eclipseWtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
     }
 

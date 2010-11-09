@@ -1,6 +1,7 @@
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import junit.framework.AssertionFailedError
 
 buildscript {
     repositories {
@@ -26,35 +27,54 @@ subprojects {
     version = '1.0'
 }
 
-allprojects { p ->
-    eclipseProject.doLast {
-        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}Project.xml").text,
-                file(".project").text)
-    }
-    if (hasProperty('eclipseClasspath')) {
-        eclipseClasspath {
-            downloadJavadoc = true
-            doLast {
-                compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}Classpath.xml").text,
-                        file(".classpath").text)
+allprojects {
+    afterEvaluate { p ->
+        configure(p) {
+            eclipseProject.doLast {
+                compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Project.xml")),
+                        file(".project").text)
+            }
+
+            if (p.hasProperty('eclipseClasspath')) {
+                eclipseClasspath {
+                    downloadJavadoc = true
+                    doLast {
+                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Classpath.xml")),
+                                file(".classpath").text)
+                    }
+                }
+            }
+
+            if (p.hasProperty('eclipseWtp')) {
+                eclipseWtp {
+                    doLast {
+                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpComponent.xml")),
+                                file(".settings/org.eclipse.wst.common.component").text)
+                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpFacet.xml")),
+                                file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
+                    }
+                }
+            }
+            cleanEclipse.doLast {
+                assert !file(".classpath").isFile()
+                assert !file(".project").isFile()
             }
         }
-    }
-    cleanEclipse.doLast {
-        assert !file(".classpath").isFile()
-        assert !file(".project").isFile()
     }
 }
 
 void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     Diff diff = new Diff(expectedXml, actualXml)
     diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
-    XMLAssert.assertXMLEqual(diff, true);
+    try {
+        XMLAssert.assertXMLEqual(diff, true)
+    } catch (AssertionFailedError error) {
+        throw new AssertionFailedError("Unexpected content for generated file: ${error.message}\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(error)
+    }
 }
 
-String getExpectedXml(Project subProject, String filename) {
+String getExpectedXml(File file) {
     def cache = new File(gradle.gradleUserHomeDir, "/cache")
-    def path = org.gradle.plugins.idea.model.Path.getRelativePath(subProject.projectDir, '$MODULE_DIR$', cache)
-    return rootProject.file("expectedFiles/$filename").text.replace('@CACHE_DIR@', path)
+    return file.text.replace('@CACHE_DIR@', cache.absolutePath)
 }
 

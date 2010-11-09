@@ -1,0 +1,11 @@
+<classpath>
+  <classpathentry kind="output" path="build/classes/main"/>
+  <classpathentry output="build/classes/main" kind="src" path="src/main/java"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+  <classpathentry sourcepath="GRADLE_USER_HOME/cache/commons-lang/commons-lang/sources/commons-lang-2.5-sources.jar" kind="var" path="GRADLE_USER_HOME/cache/commons-lang/commons-lang/jars/commons-lang-2.5.jar" exported="true">
+    <attributes>
+      <attribute name="javadoc_location" value="GRADLE_USER_HOME/cache/commons-lang/commons-lang/javadocs/commons-lang-2.5-javadoc.jar"/>
+    </attributes>
+  </classpathentry>
+  <classpathentry sourcepath="GRADLE_USER_HOME/cache/junit/junit/sources/junit-4.7-sources.jar" kind="var" path="GRADLE_USER_HOME/cache/junit/junit/jars/junit-4.7.jar" exported="true"/>
+</classpath>

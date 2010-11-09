@@ -100,7 +100,6 @@ public class EclipsePlugin implements Plugin<Project> {
                 sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
-                variables = [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
                 conventionMapping.defaultOutputDir = { new File(project.buildDir, 'eclipse') }
             }
             project."$ECLIPSE_TASK_NAME".dependsOn eclipseClasspath
@@ -124,7 +123,6 @@ public class EclipsePlugin implements Plugin<Project> {
             sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
             plusConfigurations = [project.configurations.runtime]
             minusConfigurations = [project.configurations.providedRuntime]
-            variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
             resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName
             orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component')
             orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component')

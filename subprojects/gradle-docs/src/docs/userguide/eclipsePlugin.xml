@@ -259,8 +259,8 @@
                 <td>
                     <literal>variables</literal>
                 </td>
-                <td>Map&lt;String,String&gt;</td>
-                <td><literal>[GRADLE_CACHE: &lt;path to gradle cache&gt;]</literal></td>
+                <td>Map&lt;String,File&gt;</td>
+                <td><literal>[:]</literal></td>
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>
@@ -314,8 +314,8 @@
                 <td>
                     <literal>variables</literal>
                 </td>
-                <td>Map&lt;String,String&gt;</td>
-                <td><literal>[GRADLE_CACHE: &lt;path to gradle cache&gt;]</literal></td>
+                <td>Map&lt;String,File&gt;</td>
+                <td><literal>[:]</literal></td>
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>

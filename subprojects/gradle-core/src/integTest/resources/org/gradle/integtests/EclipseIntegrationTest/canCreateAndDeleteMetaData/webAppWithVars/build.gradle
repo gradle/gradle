@@ -1,0 +1,9 @@
+apply plugin: 'war'
+
+dependencies {
+    runtime "commons-lang:commons-lang:2.5"
+    testCompile 'junit:junit:4.7'
+}
+
+eclipseClasspath.variables = ['GRADLE_USER_HOME': gradle.gradleUserHomeDir]
+eclipseWtp.variables = ['GRADLE_USER_HOME': gradle.gradleUserHomeDir]
