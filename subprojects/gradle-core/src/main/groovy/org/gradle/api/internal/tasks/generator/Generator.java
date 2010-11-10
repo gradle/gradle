@@ -13,21 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.idea
+package org.gradle.api.internal.tasks.generator;
 
-import org.gradle.api.tasks.XmlGeneratorTask
-import org.gradle.plugins.idea.model.Workspace
+import java.io.File;
 
 /**
- * Generates an IDEA workspace file.
- *
- * @author Hans Dockter
+ * Responsible for reading, configuring and writing a config object of type T to/from a file.
+ * @param <T>
  */
-public class IdeaWorkspace extends XmlGeneratorTask<Workspace> {
-    @Override protected Workspace create() {
-        return new Workspace(xmlTransformer)
-    }
+public interface Generator<T> {
+    T read(File inputFile);
 
-    @Override protected void configure(Workspace object) {
-    }
+    T defaultInstance();
+
+    void configure(T object);
+
+    void write(T object, File outputFile);
 }

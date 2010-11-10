@@ -18,8 +18,6 @@ package org.gradle.plugins.eclipse
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.eclipse.model.BuildCommand
-import org.gradle.plugins.eclipse.model.Project
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
 
 /**
  * @author Hans Dockter
@@ -51,19 +49,5 @@ class EclipseProjectTest extends AbstractSpockTaskTest {
 
         then:
         eclipseProject.buildCommands as List == [new BuildCommand('command1', [key1: 'value1']), new BuildCommand('command2')]
-    }
-
-    def generateXml() {
-        ModelFactory modelFactory = Mock()
-        Project project = Mock()
-        eclipseProject.modelFactory = modelFactory
-        eclipseProject.setOutputFile(new File('nonexisting'))
-        modelFactory.createProject(eclipseProject) >> project
-
-        when:
-        eclipseProject.generateXml()
-
-        then:
-        1 * project.toXml(eclipseProject.getOutputFile())
     }
 }

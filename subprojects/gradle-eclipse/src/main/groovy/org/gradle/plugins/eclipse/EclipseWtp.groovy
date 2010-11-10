@@ -26,7 +26,7 @@ import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.plugins.eclipse.model.WbProperty
 import org.gradle.plugins.eclipse.model.WbResource
 import org.gradle.plugins.eclipse.model.Wtp
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
+import org.gradle.plugins.eclipse.model.internal.WtpFactory
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP.
@@ -101,7 +101,7 @@ public class EclipseWtp extends ConventionTask {
      */
     List<WbProperty> properties = []
 
-    protected ModelFactory modelFactory = new ModelFactory()
+    protected WtpFactory modelFactory = new WtpFactory()
 
     def ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>();
     def ActionBroadcast<Wtp> beforeConfiguredActions = new ActionBroadcast<Wtp>();

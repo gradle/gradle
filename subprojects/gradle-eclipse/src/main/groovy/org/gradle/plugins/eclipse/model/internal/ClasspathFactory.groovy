@@ -27,15 +27,13 @@ import org.gradle.plugins.eclipse.EclipseClasspath
  * @author Hans Dockter
  */
 class ClasspathFactory {
-    Classpath createClasspath(EclipseClasspath eclipseClasspath) {
-        File inputFile = eclipseClasspath.inputFile
-        FileReader inputReader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
+    def configure(EclipseClasspath eclipseClasspath, Classpath classpath) {
         List entries = []
         entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
         entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
-        return new Classpath(eclipseClasspath.beforeConfiguredActions, eclipseClasspath.whenConfiguredActions, eclipseClasspath.withXmlActions, entries, inputReader)
+        classpath.configure(entries)
     }
 
     List getEntriesFromSourceSets(def sourceSets, def project) {
@@ -65,7 +63,7 @@ class ClasspathFactory {
     }
 
     List getEntriesFromConfigurations(EclipseClasspath eclipseClasspath) {
-        getModules(eclipseClasspath) + getLibraries(eclipseClasspath) 
+        getModules(eclipseClasspath) + getLibraries(eclipseClasspath)
     }
 
     protected List getModules(EclipseClasspath eclipseClasspath) {

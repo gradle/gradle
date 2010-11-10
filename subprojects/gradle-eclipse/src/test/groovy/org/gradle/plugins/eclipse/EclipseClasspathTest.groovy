@@ -18,8 +18,6 @@ package org.gradle.plugins.eclipse;
 
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
-import org.gradle.plugins.eclipse.model.Classpath
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
 
 /**
  * @author Hans Dockter
@@ -52,19 +50,5 @@ public class EclipseClasspathTest extends AbstractSpockTaskTest {
 
         then:
         eclipseClasspath.variables == [variable1: 'value1', variable2: 'value2']
-    }
-
-    def generateXml() {
-        ModelFactory modelFactory = Mock()
-        Classpath classpath = Mock()
-        eclipseClasspath.modelFactory = modelFactory
-        eclipseClasspath.setOutputFile(new File('nonexisting'))
-        modelFactory.createClasspath(eclipseClasspath) >> classpath
-
-        when:
-        eclipseClasspath.generateXml()
-
-        then:
-        1 * classpath.toXml(eclipseClasspath.getOutputFile())
     }
 }

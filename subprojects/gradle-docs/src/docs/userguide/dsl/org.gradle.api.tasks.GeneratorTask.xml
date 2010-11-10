@@ -1,5 +1,4 @@
 <section>
-    <para>Generates an IDEA project file.</para>
     <section>
         <title>Properties</title>
         <table>
@@ -11,8 +10,8 @@
                 </tr>
             </thead>
             <tr>
-                <td>javaVersion</td>
-                <td>The java version used for defining the project SDK.</td>
+                <td>outputFile</td>
+                <td>The output file.</td>
             </tr>
         </table>
     </section>

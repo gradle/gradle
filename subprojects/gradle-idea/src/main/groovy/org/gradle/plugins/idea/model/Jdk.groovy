@@ -86,8 +86,8 @@ class Jdk {
         return "Jdk{" +
                 "assertKeyword=" + assertKeyword +
                 ", jdk15=" + jdk15 +
-                ", languageLevel=" + languageLevel +
-                ", projectJdkName='" + projectJdkName + '\'' +
+                ", languageLevel='" + languageLevel +
+                "', projectJdkName='" + projectJdkName + '\'' +
                 '}';
     }
 }

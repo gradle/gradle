@@ -13,21 +13,24 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.idea
+package org.gradle.plugins.eclipse
 
-import org.gradle.api.tasks.XmlGeneratorTask
-import org.gradle.plugins.idea.model.Workspace
+import org.gradle.api.internal.ConventionTask
+import org.gradle.listener.ActionBroadcast
+import org.gradle.api.JavaVersion
 
-/**
- * Generates an IDEA workspace file.
- *
- * @author Hans Dockter
- */
-public class IdeaWorkspace extends XmlGeneratorTask<Workspace> {
-    @Override protected Workspace create() {
-        return new Workspace(xmlTransformer)
-    }
+class EclipseJdt extends ConventionTask {
+    File inputFile
 
-    @Override protected void configure(Workspace object) {
-    }
+    File outputFile
+
+    JavaVersion sourceCompatibility
+
+    JavaVersion targetCompatibility
+
+    private final ActionBroadcast<Properties> beforeConfigured = new ActionBroadcast<Properties>()
+
+    private final ActionBroadcast<Properties> afterConfigured = new ActionBroadcast<Properties>()
+
+
 }

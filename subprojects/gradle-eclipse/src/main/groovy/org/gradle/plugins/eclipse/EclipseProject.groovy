@@ -16,37 +16,19 @@
 package org.gradle.plugins.eclipse;
 
 
-import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
-import org.gradle.api.artifacts.maven.XmlProvider
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.listener.ActionBroadcast
+import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.BuildCommand
 import org.gradle.plugins.eclipse.model.Link
 import org.gradle.plugins.eclipse.model.Project
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
 
 /**
  * Generates an Eclipse <i>.project</i> file.
  *
  * @author Hans Dockter
  */
-public class EclipseProject extends ConventionTask {
+public class EclipseProject extends XmlGeneratorTask<Project> {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
-
-    /**
-     * The file that is merged into the to be produced project file. This file must not exist.
-     */
-    File inputFile
-
-    @OutputFile
-    /**
-     * The output file where to generate the project metadata to.
-     */
-    File outputFile
 
     /**
      * The name used for the name of the eclipse project
@@ -78,20 +60,12 @@ public class EclipseProject extends ConventionTask {
      */
     Set<Link> links = new LinkedHashSet<Link>();
 
-    protected ModelFactory modelFactory = new ModelFactory()
-
-    def XmlTransformer withXmlActions = new XmlTransformer();
-    def ActionBroadcast<Project> beforeConfiguredActions = new ActionBroadcast<Project>();
-    def ActionBroadcast<Project> whenConfiguredActions = new ActionBroadcast<Project>();
-
-    def EclipseProject() {
-        outputs.upToDateWhen { false }
+    @Override protected Project create() {
+        return new Project(xmlTransformer)
     }
 
-    @TaskAction
-    void generateXml() {
-        Project project = modelFactory.createProject(this)
-        project.toXml(getOutputFile())
+    @Override protected void configure(Project project) {
+        project.configure(this)
     }
 
     /**
@@ -147,33 +121,5 @@ public class EclipseProject extends ConventionTask {
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
         }
         this.links.add(new Link(args.name, args.type, args.location, args.locationUri))
-    }
-
-    /**
-     * Adds a closure to be called when the .project XML has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
-     *
-     * @param closure The closure to execute when the .project XML has been created.
-     */
-    void withXml(Closure closure) {
-        withXmlActions.addAction(closure);
-    }
-
-    /**
-     * Adds an action to be called when the .project XML has been created. The XML is passed to the action as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
-     *
-     * @param action The action to execute when the .project XML has been created.
-     */
-    void withXml(Action<? super XmlProvider> action) {
-        withXmlActions.addAction(action);
-    }
-
-    void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add(closure);
-    }
-
-    void whenConfigured(Closure closure) {
-        whenConfiguredActions.add(closure);
     }
 }
