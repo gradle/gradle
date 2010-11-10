@@ -38,8 +38,13 @@
 <div id="training" class="homeList">
     <h2>Upcoming training</h2>
     <ul>
-        <li><a href="http://gradle.biz/training.html">Dec 6-7, Reston</a></li>
-        <li>2011 TRAINING DATES SOON TO COME</li>
+        <li><a href="http://gradle.biz/training.html">Dec 6-7, 2010, Reston, U.S.</a></li>
+        <li><a href="http://gradle.biz/training.html">February 8-10, 2011, Frankfurt, DE</li>
+        <li><a href="http://gradle.biz/training.html">March 8-10, 2011, M&uuml;nchen, DE</li>
+        <li><a href="http://gradle.biz/training.html">April 5-7, 2011, Z&uuml;rich, CH</li>
+        <li><a href="http://gradle.biz/training.html">May 10-12, 2011, Stuttgart, DE</li>
+        <li><a href="http://gradle.biz/training.html">June 7-9, 2011, Berlin, DE</li>
+        <li>2011 U.S.& U.K. DATES SOON TO COME</li>
     </ul>
     <div class="more"><a href="http://gradle.biz/training.html">learn more</a></div>
 </div>
