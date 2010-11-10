@@ -18,14 +18,14 @@ package org.gradle.api.internal.tasks.generator;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import org.gradle.api.internal.XmlTransformer;
-import org.gradle.util.UncheckedException;
 
-import java.io.*;
+import java.io.Reader;
+import java.io.Writer;
 
 /**
  * A {@link PersistableConfigurationObject} which is stored in an XML file.
  */
-public abstract class XmlPersistableConfigurationObject implements PersistableConfigurationObject {
+public abstract class XmlPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
     private final XmlTransformer xmlTransformer;
     private Node xml;
 
@@ -37,64 +37,25 @@ public abstract class XmlPersistableConfigurationObject implements PersistableCo
         return xml;
     }
 
-    public void load(File inputFile) {
-        try {
-            FileReader reader = new FileReader(inputFile);
-            try {
-                load(reader);
-            } finally {
-                reader.close();
-            }
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
-    public void loadDefaults() {
-        try {
-            Reader reader = new InputStreamReader(getClass().getResourceAsStream(getDefaultResourceName()));
-            try {
-                load(reader);
-            } finally {
-                reader.close();
-            }
-        } catch (Exception e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
+    @Override
     public void load(Reader reader) throws Exception {
         xml = new XmlParser().parse(reader);
-        initFromXml(xml);
+        load(xml);
     }
 
-    public void store(File outputFile) {
-        try {
-            Writer writer = new FileWriter(outputFile);
-            try {
-                store(writer);
-            } finally {
-                writer.close();
-            }
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
+    @Override
     public void store(Writer writer) {
-        updateXml(xml);
+        store(xml);
         xmlTransformer.transform(xml, writer);
     }
 
     /**
      * Called immediately after the XML file has been read.
      */
-    protected abstract void initFromXml(Node xml);
-
-    protected abstract String getDefaultResourceName();
+    protected abstract void load(Node xml);
 
     /**
      * Called immediately before the XML file is to be written.
      */
-    protected abstract void updateXml(Node xml);
+    protected abstract void store(Node xml);
 }

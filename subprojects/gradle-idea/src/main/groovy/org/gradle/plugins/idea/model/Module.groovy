@@ -75,7 +75,7 @@ class Module extends XmlPersistableConfigurationObject {
         return 'defaultModule.xml'
     }
 
-    @Override protected void initFromXml(Node xml) {
+    @Override protected void load(Node xml) {
         readJdkFromXml()
         readSourceAndExcludeFolderFromXml()
         readOutputDirsFromXml()
@@ -152,7 +152,7 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    @Override protected void updateXml(Node xml) {
+    @Override protected void store(Node xml) {
         addJdkToXml()
         setContentURL()
         removeSourceAndExcludeFolderFromXml()

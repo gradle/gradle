@@ -54,6 +54,7 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
+        checkEclipseJdt()
         project.apply(plugin: 'java')
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
@@ -119,7 +120,6 @@ class EclipsePluginTest extends Specification {
         assert eclipseProjectTask.referencedProjects == [] as Set
         assert eclipseProjectTask.comment == null
         assert eclipseProjectTask.projectName == project.name
-        assert eclipseProjectTask.inputFile == project.file('.project')
         assert eclipseProjectTask.outputFile == project.file('.project')
     }
 
@@ -131,7 +131,6 @@ class EclipsePluginTest extends Specification {
         assert eclipseClasspath.plusConfigurations == configurations
         assert eclipseClasspath.minusConfigurations == [] as Set
         assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
-        assert eclipseClasspath.inputFile == project.file('.classpath')
         assert eclipseClasspath.outputFile == project.file('.classpath')
         def mainSourceSet = project.sourceSets.findByName('main')
         if (mainSourceSet != null) {
@@ -140,6 +139,14 @@ class EclipsePluginTest extends Specification {
             assert eclipseClasspath.defaultOutputDir == new File(project.buildDir, 'eclipse')
         }
         assert eclipseClasspath.variables == [:]
+    }
+
+    private void checkEclipseJdt() {
+        EclipseJdt eclipseJdt = project.eclipseJdt
+        assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseJdt)
+        assert eclipseJdt.sourceCompatibility == project.sourceCompatibility
+        assert eclipseJdt.targetCompatibility == project.targetCompatibility
+        assert eclipseJdt.outputFile == project.file('.settings/org.eclipse.jdt.core.prefs')
     }
 
     private void checkEclipseWtp() {

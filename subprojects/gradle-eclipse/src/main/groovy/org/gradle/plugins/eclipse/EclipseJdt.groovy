@@ -15,11 +15,15 @@
  */
 package org.gradle.plugins.eclipse
 
-import org.gradle.api.internal.ConventionTask
-import org.gradle.listener.ActionBroadcast
 import org.gradle.api.JavaVersion
+import org.gradle.api.internal.tasks.generator.PersistableConfigurationObjectGenerator
+import org.gradle.api.tasks.GeneratorTask
+import org.gradle.plugins.eclipse.model.Jdt
 
-class EclipseJdt extends ConventionTask {
+/**
+ * Generates the Eclipse JDT settings file {@code .settings/org.eclipse.jdt.core.prefs}.
+ */
+class EclipseJdt extends GeneratorTask<Jdt> {
     File inputFile
 
     File outputFile
@@ -28,9 +32,16 @@ class EclipseJdt extends ConventionTask {
 
     JavaVersion targetCompatibility
 
-    private final ActionBroadcast<Properties> beforeConfigured = new ActionBroadcast<Properties>()
+    EclipseJdt() {
+        generator = new PersistableConfigurationObjectGenerator<Jdt>() {
+            Jdt create() {
+                return new Jdt()
+            }
 
-    private final ActionBroadcast<Properties> afterConfigured = new ActionBroadcast<Properties>()
-
-
+            void configure(Jdt jdt) {
+                jdt.sourceCompatibility = getSourceCompatibility()
+                jdt.targetCompatibility = getTargetCompatibility()
+            }
+        }
+    }
 }

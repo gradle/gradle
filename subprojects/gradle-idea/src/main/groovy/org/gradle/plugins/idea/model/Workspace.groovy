@@ -33,9 +33,9 @@ class Workspace extends XmlPersistableConfigurationObject {
         return 'defaultWorkspace.xml'
     }
 
-    @Override protected void initFromXml(Node xml) {
+    @Override protected void load(Node xml) {
     }
 
-    @Override protected void updateXml(Node xml) {
+    @Override protected void store(Node xml) {
     }
 }

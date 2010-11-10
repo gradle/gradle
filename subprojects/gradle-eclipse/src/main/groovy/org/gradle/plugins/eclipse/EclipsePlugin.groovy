@@ -35,6 +35,7 @@ public class EclipsePlugin implements Plugin<Project> {
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
     public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
+    public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
     public void apply(final Project project) {
         project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
@@ -48,6 +49,7 @@ public class EclipsePlugin implements Plugin<Project> {
         }
         configureEclipseProject(project)
         configureEclipseClasspath(project)
+        configureEclipseJdt(project)
         project.plugins.withType(WarPlugin.class).allPlugins {
             configureEclipseWtpModuleForWarProjects(project);
         }
@@ -110,6 +112,21 @@ public class EclipsePlugin implements Plugin<Project> {
                 plusConfigurations = [project.configurations.testRuntime]
                 conventionMapping.defaultOutputDir = { project.sourceSets.main.classesDir }
             }
+        }
+    }
+
+    private void configureEclipseJdt(final Project project) {
+        project.plugins.withType(JavaBasePlugin.class).allPlugins {
+            EclipseJdt eclipseJdt = project.tasks.add(ECLIPSE_JDT_TASK_NAME, EclipseJdt.class);
+            project.configure(eclipseJdt) {
+                description = "Generates an Eclipse JDT settings file."
+                outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
+                inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
+                conventionMapping.sourceCompatibility = { project.sourceCompatibility }
+                conventionMapping.targetCompatibility = { project.targetCompatibility }
+            }
+            project."$ECLIPSE_TASK_NAME".dependsOn eclipseJdt
+            project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseJdt'
         }
     }
 

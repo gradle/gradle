@@ -45,6 +45,15 @@ allprojects {
                 }
             }
 
+            if (p.hasProperty('eclipseJdt')) {
+                eclipseJdt {
+                    doLast {
+                        compareProperties(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Jdt.properties")),
+                                file(".settings/org.eclipse.jdt.core.prefs").text)
+                    }
+                }
+            }
+
             if (p.hasProperty('eclipseWtp')) {
                 eclipseWtp {
                     doLast {
@@ -61,6 +70,14 @@ allprojects {
             }
         }
     }
+}
+
+void compareProperties(String expectedProperties, String actualProperties) {
+    Properties expected = new Properties()
+    expected.load(new StringReader(expectedProperties))
+    Properties actual = new Properties()
+    actual.load(new StringReader(actualProperties))
+    assert expected == actual
 }
 
 void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {

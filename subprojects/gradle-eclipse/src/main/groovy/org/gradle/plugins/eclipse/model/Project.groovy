@@ -65,7 +65,7 @@ class Project extends XmlPersistableConfigurationObject {
         return 'defaultProject.xml'
     }
 
-    @Override protected void initFromXml(Node xml) {
+    @Override protected void load(Node xml) {
         this.name = xml.name.text()
         this.comment = xml.comment.text()
         readReferencedProjects()
@@ -115,7 +115,7 @@ class Project extends XmlPersistableConfigurationObject {
         this.links.addAll(eclipseProjectTask.links);
     }
 
-    @Override protected void updateXml(Node xml) {
+    @Override protected void store(Node xml) {
         ['name', 'comment', 'projects', 'natures', 'buildSpec', 'links'].each { childNodeName ->
             Node childNode = xml.children().find { it.name() == childNodeName }
             if (childNode) {

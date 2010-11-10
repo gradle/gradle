@@ -55,7 +55,7 @@ class Project extends XmlPersistableConfigurationObject {
         this.wildcards.addAll(wildcards)
     }
 
-    @Override protected void initFromXml(Node xml) {
+    @Override protected void load(Node xml) {
         findModules().module.each { module ->
             this.modulePaths.add(new ModulePath(pathFactory.path(module.@fileurl), module.@filepath))
         }
@@ -73,7 +73,7 @@ class Project extends XmlPersistableConfigurationObject {
         return "defaultProject.xml"
     }
 
-    @Override protected void updateXml(Node xml) {
+    @Override protected void store(Node xml) {
         findModules().replaceNode {
             modules {
                 modulePaths.each { ModulePath modulePath ->

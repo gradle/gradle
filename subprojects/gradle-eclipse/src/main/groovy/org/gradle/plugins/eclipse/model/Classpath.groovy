@@ -34,7 +34,7 @@ class Classpath extends XmlPersistableConfigurationObject {
         return 'defaultClasspath.xml'
     }
 
-    @Override protected void initFromXml(Node xml) {
+    @Override protected void load(Node xml) {
         xml.classpathentry.each { Node entryNode ->
             ClasspathEntry entry = null
             switch (entryNode.@kind) {
@@ -62,7 +62,7 @@ class Classpath extends XmlPersistableConfigurationObject {
         this.entries.unique()
     }
 
-    @Override protected void updateXml(Node xml) {
+    @Override protected void store(Node xml) {
         xml.classpathentry.each { xml.remove(it) }
         entries.each { ClasspathEntry entry ->
             entry.appendNode(xml)

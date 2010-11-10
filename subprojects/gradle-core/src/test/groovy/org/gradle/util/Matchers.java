@@ -127,24 +127,32 @@ public class Matchers {
         return new BaseMatcher<String>() {
             public boolean matches(Object o) {
                 String str = (String) o;
-                BufferedReader reader = new BufferedReader(new StringReader(str));
-                String line;
-                try {
-                    while ((line = reader.readLine()) != null) {
-                        if (matcher.matches(line)) {
-                            return true;
-                        }
-                    }
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-                return false;
+                return containsLine(str, matcher);
             }
 
             public void describeTo(Description description) {
                 description.appendText("a String that contains line that is ").appendDescriptionOf(matcher);
             }
         };
+    }
+
+    public static boolean containsLine(String action, String expected) {
+        return containsLine(action, equalTo(expected));
+    }
+    
+    public static boolean containsLine(String actual, Matcher<? super String> matcher) {
+        BufferedReader reader = new BufferedReader(new StringReader(actual));
+        String line;
+        try {
+            while ((line = reader.readLine()) != null) {
+                if (matcher.matches(line)) {
+                    return true;
+                }
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return false;
     }
 
     @Factory
