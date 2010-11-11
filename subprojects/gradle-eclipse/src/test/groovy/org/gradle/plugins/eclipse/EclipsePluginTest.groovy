@@ -173,7 +173,7 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtp.orgEclipseWstCommonComponentOutputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreInputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreOutputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "1.5")]
+        assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "5.0")]
         assert eclipseWtp.variables == [:]
         assert eclipseWtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
     }
