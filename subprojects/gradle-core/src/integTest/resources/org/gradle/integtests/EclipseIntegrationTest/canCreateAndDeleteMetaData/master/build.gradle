@@ -2,6 +2,7 @@ import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
 import junit.framework.AssertionFailedError
+import org.junit.ComparisonFailure
 
 buildscript {
     repositories {
@@ -87,7 +88,7 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     try {
         XMLAssert.assertXMLEqual(diff, true)
     } catch (AssertionFailedError error) {
-        throw new AssertionFailedError("Unexpected content for generated file: ${error.message}\nExpected:\n${expectedXml}\nActual:\n${actualXml}").initCause(error)
+        throw new ComparisonFailure("Unexpected content for generated file: ${error.message}", expectedXml, actualXml).initCause(error)
     }
 }
 

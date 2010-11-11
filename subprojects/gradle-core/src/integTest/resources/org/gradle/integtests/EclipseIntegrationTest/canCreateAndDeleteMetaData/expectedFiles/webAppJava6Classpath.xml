@@ -1,0 +1,5 @@
+<classpath>
+  <classpathentry kind="output" path="build/classes/main"/>
+  <classpathentry output="build/classes/main" kind="src" path="src/main/java"/>
+  <classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
+</classpath>

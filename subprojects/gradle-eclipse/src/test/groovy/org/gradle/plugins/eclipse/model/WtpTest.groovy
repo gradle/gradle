@@ -29,7 +29,6 @@ import spock.lang.Specification
 
 public class WtpTest extends Specification {
     private static final List CUSTOM_WB_MODULE_ENTRIES = [
-            new WbProperty('context-root', 'recu'),
             new WbDependentModule('/WEB-INF/lib', "module:/classpath/myapp-1.0.0.jar"),
             new WbResource("/WEB-INF/classes", "src/main/java")]
     private static final List CUSTOM_FACETS = [new Facet('jst.web', '2.4'), new Facet('jst.java', '1.4')]
@@ -42,21 +41,24 @@ public class WtpTest extends Specification {
 
         expect:
         wtp.deployName == 'recu'
+        wtp.contextPath == 'recu'
         wtp.wbModuleEntries == CUSTOM_WB_MODULE_ENTRIES
         wtp.facets == CUSTOM_FACETS
     }
 
     def initWithReaderAndValues_shouldBeMerged() {
         def constructorDeployName = 'build'
+        def constructorContextPath = 'context'
         def constructorWbModuleEntries = [createSomeWbModuleEntry()]
         def constructorFacets = [createSomeFacet()]
 
         Wtp wtp = createWtp(wbModuleEntries: constructorWbModuleEntries + [CUSTOM_WB_MODULE_ENTRIES[0]], facets: constructorFacets + [CUSTOM_FACETS[0]],
-                deployName: constructorDeployName, componentReader: customComponentReader, facetReader: customFacetReader)
+                deployName: constructorDeployName, contextPath: constructorContextPath, componentReader: customComponentReader, facetReader: customFacetReader)
 
         expect:
         wtp.wbModuleEntries == CUSTOM_WB_MODULE_ENTRIES + constructorWbModuleEntries
         wtp.deployName == constructorDeployName
+        wtp.contextPath == constructorContextPath
         wtp.facets == CUSTOM_FACETS + constructorFacets
     }
 
@@ -103,11 +105,13 @@ public class WtpTest extends Specification {
 
     def toXml_shouldContainCustomValues() {
         def constructorDeployName = 'build'
+        def constructorContextPath = 'contextPath'
         def constructorWbModuleEntries = [createSomeWbModuleEntry()]
         def constructorFacets = [createSomeFacet()]
 
         Wtp wtp = createWtp(wbModuleEntries: constructorWbModuleEntries, facets: constructorFacets,
-                deployName: constructorDeployName, componentReader: customComponentReader, facetReader: customFacetReader)
+                deployName: constructorDeployName, contextPath: constructorContextPath,
+                componentReader: customComponentReader, facetReader: customFacetReader)
         def (componentReader, facetReader) = getToXmlReaders(wtp)
 
         when:
@@ -202,6 +206,7 @@ public class WtpTest extends Specification {
         eclipseWtpStub.getWhenConfiguredActions() >> args.whenConfiguredActions
         eclipseWtpStub.getWithXmlActions() >> args.withXmlActions
         eclipseWtpStub.getDeployName() >> args.deployName
+        eclipseWtpStub.getContextPath() >> args.contextPath
         eclipseWtpStub.getFacets() >> args.facets
         return new Wtp(eclipseWtpStub, args.wbModuleEntries, args.componentReader, args.facetReader)
     }

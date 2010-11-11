@@ -23,6 +23,7 @@ import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.eclipse.model.BuildCommand
+import org.gradle.plugins.eclipse.model.Facet
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
@@ -130,8 +131,8 @@ public class EclipsePlugin extends IdePlugin {
             project.configure(eclipseWtp) {
                 description = 'Generate the Eclipse WTP settings files.'
                 deployName = project.name
-                facet name: "jst.web", version: "2.4"
-                facet name: "jst.java", version: "1.4"
+                conventionMapping.contextPath = { project.war.baseName }
+                conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", project.sourceCompatibility.toString())]}
                 sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
                 plusConfigurations = [project.configurations.runtime]
                 minusConfigurations = [project.configurations.providedRuntime]
