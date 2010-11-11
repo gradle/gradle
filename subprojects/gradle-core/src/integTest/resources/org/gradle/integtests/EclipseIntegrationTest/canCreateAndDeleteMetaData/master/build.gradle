@@ -65,8 +65,9 @@ allprojects {
                 }
             }
             cleanEclipse.doLast {
-                assert !file(".classpath").isFile()
-                assert !file(".project").isFile()
+                assert !file(".classpath").exists()
+                assert !file(".project").exists()
+                assert !file('.settings').exists() || file('.settings').listFiles().length == 0
             }
         }
     }

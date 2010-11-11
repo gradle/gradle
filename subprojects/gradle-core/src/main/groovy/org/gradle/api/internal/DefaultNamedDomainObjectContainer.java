@@ -81,6 +81,10 @@ public class DefaultNamedDomainObjectContainer<T> extends AbstractDomainObjectCo
         return store.find(name);
     }
 
+    protected T findByNameWithoutRules(String name) {
+        return store.find(name);
+    }
+
     public NamedDomainObjectCollection<T> matching(Spec<? super T> spec) {
         return classGenerator.newInstance(DefaultNamedDomainObjectContainer.class, type, classGenerator, storeWithSpec(spec));
     }

@@ -15,8 +15,8 @@
  */
 package org.gradle.plugins.eclipse
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.Classpath
 import org.gradle.plugins.eclipse.model.Container
@@ -31,7 +31,7 @@ public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The source sets to be added to the classpath.
      */
-    NamedDomainObjectContainer sourceSets
+    Iterable<SourceSet> sourceSets
 
     /**
      * The configurations which files are to be transformed into classpath entries.

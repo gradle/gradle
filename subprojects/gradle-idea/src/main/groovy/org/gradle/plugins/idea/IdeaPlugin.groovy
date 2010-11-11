@@ -17,8 +17,8 @@ package org.gradle.plugins.idea;
 
 
 import org.gradle.api.JavaVersion
-import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.JavaPlugin
 
 /**
@@ -30,15 +30,14 @@ import org.gradle.api.plugins.JavaPlugin
  * If the java plugin is or has been added to a project where this plugin is applied to, the IdeaModule task gets some
  * Java specific configuration.
  */
-class IdeaPlugin implements Plugin<Project> {
-    void apply(Project project) {
-        project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
-        def task = project.task('cleanIdea')
-        task.description = 'Cleans IDEA project files (IML, IPR)'
-        task.group = 'IDE'
-        task = project.task('idea')
-        task.description = 'Generates IDEA project files (IML, IPR, IWS)'
-        task.group = 'IDE'
+class IdeaPlugin extends IdePlugin {
+    @Override protected String getLifecycleTaskName() {
+        return 'idea'
+    }
+
+    @Override protected void onApply(Project project) {
+        lifecycleTask.description = 'Generates IDEA project files (IML, IPR, IWS)'
+        cleanTask.description = 'Cleans IDEA project files (IML, IPR)'
         configureIdeaWorkspace(project)
         configureIdeaProject(project)
         configureIdeaModule(project)
@@ -47,39 +46,33 @@ class IdeaPlugin implements Plugin<Project> {
 
     private def configureIdeaWorkspace(Project project) {
         if (isRoot(project)) {
-            project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: IdeaWorkspace) {
+            def task = project.task('ideaWorkspace', description: 'Generates an IDEA workspace file (IWS)', type: IdeaWorkspace) {
                 outputFile = new File(project.projectDir, project.name + ".iws")
             }
-            project.idea.dependsOn 'ideaWorkspace'
-
-            project.cleanIdea.dependsOn "cleanIdeaWorkspace"
+            addWorker(task)
         }
     }
 
     private def configureIdeaModule(Project project) {
-        project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: IdeaModule) {
+        def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: IdeaModule) {
             conventionMapping.outputFile = { new File(project.projectDir, project.name + ".iml") }
             conventionMapping.moduleDir = { project.projectDir }
             conventionMapping.sourceDirs = { [] as Set }
             conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as Set }
             conventionMapping.testSourceDirs = { [] as Set }
         }
-        project.idea.dependsOn 'ideaModule'
-
-        project.cleanIdea.dependsOn "cleanIdeaModule"
+        addWorker(task)
     }
 
     private def configureIdeaProject(Project project) {
         if (isRoot(project)) {
-            project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: IdeaProject) {
+            def task = project.task('ideaProject', description: 'Generates IDEA project file (IPR)', type: IdeaProject) {
                 outputFile = new File(project.projectDir, project.name + ".ipr")
                 subprojects = project.rootProject.allprojects
                 javaVersion = JavaVersion.VERSION_1_6.toString()
                 wildcards = ['!?*.java', '!?*.groovy']
             }
-            project.idea.dependsOn 'ideaProject'
-
-            project.cleanIdea.dependsOn "cleanIdeaProject"
+            addWorker(task)
         }
     }
 
@@ -102,7 +95,7 @@ class IdeaPlugin implements Plugin<Project> {
         project.ideaModule {
             conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set }
             conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set }
-            conventionMapping.outputDir = { project.sourceSets.main.classesDir } 
+            conventionMapping.outputDir = { project.sourceSets.main.classesDir }
             conventionMapping.testOutputDir = { project.sourceSets.test.classesDir }
             def configurations = project.configurations
             scopes = [

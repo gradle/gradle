@@ -16,10 +16,7 @@
 package org.gradle.api.internal.tasks;
 
 import groovy.lang.Closure;
-import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.Project;
-import org.gradle.api.Task;
-import org.gradle.api.UnknownTaskException;
+import org.gradle.api.*;
 import org.gradle.api.internal.ClassGenerator;
 import org.gradle.api.internal.project.taskfactory.ITaskFactory;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -122,6 +119,22 @@ public class DefaultTaskContainerTest {
         assertThat(container.replace("task", Task.class), sameInstance(task));
     }
 
+    @Test
+    public void doesNotFireRuleWhenAddingTask() {
+        Rule rule = context.mock(Rule.class);
+        final Map<String, ?> options = GUtil.map(Task.TASK_NAME, "task");
+        final Task task = task("task");
+
+        container.addRule(rule);
+
+        context.checking(new Expectations(){{
+            one(taskFactory).createTask(project, options);
+            will(returnValue(task));
+        }});
+
+        container.add("task");
+    }
+    
     @Test
     public void cannotAddDuplicateTask() {
         final Task task = addTask("task");

@@ -16,10 +16,10 @@
 package org.gradle.plugins.eclipse;
 
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.eclipse.model.Facet
@@ -61,7 +61,7 @@ public class EclipseWtp extends ConventionTask {
     /**
      * The source sets to be transformed into wb-resource elements.
      */
-    NamedDomainObjectContainer sourceSets
+    Iterable<SourceSet> sourceSets
 
     /**
      * The configurations which files are to be transformed into dependent-module elements of

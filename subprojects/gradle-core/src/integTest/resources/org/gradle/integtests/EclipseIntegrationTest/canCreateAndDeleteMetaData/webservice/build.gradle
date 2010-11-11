@@ -10,9 +10,3 @@ dependencies {
     runtime "commons-lang:commons-lang:2.5"
     testCompile 'junit:junit:4.7'
 }
-
-cleanEclipse {
-    doLast {
-        assert !file(".settings").exists()
-    }
-}

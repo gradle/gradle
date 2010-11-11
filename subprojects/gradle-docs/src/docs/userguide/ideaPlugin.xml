@@ -21,17 +21,37 @@
         making it possible to open the project from Idea (<guimenuitem>File</guimenuitem> - <guimenuitem>Open Project</guimenuitem>).
         Both external (including associated source and javadoc files) and project dependencies are considered.</para>
 
-    <para>The Idea plugin will create different content depending on what other plugins being used.</para>
-    
-<section>
+    <para>The Idea plugin will create different content depending on which other plugins being used:</para>
+    <table>
+        <title>IDEA support for other plugins</title>
+        <thead>
+            <tr>
+                <td>Plugin</td><td>Description</td>
+            </tr>
+        </thead>
+        <tr>
+            <td>None</td><td>Generates an IDEA module file. Also generates an IDEA project and workspace file if the project
+            is the root project.</td>
+        </tr>
+        <tr>
+            <td>
+                <link linkend="java_plugin">Java</link>
+            </td>
+            <td>Adds java configuration to the module and project files.</td>
+        </tr>
+    </table>
+
+    <para>One focus of the Idea tasks is to be open to customizations. They provide a couple of hooks to add or remove
+        content from the generated files.
+    </para>
+    <section>
         <title>Usage</title>
     <para>To use the Idea plugin, include in your build script:</para>
     <sample id="useIdeaPlugin" dir="idea" title="Using the Idea plugin">
         <sourcefile file="build.gradle" snippet="use-plugin"/>
     </sample>
-    <para>One focus of the Idea tasks is to be open to customizations. They provide a couple of hooks to add or remove content from
-        the generated files.
-</para>
+        <para>The IDEA plugin adds a number of tasks to your project, as discussed below. The main task that you use is
+            the <literal>idea</literal> task.</para>
     </section>
     <section>
         <title>Tasks</title>
@@ -143,7 +163,9 @@
                 <td>
                     <literal>moduleDir</literal>
                 </td>
-                <td>File</td>
+                <td>
+                    <classname>File</classname>
+                </td>
                 <td><literal>projectDir</literal></td>
                 <td><literal>projectDir</literal></td>
                 <td>The content root directory of the module. Must not be null.</td>
@@ -152,8 +174,10 @@
                 <td>
                     <literal>outputFile</literal>
                 </td>
-                <td>File</td>
-                <td><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.iml</literal></td>
+                <td>
+                    <classname>File</classname>
+                </td>
+                <td><literal><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable>.iml</literal></td>
                 <td>-</td>
                 <td>The iml file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
@@ -161,7 +185,9 @@
                 <td>
                     <literal>sourceDirs</literal>
                 </td>
-                <td>Set&lt;File&gt;</td>
+                <td>
+                    <classname>Set&lt;File&gt;</classname>
+                </td>
                 <td>empty set</td>
                 <td>The source dirs of <literal>sourceSets.main</literal></td>
                 <td>The dirs containing the production sources. Must not be null.</td>
@@ -170,7 +196,9 @@
                 <td>
                     <literal>testSourceDirs</literal>
                 </td>
-                <td>Set&lt;File&gt;</td>
+                <td>
+                    <classname>Set&lt;File&gt;</classname>
+                </td>
                 <td>empty set</td>
                 <td>The source dirs of <literal>sourceSets.test</literal></td>
                 <td>The dirs containing the test sources. Must not be null.</td>
@@ -179,7 +207,9 @@
                 <td>
                     <literal>excludeDirs</literal>
                 </td>
-                <td>Set&lt;File&gt;</td>
+                <td>
+                    <classname>Set&lt;File&gt;</classname>
+                </td>
                 <td>empty set</td>
                 <td>-</td>
                 <td>The dirs to be excluded by idea. Must not be null.</td>
@@ -188,8 +218,12 @@
                 <td>
                     <literal>outputDir</literal>
                 </td>
-                <td>File</td>
-                <td>null</td>
+                <td>
+                    <classname>File</classname>
+                </td>
+                <td>
+                    <literal>null</literal>
+                </td>
                 <td><literal>sourceSets.main.classesDir</literal></td>
                 <td>The idea output dir for the production sources. If null no entry for output dirs is created.</td>
             </tr>
@@ -197,8 +231,12 @@
                 <td>
                     <literal>testOutputDir</literal>
                 </td>
-                <td>File</td>
-                <td>null</td>
+                <td>
+                    <classname>File</classname>
+                </td>
+                <td>
+                    <literal>null</literal>
+                </td>
                 <td><literal>sourceSets.test.classesDir</literal></td>
                 <td>The idea output dir for the test sources. If null no entry for test output dirs is created.</td>
             </tr>
@@ -206,8 +244,12 @@
                 <td>
                     <literal>javaVersion</literal>
                 </td>
-                <td>String</td>
-                <td>null</td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>null</literal>
+                </td>
                 <td>-</td>
                 <td>If this is null the value of the existing or default ipr XML (inherited) is used. If it is set
                 to <literal>inherited</literal>, the project SDK is used. Otherwise the SDK for the corresponding
@@ -217,8 +259,12 @@
                 <td>
                     <literal>downloadSources</literal>
                 </td>
-                <td>boolean</td>
-                <td>true</td>
+                <td>
+                    <classname>boolean</classname>
+                </td>
+                <td>
+                    <literal>true</literal>
+                </td>
                 <td>-</td>
                 <td>Whether to download and add source jars associated with the dependency jars.</td>
             </tr>
@@ -226,8 +272,12 @@
                 <td>
                     <literal>downloadJavadoc</literal>
                 </td>
-                <td>boolean</td>
-                <td>false</td>
+                <td>
+                    <classname>boolean</classname>
+                </td>
+                <td>
+                    <literal>false</literal>
+                </td>
                 <td>-</td>
                 <td>Whether to download and add javadoc jars associated with the dependency jars. </td>
             </tr>
@@ -235,8 +285,12 @@
                 <td>
                     <literal>scopes</literal>
                 </td>
-                <td>Map</td>
-                <td>[:]</td>
+                <td>
+                    <classname>Map</classname>
+                </td>
+                <td>
+                    <classname>[:]</classname>
+                </td>
                 <td>COMPILE(compile), RUNTIME(runtime - compile), TEST(testRuntime - runtime)</td>
                 <td>The keys of this map are the Idea scopes. Each key points to another map that has two keys, plus and minus.
                     The values of those keys are sets of <link linkend="sub:configurations">Configuration</link> objects. The files of the
@@ -246,9 +300,13 @@
                 <td>
                     <literal>variables</literal>
                 </td>
-                <td>Map&lt;String, File></td>
-                <td>[:]</td>
-                <td>[:]</td>
+                <td>
+                    <classname>Map&lt;String, File></classname>
+                </td>
+                <td>
+                    <literal>[:]</literal>
+                </td>
+                <td>-</td>
                 <td>The variables to be used for replacing absolute paths in the iml entries. For example, you might add
                     a <literal>GRADLE_USER_HOME</literal> variable to point to the Gradle user home dir.</td>
             </tr>
@@ -269,7 +327,9 @@
                 <td>
                     <literal>subprojects</literal>
                 </td>
-                <td>Set&lt;Project&gt;</td>
+                <td>
+                    <classname>Set&lt;Project&gt;</classname>
+                </td>
                 <td><literal>rootProject.allprojects</literal></td>
                 <td>-</td>
                 <td>The subprojects that should be mapped to modules in the <literal>ipr</literal>
@@ -280,8 +340,10 @@
                 <td>
                     <literal>outputFile</literal>
                 </td>
-                <td>File</td>
-                <td><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.ipr</literal></td>
+                <td>
+                    <classname>File</classname>
+                </td>
+                <td><literal><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable>.ipr</literal></td>
                 <td>-</td>
                 <td>The ipr file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
@@ -289,8 +351,12 @@
                 <td>
                     <literal>javaVersion</literal>
                 </td>
-                <td>String</td>
-                <td>1.6</td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td>
+                    <literal>1.6</literal>
+                </td>
                 <td>-</td>
                 <td>The java version used for defining the project sdk.</td>
             </tr>
@@ -298,8 +364,12 @@
                 <td>
                     <literal>wildcards</literal>
                 </td>
-                <td>Set&lt;String&gt;</td>
-                <td>['!?*.java', '!?*.groovy']</td>
+                <td>
+                    <classname>Set&lt;String&gt;</classname>
+                </td>
+                <td>
+                    <literal>['!?*.java', '!?*.groovy']</literal>
+                </td>
                 <td>-</td>
                 <td>The wildcard resource patterns. Must not be null.</td>
             </tr>
@@ -320,8 +390,10 @@
                 <td>
                     <literal>outputFile</literal>
                 </td>
-                <td>File</td>
-                <td><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable><literal>.ipr</literal></td>
+                <td>
+                    <classname>File</classname>
+                </td>
+                <td><literal><replaceable>projectDir</replaceable>/<replaceable>&lt;project.name&gt;</replaceable>.iws</literal></td>
                 <td>-</td>
                 <td>The iws file. Used to look for existing files and as the target for generation. Must not be null.</td>
             </tr>
@@ -345,7 +417,7 @@
                 </td>
                 <td><apilink class="org.gradle.plugins.idea.model.Project" lang="groovy"/></td>
                 <td><apilink class="org.gradle.plugins.idea.model.Module" lang="groovy"/></td>
-                <td>n/a</td>
+                <td><apilink class="org.gradle.plugins.idea.model.Workspace" lang="groovy"/></td>
                 <td>Gets called directly after the domain objects have been populated with the content of the
                     existing XML file (if there is one).</td>
             </tr>
@@ -355,7 +427,7 @@
                 </td>
                 <td><apilink class="org.gradle.plugins.idea.model.Project" lang="groovy"/></td>
                 <td><apilink class="org.gradle.plugins.idea.model.Module" lang="groovy"/></td>
-                <td>n/a</td>
+                <td><apilink class="org.gradle.plugins.idea.model.Workspace" lang="groovy"/></td>
                 <td>Gets called after the domain objects have been populated with the content of the
                     existing XML file and the content from the build script.</td>
             </tr>
@@ -440,9 +512,10 @@
                 <title>Modifying the XML</title>
                 <para>You can also hook into the phase after the XML DOM is fully populated but not written to disk.
                     That hook provides total control over what is generated.
-                    <sample id="file-dependencies" dir="idea"
+                    <sample id="projectWithXml" dir="idea"
                             title="Customizing the XML">
                         <sourcefile file="build.gradle" snippet="project-with-xml"/>
+                        <test args="idea"/>
                     </sample>
                 </para>
             </section>

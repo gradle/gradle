@@ -55,7 +55,11 @@ class EclipsePluginTest extends Specification {
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
         checkEclipseJdt()
+
+        when:
         project.apply(plugin: 'java')
+
+        then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
@@ -68,7 +72,6 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseWtp)
-        project.cleanEclipseWtp.targetFiles.contains(project.file('.settings'))
         checkEclipseProjectTask([
                 new BuildCommand('org.eclipse.jdt.core.javabuilder'),
                 new BuildCommand('org.eclipse.wst.common.project.facet.core.builder'),
@@ -91,7 +94,11 @@ class EclipsePluginTest extends Specification {
         checkEclipseProjectTask([new BuildCommand('ch.epfl.lamp.sdt.core.scalabuilder')],
                 ['ch.epfl.lamp.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
+
+        when:
         project.apply(plugin: 'scala')
+
+        then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
@@ -106,7 +113,11 @@ class EclipsePluginTest extends Specification {
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.groovy.core.groovyNature',
                 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
+
+        when:
         project.apply(plugin: 'groovy')
+
+        then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
