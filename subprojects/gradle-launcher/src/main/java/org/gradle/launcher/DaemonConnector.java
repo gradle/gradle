@@ -149,9 +149,10 @@ public class DaemonConnector {
         URI uri = incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
             public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
                 try {
-                    finished.onConnect();
+                    finished.onStartActivity();
                     handler.handle(connectionConnectEvent.getConnection(), finished);
                 } finally {
+                    finished.onActivityComplete();
                     connectionConnectEvent.getConnection().stop();
                 }
             }
@@ -193,11 +194,12 @@ public class DaemonConnector {
         private static final int THREE_HOURS = 3 * 60 * 60 * 1000;
         private final Lock lock = new ReentrantLock();
         private final Condition condition = lock.newCondition();
+        private boolean running;
         private boolean stopped;
         private long expiry;
 
         CompletionHandler() {
-            onConnect();
+            onActivityComplete();
         }
 
         /**
@@ -207,13 +209,14 @@ public class DaemonConnector {
         public boolean awaitStop() {
             lock.lock();
             try {
-                while (!stopped && System.currentTimeMillis() < expiry) {
+                while (running || (!stopped && System.currentTimeMillis() < expiry)) {
                     try {
                         condition.awaitUntil(new Date(expiry));
                     } catch (InterruptedException e) {
                         throw UncheckedException.asUncheckedException(e);
                     }
                 }
+                assert !running;
                 return stopped;
             } finally {
                 lock.unlock();
@@ -230,9 +233,21 @@ public class DaemonConnector {
             }
         }
 
-        public void onConnect() {
+        public void onStartActivity() {
             lock.lock();
             try {
+                assert !running;
+                running = true;
+                condition.signalAll();
+            } finally {
+                lock.unlock();
+            }
+        }
+
+        public void onActivityComplete() {
+            lock.lock();
+            try {
+                running = false;
                 expiry = System.currentTimeMillis() + THREE_HOURS;
                 condition.signalAll();
             } finally {
