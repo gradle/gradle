@@ -25,6 +25,7 @@ import org.junit.Test
 import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.GradleVersion
 
 /**
  * @author Hans Dockter
@@ -55,5 +56,6 @@ class OsgiProjectSampleIntegrationTest {
         assertTrue(start <= Long.parseLong(manifest.mainAttributes.getValue('Bnd-LastModified')))
         assertEquals('1.0', manifest.mainAttributes.getValue('Bundle-Version'))
         assertEquals('gradle_tooling.osgi', manifest.mainAttributes.getValue('Bundle-SymbolicName'))
+        assertEquals( new GradleVersion().version, manifest.mainAttributes.getValue('Built-By'))
     }
 }

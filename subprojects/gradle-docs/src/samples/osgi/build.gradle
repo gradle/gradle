@@ -23,5 +23,6 @@ jar {
         instruction 'Bundle-Activator', 'org.gradle.GradleActivator'
         instruction 'Import-Package', '*'
         instruction 'Export-Package', '*'
+        attributes( 'Built-By': gradle.gradleVersion )
     }
 }
