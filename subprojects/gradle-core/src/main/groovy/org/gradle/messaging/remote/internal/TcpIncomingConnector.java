@@ -29,7 +29,7 @@ import org.slf4j.LoggerFactory;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.URI;
-import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
 import java.util.List;
@@ -49,7 +49,7 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
         localAddresses = TcpOutgoingConnector.findLocalAddresses();
     }
 
-    public URI accept(Action<ConnectEvent<Connection<Message>>> action) {
+    public URI accept(Action<ConnectEvent<Connection<Object>>> action) {
         ServerSocketChannel serverSocket;
         URI localAddress;
         try {
@@ -78,9 +78,9 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
     private class Receiver implements Runnable {
         private final ServerSocketChannel serverSocket;
         private final URI localAddress;
-        private final Action<ConnectEvent<Connection<Message>>> action;
+        private final Action<ConnectEvent<Connection<Object>>> action;
 
-        public Receiver(ServerSocketChannel serverSocket, URI localAddress, Action<ConnectEvent<Connection<Message>>> action) {
+        public Receiver(ServerSocketChannel serverSocket, URI localAddress, Action<ConnectEvent<Connection<Object>>> action) {
             this.serverSocket = serverSocket;
             this.localAddress = localAddress;
             this.action = action;
@@ -96,9 +96,9 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
                     }
                     URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
                     LOGGER.debug("Accepted connection from {}.", remoteUri);
-                    action.execute(new ConnectEvent<Connection<Message>>(new SocketConnection<Message>(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
+                    action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
                 }
-            } catch (AsynchronousCloseException e) {
+            } catch (ClosedChannelException e) {
                 // Ignore
             } catch (Exception e) {
                 LOGGER.error("Could not accept remote connection.", e);

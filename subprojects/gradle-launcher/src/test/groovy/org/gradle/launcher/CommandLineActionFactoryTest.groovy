@@ -71,7 +71,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
-        1 * startParameterConverter.convert(!null) >> { throw failure }
+        1 * startParameterConverter.convert(!null, !null) >> { throw failure }
 
         when:
         action.execute(buildCompleter)

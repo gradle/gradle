@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.messaging.remote.internal
 
 import org.gradle.api.Action
@@ -37,5 +34,16 @@ class TcpConnectorTest extends MultithreadedTestCase {
         run { syncAt(1) }
 
         incomingConnector.requestStop()
+    }
+
+    @Test
+    public void outgoingConnectorThrowsConnectExceptionWhenCannotConnect() {
+        TcpOutgoingConnector outgoingConnector = new TcpOutgoingConnector(getClass().classLoader)
+
+        try {
+            outgoingConnector.connect(new URI("tcp://localhost:12345"))
+            fail()
+        } catch (ConnectException e) {
+        }
     }
 }

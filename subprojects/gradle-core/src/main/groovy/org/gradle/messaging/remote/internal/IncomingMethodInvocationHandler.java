@@ -25,10 +25,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
 
 public class IncomingMethodInvocationHandler {
     private final ClassLoader classLoader;
-    private final MultiChannelConnection<Message> connection;
+    private final MultiChannelConnection<Object> connection;
     private final Set<Class<?>> classes = new CopyOnWriteArraySet<Class<?>>();
 
-    public IncomingMethodInvocationHandler(ClassLoader classLoader, MultiChannelConnection<Message> connection) {
+    public IncomingMethodInvocationHandler(ClassLoader classLoader, MultiChannelConnection<Object> connection) {
         this.classLoader = classLoader;
         this.connection = connection;
     }

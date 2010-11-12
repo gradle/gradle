@@ -24,7 +24,7 @@ public class DefaultMessagingClient implements MessagingClient {
     private final ObjectConnection connection;
 
     public DefaultMessagingClient(MultiChannelConnector connector, ClassLoader classLoader, URI serverAddress) {
-        MultiChannelConnection<Message> connection = connector.connect(serverAddress);
+        MultiChannelConnection<Object> connection = connector.connect(serverAddress);
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, connection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(connection);
         this.connection = new DefaultObjectConnection(connection, connection, outgoing, incoming);

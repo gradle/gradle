@@ -13,16 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.messaging.remote.internal;
 
-import org.gradle.api.Action;
-import org.gradle.messaging.remote.ConnectEvent;
+import org.gradle.api.GradleException;
 
-import java.net.URI;
-
-public interface MultiChannelConnector {
-    URI accept(Action<ConnectEvent<MultiChannelConnection<Object>>> action);
-
-    MultiChannelConnection<Object> connect(URI destinationAddress);
+public class ConnectException extends GradleException {
+    public ConnectException(String message, Throwable cause) {
+        super(message, cause);
+    }
 }

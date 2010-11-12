@@ -20,6 +20,7 @@ import java.net.URI;
 public interface OutgoingConnector {
     /**
      * Creates a connection to the given address.
+     * @throws org.gradle.messaging.remote.internal.ConnectException when there is nothing listening on the remote URI
      */
-    <T> Connection<T> connect(URI destinationUri);
+    <T> Connection<T> connect(URI destinationUri) throws ConnectException;
 }

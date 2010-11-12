@@ -42,27 +42,26 @@ public class DefaultMultiChannelConnector implements MultiChannelConnector, Stop
         executorService.stop();
     }
 
-    public URI accept(final Action<ConnectEvent<MultiChannelConnection<Message>>> action) {
-        return incomingConnector.accept(new Action<ConnectEvent<Connection<Message>>>() {
-            public void execute(ConnectEvent<Connection<Message>> event) {
+    public URI accept(final Action<ConnectEvent<MultiChannelConnection<Object>>> action) {
+        return incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
+            public void execute(ConnectEvent<Connection<Object>> event) {
                 finishConnect(event, action);
             }
         });
     }
 
-    private void finishConnect(ConnectEvent<Connection<Message>> event,
-                               Action<ConnectEvent<MultiChannelConnection<Message>>> action) {
+    private void finishConnect(ConnectEvent<Connection<Object>> event,
+                               Action<ConnectEvent<MultiChannelConnection<Object>>> action) {
         URI localAddress = event.getLocalAddress();
         URI remoteAddress = event.getRemoteAddress();
         DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
                 String.format("Incoming Connection %s", localAddress), event.getConnection(), localAddress, remoteAddress);
-        action.execute(new ConnectEvent<MultiChannelConnection<Message>>(channelConnection, localAddress, remoteAddress));
+        action.execute(new ConnectEvent<MultiChannelConnection<Object>>(channelConnection, localAddress, remoteAddress));
     }
 
-    public MultiChannelConnection<Message> connect(URI destinationAddress) {
-        Connection<Message> connection = outgoingConnector.connect(destinationAddress);
-        DefaultMultiChannelConnection channelConnection = new DefaultMultiChannelConnection(executorFactory,
+    public MultiChannelConnection<Object> connect(URI destinationAddress) {
+        Connection<Object> connection = outgoingConnector.connect(destinationAddress);
+        return new DefaultMultiChannelConnection(executorFactory,
                 String.format("Outgoing Connection %s", destinationAddress), connection, null, destinationAddress);
-        return channelConnection;
     }
 }

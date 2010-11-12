@@ -24,19 +24,19 @@ import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class EndOfStreamFilter implements Dispatch<Message>, Stoppable {
-    private final Dispatch<Message> dispatch;
+public class EndOfStreamFilter implements Dispatch<Object>, Stoppable {
+    private final Dispatch<Object> dispatch;
     private final Runnable endOfStreamAction;
     private final Lock lock = new ReentrantLock();
     private final Condition condition = lock.newCondition();
     private boolean endOfStreamReached;
 
-    public EndOfStreamFilter(Dispatch<Message> dispatch, Runnable endOfStreamAction) {
+    public EndOfStreamFilter(Dispatch<Object> dispatch, Runnable endOfStreamAction) {
         this.dispatch = dispatch;
         this.endOfStreamAction = endOfStreamAction;
     }
 
-    public void dispatch(Message message) {
+    public void dispatch(Object message) {
         lock.lock();
         try {
             if (endOfStreamReached) {

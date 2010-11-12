@@ -22,16 +22,16 @@ import org.gradle.messaging.dispatch.StoppableDispatch;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
-public class EndOfStreamDispatch implements StoppableDispatch<Message> {
-    private final Dispatch<? super Message> dispatch;
+public class EndOfStreamDispatch implements StoppableDispatch<Object> {
+    private final Dispatch<Object> dispatch;
     private boolean stopped;
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
 
-    public EndOfStreamDispatch(Dispatch<? super Message> dispatch) {
+    public EndOfStreamDispatch(Dispatch<Object> dispatch) {
         this.dispatch = dispatch;
     }
 
-    public void dispatch(Message message) {
+    public void dispatch(Object message) {
         lock.readLock().lock();
         try {
             if (stopped) {

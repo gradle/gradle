@@ -36,6 +36,7 @@ import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
 
+import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -45,19 +46,22 @@ import java.util.Properties;
 public class DaemonMain implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(Main.class);
     private final ServiceRegistry loggingServices;
+    private final DaemonConnector connector;
     private final GradleLauncherFactory launcherFactory;
 
-    public DaemonMain(ServiceRegistry loggingServices) {
+    public DaemonMain(ServiceRegistry loggingServices, DaemonConnector connector) {
         this.loggingServices = loggingServices;
+        this.connector = connector;
         launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
     public static void main(String[] args) {
-        new DaemonMain(new LoggingServiceRegistry()).run();
+        StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
+        DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
+        new DaemonMain(new LoggingServiceRegistry(), connector).run();
     }
 
     public void run() {
-        DaemonConnector connector = new DaemonConnector();
         connector.accept(new IncomingConnectionHandler() {
             public void handle(Connection<Object> connection, Stoppable serverControl) {
                 doRun(connection, serverControl);

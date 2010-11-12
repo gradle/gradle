@@ -26,7 +26,7 @@ import org.junit.runner.RunWith;
 @RunWith(JMock.class)
 public class ChannelMessageMarshallingDispatchTest {
     private final JUnit4Mockery context = new JUnit4Mockery();
-    private final Dispatch<Message> delegate = context.mock(Dispatch.class);
+    private final Dispatch<Object> delegate = context.mock(Dispatch.class);
     private final ChannelMessageMarshallingDispatch dispatch = new ChannelMessageMarshallingDispatch(delegate);
 
     @Test

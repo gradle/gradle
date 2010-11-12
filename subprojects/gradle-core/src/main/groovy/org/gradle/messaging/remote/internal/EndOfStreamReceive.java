@@ -18,19 +18,19 @@ package org.gradle.messaging.remote.internal;
 
 import org.gradle.messaging.dispatch.Receive;
 
-class EndOfStreamReceive implements Receive<Message> {
-    private final Receive<Message> receive;
+class EndOfStreamReceive implements Receive<Object> {
+    private final Receive<Object> receive;
     private boolean ended;
 
-    public EndOfStreamReceive(Receive<Message> receive) {
+    public EndOfStreamReceive(Receive<Object> receive) {
         this.receive = receive;
     }
 
-    public Message receive() {
+    public Object receive() {
         if (ended) {
             return null;
         }
-        Message message = receive.receive();
+        Object message = receive.receive();
         if (message == null) {
             ended = true;
             return new EndOfStreamEvent();

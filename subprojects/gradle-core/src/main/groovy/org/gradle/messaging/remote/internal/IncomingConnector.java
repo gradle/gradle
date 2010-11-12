@@ -25,8 +25,8 @@ public interface IncomingConnector {
     /**
      * Allocates a new incoming endpoint.
      *
-     * @param action the action to execute on incoming connection.
+     * @param action the action to execute on incoming connection. The supplied action is not required to be thread-safe.
      * @return the address of the endpoint which the connector is listening on.
      */
-    URI accept(Action<ConnectEvent<Connection<Message>>> action);
+    URI accept(Action<ConnectEvent<Connection<Object>>> action);
 }

@@ -52,7 +52,7 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     public static final String STACKTRACE = "s";
     private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
-    private static final String GRADLE_USER_HOME = "g";
+    public static final String GRADLE_USER_HOME = "g";
     private static final String EMBEDDED_SCRIPT = "e";
     private static final String CACHE = "C";
     private static final String DRY_RUN = "m";

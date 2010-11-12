@@ -105,19 +105,23 @@ public class CommandLineActionFactory {
         if (commandLine.hasOption(GUI)) {
             return new ActionAdapter(new ShowGuiAction());
         }
+
+        StartParameter startParameter = new StartParameter();
+        startParameterConverter.convert(commandLine, startParameter);
+        DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
+
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(loggingServices));
+            return new ActionAdapter(new DaemonMain(loggingServices, connector));
         }
         if (commandLine.hasOption(STOP)) {
-            return new StopDaemonAction(new DaemonConnector(), loggingServices.get(OutputEventListener.class));
+            return new StopDaemonAction(connector, loggingServices.get(OutputEventListener.class));
         }
 
-        StartParameter startParameter = startParameterConverter.convert(commandLine);
         boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
-            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), new DaemonConnector(), startParameter, commandLine, new File(System.getProperty("user.dir")));
+            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")));
         }
 
         return new RunBuildAction(startParameter, loggingServices);
