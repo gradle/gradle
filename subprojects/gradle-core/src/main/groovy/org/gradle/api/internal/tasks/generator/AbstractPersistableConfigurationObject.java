@@ -22,11 +22,11 @@ import java.io.*;
 public abstract class AbstractPersistableConfigurationObject implements PersistableConfigurationObject {
     public void load(File inputFile) {
         try {
-            FileReader reader = new FileReader(inputFile);
+            InputStream inputStream = new FileInputStream(inputFile);
             try {
-                load(reader);
+                load(inputStream);
             } finally {
-                reader.close();
+                inputStream.close();
             }
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
@@ -35,33 +35,33 @@ public abstract class AbstractPersistableConfigurationObject implements Persista
 
     public void loadDefaults() {
         try {
-            Reader reader = new InputStreamReader(getClass().getResourceAsStream(getDefaultResourceName()));
+            InputStream inputStream = getClass().getResourceAsStream(getDefaultResourceName());
             try {
-                load(reader);
+                load(inputStream);
             } finally {
-                reader.close();
+                inputStream.close();
             }
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);
         }
     }
 
-    public abstract void load(Reader reader) throws Exception;
+    public abstract void load(InputStream inputStream) throws Exception;
 
     public void store(File outputFile) {
         try {
-            Writer writer = new FileWriter(outputFile);
+            OutputStream outputStream = new FileOutputStream(outputFile);
             try {
-                store(writer);
+                store(outputStream);
             } finally {
-                writer.close();
+                outputStream.close();
             }
         } catch (IOException e) {
             throw UncheckedException.asUncheckedException(e);
         }
     }
 
-    public abstract void store(Writer writer);
+    public abstract void store(OutputStream outputStream);
 
     protected abstract String getDefaultResourceName();
 }

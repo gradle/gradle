@@ -73,7 +73,7 @@ public class ClasspathTest extends Specification {
         when:
         classpath.load(customClasspathReader)
         classpath.configure(constructorEntries)
-        def xml = getToXmlReader(classpath)
+        def xml = getToXmlReader()
         def other = new Classpath(new XmlTransformer())
         other.load(xml)
 
@@ -81,17 +81,17 @@ public class ClasspathTest extends Specification {
         classpath == other
     }
 
-    private InputStreamReader getCustomClasspathReader() {
-        return new InputStreamReader(getClass().getResourceAsStream('customClasspath.xml'))
+    private InputStream getCustomClasspathReader() {
+        return getClass().getResourceAsStream('customClasspath.xml')
     }
 
     private Library createSomeLibrary() {
         return new Library("/somepath", true, null, [] as Set, null, null)
     }
 
-    private StringReader getToXmlReader(Classpath classpath) {
-        StringWriter toXmlText = new StringWriter()
+    private InputStream getToXmlReader() {
+        ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
         classpath.store(toXmlText)
-        return new StringReader(toXmlText.toString())
+        return new ByteArrayInputStream(toXmlText.toByteArray())
     }
 }

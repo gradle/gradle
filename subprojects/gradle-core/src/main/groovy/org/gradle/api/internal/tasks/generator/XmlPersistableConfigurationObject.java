@@ -19,8 +19,9 @@ import groovy.util.Node;
 import groovy.util.XmlParser;
 import org.gradle.api.internal.XmlTransformer;
 
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 
 /**
  * A {@link PersistableConfigurationObject} which is stored in an XML file.
@@ -38,15 +39,15 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     }
 
     @Override
-    public void load(Reader reader) throws Exception {
-        xml = new XmlParser().parse(reader);
+    public void load(InputStream inputStream) throws Exception {
+        xml = new XmlParser().parse(inputStream);
         load(xml);
     }
 
     @Override
-    public void store(Writer writer) {
+    public void store(OutputStream outputStream) {
         store(xml);
-        xmlTransformer.transform(xml, writer);
+        xmlTransformer.transform(xml, new OutputStreamWriter(outputStream));
     }
 
     /**

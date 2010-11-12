@@ -76,9 +76,9 @@ allprojects {
 
 void compareProperties(String expectedProperties, String actualProperties) {
     Properties expected = new Properties()
-    expected.load(new StringReader(expectedProperties))
+    expected.load(new ByteArrayInputStream(expectedProperties.bytes))
     Properties actual = new Properties()
-    actual.load(new StringReader(actualProperties))
+    actual.load(new ByteArrayInputStream(actualProperties.bytes))
     assert expected == actual
 }
 
@@ -93,7 +93,7 @@ void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
 }
 
 String getExpectedXml(File file) {
-    def cache = new File(gradle.gradleUserHomeDir, "/cache")
-    return file.text.replace('@CACHE_DIR@', cache.absolutePath)
+    def cache = new File(gradle.gradleUserHomeDir, "/cache").absolutePath.replace(File.separator, '/')
+    return file.text.replace('@CACHE_DIR@', cache)
 }
 

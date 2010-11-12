@@ -74,14 +74,14 @@ class ProjectTest extends Specification {
         project.jdk == other.jdk
     }
 
-    private StringReader getToXmlReader() {
-        StringWriter toXmlText = new StringWriter()
+    private InputStream getToXmlReader() {
+        ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
         project.store(toXmlText)
-        return new StringReader(toXmlText.toString())
+        return new ByteArrayInputStream(toXmlText.toByteArray())
     }
 
-    private InputStreamReader getCustomProjectReader() {
-        return new InputStreamReader(getClass().getResourceAsStream('customProject.xml'))
+    private InputStream getCustomProjectReader() {
+        return getClass().getResourceAsStream('customProject.xml')
     }
 
     private Path path(String url) {

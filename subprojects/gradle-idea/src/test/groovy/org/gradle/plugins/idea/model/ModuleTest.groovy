@@ -102,14 +102,14 @@ class ModuleTest extends Specification {
         this.module == newModule
     }
 
-    private StringReader getToXmlReader() {
-        StringWriter toXmlText = new StringWriter()
+    private InputStream getToXmlReader() {
+        ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
         module.store(toXmlText)
-        return new StringReader(toXmlText.toString())
+        return new ByteArrayInputStream(toXmlText.toByteArray())
     }
 
-    private InputStreamReader getCustomModuleReader() {
-        return new InputStreamReader(getClass().getResourceAsStream('customModule.xml'))
+    private InputStream getCustomModuleReader() {
+        return getClass().getResourceAsStream('customModule.xml')
     }
 
     private Path path(String url) {

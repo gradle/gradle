@@ -90,8 +90,8 @@ class JdtTest extends Specification {
     }
 
     def store(Properties properties) {
-        StringWriter writer = new StringWriter()
-        jdt.store(writer)
-        properties.load(new StringReader(writer.toString()))
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream()
+        jdt.store(outputStream)
+        properties.load(new ByteArrayInputStream(outputStream.toByteArray()))
     }
 }
