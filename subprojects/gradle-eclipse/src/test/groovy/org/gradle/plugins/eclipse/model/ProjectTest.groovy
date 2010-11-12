@@ -93,7 +93,7 @@ public class ProjectTest extends Specification {
         when:
         project.load(customProjectReader)
         project.configure(task)
-        def xml = getToXmlReader(project)
+        def xml = getToXmlReader()
         def other = new Project(new XmlTransformer())
         other.load(xml)
 
@@ -101,13 +101,13 @@ public class ProjectTest extends Specification {
         project == other
     }
 
-    private InputStreamReader getCustomProjectReader() {
-        return new InputStreamReader(getClass().getResourceAsStream('customProject.xml'))
+    private InputStream getCustomProjectReader() {
+        return getClass().getResourceAsStream('customProject.xml')
     }
 
-    private StringReader getToXmlReader(Project project) {
-        StringWriter toXmlText = new StringWriter()
+    private InputStream getToXmlReader() {
+        ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
         project.store(toXmlText)
-        return new StringReader(toXmlText.toString())
+        return new ByteArrayInputStream(toXmlText.toByteArray())
     }
 }

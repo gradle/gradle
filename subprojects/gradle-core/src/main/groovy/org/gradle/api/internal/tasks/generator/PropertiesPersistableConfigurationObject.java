@@ -18,25 +18,25 @@ package org.gradle.api.internal.tasks.generator;
 import org.gradle.util.UncheckedException;
 
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.util.Properties;
 
 public abstract class PropertiesPersistableConfigurationObject extends AbstractPersistableConfigurationObject {
     private Properties properties;
 
     @Override
-    public void load(Reader reader) throws Exception {
+    public void load(InputStream inputStream) throws Exception {
         properties = new Properties();
-        properties.load(reader);
+        properties.load(inputStream);
         load(properties);
     }
 
     @Override
-    public void store(Writer writer) {
+    public void store(OutputStream outputStream) {
         store(properties);
         try {
-            properties.store(writer, "");
+            properties.store(outputStream, "");
         } catch (IOException e) {
             throw UncheckedException.asUncheckedException(e);
         }

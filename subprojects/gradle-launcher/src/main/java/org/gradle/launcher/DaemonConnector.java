@@ -30,6 +30,7 @@ import org.gradle.util.UncheckedException;
 import java.io.File;
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
@@ -49,7 +50,7 @@ public class DaemonConnector {
      */
     Connection<Object> maybeConnect() {
         try {
-            SocketChannel socket = SocketChannel.open(new InetSocketAddress(DAEMON_PORT));
+            SocketChannel socket = SocketChannel.open(new InetSocketAddress(InetAddress.getByName(null), DAEMON_PORT));
             try {
                 return new SocketConnection<Object>(socket, "launcher", "daemon", getClass().getClassLoader());
             } catch (Throwable throwable) {
