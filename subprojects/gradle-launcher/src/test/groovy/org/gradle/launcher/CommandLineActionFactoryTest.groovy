@@ -171,6 +171,33 @@ class CommandLineActionFactoryTest extends Specification {
         action.action instanceof DaemonBuildAction
     }
 
+    def doesNotUseDaemonWhenNoDaemonOptionPresent() {
+        when:
+        def action = factory.convert(['--no-daemon', 'args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof RunBuildAction
+    }
+
+    def daemonOptionTakesPrecedenceOverSystemProperty() {
+        when:
+        System.properties['org.gradle.daemon'] = 'false'
+        def action = factory.convert(['--daemon', 'args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof DaemonBuildAction
+
+        when:
+        System.properties['org.gradle.daemon'] = 'true'
+        action = factory.convert(['--no-daemon', 'args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof RunBuildAction
+    }
+    
     def stopsDaemon() {
         when:
         def action = factory.convert(['--stop'])
