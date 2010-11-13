@@ -17,9 +17,9 @@ package org.gradle.messaging.remote.internal;
 
 public class ChannelMessage extends Message {
     private final Object channel;
-    private final Message payload;
+    private final Object payload;
 
-    public ChannelMessage(Object channel, Message payload) {
+    public ChannelMessage(Object channel, Object payload) {
         this.channel = channel;
         this.payload = payload;
     }
@@ -28,7 +28,7 @@ public class ChannelMessage extends Message {
         return channel;
     }
 
-    public Message getPayload() {
+    public Object getPayload() {
         return payload;
     }
 

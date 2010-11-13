@@ -22,7 +22,7 @@ import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MethodInvocationUnmarshallingDispatch implements Dispatch<Message> {
+public class MethodInvocationUnmarshallingDispatch implements Dispatch<Object> {
     private final Dispatch<? super MethodInvocation> dispatch;
     private final ClassLoader classLoader;
     private final Map<Object, Method> methods = new HashMap<Object, Method>();
@@ -32,7 +32,7 @@ public class MethodInvocationUnmarshallingDispatch implements Dispatch<Message> 
         this.classLoader = classLoader;
     }
 
-    public void dispatch(Message message) {
+    public void dispatch(Object message) {
         if (message instanceof MethodMetaInfo) {
             MethodMetaInfo methodMetaInfo = (MethodMetaInfo) message;
             Method method = methodMetaInfo.findMethod(classLoader);

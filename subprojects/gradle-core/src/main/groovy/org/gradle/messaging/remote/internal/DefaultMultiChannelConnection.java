@@ -28,18 +28,18 @@ import java.util.concurrent.*;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
-class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
+class DefaultMultiChannelConnection implements MultiChannelConnection<Object> {
     private final URI sourceAddress;
     private final URI destinationAddress;
     private final EndOfStreamDispatch outgoingDispatch;
-    private final AsyncDispatch<Message> outgoingQueue;
-    private final AsyncReceive<Message> incomingReceive;
+    private final AsyncDispatch<Object> outgoingQueue;
+    private final AsyncReceive<Object> incomingReceive;
     private final EndOfStreamFilter incomingDispatch;
     private final IncomingDemultiplex incomingDemux;
     private final StoppableExecutor executor;
-    private final Connection<Message> connection;
+    private final Connection<Object> connection;
 
-    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, final Connection<Message> connection, URI sourceAddress, URI destinationAddress) {
+    DefaultMultiChannelConnection(ExecutorFactory executorFactory, String displayName, final Connection<Object> connection, URI sourceAddress, URI destinationAddress) {
         this.connection = connection;
         this.executor = executorFactory.create(displayName);
 
@@ -47,7 +47,7 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         this.destinationAddress = destinationAddress;
 
         // Outgoing pipeline: <source> -> <channel-mux> -> <end-of-stream-dispatch> -> <async-queue> -> <ignore-failures> -> <connection>
-        outgoingQueue = new AsyncDispatch<Message>(executor);
+        outgoingQueue = new AsyncDispatch<Object>(executor);
         outgoingQueue.dispatchTo(wrapFailures(connection));
         outgoingDispatch = new EndOfStreamDispatch(new ChannelMessageMarshallingDispatch(outgoingQueue));
 
@@ -58,13 +58,12 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
                 requestStop();
             }
         });
-        incomingReceive = new AsyncReceive<Message>(executor, wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
+        incomingReceive = new AsyncReceive<Object>(executor, wrapFailures(new ChannelMessageUnmarshallingDispatch(incomingDispatch)));
         incomingReceive.receiveFrom(new EndOfStreamReceive(connection));
     }
 
-    private Dispatch<Message> wrapFailures(Dispatch<Message> dispatch) {
-        return new DiscardOnFailureDispatch<Message>(dispatch, LoggerFactory.getLogger(
-                DefaultMultiChannelConnector.class));
+    private Dispatch<Object> wrapFailures(Dispatch<Object> dispatch) {
+        return new DiscardOnFailureDispatch<Object>(dispatch, LoggerFactory.getLogger(DefaultMultiChannelConnector.class));
     }
 
     public URI getLocalAddress() {
@@ -85,11 +84,11 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         outgoingDispatch.stop();
     }
 
-    public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
+    public void addIncomingChannel(Object channelKey, Dispatch<Object> dispatch) {
         incomingDemux.addIncomingChannel(channelKey, wrapFailures(dispatch));
     }
 
-    public Dispatch<Message> addOutgoingChannel(Object channelKey) {
+    public Dispatch<Object> addOutgoingChannel(Object channelKey) {
         return new OutgoingMultiplex(channelKey, outgoingDispatch);
     }
 
@@ -113,29 +112,29 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         }
     }
 
-    private class IncomingDemultiplex implements Dispatch<Message>, Stoppable {
+    private class IncomingDemultiplex implements Dispatch<Object>, Stoppable {
         private final Lock queueLock = new ReentrantLock();
-        private final Map<Object, AsyncDispatch<Message>> incomingQueues
-                = new HashMap<Object, AsyncDispatch<Message>>();
+        private final Map<Object, AsyncDispatch<Object>> incomingQueues
+                = new HashMap<Object, AsyncDispatch<Object>>();
 
-        public void dispatch(Message message) {
+        public void dispatch(Object message) {
             ChannelMessage channelMessage = (ChannelMessage) message;
-            Dispatch<Message> channel = findChannel(channelMessage.getChannel());
+            Dispatch<Object> channel = findChannel(channelMessage.getChannel());
             channel.dispatch(channelMessage.getPayload());
         }
 
-        public void addIncomingChannel(Object channel, Dispatch<Message> dispatch) {
-            AsyncDispatch<Message> queue = findChannel(channel);
+        public void addIncomingChannel(Object channel, Dispatch<Object> dispatch) {
+            AsyncDispatch<Object> queue = findChannel(channel);
             queue.dispatchTo(dispatch);
         }
 
-        private AsyncDispatch<Message> findChannel(Object channel) {
-            AsyncDispatch<Message> queue;
+        private AsyncDispatch<Object> findChannel(Object channel) {
+            AsyncDispatch<Object> queue;
             queueLock.lock();
             try {
                 queue = incomingQueues.get(channel);
                 if (queue == null) {
-                    queue = new AsyncDispatch<Message>(executor);
+                    queue = new AsyncDispatch<Object>(executor);
                     incomingQueues.put(channel, queue);
                 }
             } finally {
@@ -158,16 +157,16 @@ class DefaultMultiChannelConnection implements MultiChannelConnection<Message> {
         }
     }
 
-    private static class OutgoingMultiplex implements Dispatch<Message> {
-        private final Dispatch<Message> dispatch;
+    private static class OutgoingMultiplex implements Dispatch<Object> {
+        private final Dispatch<Object> dispatch;
         private final Object channelKey;
 
-        private OutgoingMultiplex(Object channelKey, Dispatch<Message> dispatch) {
+        private OutgoingMultiplex(Object channelKey, Dispatch<Object> dispatch) {
             this.channelKey = channelKey;
             this.dispatch = dispatch;
         }
 
-        public void dispatch(Message message) {
+        public void dispatch(Object message) {
             dispatch.dispatch(new ChannelMessage(channelKey, message));
         }
     }

@@ -1,0 +1,13 @@
+<project-modules id="moduleCoreId" project-version="2.0">
+  <wb-module deploy-name="webAppWithVars">
+    <property name="java-output-path" value="build/classes/main"/>
+    <property name="context-root" value="webAppWithVars"/>
+    <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
+    <wb-resource deploy-path="/" source-path="src/main/webapp"/>
+    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/GRADLE_USER_HOME//cache/commons-lang/commons-lang/jars/commons-lang-2.5.jar">
+      <dependency-type>
+        uses
+      </dependency-type>
+    </dependent-module>
+  </wb-module>
+</project-modules>

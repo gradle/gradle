@@ -71,7 +71,7 @@ class CommandLineActionFactoryTest extends Specification {
 
         then:
         1 * startParameterConverter.configure(!null) >> { args -> args[0].option('some-build-option') }
-        1 * startParameterConverter.convert(!null) >> { throw failure }
+        1 * startParameterConverter.convert(!null, !null) >> { throw failure }
 
         when:
         action.execute(buildCompleter)
@@ -171,6 +171,33 @@ class CommandLineActionFactoryTest extends Specification {
         action.action instanceof DaemonBuildAction
     }
 
+    def doesNotUseDaemonWhenNoDaemonOptionPresent() {
+        when:
+        def action = factory.convert(['--no-daemon', 'args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof RunBuildAction
+    }
+
+    def daemonOptionTakesPrecedenceOverSystemProperty() {
+        when:
+        System.properties['org.gradle.daemon'] = 'false'
+        def action = factory.convert(['--daemon', 'args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof DaemonBuildAction
+
+        when:
+        System.properties['org.gradle.daemon'] = 'true'
+        action = factory.convert(['--no-daemon', 'args'])
+
+        then:
+        action instanceof WithLoggingAction
+        action.action instanceof RunBuildAction
+    }
+    
     def stopsDaemon() {
         when:
         def action = factory.convert(['--stop'])

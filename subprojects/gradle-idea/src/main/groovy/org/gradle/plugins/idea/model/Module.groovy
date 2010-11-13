@@ -15,15 +15,15 @@
  */
 package org.gradle.plugins.idea.model
 
-import org.gradle.api.Action
 import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an iml (via XML hooks everything of the iml is customizable).
  *
  * @author Hans Dockter
  */
-class Module {
+class Module extends XmlPersistableConfigurationObject {
     static final String INHERITED = "inherited"
 
     /**
@@ -64,41 +64,18 @@ class Module {
 
     String javaVersion
 
-    private Node xml
-
-    private final XmlTransformer withXmlActions
     private final PathFactory pathFactory
 
-    def Module(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Path outputDir, Path testOutputDir, Set dependencies,
-               String javaVersion, Reader inputXml, Action<Module> beforeConfiguredAction, Action<Module> whenConfiguredAction,
-               XmlTransformer withXmlActions, PathFactory pathFactory) {
+    def Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
+        super(withXmlActions)
         this.pathFactory = pathFactory
-        initFromXml(inputXml)
-
-        beforeConfiguredAction.execute(this)
-
-        this.contentPath = contentPath
-        this.sourceFolders.addAll(sourceFolders);
-        this.testSourceFolders.addAll(testSourceFolders);
-        this.excludeFolders.addAll(excludeFolders);
-        if (outputDir) {
-            this.outputDir = outputDir
-        }
-        if (testOutputDir) {
-            this.testOutputDir = testOutputDir;
-        }
-        this.dependencies.addAll(dependencies);
-        if (javaVersion) {
-            this.javaVersion = javaVersion
-        }
-        this.withXmlActions = withXmlActions;
-
-        whenConfiguredAction.execute(this)
     }
 
-    private def initFromXml(Reader inputXml) {
-        Reader reader = inputXml ?: new InputStreamReader(getClass().getResourceAsStream('defaultModule.xml'))
-        xml = new XmlParser().parse(reader)
+    @Override protected String getDefaultResourceName() {
+        return 'defaultModule.xml'
+    }
+
+    @Override protected void load(Node xml) {
         readJdkFromXml()
         readSourceAndExcludeFolderFromXml()
         readOutputDirsFromXml()
@@ -157,12 +134,25 @@ class Module {
         }
     }
 
-    /**
-     * Generates the XML for the iml.
-     *
-     * @param writer The writer where the iml xml is generated into.
-     */
-    def toXml(Writer writer) {
+    def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Path outputDir, Path testOutputDir, Set dependencies,
+                  String javaVersion) {
+        this.contentPath = contentPath
+        this.sourceFolders.addAll(sourceFolders);
+        this.testSourceFolders.addAll(testSourceFolders);
+        this.excludeFolders.addAll(excludeFolders);
+        if (outputDir) {
+            this.outputDir = outputDir
+        }
+        if (testOutputDir) {
+            this.testOutputDir = testOutputDir;
+        }
+        this.dependencies.addAll(dependencies);
+        if (javaVersion) {
+            this.javaVersion = javaVersion
+        }
+    }
+
+    @Override protected void store(Node xml) {
         addJdkToXml()
         setContentURL()
         removeSourceAndExcludeFolderFromXml()
@@ -171,8 +161,6 @@ class Module {
 
         removeDependenciesFromXml()
         addDependenciesToXml()
-
-        withXmlActions.transform(xml, writer)
     }
 
     private def addJdkToXml() {

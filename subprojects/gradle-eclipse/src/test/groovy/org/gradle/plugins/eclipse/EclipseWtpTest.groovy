@@ -19,12 +19,12 @@ package org.gradle.plugins.eclipse;
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.AbstractSpockTaskTest
 import org.gradle.plugins.eclipse.model.Facet
-import org.gradle.plugins.eclipse.model.Wtp
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
-import org.gradle.util.TemporaryFolder
-import org.junit.Rule
 import org.gradle.plugins.eclipse.model.WbProperty
 import org.gradle.plugins.eclipse.model.WbResource
+import org.gradle.plugins.eclipse.model.Wtp
+import org.gradle.util.TemporaryFolder
+import org.junit.Rule
+import org.gradle.plugins.eclipse.model.internal.WtpFactory
 
 /**
  * @author Hans Dockter
@@ -71,7 +71,7 @@ public class EclipseWtpTest extends AbstractSpockTaskTest {
     }
 
     def generateXml() {
-        ModelFactory modelFactory = Mock()
+        WtpFactory modelFactory = Mock()
         Wtp wtp = Mock()
         eclipseWtp.modelFactory = modelFactory
         eclipseWtp.setOrgEclipseWstCommonComponentOutputFile(tmpDir.file("component"))

@@ -46,7 +46,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         Task task = taskFactory.createTask(project, mutableOptions);
         String name = task.getName();
 
-        if (!replace && findByName(name) != null) {
+        if (!replace && findByNameWithoutRules(name) != null) {
             throw new InvalidUserDataException(String.format(
                     "Cannot add %s as a task with that name already exists.", task));
         }

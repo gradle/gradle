@@ -28,6 +28,8 @@ class Wtp {
 
     String deployName
 
+    String contextPath
+
     private Node orgEclipseWstCommonComponentXml
     private Node orgEclipseWstCommonProjectFacetCoreXml
 
@@ -45,6 +47,9 @@ class Wtp {
         this.facets.unique()
         if (eclipseWtp.deployName) {
             this.deployName = eclipseWtp.deployName
+        }
+        if (eclipseWtp.contextPath) {
+            this.contextPath = eclipseWtp.contextPath
         }
         this.withXmlActions = eclipseWtp.withXmlActions
 
@@ -69,11 +74,16 @@ class Wtp {
     private def readOrgEclipseWstCommonComponentXml(Reader inputXml) {
         def rootNode = new XmlParser().parse(inputXml)
 
-        deployName = rootNode.'wb-module'[0].@'deploy-name' 
+        deployName = rootNode.'wb-module'[0].@'deploy-name'
         rootNode.'wb-module'[0].children().each { entryNode ->
             def entry = null
             switch (entryNode.name()) {
-                case 'property': entry = new WbProperty(entryNode)
+                case 'property':
+                    if (entryNode.@name == 'context-root') {
+                        contextPath = entryNode.@value
+                    } else {
+                        entry = new WbProperty(entryNode)
+                    }
                     break
                 case 'wb-resource': entry = new WbResource(entryNode)
                     break
@@ -107,6 +117,7 @@ class Wtp {
     def toXml(Writer orgEclipseWstCommonComponentXmlWriter, Writer orgEclipseWstCommonProjectFacetCoreXmlWriter) {
         removeConfigurableDataFromXml()
         orgEclipseWstCommonComponentXml.'wb-module'[0].@'deploy-name' = deployName
+        new WbProperty('context-root', contextPath).appendNode(orgEclipseWstCommonComponentXml.'wb-module')
         wbModuleEntries.each { entry ->
             entry.appendNode(orgEclipseWstCommonComponentXml.'wb-module')
         }
@@ -143,6 +154,7 @@ class Wtp {
         Wtp wtp = (Wtp) o;
 
         if (deployName != wtp.deployName) { return false }
+        if (contextPath != wtp.contextPath) { return false }
         if (facets != wtp.facets) { return false }
         if (wbModuleEntries != wtp.wbModuleEntries) { return false }
 
@@ -163,6 +175,7 @@ class Wtp {
                 "wbModuleEntries=" + wbModuleEntries +
                 ", facets=" + facets +
                 ", deployName='" + deployName + '\'' +
+                ", contextPath='" + contextPath + '\'' +
                 '}';
     }
 }

@@ -29,8 +29,8 @@ eclipseProject {
 
 // START SNIPPET wtp-with-xml
 eclipseWtp {
-    withXml { xml ->
-        xml.'org.eclipse.wst.commons.project.facet.core'.fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
+    withXml { files ->
+        files.'org.eclipse.wst.commons.project.facet.core'.fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
     }
 }
 // END SNIPPET wtp-with-xml

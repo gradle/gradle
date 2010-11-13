@@ -15,40 +15,23 @@
  */
 package org.gradle.plugins.eclipse
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.tasks.OutputFile
-import org.gradle.api.tasks.TaskAction
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
-import org.gradle.plugins.eclipse.model.Container
+import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.XmlGeneratorTask
 import org.gradle.plugins.eclipse.model.Classpath
-import org.gradle.api.internal.XmlTransformer
-import org.gradle.api.artifacts.maven.XmlProvider
-import org.gradle.api.Action
-import org.gradle.listener.ActionBroadcast
-import org.gradle.api.internal.ConventionTask
+import org.gradle.plugins.eclipse.model.Container
+import org.gradle.plugins.eclipse.model.internal.ClasspathFactory
 
 /**
  * Generates an Eclipse <i>.classpath</i> file.
  *
  * @author Hans Dockter
  */
-public class EclipseClasspath extends ConventionTask {
-    /**
-     * The file that is merged into the to be produced classpath file. This file must not exist.
-     */
-    File inputFile
-
-    @OutputFile
-    /**
-     * The output file where to generate the classpath to.
-     */
-    File outputFile
-
+public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The source sets to be added to the classpath.
      */
-    NamedDomainObjectContainer sourceSets
+    Iterable<SourceSet> sourceSets
 
     /**
      * The configurations which files are to be transformed into classpath entries.
@@ -71,6 +54,11 @@ public class EclipseClasspath extends ConventionTask {
     Set<Container> containers = new LinkedHashSet<Container>();
 
     /**
+     * The default output directory for eclipse generated files, eg classes.
+     */
+    File defaultOutputDir;
+
+    /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.
      */
     boolean downloadSources = true
@@ -80,20 +68,14 @@ public class EclipseClasspath extends ConventionTask {
      */
     boolean downloadJavadoc = false
 
-    protected ModelFactory modelFactory = new ModelFactory()
+    protected ClasspathFactory modelFactory = new ClasspathFactory()
 
-    protected XmlTransformer withXmlActions = new XmlTransformer();
-    def ActionBroadcast<Classpath> beforeConfiguredActions = new ActionBroadcast<Classpath>();
-    def ActionBroadcast<Classpath> whenConfiguredActions = new ActionBroadcast<Classpath>();
-
-    def EclipseClasspath() {
-        outputs.upToDateWhen { false }
+    @Override protected Classpath create() {
+        return new Classpath(xmlTransformer)
     }
 
-    @TaskAction
-    void generateXml() {
-        Classpath classpath = modelFactory.createClasspath(this)
-        classpath.toXml(getOutputFile())
+    @Override protected void configure(Classpath object) {
+        modelFactory.configure(this, object)
     }
 
     /**
@@ -114,33 +96,5 @@ public class EclipseClasspath extends ConventionTask {
     void variables(Map variables) {
         assert variables != null
         this.variables.putAll variables
-    }
-
-    /**
-     * Adds a closure to be called when the .classpath XML has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
-     *
-     * @param closure The closure to execute when the .classpath XML has been created.
-     */
-    void withXml(Closure closure) {
-        withXmlActions.addAction(closure);
-    }
-
-    /**
-     * Adds an action to be called when the .classpath XML has been created. The XML is passed to the action as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
-     *
-     * @param action The action to execute when the .classpath XML has been created.
-     */
-    void withXml(Action<? super XmlProvider> action) {
-        withXmlActions.addAction(action);
-    }
-
-    void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add(closure);
-    }
-
-    void whenConfigured(Closure closure) {
-        whenConfiguredActions.add(closure);
     }
 }

@@ -1,6 +1,8 @@
 import org.custommonkey.xmlunit.Diff
 import org.custommonkey.xmlunit.ElementNameAndAttributeQualifier
 import org.custommonkey.xmlunit.XMLAssert
+import junit.framework.AssertionFailedError
+import org.junit.ComparisonFailure
 
 buildscript {
     repositories {
@@ -18,48 +20,80 @@ allprojects {
 }
 
 subprojects {
-    apply plugin: 'java'
-
     repositories {
         mavenCentral()
     }
 
-    dependencies {
-        testCompile 'junit:junit:4.7'
-    }
-
     group = 'org.gradle'
     version = '1.0'
+}
 
-    eclipseClasspath {
-        downloadJavadoc = true
-        doLast {
-            compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}Classpath.xml").text,
-                    file(".classpath").text)
+allprojects {
+    afterEvaluate { p ->
+        configure(p) {
+            eclipseProject.doLast {
+                compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Project.xml")),
+                        file(".project").text)
+            }
+
+            if (p.hasProperty('eclipseClasspath')) {
+                eclipseClasspath {
+                    downloadJavadoc = true
+                    doLast {
+                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Classpath.xml")),
+                                file(".classpath").text)
+                    }
+                }
+            }
+
+            if (p.hasProperty('eclipseJdt')) {
+                eclipseJdt {
+                    doLast {
+                        compareProperties(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}Jdt.properties")),
+                                file(".settings/org.eclipse.jdt.core.prefs").text)
+                    }
+                }
+            }
+
+            if (p.hasProperty('eclipseWtp')) {
+                eclipseWtp {
+                    doLast {
+                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpComponent.xml")),
+                                file(".settings/org.eclipse.wst.common.component").text)
+                        compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpFacet.xml")),
+                                file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
+                    }
+                }
+            }
+            cleanEclipse.doLast {
+                assert !file(".classpath").exists()
+                assert !file(".project").exists()
+                assert !file('.settings').exists() || file('.settings').listFiles().length == 0
+            }
         }
     }
 }
 
-allprojects {
-    eclipseProject.doLast {
-        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/${project.name}Project.xml").text,
-                file(".project").text)
-    }
-    cleanEclipse.doLast {
-        assert !file(".classpath").isFile()
-        assert !file(".project").isFile()
-    }
+void compareProperties(String expectedProperties, String actualProperties) {
+    Properties expected = new Properties()
+    expected.load(new ByteArrayInputStream(expectedProperties.bytes))
+    Properties actual = new Properties()
+    actual.load(new ByteArrayInputStream(actualProperties.bytes))
+    assert expected == actual
 }
 
 void compareXmlWithIgnoringOrder(String expectedXml, String actualXml) {
     Diff diff = new Diff(expectedXml, actualXml)
     diff.overrideElementQualifier(new ElementNameAndAttributeQualifier())
-    XMLAssert.assertXMLEqual(diff, true);
+    try {
+        XMLAssert.assertXMLEqual(diff, true)
+    } catch (AssertionFailedError error) {
+        throw new ComparisonFailure("Unexpected content for generated file: ${error.message}", expectedXml, actualXml).initCause(error)
+    }
 }
 
-String getExpectedXml(Project subProject, String filename) {
-    def cache = new File(gradle.gradleUserHomeDir, "/cache")
-    def path = org.gradle.plugins.idea.model.Path.getRelativePath(subProject.projectDir, '$MODULE_DIR$', cache)
-    return rootProject.file("expectedFiles/$filename").text.replace('@CACHE_DIR@', path)
+String getExpectedXml(File file) {
+    def cache = new File(gradle.gradleUserHomeDir, "/cache").absolutePath.replace(File.separator, '/')
+    return file.text.replace('@CACHE_DIR@', cache)
 }
 

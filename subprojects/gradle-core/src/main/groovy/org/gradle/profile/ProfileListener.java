@@ -27,12 +27,9 @@ import java.io.File;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
 
 public class ProfileListener implements BuildListener, ProjectEvaluationListener, TaskExecutionListener {
     private BuildProfile buildProfile;
-    private Map<Project, ProjectProfile> projects = new HashMap<Project, ProjectProfile>();
     private static final SimpleDateFormat FILE_DATE_FORMAT = new SimpleDateFormat("yyyy-MM-dd-HH-mm-ss");
     private long profileStarted;
 

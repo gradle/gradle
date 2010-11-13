@@ -27,13 +27,13 @@ import org.gradle.plugins.eclipse.EclipseClasspath
  * @author Hans Dockter
  */
 class ClasspathFactory {
-    Classpath createClasspath(EclipseClasspath eclipseClasspath) {
-        File inputFile = eclipseClasspath.inputFile
-        FileReader inputReader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
-        List entries = getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project)
+    def configure(EclipseClasspath eclipseClasspath, Classpath classpath) {
+        List entries = []
+        entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
+        entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
-        return new Classpath(eclipseClasspath.beforeConfiguredActions, eclipseClasspath.whenConfiguredActions, eclipseClasspath.withXmlActions, entries, inputReader)
+        classpath.configure(entries)
     }
 
     List getEntriesFromSourceSets(def sourceSets, def project) {
@@ -63,7 +63,7 @@ class ClasspathFactory {
     }
 
     List getEntriesFromConfigurations(EclipseClasspath eclipseClasspath) {
-        getModules(eclipseClasspath) + getLibraries(eclipseClasspath) 
+        getModules(eclipseClasspath) + getLibraries(eclipseClasspath)
     }
 
     protected List getModules(EclipseClasspath eclipseClasspath) {
@@ -112,10 +112,10 @@ class ClasspathFactory {
     }
 
     AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map variables) {
-        def usedVariableEntry = variables.find { name, value -> binary.canonicalPath.startsWith(value) }
+        def usedVariableEntry = variables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
         if (usedVariableEntry) {
             String name = usedVariableEntry.key
-            String value = usedVariableEntry.value
+            String value = usedVariableEntry.value.canonicalPath
             String binaryPath = name + binary.canonicalPath.substring(value.length())
             String sourcePath = source ? name + source.canonicalPath.substring(value.length()) : null
             String javadocPath = javadoc ? name + javadoc.canonicalPath.substring(value.length()) : null

@@ -54,7 +54,12 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
+        checkEclipseJdt()
+
+        when:
         project.apply(plugin: 'java')
+
+        then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
@@ -67,7 +72,6 @@ class EclipsePluginTest extends Specification {
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseProject)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseClasspath)
         assertThatCleanEclipseDependsOn(project, project.cleanEclipseWtp)
-        project.cleanEclipseWtp.targetFiles.contains(project.file('.settings'))
         checkEclipseProjectTask([
                 new BuildCommand('org.eclipse.jdt.core.javabuilder'),
                 new BuildCommand('org.eclipse.wst.common.project.facet.core.builder'),
@@ -90,7 +94,11 @@ class EclipsePluginTest extends Specification {
         checkEclipseProjectTask([new BuildCommand('ch.epfl.lamp.sdt.core.scalabuilder')],
                 ['ch.epfl.lamp.sdt.core.scalanature', 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
+
+        when:
         project.apply(plugin: 'scala')
+
+        then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
@@ -105,7 +113,11 @@ class EclipsePluginTest extends Specification {
         checkEclipseProjectTask([new BuildCommand('org.eclipse.jdt.core.javabuilder')], ['org.eclipse.jdt.groovy.core.groovyNature',
                 'org.eclipse.jdt.core.javanature'])
         checkEclipseClasspath([] as Set)
+
+        when:
         project.apply(plugin: 'groovy')
+
+        then:
         checkEclipseClasspath([project.configurations.testRuntime] as Set)
     }
 
@@ -119,7 +131,6 @@ class EclipsePluginTest extends Specification {
         assert eclipseProjectTask.referencedProjects == [] as Set
         assert eclipseProjectTask.comment == null
         assert eclipseProjectTask.projectName == project.name
-        assert eclipseProjectTask.inputFile == project.file('.project')
         assert eclipseProjectTask.outputFile == project.file('.project')
     }
 
@@ -131,9 +142,22 @@ class EclipsePluginTest extends Specification {
         assert eclipseClasspath.plusConfigurations == configurations
         assert eclipseClasspath.minusConfigurations == [] as Set
         assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
-        assert eclipseClasspath.inputFile == project.file('.classpath')
         assert eclipseClasspath.outputFile == project.file('.classpath')
-        assert eclipseClasspath.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+        def mainSourceSet = project.sourceSets.findByName('main')
+        if (mainSourceSet != null) {
+            assert eclipseClasspath.defaultOutputDir == mainSourceSet.classesDir
+        } else {
+            assert eclipseClasspath.defaultOutputDir == new File(project.buildDir, 'eclipse')
+        }
+        assert eclipseClasspath.variables == [:]
+    }
+
+    private void checkEclipseJdt() {
+        EclipseJdt eclipseJdt = project.eclipseJdt
+        assert project.eclipse.taskDependencies.getDependencies(project.eclipse).contains(eclipseJdt)
+        assert eclipseJdt.sourceCompatibility == project.sourceCompatibility
+        assert eclipseJdt.targetCompatibility == project.targetCompatibility
+        assert eclipseJdt.outputFile == project.file('.settings/org.eclipse.jdt.core.prefs')
     }
 
     private void checkEclipseWtp() {
@@ -144,12 +168,13 @@ class EclipsePluginTest extends Specification {
         assert eclipseWtp.plusConfigurations == [project.configurations.runtime] as Set
         assert eclipseWtp.minusConfigurations == [project.configurations.providedRuntime] as Set
         assert eclipseWtp.deployName == project.name
-        assert eclipseWtp.orgEclipseWstCommonComponentInputFile == project.file('.settings/org.eclipse.wst.common.component.xml')
-        assert eclipseWtp.orgEclipseWstCommonComponentOutputFile == project.file('.settings/org.eclipse.wst.common.component.xml')
+        assert eclipseWtp.contextPath == project.war.baseName
+        assert eclipseWtp.orgEclipseWstCommonComponentInputFile == project.file('.settings/org.eclipse.wst.common.component')
+        assert eclipseWtp.orgEclipseWstCommonComponentOutputFile == project.file('.settings/org.eclipse.wst.common.component')
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreInputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
         assert eclipseWtp.orgEclipseWstCommonProjectFacetCoreOutputFile == project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "1.4")]
-        assert eclipseWtp.variables == [GRADLE_CACHE: new File(project.gradle.gradleUserHomeDir, 'cache').canonicalPath]
+        assert eclipseWtp.facets == [new Facet("jst.web", "2.4"), new Facet("jst.java", "5.0")]
+        assert eclipseWtp.variables == [:]
         assert eclipseWtp.resources == [new WbResource('/', project.convention.plugins.war.webAppDirName)]
     }
 

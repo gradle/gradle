@@ -98,7 +98,7 @@ class IdeaPluginTest extends Specification {
         assert ideaModuleTask.sourceDirs == [] as Set
         assert ideaModuleTask.testSourceDirs == [] as Set
         assert ideaModuleTask.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
-        assert ideaModuleTask.gradleCacheHome == new File(project.gradle.gradleUserHomeDir, '/cache')
+        assert ideaModuleTask.variables == [:]
         assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
     }
 

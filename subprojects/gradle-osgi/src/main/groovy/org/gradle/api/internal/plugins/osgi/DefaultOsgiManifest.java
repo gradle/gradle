@@ -19,6 +19,7 @@ import aQute.lib.osgi.Analyzer;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.Factory;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.java.archives.Attributes;
 import org.gradle.api.java.archives.internal.DefaultManifest;
 import org.gradle.api.plugins.osgi.OsgiManifest;
 import org.gradle.util.GUtil;
@@ -64,6 +65,10 @@ public class DefaultOsgiManifest extends DefaultManifest implements OsgiManifest
             Manifest osgiManifest = analyzer.calcManifest();
             for (Map.Entry<Object, Object> entry : osgiManifest.getMainAttributes().entrySet()) {
                 effectiveManifest.attributes(WrapUtil.toMap(entry.getKey().toString(), (String) entry.getValue()));
+            }
+            effectiveManifest.attributes(this.getAttributes());
+            for(Map.Entry<String, Attributes> ent : getSections().entrySet()) {
+                effectiveManifest.attributes(ent.getValue(), ent.getKey());
             }
         } catch (Exception e) {
             throw UncheckedException.asUncheckedException(e);

@@ -22,7 +22,7 @@ import org.gradle.messaging.remote.ConnectEvent;
 import java.net.URI;
 
 public interface MultiChannelConnector {
-    URI accept(Action<ConnectEvent<MultiChannelConnection<Message>>> action);
+    URI accept(Action<ConnectEvent<MultiChannelConnection<Object>>> action);
 
-    MultiChannelConnection<Message> connect(URI destinationAddress);
+    MultiChannelConnection<Object> connect(URI destinationAddress);
 }

@@ -16,11 +16,9 @@
 package org.gradle.plugins.eclipse.model;
 
 
-import org.gradle.api.Action
-import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.internal.XmlTransformer
-import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.eclipse.EclipseProject
+import org.gradle.util.HelperUtil
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
@@ -36,11 +34,13 @@ public class ProjectTest extends Specification {
 
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
+    final Project project = new Project(new XmlTransformer())
 
-    def initWithReader() {
-        Project project = createProject(reader: customProjectReader)
+    def loadFromReader() {
+        when:
+        project.load(customProjectReader)
 
-        expect:
+        then:
         project.name == 'test'
         project.comment == 'for testing'
         project.referencedProjects == CUSTOM_REFERENCED_PROJECTS
@@ -49,154 +49,65 @@ public class ProjectTest extends Specification {
         project.links == CUSTOM_LINKS
     }
 
-    def initWithReaderAndValues_shouldBeMerged() {
-        def constructorName = 'constructorName'
-        def constructorComment = 'constructorComment'
-        def constructorReferencedProjects = ['constructorRefProject'] as LinkedHashSet
-        def constructorBuildCommands = [new BuildCommand('constructorbuilder')] 
-        def constructorNatures = ['constructorNature']
-        def constructorLinks = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
+    def configureMergesValues() {
+        EclipseProject task = HelperUtil.createTask(EclipseProject)
+        task.projectName = 'constructorName'
+        task.comment = 'constructorComment'
+        task.referencedProjects = ['constructorRefProject'] as LinkedHashSet
+        task.buildCommands = [new BuildCommand('constructorbuilder')]
+        task.natures = ['constructorNature']
+        task.links = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
 
-        Project project = createProject(name: constructorName, comment: constructorComment, referencedProjects: constructorReferencedProjects,
-                natures: constructorNatures, buildCommands: constructorBuildCommands, links: constructorLinks, reader: customProjectReader)
-
-        expect:
-        project.name == constructorName
-        project.comment == constructorComment
-        project.referencedProjects == constructorReferencedProjects + CUSTOM_REFERENCED_PROJECTS
-        project.buildCommands == CUSTOM_BUILD_COMMANDS + constructorBuildCommands
-        project.natures == CUSTOM_NATURES + constructorNatures 
-        project.links == constructorLinks + CUSTOM_LINKS
-    }
-
-    def initWithNullReader() {
-        def constructorName = 'constructorName'
-        def constructorComment = 'constructorComment'
-        def constructorReferencedProjects = ['constructorRefProject'] as Set
-        def constructorBuildCommands = [new BuildCommand('constructorbuilder')]
-        def constructorNatures = ['constructorNature'] 
-        def constructorLinks = [new Link('constructorName', 'constructorType', 'constructorLocation', '')] as Set
-
-        Project project = createProject(name: constructorName, comment: constructorComment, referencedProjects: constructorReferencedProjects,
-                natures: constructorNatures, buildCommands: constructorBuildCommands, links: constructorLinks)
-
-        expect:
-        project.xml != null
-        project.name == constructorName
-        project.comment == constructorComment
-        project.referencedProjects == constructorReferencedProjects
-        project.buildCommands == constructorBuildCommands
-        project.natures == constructorNatures
-        project.links == constructorLinks
-    }
-
-    def toXml() {
         when:
-        Project project = createProject(reader: customProjectReader)
+        project.load(customProjectReader)
+        project.configure(task)
 
         then:
-        File eclipseFile = tmpDir.file("eclipse.xml")
-        project.toXml(eclipseFile)
-        StringWriter stringWriterFileXml = new StringWriter()
-        new XmlNodePrinter(new PrintWriter(stringWriterFileXml)).print(new XmlParser().parse(eclipseFile))
-        StringWriter stringWriterWrittenXml = new StringWriter()
-        new XmlNodePrinter(new PrintWriter(stringWriterWrittenXml)).print(new XmlParser().parse(getToXmlReader(project)))
-        StringWriter stringWriterInternalXml = new StringWriter()
-        new XmlNodePrinter(new PrintWriter(stringWriterInternalXml)).print(project.xml)
+        project.name == task.projectName
+        project.comment == task.comment
+        project.referencedProjects == task.referencedProjects + CUSTOM_REFERENCED_PROJECTS
+        project.buildCommands == CUSTOM_BUILD_COMMANDS + task.buildCommands
+        project.natures == CUSTOM_NATURES + task.natures
+        project.links == task.links + CUSTOM_LINKS
+    }
 
-        stringWriterWrittenXml.toString() == stringWriterInternalXml.toString()
-        stringWriterWrittenXml.toString() == stringWriterFileXml.toString()
+    def loadDefaults() {
+        when:
+        project.loadDefaults()
+
+        then:
+        project.name == ""
+        project.comment == ""
+        project.referencedProjects == [] as Set
+        project.buildCommands == []
+        project.natures == []
+        project.links == [] as Set
     }
 
     def toXml_shouldContainCustomValues() {
-        def constructorName = 'constructorName'
-        def constructorComment = 'constructorComment'
-        def constructorReferencedProjects = ['constructorRefProject'] as LinkedHashSet
+        EclipseProject task = HelperUtil.createTask(EclipseProject)
+        task.projectName = 'constructorName'
+        task.comment = 'constructorComment'
+        task.referencedProjects = ['constructorRefProject'] as LinkedHashSet
 
         when:
-        Project project = createProject(name: constructorName, comment: constructorComment,
-                referencedProjects: constructorReferencedProjects, reader: customProjectReader)
-        def projectFromXml = createProject(reader: getToXmlReader(project))
+        project.load(customProjectReader)
+        project.configure(task)
+        def xml = getToXmlReader()
+        def other = new Project(new XmlTransformer())
+        other.load(xml)
 
         then:
-        project == projectFromXml
+        project == other
     }
 
-    def beforeConfigured() {
-        def constructorNatures = ['constructorNature'] 
-        ActionBroadcast beforeConfiguredActions = new ActionBroadcast()
-        beforeConfiguredActions.add { Project project ->
-            project.natures.clear()
-        }
-
-        when:
-        Project project = createProject(natures: constructorNatures, reader: customProjectReader, beforeConfiguredActions: beforeConfiguredActions)
-
-        then:
-        createProject(reader: getToXmlReader(project)).natures == constructorNatures
+    private InputStream getCustomProjectReader() {
+        return getClass().getResourceAsStream('customProject.xml')
     }
 
-    def whenConfigured() {
-        def constructorNature = 'constructorNature'
-        def configureActionNature = 'configureNature'
-
-        ActionBroadcast whenConfiguredActions = new ActionBroadcast()
-        whenConfiguredActions.add { Project project ->
-            assert project.natures.contains(CUSTOM_NATURES[0])
-            assert project.natures.contains(constructorNature)
-            project.natures.add(configureActionNature)
-        }
-
-        when:
-        Project project = createProject(natures: [constructorNature], reader: customProjectReader,
-                whenConfiguredActions: whenConfiguredActions)
-
-        then:
-        createProject(reader: getToXmlReader(project)).natures == CUSTOM_NATURES + ([constructorNature, configureActionNature] as LinkedHashSet)
-    }
-
-    def withXml() {
-        XmlTransformer withXmlActions = new XmlTransformer()
-        Project project = createProject(reader: customProjectReader, withXmlActions: withXmlActions)
-
-        when:
-        def newName
-        withXmlActions.addAction { XmlProvider provider ->
-            def xml = provider.asNode()
-            newName = xml.name.text() + 'x'
-            xml.remove(xml.name)
-            xml.appendNode('name', newName)
-        }
-
-        then:
-        new XmlParser().parse(getToXmlReader(project)).name.text() == newName
-    }
-
-    private InputStreamReader getCustomProjectReader() {
-        return new InputStreamReader(getClass().getResourceAsStream('customProject.xml'))
-    }
-
-    private Project createProject(Map customArgs) {
-        Action dummyBroadcast = new ActionBroadcast()
-        XmlTransformer transformer = new XmlTransformer()
-        Map args = [name: null, comment: null, referencedProjects: [] as Set, natures: [], buildCommands: [],
-                links: [] as Set, reader: null, beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: transformer] + customArgs
-        EclipseProject eclipseProjectStub = Mock()
-        eclipseProjectStub.getProjectName() >> args.name
-        eclipseProjectStub.getComment() >> args.comment
-        eclipseProjectStub.getReferencedProjects() >> args.referencedProjects
-        eclipseProjectStub.getNatures() >> args.natures
-        eclipseProjectStub.getBuildCommands() >> args.buildCommands
-        eclipseProjectStub.getLinks() >> args.links
-        eclipseProjectStub.getBeforeConfiguredActions() >> args.beforeConfiguredActions
-        eclipseProjectStub.getWhenConfiguredActions() >> args.whenConfiguredActions
-        eclipseProjectStub.getWithXmlActions() >> args.withXmlActions
-        return new Project(eclipseProjectStub, args.reader)
-    }
-
-    private StringReader getToXmlReader(Project project) {
-        StringWriter toXmlText = new StringWriter()
-        project.toXml(toXmlText)
-        return new StringReader(toXmlText.toString())
+    private InputStream getToXmlReader() {
+        ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
+        project.store(toXmlText)
+        return new ByteArrayInputStream(toXmlText.toByteArray())
     }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.launcher
 
-import org.gradle.StartParameter
 import org.gradle.initialization.ParsedCommandLine
 import org.gradle.launcher.protocol.Build
 import org.gradle.launcher.protocol.CommandComplete
@@ -28,9 +27,8 @@ class DaemonBuildActionTest extends Specification {
     final OutputEventListener listener = Mock()
     final ExecutionListener completer = Mock()
     final ParsedCommandLine commandLine = Mock()
-    final StartParameter startParameter = new StartParameter()
     final File currentDir = new File('current-dir')
-    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, startParameter, commandLine, currentDir)
+    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, commandLine, currentDir)
 
     def runsBuildUsingDaemon() {
         Connection<Object> connection = Mock()
@@ -39,7 +37,7 @@ class DaemonBuildActionTest extends Specification {
         action.execute(completer)
 
         then:
-        1 * connector.connect(startParameter) >> connection
+        1 * connector.connect() >> connection
         1 * connection.dispatch({!null}) >> { args ->
             Build build = args[0]
             assert build.currentDir == currentDir

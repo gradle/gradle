@@ -21,21 +21,40 @@
         making it possible to import the project into Eclipse (<guimenuitem>File</guimenuitem> - <guimenuitem>Import...</guimenuitem> - <guimenuitem>Existing Projects into Workspace</guimenuitem>).
         Both external and project dependencies are considered.</para>
 
-    <para>The Eclipse plugin will create different files depending on the other plugins used. If used together with
-        the <link linkend="java_plugin">Java plugin</link>, <filename>.project</filename> and <filename>.classpath</filename>
-        files will be generated. If used with the <link linkend="war_plugin">War plugin</link>, additional wtp files
-        will be generated.</para>
+    <para>The Eclipse plugin will create different files depending on which other plugins used:</para>
+    <table>
+        <title>Eclipse support for other plugins</title>
+        <thead>
+            <tr><td>Plugin</td><td>Description</td></tr>
+        </thead>
+        <tr>
+            <td>None</td><td>Generates minimal <filename>.project</filename> file.</td>
+        </tr>
+        <tr>
+            <td><link linkend="java_plugin">Java</link></td><td>Adds Java configuration to <filename>.project</filename>.
+            Generates <filename>.classpath</filename> and JDT settings file.</td>
+        </tr>
+        <tr>
+            <td><link linkend="groovy_plugin">Groovy</link></td><td>Adds Groovy configuration to <filename>.project</filename> file.</td>
+        </tr>
+        <tr>
+            <td><link linkend="scala_plugin">Scala</link></td><td>Adds Scala support to <filename>.project</filename> file.</td>
+        </tr>
+        <tr>
+            <td><link linkend="war_plugin">War</link></td><td>Adds web application support to <filename>.project</filename>.
+            Generates WTP settings files.</td>
+        </tr>
+    </table>
+
 <section>
         <title>Usage</title>
     <para>To use the Eclipse plugin, include in your build script:</para>
     <sample id="useEclipsePlugin" dir="eclipse" title="Using the Eclipse plugin">
         <sourcefile file="build.gradle" snippet="use-plugin"/>
     </sample>
-    <para>There are several tasks (presented in <xref linkend='eclipsetasks'/>) that the Eclipse plugin provides. Some tasks
-        are preconfigured to use the <literal>GRADLE_CACHE</literal> eclipse classpath variable. To make use of this variable
-        you need to define it in Eclipse pointing to <literal>&lt;USER_HOME&gt;/.gradle/cache</literal>.
-        In a future release of Gradle this will be automated (<ulink url="http://jira.codehaus.org/browse/GRADLE-1074">Issue GRADLE-1074</ulink>).
-</para>
+    <para>There are several tasks that the Eclipse plugin provides (presented in <xref linkend='eclipsetasks'/>). The
+        main task that you'd use is the <literal>eclipse</literal> task.
+    </para>
     </section>
     <section>
         <title>Tasks</title>
@@ -56,8 +75,9 @@
                 <td>
                     <literal>eclipse</literal>
                 </td>
-                <td><literal>eclipseProject</literal>, <literal>eclipseClasspath</literal>, <literal>eclipseWtp</literal></td>
-                <td><literal>-</literal></td>
+                <td><literal>eclipseProject</literal>, <literal>eclipseClasspath</literal>, <literal>eclipseJdt</literal>,
+                    <literal>eclipseWtp</literal></td>
+                <td><apilink class="org.gradle.api.Task"/></td>
                 <td>Generates all the eclipse configuration files</td>
             </tr>
             <tr>
@@ -65,7 +85,8 @@
                     <literal>cleanEclipse</literal>
                 </td>
                 <td>
-                    <literal>cleanEclipseProject</literal>, <literal>cleanEclipseClasspath</literal>, <literal>cleanEclipseWtp</literal>
+                    <literal>cleanEclipseProject</literal>, <literal>cleanEclipseClasspath</literal>, <literal>cleanEclipseJdt</literal>,
+                    <literal>cleanEclipseWtp</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
                 <td>Removes all eclipse configuration files</td>
@@ -92,13 +113,23 @@
             </tr>
             <tr>
                 <td>
+                    <literal>cleanEclipseJdt</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Delete"/></td>
+                <td>Removes the JDT settings file.</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>cleanEclipseWtp</literal>
                 </td>
                 <td>
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes the eclipse .settings directory</td>
+                <td>Removes the WTP settings files.</td>
             </tr>
             <tr>
                 <td>
@@ -122,14 +153,23 @@
             </tr>
             <tr>
                 <td>
+                    <literal>eclipseJdt</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td><apilink class="org.gradle.plugins.eclipse.EclipseJdt" lang="groovy"/></td>
+                <td>Generates the JDT settings file.</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>eclipseWtp</literal>
                 </td>
                 <td>
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.eclipse.EclipseWtp" lang="groovy"/></td>
-                <td>Generates the <filename>org.eclipse.wst.common.component</filename> and 
-                    <filename>org.eclipse.wst.common.project.facet.core</filename> files.</td>
+                <td>Generates the WTP settings files.</td>
             </tr>
         </table>
 
@@ -147,7 +187,9 @@
                 <td>
                     <literal>projectName</literal>
                 </td>
-                <td>String</td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td><literal>project.name</literal></td>
                 <td>The name of the Eclipse project. Must not be null.</td>
             </tr>
@@ -155,15 +197,19 @@
                 <td>
                     <literal>comment</literal>
                 </td>
-                <td>String</td>
-                <td>null</td>
+                <td>
+                    <classname>String</classname>
+                </td>
+                <td><literal>project.description</literal></td>
                 <td>A comment for the eclipse project.</td>
             </tr>
             <tr>
                 <td>
                     <literal>referencedProjects</literal>
                 </td>
-                <td>Set&lt;String&gt;</td>
+                <td>
+                    <classname>Set&lt;String&gt;</classname>
+                </td>
                 <td>empty set</td>
                 <td>The referenced projects of the Eclipse project.</td>
             </tr>
@@ -171,7 +217,9 @@
                 <td>
                     <literal>natures</literal>
                 </td>
-                <td>List&lt;String&gt;</td>
+                <td>
+                    <classname>List&lt;String&gt;</classname>
+                </td>
                 <td>The default is an empty set. Applying Java, Groovy, Scala or War plugin
                 will add additional natures.</td>
                 <td>The natures of the Eclipse project.</td>
@@ -180,7 +228,9 @@
                 <td>
                     <literal>buildCommands</literal>
                 </td>
-                <td>List&lt;BuildCommand&gt;</td>
+                <td>
+                    <classname>List&lt;BuildCommand&gt;</classname>
+                </td>
                 <td>The default is an empty set. Applying Java, Groovy, Scala or War plugin
                 will add additional build commands.</td>
                 <td>The build commands of the Eclipse project.</td>
@@ -189,7 +239,9 @@
                 <td>
                     <literal>links</literal>
                 </td>
-                <td>Set&lt;Link&gt;</td>
+                <td>
+                    <classname>Set&lt;Link&gt;</classname>
+                </td>
                 <td>empty set</td>
                 <td>The links for this Eclipse project.</td>
             </tr>
@@ -209,7 +261,7 @@
                 <td>
                     <literal>sourceSets</literal>
                 </td>
-                <td>DomainObjectContainer</td>
+                <td><classname>Iterable&lt;SourceSet></classname></td>
                 <td>
                     <literal>sourceSets</literal>
                 </td>
@@ -219,7 +271,9 @@
                 <td>
                     <literal>containers</literal>
                 </td>
-                <td>Set&lt;String&gt;</td>
+                <td>
+                    <classname>Set&lt;String&gt;</classname>
+                </td>
                 <td>empty set</td>
                 <td>The containers to be added to the Eclipse classpath.</td>
             </tr>
@@ -227,7 +281,9 @@
                 <td>
                     <literal>plusConfigurations</literal>
                 </td>
-                <td>Set&lt;Configuration&gt;</td>
+                <td>
+                    <classname>Set&lt;Configuration&gt;</classname>
+                </td>
                 <td><literal>[configurations.testRuntime]</literal></td>
                 <td>The configurations, which files are to be transformed into classpath entries.</td>
             </tr>
@@ -235,32 +291,44 @@
                 <td>
                     <literal>minusConfigurations</literal>
                 </td>
-                <td>Set&lt;Configuration&gt;</td>
-                <td><literal>empty set</literal></td>
+                <td>
+                    <classname>Set&lt;Configuration&gt;</classname>
+                </td>
+                <td>empty set</td>
                 <td>The configurations which files are to be excluded from the classpath entries.</td>
             </tr>
             <tr>
                 <td>
                     <literal>downloadSources</literal>
                 </td>
-                <td>boolean</td>
-                <td>true</td>
+                <td>
+                    <classname>boolean</classname>
+                </td>
+                <td>
+                    <literal>true</literal>
+                </td>
                 <td>Whether to download sources for the external dependencies.</td>
             </tr>
             <tr>
                 <td>
                     <literal>downloadJavadoc</literal>
                 </td>
-                <td>boolean</td>
-                <td>false</td>
+                <td>
+                    <classname>boolean</classname>
+                </td>
+                <td>
+                    <literal>false</literal>
+                </td>
                 <td>Whether to download javadoc for the external dependencies.</td>
             </tr>
             <tr>
                 <td>
                     <literal>variables</literal>
                 </td>
-                <td>Map&lt;String,String&gt;</td>
-                <td><literal>[GRADLE_CACHE: &lt;path to gradle cache&gt;]</literal></td>
+                <td>
+                    <classname>Map&lt;String,File&gt;</classname>
+                </td>
+                <td><literal>[:]</literal></td>
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>
@@ -280,9 +348,9 @@
                 <td>
                     <literal>sourceSets</literal>
                 </td>
-                <td>DomainObjectContainer</td>
+                <td><classname>Iterable&lt;SourceSet&gt;</classname></td>
                 <td>
-                    <literal>sourceSets</literal>
+                    <literal>project.sourceSets</literal>
                 </td>
                 <td>The source sets which source directories should be added to the Eclipse classpath.</td>
             </tr>
@@ -290,7 +358,9 @@
                 <td>
                     <literal>deployName</literal>
                 </td>
-                <td>String</td>
+                <td>
+                    <classname>String</classname>
+                </td>
                 <td><literal>project.name</literal></td>
                 <td>The deploy name to be used in the org.eclipse.wst.common.component file.</td>
             </tr>
@@ -298,7 +368,9 @@
                 <td>
                     <literal>plusConfigurations</literal>
                 </td>
-                <td>Set&lt;Configuration&gt;</td>
+                <td>
+                    <classname>Set&lt;Configuration&gt;</classname>
+                </td>
                 <td><literal>[configurations.testRuntime]</literal></td>
                 <td>The configurations, which files are to be transformed into classpath entries.</td>
             </tr>
@@ -306,7 +378,9 @@
                 <td>
                     <literal>minusConfigurations</literal>
                 </td>
-                <td>Set&lt;Configuration&gt;</td>
+                <td>
+                    <classname>Set&lt;Configuration&gt;</classname>
+                </td>
                 <td><literal>[configurations.providedRuntime]</literal></td>
                 <td>The configurations which files are to be excluded from the classpath entries.</td>
             </tr>
@@ -314,8 +388,10 @@
                 <td>
                     <literal>variables</literal>
                 </td>
-                <td>Map&lt;String,String&gt;</td>
-                <td><literal>[GRADLE_CACHE: &lt;path to gradle cache&gt;]</literal></td>
+                <td>
+                    <classname>Map&lt;String,File&gt;</classname>
+                </td>
+                <td><literal>[:]</literal></td>
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>
@@ -323,12 +399,13 @@
                 <td>
                     <literal>facets</literal>
                 </td>
-                <td>List&lt;Facet&gt;</td>
+                <td>
+                    <classname>List&lt;Facet&gt;</classname>
+                </td>
                 <td><literal>jst.java</literal> and <literal>jst.web</literal> facet</td>
                 <td>The facets to be added as installed elements to the org.eclipse.wst.common.project.facet.core file.</td>
             </tr>
         </table>
-
 
         <table id='eclipse-task-hooks'>
             <title>Task Hooks</title>
@@ -439,9 +516,10 @@
                 <title>Modifying the XML</title>
                 <para>You can also hook into the phase after the XML DOM is fully populated but not written to disk.
                     That hook provides total control over what is generated.
-                    <sample id="file-dependencies" dir="eclipse"
+                    <sample id="wtpWithXml" dir="eclipse"
                             title="Customizing the XML">
                         <sourcefile file="build.gradle" snippet="wtp-with-xml"/>
+                        <test args="eclipse"/>
                     </sample>
                 </para>
             </section>

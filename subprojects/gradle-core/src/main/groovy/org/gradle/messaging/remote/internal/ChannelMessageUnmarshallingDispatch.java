@@ -21,15 +21,15 @@ import org.gradle.messaging.dispatch.Dispatch;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ChannelMessageUnmarshallingDispatch implements Dispatch<Message> {
-    private final Dispatch<Message> dispatch;
+public class ChannelMessageUnmarshallingDispatch implements Dispatch<Object> {
+    private final Dispatch<Object> dispatch;
     private final Map<Integer, Object> channels = new HashMap<Integer, Object>();
 
-    public ChannelMessageUnmarshallingDispatch(Dispatch<Message> dispatch) {
+    public ChannelMessageUnmarshallingDispatch(Dispatch<Object> dispatch) {
         this.dispatch = dispatch;
     }
 
-    public void dispatch(Message message) {
+    public void dispatch(Object message) {
         if (message instanceof ChannelMetaInfo) {
             ChannelMetaInfo metaInfo = (ChannelMetaInfo) message;
             channels.put(metaInfo.getChannelId(), metaInfo.getChannelKey());

@@ -23,6 +23,9 @@ class Facet {
     String name
     String version
 
+    def Facet() {
+    }
+
     def Facet(Node node) {
         this(node.@facet, node.@version)
     }

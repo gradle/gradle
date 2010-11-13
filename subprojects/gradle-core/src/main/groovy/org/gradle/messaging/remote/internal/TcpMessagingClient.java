@@ -48,7 +48,7 @@ public class TcpMessagingClient implements MessagingClient {
     }
 
     private static class NoOpIncomingConnector implements IncomingConnector {
-        public URI accept(Action<ConnectEvent<Connection<Message>>> action) {
+        public URI accept(Action<ConnectEvent<Connection<Object>>> action) {
             throw new UnsupportedOperationException();
         }
     }

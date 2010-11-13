@@ -16,46 +16,27 @@
 package org.gradle.plugins.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
-
-import org.gradle.api.Action
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an eclipse classpath file. (via XML hooks everything is customizable).
  *
  * @author Hans Dockter
  */
-class Classpath {
-    /**
-     * The classpath entries (contains by default an output entry pointing to bin).
-     */
-    List entries = [new Output('bin')]
+class Classpath extends XmlPersistableConfigurationObject {
+    List<ClasspathEntry> entries = []
 
-    private Node xml
-
-    private XmlTransformer xmlTransformer
-
-    Classpath(Action<Classpath> beforeConfiguredAction, Action<Classpath> whenConfiguredAction, XmlTransformer xmlTransformer, List entries, Reader inputXml) {
-        initFromXml(inputXml)
-
-        beforeConfiguredAction.execute(this)
-
-        this.entries.addAll(entries)
-        this.entries.unique()
-        this.xmlTransformer = xmlTransformer
-
-        whenConfiguredAction.execute(this)
+    Classpath(XmlTransformer xmlTransformer) {
+        super(xmlTransformer)
     }
 
-    private def initFromXml(Reader inputXml) {
-        if (!inputXml) {
-            xml = new Node(null, 'classpath')
-            return
-        }
+    @Override protected String getDefaultResourceName() {
+        return 'defaultClasspath.xml'
+    }
 
-        xml = new XmlParser().parse(inputXml)
-
-        xml.classpathentry.each { entryNode ->
-            def entry = null
+    @Override protected void load(Node xml) {
+        xml.classpathentry.each { Node entryNode ->
+            ClasspathEntry entry = null
             switch (entryNode.@kind) {
                 case 'src':
                     def path = entryNode.@path
@@ -76,18 +57,18 @@ class Classpath {
         }
     }
 
-    void toXml(File file) {
-        file.withWriter { Writer writer -> toXml(writer) }
+    def configure(List entries) {
+        this.entries.addAll(entries)
+        this.entries.unique()
     }
 
-    def toXml(Writer writer) {
+    @Override protected void store(Node xml) {
         xml.classpathentry.each { xml.remove(it) }
         entries.each { ClasspathEntry entry ->
             entry.appendNode(xml)
         }
-        xmlTransformer.transform(xml, writer)
     }
-    
+
     boolean equals(o) {
         if (this.is(o)) { return true }
 

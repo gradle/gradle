@@ -16,6 +16,7 @@
 package org.gradle.plugins.idea.model
 
 import org.gradle.api.internal.XmlTransformer
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
@@ -23,23 +24,18 @@ import org.gradle.api.internal.XmlTransformer
  * @author Hans Dockter
  */
 
-class Workspace {
-    private Node xml
-
-    private XmlTransformer withXmlActions
-
-    def Workspace(Reader inputXml, XmlTransformer withXmlActions) {
-        initFromXml(inputXml)
-
-        this.withXmlActions = withXmlActions
+class Workspace extends XmlPersistableConfigurationObject {
+    def Workspace(XmlTransformer withXmlActions) {
+        super(withXmlActions)
     }
 
-    private def initFromXml(Reader inputXml) {
-        Reader reader = inputXml ?: new InputStreamReader(getClass().getResourceAsStream('defaultWorkspace.xml'))
-        xml = new XmlParser().parse(reader)
+    @Override protected String getDefaultResourceName() {
+        return 'defaultWorkspace.xml'
     }
 
-    def toXml(Writer writer) {
-        withXmlActions.transform(xml, writer)
+    @Override protected void load(Node xml) {
+    }
+
+    @Override protected void store(Node xml) {
     }
 }

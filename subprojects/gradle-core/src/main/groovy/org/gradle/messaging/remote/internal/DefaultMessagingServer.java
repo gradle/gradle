@@ -39,16 +39,16 @@ public class DefaultMessagingServer implements MessagingServer {
     }
 
     public URI accept(final Action<ConnectEvent<ObjectConnection>> action) {
-        return connector.accept(new Action<ConnectEvent<MultiChannelConnection<Message>>>() {
-            public void execute(ConnectEvent<MultiChannelConnection<Message>> connectEvent) {
+        return connector.accept(new Action<ConnectEvent<MultiChannelConnection<Object>>>() {
+            public void execute(ConnectEvent<MultiChannelConnection<Object>> connectEvent) {
                 finishConnect(connectEvent, action);
             }
         });
     }
 
-    private void finishConnect(ConnectEvent<MultiChannelConnection<Message>> connectEvent,
+    private void finishConnect(ConnectEvent<MultiChannelConnection<Object>> connectEvent,
                                Action<ConnectEvent<ObjectConnection>> action) {
-        MultiChannelConnection<Message> messageConnection = connectEvent.getConnection();
+        MultiChannelConnection<Object> messageConnection = connectEvent.getConnection();
         IncomingMethodInvocationHandler incoming = new IncomingMethodInvocationHandler(classLoader, messageConnection);
         OutgoingMethodInvocationHandler outgoing = new OutgoingMethodInvocationHandler(messageConnection);
         AtomicReference<ObjectConnection> connectionRef = new AtomicReference<ObjectConnection>();
@@ -72,10 +72,10 @@ public class DefaultMessagingServer implements MessagingServer {
     }
 
     private class ConnectionAsyncStoppable implements AsyncStoppable {
-        private final MultiChannelConnection<Message> messageConnection;
+        private final MultiChannelConnection<Object> messageConnection;
         private final AtomicReference<ObjectConnection> connectionRef;
 
-        public ConnectionAsyncStoppable(MultiChannelConnection<Message> messageConnection,
+        public ConnectionAsyncStoppable(MultiChannelConnection<Object> messageConnection,
                                         AtomicReference<ObjectConnection> connectionRef) {
             this.messageConnection = messageConnection;
             this.connectionRef = connectionRef;

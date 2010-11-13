@@ -15,29 +15,36 @@
  */
 package org.gradle.api.internal.artifacts.publish.maven.dependencies;
 
+import static java.util.Arrays.asList;
+import static org.gradle.util.WrapUtil.toMap;
+import static org.gradle.util.WrapUtil.toSet;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertSame;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.assertTrue;
+
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+
 import org.apache.maven.model.Exclusion;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.Dependency;
+import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.maven.Conf2ScopeMapping;
 import org.gradle.api.artifacts.maven.Conf2ScopeMappingContainer;
+import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.dependencies.DefaultDependencyArtifact;
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency;
+import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
-
-import java.util.List;
-import java.util.Set;
-
-import static java.util.Arrays.asList;
-import static org.gradle.util.WrapUtil.toMap;
-import static org.gradle.util.WrapUtil.toSet;
-import static org.hamcrest.Matchers.equalTo;
-import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -85,12 +92,18 @@ public class DefaultPomDependenciesConverterTest {
     }
 
     private Configuration createNamedConfigurationStubWithDependencies(final String confName, final ModuleDependency... dependencies) {
+        return createNamedConfigurationStubWithDependencies(confName, new HashSet<ExcludeRule>(), dependencies);
+    }
+    
+    private Configuration createNamedConfigurationStubWithDependencies(final String confName, final Set<ExcludeRule> excludeRules, final ModuleDependency... dependencies) {
         final Configuration configurationStub = context.mock(Configuration.class, confName);
         context.checking(new Expectations() {{
             allowing(configurationStub).getName();
             will(returnValue(confName));
             allowing(configurationStub).getDependencies(ModuleDependency.class);
             will(returnValue(toSet(dependencies)));
+            allowing(configurationStub).getExcludeRules();
+            will(returnValue(excludeRules));            
         }});
         return configurationStub;
     }
@@ -199,7 +212,7 @@ public class DefaultPomDependenciesConverterTest {
     }
 
     @Test
-    public void convertWithConvertableExcludes() {
+    public void convertWithConvertableDependencyExcludes() {
         final Configuration someConfigurationStub = createNamedConfigurationStubWithDependencies("someConfiguration", dependency1);
         final Exclusion mavenExclude = new Exclusion();
         mavenExclude.setGroupId("a");
@@ -208,6 +221,26 @@ public class DefaultPomDependenciesConverterTest {
         context.checking(new Expectations() {{
            allowing(conf2ScopeMappingContainerMock).getMapping(toSet(someConfigurationStub)); will(returnValue(createMapping(compileConfStub, "compile")));
            allowing(excludeRuleConverterMock).convert(dependency1.getExcludeRules().iterator().next()); will(returnValue(mavenExclude));
+        }});
+        List<org.apache.maven.model.Dependency> actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(someConfigurationStub));
+        assertEquals(1, actualMavenDependencies.size());
+        assertTrue(hasDependency(actualMavenDependencies, "org1", "name1", "rev1", null, "compile", null, false));
+        org.apache.maven.model.Dependency mavenDependency = (org.apache.maven.model.Dependency) actualMavenDependencies.get(0);
+        assertThat(mavenDependency.getExclusions().size(), equalTo(1));
+        assertThat(((Exclusion) mavenDependency.getExclusions().get(0)).getGroupId(), equalTo(mavenExclude.getGroupId()));
+        assertThat(((Exclusion) mavenDependency.getExclusions().get(0)).getArtifactId(), equalTo(mavenExclude.getArtifactId()));
+    }
+    
+    @Test
+    public void convertWithConvertableConfigurationExcludes() {
+        final Configuration someConfigurationStub = createNamedConfigurationStubWithDependencies("someConfiguration", 
+                WrapUtil.<ExcludeRule>toSet(new DefaultExcludeRule(toMap("key", "value"))), dependency1);
+        final Exclusion mavenExclude = new Exclusion();
+        mavenExclude.setGroupId("a");
+        mavenExclude.setArtifactId("b");
+        context.checking(new Expectations() {{
+           allowing(conf2ScopeMappingContainerMock).getMapping(toSet(someConfigurationStub)); will(returnValue(createMapping(compileConfStub, "compile")));
+           allowing(excludeRuleConverterMock).convert(someConfigurationStub.getExcludeRules().iterator().next()); will(returnValue(mavenExclude));
         }});
         List<org.apache.maven.model.Dependency> actualMavenDependencies = dependenciesConverter.convert(conf2ScopeMappingContainerMock, toSet(someConfigurationStub));
         assertEquals(1, actualMavenDependencies.size());

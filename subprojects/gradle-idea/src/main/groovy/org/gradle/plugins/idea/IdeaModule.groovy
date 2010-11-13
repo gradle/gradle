@@ -15,17 +15,12 @@
  */
 package org.gradle.plugins.idea
 
-import org.gradle.api.Action
-import org.gradle.api.artifacts.maven.XmlProvider
-import org.gradle.api.internal.ConventionTask
-import org.gradle.api.internal.XmlTransformer
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.plugins.idea.model.ModuleLibrary
 import org.gradle.plugins.idea.model.Path
 import org.gradle.plugins.idea.model.PathFactory
 import org.gradle.api.tasks.*
-import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.idea.model.Module
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ExternalDependency
@@ -39,18 +34,12 @@ import org.gradle.api.artifacts.Dependency
  *
  * @author Hans Dockter
  */
-public class IdeaModule extends ConventionTask {
+public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The content root directory of the module. Must not be null.
      */
     @InputFiles
     File moduleDir
-
-    /**
-     * The iml file. Used to look for existing files as well as the target for generation. Must not be null. 
-     */
-    @OutputFile
-    File outputFile
 
     /**
      * The dirs containing the production sources. Must not be null.
@@ -103,18 +92,10 @@ public class IdeaModule extends ConventionTask {
     boolean downloadJavadoc = false
 
     /**
-     * If this variable is set, dependencies in the existing iml file will be parsed for this variable.
-     * If they use it, it will be replaced with a path that has the $MODULE_DIR$ variable as a root and
-     * then a relative path to  {@link #gradleCacheHome} . That way Gradle can recognize equal dependencies.
+     * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
+     * GRADLE_USER_HOME variable to point to the Gradle user home dir.
      */
-    @Input @Optional
-    String gradleCacheVariable
-
-    /**
-     * This variable is used in conjunction with the {@link #gradleCacheVariable}.
-     */
-    @InputFiles @Optional
-    File gradleCacheHome
+    Map<String, File> variables = [:]
 
     /**
      * The keys of this map are the Intellij scopes. Each key points to another map that has two keys, plus and minus.
@@ -123,20 +104,13 @@ public class IdeaModule extends ConventionTask {
      */
     Map scopes = [:]
 
-    private ActionBroadcast<Module> beforeConfiguredActions = new ActionBroadcast<Module>();
-    private ActionBroadcast<Module> whenConfiguredActions = new ActionBroadcast<Module>();
-    private XmlTransformer withXmlActions = new XmlTransformer();
-
-    def IdeaModule() {
-        outputs.upToDateWhen { false }
+    @Override protected Module create() {
+        return new Module(xmlTransformer, pathFactory)
     }
 
-    @TaskAction
-    void updateXML() {
-        Reader xmlreader = getOutputFile().exists() ? new FileReader(getOutputFile()) : null;
-        Module module = new Module(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
-                getDependencies(), javaVersion, xmlreader, beforeConfiguredActions, whenConfiguredActions, withXmlActions, getPathFactory())
-        getOutputFile().withWriter {Writer writer -> module.toXml(writer)}
+    @Override protected void configure(Module module) {
+        module.configure(getContentPath(), getSourcePaths(), getTestSourcePaths(), getExcludePaths(), getOutputPath(), getTestOutputPath(),
+                getDependencies(), javaVersion)
     }
 
     protected Path getContentPath() {
@@ -296,39 +270,9 @@ public class IdeaModule extends ConventionTask {
     protected PathFactory getPathFactory() {
         PathFactory factory = new PathFactory()
         factory.addPathVariable('MODULE_DIR', getOutputFile().parentFile)
-        if (gradleCacheVariable) {
-            factory.addPathVariable(gradleCacheVariable, gradleCacheHome)
+        variables.each { key, value ->
+            factory.addPathVariable(key, value)
         }
         return factory
-    }
-
-    /**
-     * Adds a closure to be called when the IML XML has been created. The XML is passed to the closure as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The closure can modify the XML.
-     *
-     * @param closure The closure to execute when the IML XML has been created.
-     * @return this
-     */
-    void withXml(Closure closure) {
-        withXmlActions.addAction(closure)
-    }
-
-    /**
-     * Adds an action to be called when the IML XML has been created. The XML is passed to the action as a
-     * parameter in form of a {@link org.gradle.api.artifacts.maven.XmlProvider}. The action can modify the XML.
-     *
-     * @param closure The action to execute when the IML XML has been created.
-     * @return this
-     */
-    void withXml(Action<XmlProvider> action) {
-        withXmlActions.addAction(action)
-    }
-
-    void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add(closure);
-    }
-
-    void whenConfigured(Closure closure) {
-        whenConfiguredActions.add(closure);
     }
 }

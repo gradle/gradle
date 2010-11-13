@@ -23,12 +23,12 @@ ideaModule {
 ideaProject {
 // END SNIPPET project-with-xml
     beforeConfigured { project ->
-        project.modules.clear()
+        project.modulePaths.clear()
     }
 // END SNIPPET project-before-configured
 // START SNIPPET project-with-xml
-    withXml { root ->
-        root.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
+    withXml { provider ->
+        provider.node.component.find { it.@name == 'VcsDirectoryMappings' }.mapping.@vcs = 'Git'
     }
 // START SNIPPET project-before-configured
 }

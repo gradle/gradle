@@ -44,6 +44,7 @@ public class CommandLineActionFactory {
     private static final String VERSION = "v";
     private static final String FOREGROUND = "foreground";
     private static final String DAEMON = "daemon";
+    private static final String NO_DAEMON = "no-daemon";
     private static final String STOP = "stop";
 
     /**
@@ -66,7 +67,8 @@ public class CommandLineActionFactory {
         parser.option(VERSION, "version").hasDescription("Print version info.");
         parser.option(GUI).hasDescription("Launches a GUI application");
         parser.option(FOREGROUND).hasDescription("Starts the Gradle daemon in the foreground [experimental].");
-        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to execute the build. Starts the daemon if not running [experimental].");
+        parser.option(DAEMON).hasDescription("Uses the Gradle daemon to run the build. Starts the daemon if not running [experimental].");
+        parser.option(NO_DAEMON).hasDescription("Do not use the Gradle daemon to run the build [experimental].");
         parser.option(STOP).hasDescription("Stops the Gradle daemon if it is running [experimental].");
 
         LoggingConfiguration loggingConfiguration = new LoggingConfiguration();
@@ -103,16 +105,23 @@ public class CommandLineActionFactory {
         if (commandLine.hasOption(GUI)) {
             return new ActionAdapter(new ShowGuiAction());
         }
+
+        StartParameter startParameter = new StartParameter();
+        startParameterConverter.convert(commandLine, startParameter);
+        DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
+
         if (commandLine.hasOption(FOREGROUND)) {
-            return new ActionAdapter(new DaemonMain(loggingServices));
+            return new ActionAdapter(new DaemonMain(loggingServices, connector));
         }
         if (commandLine.hasOption(STOP)) {
-            return new StopDaemonAction(new DaemonConnector(), loggingServices.get(OutputEventListener.class));
+            return new StopDaemonAction(connector, loggingServices.get(OutputEventListener.class));
         }
 
-        StartParameter startParameter = startParameterConverter.convert(commandLine);
-        if (commandLine.hasOption(DAEMON) || System.getProperty("org.gradle.daemon", "false").equals("true")) {
-            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), new DaemonConnector(), startParameter, commandLine, new File(System.getProperty("user.dir")));
+        boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
+        useDaemon = useDaemon || commandLine.hasOption(DAEMON);
+        useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
+        if (useDaemon) {
+            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")));
         }
 
         return new RunBuildAction(startParameter, loggingServices);

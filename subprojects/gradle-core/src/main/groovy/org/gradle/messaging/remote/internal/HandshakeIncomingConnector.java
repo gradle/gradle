@@ -32,14 +32,14 @@ public class HandshakeIncomingConnector implements IncomingConnector {
     private final Object lock = new Object();
     private URI localAddress;
     private long nextId;
-    private final Map<URI, Action<ConnectEvent<Connection<Message>>>> pendingActions = new HashMap<URI, Action<ConnectEvent<Connection<Message>>>>();
+    private final Map<URI, Action<ConnectEvent<Connection<Object>>>> pendingActions = new HashMap<URI, Action<ConnectEvent<Connection<Object>>>>();
 
     public HandshakeIncomingConnector(IncomingConnector connector, Executor executor) {
         this.connector = connector;
         this.executor = executor;
     }
 
-    public URI accept(Action<ConnectEvent<Connection<Message>>> action) {
+    public URI accept(Action<ConnectEvent<Connection<Object>>> action) {
         synchronized (lock) {
             if (localAddress == null) {
                 localAddress = connector.accept(handShakeAction());
@@ -56,9 +56,9 @@ public class HandshakeIncomingConnector implements IncomingConnector {
         }
     }
 
-    private Action<ConnectEvent<Connection<Message>>> handShakeAction() {
-        return new Action<ConnectEvent<Connection<Message>>>() {
-            public void execute(final ConnectEvent<Connection<Message>> connectEvent) {
+    private Action<ConnectEvent<Connection<Object>>> handShakeAction() {
+        return new Action<ConnectEvent<Connection<Object>>>() {
+            public void execute(final ConnectEvent<Connection<Object>> connectEvent) {
                 executor.execute(new Runnable() {
                     public void run() {
                         handshake(connectEvent);
@@ -68,11 +68,11 @@ public class HandshakeIncomingConnector implements IncomingConnector {
         };
     }
 
-    private void handshake(ConnectEvent<Connection<Message>> connectEvent) {
-        Connection<Message> connection = connectEvent.getConnection();
+    private void handshake(ConnectEvent<Connection<Object>> connectEvent) {
+        Connection<Object> connection = connectEvent.getConnection();
         ConnectRequest request = (ConnectRequest) connection.receive();
         URI localAddress = request.getDestinationAddress();
-        Action<ConnectEvent<Connection<Message>>> channelConnection;
+        Action<ConnectEvent<Connection<Object>>> channelConnection;
         synchronized (lock) {
             channelConnection = pendingActions.remove(localAddress);
         }
@@ -80,6 +80,6 @@ public class HandshakeIncomingConnector implements IncomingConnector {
             throw new IllegalStateException(String.format(
                     "Request to connect received for unknown address '%s'.", localAddress));
         }
-        channelConnection.execute(new ConnectEvent<Connection<Message>>(connection, localAddress, connectEvent.getRemoteAddress()));
+        channelConnection.execute(new ConnectEvent<Connection<Object>>(connection, localAddress, connectEvent.getRemoteAddress()));
     }
 }

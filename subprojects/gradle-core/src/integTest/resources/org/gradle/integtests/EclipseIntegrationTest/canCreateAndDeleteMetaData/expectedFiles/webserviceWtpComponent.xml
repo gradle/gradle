@@ -1,5 +1,6 @@
 <project-modules id="moduleCoreId" project-version="2.0">
   <wb-module deploy-name="webservice">
+    <property name="context-root" value="webservice"/>
     <property name="java-output-path" value="build/classes/main"/>
     <wb-resource deploy-path="/WEB-INF/classes" source-path="src/main/java"/>
     <wb-resource deploy-path="/" source-path="src/main/webapp"/>
@@ -8,7 +9,7 @@
         uses
       </dependency-type>
     </dependent-module>
-    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/var/GRADLE_CACHE//commons-lang/commons-lang/jars/commons-lang-2.5.jar">
+    <dependent-module deploy-path="/WEB-INF/lib" handle="module:/classpath/lib/@CACHE_DIR@/commons-lang/commons-lang/jars/commons-lang-2.5.jar">
       <dependency-type>
         uses
       </dependency-type>

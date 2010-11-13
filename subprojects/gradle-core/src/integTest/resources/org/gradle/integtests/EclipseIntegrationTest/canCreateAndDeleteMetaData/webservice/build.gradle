@@ -1,3 +1,4 @@
+apply plugin: 'java'
 apply plugin: 'war'
 
 version = '2.5'
@@ -7,19 +8,5 @@ dependencies {
     providedRuntime "commons-io:commons-io:1.2"
     compile project(':api')
     runtime "commons-lang:commons-lang:2.5"
-}
-
-eclipseWtp {
-    doLast {
-        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/webserviceWtpComponent.xml").text,
-                file(".settings/org.eclipse.wst.common.component.xml").text)
-        compareXmlWithIgnoringOrder(file("$rootDir/../expectedFiles/webserviceWtpFacet.xml").text,
-                file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
-    }
-}
-
-cleanEclipse {
-    doLast {
-        assert !file(".settings").isFile()
-    }
+    testCompile 'junit:junit:4.7'
 }

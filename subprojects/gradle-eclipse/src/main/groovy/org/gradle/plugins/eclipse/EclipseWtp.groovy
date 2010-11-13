@@ -16,17 +16,18 @@
 package org.gradle.plugins.eclipse;
 
 
-import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.listener.ActionBroadcast
 import org.gradle.plugins.eclipse.model.Facet
 import org.gradle.plugins.eclipse.model.WbProperty
 import org.gradle.plugins.eclipse.model.WbResource
 import org.gradle.plugins.eclipse.model.Wtp
-import org.gradle.plugins.eclipse.model.internal.ModelFactory
+import org.gradle.plugins.eclipse.model.internal.WtpFactory
+import org.gradle.util.ConfigureUtil
 
 /**
  * Generates Eclipse configuration files for Eclipse WTP.
@@ -61,7 +62,7 @@ public class EclipseWtp extends ConventionTask {
     /**
      * The source sets to be transformed into wb-resource elements.
      */
-    NamedDomainObjectContainer sourceSets
+    Iterable<SourceSet> sourceSets
 
     /**
      * The configurations which files are to be transformed into dependent-module elements of
@@ -101,7 +102,12 @@ public class EclipseWtp extends ConventionTask {
      */
     List<WbProperty> properties = []
 
-    protected ModelFactory modelFactory = new ModelFactory()
+    /**
+     * The context path for the web application
+     */
+    String contextPath
+
+    protected WtpFactory modelFactory = new WtpFactory()
 
     def ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>();
     def ActionBroadcast<Wtp> beforeConfiguredActions = new ActionBroadcast<Wtp>();
@@ -123,7 +129,7 @@ public class EclipseWtp extends ConventionTask {
      * @param args A map that must contain a name and version key with corresponding values.
      */
     void facet(Map args) {
-        facets.add(new Facet(args.name, args.version))
+        setFacets(getFacets() + [ConfigureUtil.configureByMap(args, new Facet())])
     }
 
     /**

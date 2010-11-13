@@ -1,5 +1,8 @@
+apply plugin: 'java'
+
 dependencies {
     runtime 'commons-collections:commons-collections:3.2@jar'
+    testCompile 'junit:junit:4.7'
 }
 
 sourceSets {

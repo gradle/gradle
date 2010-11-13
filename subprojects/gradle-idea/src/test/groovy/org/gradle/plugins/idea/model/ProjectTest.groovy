@@ -15,8 +15,6 @@
  */
 package org.gradle.plugins.idea.model
 
-import org.gradle.api.Action
-import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.internal.XmlTransformer
 import spock.lang.Specification
 
@@ -24,123 +22,69 @@ import spock.lang.Specification
  * @author Hans Dockter
  */
 class ProjectTest extends Specification {
-    Project project
     final PathFactory pathFactory = new PathFactory()
+    final customModules = [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
+    final customWildcards = ["?*.gradle", "?*.grails"] as Set
+    Project project = new Project(new XmlTransformer(), pathFactory)
 
-    def initWithReaderAndNoJdkAndNoWildcards() {
-        project = createProject(javaVersion: "1.4", reader: customProjectReader)
+    def loadFromReader() {
+        when:
+        project.load(customProjectReader)
 
-        expect:
-        project.modulePaths == [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
-        project.wildcards == ["?*.gradle", "?*.grails"] as Set
-        project.jdk == new Jdk(true, false, "JDK_1_4", "1.4")
+        then:
+        project.modulePaths == customModules
+        project.wildcards == customWildcards
+        project.jdk == new Jdk(true, false, null, "1.4")
     }
 
-    def initWithReaderAndJdkAndWildcards_shouldBeMerged() {
-        project = createProject(wildcards: ['?*.groovy'] as Set, reader: customProjectReader)
+    def customJdkAndWildcards_shouldBeMerged() {
+        def modules = [new ModulePath(path('file://$PROJECT_DIR$/other.iml'), '$PROJECT_DIR$/other.iml')] as Set
 
-        expect:
-        project.modulePaths == [new ModulePath(path('file://$PROJECT_DIR$/gradle-idea-plugin.iml'), '$PROJECT_DIR$/gradle-idea-plugin.iml')] as Set
-        project.wildcards == ["?*.gradle", "?*.grails", "?*.groovy"] as Set
+        when:
+        project.load(customProjectReader)
+        project.configure(modules, '1.6', ['?*.groovy'] as Set)
+
+        then:
+        project.modulePaths == customModules + modules
+        project.wildcards == customWildcards + ['?*.groovy'] as Set
         project.jdk == new Jdk("1.6")
     }
 
-    def initWithNullReader_shouldUseDefaults() {
-        project = createProject(wildcards: ['!?*.groovy'] as Set)
+    def loadDefaults() {
+        when:
+        project.loadDefaults()
 
-        expect:
+        then:
         project.modulePaths.size() == 0
-        project.wildcards == ["!?*.groovy"] as Set
-        project.jdk == new Jdk("1.6")
+        project.wildcards == [] as Set
+        project.jdk == new Jdk(true, true, "JDK_1_5", null)
     }
 
     def toXml_shouldContainCustomValues() {
         when:
-        project = createProject(wildcards: ['?*.groovy'] as Set, reader: customProjectReader)
+        project.loadDefaults()
+        project.configure([] as Set, '1.5', ['?*.groovy'] as Set)
+        def xml = toXmlReader
+        def other = new Project(new XmlTransformer(), pathFactory)
+        other.load(xml)
 
         then:
-        project == createProject(wildcards: ['?*.groovy'] as Set, reader: toXmlReader)
+        project.wildcards == other.wildcards
+        project.modulePaths == other.modulePaths
+        project.jdk == other.jdk
     }
 
-    def toXml_shouldContainSkeleton() {
-        when:
-        project = createProject(reader: customProjectReader)
-
-        then:
-        new XmlParser().parse(toXmlReader).toString() == project.xml.toString()
+    private InputStream getToXmlReader() {
+        ByteArrayOutputStream toXmlText = new ByteArrayOutputStream()
+        project.store(toXmlText)
+        return new ByteArrayInputStream(toXmlText.toByteArray())
     }
 
-    def beforeConfigured() {
-        Action beforeConfiguredActions = { Project ideaProject ->
-            ideaProject.modulePaths.clear()
-        } as Action
-        def modulePaths = [new ModulePath(path("a"), "b")] as Set
-
-        when:
-        project = createProject(modulePaths: modulePaths, reader: customProjectReader, beforeConfiguredActions: beforeConfiguredActions)
-
-        then:
-        createProject(reader: toXmlReader).modulePaths == modulePaths
-    }
-
-    def whenConfigured() {
-        def moduleFromInitialXml = null
-        def moduleFromProjectConstructor = new ModulePath(path("a"), "b")
-        def moduleAddedInWhenConfiguredAction = new ModulePath(path("c"), "d")
-        Action beforeConfiguredActions = { Project ideaProject ->
-            moduleFromInitialXml = (ideaProject.modulePaths as List)[0]
-        } as Action
-        Action whenConfiguredActions = { Project ideaProject ->
-            assert ideaProject.modulePaths.contains(moduleFromInitialXml)
-            assert ideaProject.modulePaths.contains(moduleFromProjectConstructor)
-            ideaProject.modulePaths.add(moduleAddedInWhenConfiguredAction)
-        } as Action
-
-        when:
-        project = createProject(modulePaths: [moduleFromProjectConstructor] as Set, reader: customProjectReader,
-                beforeConfiguredActions: beforeConfiguredActions,
-                whenConfiguredActions: whenConfiguredActions)
-
-        then:
-        createProject(reader: toXmlReader).modulePaths == [moduleFromInitialXml, moduleFromProjectConstructor, moduleAddedInWhenConfiguredAction] as Set
-    }
-
-    private StringReader getToXmlReader() {
-        StringWriter toXmlText = new StringWriter()
-        project.toXml(toXmlText)
-        return new StringReader(toXmlText.toString())
-    }
-
-    def withXml() {
-        XmlTransformer withXmlActions = new XmlTransformer()
-        project = createProject(reader: customProjectReader, withXmlActions: withXmlActions)
-
-        when:
-        def modifiedVersion
-        withXmlActions.addAction { XmlProvider provider ->
-            def xml = provider.asNode()
-            xml.@version += 'x'
-            modifiedVersion = xml.@version
-        }
-
-        then:
-        new XmlParser().parse(toXmlReader).@version == modifiedVersion
-    }
-
-    private InputStreamReader getCustomProjectReader() {
-        return new InputStreamReader(getClass().getResourceAsStream('customProject.xml'))
+    private InputStream getCustomProjectReader() {
+        return getClass().getResourceAsStream('customProject.xml')
     }
 
     private Path path(String url) {
         pathFactory.path(url)
-    }
-
-    private Project createProject(Map customArgs) {
-        Action dummyBroadcast = Mock()
-        XmlTransformer xmlTransformer = new XmlTransformer()
-        Map args = [modulePaths: [] as Set, javaVersion: "1.6", wildcards: [] as Set, reader: null,
-                beforeConfiguredActions: dummyBroadcast, whenConfiguredActions: dummyBroadcast, withXmlActions: xmlTransformer] + customArgs
-        return new Project(args.modulePaths, args.javaVersion, args.wildcards, args.reader,
-                args.beforeConfiguredActions, args.whenConfiguredActions, args.withXmlActions, pathFactory)
     }
 }

@@ -15,50 +15,50 @@
  */
 package org.gradle.plugins.eclipse
 
-import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.internal.plugins.IdePlugin
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.plugins.JavaBasePlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.WarPlugin
 import org.gradle.api.plugins.scala.ScalaBasePlugin
 import org.gradle.plugins.eclipse.model.BuildCommand
+import org.gradle.plugins.eclipse.model.Facet
+import org.gradle.api.JavaVersion
 
 /**
  * <p>A plugin which generates Eclipse files.</p>
  *
  * @author Hans Dockter
  */
-public class EclipsePlugin implements Plugin<Project> {
+public class EclipsePlugin extends IdePlugin {
     public static final String ECLIPSE_TASK_NAME = "eclipse";
     public static final String CLEAN_ECLIPSE_TASK_NAME = "cleanEclipse";
     public static final String ECLIPSE_PROJECT_TASK_NAME = "eclipseProject";
     public static final String ECLIPSE_WTP_TASK_NAME = "eclipseWtp";
     public static final String ECLIPSE_CP_TASK_NAME = "eclipseClasspath";
+    public static final String ECLIPSE_JDT_TASK_NAME = "eclipseJdt";
 
-    public void apply(final Project project) {
-        project.apply plugin: 'base' // We apply the base plugin to have the clean<taskname> rule
-        project.task('cleanEclipse') {
-            description = 'Cleans the generated eclipse files.'
-            group = 'IDE'
-        }
-        project.task('eclipse') {
-            description = 'Generates the Eclipse files.'
-            group = 'IDE'
-        }
+    @Override protected String getLifecycleTaskName() {
+        return 'eclipse'
+    }
+
+    @Override protected void onApply(Project project) {
+        lifecycleTask.description = 'Generates the Eclipse files.'
+        cleanTask.description = 'Cleans the generated eclipse files.'
         configureEclipseProject(project)
         configureEclipseClasspath(project)
-        project.plugins.withType(WarPlugin.class).allPlugins {
-            configureEclipseWtpModuleForWarProjects(project);
-        }
+        configureEclipseJdt(project)
+        configureEclipseWtpModuleForWarProjects(project);
     }
 
     private void configureEclipseProject(Project project) {
         EclipseProject eclipseProject = project.tasks.add(ECLIPSE_PROJECT_TASK_NAME, EclipseProject.class);
         eclipseProject.setProjectName(project.name);
-        eclipseProject.description = "Generates an Eclipse .project file."
+        eclipseProject.description = "Generates the Eclipse .project file."
         eclipseProject.setInputFile(project.file('.project'))
         eclipseProject.setOutputFile(project.file('.project'))
+        eclipseProject.conventionMapping.comment = { project.description }
 
         project.plugins.withType(JavaBasePlugin.class).allPlugins {
             project.configure(project.eclipseProject) {
@@ -87,53 +87,74 @@ public class EclipsePlugin implements Plugin<Project> {
             }
         }
 
-        project."$ECLIPSE_TASK_NAME".dependsOn eclipseProject
-        project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseProject'
+        addWorker(eclipseProject)
     }
 
     private void configureEclipseClasspath(final Project project) {
         project.plugins.withType(JavaBasePlugin.class).allPlugins {
             EclipseClasspath eclipseClasspath = project.tasks.add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class);
             project.configure(eclipseClasspath) {
-                description = "Generates an Eclipse .classpath file."
+                description = "Generates the Eclipse .classpath file."
                 containers 'org.eclipse.jdt.launching.JRE_CONTAINER'
                 sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
-                variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
+                conventionMapping.defaultOutputDir = { new File(project.buildDir, 'eclipse') }
             }
-            project."$ECLIPSE_TASK_NAME".dependsOn eclipseClasspath
-            project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseClasspath'
+            addWorker(eclipseClasspath)
         }
         project.plugins.withType(JavaPlugin.class).allPlugins {
             project.configure(project.eclipseClasspath) {
                 plusConfigurations = [project.configurations.testRuntime]
+                conventionMapping.defaultOutputDir = { project.sourceSets.main.classesDir }
             }
         }
     }
 
+    private void configureEclipseJdt(final Project project) {
+        project.plugins.withType(JavaBasePlugin.class).allPlugins {
+            EclipseJdt eclipseJdt = project.tasks.add(ECLIPSE_JDT_TASK_NAME, EclipseJdt.class);
+            project.configure(eclipseJdt) {
+                description = "Generates the Eclipse JDT settings file."
+                outputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
+                inputFile = project.file('.settings/org.eclipse.jdt.core.prefs')
+                conventionMapping.sourceCompatibility = { project.sourceCompatibility }
+                conventionMapping.targetCompatibility = { project.targetCompatibility }
+            }
+            addWorker(eclipseJdt)
+        }
+    }
+
     private void configureEclipseWtpModuleForWarProjects(final Project project) {
-        final EclipseWtp eclipseWtp = project.getTasks().add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
+        project.plugins.withType(WarPlugin.class).allPlugins {
+            final EclipseWtp eclipseWtp = project.getTasks().add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
 
-        project.configure(eclipseWtp) {
-            deployName = project.name
-            facet name: "jst.web", version: "2.4"
-            facet name: "jst.java", version: "1.4"
-            sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
-            plusConfigurations = [project.configurations.runtime]
-            minusConfigurations = [project.configurations.providedRuntime]
-            variables = [GRADLE_CACHE: new File(project.gradle.getGradleUserHomeDir(), 'cache').canonicalPath]
-            resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName
-            orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
-            orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component.xml')
-            orgEclipseWstCommonProjectFacetCoreInputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-            orgEclipseWstCommonProjectFacetCoreOutputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
-        }
+            project.configure(eclipseWtp) {
+                description = 'Generate the Eclipse WTP settings files.'
+                deployName = project.name
+                conventionMapping.contextPath = { project.war.baseName }
+                conventionMapping.facets = { [new Facet("jst.web", "2.4"), new Facet("jst.java", toJavaFacetVersion(project.sourceCompatibility))]}
+                sourceSets = project.sourceSets.matching { sourceSet -> sourceSet.name == 'main' }
+                plusConfigurations = [project.configurations.runtime]
+                minusConfigurations = [project.configurations.providedRuntime]
+                resource deployPath: '/', sourcePath: project.convention.plugins.war.webAppDirName
+                orgEclipseWstCommonComponentInputFile = project.file('.settings/org.eclipse.wst.common.component')
+                orgEclipseWstCommonComponentOutputFile = project.file('.settings/org.eclipse.wst.common.component')
+                orgEclipseWstCommonProjectFacetCoreInputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+                orgEclipseWstCommonProjectFacetCoreOutputFile = project.file('.settings/org.eclipse.wst.common.project.facet.core.xml')
+            }
 
-        project."$ECLIPSE_TASK_NAME".dependsOn eclipseWtp
-        project."$CLEAN_ECLIPSE_TASK_NAME".dependsOn 'cleanEclipseWtp'
-        project.cleanEclipseWtp {
-            delete project.file('.settings')
+            addWorker(eclipseWtp)
         }
+    }
+
+    def toJavaFacetVersion(JavaVersion version) {
+        if (version == JavaVersion.VERSION_1_5) {
+            return '5.0'
+        }
+        if (version == JavaVersion.VERSION_1_6) {
+            return '6.0'
+        }
+        return version.toString()
     }
 }

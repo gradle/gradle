@@ -17,13 +17,14 @@ package org.gradle.plugins.eclipse.model
 
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.plugins.eclipse.EclipseProject
+import org.gradle.api.internal.tasks.generator.XmlPersistableConfigurationObject
 
 /**
  * Represents the customizable elements of an eclipse project file. (via XML hooks everything is customizable).
  *
  * @author Hans Dockter
  */
-class Project {
+class Project extends XmlPersistableConfigurationObject {
     public static final String PROJECT_FILE_NAME = ".project";
 
     /**
@@ -56,40 +57,15 @@ class Project {
      */
     Set<Link> links = new LinkedHashSet<Link>()
 
-    private Node xml
-
-    private XmlTransformer xmlTransformer
-
-    def Project(EclipseProject eclipseProjectTask, Reader inputXml) {
-        initFromXml(inputXml)
-
-        eclipseProjectTask.beforeConfiguredActions.execute(this)
-
-        if (eclipseProjectTask.projectName) {
-            this.name = eclipseProjectTask.projectName
-        }
-        if (eclipseProjectTask.comment) {
-            this.comment = eclipseProjectTask.comment
-        }
-        this.referencedProjects.addAll(eclipseProjectTask.referencedProjects)
-        this.natures.addAll(eclipseProjectTask.natures)
-        this.natures.unique()
-        this.buildCommands.addAll(eclipseProjectTask.buildCommands)
-        this.buildCommands.unique()
-        this.links.addAll(eclipseProjectTask.links);
-        this.xmlTransformer = eclipseProjectTask.withXmlActions
-
-        eclipseProjectTask.whenConfiguredActions.execute(this)
+    def Project(XmlTransformer xmlTransformer) {
+        super(xmlTransformer)
     }
 
-    private def initFromXml(Reader inputXml) {
-        if (!inputXml) {
-            xml = new Node(null, 'projectDescription')
-            return
-        }
+    @Override protected String getDefaultResourceName() {
+        return 'defaultProject.xml'
+    }
 
-        xml = new XmlParser().parse(inputXml)
-
+    @Override protected void load(Node xml) {
         this.name = xml.name.text()
         this.comment = xml.comment.text()
         readReferencedProjects()
@@ -124,12 +100,23 @@ class Project {
         }
     }
 
-    void toXml(File file) {
-        file.withWriter {Writer writer -> toXml(writer)}
+    def configure(EclipseProject eclipseProjectTask) {
+        if (eclipseProjectTask.projectName) {
+            this.name = eclipseProjectTask.projectName
+        }
+        if (eclipseProjectTask.comment) {
+            this.comment = eclipseProjectTask.comment
+        }
+        this.referencedProjects.addAll(eclipseProjectTask.referencedProjects)
+        this.natures.addAll(eclipseProjectTask.natures)
+        this.natures.unique()
+        this.buildCommands.addAll(eclipseProjectTask.buildCommands)
+        this.buildCommands.unique()
+        this.links.addAll(eclipseProjectTask.links);
     }
 
-    def toXml(Writer writer) {
-        ['name', 'comment', 'projects', 'natures', 'buildSpec', 'links'].each{ childNodeName ->
+    @Override protected void store(Node xml) {
+        ['name', 'comment', 'projects', 'natures', 'buildSpec', 'links'].each { childNodeName ->
             Node childNode = xml.children().find { it.name() == childNodeName }
             if (childNode) {
                 xml.remove(childNode)
@@ -141,7 +128,6 @@ class Project {
         addNaturesToXml()
         addBuildSpecToXml()
         addLinksToXml()
-        xmlTransformer.transform(xml, writer)
     }
 
     private def addReferencedProjectsToXml() {

@@ -31,9 +31,10 @@ import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.gradle.util.Matchers.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.gradle.util.Matchers.strictlyEqual;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertThat;
+import static org.junit.Assert.fail;
 
 @RunWith(JMock.class)
 public class DefaultObjectConnectionTest {
@@ -161,15 +162,15 @@ public class DefaultObjectConnectionTest {
     }
 
     private class TestConnection {
-        Map<Object, Dispatch<Message>> channels = new HashMap<Object, Dispatch<Message>>();
+        Map<Object, Dispatch<Object>> channels = new HashMap<Object, Dispatch<Object>>();
 
-        MultiChannelConnection<Message> getSender() {
-            return new MultiChannelConnection<Message>() {
-                public Dispatch<Message> addOutgoingChannel(Object channelKey) {
+        MultiChannelConnection<Object> getSender() {
+            return new MultiChannelConnection<Object>() {
+                public Dispatch<Object> addOutgoingChannel(Object channelKey) {
                     return channels.get(channelKey);
                 }
 
-                public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
+                public void addIncomingChannel(Object channelKey, Dispatch<Object> dispatch) {
                     throw new UnsupportedOperationException();
                 }
 
@@ -191,13 +192,13 @@ public class DefaultObjectConnectionTest {
             };
         }
 
-        MultiChannelConnection<Message> getReceiver() {
-            return new MultiChannelConnection<Message>() {
-                public Dispatch<Message> addOutgoingChannel(Object channelKey) {
+        MultiChannelConnection<Object> getReceiver() {
+            return new MultiChannelConnection<Object>() {
+                public Dispatch<Object> addOutgoingChannel(Object channelKey) {
                     throw new UnsupportedOperationException();
                 }
 
-                public void addIncomingChannel(Object channelKey, Dispatch<Message> dispatch) {
+                public void addIncomingChannel(Object channelKey, Dispatch<Object> dispatch) {
                     channels.put(channelKey, dispatch);
                 }
 
