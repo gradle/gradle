@@ -24,6 +24,8 @@
     <xsl:param name="chapter.autolabel">0</xsl:param>
     <xsl:param name="appendix.autolabel">0</xsl:param>
 
+    <!-- Inline the stylesheets directly into the generated html -->
+
     <xsl:template name="output.html.stylesheets">
     </xsl:template>
 
@@ -31,6 +33,7 @@
         <style type="text/css">
             <xi:include href="base.css" parse="text"/>
             <xi:include href="style.css" parse="text"/>
+            <xi:include href="userguide.css" parse="text"/>
         </style>
     </xsl:template>
 </xsl:stylesheet>

@@ -1,6 +1,7 @@
 package org.gradle.build.docs.dsl
 
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 
 class ClassDoc {
     final Element classSection
@@ -9,16 +10,19 @@ class ClassDoc {
     final String classSimpleName
     final ClassMetaData classMetaData
 
-    ClassDoc(String className, Element classSection, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model) {
-        this.classSection = classSection
+    ClassDoc(String className, Element classContent, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model) {
         this.className = className
-        id = "dsl:$className"
+        id = className
         classSimpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
 
+        classSection = classContent.ownerDocument.createElement('chapter')
         classSection['@id'] = id
         classSection.addFirst {
             title(classSimpleName)
+        }
+        classContent.childNodes.each { Node n ->
+            classSection << n
         }
 
         propertiesTable.tr.each { Element tr ->

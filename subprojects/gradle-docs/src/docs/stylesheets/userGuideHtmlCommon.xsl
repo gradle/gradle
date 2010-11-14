@@ -31,6 +31,7 @@
     <xsl:template name="output.html.stylesheets">
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="style.css" rel="stylesheet" type="text/css"/>
+        <link href="userguide.css" rel="stylesheet" type="text/css"/>
     </xsl:template>
 
     <xsl:param name="generate.toc">

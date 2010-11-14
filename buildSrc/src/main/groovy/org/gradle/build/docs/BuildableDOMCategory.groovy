@@ -1,6 +1,7 @@
 package org.gradle.build.docs
 
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 
 class BuildableDOMCategory {
     public static setText(Element element, String value) {
@@ -23,7 +24,7 @@ class BuildableDOMCategory {
         cl.call()
     }
 
-    public static leftShift(Element parent, Element node) {
+    public static leftShift(Element parent, Node node) {
         parent.appendChild(parent.ownerDocument.importNode(node, true))
     }
 

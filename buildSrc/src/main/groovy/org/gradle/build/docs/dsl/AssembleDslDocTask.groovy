@@ -46,7 +46,7 @@ class AssembleDslDocTask extends DefaultTask {
                 Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
                 DslModel model = new DslModel(classDocbookDir, document, classpath, classes, extensions)
                 def root = document.documentElement
-                root.table.each { Element table ->
+                root.section[0].table.each { Element table ->
                     insertTypes(table, model)
                 }
             }
@@ -88,6 +88,7 @@ class AssembleDslDocTask extends DefaultTask {
     }
 
     def insertTypes(Element typeTable, DslModel model) {
+        typeTable['@role'] = 'dslTypes'
         typeTable.addFirst {
             thead {
                 tr {

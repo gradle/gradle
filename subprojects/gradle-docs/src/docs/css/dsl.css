@@ -1,0 +1,36 @@
+
+.sidebar {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 7em;
+    overflow: auto;
+    padding-top: 2em;
+    padding-left: 2em;
+    padding-right: 2em;
+}
+
+.sidebar ul {
+    padding-left: 0;
+    padding-right: 0;
+}
+
+.sidebar li {
+    list-style: none;
+}
+
+.sidebar li.sidebarHeading {
+    margin-top: 1.4em;
+    color: #a2a2a2;
+}
+
+.content {
+    position: absolute;
+    top: 0;
+    left: 13em;
+}
+
+.book .titlepage .releaseinfo {
+    color: #666666;
+}

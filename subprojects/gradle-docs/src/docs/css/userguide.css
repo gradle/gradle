@@ -1,0 +1,111 @@
+/*
+ * Table of Contents
+ */
+
+.toc dl, .list-of-examples dl {
+    margin-top: 0;
+    margin-bottom: 0;
+}
+
+.book .toc > dl > dt {
+    margin-top: 0.6em;
+}
+
+.book .toc, .book .list-of-examples {
+    margin-top: 2em;
+}
+
+/*
+ * HEADER/FOOTER
+ */
+
+.navheader {
+    margin-bottom: 3em;
+    padding-bottom: 1em;
+    width: 100%;
+    border-bottom: solid #d0d0d0 0.4em;
+}
+
+.navfooter {
+    margin-top: 3em;
+    padding-top: 1em;
+    width: 100%;
+    border-top: solid #d0d0d0 0.4em;
+}
+
+.navbar {
+    color: #a2a2a2;
+    font-size: 90%;
+    width: 100%;
+    text-align: right;
+}
+
+.navbar a {
+    color: #444444;
+}
+
+.navbar span {
+    padding-left: .8em;
+    padding-right: .8em;
+}
+
+/**
+ * TITLEPAGE
+ */
+
+.book > .titlepage {
+    margin-top: 2.2em;
+    margin-bottom: 2em;
+}
+
+.book .titlepage div.title {
+    border: solid #d0d0d0 1px;
+    background-color: #f5f5f5;
+    margin-left: -1.8em;
+    margin-right: -1.8em;
+    padding-left: 1.8em;
+    padding-right: 1.8em;
+    margin-bottom: 2.2em;
+}
+
+.titlepage h1.title {
+    font-size: 280%;
+    margin-bottom: 0;
+    color: #4a9935;
+}
+
+.titlepage h2.subtitle {
+    font-size: 160%;
+    font-style: italic;
+    margin-top: 0;
+    margin-bottom: 0;
+    color: #4a9935;
+}
+
+.titlepage .releaseinfo {
+    color: #666666;
+    font-size: 120%;
+    margin-top: 2em;
+    margin-bottom: 2.6em;
+}
+
+.titlepage .author {
+    color: #666666;
+}
+
+.titlepage .copyright {
+    color: #a2a2a2;
+    font-size: 90%;
+}
+
+.titlepage .legalnotice {
+    color: #a2a2a2;
+    font-size: 90%;
+}
+
+/*
+ * Single page html
+ */
+.book .chapter {
+    margin-top: 4em;
+}
