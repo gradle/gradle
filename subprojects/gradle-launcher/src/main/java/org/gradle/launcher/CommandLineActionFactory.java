@@ -21,10 +21,7 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.gradleplugin.userinterface.swing.standalone.BlockingApplication;
-import org.gradle.initialization.CommandLineConverter;
-import org.gradle.initialization.CommandLineParser;
-import org.gradle.initialization.DefaultCommandLineConverter;
-import org.gradle.initialization.ParsedCommandLine;
+import org.gradle.initialization.*;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.LoggingServiceRegistry;
@@ -33,6 +30,7 @@ import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.io.PrintStream;
+import java.lang.management.ManagementFactory;
 import java.util.List;
 
 /**
@@ -109,22 +107,24 @@ public class CommandLineActionFactory {
         StartParameter startParameter = new StartParameter();
         startParameterConverter.convert(commandLine, startParameter);
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
+        GradleLauncherMetaData clientMetaData = new GradleLauncherMetaData();
+        long startTime = ManagementFactory.getRuntimeMXBean().getStartTime();
 
         if (commandLine.hasOption(FOREGROUND)) {
             return new ActionAdapter(new DaemonMain(loggingServices, connector));
         }
         if (commandLine.hasOption(STOP)) {
-            return new StopDaemonAction(connector, loggingServices.get(OutputEventListener.class));
+            return new StopDaemonAction(connector, loggingServices.get(OutputEventListener.class), clientMetaData);
         }
 
         boolean useDaemon = System.getProperty("org.gradle.daemon", "false").equals("true");
         useDaemon = useDaemon || commandLine.hasOption(DAEMON);
         useDaemon = useDaemon && !commandLine.hasOption(NO_DAEMON);
         if (useDaemon) {
-            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")));
+            return new DaemonBuildAction(loggingServices.get(OutputEventListener.class), connector, commandLine, new File(System.getProperty("user.dir")), clientMetaData, startTime);
         }
 
-        return new RunBuildAction(startParameter, loggingServices);
+        return new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(clientMetaData, startTime));
     }
 
     private static void showUsage(PrintStream out, CommandLineParser parser) {

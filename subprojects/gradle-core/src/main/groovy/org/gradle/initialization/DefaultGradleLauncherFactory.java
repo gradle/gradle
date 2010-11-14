@@ -32,7 +32,6 @@ import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.profile.ProfileListener;
-import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
 
 import java.util.Arrays;
@@ -73,13 +72,26 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }
 
-    public GradleLauncher newInstance(String... commandLineArgs) {
-        return newInstance(createStartParameter(commandLineArgs));
+    public DefaultGradleLauncher newInstance(StartParameter startParameter) {
+        BuildRequestMetaData requestMetaData;
+        if (tracker.getCurrentBuild() != null) {
+            requestMetaData = new DefaultBuildRequestMetaData(tracker.getCurrentBuild().getServices().get(BuildClientMetaData.class), System.currentTimeMillis());
+        } else {
+            requestMetaData = new DefaultBuildRequestMetaData(System.currentTimeMillis());
+        }
+        return doNewInstance(startParameter, requestMetaData);
     }
 
-    public GradleLauncher newInstance(StartParameter startParameter) {
-        Clock buildClock = new Clock();
+    public DefaultGradleLauncher newInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData) {
+        // This should only be used for top-level builds
+        assert tracker.getCurrentBuild() == null;
+        return doNewInstance(startParameter, requestMetaData);
+    }
+
+    private DefaultGradleLauncher doNewInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData) {
         TopLevelBuildServiceRegistry serviceRegistry = new TopLevelBuildServiceRegistry(sharedServices, startParameter);
+        serviceRegistry.add(BuildRequestMetaData.class, requestMetaData);
+        serviceRegistry.add(BuildClientMetaData.class, requestMetaData.getClient());
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
         LoggingManagerInternal loggingManager = serviceRegistry.newInstance(LoggingManagerInternal.class);
         loggingManager.setLevel(startParameter.getLogLevel());
@@ -91,13 +103,13 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class)));
         if (tracker.getCurrentBuild() == null) {
-            listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), buildClock, startParameter));
+            listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));
         }
         listenerManager.addListener(tracker);
         listenerManager.addListener(new BuildCleanupListener(serviceRegistry));
 
         if (startParameter.isProfile()) {
-            listenerManager.addListener(new ProfileListener(System.currentTimeMillis()));
+            listenerManager.addListener(new ProfileListener(requestMetaData.getBuildTimeClock().getStartTime()));
         }
 
         DefaultGradle gradle = new DefaultGradle(

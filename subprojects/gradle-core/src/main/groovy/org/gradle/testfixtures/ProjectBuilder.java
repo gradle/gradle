@@ -26,10 +26,8 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.cache.AutoCloseCacheFactory;
 import org.gradle.cache.CacheFactory;
 import org.gradle.cache.DefaultCacheFactory;
-import org.gradle.initialization.ClassLoaderFactory;
-import org.gradle.initialization.DefaultClassLoaderFactory;
-import org.gradle.initialization.DefaultProjectDescriptor;
-import org.gradle.initialization.DefaultProjectDescriptorRegistry;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.initialization.*;
 import org.gradle.invocation.DefaultGradle;
 import org.gradle.listener.DefaultListenerManager;
 import org.gradle.listener.ListenerManager;
@@ -229,6 +227,10 @@ public class ProjectBuilder {
         public TestTopLevelBuildServiceRegistry(StartParameter startParameter, File homeDir) {
             super(ProjectBuilder.GLOBAL_SERVICES, startParameter);
             this.homeDir = homeDir;
+        }
+
+        protected BuildClientMetaData createClientMetaData() {
+            return new GradleLauncherMetaData();
         }
 
         protected GradleDistributionLocator createGradleDistributionLocator() {

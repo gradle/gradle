@@ -17,6 +17,7 @@ package org.gradle;
 
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.initialization.DefaultGradleLauncherFactory;
+import org.gradle.initialization.GradleLauncherFactory;
 
 /**
  * <p>{@code GradleLauncher} is the main entry point for embedding Gradle. You use this class to manage a Gradle build,
@@ -48,8 +49,8 @@ public abstract class GradleLauncher {
     private static GradleLauncherFactory factory;
 
     /**
-     * <p>Executes the build for this GradleLauncher instance and returns the result. Note that when the build fails,
-     * the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>
+     * <p>Executes the build for this {@code GradleLauncher} instance and returns the result. Note that when the build
+     * fails, the exception is available using {@link org.gradle.BuildResult#getFailure()}.</p>
      *
      * @return The result. Never returns null.
      */
@@ -59,7 +60,7 @@ public abstract class GradleLauncher {
      * Evaluates the settings and all the projects. The information about available tasks and projects is accessible via
      * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object.
      *
-     * @return A BuildResult object. Never returns null.
+     * @return The result. Never returns null.
      */
     public abstract BuildResult getBuildAnalysis();
 
@@ -68,15 +69,15 @@ public abstract class GradleLauncher {
      * the {@link org.gradle.api.invocation.Gradle#getRootProject()} object. Fills the execution plan without running
      * the build. The tasks to be executed tasks are available via {@link org.gradle.api.invocation.Gradle#getTaskGraph()}.
      *
-     * @return A BuildResult object. Never returns null.
+     * @return The result. Never returns null.
      */
     public abstract BuildResult getBuildAndRunAnalysis();
 
     /**
-     * Returns a GradleLauncher instance based on the passed start parameter.
+     * Returns a {@code GradleLauncher} instance based on the passed start parameter.
      *
      * @param startParameter The start parameter object the GradleLauncher instance is initialized with
-     * @return The GradleLauncher. Never returns null.
+     * @return The {@code GradleLauncher}. Never returns null.
      */
     public static GradleLauncher newInstance(final StartParameter startParameter) {
         return getFactory().newInstance(startParameter);
@@ -90,23 +91,21 @@ public abstract class GradleLauncher {
     }
 
     /**
-     * Returns a GradleLauncher instance based on the passed command line syntax arguments. Certain command line
-     * arguments won't have any effect if you choose this method (e.g. -v, -h). If you want to act upon, you better use
-     * {@link #createStartParameter(String...)} in conjunction with {@link #newInstance(String...)}.
+     * Returns a {@code GradleLauncher} instance based on the passed command line syntax arguments.
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
-     * @return The GradleLauncher. Never returns null.
+     * @return The {@code GradleLauncher}. Never returns null.
      */
-    public static GradleLauncher newInstance(final String... commandLineArgs) {
-        return getFactory().newInstance(commandLineArgs);
+    public static GradleLauncher newInstance(String... commandLineArgs) {
+        return newInstance(createStartParameter(commandLineArgs));
     }
 
     /**
-     * Returns a StartParameter object out of command line syntax arguments. Every possible command line option has it
-     * associated field in the StartParameter object.
+     * Returns a {@code StartParameter} object out of command line syntax arguments. Each command line option has an
+     * associated field in the {@code StartParameter} object.
      *
      * @param commandLineArgs A String array where each element denotes an entry of the Gradle command line syntax
-     * @return The GradleLauncher. Never returns null.
+     * @return The {@code GradleLauncher}. Never returns null.
      */
     public static StartParameter createStartParameter(final String... commandLineArgs) {
         return getFactory().createStartParameter(commandLineArgs);

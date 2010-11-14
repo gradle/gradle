@@ -20,9 +20,9 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.LocationAwareException;
 import org.gradle.api.logging.LogLevel;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.execution.TaskSelectionException;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
@@ -40,6 +40,8 @@ import static org.gradle.logging.StyledTextOutput.Style.UserInput;
  * A {@link BuildListener} which reports the build exception, if any.
  */
 public class BuildExceptionReporter extends BuildAdapter {
+    public final BuildClientMetaData clientMetaData;
+
     private enum ExceptionStyle {
         None, Sanitized, Full
     }
@@ -47,9 +49,10 @@ public class BuildExceptionReporter extends BuildAdapter {
     private final StyledTextOutputFactory textOutputFactory;
     private final StartParameter startParameter;
 
-    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, StartParameter startParameter) {
+    public BuildExceptionReporter(StyledTextOutputFactory textOutputFactory, StartParameter startParameter, BuildClientMetaData clientMetaData) {
         this.textOutputFactory = textOutputFactory;
         this.startParameter = startParameter;
+        this.clientMetaData = clientMetaData;
     }
 
     public void buildFinished(BuildResult result) {
@@ -153,7 +156,7 @@ public class BuildExceptionReporter extends BuildAdapter {
         details.summary.text("Could not determine which tasks to execute.");
         details.details.text(getMessage(failure));
         details.resolution.text("Run ");
-        new GradleLauncherMetaData().describeCommand(details.resolution.withStyle(UserInput), ImplicitTasksConfigurer.TASKS_TASK);
+        clientMetaData.describeCommand(details.resolution.withStyle(UserInput), ImplicitTasksConfigurer.TASKS_TASK);
         details.resolution.text(" to get a list of available tasks.");
     }
 

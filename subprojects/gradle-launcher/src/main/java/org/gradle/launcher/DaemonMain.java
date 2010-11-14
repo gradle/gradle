@@ -16,7 +16,8 @@
 package org.gradle.launcher;
 
 import org.gradle.BuildExceptionReporter;
-import org.gradle.GradleLauncherFactory;
+import org.gradle.initialization.DefaultBuildRequestMetaData;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.logging.Logger;
@@ -98,7 +99,7 @@ public class DaemonMain implements Runnable {
         try {
             doRunWithExceptionHandling(command, serverControl, executionListener);
         } catch (Throwable throwable) {
-            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter());
+            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), command.getClientMetaData());
             exceptionReporter.reportException(throwable);
             executionListener.onFailure(throwable);
         }
@@ -129,7 +130,7 @@ public class DaemonMain implements Runnable {
         sysProperties.putAll(System.getProperties());
 
         try {
-            RunBuildAction action = new RunBuildAction(startParameter, loggingServices) {
+            RunBuildAction action = new RunBuildAction(startParameter, loggingServices, new DefaultBuildRequestMetaData(build.getClientMetaData(), build.getStartTime())) {
                 @Override
                 GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
                     return launcherFactory;
@@ -137,7 +138,7 @@ public class DaemonMain implements Runnable {
             };
             action.execute(executionListener);
         } catch (Throwable throwable) {
-            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter());
+            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(loggingServices.get(StyledTextOutputFactory.class), new StartParameter(), build.getClientMetaData());
             exceptionReporter.reportException(throwable);
             executionListener.onFailure(throwable);
         }

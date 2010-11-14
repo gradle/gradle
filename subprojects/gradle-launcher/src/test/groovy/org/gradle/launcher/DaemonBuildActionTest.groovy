@@ -21,14 +21,17 @@ import org.gradle.launcher.protocol.CommandComplete
 import org.gradle.logging.internal.OutputEventListener
 import org.gradle.messaging.remote.internal.Connection
 import spock.lang.Specification
+import org.gradle.initialization.BuildClientMetaData
 
 class DaemonBuildActionTest extends Specification {
     final DaemonConnector connector = Mock()
     final OutputEventListener listener = Mock()
     final ExecutionListener completer = Mock()
     final ParsedCommandLine commandLine = Mock()
+    final BuildClientMetaData clientMetaData = Mock()
     final File currentDir = new File('current-dir')
-    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, commandLine, currentDir)
+    final long startTime = 90
+    final DaemonBuildAction action = new DaemonBuildAction(listener, connector, commandLine, currentDir, clientMetaData, startTime)
 
     def runsBuildUsingDaemon() {
         Connection<Object> connection = Mock()
@@ -42,6 +45,8 @@ class DaemonBuildActionTest extends Specification {
             Build build = args[0]
             assert build.currentDir == currentDir
             assert build.args == commandLine
+            assert build.clientMetaData == clientMetaData
+            assert build.startTime == startTime
         }
         1 * connection.receive() >> new CommandComplete(null)
         1 * connection.stop()

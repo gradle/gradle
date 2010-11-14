@@ -17,17 +17,18 @@ package org.gradle.configuration;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GradleVersion;
 
-import static org.gradle.logging.StyledTextOutput.Style.UserInput;
+import static org.gradle.logging.StyledTextOutput.Style.*;
 
 public class Help extends DefaultTask {
     @TaskAction
     void displayHelp() {
         StyledTextOutput output = getServices().get(StyledTextOutputFactory.class).create(Help.class);
-        GradleLauncherMetaData metaData = new GradleLauncherMetaData();
+        BuildClientMetaData metaData = getServices().get(BuildClientMetaData.class);
 
         output.println();
         output.formatln("Welcome to Gradle %s.", new GradleVersion().getVersion());

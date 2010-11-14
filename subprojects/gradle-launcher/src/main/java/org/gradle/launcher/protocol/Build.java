@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.protocol;
 
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.ParsedCommandLine;
 
 import java.io.File;
@@ -22,10 +23,13 @@ import java.io.File;
 public class Build extends Command {
     private final ParsedCommandLine args;
     private final File currentDir;
+    private final long startTime;
 
-    public Build(File currentDir, ParsedCommandLine args) {
+    public Build(File currentDir, ParsedCommandLine args, long startTime, BuildClientMetaData clientMetaData) {
+        super(clientMetaData);
         this.currentDir = currentDir;
         this.args = args;
+        this.startTime = startTime;
     }
 
     public ParsedCommandLine getArgs() {
@@ -34,5 +38,9 @@ public class Build extends Command {
 
     public File getCurrentDir() {
         return currentDir;
+    }
+
+    public long getStartTime() {
+        return startTime;
     }
 }

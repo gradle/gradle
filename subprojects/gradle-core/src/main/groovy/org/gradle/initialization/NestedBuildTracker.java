@@ -17,17 +17,18 @@ package org.gradle.initialization;
 
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 public class NestedBuildTracker extends BuildAdapter {
-    private final List<Gradle> buildStack = new CopyOnWriteArrayList<Gradle>();
+    private final List<GradleInternal> buildStack = new CopyOnWriteArrayList<GradleInternal>();
 
     @Override
     public void buildStarted(Gradle gradle) {
-        buildStack.add(0, gradle);
+        buildStack.add(0, (GradleInternal) gradle);
     }
 
     @Override
@@ -35,7 +36,7 @@ public class NestedBuildTracker extends BuildAdapter {
         buildStack.remove(result.getGradle());
     }
 
-    public Gradle getCurrentBuild() {
+    public GradleInternal getCurrentBuild() {
         return buildStack.isEmpty() ? null : buildStack.get(0);
     }
 }

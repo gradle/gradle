@@ -22,7 +22,7 @@ import static org.junit.Assert.*
 
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
-import org.gradle.GradleLauncherFactory
+
 import org.gradle.StartParameter
 import org.gradle.api.Project
 import org.gradle.api.file.FileCollection

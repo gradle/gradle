@@ -18,9 +18,10 @@ package org.gradle.launcher
 import spock.lang.Specification
 import org.gradle.StartParameter
 import org.gradle.api.internal.project.ServiceRegistry
-import org.gradle.GradleLauncherFactory
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.GradleLauncher
 import org.gradle.BuildResult
+import org.gradle.initialization.BuildRequestMetaData
 
 class RunBuildActionTest extends Specification {
     final StartParameter startParameter = new StartParameter()
@@ -29,7 +30,8 @@ class RunBuildActionTest extends Specification {
     final ExecutionListener completer = Mock()
     final GradleLauncher launcher = Mock()
     final BuildResult result = Mock()
-    final RunBuildAction action = new RunBuildAction(startParameter, loggingServices) {
+    final BuildRequestMetaData requestMetaData = Mock()
+    final RunBuildAction action = new RunBuildAction(startParameter, loggingServices, requestMetaData) {
         @Override
         GradleLauncherFactory createGradleLauncherFactory(ServiceRegistry loggingServices) {
             return gradleLauncherFactory
@@ -41,7 +43,7 @@ class RunBuildActionTest extends Specification {
         action.execute(completer)
 
         then:
-        1 * gradleLauncherFactory.newInstance(startParameter) >> launcher
+        1 * gradleLauncherFactory.newInstance(startParameter, requestMetaData) >> launcher
         1 * launcher.run() >> result
         _ * result.failure >> null
         0 * _._
@@ -54,7 +56,7 @@ class RunBuildActionTest extends Specification {
         action.execute(completer)
 
         then:
-        1 * gradleLauncherFactory.newInstance(startParameter) >> launcher
+        1 * gradleLauncherFactory.newInstance(startParameter, requestMetaData) >> launcher
         1 * launcher.run() >> result
         _ * result.failure >> failure
         1 * completer.onFailure(failure)

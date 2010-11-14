@@ -21,11 +21,11 @@ import org.gradle.util.SetSystemProperties
 
 class GradleLauncherMetaDataTest extends Specification {
     @Rule public final SetSystemProperties sysProps = new SetSystemProperties()
-    private final GradleLauncherMetaData metaData = new GradleLauncherMetaData()
 
-    def usesSystemPropertyToDetermineLauncherName() {
+    def usesSystemPropertyToDetermineApplicationName() {
         System.setProperty("org.gradle.appname", "some-gradle-launcher")
-        def StringWriter writer = new StringWriter()
+        StringWriter writer = new StringWriter()
+        GradleLauncherMetaData metaData = new GradleLauncherMetaData()
 
         when:
         metaData.describeCommand(writer, "[options]", "<task-name>")
@@ -33,10 +33,11 @@ class GradleLauncherMetaDataTest extends Specification {
         then:
         writer.toString() == "some-gradle-launcher [options] <task-name>"
     }
-    
-    def usesDefaultValueWhenSystemPropertyNotSet() {
+
+    def usesDefaultApplicationNameWhenSystemPropertyNotSet() {
         System.clearProperty("org.gradle.appname")
-        def StringWriter writer = new StringWriter()
+        StringWriter writer = new StringWriter()
+        GradleLauncherMetaData metaData = new GradleLauncherMetaData()
 
         when:
         metaData.describeCommand(writer, "[options]", "<task-name>")

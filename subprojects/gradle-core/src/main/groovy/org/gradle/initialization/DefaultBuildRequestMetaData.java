@@ -13,25 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.protocol;
+package org.gradle.initialization;
 
-import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.configuration.GradleLauncherMetaData;
+import org.gradle.util.Clock;
 
-import java.io.Serializable;
-
-public class Command implements Serializable {
+public class DefaultBuildRequestMetaData implements BuildRequestMetaData {
     private final BuildClientMetaData clientMetaData;
+    private final Clock clock;
 
-    public Command(BuildClientMetaData clientMetaData) {
+    public DefaultBuildRequestMetaData(BuildClientMetaData clientMetaData, long startTime) {
         this.clientMetaData = clientMetaData;
+        clock = new Clock(startTime);
     }
 
-    public BuildClientMetaData getClientMetaData() {
+    public DefaultBuildRequestMetaData(long startTime) {
+        this(new GradleLauncherMetaData(), startTime);
+    }
+
+    public BuildClientMetaData getClient() {
         return clientMetaData;
     }
 
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
+    public Clock getBuildTimeClock() {
+        return clock;
     }
 }

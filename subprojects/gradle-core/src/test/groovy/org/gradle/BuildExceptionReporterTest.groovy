@@ -15,23 +15,26 @@
  */
 package org.gradle
 
-import spock.lang.Specification
-import org.gradle.logging.internal.TestStyledTextOutput
-import org.gradle.logging.StyledTextOutputFactory
-import org.gradle.api.logging.LogLevel
+import org.gradle.StartParameter.ShowStacktrace
 import org.gradle.api.GradleException
 import org.gradle.api.LocationAwareException
-import org.gradle.StartParameter.ShowStacktrace
+import org.gradle.api.logging.LogLevel
 import org.gradle.execution.TaskSelectionException
+import org.gradle.initialization.BuildClientMetaData
+import org.gradle.logging.StyledTextOutputFactory
+import org.gradle.logging.internal.TestStyledTextOutput
+import spock.lang.Specification
 
 class BuildExceptionReporterTest extends Specification {
     final TestStyledTextOutput output = new TestStyledTextOutput()
     final StyledTextOutputFactory factory = Mock()
+    final BuildClientMetaData clientMetaData = Mock()
     final StartParameter startParameter = new StartParameter()
-    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, startParameter)
+    final BuildExceptionReporter reporter = new BuildExceptionReporter(factory, startParameter, clientMetaData)
 
     def setup() {
         _ * factory.create(BuildExceptionReporter.class, LogLevel.ERROR) >> output
+        _ * clientMetaData.describeCommand(!null, !null) >> { args -> args[0].append("[gradle ${args[1].join(' ')}]")}
     }
 
     def doesNothingWheBuildIsSuccessful() {
@@ -165,7 +168,7 @@ Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more detai
 <message>
 
 * Try:
-Run {userinput}gradle tasks{normal} to get a list of available tasks.
+Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
 '''
     }
 

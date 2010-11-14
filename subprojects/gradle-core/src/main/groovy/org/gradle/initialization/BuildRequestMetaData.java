@@ -13,25 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.protocol;
+package org.gradle.initialization;
 
-import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.util.Clock;
 
-import java.io.Serializable;
+/**
+ * A bunch of information about the request which launched a build.
+ */
+public interface BuildRequestMetaData {
+    /**
+     * Returns the meta-data about the client used to launch this build.
+     */
+    BuildClientMetaData getClient();
 
-public class Command implements Serializable {
-    private final BuildClientMetaData clientMetaData;
-
-    public Command(BuildClientMetaData clientMetaData) {
-        this.clientMetaData = clientMetaData;
-    }
-
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
+    /**
+     * Returns a clock measuring the time since the request was made by the user of the client.
+     */
+    Clock getBuildTimeClock();
 }

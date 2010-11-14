@@ -13,25 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.launcher.protocol;
+package org.gradle.initialization;
 
-import org.gradle.initialization.BuildClientMetaData;
-
-import java.io.Serializable;
-
-public class Command implements Serializable {
-    private final BuildClientMetaData clientMetaData;
-
-    public Command(BuildClientMetaData clientMetaData) {
-        this.clientMetaData = clientMetaData;
-    }
-
-    public BuildClientMetaData getClientMetaData() {
-        return clientMetaData;
-    }
-
-    @Override
-    public String toString() {
-        return getClass().getSimpleName();
-    }
+/**
+ * A bunch of information about the client used to start this build.
+ */
+public interface BuildClientMetaData {
+    /**
+     * Appends a message to the given appendable describing how to run the client with the given command-line args.
+     */
+    void describeCommand(Appendable output, String... args);
 }
