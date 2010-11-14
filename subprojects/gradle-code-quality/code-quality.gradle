@@ -19,7 +19,7 @@ dependencies {
     compile project(':core')
     compile project(':plugins')
 
-    compile "org.codenarc:CodeNarc:0.10@jar"
+    compile "org.codenarc:CodeNarc:0.11@jar"
     compile libraries.slf4j_api
 
     // CodeNarc dependencies
@@ -27,7 +27,7 @@ dependencies {
             "org.gmetrics:GMetrics:0.3@jar"
 
     // Checkstyle dependencies
-    runtime "com.puppycrawl.tools:checkstyle:5.2@jar",
+    runtime "com.puppycrawl.tools:checkstyle:5.3@jar",
             libraries.google_collections,
             libraries.antlr,
             "commons-beanutils:commons-beanutils-core:1.8.3@jar"
