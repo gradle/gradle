@@ -18,7 +18,7 @@
     <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
-    <xsl:param name="root.filename">dsl</xsl:param>
+    <xsl:param name="root.filename">index</xsl:param>
     <xsl:param name="chunk.section.depth">0</xsl:param>
     <xsl:param name="chunk.quietly">1</xsl:param>
     <xsl:param name="use.id.as.filename">1</xsl:param>
