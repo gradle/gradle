@@ -17,23 +17,36 @@ package org.gradle.integtests.fixtures;
 
 import org.gradle.util.TestFile;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.io.File;
+import java.util.*;
 
 public class DaemonGradleExecuter extends ForkingGradleExecuter {
+    private static final Set<File> DAEMONS = new HashSet<File>();
+
     public DaemonGradleExecuter(TestFile gradleHomeDir) {
         super(gradleHomeDir);
     }
 
     @Override
     protected Map doRun(boolean expectFailure) {
+        addShutdownHook(getUserHomeDir());
         Map result = super.doRun(expectFailure);
         String output = (String) result.get("output");
         output = output.replace(String.format("Note: the Gradle build daemon is an experimental feature.%n"), "");
         output = output.replace(String.format("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.%n"), "");
         result.put("output", output);
         return result;
+    }
+
+    private void addShutdownHook(final File userHomeDir) {
+        if (!DAEMONS.add(userHomeDir)) {
+            return;
+        }
+        Runtime.getRuntime().addShutdownHook(new Thread(new Runnable() {
+            public void run() {
+                new ForkingGradleExecuter(getGradleHomeDir()).withUserHomeDir(userHomeDir).withArguments("--stop").run();
+            }
+        }));
     }
 
     @Override
