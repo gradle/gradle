@@ -30,27 +30,30 @@ class CrossVersionCompatibilityIntegrationTest {
     private final BasicGradleDistribution gradle08 = dist.previousVersion('0.8')
     private final BasicGradleDistribution gradle09rc1 = dist.previousVersion('0.9-rc-1')
     private final BasicGradleDistribution gradle09rc2 = dist.previousVersion('0.9-rc-2')
+    private final BasicGradleDistribution gradle09rc3 = dist.previousVersion('0.9-rc-3')
 
     @Test
     public void canBuildJavaProject() {
         dist.testFile('buildSrc/src/main/groovy').assertIsDir()
 
-        // Upgrade and downgrade
-        eachVersion([gradle08, gradle09rc1, gradle09rc2, dist, gradle09rc2, gradle09rc1, gradle08]) { version ->
+        // Upgrade and downgrade from previous version to current version and back again
+        eachVersion([gradle08, gradle09rc1, gradle09rc2, gradle09rc3]) { version ->
+            version.executer().inDirectory(dist.testDir).withTasks('build').run()
+            dist.executer().inDirectory(dist.testDir).withTasks('build').run()
             version.executer().inDirectory(dist.testDir).withTasks('build').run()
         }
     }
 
     @Test
     public void canUseWrapperFromPreviousVersionToRunCurrentVersion() {
-        eachVersion([gradle09rc1, gradle09rc2]) { version ->
+        eachVersion([gradle09rc1, gradle09rc2, gradle09rc3]) { version ->
             checkWrapperWorksWith(version, dist)
         }
     }
 
     @Test
     public void canUseWrapperFromCurrentVersionToRunPreviousVersion() {
-        eachVersion([gradle09rc1, gradle09rc2]) { version ->
+        eachVersion([gradle09rc1, gradle09rc2, gradle09rc3]) { version ->
             checkWrapperWorksWith(dist, version)
         }
     }
