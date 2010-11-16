@@ -22,11 +22,13 @@ import java.util.Map;
 public class ClassMetaData implements Serializable {
     private final String superClassName;
     private final boolean groovy;
+    private final String docComment;
     private final Map<String, PropertyMetaData> classProperties = new HashMap<String, PropertyMetaData>();
 
-    public ClassMetaData(String superClassName, boolean isGroovy) {
+    public ClassMetaData(String superClassName, boolean isGroovy, String docComment) {
         this.superClassName = superClassName;
         groovy = isGroovy;
+        this.docComment = docComment;
     }
 
     public Map<String, PropertyMetaData> getClassProperties() {
@@ -39,6 +41,10 @@ public class ClassMetaData implements Serializable {
 
     public String getSuperClassName() {
         return superClassName;
+    }
+
+    public String getDocComment() {
+        return docComment;
     }
 
     public void addReadableProperty(String name, String type) {

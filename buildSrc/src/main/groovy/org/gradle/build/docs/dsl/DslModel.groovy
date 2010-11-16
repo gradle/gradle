@@ -24,7 +24,7 @@ class DslModel {
         if (classDoc == null) {
             ClassMetaData classMetaData = classMetaData[className]
             if (!classMetaData) {
-                classMetaData = new ClassMetaData(null, false)
+                classMetaData = new ClassMetaData(null, false, "")
             }
             ExtensionMetaData extensionMetaData = extensionMetaData[className]
             if (!extensionMetaData) {

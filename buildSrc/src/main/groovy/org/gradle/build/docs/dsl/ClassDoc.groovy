@@ -63,7 +63,14 @@ class ClassDoc {
             }
         }
 
-        classSection.section[0].addBefore {
+        def properties = getSection('Properties')
+
+        def javadocComment = new JavadocConverter(classSection.ownerDocument).parse(classMetaData.docComment)
+        javadocComment.docbook.each { node ->
+            properties.addBefore(node)
+        }
+
+        properties.addBefore {
             section {
                 title('API Documentation')
                 para {
@@ -75,7 +82,7 @@ class ClassDoc {
         extensionMetaData.extensionClasses.each { Map map ->
             ClassDoc extensionClassDoc = model.getClassDoc(map.extensionClass)
             classSection << extensionClassDoc.classSection
-            
+
             classSection.lastChild.title[0].text = "${map.plugin} - ${extensionClassDoc.classSimpleName}"
         }
     }

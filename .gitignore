@@ -10,9 +10,12 @@
 /performanceTest/build
 /subprojects/*/ide
 /*.iml
-/subprojects/*/*.iml
 /*.ipr
 /*.iws
+/subprojects/*/*.iml
+/buildSrc/*.ipr
+/buildSrc/*.iws
+/buildSrc/*.iml
 *.classpath
 *.project
 /intTestHomeDir

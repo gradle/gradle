@@ -16,6 +16,7 @@
 
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
+apply plugin: 'idea'
 
 repositories {
     mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
@@ -23,8 +24,9 @@ repositories {
 
 dependencies {
     compile gradleApi()
-    // todo Actually it should be only groovy, but without junit we get a strange error. We need to understand this.
     groovy localGroovy()
+    testCompile 'junit:junit:4.8.1@jar'
+    testCompile 'org.spockframework:spock-core:0.4-groovy-1.7@jar'
 }
 
 checkstyleConfigDir = "$rootDir/../config/checkstyle"

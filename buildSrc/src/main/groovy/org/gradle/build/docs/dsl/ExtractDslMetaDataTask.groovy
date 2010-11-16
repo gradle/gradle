@@ -36,7 +36,7 @@ class ExtractDslMetaDataTask extends SourceTask {
         rootDoc.classes().each { SimpleGroovyClassDoc doc ->
             String className = doc.qualifiedTypeName()
             String superClassName = doc.superclass()?.qualifiedTypeName()
-            ClassMetaData classMetaData = new ClassMetaData(superClassName, doc.isGroovy())
+            ClassMetaData classMetaData = new ClassMetaData(superClassName, doc.isGroovy(), doc.rawCommentText)
             allClasses[className] = classMetaData
 
             doc.methods().each { GroovyMethodDoc method ->

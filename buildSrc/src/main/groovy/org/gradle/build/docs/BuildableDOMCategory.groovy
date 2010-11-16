@@ -48,6 +48,11 @@ class BuildableDOMCategory {
         }
     }
 
+    public static addBefore(Element sibling, Node n) {
+        def parent = sibling.parentNode
+        parent.insertBefore(n, sibling)
+    }
+
     public static addAfter(Element sibling, Closure cl) {
         DomBuilder builder = new DomBuilder(sibling.ownerDocument, null)
         cl.delegate = builder

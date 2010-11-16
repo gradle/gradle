@@ -1,5 +1,4 @@
 <section>
-    <para>The main API you use to interact with Gradle from your build file.</para>
     <section>
         <title>Properties</title>
         <table>
