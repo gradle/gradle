@@ -16,6 +16,7 @@
 package org.gradle.launcher;
 
 import org.gradle.BuildExceptionReporter;
+import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.initialization.DefaultBuildRequestMetaData;
 import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.StartParameter;
@@ -36,7 +37,10 @@ import org.gradle.logging.internal.OutputEvent;
 import org.gradle.logging.internal.OutputEventListener;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.messaging.remote.internal.Connection;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.UncheckedException;
 
+import java.io.*;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -56,10 +60,28 @@ public class DaemonMain implements Runnable {
         launcherFactory = new DefaultGradleLauncherFactory(loggingServices);
     }
 
-    public static void main(String[] args) {
+    public static void main(String[] args) throws IOException {
         StartParameter startParameter = new DefaultCommandLineConverter().convert(Arrays.asList(args));
         DaemonConnector connector = new DaemonConnector(startParameter.getGradleUserHomeDir());
-        new DaemonMain(new LoggingServiceRegistry(), connector).run();
+        LoggingServiceRegistry loggingServices = new LoggingServiceRegistry();
+        addLogFileWriters(startParameter, loggingServices);
+        new DaemonMain(loggingServices, connector).run();
+    }
+
+    private static void addLogFileWriters(StartParameter startParameter, LoggingServiceRegistry loggingServices) throws IOException {
+        File stderrOut = new File(startParameter.getGradleUserHomeDir(), String.format("daemon/%s/daemon.err.log", new GradleVersion().getVersion()));
+        stderrOut.getParentFile().mkdirs();
+        final Writer writer = new BufferedWriter(new FileWriter(stderrOut));
+        loggingServices.get(LoggingOutputInternal.class).addStandardErrorListener(new StandardOutputListener() {
+            public void onOutput(CharSequence output) {
+                try {
+                    writer.append(output);
+                    writer.flush();
+                } catch (IOException e) {
+                    throw UncheckedException.asUncheckedException(e);
+                }
+            }
+        });
     }
 
     public void run() {
