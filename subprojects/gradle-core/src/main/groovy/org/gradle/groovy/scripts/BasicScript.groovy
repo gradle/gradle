@@ -43,9 +43,9 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script implements o
     }
 
     void setProperty(String property, newValue) {
-        if ("metaClass".equals(property)) {
+        if ("metaClass" == property) {
             setMetaClass((MetaClass) newValue)
-        } else if ("scriptTarget".equals(property)) {
+        } else if ("scriptTarget" == property) {
             target = newValue
         } else {
             target."$property" = newValue
@@ -53,7 +53,7 @@ abstract class BasicScript extends org.gradle.groovy.scripts.Script implements o
     }
 
     def propertyMissing(String property) {
-        if ('out'.equals(property)) {
+        if ('out' == property) {
             System.out
         } else {
             target."$property"

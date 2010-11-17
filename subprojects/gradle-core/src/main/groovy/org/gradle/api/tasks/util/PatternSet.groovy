@@ -66,7 +66,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
         if (o == null || o.getClass() != getClass()) {
             return false
         }
-        return o.includes.equals(includes) && o.excludes.equals(excludes) && o.caseSensitive == caseSensitive
+        return o.includes == includes && o.excludes == excludes && o.caseSensitive == caseSensitive
     }
 
     def int hashCode() {
@@ -93,7 +93,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
 
         boolean hasIncludes = includes || includeSpecs
         if (hasIncludes) {
-            List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>()
+            List<Spec<FileTreeElement>> matchers = []
             for (String include: includes) {
                 matchers.add(new RelativePathSpec(PatternMatcherFactory.getPatternMatcher(true, caseSensitive, include)))
             }
@@ -107,7 +107,7 @@ class PatternSet implements AntBuilderAware, PatternFilterable {
             return includeSpec
         }
 
-        List<Spec<FileTreeElement>> matchers = new ArrayList<Spec<FileTreeElement>>()
+        List<Spec<FileTreeElement>> matchers = []
         for (String exclude: allExcludes) {
             matchers.add(new RelativePathSpec(PatternMatcherFactory.getPatternMatcher(false, caseSensitive, exclude)))
         }

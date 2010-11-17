@@ -16,7 +16,11 @@
 <ruleset xmlns="http://codenarc.org/ruleset/1.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
          xsi:schemaLocation="http://codenarc.org/ruleset/1.0 http://codenarc.org/ruleset-schema.xsd"
          xsi:noNamespaceSchemaLocation="http://codenarc.org/ruleset-schema.xsd">
-    <!--<ruleset-ref path='rulesets/basic.xml'/>-->
+    <!--<ruleset-ref path='rulesets/basic.xml'>-->
+        <!--<exclude name='ExplicitHashSetInstantiation'/>-->
+        <!--<exclude name='ExplicitCallToAndMethod'/>-->
+        <!--<exclude name='ExplicitCallToOrMethod'/>-->
+    <!--</ruleset-ref>-->
     <ruleset-ref path='rulesets/braces.xml'/>
     <ruleset-ref path='rulesets/imports.xml'/>
     <ruleset-ref path='rulesets/naming.xml'>

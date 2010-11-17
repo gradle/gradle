@@ -54,11 +54,11 @@ class Snarl implements Announcer {
   }
 
   private String formatProperty(String name, String value) {
-    if (!value) {
-      return ""
+    if (value) {
+      return "#?" + name + "=" + value
     }
     else {
-      return "#?" + name + "=" + value
+      return ""
     }
   }
 
@@ -66,11 +66,7 @@ class Snarl implements Announcer {
     try {
       closure(closable)
     } finally {
-      try {
-        closable.close()
-      } catch (Exception e) {
-
-      }
+      closable.close()
     }
   }
 }
