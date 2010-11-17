@@ -13,20 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.build.docs.dsl;
 
-apply plugin: 'groovy'
-apply plugin: 'code-quality'
-apply plugin: 'idea'
+import org.gradle.build.docs.dsl.model.ClassMetaData;
 
-repositories {
-    mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
+import java.util.Map;
+
+public class ClassMetaDataRepository {
+    private final Map<String, ClassMetaData> classes;
+
+    public ClassMetaDataRepository(Map<String, ClassMetaData> classes) {
+        this.classes = classes;
+    }
+
+    ClassMetaData findClass(String fullyQualifiedName) {
+        return classes.get(fullyQualifiedName);
+    }
 }
-
-dependencies {
-    compile gradleApi()
-    groovy localGroovy()
-    testCompile 'junit:junit:4.8.1@jar'
-    testCompile 'org.spockframework:spock-core:0.4-groovy-1.7@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'
-}
-
-apply from: '../gradle/codeQuality.gradle'

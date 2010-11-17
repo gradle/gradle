@@ -17,6 +17,9 @@ package org.gradle.build.docs.dsl
 
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.w3c.dom.Document
 
 class ClassDoc {
     final Element classSection
@@ -25,13 +28,13 @@ class ClassDoc {
     final String classSimpleName
     final ClassMetaData classMetaData
 
-    ClassDoc(String className, Element classContent, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model) {
+    ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model, JavadocConverter javadocConverter) {
         this.className = className
         id = className
         classSimpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
 
-        classSection = classContent.ownerDocument.createElement('chapter')
+        classSection = targetDocument.createElement('chapter')
         classSection['@id'] = id
         classSection.addFirst {
             title(classSimpleName)
@@ -42,8 +45,8 @@ class ClassDoc {
 
         propertiesTable.tr.each { Element tr ->
             def cells = tr.td
-            if (cells.size() != 2) {
-                throw new RuntimeException("Expected 2 cells in <tr>, found: $tr")
+            if ([1..2].contains(cells.size())) {
+                throw new RuntimeException("Expected 1 or 2 cells in <tr>, found: $tr")
             }
             String propName = cells[0].text().trim()
             PropertyMetaData property = classMetaData.classProperties[propName]
@@ -66,6 +69,12 @@ class ClassDoc {
                     }
                 }
             }
+            if (tr.td.size() == 2) {
+                tr.td[1].addAfter { td() }
+            }
+            javadocConverter.parse(property.rawCommentText, classMetaData).docbook.each { node ->
+                tr.td[2] << node
+            }
         }
 
         if (classMetaData.superClassName) {
@@ -80,7 +89,7 @@ class ClassDoc {
 
         def properties = getSection('Properties')
 
-        def javadocComment = new JavadocConverter(classSection.ownerDocument).parse(classMetaData.docComment)
+        def javadocComment = javadocConverter.parse(classMetaData.docComment, classMetaData)
         javadocComment.docbook.each { node ->
             properties.addBefore(node)
         }

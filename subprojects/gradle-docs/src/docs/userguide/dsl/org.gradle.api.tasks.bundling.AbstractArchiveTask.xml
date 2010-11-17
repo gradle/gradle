@@ -11,12 +11,9 @@
             </thead>
             <tr>
                 <td>archiveName</td>
-                <td>The archive name. If the name has not been explicitly set, the pattern for the name is:
-                    <literal>[baseName]-[appendix]-[version]-[classifier].[extension]</literal>.</td>
             </tr>
             <tr>
                 <td>destinationDir</td>
-                <td>The directory where the archive is generated into.</td>
             </tr>
         </table>
     </section>

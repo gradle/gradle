@@ -11,11 +11,9 @@
             </thead>
             <tr>
                 <td>includes</td>
-                <td>The set of include patterns.</td>
             </tr>
             <tr>
                 <td>excludes</td>
-                <td>The set of exclude patterns.</td>
             </tr>
         </table>
     </section>

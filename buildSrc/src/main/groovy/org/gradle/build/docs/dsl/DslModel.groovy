@@ -17,29 +17,32 @@ package org.gradle.build.docs.dsl
 
 import org.w3c.dom.Document
 import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.build.docs.dsl.model.ClassMetaData
 
 class DslModel {
     private final File classDocbookDir
     private final Document document
     private final Iterable<File> classpath
     private final Map<String, ClassDoc> classes = [:]
-    private final Map<String, ClassMetaData> classMetaData
+    private final ClassMetaDataRepository classMetaData
     private final Map<String, ExtensionMetaData> extensionMetaData
+    private final JavadocConverter javadocConverter
 
-    DslModel(File classDocbookDir, Document document, Iterable<File> classpath, Map<String, ClassMetaData> classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
+    DslModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
         this.classDocbookDir = classDocbookDir
         this.document = document
         this.classpath = classpath
         this.classMetaData = classMetaData
         this.extensionMetaData = extensionMetaData
+        javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, classMetaData))
     }
 
     def getClassDoc(String className) {
         ClassDoc classDoc = classes[className]
         if (classDoc == null) {
-            ClassMetaData classMetaData = classMetaData[className]
+            ClassMetaData classMetaData = classMetaData.findClass(className)
             if (!classMetaData) {
-                classMetaData = new ClassMetaData(null, false, "")
+                classMetaData = new ClassMetaData(className, null, false, "", [])
             }
             ExtensionMetaData extensionMetaData = extensionMetaData[className]
             if (!extensionMetaData) {
@@ -50,7 +53,7 @@ class DslModel {
                 throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
             }
             XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
-            classDoc = new ClassDoc(className, provider.parse(classFile), classMetaData, extensionMetaData, this)
+            classDoc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
             classes[className] = classDoc
         }
         return classDoc

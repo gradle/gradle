@@ -11,7 +11,6 @@
             </thead>
             <tr>
                 <td>outputFile</td>
-                <td>The output file.</td>
             </tr>
         </table>
     </section>

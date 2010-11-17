@@ -24,6 +24,7 @@ import org.gradle.api.file.FileVisitDetails
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
+import org.gradle.build.docs.dsl.model.ClassMetaData
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
@@ -51,16 +52,16 @@ class ExtractDslMetaDataTask extends SourceTask {
         rootDoc.classes().each { SimpleGroovyClassDoc doc ->
             String className = doc.qualifiedTypeName()
             String superClassName = doc.superclass()?.qualifiedTypeName()
-            ClassMetaData classMetaData = new ClassMetaData(superClassName, doc.isGroovy(), doc.rawCommentText)
+            ClassMetaData classMetaData = new ClassMetaData(className, superClassName, doc.isGroovy(), doc.rawCommentText, doc.importedClassesAndPackages)
             allClasses[className] = classMetaData
 
             doc.methods().each { GroovyMethodDoc method ->
                 if (method.name().matches("get.+")) {
                     String propName = method.name()[3].toLowerCase() + method.name().substring(4)
-                    classMetaData.addReadableProperty(propName, method.returnType().qualifiedTypeName())
+                    classMetaData.addReadableProperty(propName, method.returnType().qualifiedTypeName(), method.rawCommentText)
                 } else if (method.name().matches("set.+")) {
                     String propName = method.name()[3].toLowerCase() + method.name().substring(4)
-                    classMetaData.addWriteableProperty(propName, method.returnType().qualifiedTypeName())
+                    classMetaData.addWriteableProperty(propName, method.returnType().qualifiedTypeName(), method.rawCommentText)
                 }
             }
 
@@ -72,8 +73,8 @@ class ExtractDslMetaDataTask extends SourceTask {
             doc.resolve(rootDoc)
 
             doc.properties().each { GroovyFieldDoc field ->
-                classMetaData.addReadableProperty(field.name(), field.type().qualifiedTypeName())
-                classMetaData.addWriteableProperty(field.name(), field.type().qualifiedTypeName())
+                classMetaData.addReadableProperty(field.name(), field.type().qualifiedTypeName(), field.rawCommentText)
+                classMetaData.addWriteableProperty(field.name(), field.type().qualifiedTypeName(), field.rawCommentText)
             }
         }
 

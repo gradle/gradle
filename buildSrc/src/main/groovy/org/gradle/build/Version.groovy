@@ -26,10 +26,7 @@ class Version {
     def Version(project) {
         this.versionNumber = project.nextVersion
         File timestampFile = new File(project.buildDir, 'timestamp.txt')
-        if (!timestampFile.isFile()) {
-            timestampFile.parentFile.mkdirs()
-            timestampFile.createNewFile()
-        } else {
+        if (timestampFile.isFile()) {
             boolean uptodate = true
             def modified = timestampFile.lastModified()
             project.project(':core').fileTree('src/main').visit {fte ->
@@ -41,15 +38,18 @@ class Version {
             if (!uptodate) {
                 timestampFile.setLastModified(new Date().time)
             }
+        } else {
+            timestampFile.parentFile.mkdirs()
+            timestampFile.createNewFile()
         }
         buildTime = new Date(timestampFile.lastModified())
 
         project.gradle.taskGraph.whenReady {graph ->
-            if (!graph.hasTask(':releaseVersion')) {
+            if (graph.hasTask(':releaseVersion')) {
+                release = true
+            } else {
                 this.versionNumber += "-" + getTimestamp()
                 release = false
-            } else {
-                release = true
             }
         }
     }

@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl;
+package org.gradle.build.docs.dsl.model;
 
 import java.io.Serializable;
 
 public class PropertyMetaData implements Serializable {
     private String type;
     private boolean writeable;
+    private String rawCommentText;
 
     public String getType() {
         return type;
@@ -35,5 +36,13 @@ public class PropertyMetaData implements Serializable {
 
     public void setWriteable(boolean writeable) {
         this.writeable = writeable;
+    }
+
+    public String getRawCommentText() {
+        return rawCommentText;
+    }
+
+    public void setRawCommentText(String rawCommentText) {
+        this.rawCommentText = rawCommentText;
     }
 }

@@ -15,21 +15,18 @@
  */
 package org.gradle.build.docs.dsl
 
-import spock.lang.Specification
-import javax.xml.parsers.DocumentBuilderFactory
-import org.w3c.dom.Document
-import org.w3c.dom.Node
-import groovy.xml.dom.DOMUtil
+import org.gradle.build.docs.dsl.model.ClassMetaData
 
-class JavadocConverterTest extends Specification {
-    final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
-    final JavadocConverter parser = new JavadocConverter(document)
+class JavadocConverterTest extends XmlSpecification {
+    final ClassMetaData classMetaData = Mock()
+    final JavadocLinkConverter linkConverter = Mock()
+    final JavadocConverter parser = new JavadocConverter(document, linkConverter)
 
     def removesLeadingAsterixFromEachLine() {
         when:
         def result = parser.parse(''' * line 1
  * line 2
-''')
+''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -45,7 +42,7 @@ line 2</para>
         def result = parser.parse(''' * line 1
  * @tag line 2
  * line 3
-''')
+''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -61,7 +58,7 @@ line 2</para>
  * line 1
  *
  * @tag line 2
-''')
+''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -76,7 +73,7 @@ line 2</para>
         def result = parser.parse(''' *
  *
  * @tag line 2
-''')
+''', classMetaData)
 
         then:
         result.docbook == []
@@ -87,7 +84,7 @@ line 2</para>
         def result = parser.parse(''' * first sentence
  *
  * @tag line 2
-''')
+''', classMetaData)
 
         then:
         format(result.firstSentence) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -101,7 +98,7 @@ line 2</para>
         when:
         def result = parser.parse(''' * first sentence. second sentence
  * @tag line 2
-''')
+''', classMetaData)
 
         then:
         format(result.firstSentence) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -115,7 +112,7 @@ line 2</para>
         when:
         def result = parser.parse(''' *
  * @tag ignore-me
-''')
+''', classMetaData)
 
         then:
         result.firstSentence == []
@@ -123,7 +120,7 @@ line 2</para>
 
     def convertsPTagsToParaTags() {
         when:
-        def result = parser.parse('<p>para 1</p><p>para 2</p>')
+        def result = parser.parse('<p>para 1</p><p>para 2</p>', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -136,7 +133,7 @@ line 2</para>
 
     def convertsCodeTagsToLiteralTags() {
         when:
-        def result = parser.parse('This is <code>code</code>. So is {@code this}.')
+        def result = parser.parse('This is <code>code</code>. So is {@code this}.', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -148,7 +145,7 @@ line 2</para>
 
     def doesNotInterpretContentsOfCodeTagAsHtml() {
         when:
-        def result = parser.parse('{@code List<String> && a < 9}')
+        def result = parser.parse('{@code List<String> && a < 9}', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -162,7 +159,7 @@ line 2</para>
         when:
         def result = parser.parse('''<pre>this is some
 literal code</pre>
-''')
+''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -175,7 +172,7 @@ literal code</programlisting>
 
     def convertsUlAndLiTagsToItemizedListTags() {
         when:
-        def result = parser.parse('<ul><li>item1</li></ul>')
+        def result = parser.parse('<ul><li>item1</li></ul>', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -189,19 +186,20 @@ literal code</programlisting>
 
     def convertsALinkTag() {
         when:
-        def result = parser.parse('{@link someClass}')
+        def result = parser.parse('{@link someClass}', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <apilink class="someClass"/>
+  <someLink/>
 </root>
 '''
+        _ * linkConverter.resolve('someClass', classMetaData) >> [document.createElement("someLink")]
     }
 
     def convertsAnEmTag() {
         when:
-        def result = parser.parse('<em>text</em>')
+        def result = parser.parse('<em>text</em>', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -220,7 +218,7 @@ text1
 text2
 <h2>section 2</h2>
 text3
-''')
+''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -238,13 +236,5 @@ text2
 text3</section>
 </root>
 '''
-    }
-
-    def format(Iterable<? extends Node> nodes) {
-        document.appendChild(document.createElement('root'))
-        nodes.each { node ->
-            document.documentElement.appendChild(node)
-        }
-        return DOMUtil.serialize(document.documentElement)
     }
 }

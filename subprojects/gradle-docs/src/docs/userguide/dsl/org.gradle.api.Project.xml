@@ -11,11 +11,9 @@
             </thead>
             <tr>
                 <td>name</td>
-                <td>The name of the project.</td>
             </tr>
             <tr>
                 <td>path</td>
-                <td>The path of the project.</td>
             </tr>
         </table>
     </section>

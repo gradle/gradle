@@ -15,6 +15,7 @@
  */
 package org.gradle.build.docs.dsl;
 
+import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -35,13 +36,15 @@ import java.util.regex.Pattern;
 public class JavadocConverter {
     public final Pattern headerPattern = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
     public final Pattern endFirstSentencePattern = Pattern.compile("(\\.\\s+)|$", Pattern.MULTILINE);
-    private Document document;
+    private final Document document;
+    private final JavadocLinkConverter linkConverter;
 
-    public JavadocConverter(Document document) {
+    public JavadocConverter(Document document, JavadocLinkConverter linkConverter) {
         this.document = document;
+        this.linkConverter = linkConverter;
     }
 
-    DocComment parse(final String rawCommentText) {
+    DocComment parse(final String rawCommentText, ClassMetaData classMetaData) {
         StringBuilder builder = new StringBuilder();
         try {
             BufferedReader reader = new BufferedReader(new StringReader(rawCommentText));
@@ -61,8 +64,8 @@ public class JavadocConverter {
 
         String normalisedCommentText = builder.toString().trim();
         String firstSentence = firstSentence(normalisedCommentText);
-        final List<Node> firstSentenceNodes = textToDom(firstSentence);
-        final List<Node> nodes = textToDom(normalisedCommentText);
+        final List<Node> firstSentenceNodes = textToDom(firstSentence, classMetaData);
+        final List<Node> nodes = textToDom(normalisedCommentText, classMetaData);
 
         return new DocComment() {
             public Iterable<? extends Node> getDocbook() {
@@ -81,7 +84,7 @@ public class JavadocConverter {
         return normalisedCommentText.substring(0, matcher.end()).trim();
     }
 
-    private List<Node> textToDom(String text) {
+    private List<Node> textToDom(String text, ClassMetaData classMetaData) {
         Lexer lexer = new Lexer(text);
         final NodeStack nodes = new NodeStack();
         int sectionDepth = 0;
@@ -122,7 +125,6 @@ public class JavadocConverter {
                         break;
                     }
                     if (lexer.value.equalsIgnoreCase("link")) {
-                        nodes.push(lexer.value, document.createElement("apilink"));
                         link = new StringBuilder();
                         break;
                     }
@@ -149,7 +151,9 @@ public class JavadocConverter {
                     break;
                 case End:
                     if (lexer.value.equalsIgnoreCase("link")) {
-                        nodes.pop("link").setAttribute("class", link.toString());
+                        for (Node node : linkConverter.resolve(link.toString(), classMetaData)) {
+                            nodes.appendChild(node);
+                        }
                         link = null;
                         break;
                     }
@@ -182,12 +186,16 @@ public class JavadocConverter {
             stack.getFirst().appendChild(document.createTextNode(text));
         }
 
-        public void push(String tag, Element element) {
+        public void appendChild(Node node) {
             if (stack.isEmpty()) {
-                nodes.add(element);
+                nodes.add(node);
             } else {
-                stack.getFirst().appendChild(element);
+                stack.getFirst().appendChild(node);
             }
+        }
+
+        public void push(String tag, Element element) {
+            appendChild(element);
             stack.addFirst(element);
             tags.addFirst(tag);
         }
