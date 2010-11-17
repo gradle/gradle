@@ -119,22 +119,7 @@ configure(groovyProjects()) {
 }
 
 allprojects {
-    apply plugin: 'code-quality'
-
-    checkstyleConfigDir = "$rootDir/config/checkstyle"
-    checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
-    codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
-    checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
-}
-configure(groovyProjects()) {
-    sourceSets.allObjects { sourceSet ->
-        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
-            configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
-            source sourceSet.allGroovy
-            classpath = sourceSet.compileClasspath
-            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}-groovy.xml")
-        }
-    }
+    apply from: "$rootDir/gradle/codeQuality.gradle"
 }
 
 allprojects {

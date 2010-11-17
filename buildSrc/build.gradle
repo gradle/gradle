@@ -29,12 +29,4 @@ dependencies {
     testCompile 'org.spockframework:spock-core:0.4-groovy-1.7@jar'
 }
 
-checkstyleConfigDir = "$rootDir/../config/checkstyle"
-checkstyleConfigFileName = new File(checkstyleConfigDir, 'checkstyle.xml')
-codeNarcConfigFileName = "$rootDir/../config/codenarc.xml"
-checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
-
-task ide(type: Sync) {
-    into file('lib')
-    from { configurations.testRuntime.files(DependencySpecs.type(Type.EXTERNAL)) }
-}
+apply from: '../gradle/codeQuality.gradle'
