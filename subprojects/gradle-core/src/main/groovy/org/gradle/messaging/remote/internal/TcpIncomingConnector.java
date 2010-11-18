@@ -88,20 +88,25 @@ public class TcpIncomingConnector implements IncomingConnector, AsyncStoppable {
 
         public void run() {
             try {
-                while (true) {
-                    SocketChannel socket = serverSocket.accept();
-                    InetSocketAddress remoteAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
-                    if (!localAddresses.contains(remoteAddress.getAddress())) {
-                        LOGGER.error("Cannot accept connection from remote address {}.", remoteAddress.getAddress());
+                try {
+                    while (true) {
+                        SocketChannel socket = serverSocket.accept();
+                        InetSocketAddress remoteAddress = (InetSocketAddress) socket.socket().getRemoteSocketAddress();
+                        if (!localAddresses.contains(remoteAddress.getAddress())) {
+                            LOGGER.error("Cannot accept connection from remote address {}.", remoteAddress.getAddress());
+                        }
+                        URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
+                        LOGGER.debug("Accepted connection from {}.", remoteUri);
+                        action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
                     }
-                    URI remoteUri = new URI(String.format("tcp://localhost:%d", remoteAddress.getPort()));
-                    LOGGER.debug("Accepted connection from {}.", remoteUri);
-                    action.execute(new ConnectEvent<Connection<Object>>(new SocketConnection<Object>(socket, localAddress, remoteUri, classLoader), localAddress, remoteUri));
+                } catch (ClosedChannelException e) {
+                    // Ignore
+                } catch (Exception e) {
+                    LOGGER.error("Could not accept remote connection.", e);
                 }
-            } catch (ClosedChannelException e) {
-                // Ignore
-            } catch (Exception e) {
-                LOGGER.error("Could not accept remote connection.", e);
+            } finally {
+                new CompositeStoppable(serverSocket).stop();
+                serverSockets.remove(serverSocket);
             }
         }
     }
