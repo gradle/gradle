@@ -74,7 +74,7 @@ public class ClassMetaData implements Serializable {
     private PropertyMetaData getProperty(String name) {
         PropertyMetaData property = classProperties.get(name);
         if (property == null) {
-            property = new PropertyMetaData();
+            property = new PropertyMetaData(name);
             classProperties.put(name, property);
         }
         return property;

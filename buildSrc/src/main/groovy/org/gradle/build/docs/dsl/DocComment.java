@@ -19,6 +19,4 @@ import org.w3c.dom.Node;
 
 public interface DocComment {
     Iterable<? extends Node> getDocbook();
-
-    Iterable<? extends Node> getFirstSentence();
 }

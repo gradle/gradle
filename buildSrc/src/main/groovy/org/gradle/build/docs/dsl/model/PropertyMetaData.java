@@ -21,6 +21,15 @@ public class PropertyMetaData implements Serializable {
     private String type;
     private boolean writeable;
     private String rawCommentText;
+    private final String name;
+
+    public PropertyMetaData(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
 
     public String getType() {
         return type;

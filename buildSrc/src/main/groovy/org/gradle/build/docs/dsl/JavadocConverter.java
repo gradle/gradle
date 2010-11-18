@@ -15,7 +15,9 @@
  */
 package org.gradle.build.docs.dsl;
 
+import org.gradle.api.GradleException;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
+import org.gradle.build.docs.dsl.model.PropertyMetaData;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -24,18 +26,15 @@ import org.w3c.dom.Node;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- * Converts a raw javadoc comment into docbook.
+ * Converts raw javadoc comments into docbook.
  */
 public class JavadocConverter {
-    public final Pattern headerPattern = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
-    public final Pattern endFirstSentencePattern = Pattern.compile("(\\.\\s+)|$", Pattern.MULTILINE);
+    private static final Pattern HEADER_PATTERN = Pattern.compile("h(\\d)", Pattern.CASE_INSENSITIVE);
     private final Document document;
     private final JavadocLinkConverter linkConverter;
 
@@ -44,125 +43,62 @@ public class JavadocConverter {
         this.linkConverter = linkConverter;
     }
 
-    DocComment parse(final String rawCommentText, ClassMetaData classMetaData) {
-        StringBuilder builder = new StringBuilder();
-        try {
-            BufferedReader reader = new BufferedReader(new StringReader(rawCommentText));
-            String line;
-            while ((line = reader.readLine()) != null) {
-                line = line.replaceFirst("\\s*\\*\\s*", "");
-                if (line.startsWith("@")) {
-                    // Ignore the tag section of the comment
-                    break;
-                }
-                builder.append(line);
-                builder.append("\n");
+    public DocComment parse(final String rawCommentText, ClassMetaData classMetaData) {
+        CommentSource commentSource = new CommentSource() {
+            public String getCommentText() {
+                throw new UnsupportedOperationException();
             }
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
+        };
+
+        try {
+            return parse(rawCommentText, classMetaData, commentSource);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nComment: %s", classMetaData.getClassName(), rawCommentText), e);
         }
+    }
 
-        String normalisedCommentText = builder.toString().trim();
-        String firstSentence = firstSentence(normalisedCommentText);
-        final List<Node> firstSentenceNodes = textToDom(firstSentence, classMetaData);
-        final List<Node> nodes = textToDom(normalisedCommentText, classMetaData);
+    public DocComment parse(String rawCommentText, PropertyMetaData propertyMetaData, ClassMetaData classMetaData) {
+        CommentSource commentSource = new CommentSource() {
+            public String getCommentText() {
+                return "<em>this is the inherited text</em>";
+            }
+        };
+        try {
+            return parse(rawCommentText, classMetaData, commentSource);
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", classMetaData.getClassName(), propertyMetaData.getName(), rawCommentText), e);
+        }
+    }
 
+    private DocComment parse(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
+        final List<Node> nodes = textToDom(rawCommentText, classMetaData, inheritedCommentSource);
         return new DocComment() {
             public Iterable<? extends Node> getDocbook() {
                 return nodes;
             }
-
-            public Iterable<? extends Node> getFirstSentence() {
-                return firstSentenceNodes;
-            }
         };
     }
 
-    private String firstSentence(String normalisedCommentText) {
-        Matcher matcher = endFirstSentencePattern.matcher(normalisedCommentText);
-        matcher.find();
-        return normalisedCommentText.substring(0, matcher.end()).trim();
-    }
-
-    private List<Node> textToDom(String text, ClassMetaData classMetaData) {
-        Lexer lexer = new Lexer(text);
-        final NodeStack nodes = new NodeStack();
-        int sectionDepth = 0;
-        StringBuilder link = null;
+    private List<Node> textToDom(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
+        Lexer lexer = new Lexer(new Scanner(rawCommentText));
+        NodeStack nodes = new NodeStack();
+        HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes);
+        handler.add(new TagToElementTranslatingTokenHandler(nodes, document));
+        handler.add(new HeaderHandler(nodes, document));
+        handler.add(new LinkHandler(nodes, linkConverter, classMetaData));
+        handler.add(new InheritDocHandler(lexer, inheritedCommentSource));
 
         while (lexer.next()) {
             switch (lexer.token) {
                 case Text:
-                    if (link != null) {
-                        link.append(lexer.value);
-                        break;
-                    }
-                    nodes.appendChild(lexer.value);
+                    handler.onText(lexer.value);
                     break;
                 case Start:
-                    if (lexer.value.equalsIgnoreCase("p")) {
-                        nodes.push(lexer.value, document.createElement("para"));
-                        break;
-                    }
-                    if (lexer.value.equalsIgnoreCase("code")) {
-                        nodes.push(lexer.value, document.createElement("literal"));
-                        break;
-                    }
-                    if (lexer.value.equalsIgnoreCase("pre")) {
-                        nodes.push(lexer.value, document.createElement("programlisting"));
-                        break;
-                    }
-                    if (lexer.value.equalsIgnoreCase("em")) {
-                        nodes.push(lexer.value, document.createElement("emphasis"));
-                        break;
-                    }
-                    if (lexer.value.equalsIgnoreCase("ul")) {
-                        nodes.push(lexer.value, document.createElement("itemizedlist"));
-                        break;
-                    }
-                    if (lexer.value.equalsIgnoreCase("li")) {
-                        nodes.push(lexer.value, document.createElement("listitem"));
-                        break;
-                    }
-                    if (lexer.value.equalsIgnoreCase("link")) {
-                        link = new StringBuilder();
-                        break;
-                    }
-                    Matcher matcher = headerPattern.matcher(lexer.value);
-                    if (matcher.matches()) {
-                        int depth = Integer.parseInt(matcher.group(1));
-                        if (sectionDepth == 0) {
-                            sectionDepth = depth - 1;
-                        }
-                        while (sectionDepth >= depth) {
-                            nodes.pop("section");
-                            sectionDepth--;
-                        }
-                        Element section = document.createElement("section");
-                        while (sectionDepth < depth) {
-                            nodes.push("section", section);
-                            sectionDepth++;
-                        }
-                        nodes.push("title", document.createElement("title"));
-                        sectionDepth = depth;
-                        break;
-                    }
-                    nodes.appendChild(String.format("!!UNKNOWN TAG %s!!", lexer.value));
+                    handler.onStartTag(lexer.value);
                     break;
                 case End:
-                    if (lexer.value.equalsIgnoreCase("link")) {
-                        for (Node node : linkConverter.resolve(link.toString(), classMetaData)) {
-                            nodes.appendChild(node);
-                        }
-                        link = null;
-                        break;
-                    }
-                    Matcher endMatcher = headerPattern.matcher(lexer.value);
-                    if (endMatcher.matches()) {
-                        nodes.pop("title");
-                        break;
-                    }
-                    nodes.pop(lexer.value);
+                    handler.onEndTag(lexer.value);
+                    break;
             }
         }
         return nodes.nodes;
@@ -202,7 +138,7 @@ public class JavadocConverter {
 
         public Element pop(String tag) {
             Element result = null;
-            if (!tags.isEmpty() && tags.getFirst().equalsIgnoreCase(tag)) {
+            if (!tags.isEmpty() && tags.getFirst().equals(tag)) {
                 result = stack.removeFirst();
                 tags.removeFirst();
             }
@@ -210,91 +146,409 @@ public class JavadocConverter {
         }
     }
 
+    private class HtmlGeneratingTokenHandler {
+        final NodeStack nodes;
+        final List<TagHandler> handlers = new ArrayList<TagHandler>();
+        final LinkedList<TagHandler> handlerStack = new LinkedList<TagHandler>();
+        final LinkedList<String> tagStack = new LinkedList<String>();
+
+        public HtmlGeneratingTokenHandler(NodeStack nodes) {
+            this.nodes = nodes;
+        }
+
+        public void add(TagHandler handler) {
+            handlers.add(handler);
+        }
+
+        public void onStartTag(String name) {
+            for (TagHandler handler : handlers) {
+                if (handler.onStartTag(name)) {
+                    handlerStack.addFirst(handler);
+                    tagStack.addFirst(name);
+                    return;
+                }
+            }
+
+            nodes.appendChild(String.format("!!UNKNOWN TAG %s!!", name));
+        }
+
+        public void onText(String text) {
+            if (!handlerStack.isEmpty()) {
+                handlerStack.getFirst().onText(text);
+                return;
+            }
+
+            nodes.appendChild(text);
+        }
+
+        public void onEndTag(String name) {
+            if (!tagStack.isEmpty() && tagStack.getFirst().equals(name)) {
+                tagStack.removeFirst();
+                handlerStack.removeFirst().onEndTag(name);
+            }
+        }
+    }
+
+    private interface TagHandler {
+        boolean onStartTag(String tag);
+
+        void onText(String text);
+
+        void onEndTag(String tag);
+    }
+
+    private static class TagToElementTranslatingTokenHandler implements TagHandler {
+        private final NodeStack nodes;
+        private final Document document;
+        private final Map<String, String> tagToElementMap = new HashMap<String, String>();
+
+        private TagToElementTranslatingTokenHandler(NodeStack nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+            tagToElementMap.put("p", "para");
+            tagToElementMap.put("code", "literal");
+            tagToElementMap.put("pre", "programlisting");
+            tagToElementMap.put("ul", "itemizedlist");
+            tagToElementMap.put("li", "listitem");
+            tagToElementMap.put("em", "emphasis");
+        }
+
+        public boolean onStartTag(String tag) {
+            String element = tagToElementMap.get(tag);
+            if (element == null) {
+                return false;
+            }
+            nodes.push(tag, document.createElement(element));
+            return true;
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
+        }
+
+        public void onEndTag(String tag) {
+            nodes.pop(tag);
+        }
+    }
+
+    private static class HeaderHandler implements TagHandler {
+        final NodeStack nodes;
+        final Document document;
+        int sectionDepth;
+
+        private HeaderHandler(NodeStack nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+        }
+
+        public boolean onStartTag(String tag) {
+            Matcher matcher = HEADER_PATTERN.matcher(tag);
+            if (!matcher.matches()) {
+                return false;
+            }
+            int depth = Integer.parseInt(matcher.group(1));
+            if (sectionDepth == 0) {
+                sectionDepth = depth - 1;
+            }
+            while (sectionDepth >= depth) {
+                nodes.pop("section");
+                sectionDepth--;
+            }
+            Element section = document.createElement("section");
+            while (sectionDepth < depth) {
+                nodes.push("section", section);
+                sectionDepth++;
+            }
+            nodes.push("title", document.createElement("title"));
+            sectionDepth = depth;
+            return true;
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
+        }
+
+        public void onEndTag(String tag) {
+            nodes.pop("title");
+        }
+    }
+
+    private static class LinkHandler implements TagHandler {
+        private final NodeStack nodes;
+        private final JavadocLinkConverter linkConverter;
+        private final ClassMetaData classMetaData;
+        private StringBuilder link;
+
+        private LinkHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData) {
+            this.nodes = nodes;
+            this.linkConverter = linkConverter;
+            this.classMetaData = classMetaData;
+        }
+
+        public boolean onStartTag(String tag) {
+            if (!tag.equals("link")) {
+                return false;
+            }
+            link = new StringBuilder();
+            return true;
+        }
+
+        public void onText(String text) {
+            link.append(text);
+        }
+
+        public void onEndTag(String tag) {
+            for (Node node : linkConverter.resolve(link.toString(), classMetaData)) {
+                nodes.appendChild(node);
+            }
+            link = null;
+        }
+    }
+
+    private static class InheritDocHandler implements TagHandler {
+        private final CommentSource source;
+        private final Lexer lexer;
+
+        private InheritDocHandler(Lexer lexer, CommentSource source) {
+            this.lexer = lexer;
+            this.source = source;
+        }
+
+        public boolean onStartTag(String tag) {
+            return tag.equals("inheritDoc");
+        }
+
+        public void onText(String text) {
+            // ignore
+        }
+
+        public void onEndTag(String tag) {
+            lexer.pushText(source.getCommentText());
+        }
+    }
+
+    private interface CommentSource {
+        String getCommentText();
+    }
+
     private static class Lexer {
+        private static final Pattern END_TAG_NAME = Pattern.compile("\\s|}");
+        private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+        private static final Pattern HTML_ELEMENT = Pattern.compile("<\\\\?.+?>");
+        private static final Pattern HTML_ENTITY = Pattern.compile("&.+?;");
+        private static final Pattern TAG = Pattern.compile("\\{@.+?\\}");
+        private static final Map<String, String> ENTITIES = new HashMap<String, String>();
+
+        static {
+            ENTITIES.put("amp", "&");
+            ENTITIES.put("lt", "<");
+            ENTITIES.put("gt", ">");
+        }
+
         enum Token {
             Start, Text, End
         }
 
-        final String input;
-        int pos;
+        final Scanner scanner;
         Token token;
         String value;
         String inlineTag;
 
-        private Lexer(String input) {
-            this.input = input;
-            pos = 0;
+        private Lexer(Scanner scanner) {
+            this.scanner = scanner;
+        }
+
+        public void pushText(String rawCommentText) {
+            scanner.pushText(rawCommentText);
         }
 
         boolean next() {
-            int remaining = input.length() - pos;
-            if (remaining == 0) {
+            if (scanner.isEmpty()) {
                 token = null;
                 value = null;
                 return false;
             }
 
-            int startNext = pos;
-            while (remaining > 0) {
-                if (inlineTag == null && remaining >= 3 && input.charAt(pos) == '<') {
+            scanner.mark();
+            while (!scanner.isEmpty()) {
+                if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
                     break;
                 }
-                if (remaining >= 4 && input.startsWith("{@", pos)) {
+                if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
                     break;
                 }
-                if (inlineTag != null && input.charAt(pos) == '}') {
+                if (scanner.lookingAt(TAG)) {
                     break;
                 }
-                pos++;
-                remaining--;
+                if (inlineTag != null && scanner.lookingAt('}')) {
+                    break;
+                }
+                scanner.next();
             }
 
-            if (pos > startNext) {
+            String region = scanner.region();
+            if (region.length() > 0) {
                 token = Token.Text;
-                value = input.substring(startNext, pos);
-
+                value = region;
                 return true;
             }
 
-            if (inlineTag == null && remaining >= 3 && input.charAt(pos) == '<') {
-                pos++;
+            if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
+                scanner.next();
                 token = Token.Start;
-                if (input.charAt(pos) == '/') {
+                if (scanner.lookingAt('/')) {
                     token = Token.End;
-                    pos++;
+                    scanner.next();
                 }
-                int endpos = input.indexOf('>', pos);
-                value = input.substring(pos, endpos);
-                pos = endpos + 1;
+                scanner.mark();
+                scanner.find('>');
+                value = scanner.region().toLowerCase();
+                scanner.next();
                 return true;
             }
 
-            if (remaining >= 4 && input.startsWith("{@", pos)) {
-                pos += 2;
-                int endpos = pos;
-                while (endpos < input.length() && !Character.isWhitespace(input.charAt(endpos))) {
-                    endpos++;
-                }
+            if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
+                scanner.next();
+                scanner.mark();
+                scanner.find(';');
+                token = Token.Text;
+                value = ENTITIES.get(scanner.region().toLowerCase());
+                scanner.next();
+                return true;
+            }
+
+            if (scanner.lookingAt(TAG)) {
+                scanner.next(2);
+                scanner.mark();
+                scanner.find(END_TAG_NAME);
                 token = Token.Start;
-                value = input.substring(pos, endpos);
+                value = scanner.region();
                 inlineTag = value;
-                while (endpos < input.length() && Character.isWhitespace(input.charAt(endpos))) {
-                    endpos++;
-                }
-                pos = endpos;
+                scanner.skip(WHITESPACE);
                 return true;
             }
 
-            if (inlineTag != null && input.charAt(pos) == '}') {
+            if (inlineTag != null && scanner.lookingAt('}')) {
                 token = Token.End;
                 value = inlineTag;
                 inlineTag = null;
-                pos = pos + 1;
+                scanner.next();
                 return true;
             }
 
-            throw new IllegalStateException(); 
+            throw new IllegalStateException();
         }
     }
 
+    private static class Scanner {
+        private final StringBuilder input = new StringBuilder();
+        private int pos;
+        private int markPos;
+
+        private Scanner(String rawCommentText) {
+            pushText(rawCommentText);
+        }
+
+        public boolean isEmpty() {
+            return pos == input.length();
+        }
+
+        public void mark() {
+            markPos = pos;
+        }
+
+        public void next() {
+            next(1);
+        }
+
+        public void next(int n) {
+            pos += n;
+        }
+
+        public boolean lookingAt(char c) {
+            return input.charAt(pos) == c;
+        }
+
+        public boolean lookingAt(CharSequence prefix) {
+            int i = 0;
+            int cpos = pos;
+            while (i < prefix.length() && cpos < input.length()) {
+                if (prefix.charAt(i) != input.charAt(cpos)) {
+                    return false;
+                }
+                i++;
+                cpos++;
+            }
+            return true;
+        }
+
+        public boolean lookingAt(Pattern pattern) {
+            Matcher m = pattern.matcher(input);
+            m.region(pos, input.length());
+            return m.lookingAt();
+        }
+
+        public String region() {
+            return input.substring(markPos, pos);
+        }
+
+        /**
+         * Moves the position to the next instance of the given character, or the end of the input if not found.
+         */
+        public void find(char c) {
+            int cpos = pos;
+            while (cpos < input.length()) {
+                if (input.charAt(cpos) == c) {
+                    break;
+                }
+                cpos++;
+            }
+            pos = cpos;
+        }
+
+        /**
+         * Moves the position to the start of the next instance of the given pattern, or the end of the input if not
+         * found.
+         */
+        public void find(Pattern pattern) {
+            Matcher m = pattern.matcher(input);
+            m.region(pos, input.length());
+            if (m.find()) {
+                pos = m.start();
+            } else {
+                pos = input.length();
+            }
+        }
+
+        /**
+         * Moves the position over the given pattern if currently looking at the pattern. Does nothing if not.
+         */
+        public void skip(Pattern pattern) {
+            Matcher m = pattern.matcher(input);
+            m.region(pos, input.length());
+            if (m.lookingAt()) {
+                pos = m.end();
+            }
+        }
+
+        public void pushText(String rawCommentText) {
+            StringBuilder builder = new StringBuilder();
+            try {
+                BufferedReader reader = new BufferedReader(new StringReader(rawCommentText));
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    line = line.replaceFirst("\\s*\\*\\s*", "");
+                    if (line.startsWith("@")) {
+                        // Ignore the tag section of the comment
+                        break;
+                    }
+                    builder.append(line);
+                    builder.append("\n");
+                }
+            } catch (IOException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+            input.insert(pos, builder.toString().trim());
+        }
+    }
 }

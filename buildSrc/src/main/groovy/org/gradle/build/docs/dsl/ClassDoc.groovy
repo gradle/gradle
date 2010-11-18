@@ -72,7 +72,7 @@ class ClassDoc {
             if (tr.td.size() == 2) {
                 tr.td[1].addAfter { td() }
             }
-            javadocConverter.parse(property.rawCommentText, classMetaData).docbook.each { node ->
+            javadocConverter.parse(property.rawCommentText, property, classMetaData).docbook.each { node ->
                 tr.td[2] << node
             }
         }

@@ -16,6 +16,8 @@
 package org.gradle.build.docs.dsl
 
 import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.model.PropertyMetaData
+import spock.lang.Ignore
 
 class JavadocConverterTest extends XmlSpecification {
     final ClassMetaData classMetaData = Mock()
@@ -37,7 +39,7 @@ line 2</para>
 '''
     }
 
-    def ignoresTagBlock() {
+    def removesTagBlockFromComment() {
         when:
         def result = parser.parse(''' * line 1
  * @tag line 2
@@ -79,48 +81,21 @@ line 2</para>
         result.docbook == []
     }
 
-    def firstSentenceEndsAtEndOfFirstLine() {
+    def commentCanContainHtmlEncodedCharacters() {
         when:
-        def result = parser.parse(''' * first sentence
- *
- * @tag line 2
-''', classMetaData)
+        def result = parser.parse(''' * &lt;&gt;&amp; >''', classMetaData)
 
         then:
-        format(result.firstSentence) == '''<?xml version="1.0" encoding="UTF-8"?>
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <para>first sentence</para>
+  <para>&lt;&gt;&amp; &gt;</para>
 </root>
 '''
-    }
-
-    def firstSentenceEndsAtEndOfFirstPeriodFollowedByWhitespace() {
-        when:
-        def result = parser.parse(''' * first sentence. second sentence
- * @tag line 2
-''', classMetaData)
-
-        then:
-        format(result.firstSentence) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <para>first sentence.</para>
-</root>
-'''
-    }
-
-    def firstSentenceIsEmptyWhenNoDescription() {
-        when:
-        def result = parser.parse(''' *
- * @tag ignore-me
-''', classMetaData)
-
-        then:
-        result.firstSentence == []
     }
 
     def convertsPTagsToParaTags() {
         when:
-        def result = parser.parse('<p>para 1</p><p>para 2</p>', classMetaData)
+        def result = parser.parse('<p>para 1</p><P>para 2</P>', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -234,6 +209,21 @@ text2
   <section>
     <title>section 2</title>
 text3</section>
+</root>
+'''
+    }
+
+    @Ignore
+    def convertsInheritDocTag() {
+        PropertyMetaData propertyMetaData = Mock()
+
+        when:
+        def result = parser.parse('before {@inheritDoc} after', propertyMetaData, classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+    <para>before <pre>inherited<pre> after</para>
 </root>
 '''
     }
