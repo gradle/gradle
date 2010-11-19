@@ -27,7 +27,8 @@ dependencies {
             "org.mortbay.jetty:jsp-2.1:6.1.14@jar",
             "org.eclipse.jdt:core:3.1.1@jar",
             "org.mortbay.jetty:jetty-naming:6.1.25@jar",
-            "org.mortbay.jetty:jetty-annotations:6.1.25@jar"
+            "org.mortbay.jetty:jetty-annotations:6.1.25@jar",
+            "org.apache.geronimo.specs:geronimo-annotation_1.0_spec:1.0@jar"
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
