@@ -13,20 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl;
+package org.gradle.build.docs.dsl.model;
 
-import org.gradle.build.docs.dsl.model.ClassMetaData;
-
-import java.util.Map;
-
-public class ClassMetaDataRepository {
-    private final Map<String, ClassMetaData> classes;
-
-    public ClassMetaDataRepository(Map<String, ClassMetaData> classes) {
-        this.classes = classes;
-    }
-
-    ClassMetaData findClass(String fullyQualifiedName) {
-        return classes.get(fullyQualifiedName);
-    }
+public interface ClassMetaDataRepository {
+    ClassMetaData findClass(String fullyQualifiedName);
 }

@@ -15,9 +15,12 @@
  */
 package org.gradle.build.docs.dsl
 
-import org.w3c.dom.Document
 import org.gradle.build.docs.XIncludeAwareXmlProvider
+import org.gradle.build.docs.dsl.model.ClassMetaDataRepository
+import org.gradle.build.docs.dsl.javadoc.JavadocConverter
+import org.gradle.build.docs.dsl.javadoc.JavadocLinkConverter
 import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.w3c.dom.Document
 
 class DslModel {
     private final File classDocbookDir
@@ -42,7 +45,7 @@ class DslModel {
         if (classDoc == null) {
             ClassMetaData classMetaData = classMetaData.findClass(className)
             if (!classMetaData) {
-                classMetaData = new ClassMetaData(className, null, false, "", [])
+                classMetaData = new ClassMetaData(className)
             }
             ExtensionMetaData extensionMetaData = extensionMetaData[className]
             if (!extensionMetaData) {

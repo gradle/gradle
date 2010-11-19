@@ -16,24 +16,34 @@
 package org.gradle.build.docs.dsl.model;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ClassMetaData implements Serializable {
     private final String className;
     private final String superClassName;
     private final boolean groovy;
-    private final String docComment;
+    private final String rawCommentText;
     private final List<String> imports;
+    private final List<String> interfaceNames;
     private final Map<String, PropertyMetaData> classProperties = new HashMap<String, PropertyMetaData>();
+    private ClassMetaDataRepository metaDataRepository;
 
-    public ClassMetaData(String className, String superClassName, boolean isGroovy, String docComment, List<String> imports) {
+    public ClassMetaData(String className, String superClassName, boolean isGroovy, String rawClassComment, List<String> imports, List<String> interfaceNames) {
         this.className = className;
         this.superClassName = superClassName;
         groovy = isGroovy;
-        this.docComment = docComment;
+        this.rawCommentText = rawClassComment;
         this.imports = imports;
+        this.interfaceNames = interfaceNames;
+    }
+
+    public ClassMetaData(String className) {
+        this(className, null, false, "", Collections.<String>emptyList(), Collections.<String>emptyList());
+    }
+
+    @Override
+    public String toString() {
+        return className;
     }
 
     public Map<String, PropertyMetaData> getClassProperties() {
@@ -52,8 +62,23 @@ public class ClassMetaData implements Serializable {
         return superClassName;
     }
 
-    public String getDocComment() {
-        return docComment;
+    public ClassMetaData getSuperClass() {
+        return superClassName == null ? null : metaDataRepository.findClass(superClassName);
+    }
+
+    public List<ClassMetaData> getInterfaces() {
+        List<ClassMetaData> interfaces = new ArrayList<ClassMetaData>();
+        for (String interfaceName : interfaceNames) {
+            ClassMetaData interfaceMetaData = metaDataRepository.findClass(interfaceName);
+            if (interfaceMetaData != null) {
+                interfaces.add(interfaceMetaData);
+            }
+        }
+        return interfaces;
+    }
+
+    public String getRawCommentText() {
+        return rawCommentText;
     }
 
     public List<String> getImports() {
@@ -71,6 +96,10 @@ public class ClassMetaData implements Serializable {
         property.setWriteable(true);
     }
 
+    public PropertyMetaData findProperty(String name) {
+        return classProperties.get(name);
+    }
+    
     private PropertyMetaData getProperty(String name) {
         PropertyMetaData property = classProperties.get(name);
         if (property == null) {
@@ -78,5 +107,12 @@ public class ClassMetaData implements Serializable {
             classProperties.put(name, property);
         }
         return property;
+    }
+
+    public void attach(ClassMetaDataRepository metaDataRepository) {
+        this.metaDataRepository = metaDataRepository;
+        for (PropertyMetaData propertyMetaData : classProperties.values()) {
+            propertyMetaData.attach(this);
+        }
     }
 }

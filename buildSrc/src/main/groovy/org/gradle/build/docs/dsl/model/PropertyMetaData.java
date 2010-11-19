@@ -16,12 +16,14 @@
 package org.gradle.build.docs.dsl.model;
 
 import java.io.Serializable;
+import java.util.LinkedList;
 
 public class PropertyMetaData implements Serializable {
     private String type;
     private boolean writeable;
     private String rawCommentText;
     private final String name;
+    private transient ClassMetaData ownerClass;
 
     public PropertyMetaData(String name) {
         this.name = name;
@@ -29,6 +31,11 @@ public class PropertyMetaData implements Serializable {
 
     public String getName() {
         return name;
+    }
+
+    @Override
+    public String toString() {
+        return ownerClass != null ? String.format("%s.%s", ownerClass, name) : String.format("<unknown>.%s", name);
     }
 
     public String getType() {
@@ -53,5 +60,30 @@ public class PropertyMetaData implements Serializable {
 
     public void setRawCommentText(String rawCommentText) {
         this.rawCommentText = rawCommentText;
+    }
+
+    public String getInheritedRawCommentText() {
+        LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
+        queue.add(ownerClass.getSuperClass());
+        queue.addAll(ownerClass.getInterfaces());
+
+        while (!queue.isEmpty()) {
+            ClassMetaData cl = queue.removeFirst();
+            if (cl == null) {
+                continue;
+            }
+            PropertyMetaData overriddenProperty = cl.findProperty(name);
+            if (overriddenProperty != null) {
+                return overriddenProperty.getRawCommentText();
+            }
+            queue.add(cl.getSuperClass());
+            queue.addAll(cl.getInterfaces());
+        }
+
+        return null;
+    }
+
+    public void attach(ClassMetaData ownerClass) {
+        this.ownerClass = ownerClass;
     }
 }

@@ -20,6 +20,7 @@ import org.w3c.dom.Node
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.w3c.dom.Document
+import org.gradle.build.docs.dsl.javadoc.JavadocConverter
 
 class ClassDoc {
     final Element classSection
@@ -89,7 +90,7 @@ class ClassDoc {
 
         def properties = getSection('Properties')
 
-        def javadocComment = javadocConverter.parse(classMetaData.docComment, classMetaData)
+        def javadocComment = javadocConverter.parse(classMetaData.rawCommentText, classMetaData)
         javadocComment.docbook.each { node ->
             properties.addBefore(node)
         }

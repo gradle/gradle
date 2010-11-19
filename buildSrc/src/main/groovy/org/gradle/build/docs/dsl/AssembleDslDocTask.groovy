@@ -28,6 +28,7 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.build.docs.XIncludeAwareXmlProvider
 import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.model.ClassMetaDataRepository
 
 /**
  * Generates the docbook source for the DSL documentation. Uses meta-data extracted from the source, meta-data about the
@@ -60,7 +61,7 @@ class AssembleDslDocTask extends DefaultTask {
             use(BuildableDOMCategory) {
                 Map<String, ClassMetaData> classes = loadClassMetaData()
                 Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
-                ClassMetaDataRepository classRepository = new ClassMetaDataRepository(classes)
+                ClassMetaDataRepository classRepository = new DefaultClassMetaDataRepository(classes)
                 DslModel model = new DslModel(classDocbookDir, document, classpath, classRepository, extensions)
                 def root = document.documentElement
                 root.section[0].table.each { Element table ->

@@ -13,11 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl
+package org.gradle.build.docs.dsl.javadoc
 
+import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
-import spock.lang.Ignore
 
 class JavadocConverterTest extends XmlSpecification {
     final ClassMetaData classMetaData = Mock()
@@ -213,7 +213,6 @@ text3</section>
 '''
     }
 
-    @Ignore
     def convertsInheritDocTag() {
         PropertyMetaData propertyMetaData = Mock()
 
@@ -221,9 +220,13 @@ text3</section>
         def result = parser.parse('before {@inheritDoc} after', propertyMetaData, classMetaData)
 
         then:
+        _ * propertyMetaData.inheritedRawCommentText >> ''' *
+ * <em>inherited value</em>
+ *
+'''
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-    <para>before <pre>inherited<pre> after</para>
+  <para>before <emphasis>inherited value</emphasis> after</para>
 </root>
 '''
     }

@@ -13,11 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl;
+package org.gradle.build.docs.dsl.javadoc;
 
 import org.gradle.api.GradleException;
+import org.gradle.build.docs.dsl.DocComment;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.PropertyMetaData;
+import org.gradle.util.GUtil;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -57,10 +59,11 @@ public class JavadocConverter {
         }
     }
 
-    public DocComment parse(String rawCommentText, PropertyMetaData propertyMetaData, ClassMetaData classMetaData) {
+    public DocComment parse(String rawCommentText, final PropertyMetaData propertyMetaData, ClassMetaData classMetaData) {
         CommentSource commentSource = new CommentSource() {
             public String getCommentText() {
-                return "<em>this is the inherited text</em>";
+                String comment = propertyMetaData.getInheritedRawCommentText();
+                return GUtil.isTrue(comment) ? comment : "!!NO INHERITED DOC COMMENT!!";
             }
         };
         try {
@@ -532,6 +535,10 @@ public class JavadocConverter {
         }
 
         public void pushText(String rawCommentText) {
+            if (rawCommentText == null) {
+                return;
+            }
+
             StringBuilder builder = new StringBuilder();
             try {
                 BufferedReader reader = new BufferedReader(new StringReader(rawCommentText));
