@@ -86,6 +86,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         throw new UnsupportedOperationException();
     }
 
+    public File getUserHomeDir() {
+        return userHomeDir;
+    }
+
     public GradleExecuter withUserHomeDir(File userHomeDir) {
         this.userHomeDir = userHomeDir;
         return this;

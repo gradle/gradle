@@ -21,8 +21,8 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.Project;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.diagnostics.internal.GraphRenderer;
-import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.configuration.ImplicitTasksConfigurer;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.logging.StyledTextOutput;
 import org.gradle.logging.StyledTextOutputFactory;
 import org.gradle.util.GUtil;
@@ -32,7 +32,6 @@ import java.util.Collections;
 import java.util.List;
 
 import static org.gradle.logging.StyledTextOutput.Style.*;
-import static org.gradle.logging.StyledTextOutput.Style.UserInput;
 
 /**
  * <p>Displays a list of projects in the build. It is used when you use the project list command-line option.</p>
@@ -42,7 +41,7 @@ public class ProjectReportTask extends DefaultTask {
 
     @TaskAction
     void listProjects() {
-        GradleLauncherMetaData metaData = new GradleLauncherMetaData();
+        BuildClientMetaData metaData = getServices().get(BuildClientMetaData.class);
         Project project = getProject();
 
         textOutput.println();

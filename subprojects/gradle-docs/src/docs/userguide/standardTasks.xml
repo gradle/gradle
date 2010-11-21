@@ -47,12 +47,16 @@
             <td>Generates an Eclipse .classpath file.</td>
         </tr>
         <tr>
+            <td><apilink class='org.gradle.plugins.eclipse.EclipseJdt' lang="groovy"/></td>
+            <td>Generates configuration files for Eclipse JDT.</td>
+        </tr>
+        <tr>
             <td><apilink class='org.gradle.plugins.eclipse.EclipseProject' lang="groovy"/></td>
             <td>Generates an Eclipse .project file.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.plugins.eclipse.EclipseWtp' lang="groovy"/></td>
-            <td>Generates Eclipse configuration files for Eclipse WTP.</td>
+            <td>Generates configuration files for Eclipse WTP.</td>
         </tr>
         <tr>
             <td><apilink class='org.gradle.api.tasks.Exec'/></td>

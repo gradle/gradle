@@ -27,6 +27,7 @@ class AutoCreateDomainObjectContainerDelegate {
         this.owner = owner
     }
 
+    @SuppressWarnings("EmptyCatchBlock")
     public Object invokeMethod(String name, Object params) {
         boolean isTopLevelCall = !configuring.get()
         configuring.set(true)
@@ -54,6 +55,7 @@ class AutoCreateDomainObjectContainerDelegate {
         }
     }
 
+    @SuppressWarnings("EmptyCatchBlock")
     public Object get(String name) {
         if (delegate.hasProperty(name)) {
             return delegate.getProperty(name)

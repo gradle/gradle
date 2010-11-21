@@ -15,14 +15,17 @@
  */
 package org.gradle.configuration;
 
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.util.UncheckedException;
 
 import java.io.IOException;
+import java.io.Serializable;
 
-public class GradleLauncherMetaData {
+public class GradleLauncherMetaData implements Serializable, BuildClientMetaData {
+    private final String appName = System.getProperty("org.gradle.appname", "gradle");
+
     public void describeCommand(Appendable output, String... args) {
         try {
-            String appName = System.getProperty("org.gradle.appname", "gradle");
             output.append(appName);
             for (String arg : args) {
                 output.append(' ');

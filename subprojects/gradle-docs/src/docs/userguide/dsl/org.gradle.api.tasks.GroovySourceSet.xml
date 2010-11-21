@@ -11,9 +11,6 @@
             </thead>
             <tr>
                 <td>groovy</td>
-                <td>The source to be compiled by the Groovy compiler for this source set. Any Java source present in
-                    this set will be passed to the Groovy compiler for joint compilation.
-                </td>
             </tr>
         </table>
     </section>

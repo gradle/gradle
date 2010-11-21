@@ -13,27 +13,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl;
+package org.gradle.build.docs.dsl.model;
 
-import java.io.Serializable;
-
-public class PropertyMetaData implements Serializable {
-    private String type;
-    private boolean writeable;
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public boolean isWriteable() {
-        return writeable;
-    }
-
-    public void setWriteable(boolean writeable) {
-        this.writeable = writeable;
-    }
+public interface ClassMetaDataRepository {
+    ClassMetaData findClass(String fullyQualifiedName);
 }

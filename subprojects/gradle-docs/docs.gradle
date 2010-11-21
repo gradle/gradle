@@ -142,18 +142,14 @@ task dslStandaloneDocbook(type: UserGuideTransformTask, dependsOn: [dslDocbook])
 task dslHtml(type: Docbook2Xhtml, dependsOn: dslStandaloneDocbook) {
     source dslStandaloneDocbook.destFile
     destDir = new File(docsDir, 'dsl')
-    stylesheetName = 'userGuideHtml.xsl'
+    stylesheetName = 'dslHtml.xsl'
     resources = fileTree {
-        from userguideSrcDir
-        include 'img/*.png'
-    }
-    resources += fileTree {
         from cssSrcDir
         include '*.css'
     }
 }
 
-task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook, dslDocbook]) {
+task userguideDocbook(type: UserGuideTransformTask, dependsOn: [samples, samplesDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
@@ -279,7 +275,7 @@ task distDocs(type: Docbook2Xhtml, dependsOn: userguideFragmentSrc) {
     stylesheetName = 'standaloneHtml.xsl'
 }
 
-task websiteUserguideSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook, dslDocbook]) {
+task websiteUserguideSrc(type: UserGuideTransformTask, dependsOn: [userguideStyleSheets, samples, samplesDocbook]) {
     inputs.files fileTree(dir: userguideSrcDir, includes: ['*.xml'])
     inputs.files fileTree(dir: docbookSrc, includes: ['*.xml'])
     sourceFile = new File(userguideSrcDir, 'userguide.xml')
@@ -329,7 +325,7 @@ task userguide {
 }
 
 task docs {
-    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs
+    dependsOn javadoc, groovydoc, userguide, distDocs, samplesDocs, dslHtml
     description = 'Generates all documentation'
     group = 'documentation'
 }

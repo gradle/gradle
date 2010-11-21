@@ -227,7 +227,9 @@ public class UserGuideTransformTask extends DefaultTask {
                                 List context = fileName.tokenize('/')
 
                                 int common = 0;
-                                for (;common < stack.size() && common < context.size() && stack[common] == context[common]; common++) { ; }
+                                while (common < stack.size() && common < context.size() && stack[common] == context[common]) {
+                                    common++;
+                                }
                                 stack = stack.subList(0, common)
 
                                 (stack.size() + 1).times { content.append("  ") }

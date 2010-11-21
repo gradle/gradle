@@ -38,7 +38,7 @@ class Jdk {
             jdk15 = true
             languageLevel = 'JDK_1_5'
         }
-        else if (javaVersion.compareTo("1.6") >= 0) {
+        else if (javaVersion >= '1.6') {
             assertKeyword = true
             jdk15 = true
             languageLevel = 'JDK_1_6'

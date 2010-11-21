@@ -15,9 +15,21 @@
  */
 package org.gradle.launcher.protocol;
 
+import org.gradle.initialization.BuildClientMetaData;
+
 import java.io.Serializable;
 
 public class Command implements Serializable {
+    private final BuildClientMetaData clientMetaData;
+
+    public Command(BuildClientMetaData clientMetaData) {
+        this.clientMetaData = clientMetaData;
+    }
+
+    public BuildClientMetaData getClientMetaData() {
+        return clientMetaData;
+    }
+
     @Override
     public String toString() {
         return getClass().getSimpleName();

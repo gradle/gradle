@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<appendix id='gradle_command_line' xmlns:xi="http://www.w3.org/2001/XInclude">
+<appendix id='gradle_command_line'>
     <title>Gradle Command Line</title>
     <para>The <command>gradle</command> command has the following usage:
         <cmdsynopsis>
@@ -144,24 +144,93 @@
             </para></listitem>
         </varlistentry>
     </variablelist>
+    <para>The above information is printed to the console when you execute <userinput>gradle -h</userinput>.</para>
 
-    <para>The following options are deprecated and will be removed in a future version of Gradle:</para>
-    <variablelist>
-        <varlistentry>
-            <term><option>-n</option>, <option>--dependencies</option></term>
-            <listitem><para>(deprecated) Show list of all project dependencies. See <xref linkend="sec:listing_dependencies"/>.
-            </para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-r</option>, <option>--properties</option></term>
-            <listitem><para>(deprecated) Show list of all available project properties. See <xref linkend="sec:listing_properties"/>.</para></listitem>
-        </varlistentry>
-        <varlistentry>
-            <term><option>-t</option>, <option>--tasks</option></term>
-            <listitem><para>(deprecated) Show list of available tasks. See <xref linkend="sec:listing_tasks"/>.
-            </para></listitem>
-        </varlistentry>
-    </variablelist>
+    <section>
+        <title>Deprecated command-line options</title>
+        <para>The following options are deprecated and will be removed in a future version of Gradle:</para>
+        <variablelist>
+            <varlistentry>
+                <term><option>-n</option>, <option>--dependencies</option></term>
+                <listitem><para>(deprecated) Show list of all project dependencies. You should use <userinput>gradle dependencies</userinput>
+                    instead. See <xref linkend="sec:listing_dependencies"/>.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-r</option>, <option>--properties</option></term>
+                <listitem><para>(deprecated) Show list of all available project properties. You should use <userinput>gradle properties</userinput>
+                    instead. See <xref linkend="sec:listing_properties"/>.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>-t</option>, <option>--tasks</option></term>
+                <listitem><para>(deprecated) Show list of available tasks. You should use <userinput>gradle tasks</userinput>
+                    instead. See <xref linkend="sec:listing_tasks"/>.</para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
 
-    <para>The same information is printed to the console when you execute <userinput>gradle -h</userinput>.</para>
+    <section>
+        <title>Experimental command-line options</title>
+        <para>The following options are experimental:</para>
+        <variablelist>
+            <varlistentry>
+                <term><option>--daemon</option></term>
+                <listitem><para>Uses the Gradle daemon to run the build. Starts the daemon if not running.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--foreground</option></term>
+                <listitem><para>Starts the Gradle daemon in the foreground.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--no-daemon</option></term>
+                <listitem><para>Do not use the Gradle daemon to run the build.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><option>--stop</option></term>
+                <listitem><para>Stops the Gradle daemon if it is running.</para></listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
+
+    <section>
+        <title>System properties</title>
+        <para>The following system properties are available for the <command>gradle</command> command. Note that
+            command-line options take precedence over system properties.
+        </para>
+        <varlistentry>
+            <term><literal>gradle.user.home</literal></term>
+            <listitem><para>Specifies the Gradle user home directory.</para> </listitem>
+        </varlistentry>
+        <varlistentry>
+            <term><literal>org.gradle.daemon</literal></term>
+            <listitem><para>When set to <literal>true</literal>, use the Gradle daemon to run the build.</para>
+            </listitem>
+        </varlistentry>
+    </section>
+
+    <section>
+        <title>Environment variables</title>
+        <para>The following environment variables are available for the <command>gradle</command> command. Note that
+            command-line options and system properties take precedence over environment variables.
+        </para>
+        <variablelist>
+            <varlistentry>
+                <term><literal>GRADLE_HOME</literal></term>
+                <listitem><para>Specifies the root directory of the Gradle installation to use.</para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>GRADLE_OPTS</literal></term>
+                <listitem><para>Specifies command-line arguments to use to start the JVM. This can be useful for setting
+                    the system properties to use for running Gradle. For example you could set <literal>GRADLE_OPTS="-Dorg.gradle.daemon=true"</literal>
+                    to use the Gradle daemon without needing to use the <option>--daemon</option> option every time you
+                    run Gradle.
+                </para></listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><literal>GRADLE_USER_HOME</literal></term>
+                <listitem><para>Specifies the Gradle user home directory.</para></listitem>
+            </varlistentry>
+        </variablelist>
+    </section>
 </appendix>

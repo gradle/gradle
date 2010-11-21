@@ -29,6 +29,7 @@ import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification
 import org.gradle.*
+import org.gradle.initialization.GradleLauncherFactory
 
 class CommandLineActionFactoryTest extends Specification {
     @Rule

@@ -1,6 +1,26 @@
+/*
+ * Copyright 2010 the original author or authors.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package org.gradle.build.docs.dsl
 
 import org.w3c.dom.Element
+import org.w3c.dom.Node
+import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.w3c.dom.Document
+import org.gradle.build.docs.dsl.javadoc.JavadocConverter
 
 class ClassDoc {
     final Element classSection
@@ -9,22 +29,25 @@ class ClassDoc {
     final String classSimpleName
     final ClassMetaData classMetaData
 
-    ClassDoc(String className, Element classSection, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model) {
-        this.classSection = classSection
+    ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslModel model, JavadocConverter javadocConverter) {
         this.className = className
-        id = "dsl:$className"
+        id = className
         classSimpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
 
+        classSection = targetDocument.createElement('chapter')
         classSection['@id'] = id
         classSection.addFirst {
             title(classSimpleName)
         }
+        classContent.childNodes.each { Node n ->
+            classSection << n
+        }
 
         propertiesTable.tr.each { Element tr ->
             def cells = tr.td
-            if (cells.size() != 2) {
-                throw new RuntimeException("Expected 2 cells in <tr>, found: $tr")
+            if ([1..2].contains(cells.size())) {
+                throw new RuntimeException("Expected 1 or 2 cells in <tr>, found: $tr")
             }
             String propName = cells[0].text().trim()
             PropertyMetaData property = classMetaData.classProperties[propName]
@@ -47,6 +70,12 @@ class ClassDoc {
                     }
                 }
             }
+            if (tr.td.size() == 2) {
+                tr.td[1].addAfter { td() }
+            }
+            javadocConverter.parse(property.rawCommentText, property, classMetaData).docbook.each { node ->
+                tr.td[2] << node
+            }
         }
 
         if (classMetaData.superClassName) {
@@ -59,7 +88,14 @@ class ClassDoc {
             }
         }
 
-        classSection.section[0].addBefore {
+        def properties = getSection('Properties')
+
+        def javadocComment = javadocConverter.parse(classMetaData.rawCommentText, classMetaData)
+        javadocComment.docbook.each { node ->
+            properties.addBefore(node)
+        }
+
+        properties.addBefore {
             section {
                 title('API Documentation')
                 para {
@@ -71,7 +107,7 @@ class ClassDoc {
         extensionMetaData.extensionClasses.each { Map map ->
             ClassDoc extensionClassDoc = model.getClassDoc(map.extensionClass)
             classSection << extensionClassDoc.classSection
-            
+
             classSection.lastChild.title[0].text = "${map.plugin} - ${extensionClassDoc.classSimpleName}"
         }
     }

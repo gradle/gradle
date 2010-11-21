@@ -20,7 +20,7 @@ package org.gradle.util;
  * @author Hans Dockter
  */
 public class Clock {
-    long start;
+    private long start;
     private TimeProvider timeProvider;
 
     private static final long MS_PER_MINUTE = 60000;
@@ -30,9 +30,18 @@ public class Clock {
         this(new TrueTimeProvider());
     }
 
+    public Clock(long start) {
+        this(new TrueTimeProvider(), start);
+    }
+
     protected Clock(TimeProvider timeProvider) {
         this.timeProvider = timeProvider;
         reset();
+    }
+
+    protected Clock(TimeProvider timeProvider, long start) {
+        this.timeProvider = timeProvider;
+        this.start = start;
     }
 
     public String getTime() {
@@ -56,4 +65,7 @@ public class Clock {
         start = timeProvider.getCurrentTime();
     }
 
+    public long getStartTime() {
+        return start;
+    }
 }

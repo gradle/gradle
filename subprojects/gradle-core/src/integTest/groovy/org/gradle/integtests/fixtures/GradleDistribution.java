@@ -51,6 +51,11 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
         this.userHome = USER_HOME_DIR;
     }
 
+    @Override
+    public String toString() {
+        return String.format("Gradle %s", new GradleVersion().getVersion());
+    }
+
     public boolean worksWith(Jvm jvm) {
         return jvm.isJava5Compatible();
     }

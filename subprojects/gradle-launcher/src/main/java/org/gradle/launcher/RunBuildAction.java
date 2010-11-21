@@ -17,7 +17,8 @@ package org.gradle.launcher;
 
 import org.gradle.BuildResult;
 import org.gradle.GradleLauncher;
-import org.gradle.GradleLauncherFactory;
+import org.gradle.initialization.BuildRequestMetaData;
+import org.gradle.initialization.GradleLauncherFactory;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
 import org.gradle.api.internal.project.ServiceRegistry;
@@ -26,15 +27,17 @@ import org.gradle.initialization.DefaultGradleLauncherFactory;
 public class RunBuildAction implements Action<ExecutionListener> {
     private final StartParameter startParameter;
     private final ServiceRegistry loggingServices;
+    private final BuildRequestMetaData requestMetaData;
 
-    public RunBuildAction(StartParameter startParameter, ServiceRegistry loggingServices) {
+    public RunBuildAction(StartParameter startParameter, ServiceRegistry loggingServices, BuildRequestMetaData requestMetaData) {
         this.startParameter = startParameter;
         this.loggingServices = loggingServices;
+        this.requestMetaData = requestMetaData;
     }
 
     public void execute(ExecutionListener executionListener) {
         GradleLauncherFactory gradleLauncherFactory = createGradleLauncherFactory(loggingServices);
-        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter);
+        GradleLauncher gradleLauncher = gradleLauncherFactory.newInstance(startParameter, requestMetaData);
         BuildResult buildResult = gradleLauncher.run();
         Throwable failure = buildResult.getFailure();
         if (failure != null) {

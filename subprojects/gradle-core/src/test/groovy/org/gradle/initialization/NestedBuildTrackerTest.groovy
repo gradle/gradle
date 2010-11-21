@@ -15,15 +15,14 @@
  */
 package org.gradle.initialization
 
-
-import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.BuildResult
+import org.gradle.api.internal.GradleInternal
+import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
-import static org.hamcrest.Matchers.*
-import static org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.gradle.api.invocation.Gradle
-import org.gradle.BuildResult
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class NestedBuildTrackerTest {
@@ -37,8 +36,8 @@ class NestedBuildTrackerTest {
 
     @Test
     public void setsCurrentBuildWhenBuildStartsAndStops() {
-        def build = context.mock(Gradle.class, 'build1')
-        def build2 = context.mock(Gradle.class, 'build2')
+        def build = context.mock(GradleInternal.class, 'build1')
+        def build2 = context.mock(GradleInternal.class, 'build2')
 
         tracker.buildStarted(build)
         assertThat(tracker.currentBuild, sameInstance(build))
@@ -55,8 +54,8 @@ class NestedBuildTrackerTest {
 
     @Test
     public void pushesBuildWhenBuildStartsWhileOneIsCurrentlyRunning() {
-        def build = context.mock(Gradle.class, 'build1')
-        def build2 = context.mock(Gradle.class, 'build2')
+        def build = context.mock(GradleInternal.class, 'build1')
+        def build2 = context.mock(GradleInternal.class, 'build2')
 
         tracker.buildStarted(build)
         assertThat(tracker.currentBuild, sameInstance(build))

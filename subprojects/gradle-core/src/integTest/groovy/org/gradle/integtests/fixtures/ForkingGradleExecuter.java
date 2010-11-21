@@ -46,6 +46,10 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         this.gradleHomeDir = gradleHomeDir;
     }
 
+    public TestFile getGradleHomeDir() {
+        return gradleHomeDir;
+    }
+
     @Override
     protected ExecutionResult doRun() {
         Map result = doRun(false);

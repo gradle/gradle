@@ -57,7 +57,10 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
         Map<String, Object> classloadersForPath = classloaders[normalisedClasspath]
         ClassLoader antLoader
         ClassLoader gradleLoader
-        if (!classloadersForPath) {
+        if (classloadersForPath) {
+            antLoader = classloadersForPath.antLoader
+            gradleLoader = classloadersForPath.gradleLoader
+        } else {
             // Need tools.jar for compile tasks
             List<File> fullClasspath = normalisedClasspath
             File toolsJar = Jvm.current().toolsJar
@@ -77,9 +80,6 @@ class DefaultIsolatedAntBuilder implements IsolatedAntBuilder {
             gradleLoader = new URLClassLoader(gradleCoreUrls, new MultiParentClassLoader(antLoader, loggingLoader))
 
             classloaders[normalisedClasspath] = [antLoader: antLoader, gradleLoader: gradleLoader]
-        } else {
-            antLoader = classloadersForPath.antLoader
-            gradleLoader = classloadersForPath.gradleLoader
         }
 
         ClassLoader originalLoader = Thread.currentThread().contextClassLoader

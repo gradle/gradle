@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2010 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,41 +36,44 @@ class CrossVersionCompatibilityIntegrationTest {
 
     private final BasicGradleDistribution gradle09rc1 = dist.previousVersion('0.9-rc-1')
     private final BasicGradleDistribution gradle09rc2 = dist.previousVersion('0.9-rc-2')
+    private final BasicGradleDistribution gradle09rc3 = dist.previousVersion('0.9-rc-3')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        [gradle09rc1, gradle09rc2].each {
+        [gradle09rc1, gradle09rc2, gradle09rc3].each {
             checkCanBuildUsing(dist, it)
         }
     }
 
     @Test
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        [gradle09rc1, gradle09rc2].each {
+        [gradle09rc1, gradle09rc2, gradle09rc3].each {
             checkCanBuildUsing(it, dist)
         }
     }
 
     def checkCanBuildUsing(BasicGradleDistribution openApiVersion, BasicGradleDistribution buildVersion) {
-        if (!buildVersion.worksWith(Jvm.current())) {
-            System.out.println("skipping $buildVersion as it does not work with ${Jvm.current()}.")
-            return
+        try {
+            if (!buildVersion.worksWith(Jvm.current())) {
+                System.out.println("skipping $buildVersion as it does not work with ${Jvm.current()}.")
+                return
+            }
+            if (!openApiVersion.worksWith(Jvm.current())) {
+                System.out.println("skipping $openApiVersion as it does not work with ${Jvm.current()}.")
+                return
+            }
+            def testClasses = AbstractClassPathProvider.getClasspathForClass(CrossVersionBuilder.class)
+            def junitJar = AbstractClassPathProvider.getClasspathForClass(Assert.class)
+            def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
+            logger.info('Using Open API classpath {}', classpath)
+            def classloader = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
+            def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
+            builder.targetGradleHomeDir = buildVersion.gradleHomeDir
+            builder.currentDir = dist.testDir
+            builder.version = buildVersion.version
+            builder.build()
+        } catch (Throwable throwable) {
+            throw new RuntimeException("Failed to build using $buildVersion via the open API of $openApiVersion", throwable)
         }
-        if (!openApiVersion.worksWith(Jvm.current())) {
-            System.out.println("skipping $openApiVersion as it does not work with ${Jvm.current()}.")
-            return
-        }
-
-        def testClasses = AbstractClassPathProvider.getClasspathForClass(CrossVersionBuilder.class)
-        def junitJar = AbstractClassPathProvider.getClasspathForClass(Assert.class)
-        def classpath = [testClasses, junitJar] + openApiVersion.gradleHomeDir.file('lib').listFiles().findAll { it.name =~ /gradle-open-api.*\.jar/ }
-        logger.info('Using Open API classpath {}', classpath)
-        def classloader = new URLClassLoader(classpath.collect { it.toURI().toURL() } as URL[], ClassLoader.systemClassLoader.parent)
-
-        def builder = classloader.loadClass(CrossVersionBuilder.class.name).newInstance()
-        builder.targetGradleHomeDir = buildVersion.gradleHomeDir
-        builder.currentDir = dist.testDir
-        builder.version = buildVersion.version
-        builder.build()
     }
 }

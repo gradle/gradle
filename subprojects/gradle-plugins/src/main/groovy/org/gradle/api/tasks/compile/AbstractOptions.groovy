@@ -46,7 +46,7 @@ class AbstractOptions {
     // todo: change modifier to private when GROOVY-2565 is fixed.
     protected boolean isOptionField(Field field) {
         ((field.getModifiers() & Modifier.STATIC) == 0) &&
-                (!field.getName().equals("metaClass")) &&
+                (field.getName() != "metaClass") &&
                 (!excludedFieldsFromOptionMap().contains(field.name))
     }
 

@@ -13,24 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle;
+package org.gradle.initialization;
+
+import org.gradle.GradleLauncher;
+import org.gradle.StartParameter;
 
 /**
- * <p>A {@code GradleFactory} is responsible for creating a {@link GradleLauncher} instance for a build, from a {@link
- * StartParameter}.</p>
+ * <p>A {@code GradleFactory} is responsible for creating a {@link org.gradle.GradleLauncher} instance for a build, from a {@link
+ * org.gradle.StartParameter}.</p>
  *
  * @author Hans Dockter
  */
 public interface GradleLauncherFactory {
     /**
-     * Creates a new {@link GradleLauncher} instance for the given parameters.
+     * Creates a new {@link org.gradle.GradleLauncher} instance for the given parameters.
      *
      * @param startParameter The parameters to use for the build.
      * @return The new instance.
      */
-    GradleLauncher newInstance(StartParameter startParameter);
+    GradleLauncher newInstance(StartParameter startParameter, BuildRequestMetaData requestMetaData);
 
-    GradleLauncher newInstance(String... commandLineArgs);
+    GradleLauncher newInstance(StartParameter startParameter);
 
     StartParameter createStartParameter(String... commandLineArgs);
 }

@@ -18,6 +18,7 @@ package org.gradle.launcher;
 import org.gradle.api.Action;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.ParsedCommandLine;
 import org.gradle.launcher.protocol.Build;
 import org.gradle.logging.internal.OutputEventListener;
@@ -30,18 +31,22 @@ public class DaemonBuildAction extends DaemonClientAction implements Action<Exec
     private final DaemonConnector connector;
     private final ParsedCommandLine args;
     private final File currentDir;
+    private final BuildClientMetaData clientMetaData;
+    private final long startTime;
 
-    public DaemonBuildAction(OutputEventListener outputEventListener, DaemonConnector connector, ParsedCommandLine args, File currentDir) {
+    public DaemonBuildAction(OutputEventListener outputEventListener, DaemonConnector connector, ParsedCommandLine args, File currentDir, BuildClientMetaData clientMetaData, long startTime) {
         super(outputEventListener);
         this.connector = connector;
         this.args = args;
         this.currentDir = currentDir;
+        this.clientMetaData = clientMetaData;
+        this.startTime = startTime;
     }
 
     public void execute(ExecutionListener executionListener) {
         LOGGER.warn("Note: the Gradle build daemon is an experimental feature.");
         LOGGER.warn("As such, you may experience unexpected build failures. You may need to occasionally stop the daemon.");
         Connection<Object> connection = connector.connect();
-        run(new Build(currentDir, args), connection, executionListener);
+        run(new Build(currentDir, args, startTime, clientMetaData), connection, executionListener);
     }
 }

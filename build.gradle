@@ -119,22 +119,7 @@ configure(groovyProjects()) {
 }
 
 allprojects {
-    apply plugin: 'code-quality'
-
-    checkstyleConfigDir = "$rootDir/config/checkstyle"
-    checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
-    codeNarcConfigFileName = "$rootDir/config/codenarc.xml"
-    checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
-}
-configure(groovyProjects()) {
-    sourceSets.allObjects { sourceSet ->
-        task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
-            configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")
-            source sourceSet.allGroovy
-            classpath = sourceSet.compileClasspath
-            resultFile = new File(checkstyleResultsDir, "${sourceSet.name}-groovy.xml")
-        }
-    }
+    apply from: "$rootDir/gradle/codeQuality.gradle"
 }
 
 allprojects {
@@ -321,44 +306,60 @@ task intTestImage(type: Sync) {
     }
 }
 
-task integTest(type: Test, dependsOn: [intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook']) {
-    integTestUserDir = file('intTestHomeDir')
-    systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
-    systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-    systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-    include 'org/gradle/integtests/**/*IntegrationTest.*'
-    forkEvery = 15
-    maxParallelForks = guessMaxForks()
+tasks.withType(Test).allTasks { task ->
+    task.configure {
+        dependsOn intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook'
+        integTestUserDir = file('intTestHomeDir')
+        systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
+        systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
+        forkEvery = 15
+        maxParallelForks = guessMaxForks()
 
-    testClassesDir = project(':core').sourceSets.integTest.classesDir
-    classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
-    testResultsDir = file('build/test-results')
-    testReportDir = file('build/reports/tests')
-    testSrcDirs = []
-    doFirst {
-        if (isDevBuild()) {
-            exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
-        }
+        testClassesDir = project(':core').sourceSets.integTest.classesDir
+        classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
+        testResultsDir = file("build/test-results/$name")
+        testReportDir = file("build/reports/tests/$name")
+        testSrcDirs = []
+
         systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
-        def forkArgs
-        if (noForkIntegTests()) {
-            systemProperties['org.gradle.integtest.executer'] = 'embedded'
-            jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
-        } else {
-            jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+        jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+
+        doFirst {
+            if (isDevBuild()) {
+                exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
+            }
         }
     }
 }
 
-boolean noForkIntegTests() {
-    if (project.hasProperty('forkIntegTests')) {
-        return !Boolean.valueOf(forkIntegTests)
-    }
-    return isDevBuild() && !OperatingSystem.current().isWindows()
+task integTest(type: Test) {
+}
+
+task embeddedIntegTest(type: Test) {
+    systemProperties['org.gradle.integtest.executer'] = 'embedded'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
+}
+
+task daemonIntegTest(type: Test) {
+    systemProperties['org.gradle.integtest.executer'] = 'daemon'
 }
 
 private def isDevBuild() {
     gradle.taskGraph.hasTask(':developerBuild')
+}
+
+gradle.taskGraph.whenReady { graph ->
+    if (isDevBuild()) {
+        if (OperatingSystem.current().isWindows()) {
+            embeddedIntegTest.enabled = false
+        } else {
+            integTest.enabled = false
+        }
+    }
+    if (graph.hasTask(':ciBuild')) {
+        embeddedIntegTest.enabled = false
+    }
 }
 
 def guessMaxForks() {
@@ -366,7 +367,7 @@ def guessMaxForks() {
     return Math.max(2, (int) (processors / 2))
 }
 
-task testedDists(dependsOn: [assemble, check, integTest, 'openApi:integTest', ':ui:integTest'])
+task testedDists(dependsOn: [assemble, check, integTest, embeddedIntegTest, 'openApi:integTest', ':ui:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 

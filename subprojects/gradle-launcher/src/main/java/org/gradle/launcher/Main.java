@@ -18,6 +18,7 @@ package org.gradle.launcher;
 import org.gradle.BuildExceptionReporter;
 import org.gradle.StartParameter;
 import org.gradle.api.Action;
+import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.logging.internal.StreamingStyledTextOutputFactory;
 
 import java.util.Arrays;
@@ -53,7 +54,7 @@ public class Main {
             Action<ExecutionListener> action = actionFactory.convert(Arrays.asList(args));
             action.execute(buildCompleter);
         } catch (Throwable e) {
-            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter());
+            BuildExceptionReporter exceptionReporter = new BuildExceptionReporter(new StreamingStyledTextOutputFactory(System.err), new StartParameter(), new GradleLauncherMetaData());
             exceptionReporter.reportException(e);
             buildCompleter.onFailure(e);
         }

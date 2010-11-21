@@ -17,7 +17,7 @@ package org.gradle.api.tasks
 
 import org.gradle.BuildResult
 import org.gradle.GradleLauncher
-import org.gradle.GradleLauncherFactory
+import org.gradle.initialization.GradleLauncherFactory
 import org.gradle.api.internal.AbstractTask
 import org.junit.After
 import org.junit.Before
