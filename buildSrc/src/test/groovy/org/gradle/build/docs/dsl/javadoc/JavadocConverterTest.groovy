@@ -83,12 +83,12 @@ line 2</para>
 
     def commentCanContainHtmlEncodedCharacters() {
         when:
-        def result = parser.parse(''' * &lt;&gt;&amp; >''', classMetaData)
+        def result = parser.parse(''' * &lt;&gt;&amp; &#47;>''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <para>&lt;&gt;&amp; &gt;</para>
+  <para>&lt;&gt;&amp; /&gt;</para>
 </root>
 '''
     }
@@ -132,14 +132,16 @@ line 2</para>
 
     def convertsPreTagsToProgramListingTags() {
         when:
-        def result = parser.parse('''<pre>this is some
-literal code</pre>
+        def result = parser.parse(''' * <pre>this is some
+ *
+ * literal code</pre>
 ''', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
   <programlisting>this is some
+
 literal code</programlisting>
 </root>
 '''
@@ -209,6 +211,20 @@ text2
   <section>
     <title>section 2</title>
 text3</section>
+</root>
+'''
+    }
+
+    def convertsPropertyGetterMethodCommentToPropertyComment() {
+        PropertyMetaData propertyMetaData = Mock()
+
+        when:
+        def result = parser.parse('returns the name of the thing.', propertyMetaData, classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <para>The name of the thing.</para>
 </root>
 '''
     }

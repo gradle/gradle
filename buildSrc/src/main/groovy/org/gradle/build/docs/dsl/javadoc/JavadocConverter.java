@@ -20,14 +20,11 @@ import org.gradle.build.docs.dsl.DocComment;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.PropertyMetaData;
 import org.gradle.util.GUtil;
-import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
+import org.w3c.dom.Text;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.StringReader;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -67,19 +64,37 @@ public class JavadocConverter {
             }
         };
         try {
-            return parse(rawCommentText, classMetaData, commentSource);
+            DocCommentImpl docComment = parse(rawCommentText, classMetaData, commentSource);
+            adjustGetterComment(docComment);
+            return docComment;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", classMetaData.getClassName(), propertyMetaData.getName(), rawCommentText), e);
         }
     }
 
-    private DocComment parse(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
-        final List<Node> nodes = textToDom(rawCommentText, classMetaData, inheritedCommentSource);
-        return new DocComment() {
-            public Iterable<? extends Node> getDocbook() {
-                return nodes;
-            }
-        };
+    private void adjustGetterComment(DocCommentImpl docComment) {
+        // Replace 'Returns the ...' with 'The ...'
+        List<Node> nodes = docComment.getDocbook();
+        if (nodes.isEmpty() || !(nodes.get(0) instanceof Element)) {
+            return;
+        }
+
+        Element firstNode = (Element) nodes.get(0);
+        if (!firstNode.getNodeName().equals("para") || !(firstNode.getFirstChild() instanceof Text)) {
+            return;
+        }
+
+        Text comment = (Text) firstNode.getFirstChild();
+        Pattern getterPattern = Pattern.compile("returns\\s+the\\s+", Pattern.CASE_INSENSITIVE);
+        Matcher matcher = getterPattern.matcher(comment.getData());
+        if (matcher.lookingAt()) {
+            comment.setData("The " + comment.getData().substring(matcher.end()));
+        }
+    }
+
+    private DocCommentImpl parse(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
+        List<Node> nodes = textToDom(rawCommentText, classMetaData, inheritedCommentSource);
+        return new DocCommentImpl(nodes);
     }
 
     private List<Node> textToDom(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
@@ -105,6 +120,18 @@ public class JavadocConverter {
             }
         }
         return nodes.nodes;
+    }
+
+    private static class DocCommentImpl implements DocComment {
+        private final List<Node> nodes;
+
+        public DocCommentImpl(List<Node> nodes) {
+            this.nodes = nodes;
+        }
+
+        public List<Node> getDocbook() {
+            return nodes;
+        }
     }
 
     private class NodeStack {
@@ -334,228 +361,4 @@ public class JavadocConverter {
         String getCommentText();
     }
 
-    private static class Lexer {
-        private static final Pattern END_TAG_NAME = Pattern.compile("\\s|}");
-        private static final Pattern WHITESPACE = Pattern.compile("\\s+");
-        private static final Pattern HTML_ELEMENT = Pattern.compile("<\\\\?.+?>");
-        private static final Pattern HTML_ENTITY = Pattern.compile("&.+?;");
-        private static final Pattern TAG = Pattern.compile("\\{@.+?\\}");
-        private static final Map<String, String> ENTITIES = new HashMap<String, String>();
-
-        static {
-            ENTITIES.put("amp", "&");
-            ENTITIES.put("lt", "<");
-            ENTITIES.put("gt", ">");
-        }
-
-        enum Token {
-            Start, Text, End
-        }
-
-        final Scanner scanner;
-        Token token;
-        String value;
-        String inlineTag;
-
-        private Lexer(Scanner scanner) {
-            this.scanner = scanner;
-        }
-
-        public void pushText(String rawCommentText) {
-            scanner.pushText(rawCommentText);
-        }
-
-        boolean next() {
-            if (scanner.isEmpty()) {
-                token = null;
-                value = null;
-                return false;
-            }
-
-            scanner.mark();
-            while (!scanner.isEmpty()) {
-                if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
-                    break;
-                }
-                if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
-                    break;
-                }
-                if (scanner.lookingAt(TAG)) {
-                    break;
-                }
-                if (inlineTag != null && scanner.lookingAt('}')) {
-                    break;
-                }
-                scanner.next();
-            }
-
-            String region = scanner.region();
-            if (region.length() > 0) {
-                token = Token.Text;
-                value = region;
-                return true;
-            }
-
-            if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
-                scanner.next();
-                token = Token.Start;
-                if (scanner.lookingAt('/')) {
-                    token = Token.End;
-                    scanner.next();
-                }
-                scanner.mark();
-                scanner.find('>');
-                value = scanner.region().toLowerCase();
-                scanner.next();
-                return true;
-            }
-
-            if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
-                scanner.next();
-                scanner.mark();
-                scanner.find(';');
-                token = Token.Text;
-                value = ENTITIES.get(scanner.region().toLowerCase());
-                scanner.next();
-                return true;
-            }
-
-            if (scanner.lookingAt(TAG)) {
-                scanner.next(2);
-                scanner.mark();
-                scanner.find(END_TAG_NAME);
-                token = Token.Start;
-                value = scanner.region();
-                inlineTag = value;
-                scanner.skip(WHITESPACE);
-                return true;
-            }
-
-            if (inlineTag != null && scanner.lookingAt('}')) {
-                token = Token.End;
-                value = inlineTag;
-                inlineTag = null;
-                scanner.next();
-                return true;
-            }
-
-            throw new IllegalStateException();
-        }
-    }
-
-    private static class Scanner {
-        private final StringBuilder input = new StringBuilder();
-        private int pos;
-        private int markPos;
-
-        private Scanner(String rawCommentText) {
-            pushText(rawCommentText);
-        }
-
-        public boolean isEmpty() {
-            return pos == input.length();
-        }
-
-        public void mark() {
-            markPos = pos;
-        }
-
-        public void next() {
-            next(1);
-        }
-
-        public void next(int n) {
-            pos += n;
-        }
-
-        public boolean lookingAt(char c) {
-            return input.charAt(pos) == c;
-        }
-
-        public boolean lookingAt(CharSequence prefix) {
-            int i = 0;
-            int cpos = pos;
-            while (i < prefix.length() && cpos < input.length()) {
-                if (prefix.charAt(i) != input.charAt(cpos)) {
-                    return false;
-                }
-                i++;
-                cpos++;
-            }
-            return true;
-        }
-
-        public boolean lookingAt(Pattern pattern) {
-            Matcher m = pattern.matcher(input);
-            m.region(pos, input.length());
-            return m.lookingAt();
-        }
-
-        public String region() {
-            return input.substring(markPos, pos);
-        }
-
-        /**
-         * Moves the position to the next instance of the given character, or the end of the input if not found.
-         */
-        public void find(char c) {
-            int cpos = pos;
-            while (cpos < input.length()) {
-                if (input.charAt(cpos) == c) {
-                    break;
-                }
-                cpos++;
-            }
-            pos = cpos;
-        }
-
-        /**
-         * Moves the position to the start of the next instance of the given pattern, or the end of the input if not
-         * found.
-         */
-        public void find(Pattern pattern) {
-            Matcher m = pattern.matcher(input);
-            m.region(pos, input.length());
-            if (m.find()) {
-                pos = m.start();
-            } else {
-                pos = input.length();
-            }
-        }
-
-        /**
-         * Moves the position over the given pattern if currently looking at the pattern. Does nothing if not.
-         */
-        public void skip(Pattern pattern) {
-            Matcher m = pattern.matcher(input);
-            m.region(pos, input.length());
-            if (m.lookingAt()) {
-                pos = m.end();
-            }
-        }
-
-        public void pushText(String rawCommentText) {
-            if (rawCommentText == null) {
-                return;
-            }
-
-            StringBuilder builder = new StringBuilder();
-            try {
-                BufferedReader reader = new BufferedReader(new StringReader(rawCommentText));
-                String line;
-                while ((line = reader.readLine()) != null) {
-                    line = line.replaceFirst("\\s*\\*\\s*", "");
-                    if (line.startsWith("@")) {
-                        // Ignore the tag section of the comment
-                        break;
-                    }
-                    builder.append(line);
-                    builder.append("\n");
-                }
-            } catch (IOException e) {
-                throw UncheckedException.asUncheckedException(e);
-            }
-            input.insert(pos, builder.toString().trim());
-        }
-    }
 }
