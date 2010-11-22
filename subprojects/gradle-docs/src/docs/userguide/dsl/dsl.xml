@@ -29,11 +29,110 @@
         <table>
             <title>Task types</title>
             <tr>
+                <td>org.gradle.api.plugins.antlr.AntlrTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.quality.Checkstyle</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.quality.CodeNarc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.compile.Compile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.Copy</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.Delete</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.Directory</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.DependencyReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.eclipse.EclipseClasspath</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.eclipse.EclipseJdt</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.eclipse.EclipseProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.eclipse.EclipseWtp</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.Exec</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.GradleBuild</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.compile.GroovyCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.javadoc.Groovydoc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.idea.IdeaModule</td>
+            </tr>
+            <tr>
                 <td>org.gradle.plugins.idea.IdeaProject</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.idea.IdeaWorkspace</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.bundling.Jar</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.javadoc.Javadoc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.JavaExec</td>
+            </tr>
+            <!--<tr>-->
+                <!--<td>org.gradle.api.plugins.jetty.JettyRun</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td>org.gradle.api.plugins.jetty.JettyRunWar</td>-->
+            <!--</tr>-->
+            <!--<tr>-->
+                <!--<td>org.gradle.api.plugins.jetty.JettyStop</td>-->
+            <!--</tr>-->
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.scala.ScalaCompile</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.scala.ScalaDoc</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.Sync</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Tar</td>
             </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.TaskReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.testing.Test</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.Upload</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.bundling.War</td>
+            </tr>
+            <!--<tr>-->
+                <!--<td>org.gradle.api.tasks.wrapper.Wrapper</td>-->
+            <!--</tr>-->
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
             </tr>
