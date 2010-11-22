@@ -49,6 +49,7 @@ RemoteLocations remoteLocations = new RemoteLocations(version: version)
 srcDocsDir = file('src/docs')
 userguideSrcDir = new File(srcDocsDir, 'userguide')
 cssSrcDir = new File(srcDocsDir, 'css')
+dslSrcDir = new File(srcDocsDir, 'dsl')
 
 docsDir = file("$buildDir/docs")
 userguideDir = new File(docsDir, 'userguide')
@@ -70,7 +71,7 @@ tasks.withType(UserGuideTransformTask).allObjects { task->
 }
 tasks.withType(AssembleDslDocTask).allObjects { task ->
     task.classpath = configurations.userGuideTask
-    task.classDocbookDir = new File(userguideSrcDir, 'dsl')
+    task.classDocbookDir = dslSrcDir
 }
 
 task samples(type: ExtractSnippetsTask) {
@@ -122,10 +123,10 @@ task dslMetaData(type: ExtractDslMetaDataTask) {
 }
 
 task dslDocbook(type: AssembleDslDocTask, dependsOn: [dslMetaData]) {
-    inputs.files fileTree(dir: userguideSrcDir, includes: ['dsl/*.xml'])
-    sourceFile = new File(userguideSrcDir, 'dsl/dsl.xml')
+    inputs.files fileTree(dir: dslSrcDir, includes: ['*.xml'])
+    sourceFile = new File(dslSrcDir, 'dsl.xml')
     classMetaDataFile = dslMetaData.destFile
-    pluginsMetaDataFile = new File(userguideSrcDir, 'dsl/plugins.xml')
+    pluginsMetaDataFile = new File(dslSrcDir, 'plugins.xml')
     destFile = new File(docbookSrc, 'dsl.xml')
 }
 
@@ -146,6 +147,9 @@ task dslHtml(type: Docbook2Xhtml, dependsOn: dslStandaloneDocbook) {
     resources = fileTree {
         from cssSrcDir
         include '*.css'
+    } + fileTree {
+        from dslSrcDir
+        include '*.js'
     }
 }
 

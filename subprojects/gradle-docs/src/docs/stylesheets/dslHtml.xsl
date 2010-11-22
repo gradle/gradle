@@ -14,11 +14,11 @@
   ~ limitations under the License.
   -->
 <xsl:stylesheet
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="1.0">
+        xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
     <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
-    <xsl:param name="root.filename">index</xsl:param>
+    <xsl:param name="root.filename">dsl</xsl:param>
     <xsl:param name="chunk.section.depth">0</xsl:param>
     <xsl:param name="chunk.quietly">1</xsl:param>
     <xsl:param name="use.id.as.filename">1</xsl:param>
@@ -34,6 +34,45 @@
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="style.css" rel="stylesheet" type="text/css"/>
         <link href="dsl.css" rel="stylesheet" type="text/css"/>
+    </xsl:template>
+
+    <xsl:output method="html" indent="yes" name="html"/>
+
+    <xsl:template match="*" mode="process.root">
+        <xsl:call-template name="write.chunk">
+            <xsl:with-param name="filename">index.html</xsl:with-param>
+            <xsl:with-param name="content">
+                <html>
+                    <head>
+                        <title><xsl:value-of select="/book/bookinfo/title"/> - <xsl:value-of select="/book/bookinfo/releaseinfo"/></title>
+                    </head>
+                    <body>
+                        <frameset cols="250, *">
+                            <frame src="sidebar.html" frameborder="0"/>
+                            <frame src="dsl.html" name="main" frameborder="0"/>
+                        </frameset>
+                    </body>
+                </html>
+            </xsl:with-param>
+        </xsl:call-template>
+
+        <xsl:call-template name="write.chunk">
+            <xsl:with-param name="filename">sidebar.html</xsl:with-param>
+            <xsl:with-param name="content">
+                <html>
+                    <xsl:call-template name="html.head"/>
+                    <body class="sidebar">
+                        <xsl:call-template name="body.attributes"/>
+                        <ul>
+                            <xsl:apply-templates select="/" mode="sidebar"/>
+                        </ul>
+                        <script src="sidebar.js" type="text/javascript"/>
+                    </body>
+                </html>
+            </xsl:with-param>
+        </xsl:call-template>
+
+        <xsl:apply-templates select="."/>
     </xsl:template>
 
     <!-- customise the layout of the html page -->
@@ -53,14 +92,7 @@
 
             <body>
                 <xsl:call-template name="body.attributes"/>
-                <div class="sidebar">
-                    <ul>
-                        <xsl:apply-templates select="/" mode="sidebar"/>
-                    </ul>
-                </div>
-                <div class="content">
-                    <xsl:copy-of select="$content"/>
-                </div>
+                <xsl:copy-of select="$content"/>
             </body>
         </html>
         <xsl:value-of select="$chunk.append"/>
