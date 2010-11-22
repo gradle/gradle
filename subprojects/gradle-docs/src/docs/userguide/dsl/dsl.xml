@@ -94,15 +94,15 @@
             <tr>
                 <td>org.gradle.api.tasks.JavaExec</td>
             </tr>
-            <!--<tr>-->
-                <!--<td>org.gradle.api.plugins.jetty.JettyRun</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td>org.gradle.api.plugins.jetty.JettyRunWar</td>-->
-            <!--</tr>-->
-            <!--<tr>-->
-                <!--<td>org.gradle.api.plugins.jetty.JettyStop</td>-->
-            <!--</tr>-->
+            <tr>
+                <td>org.gradle.api.plugins.jetty.JettyRun</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jetty.JettyRunWar</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.plugins.jetty.JettyStop</td>
+            </tr>
             <tr>
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
             </tr>
@@ -130,9 +130,9 @@
             <tr>
                 <td>org.gradle.api.tasks.bundling.War</td>
             </tr>
-            <!--<tr>-->
-                <!--<td>org.gradle.api.tasks.wrapper.Wrapper</td>-->
-            <!--</tr>-->
+            <tr>
+                <td>org.gradle.api.tasks.wrapper.Wrapper</td>
+            </tr>
             <tr>
                 <td>org.gradle.api.tasks.bundling.Zip</td>
             </tr>

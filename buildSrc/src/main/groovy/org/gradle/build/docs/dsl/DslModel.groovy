@@ -45,6 +45,9 @@ class DslModel {
         if (classDoc == null) {
             ClassMetaData classMetaData = classMetaData.findClass(className)
             if (!classMetaData) {
+                if (!className.contains('.internal.')) {
+                    throw new RuntimeException("No meta-data found for class '$className'.")
+                }
                 classMetaData = new ClassMetaData(className)
             }
             ExtensionMetaData extensionMetaData = extensionMetaData[className]

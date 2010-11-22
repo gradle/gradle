@@ -248,7 +248,7 @@ task checkstyleApi(type: Checkstyle) {
 
 task groovydoc(type: Groovydoc) {
     group = 'documentation'
-    source groovyProjects().collect {project -> project.sourceSets.main.groovy }
+    source groovyProjects().collect {project -> project.sourceSets.main.groovy + project.sourceSets.main.java }
     destinationDir = new File(docsDir, 'groovydoc')
     includes = javadoc.includes
     excludes = javadoc.excludes
