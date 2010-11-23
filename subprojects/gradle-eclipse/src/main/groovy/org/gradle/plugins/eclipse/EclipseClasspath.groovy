@@ -23,7 +23,7 @@ import org.gradle.plugins.eclipse.model.Container
 import org.gradle.plugins.eclipse.model.internal.ClasspathFactory
 
 /**
- * Generates an Eclipse <i>.classpath</i> file.
+ * Generates an Eclipse <code>.classpath</code> file.
  *
  * @author Hans Dockter
  */

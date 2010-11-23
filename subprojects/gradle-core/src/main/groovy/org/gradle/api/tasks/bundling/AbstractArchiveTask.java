@@ -37,7 +37,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
 
     /**
      * Returns the archive name. If the name has not been explicitly set, the pattern for the name is:
-     * [baseName]-[appendix]-[version]-[classifier].[extension]
+     * <code>[baseName]-[appendix]-[version]-[classifier].[extension]</code>
      *
      * @return the archive name.
      */

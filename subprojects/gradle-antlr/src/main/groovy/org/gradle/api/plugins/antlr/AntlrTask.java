@@ -34,7 +34,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * <p>Generates parsers from Antlr grammars.  Wrapper around the Ant {@link ANTLR} task.</p>
+ * <p>Generates parsers from Antlr grammars.</p>
  *
  * <p>Most properties here are self-evident, but I wanted to highlight one in particular: {@link #setAntlrClasspath} is
  * used to define the classpath that should be passed along to the Ant {@link ANTLR} task as its classpath.  That is the

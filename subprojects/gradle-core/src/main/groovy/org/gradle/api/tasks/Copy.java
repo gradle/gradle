@@ -29,12 +29,12 @@ import java.io.File;
  * <p>
  * Examples:
  * <pre>
- * task(mydoc, type:Copy) {
+ * task mydoc(type:Copy) {
  *    from 'src/main/doc'
  *    into 'build/target/doc'
  * }
  *
- * task(initconfig, type:Copy) {
+ * task initconfig(type:Copy) {
  *    from('src/main/config') {
  *       include '**&#47;*.properties'
  *       include '**&#47;*.xml'

@@ -23,7 +23,7 @@ import org.gradle.plugins.eclipse.model.Link
 import org.gradle.plugins.eclipse.model.Project
 
 /**
- * Generates an Eclipse <i>.project</i> file.
+ * Generates an Eclipse <code>.project</code> file.
  *
  * @author Hans Dockter
  */
