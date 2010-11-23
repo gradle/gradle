@@ -26,6 +26,7 @@ class Lexer {
     private static final Pattern END_TAG_NAME = Pattern.compile("\\s|}");
     private static final Pattern WHITESPACE = Pattern.compile("\\s+");
     private static final Pattern HTML_ELEMENT = Pattern.compile("<\\\\?.+?>");
+    private static final Pattern END_ELEMENT_NAME = Pattern.compile("(/>)|>");
     private static final Pattern HTML_ENCODED_CHAR = Pattern.compile("&#\\d+;");
     private static final Pattern HTML_ENTITY = Pattern.compile("&.+?;");
     private static final Pattern TAG = Pattern.compile("\\{@.+?\\}");
@@ -38,13 +39,14 @@ class Lexer {
     }
 
     enum Token {
-        Start, Text, End
+        StartElement, StartTag, Text, End
     }
 
-    final Scanner scanner;
+    private final Scanner scanner;
     Token token;
     String value;
-    String inlineTag;
+    private String inlineTag;
+    private boolean implicitEnd;
 
     Lexer(Scanner scanner) {
         this.scanner = scanner;
@@ -55,6 +57,12 @@ class Lexer {
     }
 
     boolean next() {
+        if (implicitEnd) {
+            token = Token.End;
+            implicitEnd = false;
+            return true;
+        }
+
         if (scanner.isEmpty()) {
             token = null;
             value = null;
@@ -90,15 +98,18 @@ class Lexer {
 
         if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
             scanner.next();
-            token = Token.Start;
+            token = Token.StartElement;
             if (scanner.lookingAt('/')) {
                 token = Token.End;
                 scanner.next();
             }
             scanner.mark();
-            scanner.find('>');
+            scanner.find(END_ELEMENT_NAME);
+            if (scanner.lookingAt('/')) {
+                implicitEnd = true;
+            }
             value = scanner.region().toLowerCase();
-            scanner.next();
+            scanner.skip(END_ELEMENT_NAME);
             return true;
         }
 
@@ -126,7 +137,7 @@ class Lexer {
             scanner.next(2);
             scanner.mark();
             scanner.find(END_TAG_NAME);
-            token = Token.Start;
+            token = Token.StartTag;
             value = scanner.region();
             inlineTag = value;
             scanner.skip(WHITESPACE);

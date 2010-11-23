@@ -93,7 +93,7 @@ line 2</para>
 '''
     }
 
-    def convertsPTagsToParaTags() {
+    def convertsPElementsToParaElements() {
         when:
         def result = parser.parse('<p>para 1</p><P>para 2</P>', classMetaData)
 
@@ -106,7 +106,35 @@ line 2</para>
 '''
     }
 
-    def convertsCodeTagsToLiteralTags() {
+    def addsImplicitParaElement() {
+        when:
+        def result = parser.parse('<em>para 1</em><P>para 2</P>', classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <para>
+    <emphasis>para 1</emphasis>
+  </para>
+  <para>para 2</para>
+</root>
+'''
+    }
+
+    def ignoresEmptyPElements() {
+        when:
+        def result = parser.parse('para 1<p/><p></p>para 2<p></p>', classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <para>para 1</para>
+  <para>para 2</para>
+</root>
+'''
+    }
+
+    def convertsCodeTagsAndElementsToLiteralElements() {
         when:
         def result = parser.parse('This is <code>code</code>. So is {@code this}.', classMetaData)
 
@@ -120,17 +148,19 @@ line 2</para>
 
     def doesNotInterpretContentsOfCodeTagAsHtml() {
         when:
-        def result = parser.parse('{@code List<String> && a < 9}', classMetaData)
+        def result = parser.parse('{@code List<String> && a < 9} <code>&amp;</code>', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <literal>List&lt;String&gt; &amp;&amp; a &lt; 9</literal>
+  <para>
+    <literal>List&lt;String&gt; &amp;&amp; a &lt; 9</literal> <literal>&amp;</literal>
+  </para>
 </root>
 '''
     }
 
-    def convertsPreTagsToProgramListingTags() {
+    def convertsPreElementsToProgramListingElements() {
         when:
         def result = parser.parse(''' * <pre>this is some
  *
@@ -147,7 +177,24 @@ literal code</programlisting>
 '''
     }
 
-    def convertsUlAndLiTagsToItemizedListTags() {
+    def implicitlyEndsCurrentParagraphAtPreElement() {
+        when:
+        def result = parser.parse(''' * for example: <pre>this is some
+ * literal code</pre> this is another para.
+''', classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <para>for example: </para>
+  <programlisting>this is some
+literal code</programlisting>
+  <para> this is another para.</para>
+</root>
+'''
+    }
+
+    def convertsUlAndLiElementsToItemizedListElements() {
         when:
         def result = parser.parse('<ul><li>item1</li></ul>', classMetaData)
 
@@ -163,25 +210,45 @@ literal code</programlisting>
 
     def convertsALinkTag() {
         when:
-        def result = parser.parse('{@link someClass}', classMetaData)
+        def result = parser.parse('{@link someClass} {@link otherClass label}', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <someLink/>
+  <para>
+    <xref/> <xref/>
+  </para>
 </root>
 '''
-        _ * linkConverter.resolve('someClass', classMetaData) >> [document.createElement("someLink")]
+        1 * linkConverter.resolve('someClass', classMetaData) >> [document.createElement("xref")]
+        1 * linkConverter.resolve('otherClass', classMetaData) >> [document.createElement("xref")]
+        0 * linkConverter._
     }
 
-    def convertsAnEmTag() {
+    def convertsAnEmElementToAnEmphasisElement() {
         when:
         def result = parser.parse('<em>text</em>', classMetaData)
 
         then:
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <emphasis>text</emphasis>
+  <para>
+    <emphasis>text</emphasis>
+  </para>
+</root>
+'''
+    }
+
+    def convertsAnIElementToAnEmphasisElement() {
+        when:
+        def result = parser.parse('<i>text</i>', classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <para>
+    <emphasis>text</emphasis>
+  </para>
 </root>
 '''
     }
@@ -243,6 +310,20 @@ text3</section>
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
   <para>before <emphasis>inherited value</emphasis> after</para>
+</root>
+'''
+    }
+
+    def convertsUnknownElementsAndTags() {
+        PropertyMetaData propertyMetaData = Mock()
+
+        when:
+        def result = parser.parse('<unknown>text</unknown><inheritDoc>{@unknown text}{@p text}', propertyMetaData, classMetaData)
+
+        then:
+        format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <para>!!UNKNOWN TAG unknown!!text!!UNKNOWN TAG inheritdoc!!!!UNKNOWN TAG unknown!!text!!UNKNOWN TAG p!!text</para>
 </root>
 '''
     }
