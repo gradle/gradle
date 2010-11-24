@@ -145,7 +145,7 @@ public class DaemonConnector {
         final CompletionHandler finished = new CompletionHandler();
 
         LOGGER.lifecycle("Awaiting requests.");
-        
+
         URI uri = incomingConnector.accept(new Action<ConnectEvent<Connection<Object>>>() {
             public void execute(ConnectEvent<Connection<Object>> connectionConnectEvent) {
                 try {
@@ -199,11 +199,12 @@ public class DaemonConnector {
         private long expiry;
 
         CompletionHandler() {
-            onActivityComplete();
+            resetTimer();
         }
 
         /**
          * Waits until stopped, or timeout.
+         *
          * @return true if stopped, false if timeout
          */
         public boolean awaitStop() {
@@ -211,7 +212,11 @@ public class DaemonConnector {
             try {
                 while (running || (!stopped && System.currentTimeMillis() < expiry)) {
                     try {
-                        condition.awaitUntil(new Date(expiry));
+                        if (running) {
+                            condition.await();
+                        } else {
+                            condition.awaitUntil(new Date(expiry));
+                        }
                     } catch (InterruptedException e) {
                         throw UncheckedException.asUncheckedException(e);
                     }
@@ -247,12 +252,17 @@ public class DaemonConnector {
         public void onActivityComplete() {
             lock.lock();
             try {
+                assert running;
                 running = false;
-                expiry = System.currentTimeMillis() + THREE_HOURS;
+                resetTimer();
                 condition.signalAll();
             } finally {
                 lock.unlock();
             }
+        }
+
+        private void resetTimer() {
+            expiry = System.currentTimeMillis() + THREE_HOURS;
         }
     }
 }
