@@ -18,7 +18,10 @@ package org.gradle.build.docs.dsl.model;
 import java.io.Serializable;
 import java.util.*;
 
-public class ClassMetaData implements Serializable {
+import org.gradle.build.docs.model.Attachable;
+import org.gradle.build.docs.model.ClassMetaDataRepository;
+
+public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
     private final String className;
     private final String superClassName;
     private final boolean groovy;
@@ -26,7 +29,7 @@ public class ClassMetaData implements Serializable {
     private final List<String> imports;
     private final List<String> interfaceNames;
     private final Map<String, PropertyMetaData> classProperties = new HashMap<String, PropertyMetaData>();
-    private ClassMetaDataRepository metaDataRepository;
+    private ClassMetaDataRepository<ClassMetaData> metaDataRepository;
 
     public ClassMetaData(String className, String superClassName, boolean isGroovy, String rawClassComment, List<String> imports, List<String> interfaceNames) {
         this.className = className;
@@ -63,13 +66,13 @@ public class ClassMetaData implements Serializable {
     }
 
     public ClassMetaData getSuperClass() {
-        return superClassName == null ? null : metaDataRepository.findClass(superClassName);
+        return superClassName == null ? null : metaDataRepository.find(superClassName);
     }
 
     public List<ClassMetaData> getInterfaces() {
         List<ClassMetaData> interfaces = new ArrayList<ClassMetaData>();
         for (String interfaceName : interfaceNames) {
-            ClassMetaData interfaceMetaData = metaDataRepository.findClass(interfaceName);
+            ClassMetaData interfaceMetaData = metaDataRepository.find(interfaceName);
             if (interfaceMetaData != null) {
                 interfaces.add(interfaceMetaData);
             }
@@ -109,7 +112,7 @@ public class ClassMetaData implements Serializable {
         return property;
     }
 
-    public void attach(ClassMetaDataRepository metaDataRepository) {
+    public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.metaDataRepository = metaDataRepository;
         for (PropertyMetaData propertyMetaData : classProperties.values()) {
             propertyMetaData.attach(this);

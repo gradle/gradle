@@ -156,7 +156,7 @@ apply plugin: 'project-report'
             </tr>
         </table>
 
-        <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.plugins.ProjectReportsPluginConvention" lang="groovy"/>.</para>
+        <para>These convention properties are provided by a convention object of type <apilink class="org.gradle.api.plugins.ProjectReportsPluginConvention"/>.</para>
     </section>
     
 </chapter>

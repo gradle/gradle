@@ -86,7 +86,7 @@
 
     <section>
         <title>Writing a simple task</title>
-        <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask" lang="groovy"/>.
+        <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask"/>.
         </para>
         <sample id="customTask" dir="userguide/tasks/customTask" title="Defining a custom task">
             <sourcefile file="build.gradle" snippet="define-task"/>

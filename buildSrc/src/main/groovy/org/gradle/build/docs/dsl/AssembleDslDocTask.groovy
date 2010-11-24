@@ -28,11 +28,26 @@ import org.gradle.api.tasks.InputDirectory
 import org.gradle.build.docs.XIncludeAwareXmlProvider
 import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.ClassMetaDataRepository
+import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 
 /**
- * Generates the docbook source for the DSL documentation. Uses meta-data extracted from the source, meta-data about the
- * plugins, plus a docbook template file.
+ * Generates the docbook source for the DSL reference guide.
+ *
+ * Uses the following as input:
+ * <ul>
+ * <li>Meta-data extracted from the source by {@link ExtractDslMetaDataTask}.</li>
+ * <li>Meta-data about the plugins, in the form of an XML file.</li>
+ * <li>A docbook template file containing the introductory material and a list of classes to document.</li>
+ * <li>A docbook template file for each class, contained in the {@code classDocbookDir} directory.</li>
+ * </ul>
+ *
+ * Produces the following:
+ * <ul>
+ * <li>A docbook book XML file containing the reference.</li>
+ * <li>A meta-data file containing information about where the canonical documentation for each class can be found:
+ * as dsl doc, javadoc or groovydoc.</li>
+ * </ul>
  */
 class AssembleDslDocTask extends DefaultTask {
     @InputFile
@@ -45,6 +60,8 @@ class AssembleDslDocTask extends DefaultTask {
     File classDocbookDir
     @OutputFile
     File destFile
+    @OutputFile
+    File linksFile
     @InputFiles
     FileCollection classpath;
 
@@ -57,18 +74,25 @@ class AssembleDslDocTask extends DefaultTask {
     }
 
     private def transformDocument(Document document) {
+        ClassMetaDataRepository<ClassMetaData> classRepository = new SimpleClassMetaDataRepository<ClassMetaData>()
+        classRepository.load(classMetaDataFile)
+        ClassMetaDataRepository<LinkMetaData> linkRepository = new SimpleClassMetaDataRepository<LinkMetaData>()
+        classRepository.each {name, ClassMetaData metaData ->
+            linkRepository.put(name, new LinkMetaData(metaData.groovy ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc))
+        }
+
         use(DOMCategory) {
             use(BuildableDOMCategory) {
-                Map<String, ClassMetaData> classes = loadClassMetaData()
                 Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
-                ClassMetaDataRepository classRepository = new DefaultClassMetaDataRepository(classes)
                 DslModel model = new DslModel(classDocbookDir, document, classpath, classRepository, extensions)
                 def root = document.documentElement
                 root.section[0].table.each { Element table ->
-                    insertTypes(table, model)
+                    insertTypes(table, model, linkRepository)
                 }
             }
         }
+
+        linkRepository.store(linksFile)
     }
 
     def loadPluginsMetaData() {
@@ -91,21 +115,7 @@ class AssembleDslDocTask extends DefaultTask {
         return extensions
     }
 
-    def loadClassMetaData() {
-        Map<String, ClassMetaData> classes;
-        classMetaDataFile.withInputStream { InputStream instr ->
-            ObjectInputStream ois = new ObjectInputStream(instr) {
-                @Override protected Class<?> resolveClass(ObjectStreamClass objectStreamClass) {
-                    return AssembleDslDocTask.classLoader.loadClass(objectStreamClass.name)
-                }
-
-            }
-            classes = ois.readObject()
-        }
-        return classes
-    }
-
-    def insertTypes(Element typeTable, DslModel model) {
+    def insertTypes(Element typeTable, DslModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         typeTable['@role'] = 'dslTypes'
         typeTable.addFirst {
             thead {
@@ -117,15 +127,16 @@ class AssembleDslDocTask extends DefaultTask {
         }
 
         typeTable.tr.each { Element tr ->
-            insertType(tr, model)
+            insertType(tr, model, linkRepository)
         }
     }
 
-    def insertType(Element tr, DslModel model) {
+    def insertType(Element tr, DslModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         String className = tr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
-        Element root = tr.ownerDocument.documentElement
+        linkRepository.put(className, new LinkMetaData(LinkMetaData.Style.Dsldoc))
 
+        Element root = tr.ownerDocument.documentElement
         root << classDoc.classSection
 
         tr.children = {

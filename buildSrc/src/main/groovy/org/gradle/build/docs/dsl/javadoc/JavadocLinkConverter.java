@@ -17,7 +17,7 @@ package org.gradle.build.docs.dsl.javadoc;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
-import org.gradle.build.docs.dsl.model.ClassMetaDataRepository;
+import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -29,9 +29,9 @@ import java.util.Arrays;
  */
 public class JavadocLinkConverter {
     private final Document document;
-    private final ClassMetaDataRepository metaDataRepository;
+    private final ClassMetaDataRepository<ClassMetaData> metaDataRepository;
 
-    public JavadocLinkConverter(Document document, ClassMetaDataRepository metaDataRepository) {
+    public JavadocLinkConverter(Document document, ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.document = document;
         this.metaDataRepository = metaDataRepository;
     }
@@ -49,14 +49,14 @@ public class JavadocLinkConverter {
 
     private String doResolve(String link, ClassMetaData classMetaData) {
         if (link.contains(".")) {
-            return link;
+            return metaDataRepository.find(link) != null ? link : null;
         }
 
         for (String importedClass : classMetaData.getImports()) {
             String baseName = StringUtils.substringAfterLast(importedClass, ".");
             if (baseName.equals("*")) {
                 String candidateClassName = StringUtils.substringBeforeLast(importedClass, ".") + "." + link;
-                if (metaDataRepository.findClass(candidateClassName) != null) {
+                if (metaDataRepository.find(candidateClassName) != null) {
                     return candidateClassName;
                 }
             } else if (link.equals(baseName)) {
@@ -65,7 +65,7 @@ public class JavadocLinkConverter {
         }
 
         String candidateClassName = StringUtils.substringBeforeLast(classMetaData.getClassName(), ".") + "." + link;
-        if (metaDataRepository.findClass(candidateClassName) != null) {
+        if (metaDataRepository.find(candidateClassName) != null) {
             return candidateClassName;
         }
 

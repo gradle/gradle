@@ -22,6 +22,9 @@ import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.file.FileVisitDetails
 
+/**
+ * Produces the snippets files for a set of sample source files.
+ */
 public class ExtractSnippetsTask extends SourceTask {
     @OutputDirectory
     File destDir

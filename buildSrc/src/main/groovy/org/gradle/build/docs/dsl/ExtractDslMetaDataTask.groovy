@@ -25,10 +25,11 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
- * for later use in generating the docbook source for the DSL.
+ * for later use in generating the docbook source for the DSL, such as by {@link AssembleDslDocTask}.
  */
 class ExtractDslMetaDataTask extends SourceTask {
     @OutputFile
@@ -47,7 +48,8 @@ class ExtractDslMetaDataTask extends SourceTask {
         }
         groovyDoc.add(files)
 
-        Map<String, ClassMetaData> allClasses = [:]
+        SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
+
         GroovyRootDoc rootDoc = groovyDoc.rootDoc
         rootDoc.classes().each { SimpleGroovyClassDoc doc ->
             String className = doc.qualifiedTypeName()
@@ -55,7 +57,7 @@ class ExtractDslMetaDataTask extends SourceTask {
             def interfaces = doc.interfaces().collect { it.qualifiedTypeName() }
 
             ClassMetaData classMetaData = new ClassMetaData(className, superClassName, doc.isGroovy(), doc.rawCommentText, doc.importedClassesAndPackages, interfaces)
-            allClasses[className] = classMetaData
+            repository.put(className, classMetaData)
 
             doc.methods().each { GroovyMethodDoc method ->
                 if (method.name().matches("get.+")) {
@@ -80,8 +82,6 @@ class ExtractDslMetaDataTask extends SourceTask {
             }
         }
 
-        destFile.withObjectOutputStream { ObjectOutputStream outstr ->
-            outstr.writeObject(allClasses)
-        }
+        repository.store(destFile)
     }
 }

@@ -123,7 +123,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.IdeaProject" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.IdeaProject"/></td>
                 <td>Generates the <filename>.ipr</filename> file. The Idea plugin adds this task only to the root project.</td>
             </tr>
             <tr>
@@ -133,7 +133,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.IdeaModule" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.IdeaModule"/></td>
                 <td>Generates the <filename>.iml</filename> file</td>
             </tr>
             <tr>
@@ -143,7 +143,7 @@
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.IdeaWorkspace"/></td>
                 <td>Generates the <filename>.iws</filename> file</td>
             </tr>
         </table>
@@ -415,9 +415,9 @@
                 <td>
                     <literal><code>beforeConfigured { arg -> }</code></literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.model.Project" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Module" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Workspace" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
                 <td>Gets called directly after the domain objects have been populated with the content of the
                     existing XML file (if there is one).</td>
             </tr>
@@ -425,9 +425,9 @@
                 <td>
                     <literal><code>whenConfigured { arg -> }</code></literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.idea.model.Project" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Module" lang="groovy"/></td>
-                <td><apilink class="org.gradle.plugins.idea.model.Workspace" lang="groovy"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Project"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Module"/></td>
+                <td><apilink class="org.gradle.plugins.idea.model.Workspace"/></td>
                 <td>Gets called after the domain objects have been populated with the content of the
                     existing XML file and the content from the build script.</td>
             </tr>

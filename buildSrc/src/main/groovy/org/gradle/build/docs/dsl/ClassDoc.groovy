@@ -99,7 +99,7 @@ class ClassDoc {
             section {
                 title('API Documentation')
                 para {
-                    apilink('class': className, lang: lang)
+                    apilink('class': className, style: style)
                 }
             }
         }
@@ -120,8 +120,8 @@ class ClassDoc {
         return getSection('Methods').table[0]
     }
 
-    String getLang() {
-        return classMetaData.groovy ? 'groovy' : 'java'
+    String getStyle() {
+        return classMetaData.groovy ? 'groovydoc' : 'javadoc'
     }
 
     private Element getSection(String title) {

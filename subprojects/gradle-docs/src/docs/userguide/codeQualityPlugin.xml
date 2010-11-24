@@ -243,7 +243,7 @@
         </table>
 
         <para>These convention properties are provided by a convention object of type
-            <apilink class="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention" lang="groovy"/>.</para>
+            <apilink class="org.gradle.api.plugins.quality.JavaCodeQualityPluginConvention"/>.</para>
 
         <para>When used with the Groovy plugin, the code quality plugin adds the following convention properties to the project:</para>
 
@@ -316,7 +316,7 @@
         </table>
 
         <para>These convention properties are provided by a convention object of type
-            <apilink class="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention" lang="groovy"/>.</para>
+            <apilink class="org.gradle.api.plugins.quality.GroovyCodeQualityPluginConvention"/>.</para>
     </section>
 
 </chapter>

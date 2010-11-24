@@ -126,7 +126,7 @@
                 <td>
                     <literal>compile</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.Jar" lang="groovy"/></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Jar"/></td>
                 <td>Assembles the JAR file</td>
             </tr>
             <tr>
@@ -660,7 +660,7 @@
                 <td>
                     <literal>manifest</literal>
                 </td>
-                <td><apilink class="org.gradle.api.java.archives.Manifest" lang="java"/></td>
+                <td><apilink class="org.gradle.api.java.archives.Manifest"/></td>
                 <td>an empty manifest</td>
                 <td>The manifest to include in all JAR files.</td>
             </tr>
@@ -678,9 +678,9 @@
         </table>
 
         <para>
-            These properties are provided by convention objects of type <apilink class="org.gradle.api.plugins.JavaPluginConvention" lang="groovy"/>,
-            <apilink class="org.gradle.api.plugins.BasePluginConvention" lang="groovy"/> and
-            <apilink class="org.gradle.api.plugins.ReportingBasePluginConvention" lang="groovy"/>.
+            These properties are provided by convention objects of type <apilink class="org.gradle.api.plugins.JavaPluginConvention"/>,
+            <apilink class="org.gradle.api.plugins.BasePluginConvention"/> and
+            <apilink class="org.gradle.api.plugins.ReportingBasePluginConvention"/>.
         </para>
     </section>
 
@@ -1211,7 +1211,7 @@
         <section id='sub:manifest'>
             <title>Manifest</title>
             <para>Each jar or war object has a <literal>manifest</literal>
-                property with a separate instance of <apilink class="org.gradle.api.java.archives.Manifest" lang="java"/>.
+                property with a separate instance of <apilink class="org.gradle.api.java.archives.Manifest"/>.
                 When the archive is generated, a corresponding <literal>MANIFEST.MF</literal> file is written into the
                 archive.
             </para>

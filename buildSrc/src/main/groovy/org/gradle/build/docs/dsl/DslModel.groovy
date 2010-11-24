@@ -16,22 +16,22 @@
 package org.gradle.build.docs.dsl
 
 import org.gradle.build.docs.XIncludeAwareXmlProvider
-import org.gradle.build.docs.dsl.model.ClassMetaDataRepository
 import org.gradle.build.docs.dsl.javadoc.JavadocConverter
 import org.gradle.build.docs.dsl.javadoc.JavadocLinkConverter
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.w3c.dom.Document
+import org.gradle.build.docs.model.ClassMetaDataRepository
 
 class DslModel {
     private final File classDocbookDir
     private final Document document
     private final Iterable<File> classpath
     private final Map<String, ClassDoc> classes = [:]
-    private final ClassMetaDataRepository classMetaData
+    private final ClassMetaDataRepository<ClassMetaData> classMetaData
     private final Map<String, ExtensionMetaData> extensionMetaData
     private final JavadocConverter javadocConverter
 
-    DslModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
+    DslModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
         this.classDocbookDir = classDocbookDir
         this.document = document
         this.classpath = classpath
@@ -43,7 +43,7 @@ class DslModel {
     def getClassDoc(String className) {
         ClassDoc classDoc = classes[className]
         if (classDoc == null) {
-            ClassMetaData classMetaData = classMetaData.findClass(className)
+            ClassMetaData classMetaData = classMetaData.find(className)
             if (!classMetaData) {
                 if (!className.contains('.internal.')) {
                     throw new RuntimeException("No meta-data found for class '$className'.")

@@ -24,9 +24,20 @@ import org.gradle.api.file.FileCollection
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.gradle.api.tasks.*
+import org.gradle.build.docs.dsl.LinkMetaData
+import org.gradle.build.docs.model.SimpleClassMetaDataRepository
+import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.gradle.api.InvalidUserDataException
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
+ *
+ * Takes the following as input:
+ * <ul>
+ * <li>A source docbook XML file.</li>
+ * <li>A directory containing the snippets for the samples to be included in the document, as produced by {@link ExtractSnippetsTask}.</li>
+ * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.AssembleDslDocTask}.</li>
+ * </ul>
  */
 public class UserGuideTransformTask extends DefaultTask {
     @Input
@@ -36,9 +47,13 @@ public class UserGuideTransformTask extends DefaultTask {
     @Input
     String groovydocUrl
     @Input
+    String dsldocUrl
+    @Input
     String websiteUrl
     @InputFile
     File sourceFile
+    @InputFile
+    File linksFile
     @OutputFile
     File destFile
     @InputDirectory
@@ -88,35 +103,46 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformApiLinks(Document doc) {
-        File linksFile = new File(destFile.parentFile, 'links.xml')
-        linksFile.withWriter {Writer writer ->
-            MarkupBuilder xml = new MarkupBuilder(writer)
-            xml.links {
-                doc.documentElement.depthFirst().findAll { it.name() == 'apilink' }.each {Element element ->
-                    String className = element.'@class'
-                    if (!className) {
-                        throw new RuntimeException('No "class" attribute specified for <apilink> element.')
-                    }
-                    String methodName = element.'@method'
-                    String lang = element.'@lang' ?: 'java'
+        ClassMetaDataRepository<LinkMetaData> linkRepository = new SimpleClassMetaDataRepository<LinkMetaData>()
+        linkRepository.load(linksFile)
 
-                    Element ulinkElement = doc.createElement('ulink')
-                    String baseUrl = lang == 'groovy' ? groovydocUrl : javadocUrl
-                    String href = "$baseUrl/${className.replace('.', '/')}.html"
-                    ulinkElement.setAttribute('url', href)
-
-                    Element classNameElement = doc.createElement('classname')
-                    ulinkElement.appendChild(classNameElement)
-
-                    String classBaseName = className.tokenize('.').last()
-                    String linkText = methodName ? "$classBaseName.$methodName()" : classBaseName
-                    classNameElement.appendChild(doc.createTextNode(linkText))
-
-                    element.parentNode.replaceChild(ulinkElement, element)
-
-                    xml.link(className: className, lang: lang)
-                }
+        doc.documentElement.depthFirst().findAll { it.name() == 'apilink' }.each {Element element ->
+            String className = element.'@class'
+            if (!className) {
+                throw new RuntimeException('No "class" attribute specified for <apilink> element.')
             }
+            String methodName = element.'@method'
+
+            LinkMetaData linkMetaData = linkRepository.get(className)
+            String style = element.'@style' ?: linkMetaData.style.toString().toLowerCase()
+
+            Element ulinkElement = doc.createElement('ulink')
+
+            String href
+            switch (style) {
+                case 'dsldoc':
+                    href = "$dsldocUrl/${className}.html"
+                    break
+                case 'groovydoc':
+                    href = "$groovydocUrl/${className.replace('.', '/')}.html"
+                    break;
+                case 'javadoc':
+                    href = "$javadocUrl/${className.replace('.', '/')}.html"
+                    break;
+                default:
+                    throw new InvalidUserDataException("Unknown api link style '$style'.")
+            }
+
+            ulinkElement.setAttribute('url', href)
+
+            Element classNameElement = doc.createElement('classname')
+            ulinkElement.appendChild(classNameElement)
+
+            String classBaseName = className.tokenize('.').last()
+            String linkText = methodName ? "$classBaseName.$methodName()" : classBaseName
+            classNameElement.appendChild(doc.createTextNode(linkText))
+
+            element.parentNode.replaceChild(ulinkElement, element)
         }
     }
 

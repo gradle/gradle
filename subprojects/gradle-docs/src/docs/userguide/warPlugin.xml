@@ -47,7 +47,7 @@
                 <td>
                     <literal>compile</literal>
                 </td>
-                <td><apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/></td>
+                <td><apilink class="org.gradle.api.tasks.bundling.War"/></td>
                 <td>Assembles the application WAR file.</td>
             </tr>
         </table>
@@ -147,7 +147,7 @@
             </tr>
         </table>
 
-        <para>These properties are provided by a <apilink class="org.gradle.api.plugins.WarPluginConvention" lang="groovy"/>
+        <para>These properties are provided by a <apilink class="org.gradle.api.plugins.WarPluginConvention"/>
             convention object.
         </para>
     </section>
@@ -169,7 +169,7 @@
                 </para>
             </footnote>
             configuration are copied to <literal>WEB-INF/lib</literal>.</para>
-        <para>Have also a look at <apilink class="org.gradle.api.tasks.bundling.War" lang="groovy"/>.</para>
+        <para>Have also a look at <apilink class="org.gradle.api.tasks.bundling.War"/>.</para>
     </section>
     <section id='sec:customizing'>
         <title>Customizing</title>

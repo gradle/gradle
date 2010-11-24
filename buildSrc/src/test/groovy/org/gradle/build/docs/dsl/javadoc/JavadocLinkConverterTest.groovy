@@ -17,10 +17,10 @@ package org.gradle.build.docs.dsl.javadoc
 
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.ClassMetaDataRepository
+import org.gradle.build.docs.model.ClassMetaDataRepository
 
 class JavadocLinkConverterTest extends XmlSpecification {
-    final ClassMetaDataRepository metaDataRepository = Mock()
+    final ClassMetaDataRepository<ClassMetaData> metaDataRepository = Mock()
     final ClassMetaData classMetaData = Mock()
     final JavadocLinkConverter converter = new JavadocLinkConverter(document, metaDataRepository)
 
@@ -33,6 +33,17 @@ class JavadocLinkConverterTest extends XmlSpecification {
 <root>
   <apilink class="org.gradle.SomeClass"/>
 </root>
+'''
+        _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
+    }
+
+    def resolvesUnknownFullyQualifiedClassName() {
+        when:
+        def link = converter.resolve('org.gradle.SomeClass', classMetaData)
+
+        then:
+        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>!!UNKNOWN LINK org.gradle.SomeClass!!</root>
 '''
     }
 
@@ -48,7 +59,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
 '''
         _ * classMetaData.imports >> []
         _ * classMetaData.className >> 'org.gradle.ImportingClass'
-        _ * metaDataRepository.findClass('org.gradle.SomeClass') >> classMetaData
+        _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
     }
 
     def resolvesImportedClass() {
@@ -75,6 +86,6 @@ class JavadocLinkConverterTest extends XmlSpecification {
 </root>
 '''
         _ * classMetaData.imports >> ['org.gradle.*']
-        _ * metaDataRepository.findClass('org.gradle.SomeClass') >> classMetaData
+        _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
     }
 }

@@ -15,24 +15,24 @@
  */
 package org.gradle.build.docs.dsl;
 
-import org.gradle.build.docs.dsl.model.ClassMetaDataRepository;
-import org.gradle.build.docs.dsl.model.ClassMetaData;
+import org.gradle.build.docs.model.Attachable;
+import org.gradle.build.docs.model.ClassMetaDataRepository;
 
-import java.util.Map;
+import java.io.Serializable;
 
-public class DefaultClassMetaDataRepository implements ClassMetaDataRepository {
-    private final Map<String, ClassMetaData> classes;
+public class LinkMetaData implements Serializable, Attachable<LinkMetaData> {
+    enum Style { Javadoc, Groovydoc, Dsldoc }
 
-    public DefaultClassMetaDataRepository(Map<String, ClassMetaData> classes) {
-        this.classes = classes;
+    private final Style style;
+
+    public LinkMetaData(Style style) {
+        this.style = style;
     }
 
-    public ClassMetaData findClass(String fullyQualifiedName) {
-        ClassMetaData classMetaData = classes.get(fullyQualifiedName);
-        if (classMetaData == null) {
-            return null;
-        }
-        classMetaData.attach(this);
-        return classMetaData;
+    public Style getStyle() {
+        return style;
+    }
+
+    public void attach(ClassMetaDataRepository<LinkMetaData> linkMetaDataClassMetaDataRepository) {
     }
 }
