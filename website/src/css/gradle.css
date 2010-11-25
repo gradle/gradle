@@ -114,7 +114,7 @@ p {
     font-weight: bold;
     color: #444444;
     text-decoration: none;
-    margin-left: 50px;
+    margin-left: 37px;
 }
 
 #navbar a:hover {
@@ -339,6 +339,34 @@ table.table td.colHeader {
 
 .figure-contents {
     overflow-x: auto;
+}
+
+.quickLinks {
+    float: right;
+    background: #e4eef5;
+    padding-top: 16px;
+    padding-left: 40px;
+    padding-right: 40px;
+    padding-bottom: 16px;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+}
+
+.quickLinks h2 {
+    margin-top: 0;
+    margin-bottom: 0.6em;
+}
+
+.quickLinks ul {
+    margin: 0;
+    padding: 0;
+    line-height: 1.25em;
+}
+
+.quickLinks li {
+    margin-left: 0;
+    margin-bottom: 0.8em;
+    list-style: none;
 }
 
 #footer {

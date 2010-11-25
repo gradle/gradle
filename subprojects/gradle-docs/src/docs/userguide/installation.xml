@@ -43,6 +43,7 @@
 <itemizedlist>
     <listitem><para>The Gradle binaries.</para></listitem>
     <listitem><para>The user guide (HTML and PDF).</para></listitem>
+    <listitem><para>The DSL reference guide.</para></listitem>
     <listitem><para>The API documentation (Javadoc and Groovydoc).</para></listitem>
     <listitem>
         <para>Extensive samples, including the examples referenced in the user guide, along with some complete and more
@@ -112,7 +113,7 @@ of the <command>gradle</command> or <command>gradlew</command> script.
 <title>Getting help</title>
 
 <para>You might check the user guide at <filename><replaceable>GRADLE_HOME</replaceable>/docs/userguide/userguide.html</filename>.
-It is also available on the <ulink url="website:userguide.html">Gradle web site</ulink>.
+It is also available on the <ulink url="website:documentation.html">Gradle web site</ulink>.
 Typing <command>gradle help</command> prints the command line help. Typing <command>gradle tasks</command> shows all the
 tasks of a Gradle build.
 </para>

@@ -20,12 +20,13 @@ class LocalLayout implements Layout {
             'docs/userguide/userguide.html',
             'docs/userguide/userguide_single.html',
             'docs/userguide/userguide.pdf',
-            'docs/javadoc',
-            'docs/groovydoc'
+            'docs/javadoc/index.html',
+            'docs/groovydoc/index.html',
+            'docs/dsl/index.html'
     ] as Set
 
     PageInfo homePage() {
-        def uri = new URI(System.getProperty('test.base.uri', new File('website/build/website').toURI() as String))
+        def uri = new URI(System.getProperty('test.base.uri', new File('build/website').toURI() as String))
         return new LocalPage(this, uri.resolve('index.php'));
     }
 }
