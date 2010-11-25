@@ -7,6 +7,9 @@
 /buildSrc/build
 /subprojects/*/build
 /website/build
+/website/website.iml
+/website/website.ipr
+/website/website.iws
 /performanceTest/build
 /subprojects/*/ide
 /*.iml
