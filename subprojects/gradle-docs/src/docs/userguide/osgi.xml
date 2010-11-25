@@ -62,7 +62,7 @@
         <section>
             <title>Convention methods</title>
 
-            <para>The OSGi plugin adds the following methods. For more details, see the javadoc of the convention
+            <para>The OSGi plugin adds the following methods. For more details, see the API documentation of the convention
                 object.
             </para>
             <table>

@@ -205,7 +205,7 @@
         <para>These plugins form the basic building blocks which the other plugins are assembled from. They are
             available for you to use in your build files, and are listed here for completeness. However, be aware that
             they are not yet considered part of Gradle's public API. As such, these plugins are not documented in the
-            user guide. You might refer to their Javadoc to learn more about them.
+            user guide. You might refer to their API documentation to learn more about them.
         </para>
         <table>
             <title>Base plugins</title>

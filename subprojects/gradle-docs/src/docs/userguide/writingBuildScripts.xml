@@ -30,7 +30,7 @@
             <para>Don't forget that your build script is simply Groovy code that drives the Gradle API. And the
                 <apilink class='org.gradle.api.Project'/> interface is your starting point for accessing everything
                 in the Gradle API. So, if you're wondering what 'tags' are available in your build script, you can
-                start with the javadocs for the <classname>Project</classname> interface.
+                start with the documentation for the <classname>Project</classname> interface.
             </para>
         </tip>
         <itemizedlist>

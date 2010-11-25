@@ -229,7 +229,7 @@
             <para>This declares a dependency of your project on Groovy. Groovy itself has dependencies. But Gradle does
                 not look for an XML descriptor to figure them out but gets the information from the build file. The
                 dependencies of a client module can be normal module dependencies or artifact dependencies or another
-                client module. Have also a look at the javadoc: <apilink class='org.gradle.api.artifacts.ClientModule'/>
+                client module. Have also a look at the API documentation: <apilink class='org.gradle.api.artifacts.ClientModule'/>
             </para>
             <para>In the current release client modules have one limitation. Let's say your project is a library and
                 you want this library to be uploaded to your company's Maven or Ivy repository. Gradle uploads the
@@ -246,7 +246,7 @@
             <sample id="project-dependencies" dir="java/multiproject/api" title="Project dependencies">
                 <sourcefile file="build.gradle" snippet="project-dependencies"/>
             </sample>
-            <para>For more information see the javadoc for <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
+            <para>For more information see the API documentation for <apilink class="org.gradle.api.artifacts.ProjectDependency"/>
             </para>
             <para>Multi-project builds are discussed in <xref linkend='multi_project_builds'/>.
             </para>
@@ -298,7 +298,7 @@
                 configurations you can use the Groovy spread-dot operator to express this in a concise way, as shown in the example.
                 When defining an exclude, you can
                 specify either only the organization or only the module name or both.
-                Have also a look at the javadoc of <apilink class="org.gradle.api.artifacts.Dependency"/> and
+                Have also a look at the API documentation of <apilink class="org.gradle.api.artifacts.Dependency"/> and
                 <apilink class="org.gradle.api.artifacts.Configuration"/>.
             </para>
         </section>
@@ -404,7 +404,7 @@
             will cause an exception. You can always copy a resolved configuration. The copied configuration is in the unresolved
             state and can be freshly resolved.
         </para>
-        <para>To learn more about the API of the configuration class see the javadoc:
+        <para>To learn more about the API of the configuration class see the API documentation:
             <apilink class='org.gradle.api.artifacts.Configuration'/>.
         </para>
     </section>
