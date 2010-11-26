@@ -32,9 +32,22 @@ class WebsiteIntegrationTest {
             def current = queue.remove(0)
             visiting.add(current.URI)
             println "* checking $current"
-            for (link in current.localLinks) {
-                if (visiting.add(link.URI)) {
-                    WebsitePage targetPage = link.open()
+            for (link in current.links) {
+                if (!visiting.add(link.target.URI)) {
+                    println "  * seen $link"
+                    continue
+                }
+                if (!link.target.local) {
+                    if (link.target.mustExist()) {
+                        println "  * probe $link"
+                        link.probe()
+                    } else {
+                        println "  * ignore $link"
+                    }
+                }
+                else {
+                    println "  * queue $link"
+                    def targetPage = link.open()
                     queue.add(targetPage)
                 }
             }

@@ -15,10 +15,10 @@
  */
 package org.gradle.website;
 
-import java.net.URI;
-
 public interface Link {
-    URI getURI();
-    
+    PageInfo getTarget();
+
     WebsitePage open() throws PageNotFoundException;
+
+    void probe() throws PageNotFoundException;
 }

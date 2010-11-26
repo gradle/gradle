@@ -67,16 +67,16 @@ class HtmlUnitBrowser implements MethodRule, Browser {
         } catch (FileNotFoundException e) {
             throw new PageNotFoundException("Page $pageInfo not found.", e)
         }
-        return new WebsitePageImpl(this, page, pageInfo)
+        return new HtmlWebsitePage(this, page, pageInfo)
     }
 }
 
-class WebsitePageImpl implements WebsitePage {
+class HtmlWebsitePage implements WebsitePage {
     private final HtmlPage page
     private final PageInfo info
     private final HtmlUnitBrowser browser
 
-    def WebsitePageImpl(HtmlUnitBrowser browser, HtmlPage page, PageInfo info) {
+    def HtmlWebsitePage(HtmlUnitBrowser browser, HtmlPage page, PageInfo info) {
         this.browser = browser
         this.page = page
         this.info = info
@@ -90,6 +90,10 @@ class WebsitePageImpl implements WebsitePage {
         return info.isLocal()
     }
 
+    boolean mustExist() {
+        return info.mustExist()
+    }
+
     URI getURI() {
         return info.URI
     }
@@ -98,15 +102,12 @@ class WebsitePageImpl implements WebsitePage {
         return info.resolve(path)
     }
 
-    Collection<Link> getLocalLinks() {
+    Collection<Link> getLinks() {
         return page.anchors.inject([]) { List<Link> list, HtmlAnchor anchor ->
             if (!anchor.hrefAttribute) {
                 return list
             }
             PageInfo info = info.resolve(anchor.hrefAttribute)
-            if (!info.isLocal()) {
-                return list
-            }
             list << new LinkImpl(browser, anchor, this.info, info)
         }
     }
@@ -128,6 +129,10 @@ class BinaryWebsitePage implements WebsitePage {
         return true
     }
 
+    boolean mustExist() {
+        return page.mustExist()
+    }
+
     PageInfo resolve(String path) {
         return page.resolve(path)
     }
@@ -136,7 +141,7 @@ class BinaryWebsitePage implements WebsitePage {
         return page.getURI()
     }
 
-    Collection<Link> getLocalLinks() {
+    Collection<Link> getLinks() {
         return []
     }
 }
@@ -158,8 +163,39 @@ class LinkImpl implements Link {
         return anchor.hrefAttribute
     }
 
-    URI getURI() {
-        return target.URI
+    PageInfo getTarget() {
+        return target
+    }
+
+    void probe() {
+        if (target.URI == null) {
+            return
+        }
+
+        if (target.URI.scheme.equalsIgnoreCase('file')) {
+            // For some reason using the web client for file: URIs does not detect whether the file exists or not
+            File f = new File(target.URI.path)
+            if (!f.isFile()) {
+                throw new PageNotFoundException("Page $target not found for link on page $referent")
+            }
+            return
+        }
+
+        try {
+            def response = browser.client.loadWebResponse(new WebRequest(target.URI.toURL(), HttpMethod.HEAD))
+            if (response.statusCode == 403 || response.statusCode == 404) {
+                println "    not found using HEAD request, trying to probe using GET request"
+                response = browser.client.loadWebResponse(new WebRequest(target.URI.toURL(), HttpMethod.GET))
+            }
+            if (response.statusCode == 404) {
+                throw new PageNotFoundException("Page $target not found for link on page $referent")
+            }
+            if (response.statusCode != 200) {
+                throw new RuntimeException("Could not load $target link on page $referent: status code = $response.statusCode, status message = $response.statusMessage")
+            }
+        } catch (java.net.UnknownHostException e) {
+            throw new PageNotFoundException("Page $target not found for link on page $referent", e);
+        }
     }
 
     WebsitePage open() {
@@ -170,10 +206,11 @@ class LinkImpl implements Link {
             if (e.cause instanceof FileNotFoundException) {
                 throw new PageNotFoundException("Page $target not found for link on page $referent", e);
             }
+            throw e;
         }
         if (!(targetPage instanceof HtmlPage)) {
             return new BinaryWebsitePage(target)
         }
-        return new WebsitePageImpl(browser, targetPage, target)
+        return new HtmlWebsitePage(browser, targetPage, target)
     }
 }

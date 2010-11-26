@@ -18,5 +18,5 @@ package org.gradle.website;
 import java.util.Collection;
 
 public interface WebsitePage extends PageInfo {
-    Collection<Link> getLocalLinks();
+    Collection<Link> getLinks();
 }

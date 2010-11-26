@@ -22,5 +22,7 @@ public interface PageInfo {
 
     boolean isLocal();
 
+    boolean mustExist();
+
     PageInfo resolve(String path);
 }

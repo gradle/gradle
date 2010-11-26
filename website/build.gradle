@@ -124,7 +124,13 @@ task html(dependsOn: configureReleases) << {
 test {
     dependsOn html
     systemProperties 'test.base.uri': buildWebsiteDir.toURI()
+    systemProperties 'test.ignore.docs': true
     inputs.dir buildWebsiteDir
+}
+
+task testLatestWebsite(type: Test) {
+    systemProperties 'test.base.uri': 'http://www.gradle.org/latest/'
+    systemProperties 'test.ignore.docs': false
 }
 
 task install(type: Copy) {
@@ -133,7 +139,7 @@ task install(type: Copy) {
     into "${System.getProperty('user.home')}/Sites/gradle"
 }
 
-task uploadWebsite(dependsOn: html) << {
+task uploadWebsite(dependsOn: html, type: Ftp) {
     ftp(action: 'delete') {
         fileset() {
             include(name: '*.html')
@@ -145,7 +151,7 @@ task uploadWebsite(dependsOn: html) << {
     }
 }
 
-task uploadLatestWebsite(dependsOn: html) << {
+task uploadLatestWebsite(dependsOn: html, type: Ftp) {
     ftp(action: 'delete', remotedir: 'latest') {
         fileset() {
             include(name: '*.html')
@@ -158,6 +164,48 @@ task uploadLatestWebsite(dependsOn: html) << {
 }
 
 task ciBuild(dependsOn: [clean, html, uploadLatestWebsite])
+
+tasks.withType(Ftp).allObjects { ftp ->
+    ftp.ftpAntClasspath = configurations.ftpAntTask
+    ftp.websiteFtpUserName = project.hasProperty('websiteFtpUserName') ? project.websiteFtpUserName : null
+    ftp.websiteFtpUserPassword = project.hasProperty('websiteFtpUserPassword') ? project.websiteFtpUserPassword : null
+}
+
+class Ftp extends DefaultTask {
+    final List ftpActions = []
+
+    def ftp(Map args, Closure cl = {}) {
+        ftpActions << [args: args, action: cl]
+    }
+
+    @InputFiles
+    FileCollection ftpAntClasspath
+
+    @Input
+    String websiteFtpUserName
+
+    @Input
+    String websiteFtpUserPassword
+
+    @TaskAction
+    def executeActions() {
+        ant.taskdef(name: 'ftp',
+                classname: 'org.apache.tools.ant.taskdefs.optional.net.FTP',
+                classpath: ftpAntClasspath.asPath)
+        ftpActions.each { a ->
+            Map ftpArgs = a.args + [
+                    server: 'ftp.gradle.org',
+                    userid: websiteFtpUserName,
+                    password: websiteFtpUserPassword
+            ]
+            Closure cl = a.action
+            cl.delegate = ant
+            ant.ftp(ftpArgs) {
+                cl()
+            }
+        }
+    }
+}
 
 void ftp(Map args, Closure antFileset = {}) {
     ant {
