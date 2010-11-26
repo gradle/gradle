@@ -59,10 +59,9 @@
             <li><a href="http://www.grails.org">Grails</a></li>
             <li><a href="http://groovy.codehaus.org">Groovy</a></li>
             <li><a href="http://www.springsource.org/spring-integration">Spring Integration</a></li>
-            <li><a href="http://static.springsource.rg/spring-security/site/">Spring Security</a></li>
+            <li><a href="http://static.springsource.org/spring-security/site/">Spring Security</a></li>
             <li><a href="http://griffon.codehaus.org/">Griffon</a></li>
             <li><a href="http://gaelyk.appspot.com">Gaelyk</a></li>
-            <li><a href="http://gant.codehaus.org">Gant</a></li>
         </ul>
     </div>
     <div>
