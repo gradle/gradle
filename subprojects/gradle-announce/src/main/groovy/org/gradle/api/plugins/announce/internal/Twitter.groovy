@@ -17,11 +17,16 @@
 package org.gradle.api.plugins.announce.internal;
 
 
-
-import org.slf4j.LoggerFactory
-import sun.misc.BASE64Encoder
-import org.slf4j.Logger
 import org.gradle.api.plugins.announce.Announcer
+import org.scribe.builder.ServiceBuilder
+import org.scribe.builder.api.TwitterApi
+import org.scribe.model.OAuthRequest
+import org.scribe.model.Response
+import org.scribe.model.Token
+import org.scribe.model.Verb
+import org.scribe.oauth.OAuthService
+import org.slf4j.Logger
+import org.slf4j.LoggerFactory
 
 /**
  * This class allows to send announce messages to twitter.
@@ -30,41 +35,33 @@ import org.gradle.api.plugins.announce.Announcer
  */
 class Twitter implements Announcer {
 
-  private static final String TWITTER_UPDATE_URL = "https://twitter.com/statuses/update.xml"
+    static final OAuthService SERVICE = new ServiceBuilder().provider(TwitterApi).apiKey("c8Ar5l7vpiLURPf1cVO8Q").
+            apiSecret("JqUdPRwGjFy086o8evOxOfW4FVRIqERr5sZjv9RvokU").build();
 
-  def username
-  def password
+    private static final String TWITTER_UPDATE_URL = "http://twitter.com/statuses/update.xml"
 
-  private static Logger logger = LoggerFactory.getLogger(Twitter)
+    private static Logger logger = LoggerFactory.getLogger(Twitter)
+    private Token token
 
-  Twitter(String username, String password) {
-    this.username = username
-    this.password = password
-  }
+    Twitter(Token inToken) {
+        token = inToken
+    }
 
-  public void send(String title, String message) {
-    OutputStreamWriter out
-    URLConnection connection
-    try {
-      connection = new URL(TWITTER_UPDATE_URL).openConnection()
-      connection.doInput = true
-      connection.doOutput = true
-      connection.useCaches = false
-      String encoded = new BASE64Encoder().encodeBuffer("$username:$password".toString().bytes).trim()
-      connection.setRequestProperty "Authorization", "Basic " + encoded
-      out = new OutputStreamWriter(connection.outputStream)
-      out.write "status=" + URLEncoder.encode(message, "UTF-8")
-      out.close()
-       def result = ''
-       connection.inputStream.eachLine { result += it }
-      logger.info result
-      logger.info("Successfully send message: [$message] to twitter [$username]")
-    } catch (Exception e) {
-      logger.warn('Could not send message to twitter', e)
-    } finally {
-      connection?.disconnect()
+    public void send(String title, String message) {
+        try {
+            OAuthRequest request = new OAuthRequest(Verb.POST, TWITTER_UPDATE_URL)
+
+            request.addBodyParameter("status", message)
+
+            SERVICE.signRequest(token, request)
+            Response response = request.send()
+
+            def result = response.getBody()
+            logger.info result
+            logger.info("Successfully send message: [$message] to twitter.")
+        } catch (Exception e) {
+            logger.warn('Could not send message to twitter', e)
+        }
 
     }
-  
-  }
 }

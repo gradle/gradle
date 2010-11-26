@@ -29,18 +29,6 @@ class DefaultAnnouncerFactoryTest extends Specification {
     DefaultAnnouncerFactory announcerFactory = new DefaultAnnouncerFactory(announcePluginConvention)
     Project project = HelperUtil.createRootProject()
 
-    def createForTwitter() {
-        announcePluginConvention.username = 'username'
-        announcePluginConvention.password = 'password'
-        
-        when:
-        Twitter twitter = announcerFactory.createAnnouncer('twitter')
-
-        then:
-        twitter.username == announcePluginConvention.username
-        twitter.password == announcePluginConvention.password
-    }
-
     def createForSnarl() {
         expect:
         announcerFactory.createAnnouncer('snarl') instanceof Snarl

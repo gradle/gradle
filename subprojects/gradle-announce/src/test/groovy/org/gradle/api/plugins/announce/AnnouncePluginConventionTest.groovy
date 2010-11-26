@@ -28,18 +28,6 @@ class AnnouncePluginConventionTest extends Specification {
     Project project = HelperUtil.createRootProject()
     AnnouncePluginConvention announcePluginConvention = new AnnouncePluginConvention(project)
 
-    def announceConfigureMethod() {
-        when:
-        announcePluginConvention.announce {
-            username = 'someUser'
-            password = 'somePassword'
-        }
-
-        then:
-        announcePluginConvention.username == 'someUser'
-        announcePluginConvention.password == 'somePassword'
-    }
-
     def announce() {
         AnnouncerFactory announcerFactory = Mock()
         announcePluginConvention.announcerFactory = announcerFactory

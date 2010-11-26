@@ -33,11 +33,14 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
-	<para>After that, configure you username and password (if required for the service you want to announce to) with:</para>
-	<sample id="useAnnouncePlugin" dir="announce" title="Configure the announce plugin">
-            <sourcefile file="build.gradle" snippet="announce-plugin-conf"/>
-        </sample>
-
+	<para>After that, if you want to use twitter, you need to authenticate your build with twitter.
+        To do so, execute the task
+        <cmdsynopsis>
+           <command> gradle twitterHandshake</command>
+        </cmdsynopsis>
+        and follow the on screen instructions. This creates an local property file "gradle-announce-twitter.properties"
+            with your personal OAuth credentials.
+        </para>
 	<para>Finally, you can use announce with any task by attaching it via task.dolast() as shown below</para>
 	<sample id="useAnnouncePlugin" dir="announce" title="Using the announce plugin">
             <sourcefile file="build.gradle" snippet="announce-usage"/>
@@ -66,8 +69,8 @@
        <tr>
            <td>twitter</td>
            <td>Twitter</td>
-           <td>username , password</td>
            <td></td>
+           <td>use twitterHandshake task to authenticate with twitter: <literal>gradle twitterHandshake</literal></td>
        </tr>
        <tr>
            <td>snarl</td>
@@ -92,36 +95,26 @@
 
     <section>
         <title>Tasks</title>
-        <para>TBD</para>
-    </section>
+        <para>The Announce plugin adds task listed below.</para>
 
-    <section>
-        <title>Project layout</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Dependency management</title>
-        <para>TBD</para>
-    </section>
-
-    <section>
-        <title>Convention properties</title>
-
-        <para>The announce plugin adds an 
-	
-	TBD
-        </para>
-     
-        <para>
-        	
-
-        </para>
-      <!--  <sample id="anouncePlugin" dir="userguide/tutorial/announce" title="example of annunce plugin usage.">
-            <sourcefile file="build.gradle" snippet="full-example"/> 
-        </sample>-->
-        <para>
-	TBD
-	</para>
+         <table id='announcetasks'>
+            <title>Announce plugin - Tasks</title>
+            <thead>
+                <tr>
+                    <td>Task name</td>
+                    <td>Depends on</td>
+                    <td>Type</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
+            <tr>
+                <td>
+                    <literal>twitterHandshake</literal>
+                </td>
+                <td><literal>-</literal></td>
+                <td><literal>-</literal></td>
+                <td>Creates the property file containing the OAuth credentials to post to twitter.</td>
+            </tr>
+        </table>
     </section>
 </chapter>
