@@ -1,6 +1,6 @@
 apply plugin: 'code-quality'
 
-def configDir = file(gradle.parent == null ? "$rootDir/config" : "$rootDir/../config")
+def configDir = new File(buildscript.sourceFile.parentFile.parentFile, 'config')
 
 checkstyleConfigDir = "$configDir/checkstyle"
 checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")

@@ -23,6 +23,7 @@ apply plugin: 'groovy'
 apply plugin: 'code-quality'
 apply plugin: 'idea'
 apply plugin: 'eclipse'
+apply from: '../gradle/codeQuality.gradle'
 
 repositories {
     mavenCentral()
@@ -120,6 +121,8 @@ task html(dependsOn: configureReleases) << {
         }
     }
 }
+
+assemble.dependsOn html
 
 test {
     dependsOn html
