@@ -30,14 +30,13 @@ class PropertyMetaDataTest extends Specification {
         PropertyMetaData overriddenProperty = Mock()
 
         when:
-        def comment = propertyMetaData.inheritedRawCommentText
+        def p = propertyMetaData.overriddenProperty
 
         then:
         _ * classMetaData.superClass >> superClassMetaData
         _ * classMetaData.interfaces >> []
         _ * superClassMetaData.findProperty('prop') >> overriddenProperty
-        _ * overriddenProperty.rawCommentText >> 'inherited comment'
-        comment == 'inherited comment'
+        p == overriddenProperty
     }
 
     def locatesInheritedCommentInInterface() {
@@ -45,14 +44,13 @@ class PropertyMetaDataTest extends Specification {
         PropertyMetaData overriddenProperty = Mock()
 
         when:
-        def comment = propertyMetaData.inheritedRawCommentText
+        def p = propertyMetaData.overriddenProperty
 
         then:
         _ * classMetaData.superClass >> null
         _ * classMetaData.interfaces >> [interfaceMetaData]
         _ * interfaceMetaData.findProperty('prop') >> overriddenProperty
-        _ * overriddenProperty.rawCommentText >> 'inherited comment'
-        comment == 'inherited comment'
+        p == overriddenProperty
     }
 
     def locatesInheritedCommentInAncestorClass() {
@@ -61,7 +59,7 @@ class PropertyMetaDataTest extends Specification {
         PropertyMetaData overriddenProperty = Mock()
 
         when:
-        def comment = propertyMetaData.inheritedRawCommentText
+        def p = propertyMetaData.overriddenProperty
 
         then:
         _ * classMetaData.superClass >> superClassMetaData
@@ -70,8 +68,7 @@ class PropertyMetaDataTest extends Specification {
         _ * superClassMetaData.superClass >> ancestorClassMetaData
         _ * superClassMetaData.interfaces >> []
         _ * ancestorClassMetaData.findProperty('prop') >> overriddenProperty
-        _ * overriddenProperty.rawCommentText >> 'inherited comment'
-        comment == 'inherited comment'
+        p == overriddenProperty
     }
 
     def locatesInheritedCommentInInterfaceOfAncestorClass() {
@@ -80,7 +77,7 @@ class PropertyMetaDataTest extends Specification {
         PropertyMetaData overriddenProperty = Mock()
 
         when:
-        def comment = propertyMetaData.inheritedRawCommentText
+        def p = propertyMetaData.overriddenProperty
 
         then:
         _ * classMetaData.superClass >> superClassMetaData
@@ -89,25 +86,24 @@ class PropertyMetaDataTest extends Specification {
         _ * superClassMetaData.superClass >> null
         _ * superClassMetaData.interfaces >> [interfaceMetaData]
         _ * interfaceMetaData.findProperty('prop') >> overriddenProperty
-        _ * overriddenProperty.rawCommentText >> 'inherited comment'
-        comment == 'inherited comment'
+        p == overriddenProperty
     }
 
     def hasEmptyInheritedCommentWhenNoSuperClass() {
         when:
-        def comment = propertyMetaData.inheritedRawCommentText
+        def p = propertyMetaData.overriddenProperty
 
         then:
         _ * classMetaData.superClass >> null
         _ * classMetaData.interfaces >> []
-        comment == null
+        p == null
     }
     
     def hasEmptyInheritedCommentWhenPropertyDoesNotOverridePropertyInSuperClass() {
         ClassMetaData superClassMetaData = Mock()
 
         when:
-        def comment = propertyMetaData.inheritedRawCommentText
+        def p = propertyMetaData.overriddenProperty
 
         then:
         _ * classMetaData.superClass >> superClassMetaData
@@ -115,6 +111,6 @@ class PropertyMetaDataTest extends Specification {
         _ * superClassMetaData.findProperty('prop') >> null
         _ * superClassMetaData.superClass >> null
         _ * superClassMetaData.interfaces >> []
-        comment == null
+        p == null
     }
 }

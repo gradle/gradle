@@ -37,19 +37,27 @@ class DslModel {
         this.classpath = classpath
         this.classMetaData = classMetaData
         this.extensionMetaData = extensionMetaData
-        javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, classMetaData))
+        javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, new TypeNameResolver(classMetaData), classMetaData))
     }
 
     def getClassDoc(String className) {
         ClassDoc classDoc = classes[className]
         if (classDoc == null) {
-            ClassMetaData classMetaData = classMetaData.find(className)
-            if (!classMetaData) {
-                if (!className.contains('.internal.')) {
-                    throw new RuntimeException("No meta-data found for class '$className'.")
-                }
-                classMetaData = new ClassMetaData(className)
+            classDoc = loadClassDoc(className)
+            classes[className] = classDoc
+        }
+        return classDoc
+    }
+
+    private ClassDoc loadClassDoc(String className) {
+        ClassMetaData classMetaData = classMetaData.find(className)
+        if (!classMetaData) {
+            if (!className.contains('.internal.')) {
+                throw new RuntimeException("No meta-data found for class '$className'.")
             }
+            classMetaData = new ClassMetaData(className)
+        }
+        try {
             ExtensionMetaData extensionMetaData = extensionMetaData[className]
             if (!extensionMetaData) {
                 extensionMetaData = new ExtensionMetaData(className)
@@ -59,9 +67,9 @@ class DslModel {
                 throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
             }
             XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
-            classDoc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
-            classes[className] = classDoc
+            return new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
+        } catch (Exception e) {
+            throw new RuntimeException("Could not load class documentation for class '$className'.", e)
         }
-        return classDoc
     }
 }

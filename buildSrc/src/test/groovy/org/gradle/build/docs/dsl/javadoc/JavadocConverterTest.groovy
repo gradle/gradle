@@ -298,18 +298,24 @@ text3</section>
 
     def convertsInheritDocTag() {
         PropertyMetaData propertyMetaData = Mock()
+        PropertyMetaData overriddenMetaData = Mock()
 
         when:
         def result = parser.parse('before {@inheritDoc} after', propertyMetaData, classMetaData)
 
         then:
-        _ * propertyMetaData.inheritedRawCommentText >> ''' *
+        _ * propertyMetaData.overriddenProperty >> overriddenMetaData
+        _ * overriddenMetaData.rawCommentText >> ''' *
  * <em>inherited value</em>
  *
 '''
         format(result.docbook) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>
-  <para>before <emphasis>inherited value</emphasis> after</para>
+  <para>before </para>
+  <para>
+    <emphasis>inherited value</emphasis>
+  </para>
+  <para> after</para>
 </root>
 '''
     }

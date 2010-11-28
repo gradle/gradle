@@ -15,7 +15,7 @@
  */
 package org.gradle.build.docs.dsl.javadoc;
 
-import org.apache.commons.lang.StringUtils;
+import org.gradle.build.docs.dsl.TypeNameResolver;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.w3c.dom.Document;
@@ -29,46 +29,28 @@ import java.util.Arrays;
  */
 public class JavadocLinkConverter {
     private final Document document;
-    private final ClassMetaDataRepository<ClassMetaData> metaDataRepository;
+    private final TypeNameResolver typeNameResolver;
+    private final ClassMetaDataRepository<ClassMetaData> repository;
 
-    public JavadocLinkConverter(Document document, ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
+    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, ClassMetaDataRepository<ClassMetaData> repository) {
         this.document = document;
-        this.metaDataRepository = metaDataRepository;
+        this.typeNameResolver = typeNameResolver;
+        this.repository = repository;
     }
 
     Iterable<? extends Node> resolve(String link, ClassMetaData classMetaData) {
-        String className = doResolve(link, classMetaData);
-        if (className != null) {
+        String className = typeNameResolver.resolve(link, classMetaData);
+        if (className == null) {
+            return Arrays.asList(document.createTextNode(String.format("!!UNKNOWN LINK %s!!", link)));
+        }
+        if (repository.find(className) != null) {
             Element apilink = document.createElement("apilink");
             apilink.setAttribute("class", className);
             return Arrays.asList(apilink);
-        } else {
-            return Arrays.asList(document.createTextNode(String.format("!!UNKNOWN LINK %s!!", link)));
-        }
-    }
-
-    private String doResolve(String link, ClassMetaData classMetaData) {
-        if (link.contains(".")) {
-            return metaDataRepository.find(link) != null ? link : null;
         }
 
-        for (String importedClass : classMetaData.getImports()) {
-            String baseName = StringUtils.substringAfterLast(importedClass, ".");
-            if (baseName.equals("*")) {
-                String candidateClassName = StringUtils.substringBeforeLast(importedClass, ".") + "." + link;
-                if (metaDataRepository.find(candidateClassName) != null) {
-                    return candidateClassName;
-                }
-            } else if (link.equals(baseName)) {
-                return importedClass;
-            }
-        }
-
-        String candidateClassName = StringUtils.substringBeforeLast(classMetaData.getClassName(), ".") + "." + link;
-        if (metaDataRepository.find(candidateClassName) != null) {
-            return candidateClassName;
-        }
-
-        return null;
+        Element classNameElement = document.createElement("classname");
+        classNameElement.appendChild(document.createTextNode(className));
+        return Arrays.asList(classNameElement);
     }
 }

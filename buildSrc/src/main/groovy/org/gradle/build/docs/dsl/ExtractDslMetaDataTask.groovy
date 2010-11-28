@@ -15,16 +15,24 @@
  */
 package org.gradle.build.docs.dsl
 
-import org.codehaus.groovy.groovydoc.GroovyFieldDoc
-import org.codehaus.groovy.groovydoc.GroovyMethodDoc
-import org.codehaus.groovy.groovydoc.GroovyRootDoc
-import org.codehaus.groovy.tools.groovydoc.GroovyDocTool
-import org.codehaus.groovy.tools.groovydoc.SimpleGroovyClassDoc
-import org.gradle.api.file.FileVisitDetails
+import groovyjarjarantlr.collections.AST
+import org.codehaus.groovy.antlr.AntlrASTProcessor
+import org.codehaus.groovy.antlr.SourceBuffer
+import org.codehaus.groovy.antlr.UnicodeEscapingReader
+import org.codehaus.groovy.antlr.java.Java2GroovyConverter
+import org.codehaus.groovy.antlr.java.JavaLexer
+import org.codehaus.groovy.antlr.java.JavaRecognizer
+import org.codehaus.groovy.antlr.parser.GroovyLexer
+import org.codehaus.groovy.antlr.parser.GroovyRecognizer
+import org.codehaus.groovy.antlr.treewalker.PreOrderTraversal
+import org.codehaus.groovy.antlr.treewalker.SourceCodeTraversal
+import org.codehaus.groovy.antlr.treewalker.Visitor
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 
 /**
@@ -37,51 +45,85 @@ class ExtractDslMetaDataTask extends SourceTask {
 
     @TaskAction
     def extract() {
-        project.delete(temporaryDir)
-        project.copy { from source; into temporaryDir }
-        GroovyDocTool groovyDoc = new GroovyDocTool([temporaryDir.absolutePath] as String[])
-        List<String> files = []
-        project.fileTree(temporaryDir).visit { FileVisitDetails fvd ->
-            if (!fvd.isDirectory()) {
-                files << fvd.path
-            }
-        }
-        groovyDoc.add(files)
-
         SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
+        source.each { File f ->
+            parse(f, repository)
+        }
 
-        GroovyRootDoc rootDoc = groovyDoc.rootDoc
-        rootDoc.classes().each { SimpleGroovyClassDoc doc ->
-            String className = doc.qualifiedTypeName()
-            String superClassName = doc.superclass()?.qualifiedTypeName()
-            def interfaces = doc.interfaces().collect { it.qualifiedTypeName() }
+        TypeNameResolver resolver = new TypeNameResolver(repository)
+        repository.each { name, metaData ->
+            resolve(metaData, resolver)
+        }
+        repository.store(destFile)
+    }
 
-            ClassMetaData classMetaData = new ClassMetaData(className, superClassName, doc.isGroovy(), doc.rawCommentText, doc.importedClassesAndPackages, interfaces)
-            repository.put(className, classMetaData)
-
-            doc.methods().each { GroovyMethodDoc method ->
-                if (method.name().matches("get.+")) {
-                    String propName = method.name()[3].toLowerCase() + method.name().substring(4)
-                    classMetaData.addReadableProperty(propName, method.returnType().qualifiedTypeName(), method.rawCommentText)
-                } else if (method.name().matches("set.+")) {
-                    String propName = method.name()[3].toLowerCase() + method.name().substring(4)
-                    classMetaData.addWriteableProperty(propName, method.returnType().qualifiedTypeName(), method.rawCommentText)
+    def parse(File sourceFile, ClassMetaDataRepository<ClassMetaData> repository) {
+        try {
+            sourceFile.withReader { reader ->
+                if (sourceFile.name.endsWith('.java')) {
+                    parseJava(sourceFile, reader, repository)
+                } else {
+                    parseGroovy(sourceFile, reader, repository)
                 }
             }
-
-            // This bit of ugliness is to get Groovydoc to resolve the type names for properties by pretending that
-            // they are fields
-            doc.fields.clear()
-            doc.fields.addAll(doc.properties())
-            doc.methods.clear()
-            doc.resolve(rootDoc)
-
-            doc.properties().each { GroovyFieldDoc field ->
-                classMetaData.addReadableProperty(field.name(), field.type().qualifiedTypeName(), field.rawCommentText)
-                classMetaData.addWriteableProperty(field.name(), field.type().qualifiedTypeName(), field.rawCommentText)
-            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not parse '$sourceFile'.", e)
         }
+    }
 
-        repository.store(destFile)
+    def parseJava(File sourceFile, Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
+        SourceBuffer sourceBuffer = new SourceBuffer();
+        UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(input, sourceBuffer);
+        JavaLexer lexer = new JavaLexer(unicodeReader);
+        unicodeReader.setLexer(lexer);
+        JavaRecognizer parser = JavaRecognizer.make(lexer);
+        parser.setSourceBuffer(sourceBuffer);
+        String[] tokenNames = parser.getTokenNames();
+
+        parser.compilationUnit();
+        AST ast = parser.getAST();
+
+        // modify the Java AST into a Groovy AST (just token types)
+        Visitor java2groovyConverter = new Java2GroovyConverter(tokenNames);
+        AntlrASTProcessor java2groovyTraverser = new PreOrderTraversal(java2groovyConverter);
+        java2groovyTraverser.process(ast);
+
+        def visitor = new SourceMetaDataVisitor(sourceBuffer, repository, false)
+        AntlrASTProcessor traverser = new SourceCodeTraversal(visitor);
+        traverser.process(ast);
+        visitor.complete()
+    }
+
+    def parseGroovy(File sourceFile, Reader input, ClassMetaDataRepository<ClassMetaData> repository) {
+        SourceBuffer sourceBuffer = new SourceBuffer();
+        UnicodeEscapingReader unicodeReader = new UnicodeEscapingReader(input, sourceBuffer);
+        GroovyLexer lexer = new GroovyLexer(unicodeReader);
+        unicodeReader.setLexer(lexer);
+        GroovyRecognizer parser = GroovyRecognizer.make(lexer);
+        parser.setSourceBuffer(sourceBuffer);
+
+        parser.compilationUnit();
+        AST ast = parser.getAST();
+
+        def visitor = new SourceMetaDataVisitor(sourceBuffer, repository, true)
+        AntlrASTProcessor traverser = new SourceCodeTraversal(visitor);
+        traverser.process(ast);
+        visitor.complete()
+    }
+
+    def resolve(ClassMetaData classMetaData, TypeNameResolver resolver) {
+        try {
+            if (classMetaData.superClassName) {
+                classMetaData.superClassName = resolver.resolve(classMetaData.superClassName, classMetaData)
+            }
+            for (int i = 0; i < classMetaData.interfaceNames.size(); i++) {
+                classMetaData.interfaceNames[i] = resolver.resolve(classMetaData.interfaceNames[i], classMetaData)
+            }
+            classMetaData.classProperties.values().each { PropertyMetaData prop ->
+                prop.type = resolver.resolve(prop.type, classMetaData)
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("Could not resolve types in class '$classMetaData.className'.", e)
+        }
     }
 }

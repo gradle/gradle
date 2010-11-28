@@ -54,6 +54,10 @@ public class PropertyMetaData implements Serializable {
         this.writeable = writeable;
     }
 
+    public ClassMetaData getOwnerClass() {
+        return ownerClass;
+    }
+
     public String getRawCommentText() {
         return rawCommentText;
     }
@@ -62,7 +66,7 @@ public class PropertyMetaData implements Serializable {
         this.rawCommentText = rawCommentText;
     }
 
-    public String getInheritedRawCommentText() {
+    public PropertyMetaData getOverriddenProperty() {
         LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
         queue.add(ownerClass.getSuperClass());
         queue.addAll(ownerClass.getInterfaces());
@@ -74,7 +78,7 @@ public class PropertyMetaData implements Serializable {
             }
             PropertyMetaData overriddenProperty = cl.findProperty(name);
             if (overriddenProperty != null) {
-                return overriddenProperty.getRawCommentText();
+                return overriddenProperty;
             }
             queue.add(cl.getSuperClass());
             queue.addAll(cl.getInterfaces());

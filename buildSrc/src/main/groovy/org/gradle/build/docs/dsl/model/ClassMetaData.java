@@ -15,33 +15,41 @@
  */
 package org.gradle.build.docs.dsl.model;
 
-import java.io.Serializable;
-import java.util.*;
-
+import org.apache.commons.lang.StringUtils;
 import org.gradle.build.docs.model.Attachable;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
+import org.gradle.util.GUtil;
+
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
     private final String className;
-    private final String superClassName;
-    private final boolean groovy;
+    private String superClassName;
+    private final String packageName;
+    private final boolean isInterface;
+    private final boolean isGroovy;
     private final String rawCommentText;
-    private final List<String> imports;
-    private final List<String> interfaceNames;
+    private final List<String> imports= new ArrayList<String>();
+    private final List<String> interfaceNames = new ArrayList<String>();
     private final Map<String, PropertyMetaData> classProperties = new HashMap<String, PropertyMetaData>();
-    private ClassMetaDataRepository<ClassMetaData> metaDataRepository;
+    private final List<String> innerClassNames = new ArrayList<String>();
+    private String outerClassName;
+    private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
 
-    public ClassMetaData(String className, String superClassName, boolean isGroovy, String rawClassComment, List<String> imports, List<String> interfaceNames) {
+    public ClassMetaData(String className, String packageName, boolean isInterface, boolean isGroovy, String rawClassComment) {
         this.className = className;
-        this.superClassName = superClassName;
-        groovy = isGroovy;
+        this.packageName = packageName;
+        this.isInterface = isInterface;
+        this.isGroovy = isGroovy;
         this.rawCommentText = rawClassComment;
-        this.imports = imports;
-        this.interfaceNames = interfaceNames;
     }
 
     public ClassMetaData(String className) {
-        this(className, null, false, "", Collections.<String>emptyList(), Collections.<String>emptyList());
+        this(className, StringUtils.substringBeforeLast(className, "."), false, false, "");
     }
 
     @Override
@@ -57,16 +65,36 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         return className;
     }
 
+    public String getPackageName() {
+        return packageName;
+    }
+
+    public boolean isInterface() {
+        return isInterface;
+    }
+
     public boolean isGroovy() {
-        return groovy;
+        return isGroovy;
     }
 
     public String getSuperClassName() {
         return superClassName;
     }
 
+    public void setSuperClassName(String superClassName) {
+        this.superClassName = superClassName;
+    }
+
     public ClassMetaData getSuperClass() {
         return superClassName == null ? null : metaDataRepository.find(superClassName);
+    }
+
+    public List<String> getInterfaceNames() {
+        return interfaceNames;
+    }
+
+    public void addInterfaceName(String name) {
+        interfaceNames.add(name);
     }
 
     public List<ClassMetaData> getInterfaces() {
@@ -80,12 +108,32 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         return interfaces;
     }
 
+    public List<String> getInnerClassNames() {
+        return innerClassNames;
+    }
+
+    public void addInnerClassName(String innerClassName) {
+        innerClassNames.add(innerClassName);
+    }
+
+    public String getOuterClassName() {
+        return outerClassName;
+    }
+
+    public void setOuterClassName(String outerClassName) {
+        this.outerClassName = outerClassName;
+    }
+
     public String getRawCommentText() {
         return rawCommentText;
     }
 
     public List<String> getImports() {
         return imports;
+    }
+
+    public void addImport(String importName) {
+        imports.add(importName);
     }
 
     public void addReadableProperty(String name, String type, String rawCommentText) {
@@ -96,13 +144,19 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
 
     public void addWriteableProperty(String name, String type, String rawCommentText) {
         PropertyMetaData property = getProperty(name);
+        if (property.getType() == null) {
+            property.setType(type);
+        }
+        if (!GUtil.isTrue(property.getRawCommentText())) {
+            property.setRawCommentText(rawCommentText);
+        }
         property.setWriteable(true);
     }
 
     public PropertyMetaData findProperty(String name) {
         return classProperties.get(name);
     }
-    
+
     private PropertyMetaData getProperty(String name) {
         PropertyMetaData property = classProperties.get(name);
         if (property == null) {

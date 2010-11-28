@@ -15,18 +15,20 @@
  */
 package org.gradle.build.docs.dsl.javadoc
 
+import org.gradle.build.docs.dsl.TypeNameResolver
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 
 class JavadocLinkConverterTest extends XmlSpecification {
     final ClassMetaDataRepository<ClassMetaData> metaDataRepository = Mock()
+    final TypeNameResolver nameResolver = Mock()
     final ClassMetaData classMetaData = Mock()
-    final JavadocLinkConverter converter = new JavadocLinkConverter(document, metaDataRepository)
+    final JavadocLinkConverter converter = new JavadocLinkConverter(document, nameResolver, metaDataRepository)
 
-    def resolvesFullyQualifiedClassName() {
+    def convertsLocalClassToApilinkElement() {
         when:
-        def link = converter.resolve('org.gradle.SomeClass', classMetaData)
+        def link = converter.resolve('someName', classMetaData)
 
         then:
         format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
@@ -34,9 +36,25 @@ class JavadocLinkConverterTest extends XmlSpecification {
   <apilink class="org.gradle.SomeClass"/>
 </root>
 '''
+        _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
         _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
     }
 
+    def convertsExternalClassToClassNameElement() {
+        when:
+        def link = converter.resolve('someName', classMetaData)
+
+        then:
+        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
+<root>
+  <classname>org.gradle.SomeClass</classname>
+</root>
+'''
+        _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
+        _ * metaDataRepository.find('org.gradle.SomeClass') >> null
+
+    }
+    
     def resolvesUnknownFullyQualifiedClassName() {
         when:
         def link = converter.resolve('org.gradle.SomeClass', classMetaData)
@@ -45,47 +63,5 @@ class JavadocLinkConverterTest extends XmlSpecification {
         format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
 <root>!!UNKNOWN LINK org.gradle.SomeClass!!</root>
 '''
-    }
-
-    def resolvesImportedClassInSamePackage() {
-        when:
-        def link = converter.resolve('SomeClass', classMetaData)
-
-        then:
-        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <apilink class="org.gradle.SomeClass"/>
-</root>
-'''
-        _ * classMetaData.imports >> []
-        _ * classMetaData.className >> 'org.gradle.ImportingClass'
-        _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
-    }
-
-    def resolvesImportedClass() {
-        when:
-        def link = converter.resolve('SomeClass', classMetaData)
-
-        then:
-        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <apilink class="org.gradle.SomeClass"/>
-</root>
-'''
-        _ * classMetaData.imports >> ['org.gradle.SomeClass']
-    }
-
-    def resolvesClassInImportedPackage() {
-        when:
-        def link = converter.resolve('SomeClass', classMetaData)
-
-        then:
-        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <apilink class="org.gradle.SomeClass"/>
-</root>
-'''
-        _ * classMetaData.imports >> ['org.gradle.*']
-        _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
     }
 }

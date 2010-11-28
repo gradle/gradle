@@ -19,7 +19,6 @@ import org.gradle.api.GradleException;
 import org.gradle.build.docs.dsl.DocComment;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.PropertyMetaData;
-import org.gradle.util.GUtil;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -44,7 +43,7 @@ public class JavadocConverter {
 
     public DocComment parse(final String rawCommentText, ClassMetaData classMetaData) {
         CommentSource commentSource = new CommentSource() {
-            public String getCommentText() {
+            public List<? extends Node> getCommentText() {
                 throw new UnsupportedOperationException();
             }
         };
@@ -58,9 +57,12 @@ public class JavadocConverter {
 
     public DocComment parse(String rawCommentText, final PropertyMetaData propertyMetaData, ClassMetaData classMetaData) {
         CommentSource commentSource = new CommentSource() {
-            public String getCommentText() {
-                String comment = propertyMetaData.getInheritedRawCommentText();
-                return GUtil.isTrue(comment) ? comment : "!!NO INHERITED DOC COMMENT!!";
+            public Iterable<? extends Node> getCommentText() {
+                PropertyMetaData overriddenProperty = propertyMetaData.getOverriddenProperty();
+                if (overriddenProperty == null) {
+                    return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+                }
+                return parse(overriddenProperty.getRawCommentText(), overriddenProperty, overriddenProperty.getOwnerClass()).getDocbook();
             }
         };
         try {
@@ -104,7 +106,7 @@ public class JavadocConverter {
         handler.add(new TagToElementTranslatingTokenHandler(nodes, document));
         handler.add(new HeaderHandler(nodes, document));
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData));
-        handler.add(new InheritDocHandler(lexer, inheritedCommentSource));
+        handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
 
         while (lexer.next()) {
             switch (lexer.token) {
@@ -422,10 +424,10 @@ public class JavadocConverter {
 
     private static class InheritDocHandler implements TagHandler {
         private final CommentSource source;
-        private final Lexer lexer;
+        private final NodeStack nodeStack;
 
-        private InheritDocHandler(Lexer lexer, CommentSource source) {
-            this.lexer = lexer;
+        private InheritDocHandler(NodeStack nodeStack, CommentSource source) {
+            this.nodeStack = nodeStack;
             this.source = source;
         }
 
@@ -438,12 +440,14 @@ public class JavadocConverter {
         }
 
         public void onEndTag(String tag) {
-            lexer.pushText(source.getCommentText());
+            for (Node node : source.getCommentText()) {
+                nodeStack.appendChild(node);
+            }
         }
     }
 
     private interface CommentSource {
-        String getCommentText();
+        Iterable<? extends Node> getCommentText();
     }
 
 }
