@@ -35,7 +35,6 @@ import java.io.File;
 import java.util.*;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Utility class for initializing various test objects related.
@@ -392,7 +391,7 @@ public class TestUtility {
     public static void executeBlocking(GradlePluginLord gradlePluginLord, String fullCommandLine, String displayName, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
-        final AtomicBoolean isComplete = new AtomicBoolean();
+        final CountDownLatch complete = new CountDownLatch(1);
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
            public void executionRequestAdded( ExecutionRequest request )
@@ -403,7 +402,7 @@ public class TestUtility {
            public void aboutToExecuteRequest( Request request ) { }
 
            public void requestExecutionComplete( Request request, int result, String output ) {
-               isComplete.set(true);
+               complete.countDown();
            }
         };
 
@@ -414,21 +413,16 @@ public class TestUtility {
         Assert.assertNotNull(request);
 
         //now sleep until we're complete, but bail if we wait too long
-        int totalWaitTime = 0;
-        while (!isComplete.get() && totalWaitTime <= maximumWaitSeconds) {
-            try {
-                Thread.sleep(1000);
-            }
-            catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
-            totalWaitTime += 1;
+        boolean timeout;
+        try {
+            timeout = !complete.await(maximumWaitSeconds, TimeUnit.SECONDS);
+        } catch (InterruptedException e) {
+            throw UncheckedException.asUncheckedException(e);
         }
 
         gradlePluginLord.removeRequestObserver( observer );
 
-        if (!isComplete.get()) //its still running. Something is wrong.
+        if (timeout) //its still running. Something is wrong.
         {
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
