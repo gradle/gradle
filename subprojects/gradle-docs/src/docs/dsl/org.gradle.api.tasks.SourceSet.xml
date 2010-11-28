@@ -10,13 +10,28 @@
                 </tr>
             </thead>
             <tr>
+                <td>allJava</td>
+            </tr>
+            <tr>
+                <td>allSource</td>
+            </tr>
+            <tr>
                 <td>name</td>
+            </tr>
+            <tr>
+                <td>classes</td>
             </tr>
             <tr>
                 <td>classesDir</td>
             </tr>
             <tr>
                 <td>compileClasspath</td>
+            </tr>
+            <tr>
+                <td>java</td>
+            </tr>
+            <tr>
+                <td>resources</td>
             </tr>
             <tr>
                 <td>runtimeClasspath</td>

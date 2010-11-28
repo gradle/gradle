@@ -10,10 +10,100 @@
                 </tr>
             </thead>
             <tr>
+                <td>allprojects</td>
+            </tr>
+            <tr>
+                <td>artifacts</td>
+            </tr>
+            <tr>
+                <td>ant</td>
+            </tr>
+            <tr>
+                <td>buildDir</td>
+            </tr>
+            <tr>
+                <td>buildFile</td>
+            </tr>
+            <tr>
+                <td>buildscript</td>
+            </tr>
+            <tr>
+                <td>childProjects</td>
+            </tr>
+            <tr>
+                <td>configurations</td>
+            </tr>
+            <tr>
+                <td>convention</td>
+            </tr>
+            <tr>
+                <td>dependencies</td>
+            </tr>
+            <tr>
+                <td>dependsOnProjects</td>
+            </tr>
+            <tr>
+                <td>defaultTasks</td>
+            </tr>
+            <tr>
+                <td>description</td>
+            </tr>
+            <tr>
+                <td>gradle</td>
+            </tr>
+            <tr>
+                <td>group</td>
+            </tr>
+            <tr>
+                <td>logger</td>
+            </tr>
+            <tr>
+                <td>logging</td>
+            </tr>
+            <tr>
                 <td>name</td>
             </tr>
             <tr>
+                <td>parent</td>
+            </tr>
+            <tr>
                 <td>path</td>
+            </tr>
+            <tr>
+                <td>plugins</td>
+            </tr>
+            <tr>
+                <td>project</td>
+            </tr>
+            <tr>
+                <td>projectDir</td>
+            </tr>
+            <tr>
+                <td>properties</td>
+            </tr>
+            <tr>
+                <td>repositories</td>
+            </tr>
+            <tr>
+                <td>rootDir</td>
+            </tr>
+            <tr>
+                <td>rootProject</td>
+            </tr>
+            <tr>
+                <td>state</td>
+            </tr>
+            <tr>
+                <td>status</td>
+            </tr>
+            <tr>
+                <td>subprojects</td>
+            </tr>
+            <tr>
+                <td>tasks</td>
+            </tr>
+            <tr>
+                <td>version</td>
             </tr>
         </table>
     </section>

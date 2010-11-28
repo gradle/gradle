@@ -55,7 +55,8 @@
                 <xsl:call-template name="body.attributes"/>
                 <div class="sidebar">
                     <ul>
-                        <xsl:apply-templates select="/" mode="sidebar"/>
+                        <xsl:apply-templates select="." mode="sidebar"/>
+                        <xsl:apply-templates select="/book/section[1]/table[@role = 'dslTypes']" mode="sidebar"/>
                     </ul>
                 </div>
                 <div class="content">
@@ -76,11 +77,29 @@
             <xsl:call-template name="customXref">
                 <xsl:with-param name="target" select="."/>
                 <xsl:with-param name="content">
-                    <xsl:text>Contents</xsl:text>
+                    <xsl:text>Home</xsl:text>
                 </xsl:with-param>
             </xsl:call-template>
         </li>
-        <xsl:apply-templates select="section[1]/table[@role = 'dslTypes']" mode="sidebar"/>
+    </xsl:template>
+
+    <xsl:template match="chapter" mode="sidebar">
+        <xsl:apply-templates select="/" mode="sidebar"/>
+        <li class='sidebarHeading'>
+            <xsl:value-of select="title"/>
+        </li>
+        <ul>
+            <li>
+                <xsl:call-template name="customXref">
+                    <xsl:with-param name="target" select="section[title = 'Properties']"/>
+                </xsl:call-template>
+            </li>
+            <li>
+                <xsl:call-template name="customXref">
+                    <xsl:with-param name="target" select="section[title = 'Methods']"/>
+                </xsl:call-template>
+            </li>
+        </ul>
     </xsl:template>
 
     <xsl:template match="table" mode="sidebar">
