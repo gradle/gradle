@@ -43,33 +43,70 @@ public class Checkstyle extends SourceTask implements VerificationTask {
         antCheckstyle.checkstyle(getAnt(), getSource(), getConfigFile(), getResultFile(), getClasspath(), getProperties(), isIgnoreFailures());
     }
 
+    /**
+     * Returns the Checkstyle configuration file to use.
+     *
+     * @return The configuration file.
+     */
     @InputFile
     public File getConfigFile() {
         return configFile;
     }
 
+    /**
+     * Specifies the Checkstyle configuration file to use.
+     *
+     * @param configFile The configuration file. Must not be null.
+     */
     public void setConfigFile(File configFile) {
         this.configFile = configFile;
     }
 
+    /**
+     * Returns the file to generate the XML results to.
+     *
+     * @return The result XML file.
+     */
     @OutputFile
     public File getResultFile() {
         return resultFile;
     }
 
+    /**
+     * Specifies the file to generate the XML results to.
+     *
+     * @param resultFile The result XML file. Must not be null.
+     */
     public void setResultFile(File resultFile) {
         this.resultFile = resultFile;
     }
 
+    /**
+     * Returns the classpath containing the compiled classes for the source files to be inspected.
+     *
+     * @return The classpath.
+     */
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
     }
 
+    /**
+     * Specified the classpath containing the compiled classes for the source file to be inspected.
+     *
+     * @param classpath The classpath. Must not be null.
+     */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
 
+    /**
+     * Returns the properties available for use in the configuration file. These are substituted into the configuration
+     * file.
+     *
+     * @return The properties available in the configuration file. Returns an empty map when there are no such
+     *         properties.
+     */
     public Map<String, Object> getProperties() {
         return properties;
     }

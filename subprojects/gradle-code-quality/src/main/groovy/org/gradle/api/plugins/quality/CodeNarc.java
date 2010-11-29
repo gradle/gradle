@@ -36,15 +36,30 @@ public class CodeNarc extends SourceTask implements VerificationTask {
         antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile(), isIgnoreFailures());
     }
 
+    /**
+     * Returns the CodeNarc configuration file to use.
+     *
+     * @return The CodeNarc configuration file.
+     */
     @InputFile
     public File getConfigFile() {
         return configFile;
     }
 
+    /**
+     * Specifies the CodeNarc configuration file to use.
+     *
+     * @param configFile The CodeNarc configuration file.
+     */
     public void setConfigFile(File configFile) {
         this.configFile = configFile;
     }
 
+    /**
+     * Returns the file to write the HTML report to.
+     *
+     * @return The HTML report file. Must not be null.
+     */
     @OutputFile
     public File getReportFile() {
         return reportFile;

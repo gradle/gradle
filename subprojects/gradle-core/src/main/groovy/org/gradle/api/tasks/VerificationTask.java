@@ -20,7 +20,7 @@ package org.gradle.api.tasks;
  */
 public interface VerificationTask {
     /**
-     * Specify whether the build should break when the verifications performed by this task fail.
+     * Specifies whether the build should break when the verifications performed by this task fail.
      *
      * @param ignoreFailures false to break the build on failure, true to ignore the failures. The default is false.
      * @return this
@@ -28,7 +28,7 @@ public interface VerificationTask {
     VerificationTask setIgnoreFailures(boolean ignoreFailures);
 
     /**
-     * Returns whether the build should break when the verifications performed by this task fail.
+     * Specifies whether the build should break when the verifications performed by this task fail.
      *
      * @return false, when the build should break on failure, true when the failures should be ignored.
      */

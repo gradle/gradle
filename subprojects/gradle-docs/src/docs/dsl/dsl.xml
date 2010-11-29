@@ -1,6 +1,6 @@
 <book id="dsl">
     <bookinfo>
-        <title>Gradle DSL Reference</title>
+        <title>Gradle Build Language Reference</title>
     </bookinfo>
 
     <section>
@@ -8,7 +8,7 @@
         <note>
             <para>This reference guide is under construction.</para>
         </note>
-        <para>This reference guide describes the various types which make up the Gradle build DSL.</para>
+        <para>This reference guide describes the various types which make up the Gradle build language, or DSL.</para>
 
         <!--
         -

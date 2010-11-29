@@ -68,12 +68,16 @@ import groovy.lang.Closure;
 public interface PatternFilterable {
 
     /**
-     * Get the set of include patterns.
+     * Returns the set of include patterns.
+     *
+     * @return The include patterns. Returns an empty set when there are no include patterns.
      */
     Set<String> getIncludes();
 
     /**
-     * Get the set of exclude patterns.
+     * Returns the set of exclude patterns.
+     *
+     * @return The exclude patterns. Returns an empty set when there are no exclude patterns.
      */
     Set<String> getExcludes();
 
