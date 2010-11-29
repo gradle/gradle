@@ -15,7 +15,7 @@
     margin-right: 4em;
     position: absolute;
     top: 0;
-    left: 12em;
+    left: 14em;
 }
 
 .sidebar ul {
@@ -29,7 +29,16 @@
 
 .sidebar li.sidebarHeading {
     margin-top: 1.4em;
-    color: #a2a2a2;
+    color: #808080;
+}
+
+.sidebar li.selected {
+    font-weight: bold;
+    color: #505050;
+}
+
+.sidebar ul.sections {
+    padding-left: 1em;
 }
 
 .book .titlepage .releaseinfo {

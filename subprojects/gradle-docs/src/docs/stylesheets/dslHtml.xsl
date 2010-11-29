@@ -25,6 +25,7 @@
     <xsl:param name="section.autolabel">0</xsl:param>
     <xsl:param name="chapter.autolabel">0</xsl:param>
     <xsl:param name="appendix.autolabel">0</xsl:param>
+    <xsl:param name="table.autolabel">0</xsl:param>
 
     <!-- No table of contents -->
     <xsl:param name="generate.toc"/>
@@ -85,21 +86,20 @@
 
     <xsl:template match="chapter" mode="sidebar">
         <xsl:apply-templates select="/" mode="sidebar"/>
-        <li class='sidebarHeading'>
+        <li class='sidebarHeading selected'>
             <xsl:value-of select="title"/>
         </li>
-        <ul>
-            <li>
-                <xsl:call-template name="customXref">
-                    <xsl:with-param name="target" select="section[title = 'Properties']"/>
-                </xsl:call-template>
-            </li>
-            <li>
-                <xsl:call-template name="customXref">
-                    <xsl:with-param name="target" select="section[title = 'Methods']"/>
-                </xsl:call-template>
-            </li>
+        <ul class='sections'>
+            <xsl:apply-templates select="section" mode="sidebar"/>
         </ul>
+    </xsl:template>
+
+    <xsl:template match="section" mode="sidebar">
+        <li>
+            <xsl:call-template name="customXref">
+                <xsl:with-param name="target" select="."/>
+            </xsl:call-template>
+        </li>
     </xsl:template>
 
     <xsl:template match="table" mode="sidebar">
