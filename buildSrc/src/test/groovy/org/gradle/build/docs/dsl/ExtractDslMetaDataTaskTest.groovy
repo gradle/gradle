@@ -50,29 +50,29 @@ class ExtractDslMetaDataTaskTest extends Specification {
         metaData.rawCommentText.contains('This is a groovy class.')
         metaData.superClassName == 'org.gradle.test.A'
         metaData.interfaceNames == ['org.gradle.test.GroovyInterface', 'org.gradle.test.JavaInterface']
-        metaData.classProperties.keySet() == ['readOnly', 'writeOnly', 'someProp', 'groovyProp', 'readOnlyGroovyProp'] as Set
+        metaData.declaredProperties.keySet() == ['readOnly', 'writeOnly', 'someProp', 'groovyProp', 'readOnlyGroovyProp'] as Set
 
-        def prop = metaData.classProperties['readOnly']
+        def prop = metaData.declaredProperties['readOnly']
         prop.type == 'java.lang.Object'
         !prop.writeable
         prop.rawCommentText.contains('A read-only property.')
 
-        prop = metaData.classProperties['writeOnly']
+        prop = metaData.declaredProperties['writeOnly']
         prop.type == 'org.gradle.test.JavaInterface'
         prop.writeable
         prop.rawCommentText.contains('A write-only property.')
 
-        prop = metaData.classProperties['someProp']
+        prop = metaData.declaredProperties['someProp']
         prop.type == 'org.gradle.test.GroovyInterface'
         prop.writeable
         prop.rawCommentText.contains('A property.')
 
-        prop = metaData.classProperties['groovyProp']
+        prop = metaData.declaredProperties['groovyProp']
         prop.type == 'org.gradle.test.GroovyInterface'
         prop.writeable
         prop.rawCommentText.contains('A groovy property.')
 
-        prop = metaData.classProperties['readOnlyGroovyProp']
+        prop = metaData.declaredProperties['readOnlyGroovyProp']
         prop.type == 'java.lang.String'
         !prop.writeable
         prop.rawCommentText.contains('A read-only groovy property.')
@@ -103,24 +103,24 @@ class ExtractDslMetaDataTaskTest extends Specification {
         metaData.rawCommentText.contains('This is a java class.')
         metaData.superClassName == 'org.gradle.test.A'
         metaData.interfaceNames == ['org.gradle.test.GroovyInterface', 'org.gradle.test.JavaInterface']
-        metaData.classProperties.keySet() == ['readOnly', 'writeOnly', 'someProp', 'flag'] as Set
+        metaData.declaredProperties.keySet() == ['readOnly', 'writeOnly', 'someProp', 'flag'] as Set
 
-        def prop = metaData.classProperties['readOnly']
+        def prop = metaData.declaredProperties['readOnly']
         prop.type == 'java.lang.String'
         !prop.writeable
         prop.rawCommentText.contains('A read-only property.')
 
-        prop = metaData.classProperties['writeOnly']
+        prop = metaData.declaredProperties['writeOnly']
         prop.type == 'org.gradle.test.JavaInterface'
         prop.writeable
         prop.rawCommentText.contains('A write-only property.')
 
-        prop = metaData.classProperties['someProp']
+        prop = metaData.declaredProperties['someProp']
         prop.type == 'org.gradle.test.JavaInterface'
         prop.writeable
         prop.rawCommentText.contains('A property.')
 
-        prop = metaData.classProperties['flag']
+        prop = metaData.declaredProperties['flag']
         prop.type == 'boolean'
         !prop.writeable
         prop.rawCommentText.contains('A boolean property.')
@@ -145,9 +145,9 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def metaData = repository.get('org.gradle.test.GroovyClassWithFullyQualifiedNames')
         metaData.superClassName == 'org.gradle.test.sub.SubGroovyClass'
         metaData.interfaceNames == ['org.gradle.test.sub.SubJavaInterface', 'java.lang.Runnable']
-        metaData.classProperties.keySet() == ['prop'] as Set
+        metaData.declaredProperties.keySet() == ['prop'] as Set
 
-        def prop = metaData.classProperties['prop']
+        def prop = metaData.declaredProperties['prop']
         prop.type == 'org.gradle.test.sub.SubJavaInterface'
     }
 
@@ -164,9 +164,9 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def metaData = repository.get('org.gradle.test.JavaClassWithFullyQualifiedNames')
         metaData.superClassName == 'org.gradle.test.sub.SubGroovyClass'
         metaData.interfaceNames == ['org.gradle.test.sub.SubJavaInterface', 'java.lang.Runnable']
-        metaData.classProperties.keySet() == ['prop'] as Set
+        metaData.declaredProperties.keySet() == ['prop'] as Set
 
-        def prop = metaData.classProperties['prop']
+        def prop = metaData.declaredProperties['prop']
         prop.type == 'org.gradle.test.sub.SubJavaInterface'
     }
 
@@ -184,7 +184,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def metaData = repository.get('org.gradle.test.GroovyClassWithImports')
         metaData.superClassName == 'org.gradle.test.sub.SubGroovyClass'
         metaData.interfaceNames == ['org.gradle.test.sub.SubJavaInterface', 'org.gradle.test.sub2.GroovyInterface']
-        metaData.classProperties.keySet() == [] as Set
+        metaData.declaredProperties.keySet() == [] as Set
     }
 
     def handlesImportedTypesInJavaSource() {
@@ -201,7 +201,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def metaData = repository.get('org.gradle.test.JavaClassWithImports')
         metaData.superClassName == 'org.gradle.test.sub.SubGroovyClass'
         metaData.interfaceNames == ['org.gradle.test.sub.SubJavaInterface', 'org.gradle.test.sub2.GroovyInterface', 'java.io.Closeable']
-        metaData.classProperties.keySet() == [] as Set
+        metaData.declaredProperties.keySet() == [] as Set
     }
 
     def handlesEnumTypesInGroovySource() {
@@ -263,12 +263,12 @@ class ExtractDslMetaDataTaskTest extends Specification {
         then:
         def metaData = repository.get('org.gradle.test.GroovyClassWithInnerTypes')
         metaData.interfaceNames == ['org.gradle.test.sub2.GroovyInterface']
-        metaData.classProperties.keySet() == ['someProp', 'innerClassProp'] as Set
+        metaData.declaredProperties.keySet() == ['someProp', 'innerClassProp'] as Set
 
-        def propMetaData = metaData.classProperties['someProp']
+        def propMetaData = metaData.declaredProperties['someProp']
         propMetaData.type == 'org.gradle.test.sub2.GroovyInterface'
 
-        propMetaData = metaData.classProperties['innerClassProp']
+        propMetaData = metaData.declaredProperties['innerClassProp']
         propMetaData.type == 'org.gradle.test.GroovyClassWithInnerTypes.InnerClass.AnotherInner'
 
         metaData = repository.get('org.gradle.test.GroovyClassWithInnerTypes.InnerEnum')
@@ -276,16 +276,16 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         metaData = repository.get('org.gradle.test.GroovyClassWithInnerTypes.InnerClass')
         metaData.rawCommentText.contains('This is an inner class.')
-        metaData.classProperties.keySet() == ['enumProp'] as Set
+        metaData.declaredProperties.keySet() == ['enumProp'] as Set
 
-        propMetaData = metaData.classProperties['enumProp']
+        propMetaData = metaData.declaredProperties['enumProp']
         propMetaData.type == 'org.gradle.test.GroovyClassWithInnerTypes.InnerEnum'
 
         metaData = repository.get('org.gradle.test.GroovyClassWithInnerTypes.InnerClass.AnotherInner')
         metaData.rawCommentText.contains('This is an inner inner class.')
-        metaData.classProperties.keySet() == ['outer'] as Set
+        metaData.declaredProperties.keySet() == ['outer'] as Set
 
-        propMetaData = metaData.classProperties['outer']
+        propMetaData = metaData.declaredProperties['outer']
         propMetaData.type == 'org.gradle.test.GroovyClassWithInnerTypes.InnerClass'
     }
 
@@ -300,12 +300,12 @@ class ExtractDslMetaDataTaskTest extends Specification {
         then:
         def metaData = repository.get('org.gradle.test.JavaClassWithInnerTypes')
         metaData.interfaceNames == ['org.gradle.test.sub2.GroovyInterface']
-        metaData.classProperties.keySet() == ['someProp', 'innerClassProp'] as Set
+        metaData.declaredProperties.keySet() == ['someProp', 'innerClassProp'] as Set
 
-        def propMetaData = metaData.classProperties['someProp']
+        def propMetaData = metaData.declaredProperties['someProp']
         propMetaData.type == 'org.gradle.test.sub2.GroovyInterface'
 
-        propMetaData = metaData.classProperties['innerClassProp']
+        propMetaData = metaData.declaredProperties['innerClassProp']
         propMetaData.type == 'org.gradle.test.JavaClassWithInnerTypes.InnerClass.AnotherInner'
 
         metaData = repository.get('org.gradle.test.JavaClassWithInnerTypes.InnerEnum')
@@ -313,16 +313,16 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         metaData = repository.get('org.gradle.test.JavaClassWithInnerTypes.InnerClass')
         metaData.rawCommentText.contains('This is an inner class.')
-        metaData.classProperties.keySet() == ['enumProp'] as Set
+        metaData.declaredProperties.keySet() == ['enumProp'] as Set
 
-        propMetaData = metaData.classProperties['enumProp']
+        propMetaData = metaData.declaredProperties['enumProp']
         propMetaData.type == 'org.gradle.test.JavaClassWithInnerTypes.InnerEnum'
 
         metaData = repository.get('org.gradle.test.JavaClassWithInnerTypes.InnerClass.AnotherInner')
         metaData.rawCommentText.contains('This is an inner inner class.')
-        metaData.classProperties.keySet() == ['outer'] as Set
+        metaData.declaredProperties.keySet() == ['outer'] as Set
 
-        propMetaData = metaData.classProperties['outer']
+        propMetaData = metaData.declaredProperties['outer']
         propMetaData.type == 'org.gradle.test.JavaClassWithInnerTypes.InnerClass'
     }
 

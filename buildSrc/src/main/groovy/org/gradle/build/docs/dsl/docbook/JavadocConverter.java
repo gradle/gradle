@@ -40,13 +40,14 @@ public class JavadocConverter {
         this.linkConverter = linkConverter;
     }
 
-    public DocComment parse(final String rawCommentText, ClassMetaData classMetaData) {
+    public DocComment parse(ClassMetaData classMetaData) {
         CommentSource commentSource = new CommentSource() {
             public List<? extends Node> getCommentText() {
                 throw new UnsupportedOperationException();
             }
         };
 
+        String rawCommentText = classMetaData.getRawCommentText();
         try {
             return parse(rawCommentText, classMetaData, commentSource);
         } catch (Exception e) {
@@ -54,22 +55,25 @@ public class JavadocConverter {
         }
     }
 
-    public DocComment parse(String rawCommentText, final PropertyMetaData propertyMetaData, ClassMetaData classMetaData) {
+    public DocComment parse(final PropertyMetaData propertyMetaData) {
         CommentSource commentSource = new CommentSource() {
             public Iterable<? extends Node> getCommentText() {
                 PropertyMetaData overriddenProperty = propertyMetaData.getOverriddenProperty();
                 if (overriddenProperty == null) {
                     return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
                 }
-                return parse(overriddenProperty.getRawCommentText(), overriddenProperty, overriddenProperty.getOwnerClass()).getDocbook();
+                return parse(overriddenProperty).getDocbook();
             }
         };
+
+        ClassMetaData ownerClass = propertyMetaData.getOwnerClass();
+        String rawCommentText = propertyMetaData.getRawCommentText();
         try {
-            DocCommentImpl docComment = parse(rawCommentText, classMetaData, commentSource);
+            DocCommentImpl docComment = parse(rawCommentText, ownerClass, commentSource);
             adjustGetterComment(docComment);
             return docComment;
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", classMetaData.getClassName(), propertyMetaData.getName(), rawCommentText), e);
+            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText), e);
         }
     }
 
@@ -101,11 +105,12 @@ public class JavadocConverter {
     private List<Element> textToDom(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
         JavadocLexer lexer = new JavadocLexer(new JavadocScanner(rawCommentText));
         NodeStack nodes = new NodeStack(document);
-        HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes);
+        HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
         handler.add(new TagToElementTranslatingTokenHandler(nodes, document));
         handler.add(new HeaderHandler(nodes, document));
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData));
         handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
+        handler.add(new UnknownElementTagHandler(nodes, document));
 
         while (lexer.next()) {
             switch (lexer.token) {
@@ -250,9 +255,11 @@ public class JavadocConverter {
         final List<TagHandler> handlers = new ArrayList<TagHandler>();
         final LinkedList<TagHandler> handlerStack = new LinkedList<TagHandler>();
         final LinkedList<String> tagStack = new LinkedList<String>();
+        final Document document;
 
-        public HtmlGeneratingTokenHandler(NodeStack nodes) {
+        public HtmlGeneratingTokenHandler(NodeStack nodes, Document document) {
             this.nodes = nodes;
+            this.document = document;
         }
 
         public void add(TagHandler handler) {
@@ -267,8 +274,7 @@ public class JavadocConverter {
                     return;
                 }
             }
-
-            nodes.appendChild(String.format("!!UNKNOWN TAG %s!!", name));
+            throw new UnsupportedOperationException();
         }
 
         public void onText(String text) {
@@ -294,6 +300,31 @@ public class JavadocConverter {
         void onText(String text);
 
         void onEndTag(String tag);
+    }
+
+    private static class UnknownElementTagHandler implements TagHandler {
+        private final NodeStack nodes;
+        private final Document document;
+
+        private UnknownElementTagHandler(NodeStack nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+        }
+
+        public boolean onStartTag(String tag, JavadocLexer.Token token) {
+            Element element = document.createElement(token == JavadocLexer.Token.StartElement ? "UNKNOWN-ELEMENT" : "UNKNOWN-TAG");
+            element.appendChild(document.createTextNode(String.format("%s: ", tag)));
+            nodes.push(tag, element);
+            return true;
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
+        }
+
+        public void onEndTag(String tag) {
+            nodes.pop(tag);
+        }
     }
 
     private static class TagToElementTranslatingTokenHandler implements TagHandler {

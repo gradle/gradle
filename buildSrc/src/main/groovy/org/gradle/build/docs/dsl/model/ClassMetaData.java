@@ -21,10 +21,7 @@ import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.gradle.util.GUtil;
 
 import java.io.Serializable;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
     private final String className;
@@ -35,7 +32,7 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
     private final String rawCommentText;
     private final List<String> imports= new ArrayList<String>();
     private final List<String> interfaceNames = new ArrayList<String>();
-    private final Map<String, PropertyMetaData> classProperties = new HashMap<String, PropertyMetaData>();
+    private final Map<String, PropertyMetaData> declaredProperties = new HashMap<String, PropertyMetaData>();
     private final List<String> innerClassNames = new ArrayList<String>();
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
@@ -57,8 +54,8 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         return className;
     }
 
-    public Map<String, PropertyMetaData> getClassProperties() {
-        return classProperties;
+    public Map<String, PropertyMetaData> getDeclaredProperties() {
+        return declaredProperties;
     }
 
     public String getClassName() {
@@ -153,22 +150,44 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         property.setWriteable(true);
     }
 
+    public PropertyMetaData findDeclaredProperty(String name) {
+        return declaredProperties.get(name);
+    }
+
     public PropertyMetaData findProperty(String name) {
-        return classProperties.get(name);
+        PropertyMetaData propertyMetaData = declaredProperties.get(name);
+        if (propertyMetaData != null) {
+            return propertyMetaData;
+        }
+        ClassMetaData superClass = getSuperClass();
+        if (superClass != null) {
+            return superClass.findProperty(name);
+        }
+        return null;
+    }
+
+    public Set<String> getPropertyNames() {
+        Set<String> propertyNames = new TreeSet<String>();
+        propertyNames.addAll(declaredProperties.keySet());
+        ClassMetaData superClass = getSuperClass();
+        if (superClass != null) {
+            propertyNames.addAll(superClass.getPropertyNames());
+        }
+        return propertyNames;
     }
 
     private PropertyMetaData getProperty(String name) {
-        PropertyMetaData property = classProperties.get(name);
+        PropertyMetaData property = declaredProperties.get(name);
         if (property == null) {
             property = new PropertyMetaData(name);
-            classProperties.put(name, property);
+            declaredProperties.put(name, property);
         }
         return property;
     }
 
     public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.metaDataRepository = metaDataRepository;
-        for (PropertyMetaData propertyMetaData : classProperties.values()) {
+        for (PropertyMetaData propertyMetaData : declaredProperties.values()) {
             propertyMetaData.attach(this);
         }
     }

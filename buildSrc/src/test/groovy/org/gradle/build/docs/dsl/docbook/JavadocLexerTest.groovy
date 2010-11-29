@@ -36,8 +36,58 @@ class JavadocLexerTest extends Specification {
         lexer.next()
         lexer.token == JavadocLexer.Token.End
         lexer.value == 'link'
+
+        !lexer.next()
     }
-    
+
+    def doesNotParseHtmlElementsInsideTag() {
+        when:
+        lexer.pushText("{@link <something> & &lt; </something>}")
+
+        then:
+        lexer.next()
+        lexer.token == JavadocLexer.Token.StartTag
+        lexer.value == 'link'
+
+        lexer.next()
+        lexer.token = JavadocLexer.Token.Text
+        lexer.value == '<something> & &lt; </something>'
+
+        lexer.next()
+        lexer.token == JavadocLexer.Token.End
+        lexer.value == 'link'
+
+        !lexer.next()
+    }
+
+    def tagCannotHaveWhitespaceInsideMarker() {
+        when:
+        lexer.pushText("{ @code} {@ code} { @ code}")
+
+        then:
+        lexer.next()
+        lexer.token == JavadocLexer.Token.Text
+        lexer.value == '{ @code} '
+
+        lexer.next()
+        lexer.token == JavadocLexer.Token.StartTag
+        lexer.value == ''
+
+        lexer.next()
+        lexer.token = JavadocLexer.Token.Text
+        lexer.value == 'code'
+
+        lexer.next()
+        lexer.token == JavadocLexer.Token.End
+        lexer.value == ''
+
+        lexer.next()
+        lexer.token == JavadocLexer.Token.Text
+        lexer.value == ' { @ code}'
+
+        !lexer.next()
+    }
+
     def splitsHtmlElementWithNoContentIntoStatAndEndTokens() {
         when:
         lexer.pushText("<p/>")

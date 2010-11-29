@@ -119,7 +119,7 @@ class ExtractDslMetaDataTask extends SourceTask {
             for (int i = 0; i < classMetaData.interfaceNames.size(); i++) {
                 classMetaData.interfaceNames[i] = resolver.resolve(classMetaData.interfaceNames[i], classMetaData)
             }
-            classMetaData.classProperties.values().each { PropertyMetaData prop ->
+            classMetaData.declaredProperties.values().each { PropertyMetaData prop ->
                 prop.type = resolver.resolve(prop.type, classMetaData)
             }
         } catch (Exception e) {

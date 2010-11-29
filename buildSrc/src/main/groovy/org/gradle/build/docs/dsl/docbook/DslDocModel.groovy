@@ -67,9 +67,11 @@ class DslDocModel {
                 throw new RuntimeException("Docbook source file not found for class '$className' in $classDocbookDir.")
             }
             XIncludeAwareXmlProvider provider = new XIncludeAwareXmlProvider(classpath)
-            return new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
+            def doc = new ClassDoc(className, provider.parse(classFile), document, classMetaData, extensionMetaData, this, javadocConverter)
+            doc.mergeContent()
+            return doc
         } catch (Exception e) {
-            throw new RuntimeException("Could not load class documentation for class '$className'.", e)
+            throw new RuntimeException("Could not generate the class documentation for class '$className'.", e)
         }
     }
 }

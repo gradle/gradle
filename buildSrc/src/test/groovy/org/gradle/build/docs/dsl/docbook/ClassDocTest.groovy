@@ -15,16 +15,17 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
+import groovy.xml.dom.DOMCategory
+import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
-import groovy.xml.dom.DOMCategory
-import org.gradle.build.docs.BuildableDOMCategory
 
 class ClassDocTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
+    final DslDocModel docModel = Mock()
 
-    def mixesTypeAndDescriptionIntoPropertyTable() {
+    def mixesPropertyTypeAndDescriptionIntoPropertyTable() {
         ClassMetaData classMetaData = Mock()
         PropertyMetaData propertyMetaData = Mock()
 
@@ -36,29 +37,90 @@ class ClassDocTest extends XmlSpecification {
             <tr><td>propName</td><td>some value</td></tr>
         </table>
     </section>
-    <section><title>Methods</title>
+</section>
+''')
+
+        when:
+        ClassDoc doc = withCategories {
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, null, javadocConverter).mergeProperties()
+        }
+
+        then:
+        format { doc.propertiesTable } == '''<table><title>Properties - Class</title>
+            <thead><tr><td>Name</td><td>Description</td><td>Type</td><td>Extra column</td></tr></thead>
+            <tr><td><literal>propName</literal></td><td>propName comment</td><td><apilink class="org.gradle.Type"/> (read-only)</td><td>some value</td></tr>
+        </table>'''
+
+        _ * classMetaData.findProperty('propName') >> propertyMetaData
+        _ * propertyMetaData.type >> 'org.gradle.Type'
+        _ * javadocConverter.parse(propertyMetaData) >> ({[document.createTextNode('propName comment')]} as DocComment)
+    }
+
+    def mixesInheritedPropertiesIntoPropertyTable() {
+        ClassMetaData classMetaData = Mock()
+        PropertyMetaData propertyMetaData = Mock()
+        PropertyMetaData inherited2MetaData = Mock()
+        ClassDoc superClassDoc = Mock()
+
+        def content = parse('''
+<section>
+    <section><title>Properties</title>
         <table>
-            <thead><td>Name</td><td>Extra column</td></thead>
+            <thead><tr><td>Name</td><td>Extra column</td></tr></thead>
+            <tr><td>propName</td><td>some value</td></tr>
+            <tr><td>inherited2</td><td>adds extra column</td></tr>
         </table>
     </section>
 </section>
 ''')
 
         when:
-        ClassDoc doc = withCategories { new ClassDoc('org.gradle.Class', content, document, classMetaData, null, null, javadocConverter) }
+        ClassDoc doc = withCategories {
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).mergeProperties()
+        }
 
         then:
         format { doc.propertiesTable } == '''<table><title>Properties - Class</title>
             <thead><tr><td>Name</td><td>Description</td><td>Type</td><td>Extra column</td></tr></thead>
-            <tr><td><literal>propName</literal></td><td><prop-comment/></td><td><apilink class="org.gradle.Type"/> (read-only)</td><td>some value</td></tr>
-        </table>'''
+            <tr><td><literal>propName</literal></td><td>propName comment</td><td><apilink class="org.gradle.Type"/> (read-only)</td><td>some value</td></tr>
+            <tr><td><literal>inherited2</literal></td><td>inherited2 comment</td><td><apilink class="org.gradle.Type3"/> (read-only)</td><td>adds extra column</td></tr>
+        <tr><td>inherited1</td><td/><td/><td/></tr></table>'''
 
-        _ * classMetaData.classProperties >> [propName: propertyMetaData]
+        _ * classMetaData.findProperty('propName') >> propertyMetaData
+        _ * classMetaData.findProperty('inherited2') >> inherited2MetaData
+        _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
         _ * propertyMetaData.type >> 'org.gradle.Type'
-        _ * propertyMetaData.rawCommentText >> 'a property'
-        _ * classMetaData.rawCommentText >> 'a class'
-        _ * javadocConverter.parse('a property', propertyMetaData, classMetaData) >> ({[document.createElement('prop-comment')]} as DocComment)
-        _ * javadocConverter.parse('a class',  classMetaData) >> ({[document.createElement('class-comment')]} as DocComment)
+        _ * inherited2MetaData.type >> 'org.gradle.Type3'
+        _ * docModel.getClassDoc('org.gradle.SuperClass') >> superClassDoc
+        _ * javadocConverter.parse(propertyMetaData) >> ({[document.createTextNode('propName comment')]} as DocComment)
+        _ * javadocConverter.parse(inherited2MetaData) >> ({[document.createTextNode('inherited2 comment')]} as DocComment)
+        _ * superClassDoc.propertiesTable >> parse('<table><tr><td>inherited1</td></tr><tr><td>inherited2</td></tr></table>')
+    }
+    
+    def mergesContentIntoMethodsTable() {
+        ClassMetaData classMetaData = Mock()
+
+        def content = parse('''
+<section>
+    <section><title>Methods</title>
+        <table>
+            <thead><tr><td>Name</td><td>Extra column</td></tr></thead>
+            <tr><td>methodName</td><td>some value</td></tr>
+        </table>
+    </section>
+</section>
+''')
+
+        when:
+        ClassDoc doc = withCategories {
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, null, javadocConverter).mergeMethods()
+        }
+
+        then:
+        format { doc.methodsTable } == '''<table><title>Methods - Class</title>
+            <thead><tr><td>Name</td><td>Extra column</td></tr></thead>
+            <tr><td>methodName</td><td>some value</td></tr>
+        </table>'''
     }
 
     def format(Closure cl) {

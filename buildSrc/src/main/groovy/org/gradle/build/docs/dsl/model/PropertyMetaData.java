@@ -76,7 +76,7 @@ public class PropertyMetaData implements Serializable {
             if (cl == null) {
                 continue;
             }
-            PropertyMetaData overriddenProperty = cl.findProperty(name);
+            PropertyMetaData overriddenProperty = cl.findDeclaredProperty(name);
             if (overriddenProperty != null) {
                 return overriddenProperty;
             }

@@ -35,7 +35,7 @@ class PropertyMetaDataTest extends Specification {
         then:
         _ * classMetaData.superClass >> superClassMetaData
         _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findProperty('prop') >> overriddenProperty
+        _ * superClassMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
     }
 
@@ -49,7 +49,7 @@ class PropertyMetaDataTest extends Specification {
         then:
         _ * classMetaData.superClass >> null
         _ * classMetaData.interfaces >> [interfaceMetaData]
-        _ * interfaceMetaData.findProperty('prop') >> overriddenProperty
+        _ * interfaceMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
     }
 
@@ -64,10 +64,10 @@ class PropertyMetaDataTest extends Specification {
         then:
         _ * classMetaData.superClass >> superClassMetaData
         _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findProperty('prop') >> null
+        _ * superClassMetaData.findDeclaredProperty('prop') >> null
         _ * superClassMetaData.superClass >> ancestorClassMetaData
         _ * superClassMetaData.interfaces >> []
-        _ * ancestorClassMetaData.findProperty('prop') >> overriddenProperty
+        _ * ancestorClassMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
     }
 
@@ -82,10 +82,10 @@ class PropertyMetaDataTest extends Specification {
         then:
         _ * classMetaData.superClass >> superClassMetaData
         _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findProperty('prop') >> null
+        _ * superClassMetaData.findDeclaredProperty('prop') >> null
         _ * superClassMetaData.superClass >> null
         _ * superClassMetaData.interfaces >> [interfaceMetaData]
-        _ * interfaceMetaData.findProperty('prop') >> overriddenProperty
+        _ * interfaceMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
     }
 
@@ -108,7 +108,7 @@ class PropertyMetaDataTest extends Specification {
         then:
         _ * classMetaData.superClass >> superClassMetaData
         _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findProperty('prop') >> null
+        _ * superClassMetaData.findDeclaredProperty('prop') >> null
         _ * superClassMetaData.superClass >> null
         _ * superClassMetaData.interfaces >> []
         p == null

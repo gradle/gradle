@@ -27,12 +27,16 @@ class ClassDoc {
     final String id
     final String classSimpleName
     final ClassMetaData classMetaData
+    private final JavadocConverter javadocConverter
+    private final DslDocModel model
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
         this.className = className
         id = className
         classSimpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
+        this.javadocConverter = javadocConverter
+        this.model = model
 
         classSection = targetDocument.createElement('chapter')
 
@@ -43,24 +47,57 @@ class ClassDoc {
         classContent.childNodes.each { Node n ->
             classSection << n
         }
+    }
 
+    ClassDoc mergeContent() {
+        mergeDescription()
+        mergeProperties()
+        mergeMethods()
+        return this
+    }
+
+    ClassDoc mergeDescription() {
+        def properties = getSection('Properties')
+
+        def javadocComment = javadocConverter.parse(classMetaData)
+        javadocComment.docbook.each { node ->
+            properties.addBefore(node)
+        }
+
+        properties.addBefore {
+            section {
+                title('API Documentation')
+                para {
+                    apilink('class': className, style: style)
+                }
+            }
+        }
+
+        return this
+    }
+
+    ClassDoc mergeProperties() {
         propertiesTable.addFirst { title("Properties - $classSimpleName") }
         def propertyTableHeader = propertiesTable.thead[0].tr[0]
         propertyTableHeader.td[0].addAfter { td('Description'); td('Type') }
+
+        Set<String> props = [] as Set
+
         propertiesTable.tr.each { Element tr ->
             def cells = tr.td
             if (cells.size() < 1) {
-                throw new RuntimeException("Expected at leat 1 cell in <tr>, found: $tr")
+                throw new RuntimeException("Expected at least 1 cell in <tr>, found: $tr")
             }
             String propName = cells[0].text().trim()
-            PropertyMetaData property = classMetaData.classProperties[propName]
+            props << propName
+            PropertyMetaData property = classMetaData.findProperty(propName)
             if (!property) {
-                throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.classProperties.keySet()}")
+                throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
             }
             String type = property.type
             tr.td[0].children = { literal(propName) }
             tr.td[0].addAfter { td() }
-            javadocConverter.parse(property.rawCommentText, property, classMetaData).docbook.each { node ->
+            javadocConverter.parse(property).docbook.each { node ->
                 tr.td[1] << node
             }
             tr.td[1].addAfter {
@@ -79,43 +116,33 @@ class ClassDoc {
             }
         }
 
+        if (classMetaData.superClassName) {
+            ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
+            supertype.propertiesTable.tr.each { Element tr ->
+                String propName = tr.td[0].text().trim()
+                if (props.add(propName)) {
+                    while (tr.td.size() < propertyTableHeader.td.size()) {
+                        tr << { td() }
+                    }
+                    propertiesTable << tr
+                }
+            }
+        }
+
+        return this
+    }
+
+    ClassDoc mergeMethods() {
         methodsTable.addFirst { title("Methods - $classSimpleName")}
 
         if (classMetaData.superClassName) {
             ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
-            supertype.propertiesTable.tr.each { Element tr ->
-                while (tr.td.size() < propertyTableHeader.td.size()) {
-                    tr << { td() }
-                }
-                propertiesTable << tr
-            }
             supertype.methodsTable.tr.each { Element tr ->
                 methodsTable << tr
             }
         }
 
-        def properties = getSection('Properties')
-
-        def javadocComment = javadocConverter.parse(classMetaData.rawCommentText, classMetaData)
-        javadocComment.docbook.each { node ->
-            properties.addBefore(node)
-        }
-
-        properties.addBefore {
-            section {
-                title('API Documentation')
-                para {
-                    apilink('class': className, style: style)
-                }
-            }
-        }
-
-//                extensionMetaData.extensionClasses.each { Map map ->
-//                    ClassDoc extensionClassDoc = model.getClassDoc(map.extensionClass)
-//                    classSection << extensionClassDoc.classSection
-//
-//                    classSection.lastChild.title[0].text = "${map.plugin} - ${extensionClassDoc.classSimpleName}"
-//                }
+        return this
     }
 
     Element getPropertiesTable() {
