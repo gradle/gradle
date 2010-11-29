@@ -16,20 +16,63 @@
 package org.gradle.build.docs.dsl
 
 import spock.lang.Specification
-import groovy.xml.dom.DOMUtil
 import org.w3c.dom.Document
 import javax.xml.parsers.DocumentBuilderFactory
 import org.w3c.dom.Node
+import org.w3c.dom.Element
+import org.w3c.dom.Text
+import org.w3c.dom.Attr
+import javax.xml.parsers.DocumentBuilder
+import org.xml.sax.InputSource
 
 class XmlSpecification extends Specification {
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
 
-    def format(Iterable<? extends Node> nodes) {
-        document.appendChild(document.createElement('root'))
-        nodes.each { node ->
-            document.documentElement.appendChild(node)
-        }
-        return DOMUtil.serialize(document.documentElement).replaceAll(System.getProperty('line.separator'), '\n')
+    def parse(String str) {
+        DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance()
+        factory.setNamespaceAware(true)
+        DocumentBuilder builder = factory.newDocumentBuilder()
+        return builder.parse(new InputSource(new StringReader(str))).documentElement
     }
 
+    def format(Node... nodes) {
+        format(nodes as List)
+    }
+
+    def format(Iterable<? extends Node> nodes) {
+        StringBuilder builder = new StringBuilder()
+        nodes.each { node ->
+            format(node, builder, 0)
+        }
+        return builder.toString()
+    }
+
+    def format(Node node, Appendable target, int depth) {
+        if (node instanceof Element) {
+            Element element = (Element) node
+
+            target.append("<${element.tagName}")
+            for (int i = 0; i < element.attributes.length; i++) {
+                Attr attr = element.attributes.item(i)
+                target.append(" $attr.name=\"$attr.value\"")
+            }
+            if (element.childNodes.length == 0) {
+                target.append('/>')
+                return
+            }
+            target.append('>')
+
+            element.childNodes.each { child ->
+                format(child, target, depth + 1)
+            }
+
+            target.append("</${element.tagName}>")
+            return
+        }
+        if (node instanceof Text) {
+            target.append(node.nodeValue.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
+            return
+        }
+        throw new UnsupportedOperationException("Don't know how to format DOM node: $node")
+    }
 }

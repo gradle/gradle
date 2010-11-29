@@ -5,10 +5,14 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Type</td>
-                    <td>Description</td>
                 </tr>
             </thead>
+            <tr><td>antlrClasspath</td></tr>
+            <tr><td>outputDirectory</td></tr>
+            <tr><td>trace</td></tr>
+            <tr><td>traceLexer</td></tr>
+            <tr><td>traceParser</td></tr>
+            <tr><td>traceTreeWalker</td></tr>
         </table>
     </section>
     <section>

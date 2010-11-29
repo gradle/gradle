@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.javadoc
+package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.TypeNameResolver
 import org.gradle.build.docs.dsl.XmlSpecification
@@ -31,11 +31,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
         def link = converter.resolve('someName', classMetaData)
 
         then:
-        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <apilink class="org.gradle.SomeClass"/>
-</root>
-'''
+        format(link) == '''<apilink class="org.gradle.SomeClass"/>'''
         _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
         _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
     }
@@ -45,11 +41,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
         def link = converter.resolve('someName', classMetaData)
 
         then:
-        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>
-  <classname>org.gradle.SomeClass</classname>
-</root>
-'''
+        format(link) == '''<classname>org.gradle.SomeClass</classname>'''
         _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
         _ * metaDataRepository.find('org.gradle.SomeClass') >> null
 
@@ -60,8 +52,6 @@ class JavadocLinkConverterTest extends XmlSpecification {
         def link = converter.resolve('org.gradle.SomeClass', classMetaData)
 
         then:
-        format(link) == '''<?xml version="1.0" encoding="UTF-8"?>
-<root>!!UNKNOWN LINK org.gradle.SomeClass!!</root>
-'''
+        format(link) == '''!!UNKNOWN LINK org.gradle.SomeClass!!'''
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.javadoc;
+package org.gradle.build.docs.dsl.docbook;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -22,14 +22,14 @@ import java.util.regex.Pattern;
 /**
  * Converts the main description of a javadoc comment into a stream of tokens.
  */
-class Lexer {
-    private static final Pattern END_TAG_NAME = Pattern.compile("\\s|}");
-    private static final Pattern WHITESPACE = Pattern.compile("\\s+");
+class JavadocLexer {
     private static final Pattern HTML_ELEMENT = Pattern.compile("<\\\\?.+?>");
     private static final Pattern END_ELEMENT_NAME = Pattern.compile("(/>)|>");
     private static final Pattern HTML_ENCODED_CHAR = Pattern.compile("&#\\d+;");
     private static final Pattern HTML_ENTITY = Pattern.compile("&.+?;");
-    private static final Pattern TAG = Pattern.compile("\\{@.+?\\}");
+    private static final Pattern TAG = Pattern.compile("(?s)\\{@.+?\\}");
+    private static final Pattern END_TAG_NAME = Pattern.compile("(?s)\\s|}");
+    private static final Pattern WHITESPACE_WITH_EOL = Pattern.compile("(?s)\\s+");
     private static final Map<String, String> ENTITIES = new HashMap<String, String>();
 
     static {
@@ -42,13 +42,13 @@ class Lexer {
         StartElement, StartTag, Text, End
     }
 
-    private final Scanner scanner;
+    private final JavadocScanner scanner;
     Token token;
     String value;
     private String inlineTag;
     private boolean implicitEnd;
 
-    Lexer(Scanner scanner) {
+    JavadocLexer(JavadocScanner scanner) {
         this.scanner = scanner;
     }
 
@@ -140,7 +140,7 @@ class Lexer {
             token = Token.StartTag;
             value = scanner.region();
             inlineTag = value;
-            scanner.skip(WHITESPACE);
+            scanner.skip(WHITESPACE_WITH_EOL);
             return true;
         }
 

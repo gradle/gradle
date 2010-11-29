@@ -31,6 +31,8 @@ import static org.codehaus.groovy.antlr.parser.GroovyTokenTypes.*;
 
 public class SourceMetaDataVisitor extends VisitorAdapter {
     private static final Pattern PREV_JAVADOC_COMMENT_PATTERN = Pattern.compile("(?s)/\\*\\*(.*?)\\*/");
+    private static final Pattern GETTER_METHOD_NAME = Pattern.compile("(get|is)(.+)");
+    private static final Pattern SETTER_METHOD_NAME = Pattern.compile("set(.+)");
     private final SourceBuffer sourceBuffer;
     private final LinkedList<GroovySourceAST> parseStack = new LinkedList<GroovySourceAST>();
     private final List<String> imports = new ArrayList<String>();
@@ -147,16 +149,23 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
 
     private void maybeAddPropertyFromMethod(GroovySourceAST t) {
         String name = extractName(t);
-        if (name.matches("get.+")) {
-            String propName = name.substring(3, 4).toLowerCase() + name.substring(4);
+        Matcher matcher = GETTER_METHOD_NAME.matcher(name);
+        if (matcher.matches()) {
+            int startName = matcher.start(2);
+            String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
             String type = extractTypeName(t);
             getCurrentClass().addReadableProperty(propName, type, getJavaDocCommentsBeforeNode(t));
-        } else if (name.matches("set.+")) {
-            GroovySourceAST paramsAst = t.childOfType(PARAMETERS);
-            if (paramsAst.getFirstChild() == null || paramsAst.getFirstChild().getNextSibling() != null) {
-                return;
-            }
-            String propName = name.substring(3, 4).toLowerCase() + name.substring(4);
+            return;
+        }
+
+        GroovySourceAST paramsAst = t.childOfType(PARAMETERS);
+        if (paramsAst.getFirstChild() == null || paramsAst.getFirstChild().getNextSibling() != null) {
+            return;
+        }
+        matcher = SETTER_METHOD_NAME.matcher(name);
+        if (matcher.matches()) {
+            int startName = matcher.start(1);
+            String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
             String type = extractTypeName((GroovySourceAST) paramsAst.getFirstChild());
             getCurrentClass().addWriteableProperty(propName, type, getJavaDocCommentsBeforeNode(t));
         }

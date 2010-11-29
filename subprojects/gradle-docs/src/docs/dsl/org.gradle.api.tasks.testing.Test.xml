@@ -5,10 +5,12 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Type</td>
-                    <td>Description</td>
+                    <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>testClassesDir</td><td><literal>sourceSets.test.classesDir</literal></td>
+            </tr>
         </table>
     </section>
     <section>

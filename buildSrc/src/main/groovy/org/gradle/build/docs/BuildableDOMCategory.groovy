@@ -73,8 +73,9 @@ class BuildableDOMCategory {
         cl.delegate = builder
         cl.call()
         def parent = sibling.parentNode
+        def next = sibling.nextSibling
         builder.elements.each { element ->
-            parent.insertBefore(element, sibling.nextSibling)
+            parent.insertBefore(element, next)
         }
     }
 }

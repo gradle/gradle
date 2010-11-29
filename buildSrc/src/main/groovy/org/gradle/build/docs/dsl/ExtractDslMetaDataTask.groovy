@@ -37,7 +37,7 @@ import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
- * for later use in generating the docbook source for the DSL, such as by {@link AssembleDslDocTask}.
+ * for later use in generating the docbook source for the DSL, such as by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.
  */
 class ExtractDslMetaDataTask extends SourceTask {
     @OutputFile

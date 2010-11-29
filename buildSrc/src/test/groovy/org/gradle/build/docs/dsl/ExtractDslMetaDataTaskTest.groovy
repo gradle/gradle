@@ -103,7 +103,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         metaData.rawCommentText.contains('This is a java class.')
         metaData.superClassName == 'org.gradle.test.A'
         metaData.interfaceNames == ['org.gradle.test.GroovyInterface', 'org.gradle.test.JavaInterface']
-        metaData.classProperties.keySet() == ['readOnly', 'writeOnly', 'someProp'] as Set
+        metaData.classProperties.keySet() == ['readOnly', 'writeOnly', 'someProp', 'flag'] as Set
 
         def prop = metaData.classProperties['readOnly']
         prop.type == 'java.lang.String'
@@ -119,6 +119,11 @@ class ExtractDslMetaDataTaskTest extends Specification {
         prop.type == 'org.gradle.test.JavaInterface'
         prop.writeable
         prop.rawCommentText.contains('A property.')
+
+        prop = metaData.classProperties['flag']
+        prop.type == 'boolean'
+        !prop.writeable
+        prop.rawCommentText.contains('A boolean property.')
 
         metaData = repository.get('org.gradle.test.JavaInterface')
         !metaData.groovy

@@ -5,10 +5,11 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Type</td>
-                    <td>Description</td>
                 </tr>
             </thead>
+            <tr><td>includes</td></tr>
+            <tr><td>source</td></tr>
+            <tr><td>excludes</td></tr>
         </table>
     </section>
     <section>

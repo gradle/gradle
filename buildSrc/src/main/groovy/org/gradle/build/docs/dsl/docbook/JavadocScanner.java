@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.javadoc;
+package org.gradle.build.docs.dsl.docbook;
 
 import org.gradle.util.UncheckedException;
 
@@ -33,12 +33,12 @@ import java.util.regex.Pattern;
  * <li>Removes leading and trailing empty lines.</li>
  * </ul>
  */
-class Scanner {
+class JavadocScanner {
     private final StringBuilder input = new StringBuilder();
     private int pos;
     private int markPos;
 
-    Scanner(String rawCommentText) {
+    JavadocScanner(String rawCommentText) {
         pushText(rawCommentText);
     }
 

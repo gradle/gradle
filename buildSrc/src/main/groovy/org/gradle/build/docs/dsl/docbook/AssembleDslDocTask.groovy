@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl
+package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.OutputFile
@@ -30,13 +30,14 @@ import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
+import org.gradle.build.docs.dsl.LinkMetaData
 
 /**
  * Generates the docbook source for the DSL reference guide.
  *
  * Uses the following as input:
  * <ul>
- * <li>Meta-data extracted from the source by {@link ExtractDslMetaDataTask}.</li>
+ * <li>Meta-data extracted from the source by {@link org.gradle.build.docs.dsl.ExtractDslMetaDataTask}.</li>
  * <li>Meta-data about the plugins, in the form of an XML file.</li>
  * <li>A docbook template file containing the introductory material and a list of classes to document.</li>
  * <li>A docbook template file for each class, contained in the {@code classDocbookDir} directory.</li>
@@ -84,7 +85,7 @@ class AssembleDslDocTask extends DefaultTask {
         use(DOMCategory) {
             use(BuildableDOMCategory) {
                 Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
-                DslModel model = new DslModel(classDocbookDir, document, classpath, classRepository, extensions)
+                DslDocModel model = new DslDocModel(classDocbookDir, document, classpath, classRepository, extensions)
                 def root = document.documentElement
                 root.section[0].table.each { Element table ->
                     insertTypes(table, model, linkRepository)
@@ -115,7 +116,7 @@ class AssembleDslDocTask extends DefaultTask {
         return extensions
     }
 
-    def insertTypes(Element typeTable, DslModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def insertTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         typeTable['@role'] = 'dslTypes'
         typeTable.addFirst {
             thead {
@@ -131,7 +132,7 @@ class AssembleDslDocTask extends DefaultTask {
         }
     }
 
-    def insertType(Element tr, DslModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def insertType(Element tr, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         String className = tr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
         linkRepository.put(className, new LinkMetaData(LinkMetaData.Style.Dsldoc))

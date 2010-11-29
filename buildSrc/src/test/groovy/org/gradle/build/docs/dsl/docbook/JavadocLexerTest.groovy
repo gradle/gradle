@@ -13,24 +13,42 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.javadoc
+package org.gradle.build.docs.dsl.docbook
 
 import spock.lang.Specification
 
-class LexerTest extends Specification {
-    final Lexer lexer = new Lexer(new Scanner(""))
+class JavadocLexerTest extends Specification {
+    final JavadocLexer lexer = new JavadocLexer(new JavadocScanner(""))
 
-    def unpacksHtmlElementWithNoContent() {
+    def ignoresWhitespaceAndEOLCharsInsideTag() {
+        when:
+        lexer.pushText("{@link\n  Something  \n}")
+
+        then:
+        lexer.next()
+        lexer.token == JavadocLexer.Token.StartTag
+        lexer.value == 'link'
+
+        lexer.next()
+        lexer.token = JavadocLexer.Token.Text
+        lexer.value == 'Something  \n'
+
+        lexer.next()
+        lexer.token == JavadocLexer.Token.End
+        lexer.value == 'link'
+    }
+    
+    def splitsHtmlElementWithNoContentIntoStatAndEndTokens() {
         when:
         lexer.pushText("<p/>")
 
         then:
         lexer.next()
-        lexer.token == Lexer.Token.StartElement
+        lexer.token == JavadocLexer.Token.StartElement
         lexer.value == 'p'
 
         lexer.next()
-        lexer.token == Lexer.Token.End
+        lexer.token == JavadocLexer.Token.End
         lexer.value == 'p'
 
         !lexer.next()

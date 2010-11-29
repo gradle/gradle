@@ -13,16 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl
+package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.XIncludeAwareXmlProvider
-import org.gradle.build.docs.dsl.javadoc.JavadocConverter
-import org.gradle.build.docs.dsl.javadoc.JavadocLinkConverter
+
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.w3c.dom.Document
 import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.gradle.build.docs.dsl.TypeNameResolver
 
-class DslModel {
+class DslDocModel {
     private final File classDocbookDir
     private final Document document
     private final Iterable<File> classpath
@@ -31,7 +31,7 @@ class DslModel {
     private final Map<String, ExtensionMetaData> extensionMetaData
     private final JavadocConverter javadocConverter
 
-    DslModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
+    DslDocModel(File classDocbookDir, Document document, Iterable<File> classpath, ClassMetaDataRepository<ClassMetaData> classMetaData, Map<String, ExtensionMetaData> extensionMetaData) {
         this.classDocbookDir = classDocbookDir
         this.document = document
         this.classpath = classpath

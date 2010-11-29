@@ -36,7 +36,7 @@ import org.gradle.api.InvalidUserDataException
  * <ul>
  * <li>A source docbook XML file.</li>
  * <li>A directory containing the snippets for the samples to be included in the document, as produced by {@link ExtractSnippetsTask}.</li>
- * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.AssembleDslDocTask}.</li>
+ * <li>Meta-info about the canonical documentation for each class referenced in the document, as produced by {@link org.gradle.build.docs.dsl.docbook.AssembleDslDocTask}.</li>
  * </ul>
  */
 public class UserGuideTransformTask extends DefaultTask {

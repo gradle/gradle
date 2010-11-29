@@ -5,10 +5,13 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Type</td>
-                    <td>Description</td>
                 </tr>
             </thead>
+            <tr><td>classpath</td></tr>
+            <tr><td>configFile</td></tr>
+            <tr><td>ignoreFailures</td></tr>
+            <tr><td>properties</td></tr>
+            <tr><td>resultFile</td></tr>
         </table>
     </section>
     <section>

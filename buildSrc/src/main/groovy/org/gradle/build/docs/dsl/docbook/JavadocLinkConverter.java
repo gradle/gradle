@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.javadoc;
+package org.gradle.build.docs.dsl.docbook;
 
 import org.gradle.build.docs.dsl.TypeNameResolver;
 import org.gradle.build.docs.dsl.model.ClassMetaData;

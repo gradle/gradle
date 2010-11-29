@@ -5,10 +5,11 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Type</td>
-                    <td>Description</td>
                 </tr>
             </thead>
+            <tr><td>configFile</td></tr>
+            <tr><td>reportFile</td></tr>
+            <tr><td>ignoreFailures</td></tr>
         </table>
     </section>
     <section>

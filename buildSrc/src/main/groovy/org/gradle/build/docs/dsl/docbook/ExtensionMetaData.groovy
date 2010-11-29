@@ -13,10 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl;
+package org.gradle.build.docs.dsl.docbook
 
-import org.w3c.dom.Node;
+class ExtensionMetaData {
+    final String targetClass
+    final Set<Map<String, String>> extensionClasses = new HashSet()
 
-public interface DocComment {
-    Iterable<? extends Node> getDocbook();
+    ExtensionMetaData(String targetClass) {
+        this.targetClass = targetClass
+    }
+    
+    def void add(String plugin, String extensionClass) {
+        extensionClasses << [plugin: plugin, extensionClass: extensionClass]
+    }
 }
