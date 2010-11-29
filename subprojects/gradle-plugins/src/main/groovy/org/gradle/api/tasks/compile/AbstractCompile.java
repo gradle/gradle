@@ -31,39 +31,79 @@ public abstract class AbstractCompile extends SourceTask {
 
     @TaskAction
     protected abstract void compile();
-    
+
+    /**
+     * Returns the classpath to use to compile the source files.
+     *
+     * @return The classpath.
+     */
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
     }
 
+    /**
+     * Sets the classpath to use to compile the source files.
+     *
+     * @param configuration The classpath. Must not be null, but may be empty.
+     */
     public void setClasspath(FileCollection configuration) {
         this.classpath = configuration;
     }
 
+    /**
+     * Returns the directory to generate the {@code .class} files into.
+     *
+     * @return The destination directory.
+     */
     @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
     }
 
+    /**
+     * Sets the directory to generate the {@code .class} files into.
+     *
+     * @param destinationDir The destination directory. Must not be null.
+     */
     public void setDestinationDir(File destinationDir) {
         this.destinationDir = destinationDir;
     }
 
+    /**
+     * Returns the Java language level to use to compile the source files.
+     *
+     * @return The source language level.
+     */
     @Input
     public String getSourceCompatibility() {
         return sourceCompatibility;
     }
 
+    /**
+     * Sets the Java language level to use to compile the source files.
+     *
+     * @return The source language level. Must not be null.
+     */
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
     }
 
+    /**
+     * Returns the target JVM to generate the {@code .class} files for.
+     *
+     * @return The target JVM.
+     */
     @Input
     public String getTargetCompatibility() {
         return targetCompatibility;
     }
 
+    /**
+     * Sets the target JVM to generate the {@code .class} files for.
+     *
+     * @param targetCompatibility The target JVM. Must not be null.
+     */
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;
     }

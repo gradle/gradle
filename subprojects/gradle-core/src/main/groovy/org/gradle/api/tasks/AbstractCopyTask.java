@@ -54,6 +54,10 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         return null;
     }
 
+    /**
+     * Returns the source files for this task.
+     * @return The source files. Never returns null.
+     */
     @InputFiles @SkipWhenEmpty @Optional
     public FileCollection getSource() {
         return getCopyAction().hasSource() ? getCopyAction().getAllSource() : getDefaultSource();

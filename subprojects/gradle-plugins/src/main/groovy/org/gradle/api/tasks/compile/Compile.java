@@ -30,7 +30,7 @@ import java.io.File;
 
 /**
  * Compiles Java source files.
- * 
+ *
  * @author Hans Dockter
  */
 public class Compile extends AbstractCompile {
@@ -65,6 +65,11 @@ public class Compile extends AbstractCompile {
         this.dependencyCacheDir = dependencyCacheDir;
     }
 
+    /**
+     * Returns the compilation options.
+     *
+     * @return The compilation options.
+     */
     @Nested
     public CompileOptions getOptions() {
         return javaCompiler.getCompileOptions();

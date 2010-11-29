@@ -7,6 +7,10 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr><td>classpath</td></tr>
+            <tr><td>destinationDir</td></tr>
+            <tr><td>sourceCompatibility</td></tr>
+            <tr><td>targetCompatibility</td></tr>
         </table>
     </section>
     <section>

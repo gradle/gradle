@@ -9,7 +9,7 @@
                 </tr>
             </thead>
             <tr>
-                <td>testClassesDir</td><td><literal>sourceSets.test.classesDir</literal></td>
+                <td>testClassesDir</td><td><literal>project.sourceSets.test.classesDir</literal></td>
             </tr>
         </table>
     </section>

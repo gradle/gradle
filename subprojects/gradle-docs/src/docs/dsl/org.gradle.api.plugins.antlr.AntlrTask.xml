@@ -5,14 +5,17 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>antlr</literal> plugin</td>
                 </tr>
             </thead>
-            <tr><td>antlrClasspath</td></tr>
-            <tr><td>outputDirectory</td></tr>
-            <tr><td>trace</td></tr>
-            <tr><td>traceLexer</td></tr>
-            <tr><td>traceParser</td></tr>
-            <tr><td>traceTreeWalker</td></tr>
+            <tr><td>antlrClasspath</td><td><literal>project.configurations.antlr</literal></td></tr>
+            <tr><td>outputDirectory</td><td>
+                <literal><replaceable>${project.buildDir}</replaceable>/generated-src/antlr/<replaceable>${sourceSet.name}</replaceable></literal></td></tr>
+            <tr><td>trace</td><td><literal>false</literal></td></tr>
+            <tr><td>traceLexer</td><td><literal>false</literal></td></tr>
+            <tr><td>traceParser</td><td><literal>false</literal></td></tr>
+            <tr><td>traceTreeWalker</td><td><literal>false</literal></td></tr>
+            <tr><td>source</td><td><literal><replaceable>sourceSet</replaceable>.antlr</literal></td></tr>
         </table>
     </section>
     <section>

@@ -56,6 +56,9 @@ public class AntlrTask extends SourceTask {
 
     private File outputDirectory;
 
+    /**
+     * Specifies that all rules call {@code traceIn}/{@code traceOut}.
+     */
     public boolean isTrace() {
         return trace;
     }
@@ -64,6 +67,9 @@ public class AntlrTask extends SourceTask {
         this.trace = trace;
     }
 
+    /**
+     * Specifies that all lexer rules call {@code traceIn}/{@code traceOut}.
+     */
     public boolean isTraceLexer() {
         return traceLexer;
     }
@@ -72,6 +78,9 @@ public class AntlrTask extends SourceTask {
         this.traceLexer = traceLexer;
     }
 
+    /**
+     * Specifies that all parser rules call {@code traceIn}/{@code traceOut}.
+     */
     public boolean isTraceParser() {
         return traceParser;
     }
@@ -80,6 +89,9 @@ public class AntlrTask extends SourceTask {
         this.traceParser = traceParser;
     }
 
+    /**
+     * Specifies that all tree walker rules call {@code traceIn}/{@code traceOut}.
+     */
     public boolean isTraceTreeWalker() {
         return traceTreeWalker;
     }
@@ -88,20 +100,40 @@ public class AntlrTask extends SourceTask {
         this.traceTreeWalker = traceTreeWalker;
     }
 
+    /**
+     * Returns the directory to generate the parser source files into.
+     *
+     * @return The output directory.
+     */
     @OutputDirectory
     public File getOutputDirectory() {
         return outputDirectory;
     }
 
+    /**
+     * Specifies the directory to generate the parser source files into.
+     *
+     * @param outputDirectory The output directory. Must not be null.
+     */
     public void setOutputDirectory(File outputDirectory) {
         this.outputDirectory = outputDirectory;
     }
 
+    /**
+     * Returns the classpath containing the Ant ANTLR task implementation.
+     *
+     * @return The Ant task implementation classpath.
+     */
     @InputFiles
     public FileCollection getAntlrClasspath() {
         return antlrClasspath;
     }
 
+    /**
+     * Specifies the classpath containing the Ant ANTLR task implementation.
+     *
+     * @param antlrClasspath The Ant task implementation classpath. Must not be null.
+     */
     public void setAntlrClasspath(FileCollection antlrClasspath) {
         this.antlrClasspath = antlrClasspath;
     }

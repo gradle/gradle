@@ -5,13 +5,19 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>code-quality</literal> plugin</td>
                 </tr>
             </thead>
-            <tr><td>classpath</td></tr>
-            <tr><td>configFile</td></tr>
-            <tr><td>ignoreFailures</td></tr>
-            <tr><td>properties</td></tr>
-            <tr><td>resultFile</td></tr>
+            <tr><td>classpath</td><td><literal><replaceable>sourceSet</replaceable>.compileClasspath</literal></td></tr>
+            <tr><td>configFile</td><td><literal>project.checkstyleConfigFile</literal></td></tr>
+            <tr><td>ignoreFailures</td><td><literal>false</literal></td></tr>
+            <tr><td>properties</td><td><literal>project.checkstyleProperties</literal></td></tr>
+            <tr>
+                <td>resultFile</td>
+                <td>
+                    <literal><replaceable>${project.checkstyleResultsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.xml</literal>
+                </td></tr>
+            <tr><td>source</td><td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td></tr>
         </table>
     </section>
     <section>

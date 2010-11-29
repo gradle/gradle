@@ -5,11 +5,15 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>code-quality</literal> plugin</td>
                 </tr>
             </thead>
-            <tr><td>configFile</td></tr>
-            <tr><td>reportFile</td></tr>
-            <tr><td>ignoreFailures</td></tr>
+            <tr><td>configFile</td><td><literal>project.codeNarcConfigFile</literal></td></tr>
+            <tr><td>reportFile</td><td>
+                <literal><replaceable>${project.codeNarcReportsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.html</literal>
+            </td></tr>
+            <tr><td>ignoreFailures</td><td><literal>false</literal></td></tr>
+            <tr><td>source</td><td><literal><replaceable>sourceSet</replaceable>.allGroovy</literal></td></tr>
         </table>
     </section>
     <section>

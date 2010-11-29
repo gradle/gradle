@@ -13,6 +13,18 @@
             <tr>
                 <td>excludes</td>
             </tr>
+            <tr>
+                <td>source</td>
+            </tr>
+            <tr>
+                <td>caseSensitive</td>
+            </tr>
+            <tr>
+                <td>dirMode</td>
+            </tr>
+            <tr>
+                <td>fileMode</td>
+            </tr>
         </table>
     </section>
     <section>
