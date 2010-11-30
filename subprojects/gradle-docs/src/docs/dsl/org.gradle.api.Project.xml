@@ -111,14 +111,19 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Signature</td>
-                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td><literal>file</literal></td>
-                <td><literal>File file(Object path)</literal></td>
-                <td>Resolves a file path relative to the project directory of this project.</td>
+                <td>file</td>
+            </tr>
+            <tr>
+                <td>setProperty</td>
+            </tr>
+            <tr>
+                <td>property</td>
+            </tr>
+            <tr>
+                <td>hasProperty</td>
             </tr>
         </table>
     </section>

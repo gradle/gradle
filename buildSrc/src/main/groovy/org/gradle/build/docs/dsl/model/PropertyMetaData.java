@@ -18,15 +18,16 @@ package org.gradle.build.docs.dsl.model;
 import java.io.Serializable;
 import java.util.LinkedList;
 
-public class PropertyMetaData implements Serializable {
+public class PropertyMetaData implements Serializable, LanguageElement {
     private String type;
     private boolean writeable;
     private String rawCommentText;
     private final String name;
-    private transient ClassMetaData ownerClass;
+    private final ClassMetaData ownerClass;
 
-    public PropertyMetaData(String name) {
+    public PropertyMetaData(String name, ClassMetaData ownerClass) {
         this.name = name;
+        this.ownerClass = ownerClass;
     }
 
     public String getName() {
@@ -35,7 +36,7 @@ public class PropertyMetaData implements Serializable {
 
     @Override
     public String toString() {
-        return ownerClass != null ? String.format("%s.%s", ownerClass, name) : String.format("<unknown>.%s", name);
+        return String.format("%s.%s", ownerClass, name);
     }
 
     public String getType() {
@@ -85,9 +86,5 @@ public class PropertyMetaData implements Serializable {
         }
 
         return null;
-    }
-
-    public void attach(ClassMetaData ownerClass) {
-        this.ownerClass = ownerClass;
     }
 }

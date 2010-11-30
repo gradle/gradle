@@ -28,8 +28,6 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Signature</td>
-                    <td>Description</td>
                 </tr>
             </thead>
         </table>

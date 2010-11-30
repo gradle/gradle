@@ -8,10 +8,58 @@
                     <td>Default with <literal>eclipse</literal> plugin</td>
                 </tr>
             </thead>
-            <!--<tr>-->
-                <!--<td>orgEclipseWstCommonComponentInputFile</td>-->
-                <!--<td>??</td>-->
-            <!--</tr>-->
+            <tr>
+                <td>orgEclipseWstCommonComponentInputFile</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>orgEclipseWstCommonComponentOutputFile</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>orgEclipseWstCommonProjectFacetCoreInputFile</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>orgEclipseWstCommonProjectFacetCoreOutputFile</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>plusConfigurations</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>minusConfigurations</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>facets</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>deployName</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>variables</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>resources</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>properties</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>contextPath</td>
+                <td>??</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -20,8 +68,6 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Signature</td>
-                    <td>Description</td>
                 </tr>
             </thead>
         </table>

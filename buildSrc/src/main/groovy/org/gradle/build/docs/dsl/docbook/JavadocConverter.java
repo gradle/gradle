@@ -17,6 +17,7 @@ package org.gradle.build.docs.dsl.docbook;
 
 import org.gradle.api.GradleException;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
+import org.gradle.build.docs.dsl.model.MethodMetaData;
 import org.gradle.build.docs.dsl.model.PropertyMetaData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -74,6 +75,24 @@ public class JavadocConverter {
             return docComment;
         } catch (Exception e) {
             throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText), e);
+        }
+    }
+
+    public DocComment parse(final MethodMetaData methodMetaData) {
+        CommentSource commentSource = new CommentSource() {
+            public Iterable<? extends Node> getCommentText() {
+                return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+            }
+        };
+
+        ClassMetaData ownerClass = methodMetaData.getOwnerClass();
+        String rawCommentText = methodMetaData.getRawCommentText();
+        try {
+            DocCommentImpl docComment = parse(rawCommentText, ownerClass, commentSource);
+            adjustGetterComment(docComment);
+            return docComment;
+        } catch (Exception e) {
+            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%Method: %s%nComment: %s", ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
         }
     }
 

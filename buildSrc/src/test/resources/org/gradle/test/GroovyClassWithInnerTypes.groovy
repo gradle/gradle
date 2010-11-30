@@ -6,8 +6,7 @@ class GroovyClassWithInnerTypes implements GroovyInterface {
     /**
      * This is an inner enum.
      */
-    enum InnerEnum {
-    }
+    enum InnerEnum {}
 
     /**
      * This is an inner class.
@@ -25,7 +24,7 @@ class GroovyClassWithInnerTypes implements GroovyInterface {
 
     GroovyInterface getSomeProp() {
         // ignore anonymous classes
-        return new GroovyInterface() { }
+        return new GroovyInterface() {}
     }
 
     InnerClass.AnotherInner innerClassProp

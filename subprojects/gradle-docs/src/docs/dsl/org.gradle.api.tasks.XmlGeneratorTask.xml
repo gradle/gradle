@@ -15,14 +15,10 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Signature</td>
-                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td><literal>withXml</literal></td>
-                <td><literal>IdeaProject withXml(Closure closure)</literal></td>
-                <td>Adds a closure to be called when the ipr xml has been created.</td>
+                <td>withXml</td>
             </tr>
         </table>
     </section>

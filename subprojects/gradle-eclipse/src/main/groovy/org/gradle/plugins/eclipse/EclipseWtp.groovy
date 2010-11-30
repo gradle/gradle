@@ -41,10 +41,10 @@ public class EclipseWtp extends ConventionTask {
      */
     File orgEclipseWstCommonComponentInputFile
 
-    @OutputFile
     /**
      * The output file for the org.eclipse.wst.common.component metadata.
      */
+    @OutputFile
     File orgEclipseWstCommonComponentOutputFile
 
     /**
@@ -53,10 +53,10 @@ public class EclipseWtp extends ConventionTask {
      */
     File orgEclipseWstCommonProjectFacetCoreInputFile
 
-    @OutputFile
     /**
      * The output file for the org.eclipse.wst.common.project.facet.core metadata.
      */
+    @OutputFile
     File orgEclipseWstCommonProjectFacetCoreOutputFile
 
     /**

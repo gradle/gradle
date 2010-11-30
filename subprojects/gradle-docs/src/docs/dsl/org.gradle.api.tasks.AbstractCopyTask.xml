@@ -33,14 +33,10 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Signature</td>
-                    <td>Description</td>
                 </tr>
             </thead>
             <tr>
-                <td><literal>from</literal></td>
-                <td><literal>AbstractCopyTask from(Object... sourcePaths)</literal></td>
-                <td>Specifies source files or directories to include.</td>
+                <td>from</td>
             </tr>
         </table>
     </section>

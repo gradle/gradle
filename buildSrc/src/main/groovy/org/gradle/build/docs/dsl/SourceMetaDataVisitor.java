@@ -15,6 +15,7 @@
  */
 package org.gradle.build.docs.dsl;
 
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.antlr.GroovySourceAST;
 import org.codehaus.groovy.antlr.LineColumn;
 import org.codehaus.groovy.antlr.SourceBuffer;
@@ -149,26 +150,44 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
 
     private void maybeAddPropertyFromMethod(GroovySourceAST t) {
         String name = extractName(t);
+        if (!groovy && name.equals(getCurrentClass().getSimpleName())) {
+            // A constructor. The java grammar treats a constructor as a method, the groovy grammar does not.
+            return;
+        }
+
+        String rawCommentText = getJavaDocCommentsBeforeNode(t);
+        String returnType = extractTypeName(t);
+        List<String> parameterTypes = extractParameters(t);
+
+        getCurrentClass().addMethod(name, returnType, parameterTypes, rawCommentText);
+
         Matcher matcher = GETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(2);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
-            String type = extractTypeName(t);
-            getCurrentClass().addReadableProperty(propName, type, getJavaDocCommentsBeforeNode(t));
+            getCurrentClass().addReadableProperty(propName, returnType, rawCommentText);
             return;
         }
 
-        GroovySourceAST paramsAst = t.childOfType(PARAMETERS);
-        if (paramsAst.getFirstChild() == null || paramsAst.getFirstChild().getNextSibling() != null) {
+        if (parameterTypes.size() != 1) {
             return;
         }
         matcher = SETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(1);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
-            String type = extractTypeName((GroovySourceAST) paramsAst.getFirstChild());
-            getCurrentClass().addWriteableProperty(propName, type, getJavaDocCommentsBeforeNode(t));
+            String type = parameterTypes.get(0);
+            getCurrentClass().addWriteableProperty(propName, type, rawCommentText);
         }
+    }
+
+    private List<String> extractParameters(GroovySourceAST t) {
+        List<String> parameterTypes = new ArrayList<String>();
+        GroovySourceAST paramsAst = t.childOfType(PARAMETERS);
+        for (GroovySourceAST child = (GroovySourceAST) paramsAst.getFirstChild(); child != null; child = (GroovySourceAST) child.getNextSibling()) {
+            parameterTypes.add(extractTypeName(child));
+        }
+        return parameterTypes;
     }
 
     @Override
@@ -197,8 +216,10 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         ClassMetaData currentClass = getCurrentClass();
 
         currentClass.addReadableProperty(fieldName, type, getJavaDocCommentsBeforeNode(t));
+        currentClass.addMethod(String.format("get%s", StringUtils.capitalize(fieldName)), type, Collections.<String>emptyList(), "");
         if (!Modifier.isFinal(modifiers)) {
             currentClass.addWriteableProperty(fieldName, type, getJavaDocCommentsBeforeNode(t));
+            currentClass.addMethod(String.format("set%s", StringUtils.capitalize(fieldName)), "void", Arrays.asList(type), "");
         }
     }
 

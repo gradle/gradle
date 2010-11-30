@@ -19,11 +19,7 @@ import spock.lang.Specification
 
 class PropertyMetaDataTest extends Specification {
     final ClassMetaData classMetaData = Mock()
-    final PropertyMetaData propertyMetaData = new PropertyMetaData('prop')
-
-    def setup() {
-        propertyMetaData.attach(classMetaData)
-    }
+    final PropertyMetaData propertyMetaData = new PropertyMetaData('prop', classMetaData)
 
     def locatesInheritedCommentInSuperClass() {
         ClassMetaData superClassMetaData = Mock()

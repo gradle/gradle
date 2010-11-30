@@ -31,6 +31,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.model.ClassMetaData
+import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
@@ -119,8 +120,15 @@ class ExtractDslMetaDataTask extends SourceTask {
             for (int i = 0; i < classMetaData.interfaceNames.size(); i++) {
                 classMetaData.interfaceNames[i] = resolver.resolve(classMetaData.interfaceNames[i], classMetaData)
             }
-            classMetaData.declaredProperties.values().each { PropertyMetaData prop ->
+            classMetaData.declaredProperties.each { PropertyMetaData prop ->
                 prop.type = resolver.resolve(prop.type, classMetaData)
+            }
+            classMetaData.declaredMethods.each { MethodMetaData method ->
+                method.returnType = resolver.resolve(method.returnType, classMetaData)
+                for (int i = 0; i < method.parameterTypes.size(); i++) {
+                    String name =  method.parameterTypes.get(i);
+                    method.parameterTypes.set(i, resolver.resolve(name, classMetaData))
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not resolve types in class '$classMetaData.className'.", e)

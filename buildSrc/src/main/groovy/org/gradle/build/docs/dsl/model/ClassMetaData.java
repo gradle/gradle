@@ -23,16 +23,17 @@ import org.gradle.util.GUtil;
 import java.io.Serializable;
 import java.util.*;
 
-public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
+public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, LanguageElement {
     private final String className;
     private String superClassName;
     private final String packageName;
     private final boolean isInterface;
     private final boolean isGroovy;
     private final String rawCommentText;
-    private final List<String> imports= new ArrayList<String>();
+    private final List<String> imports = new ArrayList<String>();
     private final List<String> interfaceNames = new ArrayList<String>();
     private final Map<String, PropertyMetaData> declaredProperties = new HashMap<String, PropertyMetaData>();
+    private final Set<MethodMetaData> declaredMethods = new HashSet<MethodMetaData>();
     private final List<String> innerClassNames = new ArrayList<String>();
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
@@ -54,12 +55,12 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         return className;
     }
 
-    public Map<String, PropertyMetaData> getDeclaredProperties() {
-        return declaredProperties;
-    }
-
     public String getClassName() {
         return className;
+    }
+
+    public String getSimpleName() {
+        return StringUtils.substringAfterLast(className, ".");
     }
 
     public String getPackageName() {
@@ -154,6 +155,24 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         return declaredProperties.get(name);
     }
 
+    public Set<String> getDeclaredPropertyNames() {
+        return declaredProperties.keySet();
+    }
+
+    public Set<PropertyMetaData> getDeclaredProperties() {
+        return new HashSet<PropertyMetaData>(declaredProperties.values());
+    }
+
+    public Set<MethodMetaData> getDeclaredMethods() {
+        return declaredMethods;
+    }
+
+    /**
+     * Finds a property by name. Includes inherited properties.
+     *
+     * @param name The property name.
+     * @return The property, or null if no such property exists.
+     */
     public PropertyMetaData findProperty(String name) {
         PropertyMetaData propertyMetaData = declaredProperties.get(name);
         if (propertyMetaData != null) {
@@ -166,6 +185,11 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
         return null;
     }
 
+    /**
+     * Returns the set of property names for this class, including inherited properties.
+     *
+     * @return The set of property names.
+     */
     public Set<String> getPropertyNames() {
         Set<String> propertyNames = new TreeSet<String>();
         propertyNames.addAll(declaredProperties.keySet());
@@ -179,7 +203,7 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
     private PropertyMetaData getProperty(String name) {
         PropertyMetaData property = declaredProperties.get(name);
         if (property == null) {
-            property = new PropertyMetaData(name);
+            property = new PropertyMetaData(name, this);
             declaredProperties.put(name, property);
         }
         return property;
@@ -187,8 +211,13 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData> {
 
     public void attach(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
         this.metaDataRepository = metaDataRepository;
-        for (PropertyMetaData propertyMetaData : declaredProperties.values()) {
-            propertyMetaData.attach(this);
-        }
+    }
+
+    public void addMethod(String name, String returnType, List<String> parameterTypes, String rawCommentText) {
+        MethodMetaData method = new MethodMetaData(name, this);
+        declaredMethods.add(method);
+        method.setReturnType(returnType);
+        method.setRawCommentText(rawCommentText);
+        method.getParameterTypes().addAll(parameterTypes);
     }
 }

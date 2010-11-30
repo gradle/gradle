@@ -20,6 +20,7 @@ import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.gradle.build.docs.dsl.model.MethodMetaData
 
 class ClassDocTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
@@ -97,8 +98,9 @@ class ClassDocTest extends XmlSpecification {
         _ * superClassDoc.propertiesTable >> parse('<table><tr><td>inherited1</td></tr><tr><td>inherited2</td></tr></table>')
     }
     
-    def mergesContentIntoMethodsTable() {
+    def mergesMethodSignatureAndDescriptionIntoMethodsTable() {
         ClassMetaData classMetaData = Mock()
+        MethodMetaData methodMetaData = Mock()
 
         def content = parse('''
 <section>
@@ -118,9 +120,14 @@ class ClassDocTest extends XmlSpecification {
 
         then:
         format { doc.methodsTable } == '''<table><title>Methods - Class</title>
-            <thead><tr><td>Name</td><td>Extra column</td></tr></thead>
-            <tr><td>methodName</td><td>some value</td></tr>
+            <thead><tr><td>Name</td><td>Description</td><td>Signature</td><td>Extra column</td></tr></thead>
+            <tr><td><literal>methodName</literal></td><td>method description</td><td><literal>method-signature</literal></td><td>some value</td></tr>
         </table>'''
+
+        _ * classMetaData.declaredMethods >> ([methodMetaData] as Set)
+        _ * methodMetaData.name >> 'methodName'
+        _ * methodMetaData.signature >> 'method-signature'
+        _ * javadocConverter.parse(methodMetaData) >> ({[document.createTextNode('method description')]} as DocComment)
     }
 
     def format(Closure cl) {

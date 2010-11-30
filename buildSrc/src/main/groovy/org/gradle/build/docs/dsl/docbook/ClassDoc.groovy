@@ -20,6 +20,7 @@ import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import org.gradle.build.docs.dsl.model.MethodMetaData
 
 class ClassDoc {
     final Element classSection
@@ -134,6 +135,32 @@ class ClassDoc {
 
     ClassDoc mergeMethods() {
         methodsTable.addFirst { title("Methods - $classSimpleName")}
+
+        def methodTableHeader = methodsTable.thead[0].tr[0]
+        methodTableHeader.td[0].addAfter { td('Description'); td('Signature') }
+
+        methodsTable.tr.each { Element tr ->
+            def cells = tr.td
+            if (cells.size() < 1) {
+                throw new RuntimeException("Expected at least 1 cell in <tr>, found: $tr")
+            }
+            String methodName = cells[0].text().trim()
+            MethodMetaData method = classMetaData.declaredMethods.find { it.name == methodName }
+            if (!method) {
+                throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect{it.name}}")
+            }
+            String signature = method.signature
+            tr.td[0].children = { literal(methodName) }
+            tr.td[0].addAfter { td() }
+            javadocConverter.parse(method).docbook.each { node ->
+                tr.td[1] << node
+            }
+            tr.td[1].addAfter {
+                td {
+                    literal(signature)
+                }
+            }
+        }
 
         if (classMetaData.superClassName) {
             ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)

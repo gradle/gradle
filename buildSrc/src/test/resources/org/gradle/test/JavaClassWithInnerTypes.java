@@ -24,9 +24,18 @@ public class JavaClassWithInnerTypes implements GroovyInterface {
     }
 
     GroovyInterface getSomeProp() {
+        // ignore classes in method bodies
+        class IgnoreMe {}
+
         // ignore anonymous classes
         return new GroovyInterface() { };
     }
+
+    // ignore anonymous classes
+    final Runnable ignoreMe = new Runnable() {
+        public void run() {
+        }
+    };
 
     InnerClass.AnotherInner getInnerClassProp() { return null; }
 }

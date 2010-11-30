@@ -18,6 +18,7 @@ package org.gradle.build.docs.dsl.docbook
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.gradle.build.docs.dsl.model.MethodMetaData
 
 class JavadocConverterTest extends XmlSpecification {
     final ClassMetaData classMetaData = Mock()
@@ -68,7 +69,7 @@ line 2</para>'''
  *
  * @tag line 2
 '''
-        
+
         when:
         def result = parser.parse(classMetaData)
 
@@ -127,7 +128,7 @@ line 2</para>'''
     }
 
     def doesNotInterpretContentsOfCodeTagAsHtml() {
-        _ * classMetaData.rawCommentText >>'{@code List<String> && a < 9} <code>&amp;</code>'
+        _ * classMetaData.rawCommentText >> '{@code List<String> && a < 9} <code>&amp;</code>'
 
         when:
         def result = parser.parse(classMetaData)
@@ -255,6 +256,17 @@ text3</section>'''
  *
 '''
         format(result.docbook) == '''<para>before </para><para><emphasis>inherited value</emphasis></para><para> after</para>'''
+    }
+
+    def convertsMethodComment() {
+        MethodMetaData methodMetaData = Mock()
+        _ * methodMetaData.rawCommentText >> 'a method.'
+
+        when:
+        def result = parser.parse(methodMetaData)
+
+        then:
+        format(result.docbook) == '''<para>a method.</para>'''
     }
 
     def convertsUnknownElementsAndTags() {
