@@ -1,4 +1,8 @@
 
+------------------------------------------------------------
+Root Project
+------------------------------------------------------------
+
 Root project 'projectReports'
 +--- Project ':api' - The shared API for the application
 \--- Project ':webapp' - The Web application implementation
