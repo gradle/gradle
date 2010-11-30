@@ -52,6 +52,6 @@ class JavadocLinkConverterTest extends XmlSpecification {
         def link = converter.resolve('org.gradle.SomeClass', classMetaData)
 
         then:
-        format(link) == '''!!UNKNOWN LINK org.gradle.SomeClass!!'''
+        format(link) == '''<UNHANDLED-LINK>org.gradle.SomeClass</UNHANDLED-LINK>'''
     }
 }

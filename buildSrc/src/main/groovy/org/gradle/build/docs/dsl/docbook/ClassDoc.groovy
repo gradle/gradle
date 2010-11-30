@@ -146,19 +146,35 @@ class ClassDoc {
     }
 
     Element getPropertiesTable() {
-        return getSection('Properties').table[0]
+        return getTable('Properties')
     }
 
     Element getMethodsTable() {
-        return getSection('Methods').table[0]
+        return getTable('Methods')
     }
 
     String getStyle() {
         return classMetaData.groovy ? 'groovydoc' : 'javadoc'
     }
 
+    private Element getTable(String title) {
+        def table = getSection(title).table[0]
+        if (!table) {
+            throw new RuntimeException("Section '$title' does not contain a <table> element.")
+        }
+        if (!table.thead[0]) {
+            throw new RuntimeException("Table '$title' does not contain a <thead> element.")
+        }
+        if (!table.thead[0].tr[0]) {
+            throw new RuntimeException("Table '$title' does not contain a <thead>/<tr> element.")
+        }
+        return table
+    }
+
     private Element getSection(String title) {
-        def sections = classSection.section.findAll { it.title[0].text().trim() == title }
+        def sections = classSection.section.findAll {
+            it.title[0] && it.title[0].text().trim() == title
+        }
         if (sections.size() < 1) {
             throw new RuntimeException("Docbook content for $className does not contain a '$title' section.")
         }

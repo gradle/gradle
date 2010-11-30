@@ -40,9 +40,13 @@ public class JavadocLinkConverter {
 
     Iterable<? extends Node> resolve(String link, ClassMetaData classMetaData) {
         String className = typeNameResolver.resolve(link, classMetaData);
-        if (className == null) {
-            return Arrays.asList(document.createTextNode(String.format("!!UNKNOWN LINK %s!!", link)));
+
+        if (className == null || className.contains("#")) {
+            Element element = document.createElement("UNHANDLED-LINK");
+            element.appendChild(document.createTextNode(link));
+            return Arrays.asList(element);
         }
+
         if (repository.find(className) != null) {
             Element apilink = document.createElement("apilink");
             apilink.setAttribute("class", className);

@@ -265,6 +265,6 @@ text3</section>'''
         def result = parser.parse(propertyMetaData)
 
         then:
-        format(result.docbook) == '''<para><UNKNOWN-ELEMENT>unknown: text</UNKNOWN-ELEMENT><UNKNOWN-ELEMENT>inheritdoc: <UNKNOWN-TAG>unknown: text</UNKNOWN-TAG><UNKNOWN-TAG>p: text</UNKNOWN-TAG><UNKNOWN-TAG>: unknown</UNKNOWN-TAG></UNKNOWN-ELEMENT></para>'''
+        format(result.docbook) == '''<para><UNHANDLED-ELEMENT>&lt;unknown&gt;text</UNHANDLED-ELEMENT><UNHANDLED-ELEMENT>&lt;inheritdoc&gt;<UNHANDLED-TAG>&lt;unknown&gt;text</UNHANDLED-TAG><UNHANDLED-TAG>&lt;p&gt;text</UNHANDLED-TAG><UNHANDLED-TAG>&lt;&gt;unknown</UNHANDLED-TAG></UNHANDLED-ELEMENT></para>'''
     }
 }

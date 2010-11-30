@@ -312,8 +312,8 @@ public class JavadocConverter {
         }
 
         public boolean onStartTag(String tag, JavadocLexer.Token token) {
-            Element element = document.createElement(token == JavadocLexer.Token.StartElement ? "UNKNOWN-ELEMENT" : "UNKNOWN-TAG");
-            element.appendChild(document.createTextNode(String.format("%s: ", tag)));
+            Element element = document.createElement(token == JavadocLexer.Token.StartElement ? "UNHANDLED-ELEMENT" : "UNHANDLED-TAG");
+            element.appendChild(document.createTextNode(String.format("<%s>", tag)));
             nodes.push(tag, element);
             return true;
         }
