@@ -102,7 +102,7 @@ class ClasspathFactory {
         moduleLibraries
     }
 
-    private def getSelfResolvingFiles(Collection dependencies, Map variables) {
+    private def getSelfResolvingFiles(Collection dependencies, Map<String, File> variables) {
         dependencies.inject([] as LinkedHashSet) { result, SelfResolvingDependency selfResolvingDependency ->
             result.addAll(selfResolvingDependency.resolve().collect { File file ->
                 createLibraryEntry(file, null, null, variables)
@@ -111,7 +111,7 @@ class ClasspathFactory {
         }
     }
 
-    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map variables) {
+    AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> variables) {
         def usedVariableEntry = variables.find { String name, File value -> binary.canonicalPath.startsWith(value.canonicalPath) }
         if (usedVariableEntry) {
             String name = usedVariableEntry.key

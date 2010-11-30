@@ -7,6 +7,8 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr><td>delete</td></tr>
+            <tr><td>targetFiles</td></tr>
         </table>
     </section>
     <section>

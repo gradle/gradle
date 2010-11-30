@@ -90,7 +90,7 @@ public class EclipseWtp extends ConventionTask {
      * The variables to be used for replacing absolute path in dependent-module elements of
      * the org.eclipse.wst.common.component file.
      */
-    Map<String, String> variables = [:]
+    Map<String, File> variables = [:]
 
     /**
      * Additional wb-resource elements.
@@ -128,7 +128,7 @@ public class EclipseWtp extends ConventionTask {
      *
      * @param args A map that must contain a name and version key with corresponding values.
      */
-    void facet(Map args) {
+    void facet(Map<String, ?> args) {
         setFacets(getFacets() + [ConfigureUtil.configureByMap(args, new Facet())])
     }
 
@@ -138,7 +138,7 @@ public class EclipseWtp extends ConventionTask {
      *
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */
-    void variables(Map variables) {
+    void variables(Map<String, File> variables) {
         assert variables != null
         this.variables.putAll variables
     }
@@ -148,7 +148,7 @@ public class EclipseWtp extends ConventionTask {
      *
      * @param args A map that must contain a name and value key with corresponding values.
      */
-    void property(Map args) {
+    void property(Map<String, String> args) {
         properties.add(new WbProperty(args.name, args.value))
     }
 
@@ -157,7 +157,7 @@ public class EclipseWtp extends ConventionTask {
      *
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
-    void resource(Map args) {
+    void resource(Map<String, String> args) {
         resources.add(new WbResource(args.deployPath, args.sourcePath))
     }
 

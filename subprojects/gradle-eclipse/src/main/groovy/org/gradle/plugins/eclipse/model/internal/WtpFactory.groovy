@@ -90,9 +90,9 @@ class WtpFactory {
         }
     }
 
-    WbDependentModule createWbDependentModuleEntry(File file, Map variables) {
+    WbDependentModule createWbDependentModuleEntry(File file, Map<String, File> variables) {
         def usedVariableEntry = variables.find { name, value -> file.canonicalPath.startsWith(value.canonicalPath) }
-        String handleSnippet = null;
+        String handleSnippet;
         if (usedVariableEntry) {
             handleSnippet = "var/$usedVariableEntry.key/${file.canonicalPath.substring(usedVariableEntry.value.canonicalPath.length())}"
         } else {

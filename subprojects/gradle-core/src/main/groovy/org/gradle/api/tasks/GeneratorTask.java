@@ -72,7 +72,7 @@ public class GeneratorTask<T> extends ConventionTask {
 
     /**
      * The input file to load the initial configuration from. Defaults to the output file. If the specified input file
-     * does not exist, this task uses a default initial configuration.
+     * does not exist, this task uses some default initial configuration.
      *
      * @return The input file.
      */

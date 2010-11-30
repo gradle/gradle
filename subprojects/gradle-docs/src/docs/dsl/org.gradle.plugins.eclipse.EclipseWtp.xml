@@ -5,8 +5,13 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> plugin</td>
                 </tr>
             </thead>
+            <!--<tr>-->
+                <!--<td>orgEclipseWstCommonComponentInputFile</td>-->
+                <!--<td>??</td>-->
+            <!--</tr>-->
         </table>
     </section>
     <section>

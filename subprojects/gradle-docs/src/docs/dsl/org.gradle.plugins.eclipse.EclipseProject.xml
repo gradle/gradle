@@ -5,8 +5,33 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>projectName</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>comment</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>referencedProjects</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>natures</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>buildCommands</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>links</td>
+                <td>??</td>
+            </tr>
         </table>
     </section>
     <section>

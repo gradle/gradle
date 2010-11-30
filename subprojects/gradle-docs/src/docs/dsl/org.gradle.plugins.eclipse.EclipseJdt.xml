@@ -5,8 +5,17 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>sourceCompatibility</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>targetCompatibility</td>
+                <td>??</td>
+            </tr>
         </table>
     </section>
     <section>

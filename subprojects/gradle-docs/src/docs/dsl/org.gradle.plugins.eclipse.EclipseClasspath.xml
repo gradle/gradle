@@ -5,8 +5,41 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>eclipse</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>sourceSets</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>plusConfigurations</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>minusConfigurations</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>variables</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>containers</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>defaultOutputDir</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>downloadSources</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>downloadJavadoc</td>
+                <td>??</td>
+            </tr>
         </table>
     </section>
     <section>

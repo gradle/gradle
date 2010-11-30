@@ -28,9 +28,8 @@ import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
- * Displays the dependency tree for a project. Can be configured to output to a file,
- * and to optionally output a graphviz compatible "dot" graph. This task is used when you execute the dependency list
- * command-line option.
+ * Displays the dependency tree for a project. Can be configured to output to a file, and to optionally output a
+ * graphviz compatible "dot" graph. This task is used when you execute the dependency list command-line option.
  *
  * @author Phil Messenger
  */
@@ -71,14 +70,19 @@ public class DependencyReportTask extends AbstractReportTask {
     }
 
     /**
-     * Returns the configurations to use to build a report. If unset, all project configurations will be used.
+     * Returns the configurations to generate the report for. Default to all configurations of this task's containing
+     * project.
+     *
+     * @return the configurations.
      */
     public Set<Configuration> getConfigurations() {
         return configurations;
     }
 
     /**
-     * Set the configurations to use to build a report. If unset, all project configurations will be used.
+     * Sets the configurations to generate the report for.
+     *
+     * @param configurations The configuration. Must not be null.
      */
     public void setConfigurations(Set<Configuration> configurations) {
         this.configurations = configurations;

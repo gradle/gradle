@@ -24,12 +24,14 @@ import org.gradle.plugins.eclipse.model.Jdt
  * Generates the Eclipse JDT settings file {@code .settings/org.eclipse.jdt.core.prefs}.
  */
 class EclipseJdt extends GeneratorTask<Jdt> {
-    File inputFile
-
-    File outputFile
-
+    /**
+     * The source Java language level.
+     */
     JavaVersion sourceCompatibility
 
+    /**
+     * The target JVM to generate {@code .class} files for.
+     */
     JavaVersion targetCompatibility
 
     EclipseJdt() {

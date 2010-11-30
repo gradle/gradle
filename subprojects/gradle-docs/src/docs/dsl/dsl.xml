@@ -26,6 +26,7 @@
                 <td>org.gradle.api.tasks.SourceSet</td>
             </tr>
         </table>
+        
         <table>
             <title>Task types</title>
             <tr>
@@ -105,6 +106,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.diagnostics.PropertyReportTask</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.diagnostics.ProjectReportTask</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.scala.ScalaCompile</td>

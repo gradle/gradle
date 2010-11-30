@@ -78,17 +78,19 @@ public abstract class AbstractReportTask extends ConventionTask {
     protected abstract void generate(Project project) throws IOException;
 
     /**
-     * Returns the file which the report will be written to. When set to null, the report is written to stdout.
+     * Returns the file which the report will be written to. When set to {@code null}, the report is written to stdout.
+     * Defaults to {@code null}.
      *
      * @return The output file. May be null.
      */
-    @OutputFile @Optional
+    @OutputFile
+    @Optional
     public File getOutputFile() {
         return outputFile;
     }
 
     /**
-     * Sets the file which the report will be written to. Set this to null to write the report to stdout.
+     * Sets the file which the report will be written to. Set this to {@code null} to write the report to stdout.
      *
      * @param outputFile The output file. May be null.
      */
@@ -96,10 +98,21 @@ public abstract class AbstractReportTask extends ConventionTask {
         this.outputFile = outputFile;
     }
 
+    /**
+     * Returns the set of project to generate this report for. By default, the report is generated for the task's
+     * containing project.
+     *
+     * @return The set of files.
+     */
     public Set<Project> getProjects() {
         return projects;
     }
 
+    /**
+     * Specifies the set of projects to generate this report for.
+     *
+     * @param projects The set of projects. Must not be null.
+     */
     public void setProjects(Set<Project> projects) {
         this.projects = projects;
     }

@@ -46,7 +46,7 @@ public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The variables to be used for replacing absolute paths in classpath entries.
      */
-    Map variables = [:]
+    Map<String, File> variables = [:]
 
     /**
      * Containers to be added to the classpath
@@ -93,7 +93,7 @@ public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
      *
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */
-    void variables(Map variables) {
+    void variables(Map<String, File> variables) {
         assert variables != null
         this.variables.putAll variables
     }

@@ -8,6 +8,9 @@
                 </tr>
             </thead>
             <tr>
+                <td>inputFile</td>
+            </tr>
+            <tr>
                 <td>outputFile</td>
             </tr>
         </table>

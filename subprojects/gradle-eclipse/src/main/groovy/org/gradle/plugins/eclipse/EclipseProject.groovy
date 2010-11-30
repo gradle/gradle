@@ -115,7 +115,7 @@ public class EclipseProject extends XmlGeneratorTask<Project> {
      *
      * @param args A maps with the args for the link. Legal keys for the map are name, type, location and locationUri.
      */
-    void link(Map args) {
+    void link(Map<String, String> args) {
         def illegalArgs = LINK_ARGUMENTS - args.keySet()
         if (illegalArgs) {
             throw new InvalidUserDataException("You provided illegal argument for a link: " + illegalArgs)
