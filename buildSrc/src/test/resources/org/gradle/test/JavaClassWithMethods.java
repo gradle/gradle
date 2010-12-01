@@ -7,7 +7,7 @@ public class JavaClassWithMethods {
     /**
      * A method that returns String.
      */
-    String stringMethod(String param1) {
+    String stringMethod(String stringParam) {
         return "value";
     }
 
@@ -20,7 +20,7 @@ public class JavaClassWithMethods {
     /**
      * A method that returns a reference type.
      */
-    GroovyInterface refTypeMethod(JavaInterface param1, boolean param2) {
+    GroovyInterface refTypeMethod(JavaInterface refParam, boolean aFlag) {
         return null;
     }
 
@@ -28,6 +28,6 @@ public class JavaClassWithMethods {
         return 5;
     }
 
-    void setIntProp(int param) {
+    void setIntProp(int prop) {
     }
 }

@@ -18,7 +18,7 @@ package org.gradle.build.docs.dsl.docbook
 import spock.lang.Specification
 
 class JavadocLexerTest extends Specification {
-    final JavadocLexer lexer = new JavadocLexer(new JavadocScanner(""))
+    final BasicJavadocLexer lexer = new BasicJavadocLexer(new JavadocScanner(""))
 
     def ignoresWhitespaceAndEOLCharsInsideTag() {
         when:
@@ -26,16 +26,16 @@ class JavadocLexerTest extends Specification {
 
         then:
         lexer.next()
-        lexer.token == JavadocLexer.Token.StartTag
-        lexer.value == 'link'
+        lexer.token.tokenType == JavadocLexer.TokenType.StartTag
+        lexer.token.value == 'link'
 
         lexer.next()
-        lexer.token = JavadocLexer.Token.Text
-        lexer.value == 'Something  \n'
+        lexer.token.tokenType == JavadocLexer.TokenType.Text
+        lexer.token.value == 'Something  \n'
 
         lexer.next()
-        lexer.token == JavadocLexer.Token.End
-        lexer.value == 'link'
+        lexer.token.tokenType == JavadocLexer.TokenType.End
+        lexer.token.value == 'link'
 
         !lexer.next()
     }
@@ -46,16 +46,16 @@ class JavadocLexerTest extends Specification {
 
         then:
         lexer.next()
-        lexer.token == JavadocLexer.Token.StartTag
-        lexer.value == 'link'
+        lexer.token.tokenType == JavadocLexer.TokenType.StartTag
+        lexer.token.value == 'link'
 
         lexer.next()
-        lexer.token = JavadocLexer.Token.Text
-        lexer.value == '<something> & &lt; </something>'
+        lexer.token.tokenType == JavadocLexer.TokenType.Text
+        lexer.token.value == '<something> & &lt; </something>'
 
         lexer.next()
-        lexer.token == JavadocLexer.Token.End
-        lexer.value == 'link'
+        lexer.token.tokenType == JavadocLexer.TokenType.End
+        lexer.token.value == 'link'
 
         !lexer.next()
     }
@@ -66,24 +66,24 @@ class JavadocLexerTest extends Specification {
 
         then:
         lexer.next()
-        lexer.token == JavadocLexer.Token.Text
-        lexer.value == '{ @code} '
+        lexer.token.tokenType == JavadocLexer.TokenType.Text
+        lexer.token.value == '{ @code} '
 
         lexer.next()
-        lexer.token == JavadocLexer.Token.StartTag
-        lexer.value == ''
+        lexer.token.tokenType == JavadocLexer.TokenType.StartTag
+        lexer.token.value == ''
 
         lexer.next()
-        lexer.token = JavadocLexer.Token.Text
-        lexer.value == 'code'
+        lexer.token.tokenType == JavadocLexer.TokenType.Text
+        lexer.token.value == 'code'
 
         lexer.next()
-        lexer.token == JavadocLexer.Token.End
-        lexer.value == ''
+        lexer.token.tokenType == JavadocLexer.TokenType.End
+        lexer.token.value == ''
 
         lexer.next()
-        lexer.token == JavadocLexer.Token.Text
-        lexer.value == ' { @ code}'
+        lexer.token.tokenType == JavadocLexer.TokenType.Text
+        lexer.token.value == ' { @ code}'
 
         !lexer.next()
     }
@@ -94,12 +94,12 @@ class JavadocLexerTest extends Specification {
 
         then:
         lexer.next()
-        lexer.token == JavadocLexer.Token.StartElement
-        lexer.value == 'p'
+        lexer.token.tokenType == JavadocLexer.TokenType.StartElement
+        lexer.token.value == 'p'
 
         lexer.next()
-        lexer.token == JavadocLexer.Token.End
-        lexer.value == 'p'
+        lexer.token.tokenType == JavadocLexer.TokenType.End
+        lexer.token.value == 'p'
 
         !lexer.next()
     }

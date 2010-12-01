@@ -35,6 +35,7 @@ import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
+import org.gradle.build.docs.dsl.model.ParameterMetaData
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
@@ -125,9 +126,8 @@ class ExtractDslMetaDataTask extends SourceTask {
             }
             classMetaData.declaredMethods.each { MethodMetaData method ->
                 method.returnType = resolver.resolve(method.returnType, classMetaData)
-                for (int i = 0; i < method.parameterTypes.size(); i++) {
-                    String name =  method.parameterTypes.get(i);
-                    method.parameterTypes.set(i, resolver.resolve(name, classMetaData))
+                method.parameters.each { ParameterMetaData parameter ->
+                    parameter.type = resolver.resolve(parameter.type, classMetaData)
                 }
             }
         } catch (Exception e) {

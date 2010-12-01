@@ -145,19 +145,30 @@ class ClassDoc {
                 throw new RuntimeException("Expected at least 1 cell in <tr>, found: $tr")
             }
             String methodName = cells[0].text().trim()
-            MethodMetaData method = classMetaData.declaredMethods.find { it.name == methodName }
-            if (!method) {
-                throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect{it.name}}")
+            Collection<MethodMetaData> methods = classMetaData.declaredMethods.findAll { it.name == methodName }
+            if (!methods) {
+                throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect{it.name} as TreeSet}")
             }
-            String signature = method.signature
-            tr.td[0].children = { literal(methodName) }
-            tr.td[0].addAfter { td() }
-            javadocConverter.parse(method).docbook.each { node ->
-                tr.td[1] << node
-            }
-            tr.td[1].addAfter {
-                td {
-                    literal(signature)
+
+            Element row = tr
+            methods.eachWithIndex { MethodMetaData method, int index ->
+                if (index > 0) {
+                    def sibling = row.nextSibling
+                    row = row.ownerDocument.createElement('tr')
+                    methodsTable.insertBefore(row, sibling)
+                    row << { td() }
+                }
+
+                String signature = method.signature
+                row.td[0].children = { literal(methodName) }
+                row.td[0].addAfter { td() }
+                javadocConverter.parse(method).docbook.each { node ->
+                    row.td[1] << node
+                }
+                row.td[1].addAfter {
+                    td {
+                        literal(signature)
+                    }
                 }
             }
         }

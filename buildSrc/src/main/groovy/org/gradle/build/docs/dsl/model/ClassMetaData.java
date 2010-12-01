@@ -134,13 +134,14 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
         imports.add(importName);
     }
 
-    public void addReadableProperty(String name, String type, String rawCommentText) {
+    public PropertyMetaData addReadableProperty(String name, String type, String rawCommentText) {
         PropertyMetaData property = getProperty(name);
         property.setType(type);
         property.setRawCommentText(rawCommentText);
+        return property;
     }
 
-    public void addWriteableProperty(String name, String type, String rawCommentText) {
+    public PropertyMetaData addWriteableProperty(String name, String type, String rawCommentText) {
         PropertyMetaData property = getProperty(name);
         if (property.getType() == null) {
             property.setType(type);
@@ -149,6 +150,7 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
             property.setRawCommentText(rawCommentText);
         }
         property.setWriteable(true);
+        return property;
     }
 
     public PropertyMetaData findDeclaredProperty(String name) {
@@ -213,11 +215,11 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
         this.metaDataRepository = metaDataRepository;
     }
 
-    public void addMethod(String name, String returnType, List<String> parameterTypes, String rawCommentText) {
+    public MethodMetaData addMethod(String name, String returnType, String rawCommentText) {
         MethodMetaData method = new MethodMetaData(name, this);
         declaredMethods.add(method);
         method.setReturnType(returnType);
         method.setRawCommentText(rawCommentText);
-        method.getParameterTypes().addAll(parameterTypes);
+        return method;
     }
 }

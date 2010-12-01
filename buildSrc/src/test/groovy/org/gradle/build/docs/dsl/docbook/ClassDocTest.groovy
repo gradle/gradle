@@ -100,7 +100,8 @@ class ClassDocTest extends XmlSpecification {
     
     def mergesMethodSignatureAndDescriptionIntoMethodsTable() {
         ClassMetaData classMetaData = Mock()
-        MethodMetaData methodMetaData = Mock()
+        MethodMetaData method1 = Mock()
+        MethodMetaData method2 = Mock()
 
         def content = parse('''
 <section>
@@ -121,13 +122,16 @@ class ClassDocTest extends XmlSpecification {
         then:
         format { doc.methodsTable } == '''<table><title>Methods - Class</title>
             <thead><tr><td>Name</td><td>Description</td><td>Signature</td><td>Extra column</td></tr></thead>
-            <tr><td><literal>methodName</literal></td><td>method description</td><td><literal>method-signature</literal></td><td>some value</td></tr>
+            <tr><td><literal>methodName</literal></td><td>method description</td><td><literal>method-signature</literal></td><td>some value</td></tr><tr><td><literal>methodName</literal></td><td>overloaded description</td><td><literal>overloaded-signature</literal></td></tr>
         </table>'''
 
-        _ * classMetaData.declaredMethods >> ([methodMetaData] as Set)
-        _ * methodMetaData.name >> 'methodName'
-        _ * methodMetaData.signature >> 'method-signature'
-        _ * javadocConverter.parse(methodMetaData) >> ({[document.createTextNode('method description')]} as DocComment)
+        _ * classMetaData.declaredMethods >> ([method1, method2] as LinkedHashSet)
+        _ * method1.name >> 'methodName'
+        _ * method1.signature >> 'method-signature'
+        _ * method2.name >> 'methodName'
+        _ * method2.signature >> 'overloaded-signature'
+        _ * javadocConverter.parse(method1) >> ({[document.createTextNode('method description')]} as DocComment)
+        _ * javadocConverter.parse(method2) >> ({[document.createTextNode('overloaded description')]} as DocComment)
     }
 
     def format(Closure cl) {

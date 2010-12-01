@@ -173,37 +173,57 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def method = metaData.declaredMethods.find { it.name == 'stringMethod' }
         method.rawCommentText.contains('A method that returns String')
         method.returnType == 'java.lang.String'
-        method.parameterTypes == ['java.lang.String']
+        method.parameters.collect { it.name } == ['stringParam']
+
+        def param = method.parameters[0]
+        param.name == 'stringParam'
+        param.type == 'java.lang.String'
 
         method = metaData.declaredMethods.find { it.name == 'refTypeMethod' }
         method.rawCommentText.contains('A method that returns a reference type.')
         method.returnType == 'org.gradle.test.GroovyInterface'
-        method.parameterTypes == ['org.gradle.test.JavaInterface', 'boolean']
+        method.parameters.collect { it.name } == ['someThing', 'aFlag']
+
+        param = method.parameters[0]
+        param.name == 'someThing'
+        param.type == 'org.gradle.test.JavaInterface'
+
+        param = method.parameters[1]
+        param.name == 'aFlag'
+        param.type == 'boolean'
 
         method = metaData.declaredMethods.find { it.name == 'defMethod' }
         method.rawCommentText.contains('A method that returns a default type.')
         method.returnType == 'java.lang.Object'
-        method.parameterTypes == ['java.lang.Object']
+        method.parameters.collect { it.name } == ['defParam']
+
+        param = method.parameters[0]
+        param.name == 'defParam'
+        param.type == 'java.lang.Object'
 
         method = metaData.declaredMethods.find { it.name == 'voidMethod' }
         method.rawCommentText.contains('A method that returns void.')
         method.returnType == 'void'
-        method.parameterTypes == []
+        method.parameters.collect { it.name } == []
 
         method = metaData.declaredMethods.find { it.name == 'getProp' }
         method.rawCommentText == ''
         method.returnType == 'java.lang.String'
-        method.parameterTypes == []
+        method.parameters.collect { it.name } == []
 
         method = metaData.declaredMethods.find { it.name == 'setProp' }
         method.rawCommentText == ''
         method.returnType == 'void'
-        method.parameterTypes == ['java.lang.String']
+        method.parameters.collect { it.name } == ['prop']
+
+        param = method.parameters[0]
+        param.name == 'prop'
+        param.type == 'java.lang.String'
 
         method = metaData.declaredMethods.find { it.name == 'getFinalProp' }
         method.rawCommentText == ''
         method.returnType == 'org.gradle.test.JavaInterface'
-        method.parameterTypes == []
+        method.parameters.collect { it.name } == []
 
         metaData.declaredPropertyNames == ['prop', 'finalProp', 'intProp'] as Set
     }
@@ -224,17 +244,29 @@ class ExtractDslMetaDataTaskTest extends Specification {
         def method = metaData.declaredMethods.find { it.name == 'stringMethod' }
         method.rawCommentText.contains('A method that returns String')
         method.returnType == 'java.lang.String'
-        method.parameterTypes == ['java.lang.String']
+        method.parameters.collect { it.name } == ['stringParam']
+
+        def param = method.parameters[0]
+        param.name == 'stringParam'
+        param.type == 'java.lang.String'
 
         method = metaData.declaredMethods.find { it.name == 'refTypeMethod' }
         method.rawCommentText.contains('A method that returns a reference type.')
         method.returnType == 'org.gradle.test.GroovyInterface'
-        method.parameterTypes == ['org.gradle.test.JavaInterface', 'boolean']
+        method.parameters.collect { it.name } == ['refParam', 'aFlag']
+
+        param = method.parameters[0]
+        param.name == 'refParam'
+        param.type == 'org.gradle.test.JavaInterface'
+
+        param = method.parameters[1]
+        param.name == 'aFlag'
+        param.type == 'boolean'
 
         method = metaData.declaredMethods.find { it.name == 'voidMethod' }
         method.rawCommentText.contains('A method that returns void.')
         method.returnType == 'void'
-        method.parameterTypes == []
+        method.parameters.collect { it.name } == []
 
         metaData.declaredPropertyNames == ['intProp'] as Set
     }

@@ -92,7 +92,7 @@ public class JavadocConverter {
             adjustGetterComment(docComment);
             return docComment;
         } catch (Exception e) {
-            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%Method: %s%nComment: %s", ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
+            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s", ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
         }
     }
 
@@ -122,7 +122,7 @@ public class JavadocConverter {
     }
 
     private List<Element> textToDom(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
-        JavadocLexer lexer = new JavadocLexer(new JavadocScanner(rawCommentText));
+        JavadocLexer lexer = new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
         NodeStack nodes = new NodeStack(document);
         HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
         handler.add(new TagToElementTranslatingTokenHandler(nodes, document));
@@ -132,16 +132,17 @@ public class JavadocConverter {
         handler.add(new UnknownElementTagHandler(nodes, document));
 
         while (lexer.next()) {
-            switch (lexer.token) {
+            JavadocLexer.Token token = lexer.getToken();
+            switch (token.tokenType) {
                 case Text:
-                    handler.onText(lexer.value);
+                    handler.onText(token.value);
                     break;
                 case StartElement:
                 case StartTag:
-                    handler.onStartTag(lexer.value, lexer.token);
+                    handler.onStartTag(token.value, token.tokenType);
                     break;
                 case End:
-                    handler.onEndTag(lexer.value);
+                    handler.onEndTag(token.value);
                     break;
             }
         }
@@ -176,6 +177,7 @@ public class JavadocConverter {
             blockElements.add("title");
             blockElements.add("programlisting");
             blockElements.add("itemizedlist");
+            blockElements.add("orderedlist");
             blockElements.add("listitem");
         }
 
@@ -285,9 +287,9 @@ public class JavadocConverter {
             handlers.add(handler);
         }
 
-        public void onStartTag(String name, JavadocLexer.Token token) {
+        public void onStartTag(String name, JavadocLexer.TokenType tokenType) {
             for (TagHandler handler : handlers) {
-                if (handler.onStartTag(name, token)) {
+                if (handler.onStartTag(name, tokenType)) {
                     handlerStack.addFirst(handler);
                     tagStack.addFirst(name);
                     return;
@@ -314,7 +316,7 @@ public class JavadocConverter {
     }
 
     private interface TagHandler {
-        boolean onStartTag(String tag, JavadocLexer.Token token);
+        boolean onStartTag(String tag, JavadocLexer.TokenType tokenType);
 
         void onText(String text);
 
@@ -330,8 +332,9 @@ public class JavadocConverter {
             this.document = document;
         }
 
-        public boolean onStartTag(String tag, JavadocLexer.Token token) {
-            Element element = document.createElement(token == JavadocLexer.Token.StartElement ? "UNHANDLED-ELEMENT" : "UNHANDLED-TAG");
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
+            Element element = document.createElement(
+                    tokenType == JavadocLexer.TokenType.StartElement ? "UNHANDLED-ELEMENT" : "UNHANDLED-TAG");
             element.appendChild(document.createTextNode(String.format("<%s>", tag)));
             nodes.push(tag, element);
             return true;
@@ -358,6 +361,7 @@ public class JavadocConverter {
             elementToElementMap.put("p", "para");
             elementToElementMap.put("pre", "programlisting");
             elementToElementMap.put("ul", "itemizedlist");
+            elementToElementMap.put("ol", "orderedlist");
             elementToElementMap.put("li", "listitem");
             elementToElementMap.put("em", "emphasis");
             elementToElementMap.put("i", "emphasis");
@@ -367,9 +371,9 @@ public class JavadocConverter {
             tagToElementMap.put("code", "literal");
         }
 
-        public boolean onStartTag(String tag, JavadocLexer.Token token) {
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
             String element;
-            if (token == JavadocLexer.Token.StartTag) {
+            if (tokenType == JavadocLexer.TokenType.StartTag) {
                 element = tagToElementMap.get(tag);
             } else {
                 element = elementToElementMap.get(tag);
@@ -400,8 +404,8 @@ public class JavadocConverter {
             this.document = document;
         }
 
-        public boolean onStartTag(String tag, JavadocLexer.Token token) {
-            if (token != JavadocLexer.Token.StartElement) {
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
+            if (tokenType != JavadocLexer.TokenType.StartElement) {
                 return false;
             }
             Matcher matcher = HEADER_PATTERN.matcher(tag);
@@ -447,8 +451,8 @@ public class JavadocConverter {
             this.classMetaData = classMetaData;
         }
 
-        public boolean onStartTag(String tag, JavadocLexer.Token token) {
-            if (token != JavadocLexer.Token.StartTag || !tag.equals("link")) {
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
+            if (tokenType != JavadocLexer.TokenType.StartTag || !tag.equals("link")) {
                 return false;
             }
             link = new StringBuilder();
@@ -477,8 +481,8 @@ public class JavadocConverter {
             this.source = source;
         }
 
-        public boolean onStartTag(String tag, JavadocLexer.Token token) {
-            return token == JavadocLexer.Token.StartTag && tag.equals("inheritDoc");
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
+            return tokenType == JavadocLexer.TokenType.StartTag && tag.equals("inheritDoc");
         }
 
         public void onText(String text) {

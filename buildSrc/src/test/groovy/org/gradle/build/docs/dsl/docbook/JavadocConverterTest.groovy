@@ -152,9 +152,11 @@ line 2</para>'''
 literal code</programlisting>'''
     }
 
-    def implicitlyEndsCurrentParagraphAtPreElement() {
+    def implicitlyEndsCurrentParagraphAtNextBlockElement() {
         _ * classMetaData.rawCommentText >> ''' * for example: <pre>this is some
- * literal code</pre> this is another para.
+ * literal code</pre> does something.
+<p>another para.
+<ul><li>item1</li></ul>
 '''
 
         when:
@@ -162,7 +164,19 @@ literal code</programlisting>'''
 
         then:
         format(result.docbook) == '''<para>for example: </para><programlisting>this is some
-literal code</programlisting><para> this is another para.</para>'''
+literal code</programlisting><para> does something.
+</para><para>another para.
+</para><itemizedlist><listitem>item1</listitem></itemizedlist>'''
+    }
+
+    def implicitlyEndsCurrentLiAtNextLiElement() {
+        _ * classMetaData.rawCommentText >> '''<ul><li>item 1<li>item 2</ul>'''
+
+        when:
+        def result = parser.parse(classMetaData)
+
+        then:
+        format(result.docbook) == '''<itemizedlist><listitem>item 1</listitem><listitem>item 2</listitem></itemizedlist>'''
     }
 
     def convertsUlAndLiElementsToItemizedListElements() {
@@ -173,6 +187,16 @@ literal code</programlisting><para> this is another para.</para>'''
 
         then:
         format(result.docbook) == '''<itemizedlist><listitem>item1</listitem></itemizedlist>'''
+    }
+
+    def convertsOlAndLiElementsToOrderedListElements() {
+        _ * classMetaData.rawCommentText >> '<ol><li>item1</li></ol>'
+
+        when:
+        def result = parser.parse(classMetaData)
+
+        then:
+        format(result.docbook) == '''<orderedlist><listitem>item1</listitem></orderedlist>'''
     }
 
     def convertsALinkTag() {
@@ -278,5 +302,15 @@ text3</section>'''
 
         then:
         format(result.docbook) == '''<para><UNHANDLED-ELEMENT>&lt;unknown&gt;text</UNHANDLED-ELEMENT><UNHANDLED-ELEMENT>&lt;inheritdoc&gt;<UNHANDLED-TAG>&lt;unknown&gt;text</UNHANDLED-TAG><UNHANDLED-TAG>&lt;p&gt;text</UNHANDLED-TAG><UNHANDLED-TAG>&lt;&gt;unknown</UNHANDLED-TAG></UNHANDLED-ELEMENT></para>'''
+    }
+
+    def handlesMissingStartTags() {
+        _ * classMetaData.rawCommentText >> 'a para</b></p>'
+
+        when:
+        def result = parser.parse(classMetaData)
+
+        then:
+        format(result.docbook) == '''<para>a para</para>'''
     }
 }

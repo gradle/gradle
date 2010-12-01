@@ -13,24 +13,29 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl.docbook;
+package org.gradle.build.docs.dsl.model;
 
-public interface JavadocLexer {
-    Token getToken();
+import java.io.Serializable;
 
-    boolean next();
+public class ParameterMetaData implements Serializable {
+    private final MethodMetaData ownerMethod;
+    private final String name;
+    private String type;
 
-    enum TokenType {
-        StartElement, StartTag, Text, End
+    public ParameterMetaData(String name, MethodMetaData ownerMethod) {
+        this.name = name;
+        this.ownerMethod = ownerMethod;
     }
 
-    class Token {
-        final TokenType tokenType;
-        final String value;
+    public String getName() {
+        return name;
+    }
 
-        public Token(TokenType tokenType, String value) {
-            this.tokenType = tokenType;
-            this.value = value;
-        }
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
     }
 }

@@ -22,7 +22,7 @@ import java.util.List;
 public class MethodMetaData implements Serializable, LanguageElement {
     private final String name;
     private final ClassMetaData ownerClass;
-    private final List<String> parameterTypes = new ArrayList<String>();
+    private final List<ParameterMetaData> parameters = new ArrayList<ParameterMetaData>();
     private String rawCommentText;
     private String returnType;
 
@@ -52,8 +52,15 @@ public class MethodMetaData implements Serializable, LanguageElement {
         this.returnType = returnType;
     }
 
-    public List<String> getParameterTypes() {
-        return parameterTypes;
+    public List<ParameterMetaData> getParameters() {
+        return parameters;
+    }
+
+    public ParameterMetaData addParameter(String name, String type) {
+        ParameterMetaData param = new ParameterMetaData(name, this);
+        param.setType(type);
+        parameters.add(param);
+        return param;
     }
     
     public String getRawCommentText() {
@@ -70,14 +77,14 @@ public class MethodMetaData implements Serializable, LanguageElement {
         builder.append(' ');
         builder.append(name);
         builder.append('(');
-        for (int i = 0; i < parameterTypes.size(); i++) {
-            String paramType =  parameterTypes.get(i);
+        for (int i = 0; i < parameters.size(); i++) {
+            ParameterMetaData param =  parameters.get(i);
             if (i > 0) {
                 builder.append(", ");
             }
-            builder.append(paramType);
-            builder.append(" param");
-            builder.append(i+1);
+            builder.append(param.getType());
+            builder.append(' ');
+            builder.append(param.getName());
         }
         builder.append(')');
         return builder.toString();

@@ -21,6 +21,7 @@ import org.codehaus.groovy.antlr.LineColumn;
 import org.codehaus.groovy.antlr.SourceBuffer;
 import org.codehaus.groovy.antlr.treewalker.VisitorAdapter;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
+import org.gradle.build.docs.dsl.model.MethodMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 
 import java.lang.reflect.Modifier;
@@ -157,9 +158,9 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
 
         String rawCommentText = getJavaDocCommentsBeforeNode(t);
         String returnType = extractTypeName(t);
-        List<String> parameterTypes = extractParameters(t);
+        MethodMetaData method = getCurrentClass().addMethod(name, returnType, rawCommentText);
 
-        getCurrentClass().addMethod(name, returnType, parameterTypes, rawCommentText);
+        extractParameters(t, method);
 
         Matcher matcher = GETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
@@ -169,25 +170,24 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
             return;
         }
 
-        if (parameterTypes.size() != 1) {
+        if (method.getParameters().size() != 1) {
             return;
         }
         matcher = SETTER_METHOD_NAME.matcher(name);
         if (matcher.matches()) {
             int startName = matcher.start(1);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
-            String type = parameterTypes.get(0);
+            String type = method.getParameters().get(0).getType();
             getCurrentClass().addWriteableProperty(propName, type, rawCommentText);
         }
     }
 
-    private List<String> extractParameters(GroovySourceAST t) {
-        List<String> parameterTypes = new ArrayList<String>();
+    private void extractParameters(GroovySourceAST t, MethodMetaData method) {
         GroovySourceAST paramsAst = t.childOfType(PARAMETERS);
         for (GroovySourceAST child = (GroovySourceAST) paramsAst.getFirstChild(); child != null; child = (GroovySourceAST) child.getNextSibling()) {
-            parameterTypes.add(extractTypeName(child));
+            assert child.getType() == PARAMETER_DEF;
+            method.addParameter(extractIdent(child), extractTypeName(child));
         }
-        return parameterTypes;
     }
 
     @Override
@@ -211,15 +211,17 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
             return;
         }
 
-        String fieldName = extractIdent(t);
-        String type = extractTypeName(t);
+        String propertyName = extractIdent(t);
+        String propertyType = extractTypeName(t);
         ClassMetaData currentClass = getCurrentClass();
 
-        currentClass.addReadableProperty(fieldName, type, getJavaDocCommentsBeforeNode(t));
-        currentClass.addMethod(String.format("get%s", StringUtils.capitalize(fieldName)), type, Collections.<String>emptyList(), "");
+        currentClass.addReadableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t));
+        currentClass.addMethod(String.format("get%s", StringUtils.capitalize(propertyName)), propertyType, "");
         if (!Modifier.isFinal(modifiers)) {
-            currentClass.addWriteableProperty(fieldName, type, getJavaDocCommentsBeforeNode(t));
-            currentClass.addMethod(String.format("set%s", StringUtils.capitalize(fieldName)), "void", Arrays.asList(type), "");
+            currentClass.addWriteableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t));
+            MethodMetaData setterMethod = currentClass.addMethod(String.format("set%s", StringUtils.capitalize(
+                    propertyName)), "void", "");
+            setterMethod.addParameter(propertyName, propertyType);
         }
     }
 

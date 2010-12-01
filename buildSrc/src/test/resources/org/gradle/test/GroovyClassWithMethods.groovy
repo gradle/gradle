@@ -9,7 +9,7 @@ class GroovyClassWithMethods {
     /**
      * A method that returns String.
      */
-    String stringMethod(String param1) {
+    String stringMethod(String stringParam) {
         'value'
     }
 
@@ -22,14 +22,14 @@ class GroovyClassWithMethods {
     /**
      * A method that returns a reference type.
      */
-    GroovyInterface refTypeMethod(JavaInterface param1, boolean param2) {
+    GroovyInterface refTypeMethod(JavaInterface someThing, boolean aFlag) {
         null
     }
 
     /**
      * A method that returns a default type.
      */
-    def defMethod(def param1) {
+    def defMethod(def defParam) {
         null
     }
 
