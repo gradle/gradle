@@ -114,7 +114,73 @@
                 </tr>
             </thead>
             <tr>
+                <td>ant</td>
+            </tr>
+            <tr>
+                <td>repositories</td>
+            </tr>
+            <tr>
+                <td>configurations</td>
+            </tr>
+            <tr>
+                <td>dependencies</td>
+            </tr>
+            <tr>
+                <td>artifacts</td>
+            </tr>
+            <tr>
+                <td>allprojects</td>
+            </tr>
+            <tr>
+                <td>subprojects</td>
+            </tr>
+            <tr>
+                <td>configure</td>
+            </tr>
+            <tr>
+                <td>buildscript</td>
+            </tr>
+            <tr>
+                <td>apply</td>
+            </tr>
+            <tr>
                 <td>file</td>
+            </tr>
+            <tr>
+                <td>files</td>
+            </tr>
+            <tr>
+                <td>fileTree</td>
+            </tr>
+            <tr>
+                <td>zipTree</td>
+            </tr>
+            <tr>
+                <td>tarTree</td>
+            </tr>
+            <tr>
+                <td>uri</td>
+            </tr>
+            <tr>
+                <td>relativePath</td>
+            </tr>
+            <tr>
+                <td>mkdir</td>
+            </tr>
+            <tr>
+                <td>delete</td>
+            </tr>
+            <tr>
+                <td>copy</td>
+            </tr>
+            <tr>
+                <td>copySpec</td>
+            </tr>
+            <tr>
+                <td>javaexec</td>
+            </tr>
+            <tr>
+                <td>exec</td>
             </tr>
             <tr>
                 <td>setProperty</td>
@@ -124,6 +190,45 @@
             </tr>
             <tr>
                 <td>hasProperty</td>
+            </tr>
+            <tr>
+                <td>task</td>
+            </tr>
+            <tr>
+                <td>dependsOn</td>
+            </tr>
+            <tr>
+                <td>evaluationDependsOn</td>
+            </tr>
+            <tr>
+                <td>childrenDependOnMe</td>
+            </tr>
+            <tr>
+                <td>dependsOnChildren</td>
+            </tr>
+            <tr>
+                <td>findProject</td>
+            </tr>
+            <tr>
+                <td>project</td>
+            </tr>
+            <tr>
+                <td>absoluteProjectPath</td>
+            </tr>
+            <tr>
+                <td>relativeProjectPath</td>
+            </tr>
+            <tr>
+                <td>getAllTasks</td>
+            </tr>
+            <tr>
+                <td>getTasksByName</td>
+            </tr>
+            <tr>
+                <td>beforeEvaluate</td>
+            </tr>
+            <tr>
+                <td>afterEvaluate</td>
             </tr>
         </table>
     </section>

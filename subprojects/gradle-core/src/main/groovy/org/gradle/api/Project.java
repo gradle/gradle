@@ -278,24 +278,38 @@ public interface Project extends Comparable<Project> {
     void setDescription(String description);
 
     /**
-     * <p>Returns the group of this project. Gradle always uses the toString() value of a group. The group defaults to
-     * the path with dots a separators.</p>
+     * <p>Returns the group of this project. Gradle always uses the {@code toString()} value of the group. The group
+     * defaults to the path with dots a separators.</p>
      *
      * @return The group of this project. Never returns null.
      */
     Object getGroup();
 
     /**
-     * <p>Returns the version of this project. Gradle always uses the toString() value of a version. The version
-     * defaults to {@value #DEFAULT_VERSION}.</p>
+     * <p>Sets the group of this project.</p>
+     *
+     * @param group The group of this project. Must not be null.
+     */
+    void setGroup(Object group);
+
+    /**
+     * <p>Returns the version of this project. Gradle always uses the {@code toString()} value of the version. The
+     * version defaults to {@value #DEFAULT_VERSION}.</p>
      *
      * @return The version of this project. Never returns null.
      */
     Object getVersion();
 
     /**
-     * <p>Returns the status of this project. Gradle always uses the toString() value of a version. The status defaults
-     * to {@value #DEFAULT_STATUS}.</p>
+     * <p>Sets the version of this project.</p>
+     *
+     * @param version The version of this project. Must not be null.
+     */
+    void setVersion(Object version);
+
+    /**
+     * <p>Returns the status of this project. Gradle always uses the {@code toString()} value of the status. The status
+     * defaults to {@value #DEFAULT_STATUS}.</p>
      *
      * <p>The status of the project is only relevant, if you upload libraries together with a module descriptor. The
      * status specified here, will be part of this module descriptor.</p>
@@ -303,6 +317,13 @@ public interface Project extends Comparable<Project> {
      * @return The status of this project. Never returns null.
      */
     Object getStatus();
+
+    /**
+     * Sets the status of this project.
+     *
+     * @param status The status. Must not be null.
+     */
+    void setStatus(Object status);
 
     /**
      * <p>Returns the direct children of this project.</p>
@@ -337,7 +358,7 @@ public interface Project extends Comparable<Project> {
      * <p>If the property is not found in any of these locations, it is added to the project's additional
      * properties.</p>
      *
-     * @param name  The name of the property
+     * @param name The name of the property
      * @param value The value of the property
      */
     void setProperty(String name, Object value);
@@ -450,8 +471,8 @@ public interface Project extends Comparable<Project> {
      * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
      * to true, an exception is thrown.</p>
      *
-     * @param args             The task creation options.
-     * @param name             The name of the task to be created
+     * @param args The task creation options.
+     * @param name The name of the task to be created
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -464,7 +485,7 @@ public interface Project extends Comparable<Project> {
      * available as a property of the project, so that you can reference the task by name in your build file.  See <a
      * href="#properties">here</a> for more details</p>
      *
-     * @param name             The name of the task to be created
+     * @param name The name of the task to be created
      * @param configureClosure The closure to use to configure the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -498,7 +519,7 @@ public interface Project extends Comparable<Project> {
      *
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
-     * @param name   The name of the task to be created
+     * @param name The name of the task to be created
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -553,8 +574,8 @@ public interface Project extends Comparable<Project> {
      * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
      * to true, an exception is thrown.</p>
      *
-     * @param args   The task creation options.
-     * @param name   The name of the task to be created
+     * @param args The task creation options.
+     * @param name The name of the task to be created
      * @param action The action to be passed to the {@link Task#doFirst(Action)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -573,7 +594,7 @@ public interface Project extends Comparable<Project> {
      *
      * <p>If a task with the given name already exists in this project, an exception is thrown.</p>
      *
-     * @param name   The name of the task to be created
+     * @param name The name of the task to be created
      * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -594,8 +615,8 @@ public interface Project extends Comparable<Project> {
      * <p>If a task with the given name already exists in this project and the <code>override</code> option is not set
      * to true, an exception is thrown.</p>
      *
-     * @param args   The task creation options.
-     * @param name   The name of the task to be created
+     * @param args The task creation options.
+     * @param name The name of the task to be created
      * @param action The closure to be passed to the {@link Task#doFirst(Closure)} method of the created task.
      * @return The newly created task object
      * @throws InvalidUserDataException If a task with the given name already exists in this project.
@@ -646,7 +667,7 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Declares that this project has an execution dependency on the project with the given path.</p>
      *
-     * @param path                     The path of the project which this project depends on.
+     * @param path The path of the project which this project depends on.
      * @param evaluateDependsOnProject If true, adds an evaluation dependency.
      * @throws UnknownProjectException If no project with the given path exists.
      */
@@ -704,7 +725,7 @@ public interface Project extends Comparable<Project> {
      * <p>Locates a project by path and configures it using the given closure. If the path is relative, it is
      * interpreted relative to this project. The target project is passed to the closure as the closure's delegate.</p>
      *
-     * @param path             The path.
+     * @param path The path.
      * @param configureClosure The closure to use to configure the project.
      * @return The project with the given path. Never returns null.
      * @throws UnknownProjectException If no project with the given path exists.
@@ -715,7 +736,7 @@ public interface Project extends Comparable<Project> {
      * <p>Returns a map of the tasks contained in this project, and optionally its subprojects.</p>
      *
      * @param recursive If true, returns the tasks of this project and its subprojects.  If false, returns the tasks of
-     *                  just this project.
+     * just this project.
      * @return A map from project to a set of tasks.
      */
     Map<Project, Set<Task>> getAllTasks(boolean recursive);
@@ -723,9 +744,9 @@ public interface Project extends Comparable<Project> {
     /**
      * <p>Returns the set of tasks with the given name contained in this project, and optionally its subprojects.</p>
      *
-     * @param name      The name of the task to locate.
+     * @param name The name of the task to locate.
      * @param recursive If true, returns the tasks of this project and its subprojects. If false, returns the tasks of
-     *                  just this project.
+     * just this project.
      * @return The set of tasks. Returns an empty set if no such tasks exist in this project.
      */
     Set<Task> getTasksByName(String name, boolean recursive);
@@ -768,8 +789,7 @@ public interface Project extends Comparable<Project> {
      * <p>Resolves a file path relative to the project directory of this project and validates it using the given
      * scheme. See {@link PathValidation} for the list of possible validations.</p>
      *
-     * @param path       An object which toString method value is interpreted as a relative path to the project
-     *                   directory.
+     * @param path An object which toString method value is interpreted as a relative path to the project directory.
      * @param validation The validation to perform on the file.
      * @return The resolved file. Never returns null.
      * @throws InvalidUserDataException When the file does not meet the given validation constraint.
@@ -847,7 +867,7 @@ public interface Project extends Comparable<Project> {
      * collection are queried. The file collection is also live, so that it evaluates the above each time the contents
      * of the collection is queried.</p>
      *
-     * @param paths            The contents of the file collection. Evaluated as for {@link #files(Object...)}.
+     * @param paths The contents of the file collection. Evaluated as for {@link #files(Object...)}.
      * @param configureClosure The closure to use to configure the file collection.
      * @return the configured file tree. Never returns null.
      */
@@ -936,8 +956,7 @@ public interface Project extends Comparable<Project> {
      *
      * @param path The path for the directory to be created. Evaluated as for {@link #file(Object)}.
      * @return the created directory
-     * @throws org.gradle.api.InvalidUserDataException
-     *          If the path points to an existing file.
+     * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
      */
     File mkdir(Object path);
 
@@ -1195,7 +1214,7 @@ public interface Project extends Comparable<Project> {
     Logger getLogger();
 
     /**
-     * <p>Returns the {@link org.gradle.api.invocation.Gradle} which this project belongs to.</p>
+     * <p>Returns the {@link org.gradle.api.invocation.Gradle} invocation which this project belongs to.</p>
      *
      * @return The Gradle object. Never returns null.
      */
@@ -1256,7 +1275,7 @@ public interface Project extends Comparable<Project> {
      * configure(someObj) { obj -> obj.doThis() }
      * </pre>
      *
-     * @param object           The object to configure
+     * @param object The object to configure
      * @param configureClosure The closure with configure statements
      * @return The configured object
      */
@@ -1266,7 +1285,7 @@ public interface Project extends Comparable<Project> {
      * Configures a collection of objects via a closure. This is equivalent to calling {@link #configure(Object,
      * groovy.lang.Closure)} for each of the given objects.
      *
-     * @param objects          The objects to configure
+     * @param objects The objects to configure
      * @param configureClosure The closure with configure statements
      * @return The configured objects.
      */
@@ -1275,7 +1294,7 @@ public interface Project extends Comparable<Project> {
     /**
      * Configures a collection of objects via an action.
      *
-     * @param objects         The objects to configure
+     * @param objects The objects to configure
      * @param configureAction The action to apply to each object
      * @return The configured objects.
      */

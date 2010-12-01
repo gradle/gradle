@@ -44,6 +44,21 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>resources</td>
+            </tr>
+            <tr>
+                <td>java</td>
+            </tr>
+            <tr>
+                <td>compiledBy</td>
+            </tr>
+            <tr>
+                <td>getCompileTaskName</td>
+            </tr>
+            <tr>
+                <td>getTaskName</td>
+            </tr>
         </table>
     </section>
 </section>
