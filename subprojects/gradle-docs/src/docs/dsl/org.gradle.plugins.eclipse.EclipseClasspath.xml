@@ -5,40 +5,44 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> plugin</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
                 </tr>
             </thead>
             <tr>
                 <td>sourceSets</td>
-                <td>??</td>
+                <td><literal>project.sourceSets</literal></td>
             </tr>
             <tr>
                 <td>plusConfigurations</td>
-                <td>??</td>
+                <td><literal>project.configurations.testRuntime</literal></td>
             </tr>
             <tr>
                 <td>minusConfigurations</td>
-                <td>??</td>
+                <td><literal>[]</literal></td>
             </tr>
             <tr>
                 <td>variables</td>
-                <td>??</td>
+                <td><literal>[:]</literal></td>
             </tr>
             <tr>
                 <td>containers</td>
-                <td>??</td>
+                <td>[JRE container]</td>
             </tr>
             <tr>
                 <td>defaultOutputDir</td>
-                <td>??</td>
+                <td><literal>project.sourceSets.main.classesDir</literal></td>
             </tr>
             <tr>
                 <td>downloadSources</td>
-                <td>??</td>
+                <td>true</td>
             </tr>
             <tr>
                 <td>downloadJavadoc</td>
-                <td>??</td>
+                <td>false</td>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/.classpath</filename></td>
             </tr>
         </table>
     </section>

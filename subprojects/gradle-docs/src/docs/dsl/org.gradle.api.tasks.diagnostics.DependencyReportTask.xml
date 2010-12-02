@@ -14,7 +14,7 @@
             </tr>
             <tr>
                 <td>outputFile</td>
-                <td><literal><replaceable>${project.projectReportDir}</replaceable>/dependencies.txt</literal></td>
+                <td><filename><replaceable>${project.projectReportDir}</replaceable>/dependencies.txt</filename></td>
             </tr>
             <tr>
                 <td>projects</td>

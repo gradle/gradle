@@ -15,7 +15,7 @@
             <tr>
                 <td>resultFile</td>
                 <td>
-                    <literal><replaceable>${project.checkstyleResultsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.xml</literal>
+                    <filename><replaceable>${project.checkstyleResultsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.xml</filename>
                 </td></tr>
             <tr><td>source</td><td><literal><replaceable>sourceSet</replaceable>.allJava</literal></td></tr>
         </table>

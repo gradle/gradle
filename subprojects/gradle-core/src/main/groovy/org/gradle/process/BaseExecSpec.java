@@ -30,13 +30,12 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * thrown in case of such an exit value.
      *
      * @param ignoreExitValue whether to ignore the exit value or not
-     *
      * @return this
      */
     BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue);
 
     /**
-     * Returns whether an exit value different from zero should be ignored. In case it is not ignored, an exception is
+     * Specifies whether an exit value different from zero should be ignored. In case it is not ignored, an exception is
      * thrown in case of such an exit value. Defaults to <code>false</code>.
      */
     boolean isIgnoreExitValue();
@@ -44,40 +43,56 @@ public interface BaseExecSpec extends ProcessForkOptions {
     /**
      * Sets the standard input stream for the process executing the command. The stream is closed after the process
      * completes.
-     * 
-     * @param inputStream The standard input stream for the command process.
      *
+     * @param inputStream The standard input stream for the process. Must not be null.
      * @return this
      */
     BaseExecSpec setStandardInput(InputStream inputStream);
 
     /**
-     * Returns the standard input stream for the process executing the command.
+     * Returns the standard input stream for the process executing the command. The stream is closed after the process
+     * completes. Defaults to an empty stream.
+     *
+     * @return The standard input stream.
      */
     InputStream getStandardInput();
 
     /**
-     * Sets the standard output stream for the process executing the command. The stream is closed after the process
-     * completes.
+     * Sets the output stream to consume standard output from the process executing the command. The stream is closed
+     * after the process completes.
      *
-     * @param outputStream The standard output stream for the command process.
-     *
+     * @param outputStream The standard output stream for the process. Must not be null.
      * @return this
      */
     BaseExecSpec setStandardOutput(OutputStream outputStream);
 
     /**
-     * Sets the error output stream for the process executing the command. The stream is closed after the process
-     * completes.
+     * Returns the output stream to consume standard output from the process executing the command. Defaults to {@code
+     * System.out}.
      *
-     * @param outputStream The standard output error stream for the command process.
+     * @return The output stream
+     */
+    OutputStream getStandardOutput();
+
+    /**
+     * Sets the output stream to consume standard error from the process executing the command. The stream is closed
+     * after the process completes.
      *
+     * @param outputStream The standard output error stream for the process. Must not be null.
      * @return this
      */
     BaseExecSpec setErrorOutput(OutputStream outputStream);
 
     /**
-     * Returns the command plus its arguments.
+     * Returns the output stream to consume standard error from the process executing the command. Default to {@code
+     * System.err}.
+     *
+     * @return The error output stream.
+     */
+    OutputStream getErrorOutput();
+
+    /**
+     * Returns the full command line, including the executable plus its arguments.
      */
     List<String> getCommandLine();
 }

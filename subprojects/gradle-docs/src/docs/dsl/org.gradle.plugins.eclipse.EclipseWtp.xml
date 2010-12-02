@@ -5,16 +5,15 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> plugin</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>war</literal> plugins</td>
                 </tr>
             </thead>
             <tr>
                 <td>orgEclipseWstCommonComponentInputFile</td>
-                <td>??</td>
             </tr>
             <tr>
                 <td>orgEclipseWstCommonComponentOutputFile</td>
-                <td>??</td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.component</filename></td>
             </tr>
             <tr>
                 <td>orgEclipseWstCommonProjectFacetCoreInputFile</td>
@@ -22,43 +21,43 @@
             </tr>
             <tr>
                 <td>orgEclipseWstCommonProjectFacetCoreOutputFile</td>
-                <td>??</td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.project.facet.core.xml</filename></td>
             </tr>
             <tr>
                 <td>sourceSets</td>
-                <td>??</td>
+                <td><literal>[project.sourceSets.main]</literal></td>
             </tr>
             <tr>
                 <td>plusConfigurations</td>
-                <td>??</td>
+                <td><literal>[project.configurations.runtime]</literal></td>
             </tr>
             <tr>
                 <td>minusConfigurations</td>
-                <td>??</td>
+                <td><literal>[project.configurations.providedRuntime]</literal></td>
             </tr>
             <tr>
                 <td>facets</td>
-                <td>??</td>
+                <td>Java and web facets.</td>
             </tr>
             <tr>
                 <td>deployName</td>
-                <td>??</td>
+                <td><literal>project.name</literal></td>
             </tr>
             <tr>
                 <td>variables</td>
-                <td>??</td>
+                <td><literal>[:]</literal></td>
             </tr>
             <tr>
                 <td>resources</td>
-                <td>??</td>
+                <td><literal>[deployPath: '/', sourcePath: project.webAppDirName]</literal></td>
             </tr>
             <tr>
                 <td>properties</td>
-                <td>??</td>
+                <td><literal>[]</literal></td>
             </tr>
             <tr>
                 <td>contextPath</td>
-                <td>??</td>
+                <td><literal>project.war.baseName</literal></td>
             </tr>
         </table>
     </section>

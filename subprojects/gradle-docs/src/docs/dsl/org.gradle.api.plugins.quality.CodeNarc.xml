@@ -10,7 +10,7 @@
             </thead>
             <tr><td>configFile</td><td><literal>project.codeNarcConfigFile</literal></td></tr>
             <tr><td>reportFile</td><td>
-                <literal><replaceable>${project.codeNarcReportsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.html</literal>
+                <filename><replaceable>${project.codeNarcReportsDir}</replaceable>/<replaceable>${sourceSet.name}</replaceable>.html</filename>
             </td></tr>
             <tr><td>ignoreFailures</td><td><literal>false</literal></td></tr>
             <tr><td>source</td><td><literal><replaceable>sourceSet</replaceable>.allGroovy</literal></td></tr>

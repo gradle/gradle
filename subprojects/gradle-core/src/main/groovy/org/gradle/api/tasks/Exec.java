@@ -104,6 +104,20 @@ public class Exec extends ConventionTask implements ExecSpec {
     /**
      * {@inheritDoc}
      */
+    public void setCommandLine(Iterable<?> args) {
+        execAction.setCommandLine(args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public void setCommandLine(Object... args) {
+        execAction.setCommandLine(args);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public String getExecutable() {
         return execAction.getExecutable();
     }
@@ -209,9 +223,23 @@ public class Exec extends ConventionTask implements ExecSpec {
     /**
      * {@inheritDoc}
      */
+    public OutputStream getStandardOutput() {
+        return execAction.getStandardOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public Exec setErrorOutput(OutputStream outputStream) {
         execAction.setErrorOutput(outputStream);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public OutputStream getErrorOutput() {
+        return execAction.getErrorOutput();
     }
 
     /**
@@ -234,7 +262,9 @@ public class Exec extends ConventionTask implements ExecSpec {
     }
 
     /**
-     * Returns the ExecResult object for the command run by this task. Returns null if the task has not been executed yet.
+     * Returns the result for the command run by this task. Returns {@code null} if this task has not been executed yet.
+     *
+     * @return The result. Returns {@code null} if this task has not been executed yet.
      */
     public ExecResult getExecResult() {
         return execResult;

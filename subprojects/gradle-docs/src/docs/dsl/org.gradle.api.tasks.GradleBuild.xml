@@ -7,6 +7,18 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>dir</td>
+            </tr>
+            <tr>
+                <td>buildFile</td>
+            </tr>
+            <tr>
+                <td>tasks</td>
+            </tr>
+            <tr>
+                <td>startParameter</td>
+            </tr>
         </table>
     </section>
     <section>

@@ -24,50 +24,61 @@ import java.util.List;
  */
 public interface ExecSpec extends BaseExecSpec {
     /**
-     * Sets the command plus the args to be executed.
-     * @param args the command plus the args to be executed
+     * Sets the full command line, including the executable to be executed plus its arguments.
      *
+     * @param args the command plus the args to be executed
+     */
+    void setCommandLine(Object... args);
+
+    /**
+     * Sets the full command line, including the executable to be executed plus its arguments.
+     *
+     * @param args the command plus the args to be executed
+     */
+    void setCommandLine(Iterable<?> args);
+
+    /**
+     * Sets the full command line, including the executable to be executed plus its arguments.
+     *
+     * @param args the command plus the args to be executed
      * @return this
      */
     ExecSpec commandLine(Object... args);
 
     /**
-     * Sets the command plus the args to be executed.
-     * @param args the command plus the args to be executed
+     * Sets the full command line, including the executable to be executed plus its arguments.
      *
+     * @param args the command plus the args to be executed
      * @return this
      */
     ExecSpec commandLine(Iterable<?> args);
 
     /**
-     * Adds args for the command to be executed.
+     * Adds arguments for the command to be executed.
      *
      * @param args args for the command
-     *
      * @return this
      */
     ExecSpec args(Object... args);
 
     /**
-     * Adds args for the command to be executed.
+     * Adds arguments for the command to be executed.
      *
      * @param args args for the command
-     *
      * @return this
      */
     ExecSpec args(Iterable<?> args);
 
     /**
-     * Sets the args for the command to be executed.
+     * Sets the arguments for the command to be executed.
      *
      * @param args args for the command
-     *
      * @return this
      */
     ExecSpec setArgs(Iterable<?> args);
 
     /**
-     * Returns the args for the command to be executed.
+     * Returns the arguments for the command to be executed. Defaults to an empty list.
      */
     List<String> getArgs();
 }

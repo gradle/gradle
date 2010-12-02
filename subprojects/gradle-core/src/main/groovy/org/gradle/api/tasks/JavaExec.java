@@ -372,9 +372,23 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    public OutputStream getStandardOutput() {
+        return javaExecHandleBuilder.getStandardOutput();
+    }
+
+    /**
+     * {@inheritDoc}
+     */
     public JavaExec setErrorOutput(OutputStream outputStream) {
         javaExecHandleBuilder.setErrorOutput(outputStream);
         return this;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    public OutputStream getErrorOutput() {
+        return javaExecHandleBuilder.getErrorOutput();
     }
 
     /**

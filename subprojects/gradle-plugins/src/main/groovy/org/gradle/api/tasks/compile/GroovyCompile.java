@@ -68,24 +68,41 @@ public class GroovyCompile extends AbstractCompile {
     }
 
     /**
-     * Gets the options for the groovyc compilation. To set specific options for the nested javac compilation,
-     * use {@link #getOptions()}.
+     * Gets the options for the Groovy compilation. To set specific options for the nested Java compilation, use {@link
+     * #getOptions()}.
+     *
+     * @return The Groovy compile options. Never returns null.
      */
     @Nested
     public GroovyCompileOptions getGroovyOptions() {
         return compiler.getGroovyCompileOptions();
     }
 
+    /**
+     * Returns the options for Java compilation.
+     *
+     * @return The java compile options. Never returns null.
+     */
     @Nested
     public CompileOptions getOptions() {
         return compiler.getCompileOptions();
     }
 
+    /**
+     * Returns the classpath containing the version of Groovy to use for compilation.
+     *
+     * @return The classpath.
+     */
     @InputFiles
     public FileCollection getGroovyClasspath() {
         return groovyClasspath;
     }
 
+    /**
+     * Sets the classpath containing the version of Groovy to use for compilation.
+     *
+     * @param groovyClasspath The classpath. Must not be null.
+     */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;
     }

@@ -5,32 +5,36 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> plugin</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
                 </tr>
             </thead>
             <tr>
                 <td>projectName</td>
-                <td>??</td>
+                <td><literal>project.name</literal></td>
             </tr>
             <tr>
                 <td>comment</td>
-                <td>??</td>
+                <td><literal>project.description</literal></td>
             </tr>
             <tr>
                 <td>referencedProjects</td>
-                <td>??</td>
+                <td>[]</td>
             </tr>
             <tr>
                 <td>natures</td>
-                <td>??</td>
+                <td>Java nature, plus Groovy, Scala and Web natures as appropriate.</td>
             </tr>
             <tr>
                 <td>buildCommands</td>
-                <td>??</td>
+                <td>Java builder, plus Scala and Web builders as appropriate.</td>
             </tr>
             <tr>
                 <td>links</td>
-                <td>??</td>
+                <td>[]</td>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/.project</filename></td>
             </tr>
         </table>
     </section>

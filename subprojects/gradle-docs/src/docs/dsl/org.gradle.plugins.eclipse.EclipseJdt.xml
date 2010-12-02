@@ -5,16 +5,20 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>eclipse</literal> plugin</td>
+                    <td>Default with <literal>eclipse</literal> and <literal>java</literal> plugins</td>
                 </tr>
             </thead>
             <tr>
                 <td>sourceCompatibility</td>
-                <td>??</td>
+                <td><literal>project.sourceCompatibility</literal></td>
             </tr>
             <tr>
                 <td>targetCompatibility</td>
-                <td>??</td>
+                <td><literal>project.targetCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.jdt.core.prefs</filename></td>
             </tr>
         </table>
     </section>

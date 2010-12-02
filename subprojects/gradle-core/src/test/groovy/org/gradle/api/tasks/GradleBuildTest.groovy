@@ -47,7 +47,9 @@ public class GradleBuildTest extends AbstractTaskTest {
 
     @Test
     void usesCopyOfCurrentBuildsStartParams() {
-        assertThat(task.startParameter, equalTo(project.gradle.startParameter.newBuild()))
+        def expectedStartParameter = project.gradle.startParameter.newBuild()
+        expectedStartParameter.currentDir = project.projectDir
+        assertThat(task.startParameter, equalTo(expectedStartParameter))
         task.tasks = ['a', 'b']
         assertThat(task.tasks, equalTo(['a', 'b']))
         assertThat(task.startParameter.taskNames, equalTo(['a', 'b']))

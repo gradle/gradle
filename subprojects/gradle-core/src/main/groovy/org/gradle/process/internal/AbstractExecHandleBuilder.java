@@ -67,12 +67,20 @@ public abstract class AbstractExecHandleBuilder extends DefaultProcessForkOption
         return this;
     }
 
+    public OutputStream getStandardOutput() {
+        return standardOutput;
+    }
+
     public AbstractExecHandleBuilder setErrorOutput(OutputStream outputStream) {
         if (outputStream == null) {
             throw new IllegalArgumentException("outputStream == null!");
         }
         this.errorOutput = outputStream;
         return this;
+    }
+
+    public OutputStream getErrorOutput() {
+        return errorOutput;
     }
 
     public boolean isIgnoreExitValue() {

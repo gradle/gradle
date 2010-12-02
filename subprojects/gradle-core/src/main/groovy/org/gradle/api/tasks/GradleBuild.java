@@ -31,6 +31,7 @@ public class GradleBuild extends ConventionTask {
 
     public GradleBuild() {
         this.startParameter = getProject().getGradle().getStartParameter().newBuild();
+        startParameter.setCurrentDir(getProject().getProjectDir());
     }
 
     /**
@@ -52,7 +53,7 @@ public class GradleBuild extends ConventionTask {
     }
 
     /**
-     * Returns the project directory for the build.
+     * Returns the project directory for the build. Defaults to the project directory.
      *
      * @return The project directory. Never returns null.
      */
@@ -70,7 +71,8 @@ public class GradleBuild extends ConventionTask {
     }
 
     /**
-     * Returns the build file that should be used for this build.
+     * Returns the build file that should be used for this build. Defaults to {@value
+     * org.gradle.api.Project#DEFAULT_BUILD_FILE} in the project directory.
      *
      * @return The build file. May be null.
      */
@@ -88,7 +90,7 @@ public class GradleBuild extends ConventionTask {
     }
 
     /**
-     * Returns the sequence of tasks that should be executed for this build.
+     * Returns the tasks that should be executed for this build.
      *
      * @return The sequence. May be empty. Never returns null.
      */

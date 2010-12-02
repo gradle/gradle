@@ -51,6 +51,14 @@ public class ExecHandleBuilder extends AbstractExecHandleBuilder implements Exec
         return this;
     }
 
+    public void setCommandLine(Object... args) {
+        commandLine(args);
+    }
+
+    public void setCommandLine(Iterable<?> args) {
+        commandLine(args);
+    }
+
     public ExecHandleBuilder args(Object... args) {
         if (args == null) {
             throw new IllegalArgumentException("args == null!");
