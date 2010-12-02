@@ -24,7 +24,7 @@ public class MethodMetaData implements Serializable, LanguageElement {
     private final ClassMetaData ownerClass;
     private final List<ParameterMetaData> parameters = new ArrayList<ParameterMetaData>();
     private String rawCommentText;
-    private String returnType;
+    private TypeMetaData returnType;
 
     public MethodMetaData(String name, ClassMetaData ownerClass) {
         this.name = name;
@@ -44,11 +44,11 @@ public class MethodMetaData implements Serializable, LanguageElement {
         return ownerClass;
     }
 
-    public String getReturnType() {
+    public TypeMetaData getReturnType() {
         return returnType;
     }
 
-    public void setReturnType(String returnType) {
+    public void setReturnType(TypeMetaData returnType) {
         this.returnType = returnType;
     }
 
@@ -56,7 +56,7 @@ public class MethodMetaData implements Serializable, LanguageElement {
         return parameters;
     }
 
-    public ParameterMetaData addParameter(String name, String type) {
+    public ParameterMetaData addParameter(String name, TypeMetaData type) {
         ParameterMetaData param = new ParameterMetaData(name, this);
         param.setType(type);
         parameters.add(param);
@@ -73,7 +73,7 @@ public class MethodMetaData implements Serializable, LanguageElement {
 
     public String getSignature() {
         StringBuilder builder = new StringBuilder();
-        builder.append(returnType);
+        builder.append(returnType.getSignature());
         builder.append(' ');
         builder.append(name);
         builder.append('(');
@@ -82,9 +82,7 @@ public class MethodMetaData implements Serializable, LanguageElement {
             if (i > 0) {
                 builder.append(", ");
             }
-            builder.append(param.getType());
-            builder.append(' ');
-            builder.append(param.getName());
+            builder.append(param.getSignature());
         }
         builder.append(')');
         return builder.toString();

@@ -22,6 +22,7 @@ import org.codehaus.groovy.antlr.SourceBuffer;
 import org.codehaus.groovy.antlr.treewalker.VisitorAdapter;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.MethodMetaData;
+import org.gradle.build.docs.dsl.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 
 import java.lang.reflect.Modifier;
@@ -157,7 +158,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         }
 
         String rawCommentText = getJavaDocCommentsBeforeNode(t);
-        String returnType = extractTypeName(t);
+        TypeMetaData returnType = extractTypeName(t);
         MethodMetaData method = getCurrentClass().addMethod(name, returnType, rawCommentText);
 
         extractParameters(t, method);
@@ -177,7 +178,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         if (matcher.matches()) {
             int startName = matcher.start(1);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
-            String type = method.getParameters().get(0).getType();
+            TypeMetaData type = method.getParameters().get(0).getType();
             getCurrentClass().addWriteableProperty(propName, type, rawCommentText);
         }
     }
@@ -185,8 +186,12 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
     private void extractParameters(GroovySourceAST t, MethodMetaData method) {
         GroovySourceAST paramsAst = t.childOfType(PARAMETERS);
         for (GroovySourceAST child = (GroovySourceAST) paramsAst.getFirstChild(); child != null; child = (GroovySourceAST) child.getNextSibling()) {
-            assert child.getType() == PARAMETER_DEF;
-            method.addParameter(extractIdent(child), extractTypeName(child));
+            assert child.getType() == PARAMETER_DEF || child.getType() == VARIABLE_PARAMETER_DEF;
+            TypeMetaData type = extractTypeName(child);
+            if (child.getType() == VARIABLE_PARAMETER_DEF) {
+                type.setVarargs(true);
+            }
+            method.addParameter(extractIdent(child), type);
         }
     }
 
@@ -212,7 +217,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         }
 
         String propertyName = extractIdent(t);
-        String propertyType = extractTypeName(t);
+        TypeMetaData propertyType = extractTypeName(t);
         ClassMetaData currentClass = getCurrentClass();
 
         currentClass.addReadableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t));
@@ -220,7 +225,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         if (!Modifier.isFinal(modifiers)) {
             currentClass.addWriteableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t));
             MethodMetaData setterMethod = currentClass.addMethod(String.format("set%s", StringUtils.capitalize(
-                    propertyName)), "void", "");
+                    propertyName)), TypeMetaData.VOID, "");
             setterMethod.addParameter(propertyName, propertyType);
         }
     }
@@ -278,31 +283,51 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         return modifierFlags;
     }
 
-    private String extractTypeName(GroovySourceAST ast) {
+    private TypeMetaData extractTypeName(GroovySourceAST ast) {
         GroovySourceAST typeAst = ast.childOfType(TYPE);
         GroovySourceAST firstChild = (GroovySourceAST) typeAst.getFirstChild();
-        if (firstChild == null) {
-            return "java.lang.Object";
+        TypeMetaData type = new TypeMetaData();
+        extractTypeName(firstChild, type);
+        return type;
+    }
+
+    private void extractTypeName(GroovySourceAST ast, TypeMetaData type) {
+        if (ast == null) {
+            type.setName("java.lang.Object");
+            return;
         }
-        switch (firstChild.getType()) {
+        switch (ast.getType()) {
             case LITERAL_boolean:
-                return "boolean";
+                type.setName("boolean");
+                return;
             case LITERAL_byte:
-                return "byte";
+                type.setName("byte");
+                return;
             case LITERAL_char:
-                return "char";
+                type.setName("char");
+                return;
             case LITERAL_double:
-                return "double";
+                type.setName("double");
+                return;
             case LITERAL_float:
-                return "float";
+                type.setName("float");
+                return;
             case LITERAL_int:
-                return "int";
+                type.setName("int");
+                return;
             case LITERAL_long:
-                return "long";
+                type.setName("long");
+                return;
             case LITERAL_void:
-                return "void";
+                type.setName("void");
+                return;
+            case ARRAY_DECLARATOR:
+                extractTypeName((GroovySourceAST) ast.getFirstChild(), type);
+                type.addArrayDimension();
+                return;
         }
-        return extractName(firstChild);
+
+        type.setName(extractName(ast));
     }
 
     private void skipJavaDocComment(GroovySourceAST t) {

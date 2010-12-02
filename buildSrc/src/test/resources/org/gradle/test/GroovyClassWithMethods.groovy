@@ -34,6 +34,13 @@ class GroovyClassWithMethods {
     }
 
     /**
+     * A method that returns an array
+     */
+    String[][] arrayMethod(String[]... strings) {
+        null
+    }
+
+    /**
      * A String property.
      */
     String prop

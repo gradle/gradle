@@ -21,6 +21,7 @@ import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.gradle.build.docs.dsl.model.MethodMetaData
+import org.gradle.build.docs.dsl.model.TypeMetaData
 
 class ClassDocTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
@@ -53,7 +54,7 @@ class ClassDocTest extends XmlSpecification {
         </table>'''
 
         _ * classMetaData.findProperty('propName') >> propertyMetaData
-        _ * propertyMetaData.type >> 'org.gradle.Type'
+        _ * propertyMetaData.type >> new TypeMetaData('org.gradle.Type')
         _ * javadocConverter.parse(propertyMetaData) >> ({[document.createTextNode('propName comment')]} as DocComment)
     }
 
@@ -90,8 +91,8 @@ class ClassDocTest extends XmlSpecification {
         _ * classMetaData.findProperty('propName') >> propertyMetaData
         _ * classMetaData.findProperty('inherited2') >> inherited2MetaData
         _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
-        _ * propertyMetaData.type >> 'org.gradle.Type'
-        _ * inherited2MetaData.type >> 'org.gradle.Type3'
+        _ * propertyMetaData.type >> new TypeMetaData('org.gradle.Type')
+        _ * inherited2MetaData.type >> new TypeMetaData('org.gradle.Type3')
         _ * docModel.getClassDoc('org.gradle.SuperClass') >> superClassDoc
         _ * javadocConverter.parse(propertyMetaData) >> ({[document.createTextNode('propName comment')]} as DocComment)
         _ * javadocConverter.parse(inherited2MetaData) >> ({[document.createTextNode('inherited2 comment')]} as DocComment)

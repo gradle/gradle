@@ -14,6 +14,11 @@ class GroovyClass extends A implements GroovyInterface, JavaInterface {
      */
     final String readOnlyGroovyProp
 
+    /**
+     * An array property.
+     */
+    def String[] arrayProp
+
     private def ignoreMe1;
     public int ignoreMe2;
     protected int ignoreMe3;
@@ -41,7 +46,6 @@ class GroovyClass extends A implements GroovyInterface, JavaInterface {
      */
     void setWriteOnly(JavaInterface value) {
     }
-
 
     public void setIgnoreMe1() {
     }

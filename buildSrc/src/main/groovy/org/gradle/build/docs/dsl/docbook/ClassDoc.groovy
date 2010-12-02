@@ -95,7 +95,7 @@ class ClassDoc {
             if (!property) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
             }
-            String type = property.type
+            String type = property.type.signature
             tr.td[0].children = { literal(propName) }
             tr.td[0].addAfter { td() }
             javadocConverter.parse(property).docbook.each { node ->

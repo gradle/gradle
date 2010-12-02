@@ -55,4 +55,11 @@ public class JavaClass extends A implements GroovyInterface, JavaInterface {
     public boolean isFlag() {
         return false;
     }
+
+    /**
+     * An array property.
+     */
+    public JavaInterface[][][] getArrayProp() {
+        return null;
+    }
 }

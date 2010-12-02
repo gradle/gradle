@@ -24,6 +24,13 @@ public class JavaClassWithMethods {
         return null;
     }
 
+    /**
+     * A method that returns an array
+     */
+    String[][] arrayMethod(String[]... strings) {
+        return null;
+    }
+
     int getIntProp() {
         return 5;
     }

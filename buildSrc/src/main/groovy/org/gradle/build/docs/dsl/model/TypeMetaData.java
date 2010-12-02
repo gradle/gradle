@@ -17,33 +17,53 @@ package org.gradle.build.docs.dsl.model;
 
 import java.io.Serializable;
 
-public class ParameterMetaData implements Serializable {
-    private final MethodMetaData ownerMethod;
-    private final String name;
-    private TypeMetaData type;
+public class TypeMetaData implements Serializable {
+    public static final TypeMetaData VOID = new TypeMetaData("void");
 
-    public ParameterMetaData(String name, MethodMetaData ownerMethod) {
+    private String name;
+    private int arrayDimensions;
+    private boolean varargs;
+
+    public TypeMetaData(String name) {
         this.name = name;
-        this.ownerMethod = ownerMethod;
+    }
+
+    public TypeMetaData() {
     }
 
     public String getName() {
         return name;
     }
 
-    public TypeMetaData getType() {
-        return type;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public void setType(TypeMetaData type) {
-        this.type = type;
+    public int getArrayDimensions() {
+        return arrayDimensions + (varargs ? 1 : 0);
+    }
+
+    public void addArrayDimension() {
+        arrayDimensions++;
+    }
+
+    public boolean isVarargs() {
+        return varargs;
+    }
+
+    public void setVarargs(boolean varargs) {
+        this.varargs = varargs;
     }
 
     public String getSignature() {
         StringBuilder builder = new StringBuilder();
-        builder.append(type.getSignature());
-        builder.append(" ");
         builder.append(name);
+        for (int i = 0; i < arrayDimensions; i++) {
+            builder.append("[]");
+        }
+        if (varargs) {
+            builder.append("...");
+        }
         return builder.toString();
     }
 }

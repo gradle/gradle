@@ -36,6 +36,7 @@ import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.build.docs.dsl.model.ParameterMetaData
+import org.gradle.util.Clock
 
 /**
  * Extracts meta-data from the Groovy and Java source files which make up the Gradle DSL. Persists the meta-data to a file
@@ -47,9 +48,13 @@ class ExtractDslMetaDataTask extends SourceTask {
 
     @TaskAction
     def extract() {
+        Clock clock = new Clock()
+
         SimpleClassMetaDataRepository<ClassMetaData> repository = new SimpleClassMetaDataRepository<ClassMetaData>()
+        int counter = 0
         source.each { File f ->
             parse(f, repository)
+            counter++
         }
 
         TypeNameResolver resolver = new TypeNameResolver(repository)
@@ -57,6 +62,8 @@ class ExtractDslMetaDataTask extends SourceTask {
             resolve(metaData, resolver)
         }
         repository.store(destFile)
+
+        println "Parsed $counter classes in ${clock.time}"
     }
 
     def parse(File sourceFile, ClassMetaDataRepository<ClassMetaData> repository) {
@@ -122,12 +129,12 @@ class ExtractDslMetaDataTask extends SourceTask {
                 classMetaData.interfaceNames[i] = resolver.resolve(classMetaData.interfaceNames[i], classMetaData)
             }
             classMetaData.declaredProperties.each { PropertyMetaData prop ->
-                prop.type = resolver.resolve(prop.type, classMetaData)
+                resolver.resolve(prop.type, classMetaData)
             }
             classMetaData.declaredMethods.each { MethodMetaData method ->
-                method.returnType = resolver.resolve(method.returnType, classMetaData)
+                resolver.resolve(method.returnType, classMetaData)
                 method.parameters.each { ParameterMetaData parameter ->
-                    parameter.type = resolver.resolve(parameter.type, classMetaData)
+                    resolver.resolve(parameter.type, classMetaData)
                 }
             }
         } catch (Exception e) {

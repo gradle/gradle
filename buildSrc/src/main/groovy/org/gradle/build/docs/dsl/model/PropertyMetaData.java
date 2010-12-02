@@ -19,7 +19,7 @@ import java.io.Serializable;
 import java.util.LinkedList;
 
 public class PropertyMetaData implements Serializable, LanguageElement {
-    private String type;
+    private TypeMetaData type;
     private boolean writeable;
     private String rawCommentText;
     private final String name;
@@ -39,11 +39,11 @@ public class PropertyMetaData implements Serializable, LanguageElement {
         return String.format("%s.%s", ownerClass, name);
     }
 
-    public String getType() {
+    public TypeMetaData getType() {
         return type;
     }
 
-    public void setType(String type) {
+    public void setType(TypeMetaData type) {
         this.type = type;
     }
 

@@ -17,6 +17,7 @@ package org.gradle.build.docs.dsl;
 
 import org.apache.commons.lang.StringUtils;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
+import org.gradle.build.docs.dsl.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 
 import java.util.HashSet;
@@ -42,8 +43,14 @@ public class TypeNameResolver {
     }
 
     /**
-     * Resolves a source type name into a fully qualified type name. Returns null if the type does not refer to a class
-     * to be documented.
+     * Resolves the names in the given type into fully qualified names.
+     */
+    public void resolve(TypeMetaData type, ClassMetaData classMetaData) {
+        type.setName(resolve(type.getName(), classMetaData));
+    }
+
+    /**
+     * Resolves a source type name into a fully qualified type name.
      */
     public String resolve(String name, ClassMetaData classMetaData) {
         if (primitiveTypes.contains(name)) {
