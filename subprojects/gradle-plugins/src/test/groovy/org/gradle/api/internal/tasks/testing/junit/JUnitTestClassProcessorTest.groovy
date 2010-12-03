@@ -51,7 +51,7 @@ class JUnitTestClassProcessorTest {
     private final JUnitTestClassProcessor processor = new JUnitTestClassProcessor(tmpDir.dir, new LongIdGenerator(), {} as StandardOutputRedirector);
 
     @Test
-    public void executesATestClass() {
+    public void executesAJUnit4TestClass() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
             will { TestDescriptorInternal suite, TestStartEvent event ->

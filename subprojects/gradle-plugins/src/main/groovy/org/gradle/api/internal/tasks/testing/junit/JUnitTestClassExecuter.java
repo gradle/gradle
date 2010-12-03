@@ -16,10 +16,7 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
-import junit.framework.JUnit4TestAdapter;
-import junit.framework.Test;
-import junit.framework.TestListener;
-import junit.framework.TestResult;
+import junit.framework.*;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;
@@ -75,6 +72,10 @@ public class JUnitTestClassExecuter {
                     Description.createSuiteDescription(String.format("initializationError(%s)", testClassName)), e);
         }
 
+        if (TestCase.class.isAssignableFrom(testClass)) {
+            // Use a TestSuite directly, so that we get access to the test object in JUnitTestResultProcessorAdapter
+            return new TestSuite(testClass.asSubclass(TestCase.class));
+        }
         return new JUnit4TestAdapter(testClass);
     }
 

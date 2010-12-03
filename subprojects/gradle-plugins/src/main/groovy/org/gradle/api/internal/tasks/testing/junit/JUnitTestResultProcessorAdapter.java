@@ -47,7 +47,7 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
     private void doStartTest(Test test, TestDescriptorInternal descriptor) {
         synchronized (lock) {
             TestDescriptorInternal oldTest = executing.put(test, descriptor);
-            assert oldTest == null;
+            assert oldTest == null : String.format("Unexpected start event for test '%s' (class %s)", test, test.getClass());
         }
         long startTime = timeProvider.getCurrentTime();
         resultProcessor.started(descriptor, new TestStartEvent(startTime));
@@ -77,7 +77,7 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
             TestSetup testSetup = (TestSetup) test;
             return new DefaultTestDescriptor(idGenerator.generateId(), testSetup.getClass().getName(), "classMethod");
         }
-        assert test instanceof TestSuite : String.format("Should be TestSuite, is " + test.getClass());
+        assert test instanceof TestSuite : String.format("Unexpected type for test '%s'. Should be TestSuite, is %s", test, test.getClass());
         TestSuite suite = (TestSuite) test;
         return new DefaultTestMethodDescriptor(idGenerator.generateId(), suite.getName(), "classMethod");
     }
@@ -91,7 +91,7 @@ public class JUnitTestResultProcessorAdapter implements TestListener {
         TestDescriptorInternal testInternal;
         synchronized (lock) {
             testInternal = executing.remove(test);
-            assert testInternal != null;
+            assert testInternal != null : String.format("Unexpected end event for test '%s' (class %s)", test, test.getClass());
         }
         resultProcessor.completed(testInternal.getId(), new TestCompleteEvent(endTime));
     }

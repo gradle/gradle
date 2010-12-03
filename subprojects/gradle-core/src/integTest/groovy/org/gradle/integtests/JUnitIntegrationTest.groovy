@@ -54,6 +54,21 @@ public class JUnitIntegrationTest {
     }
 
     @Test
+    public void canRunJunit3Tests() {
+        executer.withTasks('check').withArguments('-PjunitVersion=4.8.1').run()
+
+        JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.Test1')
+        result.testClass('org.gradle.Test1').assertTestPassed('testRenamesItself')
+
+        executer.withTasks('clean', 'check').withArguments('-PjunitVersion=3.8').run()
+
+        result = new JUnitTestExecutionResult(dist.testDir)
+        result.assertTestClassesExecuted('org.gradle.Test1')
+        result.testClass('org.gradle.Test1').assertTestPassed('testRenamesItself')
+    }
+
+    @Test
     public void reportsAndBreaksBuildWhenTestFails() {
         TestFile testDir = dist.getTestDir();
         TestFile buildFile = testDir.file('build.gradle');
