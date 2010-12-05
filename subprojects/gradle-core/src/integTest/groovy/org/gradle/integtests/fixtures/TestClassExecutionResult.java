@@ -32,7 +32,7 @@ public interface TestClassExecutionResult {
     /**
      * Asserts that the given test failed.
      */
-    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String> messageMatcher);
+    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers);
 
     /**
      * Asserts that the given config method passed.

@@ -94,22 +94,22 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
                     DateUtils.ISO8601_DATETIME_PATTERN));
             rootElement.setAttribute(XMLConstants.HOSTNAME, hostName);
             Element stdoutElement = testSuiteReport.createElement(XMLConstants.SYSTEM_OUT);
-            stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(
-                    TestOutputEvent.Destination.StdOut).toString()));
+            stdoutElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdOut)
+                    .toString()));
             rootElement.appendChild(stdoutElement);
             Element stderrElement = testSuiteReport.createElement(XMLConstants.SYSTEM_ERR);
-            stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(
-                    TestOutputEvent.Destination.StdErr).toString()));
+            stderrElement.appendChild(testSuiteReport.createCDATASection(outputs.get(TestOutputEvent.Destination.StdErr)
+                    .toString()));
             rootElement.appendChild(stderrElement);
         }
 
         element.setAttribute(XMLConstants.ATTR_TIME, String.valueOf(state.getExecutionTime() / 1000.0));
-        if (state.failure != null) {
-            Element failure = testSuiteReport.createElement(XMLConstants.FAILURE);
-            element.appendChild(failure);
-            failure.setAttribute(XMLConstants.ATTR_MESSAGE, failureMessage(state));
-            failure.setAttribute(XMLConstants.ATTR_TYPE, state.failure.getClass().getName());
-            failure.appendChild(testSuiteReport.createTextNode(stackTrace(state)));
+        for (Throwable failure : state.failures) {
+            Element failureElement = testSuiteReport.createElement(XMLConstants.FAILURE);
+            element.appendChild(failureElement);
+            failureElement.setAttribute(XMLConstants.ATTR_MESSAGE, failureMessage(failure));
+            failureElement.setAttribute(XMLConstants.ATTR_TYPE, failure.getClass().getName());
+            failureElement.appendChild(testSuiteReport.createTextNode(stackTrace(failure)));
         }
 
         if (state.equals(testSuite)) {
@@ -130,11 +130,11 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         }
     }
 
-    private String stackTrace(TestState state) {
+    private String stackTrace(Throwable throwable) {
         try {
             StringWriter stringWriter = new StringWriter();
             PrintWriter writer = new PrintWriter(stringWriter);
-            state.failure.printStackTrace(writer);
+            throwable.printStackTrace(writer);
             writer.close();
             return stringWriter.toString();
         } catch (Throwable t) {
@@ -146,12 +146,12 @@ public class JUnitXmlReportGenerator extends StateTrackingTestResultProcessor {
         }
     }
 
-    private String failureMessage(TestState state) {
+    private String failureMessage(Throwable throwable) {
         try {
-            return state.failure.toString();
+            return throwable.toString();
         } catch (Throwable t) {
             return String.format("Could not determine failure message for exception of type %s: %s",
-                    state.failure.getClass().getName(), t);
+                    throwable.getClass().getName(), t);
         }
     }
 

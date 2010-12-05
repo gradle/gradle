@@ -13,27 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
-
-
-
 package org.gradle.api.internal.tasks.testing.results
 
+import org.gradle.api.internal.tasks.testing.TestCompleteEvent
+import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
+import org.gradle.api.internal.tasks.testing.TestStartEvent
+import org.gradle.api.tasks.testing.TestDescriptor
 import org.gradle.api.tasks.testing.TestListener
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.api.tasks.testing.TestResult.ResultType
 import org.gradle.util.JUnit4GroovyMockery
 import org.jmock.integration.junit4.JMock
 import org.junit.Test
 import org.junit.runner.RunWith
-import static org.junit.Assert.*
+import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
-import org.gradle.api.tasks.testing.TestResult.ResultType
-import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
-import org.gradle.api.internal.tasks.testing.TestStartEvent
-import org.gradle.api.internal.tasks.testing.TestCompleteEvent
-import org.gradle.api.tasks.testing.TestDescriptor
+import static org.junit.Assert.*
 
 @RunWith(JMock.class)
 class TestListenerAdapterTest {
@@ -55,6 +50,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(test))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
                 assertThat(result.testCount, equalTo(1L))
@@ -84,6 +81,7 @@ class TestListenerAdapterTest {
                 assertThat(t.descriptor, equalTo(test))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.exception, sameInstance(failure))
+                assertThat(result.exceptions, equalTo([failure]))
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
                 assertThat(result.testCount, equalTo(1L))
@@ -94,6 +92,39 @@ class TestListenerAdapterTest {
 
         adapter.started(test, new TestStartEvent(100L))
         adapter.failure('id', failure)
+        adapter.completed('id', new TestCompleteEvent(200L))
+    }
+
+    @Test
+    public void createsAResultForATestWithMultipleFailures() {
+        RuntimeException failure1 = new RuntimeException()
+        RuntimeException failure2 = new RuntimeException()
+
+        TestDescriptorInternal test = test('id')
+
+        context.checking {
+            one(listener).beforeTest(withParam(notNullValue()))
+            will { TestDescriptor t ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(t.parent, nullValue())
+            }
+            one(listener).afterTest(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptor t, TestResult result ->
+                assertThat(t.descriptor, equalTo(test))
+                assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.exception, sameInstance(failure1))
+                assertThat(result.exceptions, equalTo([failure1, failure2]))
+                assertThat(result.startTime, equalTo(100L))
+                assertThat(result.endTime, equalTo(200L))
+                assertThat(result.testCount, equalTo(1L))
+                assertThat(result.successfulTestCount, equalTo(0L))
+                assertThat(result.failedTestCount, equalTo(1L))
+            }
+        }
+
+        adapter.started(test, new TestStartEvent(100L))
+        adapter.failure('id', failure1)
+        adapter.failure('id', failure2)
         adapter.completed('id', new TestCompleteEvent(200L))
     }
 
@@ -111,6 +142,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(test))
                 assertThat(result.resultType, equalTo(ResultType.SKIPPED))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
                 assertThat(result.testCount, equalTo(1L))
@@ -137,6 +170,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.startTime, equalTo(100L))
                 assertThat(result.endTime, equalTo(200L))
                 assertThat(result.testCount, equalTo(0L))
@@ -173,6 +208,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(1L))
                 assertThat(result.failedTestCount, equalTo(0L))
@@ -213,6 +250,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.testCount, equalTo(2L))
                 assertThat(result.successfulTestCount, equalTo(1L))
                 assertThat(result.failedTestCount, equalTo(1L))
@@ -249,6 +288,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(0L))
                 assertThat(result.failedTestCount, equalTo(0L))
@@ -281,6 +322,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(suite1))
                 assertThat(result.resultType, equalTo(ResultType.SUCCESS))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(1L))
                 assertThat(result.failedTestCount, equalTo(0L))
@@ -289,6 +332,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(suite2))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.testCount, equalTo(1L))
                 assertThat(result.successfulTestCount, equalTo(0L))
                 assertThat(result.failedTestCount, equalTo(1L))
@@ -297,6 +342,8 @@ class TestListenerAdapterTest {
             will { TestDescriptor t, TestResult result ->
                 assertThat(t.descriptor, equalTo(root))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
+                assertThat(result.exception, nullValue())
+                assertThat(result.exceptions, isEmpty())
                 assertThat(result.testCount, equalTo(2L))
                 assertThat(result.successfulTestCount, equalTo(1L))
                 assertThat(result.failedTestCount, equalTo(1L))
@@ -331,6 +378,7 @@ class TestListenerAdapterTest {
                 assertThat(t.descriptor, equalTo(suite))
                 assertThat(result.resultType, equalTo(ResultType.FAILURE))
                 assertThat(result.exception, sameInstance(failure))
+                assertThat(result.exceptions, equalTo([failure]))
             }
         }
 

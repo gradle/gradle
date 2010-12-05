@@ -19,7 +19,9 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.api.tasks.testing.TestResult;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public abstract class StateTrackingTestResultProcessor implements TestResultProcessor {
@@ -57,7 +59,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
             throw new IllegalArgumentException(String.format("Received a failure event for test with unknown id '%s'.",
                     testId));
         }
-        testState.failure = result;
+        testState.failures.add(result);
     }
 
     public void output(Object testId, TestOutputEvent event) {
@@ -74,7 +76,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         public final TestDescriptorInternal test;
         final TestStartEvent startEvent;
         public boolean failedChild;
-        public Throwable failure;
+        public List<Throwable> failures = new ArrayList<Throwable>();
         public long testCount;
         public long successfulCount;
         public long failedCount;
@@ -87,7 +89,7 @@ public abstract class StateTrackingTestResultProcessor implements TestResultProc
         }
 
         public boolean isFailed() {
-            return failedChild || failure != null;
+            return failedChild || !failures.isEmpty();
         }
 
         public long getStartTime() {

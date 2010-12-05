@@ -81,6 +81,7 @@ public class JUnitIntegrationTest {
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenTest FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBefore FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfter FAILED'));
+        assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBeforeAndAfter FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenBeforeClass FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenAfterClass FAILED'));
         assertThat(failure.getError(), containsLine('Test org.gradle.BrokenConstructor FAILED'));
@@ -94,6 +95,7 @@ public class JUnitIntegrationTest {
                 'org.gradle.BrokenAfter',
                 'org.gradle.BrokenBeforeClass',
                 'org.gradle.BrokenAfterClass',
+                'org.gradle.BrokenBeforeAndAfter',
                 'org.gradle.BrokenConstructor',
                 'org.gradle.BrokenException',
                 'org.gradle.Unloadable')
@@ -103,6 +105,7 @@ public class JUnitIntegrationTest {
         result.testClass('org.gradle.BrokenAfterClass').assertTestFailed('classMethod', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenBefore').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
+        result.testClass('org.gradle.BrokenBeforeAndAfter').assertTestFailed('ok', equalTo('java.lang.AssertionError: before failed'), equalTo('java.lang.AssertionError: after failed'))
         result.testClass('org.gradle.BrokenConstructor').assertTestFailed('ok', equalTo('java.lang.AssertionError: failed'))
         result.testClass('org.gradle.BrokenException').assertTestFailed('broken', startsWith('Could not determine failure message for exception of type org.gradle.BrokenException$BrokenRuntimeException: '))
         result.testClass('org.gradle.Unloadable').assertTestFailed('initializationError', equalTo('java.lang.AssertionError: failed'))
@@ -299,7 +302,7 @@ public class JUnitIntegrationTest {
                 void beforeSuite(TestDescriptor suite) { println "START [$suite] [$suite.name]" }
                 void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [$suite] [$suite.name] [$result.resultType] [$result.testCount]" }
                 void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
-                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.testCount] [$result.error]" }
+                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.resultType] [$result.testCount] [$result.exception]" }
             }
         '''
 
@@ -347,7 +350,7 @@ public class JUnitIntegrationTest {
                 void beforeSuite(TestDescriptor suite) { println "START [$suite] [$suite.name]" }
                 void afterSuite(TestDescriptor suite, TestResult result) { println "FINISH [$suite] [$suite.name]" }
                 void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
-                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
+                void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.exception]" }
             }
         '''
 

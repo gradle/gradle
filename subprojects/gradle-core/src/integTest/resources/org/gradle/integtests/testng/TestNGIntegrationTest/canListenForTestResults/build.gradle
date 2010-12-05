@@ -16,5 +16,5 @@ class TestListenerImpl implements TestListener {
 
     void beforeTest(TestDescriptor test) { println "START [$test] [$test.name]" }
 
-    void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.error]" }
+    void afterTest(TestDescriptor test, TestResult result) { println "FINISH [$test] [$test.name] [$result.exception]" }
 }

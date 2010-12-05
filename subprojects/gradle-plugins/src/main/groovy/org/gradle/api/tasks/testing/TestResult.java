@@ -16,6 +16,8 @@
 
 package org.gradle.api.tasks.testing;
 
+import java.util.List;
+
 /**
  * Describes a test result.
  */
@@ -23,7 +25,9 @@ public interface TestResult {
     /**
      * The final status of a test.
      */
-    public enum ResultType {SUCCESS, FAILURE, SKIPPED}
+    public enum ResultType {
+        SUCCESS, FAILURE, SKIPPED
+    }
 
     /**
      * Returns the type of result.  Generally one wants it to be SUCCESS!
@@ -34,13 +38,19 @@ public interface TestResult {
 
     /**
      * If the test failed with an exception, this will be the exception.  Some test frameworks do not fail without an
-     * exception (JUnit), so in those cases this method will never return null.  If the resultType is not FAILURE an
-     * IllegalStateException is thrown.
+     * exception (JUnit), so in those cases this method will never return null.
      *
      * @return The exception, if any, logged for this test.  If none, a null is returned.
-     * @throws IllegalStateException If the result type is anything other than FAILURE.
      */
-    Throwable getException(); // throws exception if type !=  FAILURE
+    Throwable getException();
+
+    /**
+     * If the test failed with any exceptions, this will contain the exceptions.  Some test frameworks do not fail
+     * without an exception (JUnit), so in those cases this method will never return null.
+     *
+     * @return The exceptions, if any, logged for this test.  If none, an empty list is returned.
+     */
+    List<Throwable> getExceptions();
 
     /**
      * Returns the time when this test started execution.

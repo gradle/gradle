@@ -39,7 +39,7 @@ public class TestListenerAdapter extends StateTrackingTestResultProcessor {
 
     @Override
     protected void completed(TestState state) {
-        TestResult result = new DefaultTestResult(state.resultType, state.failure, state.getStartTime(),
+        TestResult result = new DefaultTestResult(state.resultType, state.failures, state.getStartTime(),
                 state.getEndTime(), state.testCount, state.successfulCount, state.failedCount);
         TestDescriptorInternal test = state.test;
         if (test.isComposite()) {

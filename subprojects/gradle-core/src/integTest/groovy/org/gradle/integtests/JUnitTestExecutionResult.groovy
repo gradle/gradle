@@ -87,12 +87,16 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
         this
     }
 
-    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String> messageMatcher) {
+    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         Map<String, Node> testMethods = findTests()
         assertThat(testMethods.keySet(), hasItem(name))
-        assertThat(testMethods[name].failure.size(), equalTo(1))
-        def failure = testMethods[name].failure[0]
-        assertThat(failure.@message.text(), messageMatcher)
+
+        def failures = testMethods[name].failure
+        assertThat("Expected ${messageMatchers.length} failures. Found: $failures", failures.size(), equalTo(messageMatchers.length))
+
+        for (int i = 0; i < messageMatchers.length; i++) {
+            assertThat(failures[i].@message.text(), messageMatchers[i])
+        }
         this
     }
 
@@ -131,7 +135,6 @@ class JUnitTestClassExecutionResult implements TestClassExecutionResult {
                 assertThat(node.@classname.text(), equalTo(testClassName))
                 assertThat(node.@name.text(), not(equalTo('')))
                 assertThat(node.@time.text(), not(equalTo('')))
-                assertThat(node.failure.size(), not(greaterThan(1)))
                 node.failure.each { failure ->
                     assertThat(failure.@message.size(), equalTo(1))
                     assertThat(failure.@type.text(), not(equalTo('')))

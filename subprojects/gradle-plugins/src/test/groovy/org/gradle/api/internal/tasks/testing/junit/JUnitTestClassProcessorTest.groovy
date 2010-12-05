@@ -13,9 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
-
-
 package org.gradle.api.internal.tasks.testing.junit
 
 import junit.framework.TestCase
@@ -42,6 +39,7 @@ import static org.junit.Assert.*
 import org.gradle.logging.StandardOutputRedirector
 import org.junit.BeforeClass
 import junit.extensions.TestSetup
+import org.junit.After
 
 @RunWith(JMock.class)
 class JUnitTestClassProcessorTest {
@@ -338,6 +336,35 @@ class JUnitTestClassProcessorTest {
     }
 
     @Test
+    public void executesATestClassWithBrokenBeforeAndAfterMethod() {
+        context.checking {
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal suite ->
+                assertThat(suite.name, equalTo(ATestClassWithBrokenBeforeAndAfterMethod.class.name))
+            }
+            one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
+            will { TestDescriptorInternal test ->
+                assertThat(test.name, equalTo('test'))
+                assertThat(test.className, equalTo(ATestClassWithBrokenBeforeAndAfterMethod.class.name))
+            }
+            one(resultProcessor).failure(2L, ATestClassWithBrokenBeforeAndAfterMethod.beforeFailure)
+            one(resultProcessor).failure(2L, ATestClassWithBrokenBeforeAndAfterMethod.afterFailure)
+            one(resultProcessor).completed(withParam(equalTo(2L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+            one(resultProcessor).completed(withParam(equalTo(1L)), withParam(notNullValue()))
+            will { id, TestCompleteEvent event ->
+                assertThat(event.resultType, nullValue())
+            }
+        }
+
+        processor.startProcessing(resultProcessor);
+        processor.processTestClass(testClass(ATestClassWithBrokenBeforeAndAfterMethod.class));
+        processor.stop();
+    }
+
+    @Test
     public void executesATestClassWithBrokenConstructor() {
         context.checking {
             one(resultProcessor).started(withParam(notNullValue()), withParam(notNullValue()))
@@ -495,6 +522,25 @@ public class ATestClassWithBrokenBeforeMethod {
     @Before
     public void setup() {
         throw failure.fillInStackTrace()
+    }
+
+    @Test
+    public void test() {
+    }
+}
+
+public class ATestClassWithBrokenBeforeAndAfterMethod {
+    static RuntimeException beforeFailure = new RuntimeException()
+    static RuntimeException afterFailure = new RuntimeException()
+
+    @Before
+    public void setup() {
+        throw beforeFailure.fillInStackTrace()
+    }
+
+    @After
+    public void teardown() {
+        throw afterFailure.fillInStackTrace()
     }
 
     @Test

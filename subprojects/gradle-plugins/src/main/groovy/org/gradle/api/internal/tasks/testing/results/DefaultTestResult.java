@@ -19,9 +19,10 @@ package org.gradle.api.internal.tasks.testing.results;
 import org.gradle.api.tasks.testing.TestResult;
 
 import java.io.Serializable;
+import java.util.List;
 
 public class DefaultTestResult implements TestResult, Serializable {
-    private final Throwable error;
+    private final List<Throwable> failures;
     private final ResultType result;
     private final long startTime;
     private final long endTime;
@@ -29,8 +30,8 @@ public class DefaultTestResult implements TestResult, Serializable {
     private final long successfulCount;
     private final long failedCount;
 
-    public DefaultTestResult(ResultType result, Throwable error, long startTime, long endTime, long testCount, long successfulCount, long failedCount) {
-        this.error = error;
+    public DefaultTestResult(ResultType result, List<Throwable> failures, long startTime, long endTime, long testCount, long successfulCount, long failedCount) {
+        this.failures = failures;
         this.result = result;
         this.startTime = startTime;
         this.endTime = endTime;
@@ -44,10 +45,11 @@ public class DefaultTestResult implements TestResult, Serializable {
     }
 
     public Throwable getException() {
-        if (result != ResultType.FAILURE) {
-            throw new IllegalStateException("No exception to return");
-        }
-        return error;
+        return failures.isEmpty() ? null : failures.get(0);
+    }
+
+    public List<Throwable> getExceptions() {
+        return failures;
     }
 
     public long getStartTime() {

@@ -89,10 +89,16 @@ private class TestNgTestClassExecutionResult implements TestClassExecutionResult
         this
     }
 
-    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String> messageMatcher) {
+    TestClassExecutionResult assertTestFailed(String name, Matcher<? super String>... messageMatchers) {
         def testMethodNode = findTestMethod(name)
         assertEquals('FAIL', testMethodNode.@status as String)
-        assertThat(testMethodNode.exception[0].message[0].text().trim(), messageMatcher)
+
+        def exceptions = testMethodNode.exception
+        assertThat(exceptions.size(), equalTo(messageMatchers.length))
+
+        for (int i = 0; i < messageMatchers.length; i++) {
+            assertThat(exceptions[i].message[0].text().trim(), messageMatchers[i])
+        }
         this
     }
 
