@@ -9,26 +9,67 @@
             <para>This reference guide is under construction.</para>
         </note>
         <para>This reference guide describes the various types which make up the Gradle build language, or DSL.</para>
+    </section>
 
-        <!--
-        -
-        - To add more types to this guide, add them to one of the following tables. The contents of
-        - ${classname}.xml for each type listed below is then included in the guide.
-        -
-        -->
+    <section>
+        <title>Some basics</title>
+        <para>There are a few basic concepts which you should understand, which will help you write Gradle scripts.</para>
+
+        <para>First, Gradle scripts are <firstterm>configuration scripts</firstterm>. As the script executes, it
+            configures an object of a particular type. For example, as a build script executes, it configures an
+            object of type <apilink class="org.gradle.api.Project"/>. This object is called the <firstterm>delegate object</firstterm>
+            of the script. The following table shows the delegate for each type of Gradle script.
+        </para>
 
         <table>
-            <title>Core types</title>
+            <title>Script delegates</title>
+            <thead>
+                <tr>
+                    <td>Type of script</td>
+                    <td>Delegates to instance of</td>
+                </tr>
+            </thead>
             <tr>
-                <td>org.gradle.api.Project</td>
+                <td>Build script</td>
+                <td>
+                    <apilink class="org.gradle.api.Project"/>
+                </td>
             </tr>
             <tr>
-                <td>org.gradle.api.tasks.SourceSet</td>
+                <td>Init script</td>
+                <td>
+                    <apilink class="org.gradle.api.invocation.Gradle"/>
+                </td>
+            </tr>
+            <tr>
+                <td>Settings script</td>
+                <td>
+                    <apilink class="org.gradle.api.initialization.Settings"/>
+                </td>
             </tr>
         </table>
 
+        <para>The properties and methods of the delegate object are available for you to use in the script.</para>
+
+        <para>Second, each Gradle script implements the <apilink class="org.gradle.api.Script"/> interface. This
+            interface defines a number of properties and methods which you can use in the script.
+        </para>
+    </section>
+
+    <!--
+      -
+      - To add more types to this guide, add them to one of the following tables. The contents of
+      - ${classname}.xml for each type listed below is then included in the guide.
+      -
+      -->
+
+    <section>
+        <title>Build script structure</title>
+        <para>A build script is made up of zero or more statements and blocks. Statements can include method calls
+            or property assignments. Being a Groovy script, a build script can also contain method and class definitions.
+            The blocks are listed below:</para>
         <table>
-            <title>Script blocks</title>
+            <title>Build script blocks</title>
             <tr>
                 <td>allprojects</td>
             </tr>
@@ -51,7 +92,34 @@
                 <td>subprojects</td>
             </tr>
         </table>
+    </section>
 
+    <section>
+        <title>Core types</title>
+        <para>Listed below are some of the central types which are used in Gradle scripts:</para>
+        <table>
+            <title>Core types</title>
+            <tr>
+                <td>org.gradle.api.Project</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.invocation.Gradle</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.initialization.Settings</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.Script</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.tasks.SourceSet</td>
+            </tr>
+        </table>
+    </section>
+
+    <section>
+        <title>Task types</title>
+        <para>Listed below are the various task types which are available for use in your build script:</para>
         <table>
             <title>Task types</title>
             <tr>

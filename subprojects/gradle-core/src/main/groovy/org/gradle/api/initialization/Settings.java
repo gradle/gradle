@@ -23,7 +23,7 @@ import org.gradle.api.invocation.Gradle;
 import java.io.File;
 
 /**
- * <p><code>Settings</code> declares the configuration required to instantiate and evaluate the hierarchy of {@link
+ * <p>Declares the configuration required to instantiate and configure the hierarchy of {@link
  * org.gradle.api.Project} instances which are to participate in a build.</p>
  *
  * <p>There is a one-to-one correspondence between a <code>Settings</code> instance and a <code>{@value

@@ -88,7 +88,7 @@ class AssembleDslDocTask extends DefaultTask {
                 Map<String, ExtensionMetaData> extensions = loadPluginsMetaData()
                 DslDocModel model = new DslDocModel(classDocbookDir, document, classpath, classRepository, extensions)
                 def root = document.documentElement
-                root.section[0].table.each { Element table ->
+                root.section.table.each { Element table ->
                     mergeContent(table, model, linkRepository)
                 }
             }
@@ -118,14 +118,17 @@ class AssembleDslDocTask extends DefaultTask {
     }
 
     def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
-        typeTable['@role'] = 'dslTypes'
         def title = typeTable.title[0].text()
 
         if (title.matches('(?i).* types')) {
             mergeTypes(typeTable, model, linkRepository)
         } else if (title.matches('(?i).* blocks')) {
             mergeBlocks(typeTable, model)
+        } else {
+            return
         }
+
+        typeTable['@role'] = 'dslTypes'
     }
 
     def mergeBlocks(Element blocksTable, DslDocModel model) {

@@ -25,10 +25,9 @@ import org.gradle.api.execution.TaskExecutionGraph;
 import java.io.File;
 
 /**
- * <p>A {@code Gradle} represents an invocation of Gradle.</p>
+ * <p>Represents an invocation of Gradle.</p>
  *
- * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}. In your build file you can use
- * {@code gradle} to access it.</p>
+ * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
  */
 public interface Gradle {
     /**
@@ -182,7 +181,7 @@ public interface Gradle {
      *
      * <li>{@link org.gradle.api.logging.StandardOutputListener}
      *
-     * <li>org.gradle.api.tasks.testing.TestListener
+     * <li>{@link org.gradle.api.tasks.testing.TestListener}
      *
      * </ul>
      *

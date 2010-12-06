@@ -32,9 +32,9 @@ import java.net.URI;
 import java.util.Map;
 
 /**
- * <p>The base class for all scripts executed by Gradle. This is a extension to the Groovy {@code Script} class, which
- * adds in some Gradle-specific methods. As your compiled script class will implement this interface, you can use the
- * methods and properties declared here directly in your script.</p>
+ * <p>This interface is implemented by all Gradle scripts to add in some Gradle-specific methods. As your compiled
+ * script class will implement this interface, you can use the methods and properties declared by this interface
+ * directly in your script.</p>
  *
  * <p>Generally, a {@code Script} object will have a delegate object attached to it. For example, a build script will
  * have a {@link Project} instance attached to it, and an initialization script will have a {@link
