@@ -29,7 +29,8 @@ import java.util.TreeSet;
 
 /**
  * Displays the dependency tree for a project. Can be configured to output to a file, and to optionally output a
- * graphviz compatible "dot" graph. This task is used when you execute the dependency list command-line option.
+ * graphviz compatible "dot" graph. An instance of this type is used when you execute the {@code dependencies} task from
+ * the command-line.
  *
  * @author Phil Messenger
  */
@@ -51,12 +52,11 @@ public class DependencyReportTask extends AbstractReportTask {
     }
 
     public void generate(Project project) throws IOException {
-        SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(
-                new Comparator<Configuration>() {
-                    public int compare(Configuration conf1, Configuration conf2) {
-                        return conf1.getName().compareTo(conf2.getName());
-                    }
-                });
+        SortedSet<Configuration> sortedConfigurations = new TreeSet<Configuration>(new Comparator<Configuration>() {
+            public int compare(Configuration conf1, Configuration conf2) {
+                return conf1.getName().compareTo(conf2.getName());
+            }
+        });
         sortedConfigurations.addAll(getConfigurations(project));
         for (Configuration configuration : sortedConfigurations) {
             renderer.startConfiguration(configuration);

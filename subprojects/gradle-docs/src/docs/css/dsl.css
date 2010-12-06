@@ -29,12 +29,15 @@
 
 .sidebar li.sidebarHeading {
     margin-top: 1.4em;
-    color: #808080;
+    margin-bottom: 0.4em;
+    font-weight: bold;
+    color: #505050;
 }
 
 .sidebar li.selected {
     font-weight: bold;
     color: #505050;
+    font-size: 110%;
 }
 
 .sidebar ul.sections {

@@ -19,8 +19,8 @@ import groovy.xml.dom.DOMCategory
 import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.gradle.build.docs.dsl.model.MethodMetaData
+import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.gradle.build.docs.dsl.model.TypeMetaData
 
 class ClassDocTest extends XmlSpecification {
@@ -98,7 +98,7 @@ class ClassDocTest extends XmlSpecification {
         _ * javadocConverter.parse(inherited2MetaData) >> ({[document.createTextNode('inherited2 comment')]} as DocComment)
         _ * superClassDoc.propertiesTable >> parse('<table><tr><td>inherited1</td></tr><tr><td>inherited2</td></tr></table>')
     }
-    
+
     def mergesMethodSignatureAndDescriptionIntoMethodsTable() {
         ClassMetaData classMetaData = Mock()
         MethodMetaData method1 = Mock()

@@ -1045,9 +1045,10 @@ public interface Project extends Comparable<Project> {
     ConfigurationContainer getConfigurations();
 
     /**
-     * Configures the dependency configurations for this project. Executes the given closure against the {@link
-     * org.gradle.api.artifacts.ConfigurationContainer} for this project. The {@link
-     * org.gradle.api.artifacts.ConfigurationContainer} is passed to the closure as the closure's delegate.
+     * <p>Configures the dependency configurations for this project.
+     *
+     * <p>This method executes the given closure against the {@link ConfigurationContainer} for this project. The {@link
+     * ConfigurationContainer} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the dependency configurations.
      */
@@ -1059,9 +1060,10 @@ public interface Project extends Comparable<Project> {
     ArtifactHandler getArtifacts();
 
     /**
-     * Configures the published artifacts for this project. Executes the given closure against the {@link
-     * ArtifactHandler} for this project. The {@link ArtifactHandler} is passed to the closure as the closure's
-     * delegate.
+     * <p>Configures the published artifacts for this project.
+     *
+     * <p>This method executes the given closure against the {@link ArtifactHandler} for this project. The {@link
+     * ArtifactHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the published artifacts.
      */
@@ -1100,32 +1102,40 @@ public interface Project extends Comparable<Project> {
     TaskContainer getTasks();
 
     /**
-     * <p>Executes the given {@link Action} against the subprojects of this project.</p>
+     * <p>Configures the sub-projects of this project</p>
+     *
+     * <p>This method executes the given {@link Action} against the sub-projects of this project.</p>
      *
      * @param action The action to execute.
      */
     void subprojects(Action<? super Project> action);
 
     /**
-     * <p>Executes the given closure against each of the sub-projects of this project. The target project is passed to
-     * the closure as the closure's delegate.</p>
+     * <p>Configures the sub-projects of this project.</p>
      *
-     * @param configureClosure The closure to execute. The closure receives no parameters.
+     * <p>This method executes the given closure against each of the sub-projects of this project. The target {@link
+     * Project} is passed to the closure as the closure's delegate.</p>
+     *
+     * @param configureClosure The closure to execute.
      */
     void subprojects(Closure configureClosure);
 
     /**
-     * <p>Executes the given {@link Action} against this project and its subprojects.</p>
+     * <p>Configures this project and each of its sub-projects.</p>
+     *
+     * <p>This method executes the given {@link Action} against this project and each of its sub-projects.</p>
      *
      * @param action The action to execute.
      */
     void allprojects(Action<? super Project> action);
 
     /**
-     * <p>Executes the given closure against this project and its sub-projects. The target project is passed to the
-     * closure as the closure's delegate.</p>
+     * <p>Configures this project and each of its sub-projects.</p>
      *
-     * @param configureClosure The closure to execute. The closure receives no parameters.
+     * <p>This method executes the given closure against this project and its sub-projects. The target {@link Project}
+     * is passed to the closure as the closure's delegate.</p>
+     *
+     * @param configureClosure The closure to execute.
      */
     void allprojects(Closure configureClosure);
 
@@ -1309,8 +1319,10 @@ public interface Project extends Comparable<Project> {
     RepositoryHandler getRepositories();
 
     /**
-     * Configures the repositories for this project. Executes the given closure against the {@link RepositoryHandler}
-     * for this project. The {@link RepositoryHandler} is passed to the closure as the closure's delegate.
+     * <p>Configures the repositories for this project.
+     *
+     * <p>This method executes the given closure against the {@link RepositoryHandler} for this project. The {@link
+     * RepositoryHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the repositories.
      */
@@ -1334,8 +1346,10 @@ public interface Project extends Comparable<Project> {
     DependencyHandler getDependencies();
 
     /**
-     * Configures the dependencies for this project. Executes the given closure against the {@link DependencyHandler}
-     * for this project. The {@link DependencyHandler} is passed to the closure as the closure's delegate.
+     * <p>Configures the dependencies for this project.
+     *
+     * <p>This method executes the given closure against the {@link DependencyHandler} for this project. The {@link
+     * DependencyHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the dependencies.
      */
@@ -1358,15 +1372,17 @@ public interface Project extends Comparable<Project> {
     ScriptHandler getBuildscript();
 
     /**
-     * Configures the build script classpath for this project. The given closure is executed against this project's
-     * {@link ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
+     * <p>Configures the build script classpath for this project.
+     *
+     * <p>The given closure is executed against this project's {@link ScriptHandler}. The {@link ScriptHandler} is
+     * passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the build script classpath.
      */
     void buildscript(Closure configureClosure);
 
     /**
-     * Copy the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to copy
+     * Copies the specified files.  The given closure is used to configure a {@link CopySpec}, which is then used to copy
      * the files. Example:
      * <pre>
      * copy {

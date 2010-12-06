@@ -33,7 +33,7 @@ import java.util.Collection;
 import java.util.List;
 
 /**
- * Compiles Groovy and Java source files.
+ * Compiles Groovy source files, and optionally, Java source files.
  *
  * @author Hans Dockter
  */

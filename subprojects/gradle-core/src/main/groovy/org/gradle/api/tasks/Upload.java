@@ -28,7 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 
 /**
- * Uploads the artifacts of a configuration to a set of repositories.
+ * Uploads the artifacts of a {@link Configuration} to a set of repositories.
  * 
  * @author Hans Dockter
  */

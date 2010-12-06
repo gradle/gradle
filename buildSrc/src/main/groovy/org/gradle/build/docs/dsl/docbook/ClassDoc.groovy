@@ -162,12 +162,20 @@ class ClassDoc {
                 String signature = method.signature
                 row.td[0].children = { literal(methodName) }
                 row.td[0].addAfter { td() }
-                javadocConverter.parse(method).docbook.each { node ->
+                def comment = javadocConverter.parse(method).docbook
+                comment.each { node ->
                     row.td[1] << node
                 }
                 row.td[1].addAfter {
                     td {
                         literal(signature)
+                    }
+                }
+
+                methodsTable.addAfter {
+                    section(id: signature) {
+                        title(signature)
+                        comment.each { node -> appendChild(node) }
                     }
                 }
             }
@@ -230,5 +238,16 @@ class ClassDoc {
             throw new RuntimeException("Docbook content for $className does not contain a description paragraph.")
         }
         return paras[0]
+    }
+
+    BlockDoc getBlock(String name) {
+        def method = classMetaData.declaredMethods.find { it.name == name && it.parameters.size() == 1 && it.parameters[0].type.signature == Closure.class.name }
+        if (!method) {
+            throw new RuntimeException("Class $className does not have a script block '$name'.")
+        }
+
+        Element description = javadocConverter.parse(method).docbook.find { Element e -> e.nodeName == 'para' }
+
+        return new BlockDoc(method.signature, description)
     }
 }

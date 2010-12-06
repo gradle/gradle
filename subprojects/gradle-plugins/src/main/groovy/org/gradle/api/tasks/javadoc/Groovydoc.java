@@ -27,10 +27,12 @@ import java.io.File;
 import java.util.*;
 
 /**
- * Generates HTML API documentation for Groovy and Java classes. It uses Groovy's Groovydoc tool for this. Please note that the
- * Groovydoc tool has some severe limitations at the moment (for example no doc for properties comments). The version of
- * the Groovydoc that is used, is the one from the Groovy defined in the build script. Please note also, that the
- * Groovydoc tool prints to System.out for many of its statements and does circumvents our logging currently.
+ * <p>Generates HTML API documentation for Groovy source, and optionally, Java source.
+ *
+ * <p>This task uses Groovy's Groovydoc tool to generate the API documentation. Please note that the Groovydoc tool has
+ * some severe limitations at the moment (for example no doc for properties comments). The version of the Groovydoc that
+ * is used, is the one from the Groovy defined in the build script. Please note also, that the Groovydoc tool prints to
+ * System.out for many of its statements and does circumvents our logging currently.
  *
  * @author Hans Dockter
  */
@@ -238,7 +240,7 @@ public class Groovydoc extends SourceTask {
      * Sets links to groovydoc/javadoc output at the given URL.
      *
      * @param links The links to set
-     * @see #link(String, String[])
+     * @see #link(String, String...)
      */
     public void setLinks(Set<Link> links) {
         this.links = links;

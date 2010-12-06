@@ -25,7 +25,8 @@ import org.gradle.util.GUtil;
 import java.io.IOException;
 
 /**
- * <p>Displays a list of tasks in the project. It is used when you use the task list command-line option.</p>
+ * <p>Displays a list of tasks in the project. An instance of this type is used when you execute the {@code tasks} task
+ * from the command-line.</p>
  */
 public class TaskReportTask extends AbstractReportTask {
     private TaskReportRenderer renderer = new TaskReportRenderer();

@@ -24,7 +24,8 @@ import java.util.Map;
 import java.util.TreeMap;
 
 /**
- * Displays the properties of a project. This task is used when you execute the property list command-line option.
+ * Displays the properties of a project. An instance of this type is used when you execute the {@code properties} task
+ * from the command-line.
  */
 public class PropertyReportTask extends AbstractReportTask {
     private PropertyReportRenderer renderer = new PropertyReportRenderer();

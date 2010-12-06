@@ -31,6 +31,7 @@ import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.build.docs.dsl.LinkMetaData
+import org.gradle.api.Project
 
 /**
  * Generates the docbook source for the DSL reference guide.
@@ -88,7 +89,7 @@ class AssembleDslDocTask extends DefaultTask {
                 DslDocModel model = new DslDocModel(classDocbookDir, document, classpath, classRepository, extensions)
                 def root = document.documentElement
                 root.section[0].table.each { Element table ->
-                    insertTypes(table, model, linkRepository)
+                    mergeContent(table, model, linkRepository)
                 }
             }
         }
@@ -116,8 +117,44 @@ class AssembleDslDocTask extends DefaultTask {
         return extensions
     }
 
-    def insertTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         typeTable['@role'] = 'dslTypes'
+        def title = typeTable.title[0].text()
+
+        if (title.matches('(?i).* types')) {
+            mergeTypes(typeTable, model, linkRepository)
+        } else if (title.matches('(?i).* blocks')) {
+            mergeBlocks(typeTable, model)
+        }
+    }
+
+    def mergeBlocks(Element blocksTable, DslDocModel model) {
+        blocksTable.addFirst {
+            thead {
+                tr {
+                    td('Block')
+                    td('Description')
+                }
+            }
+        }
+
+        def project = model.getClassDoc(Project.class.name)
+
+        blocksTable.tr.each { Element tr ->
+            mergeBlock(tr, project)
+        }
+    }
+
+    def mergeBlock(Element tr, ClassDoc project) {
+        String blockName = tr.td[0].text().trim()
+        BlockDoc blockDoc = project.getBlock(blockName)
+        tr.children = {
+            td { link(linkend: blockDoc.id) { literal("$blockName { }")} }
+            td(blockDoc.description)
+        }
+    }
+
+    def mergeTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         typeTable.addFirst {
             thead {
                 tr {
@@ -128,11 +165,11 @@ class AssembleDslDocTask extends DefaultTask {
         }
 
         typeTable.tr.each { Element tr ->
-            insertType(tr, model, linkRepository)
+            mergeType(tr, model, linkRepository)
         }
     }
 
-    def insertType(Element tr, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def mergeType(Element tr, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         String className = tr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
         linkRepository.put(className, new LinkMetaData(LinkMetaData.Style.Dsldoc))
@@ -142,7 +179,7 @@ class AssembleDslDocTask extends DefaultTask {
 
         tr.children = {
             td {
-                link(linkend: classDoc.id, classDoc.classSimpleName)
+                link(linkend: classDoc.id) { literal(classDoc.classSimpleName) }
             }
             td(classDoc.description)
         }

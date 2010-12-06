@@ -21,7 +21,7 @@ import org.gradle.api.tasks.GeneratorTask
 import org.gradle.plugins.eclipse.model.Jdt
 
 /**
- * Generates the Eclipse JDT settings file {@code .settings/org.eclipse.jdt.core.prefs}.
+ * Generates the Eclipse JDT configuration file.
  */
 class EclipseJdt extends GeneratorTask<Jdt> {
     /**

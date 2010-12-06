@@ -33,7 +33,8 @@ import java.util.List;
 import static org.gradle.logging.StyledTextOutput.Style.*;
 
 /**
- * <p>Displays a list of projects in the build. It is used when you use the project list command-line option.</p>
+ * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}
+ * task from the command-line.</p>
  */
 public class ProjectReportTask extends AbstractReportTask {
     private TextReportRenderer renderer = new TextReportRenderer();
@@ -57,23 +58,27 @@ public class ProjectReportTask extends AbstractReportTask {
 
         textOutput.println();
         textOutput.text("To see a list of the tasks of a project, run ");
-        metaData.describeCommand(textOutput.withStyle(UserInput), String.format("<project-path>:%s", ImplicitTasksConfigurer.TASKS_TASK));
+        metaData.describeCommand(textOutput.withStyle(UserInput), String.format("<project-path>:%s",
+                ImplicitTasksConfigurer.TASKS_TASK));
         textOutput.println();
 
         textOutput.text("For example, try running ");
         Project exampleProject = project.getChildProjects().isEmpty() ? project : getChildren(project).get(0);
-        metaData.describeCommand(textOutput.withStyle(UserInput), exampleProject.absoluteProjectPath(ImplicitTasksConfigurer.TASKS_TASK));
+        metaData.describeCommand(textOutput.withStyle(UserInput), exampleProject.absoluteProjectPath(
+                ImplicitTasksConfigurer.TASKS_TASK));
         textOutput.println();
 
         if (project != project.getRootProject()) {
             textOutput.println();
             textOutput.text("To see a list of all the projects in this build, run ");
-            metaData.describeCommand(textOutput.withStyle(UserInput), project.getRootProject().absoluteProjectPath(ImplicitTasksConfigurer.PROJECTS_TASK));
+            metaData.describeCommand(textOutput.withStyle(UserInput), project.getRootProject().absoluteProjectPath(
+                    ImplicitTasksConfigurer.PROJECTS_TASK));
             textOutput.println();
         }
     }
 
-    private void render(final Project project, GraphRenderer renderer, boolean lastChild, final StyledTextOutput textOutput) {
+    private void render(final Project project, GraphRenderer renderer, boolean lastChild,
+                        final StyledTextOutput textOutput) {
         renderer.visit(new Action<StyledTextOutput>() {
             public void execute(StyledTextOutput styledTextOutput) {
                 styledTextOutput.text(StringUtils.capitalize(project.toString()));
@@ -85,7 +90,7 @@ public class ProjectReportTask extends AbstractReportTask {
         renderer.startChildren();
         List<Project> children = getChildren(project);
         for (Project child : children) {
-            render(child, renderer, child == children.get(children.size() - 1),  textOutput);
+            render(child, renderer, child == children.get(children.size() - 1), textOutput);
         }
         renderer.completeChildren();
     }

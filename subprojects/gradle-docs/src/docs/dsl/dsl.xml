@@ -26,7 +26,32 @@
                 <td>org.gradle.api.tasks.SourceSet</td>
             </tr>
         </table>
-        
+
+        <table>
+            <title>Script blocks</title>
+            <tr>
+                <td>allprojects</td>
+            </tr>
+            <tr>
+                <td>artifacts</td>
+            </tr>
+            <tr>
+                <td>buildscript</td>
+            </tr>
+            <tr>
+                <td>configurations</td>
+            </tr>
+            <tr>
+                <td>dependencies</td>
+            </tr>
+            <tr>
+                <td>repositories</td>
+            </tr>
+            <tr>
+                <td>subprojects</td>
+            </tr>
+        </table>
+
         <table>
             <title>Task types</title>
             <tr>

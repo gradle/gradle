@@ -24,7 +24,7 @@ import org.gradle.api.internal.file.copy.SyncCopySpecVisitor;
 import java.io.File;
 
 /**
- * Synchronises the contents of a destination directory with some source.
+ * Synchronises the contents of a destination directory with some source directories and files.
  */
 public class Sync extends AbstractCopyTask {
     private FileCopyActionImpl action;
