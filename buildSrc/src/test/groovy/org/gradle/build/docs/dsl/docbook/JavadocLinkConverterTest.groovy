@@ -18,35 +18,23 @@ package org.gradle.build.docs.dsl.docbook
 import org.gradle.build.docs.dsl.TypeNameResolver
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.model.ClassMetaDataRepository
 
 class JavadocLinkConverterTest extends XmlSpecification {
-    final ClassMetaDataRepository<ClassMetaData> metaDataRepository = Mock()
+    final ClassLinkRenderer linkRenderer = Mock()
     final TypeNameResolver nameResolver = Mock()
     final ClassMetaData classMetaData = Mock()
-    final JavadocLinkConverter converter = new JavadocLinkConverter(document, nameResolver, metaDataRepository)
+    final JavadocLinkConverter converter = new JavadocLinkConverter(document, nameResolver, linkRenderer)
 
-    def convertsLocalClassToApilinkElement() {
+    def convertsClassNameToLink() {
         when:
         def link = converter.resolve('someName', classMetaData)
 
         then:
-        format(link) == '''<apilink class="org.gradle.SomeClass"/>'''
+        format(link) == '<someLinkElement/>'
         _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
-        _ * metaDataRepository.find('org.gradle.SomeClass') >> classMetaData
+        _ * linkRenderer.link({it.name == 'org.gradle.SomeClass'}) >> parse('<someLinkElement/>')
     }
 
-    def convertsExternalClassToClassNameElement() {
-        when:
-        def link = converter.resolve('someName', classMetaData)
-
-        then:
-        format(link) == '''<classname>org.gradle.SomeClass</classname>'''
-        _ * nameResolver.resolve('someName', classMetaData) >> 'org.gradle.SomeClass'
-        _ * metaDataRepository.find('org.gradle.SomeClass') >> null
-
-    }
-    
     def resolvesUnknownFullyQualifiedClassName() {
         when:
         def link = converter.resolve('org.gradle.SomeClass', classMetaData)

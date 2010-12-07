@@ -6,6 +6,7 @@
     position: absolute;
     top: 0;
     left: 0;
+    width: 13em;
 }
 
 .content {
@@ -47,6 +48,7 @@
     padding-left: 0.7em;
     -webkit-border-radius: 2px;
     -moz-border-radius: 2px;
+    border-radius: 2px;
 }
 
 .sidebar ul.sections {
@@ -55,6 +57,30 @@
 
 .book .titlepage .releaseinfo {
     color: #666666;
+}
+
+.segmentedlist {
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+}
+
+.segmentedlist table {
+    border: solid #d0d0d0 1px;
+    border-collapse: collapse;
+}
+
+.segmentedlist th {
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+}
+
+.segmentedlist td {
+    padding-left: 0.8em;
+    padding-right: 0.8em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
 }
 
 .signature {
@@ -71,6 +97,7 @@
     font-weight: normal;
     -webkit-border-radius: 4px;
     -moz-border-radius: 4px;
+    border-radius: 4px;
 }
 
 .signature .literal {

@@ -28,9 +28,13 @@ class ClassDoc {
     final String id
     final String classSimpleName
     final ClassMetaData classMetaData
+    final List<PropertyDoc> classProperties = []
+    final List<MethodDoc> classMethods = []
     private final JavadocConverter javadocConverter
     private final DslDocModel model
     private final ClassLinkRenderer linkRenderer
+    final Element propertiesTable
+    final Element methodsTable
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
         this.className = className
@@ -50,9 +54,17 @@ class ClassDoc {
         classContent.childNodes.each { Node n ->
             classSection << n
         }
+
+        propertiesTable = getTable('Properties')
+        methodsTable = getTable('Methods')
     }
 
+    def getClassProperties() { return classProperties }
+    def getClassMethods() { return classMethods }
+
     ClassDoc mergeContent() {
+        buildProperties()
+        buildMethods()
         mergeDescription()
         mergeProperties()
         mergeMethods()
@@ -67,11 +79,11 @@ class ClassDoc {
             properties.addBefore(node)
         }
 
-        properties.addBefore {
-            section {
-                title('API Documentation')
-                para {
-                    apilink('class': className, style: style)
+        classSection.title[0].addAfter {
+            segmentedlist {
+                segtitle('API Documentation')
+                seglistitem {
+                    seg { apilink('class': className, style: style) }
                 }
             }
         }
@@ -79,15 +91,10 @@ class ClassDoc {
         return this
     }
 
-    ClassDoc mergeProperties() {
-        propertiesTable.addFirst { title("Properties - $classSimpleName") }
-        def propertyTableHeader = propertiesTable.thead[0].tr[0]
-        propertyTableHeader.td[0].addAfter { td('Description') }
-
+    ClassDoc buildProperties() {
         Set<String> props = [] as Set
-
         propertiesTable.tr.each { Element tr ->
-            def cells = tr.td
+            def cells = tr.td.collect { it }
             if (cells.size() < 1) {
                 throw new RuntimeException("Expected at least 1 cell in <tr>, found: $tr")
             }
@@ -97,119 +104,141 @@ class ClassDoc {
             if (!property) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
             }
-            def type = property.type
-            def signature = property.signature
-            tr.td[0].children = { link(linkend: signature) { literal(propName) } }
-            tr.td[0].addAfter { td() }
-            def propComment = javadocConverter.parse(property).docbook
-            propComment.each { node ->
-                tr.td[1] << node
+            def additionalValues = cells.subList(1, cells.size())
+            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property).docbook, additionalValues)
+            classProperties << propertyDoc
+        }
+        if (classMetaData.superClassName) {
+            ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
+            supertype.getClassProperties().each { propertyDoc ->
+                if (props.add(propertyDoc.name)) {
+                    classProperties << propertyDoc
+                }
+            }
+        }
+
+        classProperties.sort { it.name }
+        return this
+    }
+
+    ClassDoc mergeProperties() {
+        def propertyTableHeader = propertiesTable.thead[0].tr[0]
+        propertyTableHeader.td[0].addAfter { td('Description') }
+        def colCount = propertyTableHeader.td.size()
+
+        propertiesTable.children = { }
+        propertiesTable << {
+            title("Properties - $classSimpleName")
+            thead {
+                appendChild(propertyTableHeader)
+            }
+        }
+
+        classProperties.each { propDoc ->
+            propertiesTable << {
+                tr {
+                    td { link(linkend: propDoc.id) { literal(propDoc.name) } }
+                    td { appendChild(propDoc.description) }
+                    propDoc.additionalValues.each { td ->
+                        appendChild(td)
+                    }
+                    (colCount - 2 - propDoc.additionalValues.size()).times { td() }
+                }
             }
 
             propertiesTable.addAfter {
-                section(id: signature) {
+                section(id: propDoc.id) {
                     title(role: 'signature') {
-                        appendChild linkRenderer.link(type)
+                        appendChild linkRenderer.link(propDoc.metaData.type)
                         text(' ')
-                        literal(role: 'name', propName)
-                        if (!property.writeable) {
+                        literal(role: 'name', propDoc.name)
+                        if (!propDoc.metaData.writeable) {
                             text(' (read-only)')
                         }
                     }
-                    propComment.each { node ->
+                    propDoc.comment.each { node ->
                         appendChild(node)
                     }
                 }
             }
         }
 
+        return this
+    }
+
+    ClassDoc buildMethods() {
+        Set signatures = [] as Set
+
+        methodsTable.tr.each { Element tr ->
+            def cells = tr.td
+            if (cells.size() != 1) {
+                throw new RuntimeException("Expected 1 cell in <tr>, found: $tr")
+            }
+            String methodName = cells[0].text().trim()
+            Collection<MethodMetaData> methods = classMetaData.declaredMethods.findAll { it.name == methodName }
+            if (!methods) {
+                throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect {it.name} as TreeSet}")
+            }
+            methods.each { method ->
+                classMethods << new MethodDoc(method, javadocConverter.parse(method).docbook)
+                signatures << method.overrideSignature
+            }
+        }
+
         if (classMetaData.superClassName) {
             ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
-            supertype.propertiesTable.tr.each { Element tr ->
-                String propName = tr.td[0].text().trim()
-                if (props.add(propName)) {
-                    while (tr.td.size() < propertyTableHeader.td.size()) {
-                        tr << { td() }
-                    }
-                    propertiesTable << tr
+            supertype.getClassMethods().each { method ->
+                if (signatures.add(method.metaData.overrideSignature)) {
+                    classMethods << method
                 }
             }
         }
+
+        classMethods.sort { it.metaData.overrideSignature }
 
         return this
     }
 
     ClassDoc mergeMethods() {
-        methodsTable.addFirst { title("Methods - $classSimpleName")}
-
-        def methodTableHeader = methodsTable.thead[0].tr[0]
-        methodTableHeader.td[0].addAfter { td('Description') }
-
-        methodsTable.tr.each { Element tr ->
-            def cells = tr.td
-            if (cells.size() < 1) {
-                throw new RuntimeException("Expected at least 1 cell in <tr>, found: $tr")
-            }
-            String methodName = cells[0].text().trim()
-            Collection<MethodMetaData> methods = classMetaData.declaredMethods.findAll { it.name == methodName }
-            if (!methods) {
-                throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect{it.name} as TreeSet}")
-            }
-
-            Element row = tr
-            methods.eachWithIndex { MethodMetaData method, int index ->
-                if (index > 0) {
-                    def sibling = row.nextSibling
-                    row = row.ownerDocument.createElement('tr')
-                    methodsTable.insertBefore(row, sibling)
-                    row << { td() }
-                }
-
-                String signature = method.signature
-                row.td[0].children = { link(linkend: signature) { literal(methodName) } }
-                row.td[0].addAfter { td() }
-                def comment = javadocConverter.parse(method).docbook
-                comment.each { node ->
-                    row.td[1] << node
-                }
-
-                methodsTable.addAfter {
-                    section(id: signature) {
-                        title(role: 'signature') {
-                            appendChild linkRenderer.link(method.returnType)
-                            literal(role: 'name', method.name)
-                            text('(')
-                            method.parameters.eachWithIndex {param, i ->
-                                if (i > 0) {
-                                    text(', ')
-                                }
-                                appendChild linkRenderer.link(param.type)
-                                text(" $param.name")
-                            }
-                            text(')')
-                        }
-                        comment.each { node -> appendChild(node) }
-                    }
+        methodsTable.children = {
+            title("Methods - $classSimpleName")
+            thead {
+                tr {
+                    td('Name')
+                    td('Description')
                 }
             }
         }
 
-        if (classMetaData.superClassName) {
-            ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
-            supertype.methodsTable.tr.each { Element tr ->
-                methodsTable << tr
+        classMethods.each { method ->
+            methodsTable << {
+                tr {
+                    td { link(linkend: method.id) { literal(method.name) } }
+                    td { appendChild method.description }
+                }
+            }
+
+            methodsTable.addAfter {
+                section(id: method.id) {
+                    title(role: 'signature') {
+                        appendChild linkRenderer.link(method.metaData.returnType)
+                        literal(role: 'name', method.name)
+                        text('(')
+                        method.metaData.parameters.eachWithIndex {param, i ->
+                            if (i > 0) {
+                                text(', ')
+                            }
+                            appendChild linkRenderer.link(param.type)
+                            text(" $param.name")
+                        }
+                        text(')')
+                    }
+                    method.comment.each { node -> appendChild(node) }
+                }
             }
         }
 
         return this
-    }
-
-    Element getPropertiesTable() {
-        return getTable('Properties')
-    }
-
-    Element getMethodsTable() {
-        return getTable('Methods')
     }
 
     String getStyle() {

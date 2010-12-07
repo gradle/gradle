@@ -350,6 +350,7 @@ table.table td.colHeader {
     padding-bottom: 16px;
     -webkit-border-radius: 10px;
     -moz-border-radius: 10px;
+    border-radius: 10px;
 }
 
 .quickLinks h2 {

@@ -75,6 +75,12 @@ public class MethodMetaData implements Serializable, LanguageElement {
         StringBuilder builder = new StringBuilder();
         builder.append(returnType.getSignature());
         builder.append(' ');
+        builder.append(getOverrideSignature());
+        return builder.toString();
+    }
+
+    public String getOverrideSignature() {
+        StringBuilder builder = new StringBuilder();
         builder.append(name);
         builder.append('(');
         for (int i = 0; i < parameters.size(); i++) {

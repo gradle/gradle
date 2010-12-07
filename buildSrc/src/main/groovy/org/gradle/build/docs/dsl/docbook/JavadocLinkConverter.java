@@ -17,7 +17,7 @@ package org.gradle.build.docs.dsl.docbook;
 
 import org.gradle.build.docs.dsl.TypeNameResolver;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
-import org.gradle.build.docs.model.ClassMetaDataRepository;
+import org.gradle.build.docs.dsl.model.TypeMetaData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -30,15 +30,15 @@ import java.util.Arrays;
 public class JavadocLinkConverter {
     private final Document document;
     private final TypeNameResolver typeNameResolver;
-    private final ClassMetaDataRepository<ClassMetaData> repository;
+    private final ClassLinkRenderer linkRenderer;
 
-    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, ClassMetaDataRepository<ClassMetaData> repository) {
+    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, ClassLinkRenderer linkRenderer) {
         this.document = document;
         this.typeNameResolver = typeNameResolver;
-        this.repository = repository;
+        this.linkRenderer = linkRenderer;
     }
 
-    Iterable<? extends Node> resolve(String link, ClassMetaData classMetaData) {
+    public Iterable<? extends Node> resolve(String link, ClassMetaData classMetaData) {
         String className = typeNameResolver.resolve(link, classMetaData);
 
         if (className == null || className.contains("#")) {
@@ -47,14 +47,6 @@ public class JavadocLinkConverter {
             return Arrays.asList(element);
         }
 
-        if (repository.find(className) != null) {
-            Element apilink = document.createElement("apilink");
-            apilink.setAttribute("class", className);
-            return Arrays.asList(apilink);
-        }
-
-        Element classNameElement = document.createElement("classname");
-        classNameElement.appendChild(document.createTextNode(className));
-        return Arrays.asList(classNameElement);
+        return Arrays.asList(linkRenderer.link(new TypeMetaData(className)));
     }
 }

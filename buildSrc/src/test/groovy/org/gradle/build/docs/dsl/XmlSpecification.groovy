@@ -39,17 +39,30 @@ class XmlSpecification extends Specification {
         format(nodes as List)
     }
 
-    def format(Iterable<? extends Node> nodes) {
+    def formatTree(Node... nodes) {
+        formatTree(nodes as List)
+    }
+
+    def formatTree(Iterable<? extends Node> nodes) {
+        format(nodes, true)
+    }
+
+    def format(Iterable<? extends Node> nodes, boolean prettyPrint = false) {
         StringBuilder builder = new StringBuilder()
         nodes.each { node ->
-            format(node, builder, 0)
+            format(node, builder, 0, prettyPrint)
         }
         return builder.toString()
     }
 
-    def format(Node node, Appendable target, int depth) {
+    def format(Node node, Appendable target, int depth, boolean prettyPrint) {
         if (node instanceof Element) {
             Element element = (Element) node
+
+            if (prettyPrint && depth > 0) {
+                target.append('\n')
+                depth.times { target.append('    ') }
+            }
 
             target.append("<${element.tagName}")
             for (int i = 0; i < element.attributes.length; i++) {
@@ -62,11 +75,19 @@ class XmlSpecification extends Specification {
             }
             target.append('>')
 
+            boolean hasChildElements = element.childNodes.find { it instanceof Element}
+
             element.childNodes.each { child ->
-                format(child, target, depth + 1)
+                format(child, target, depth + 1, prettyPrint)
+            }
+
+            if (prettyPrint && hasChildElements) {
+                target.append('\n')
+                depth.times { target.append('    ') }
             }
 
             target.append("</${element.tagName}>")
+
             return
         }
         if (node instanceof Text) {

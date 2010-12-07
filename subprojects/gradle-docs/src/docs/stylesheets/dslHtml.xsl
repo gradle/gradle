@@ -122,7 +122,7 @@
     <!--
       - Customised header for property and method detail sections
       -->
-    
+
     <xsl:template match="section/title[@role='signature']" mode="titlepage.mode">
         <xsl:variable name="level">
             <xsl:call-template name="section.level">
@@ -131,12 +131,35 @@
         </xsl:variable>
 
         <xsl:call-template name="anchor">
-          <xsl:with-param name="node" select="ancestor::section"/>
-          <xsl:with-param name="conditional" select="0"/>
+            <xsl:with-param name="node" select="ancestor::section"/>
+            <xsl:with-param name="conditional" select="0"/>
         </xsl:call-template>
         <xsl:element name="h{$level+1}">
             <xsl:attribute name="class">signature</xsl:attribute>
             <xsl:apply-templates/>
         </xsl:element>
+    </xsl:template>
+
+    <!--
+      - Customised <segmentedlist> format
+      -->
+    <xsl:template match="segmentedlist">
+        <div>
+            <xsl:call-template name="common.html.attributes"/>
+            <xsl:call-template name="anchor"/>
+            <table>
+                <xsl:apply-templates select="seglistitem/seg"/>
+            </table>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="seg">
+        <xsl:variable name="segnum" select="count(preceding-sibling::seg)+1"/>
+        <xsl:variable name="seglist" select="ancestor::segmentedlist"/>
+        <xsl:variable name="segtitles" select="$seglist/segtitle"/>
+        <tr>
+            <th><xsl:apply-templates select="$segtitles[$segnum=position()]" mode="segtitle-in-seg"/>:</th>
+            <td><xsl:apply-templates/></td>
+        </tr>
     </xsl:template>
 </xsl:stylesheet>
