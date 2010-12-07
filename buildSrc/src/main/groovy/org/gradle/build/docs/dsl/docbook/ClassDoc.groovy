@@ -30,6 +30,7 @@ class ClassDoc {
     final ClassMetaData classMetaData
     final List<PropertyDoc> classProperties = []
     final List<MethodDoc> classMethods = []
+    final List<BlockDoc> classBlocks = []
     private final JavadocConverter javadocConverter
     private final DslDocModel model
     private final ClassLinkRenderer linkRenderer
@@ -60,6 +61,7 @@ class ClassDoc {
     }
 
     def getClassProperties() { return classProperties }
+
     def getClassMethods() { return classMethods }
 
     ClassDoc mergeContent() {
@@ -68,6 +70,7 @@ class ClassDoc {
         mergeDescription()
         mergeProperties()
         mergeMethods()
+        mergeBlocks()
         return this
     }
 
@@ -122,6 +125,16 @@ class ClassDoc {
     }
 
     ClassDoc mergeProperties() {
+        def propertiesSection = propertiesTable.parentNode
+
+        if (classProperties.isEmpty()) {
+            propertiesSection.children = {
+                title('Properties')
+                para('No properties')
+            }
+            return this
+        }
+
         def propertyTableHeader = propertiesTable.thead[0].tr[0]
         propertyTableHeader.td[0].addAfter { td('Description') }
         def colCount = propertyTableHeader.td.size()
@@ -146,7 +159,7 @@ class ClassDoc {
                 }
             }
 
-            propertiesTable.addAfter {
+            propertiesSection << {
                 section(id: propDoc.id) {
                     title(role: 'signature') {
                         appendChild linkRenderer.link(propDoc.metaData.type)
@@ -180,8 +193,13 @@ class ClassDoc {
                 throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect {it.name} as TreeSet}")
             }
             methods.each { method ->
-                classMethods << new MethodDoc(method, javadocConverter.parse(method).docbook)
-                signatures << method.overrideSignature
+                def methodDoc = new MethodDoc(method, javadocConverter.parse(method).docbook)
+                if (method.parameters.size() == 1 && method.parameters[0].type.signature == Closure.class.name && classMetaData.findProperty(method.name)) {
+                    classBlocks << new BlockDoc(methodDoc)
+                } else {
+                    classMethods << methodDoc
+                    signatures << method.overrideSignature
+                }
             }
         }
 
@@ -195,11 +213,22 @@ class ClassDoc {
         }
 
         classMethods.sort { it.metaData.overrideSignature }
+        classBlocks.sort { it.name }
 
         return this
     }
 
     ClassDoc mergeMethods() {
+        def methodsSection = methodsTable.parentNode
+
+        if (classMethods.isEmpty()) {
+            methodsSection.children = {
+                title('Methods')
+                para('No methods')
+            }
+            return this
+        }
+        
         methodsTable.children = {
             title("Methods - $classSimpleName")
             thead {
@@ -218,7 +247,7 @@ class ClassDoc {
                 }
             }
 
-            methodsTable.addAfter {
+            methodsTable.parentNode << {
                 section(id: method.id) {
                     title(role: 'signature') {
                         appendChild linkRenderer.link(method.metaData.returnType)
@@ -238,6 +267,41 @@ class ClassDoc {
             }
         }
 
+        return this
+    }
+
+    ClassDoc mergeBlocks() {
+        getSection('Properties').addAfter {
+            section {
+                title('Script blocks')
+                if (classBlocks.isEmpty()) {
+                    para('No script blocks')
+                    return
+                }
+                table {
+                    title("Script blocks - $classSimpleName")
+                    thead {
+                        tr {
+                            td('Name'); td('Description')
+                        }
+                    }
+                    classBlocks.each { block ->
+                        tr {
+                            td { link(linkend: block.id) { literal(block.name) } }
+                            td { appendChild block.description }
+                        }
+                    }
+                }
+                classBlocks.each { block ->
+                    section(id: block.id) {
+                        title(role: 'signature') {
+                            literal(role: 'name', block.name); text('{ }')
+                        }
+                        block.blockMethod.comment.each { node -> appendChild(node) }
+                    }
+                }
+            }
+        }
         return this
     }
 
@@ -283,13 +347,10 @@ class ClassDoc {
     }
 
     BlockDoc getBlock(String name) {
-        def method = classMetaData.declaredMethods.find { it.name == name && it.parameters.size() == 1 && it.parameters[0].type.signature == Closure.class.name }
-        if (!method) {
+        def block = classBlocks.find { it.name == name }
+        if (!block) {
             throw new RuntimeException("Class $className does not have a script block '$name'.")
         }
-
-        Element description = javadocConverter.parse(method).docbook.find { Element e -> e.nodeName == 'para' }
-
-        return new BlockDoc(method.signature, description)
+        return block
     }
 }

@@ -19,14 +19,18 @@ import org.w3c.dom.Element
 
 class BlockDoc {
     final String id;
-    final Element blockElement;
+    final MethodDoc blockMethod
 
-    BlockDoc(String id, Element blockElement) {
-        this.id = id
-        this.blockElement = blockElement
+    BlockDoc(MethodDoc blockMethod) {
+        id = blockMethod.id
+        this.blockMethod = blockMethod
+    }
+
+    String getName() {
+        return blockMethod.name
     }
 
     Element getDescription() {
-        return blockElement;
+        return blockMethod.description;
     }
 }

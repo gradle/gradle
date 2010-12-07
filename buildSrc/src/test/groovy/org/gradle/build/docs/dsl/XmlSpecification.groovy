@@ -69,15 +69,23 @@ class XmlSpecification extends Specification {
                 Attr attr = element.attributes.item(i)
                 target.append(" $attr.name=\"$attr.value\"")
             }
-            if (element.childNodes.length == 0) {
+
+            List<Node> trimmedContent = prettyPrint ? element.childNodes.inject([]) { list, child ->
+                if (child instanceof Text && child.textContent.trim().length() == 0) {
+                    return list
+                }
+                list << child
+                return list
+            } : element.childNodes.collect { it }
+            if (trimmedContent.isEmpty()) {
                 target.append('/>')
                 return
             }
             target.append('>')
 
-            boolean hasChildElements = element.childNodes.find { it instanceof Element}
+            boolean hasChildElements = trimmedContent.find { it instanceof Element }
 
-            element.childNodes.each { child ->
+            trimmedContent.each { child ->
                 format(child, target, depth + 1, prettyPrint)
             }
 
