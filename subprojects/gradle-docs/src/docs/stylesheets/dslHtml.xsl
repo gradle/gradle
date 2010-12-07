@@ -13,8 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<xsl:stylesheet
-        xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
+<xsl:stylesheet xmlns:xsl="http://www.w3.org/1999/XSL/Transform" version="2.0">
     <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
@@ -118,5 +117,26 @@
         <li>
             <xsl:apply-templates select="link"/>
         </li>
+    </xsl:template>
+
+    <!--
+      - Customised header for property and method detail sections
+      -->
+    
+    <xsl:template match="section/title[@role='signature']" mode="titlepage.mode">
+        <xsl:variable name="level">
+            <xsl:call-template name="section.level">
+                <xsl:with-param name="node" select="ancestor::section"/>
+            </xsl:call-template>
+        </xsl:variable>
+
+        <xsl:call-template name="anchor">
+          <xsl:with-param name="node" select="ancestor::section"/>
+          <xsl:with-param name="conditional" select="0"/>
+        </xsl:call-template>
+        <xsl:element name="h{$level+1}">
+            <xsl:attribute name="class">signature</xsl:attribute>
+            <xsl:apply-templates/>
+        </xsl:element>
     </xsl:template>
 </xsl:stylesheet>

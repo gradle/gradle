@@ -21,6 +21,14 @@ class PropertyMetaDataTest extends Specification {
     final ClassMetaData classMetaData = Mock()
     final PropertyMetaData propertyMetaData = new PropertyMetaData('prop', classMetaData)
 
+    def formatsSignature() {
+        def type = new TypeMetaData('org.gradle.SomeClass')
+        propertyMetaData.type = type
+
+        expect:
+        propertyMetaData.signature == 'org.gradle.SomeClass prop'
+    }
+
     def locatesInheritedCommentInSuperClass() {
         ClassMetaData superClassMetaData = Mock()
         PropertyMetaData overriddenProperty = Mock()
@@ -94,7 +102,7 @@ class PropertyMetaDataTest extends Specification {
         _ * classMetaData.interfaces >> []
         p == null
     }
-    
+
     def hasEmptyInheritedCommentWhenPropertyDoesNotOverridePropertyInSuperClass() {
         ClassMetaData superClassMetaData = Mock()
 

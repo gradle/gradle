@@ -40,7 +40,11 @@ class DslDocModel {
         javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, new TypeNameResolver(classMetaData), classMetaData))
     }
 
-    def getClassDoc(String className) {
+    boolean isKnownType(String className) {
+        return classMetaData.find(className) != null
+    }
+
+    ClassDoc getClassDoc(String className) {
         ClassDoc classDoc = classes[className]
         if (classDoc == null) {
             classDoc = loadClassDoc(className)

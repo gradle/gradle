@@ -5,15 +5,12 @@
 
     <section>
         <title>Introduction</title>
-        <note>
-            <para>This reference guide is under construction.</para>
-        </note>
         <para>This reference guide describes the various types which make up the Gradle build language, or DSL.</para>
     </section>
 
     <section>
         <title>Some basics</title>
-        <para>There are a few basic concepts which you should understand, which will help you write Gradle scripts.</para>
+        <para>There are a few basic concepts that you should understand, which will help you write Gradle scripts.</para>
 
         <para>First, Gradle scripts are <firstterm>configuration scripts</firstterm>. As the script executes, it
             configures an object of a particular type. For example, as a build script executes, it configures an

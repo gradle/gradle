@@ -30,6 +30,7 @@ class ClassDoc {
     final ClassMetaData classMetaData
     private final JavadocConverter javadocConverter
     private final DslDocModel model
+    private final ClassLinkRenderer linkRenderer
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
         this.className = className
@@ -37,6 +38,7 @@ class ClassDoc {
         classSimpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
         this.javadocConverter = javadocConverter
+        linkRenderer = new ClassLinkRenderer(targetDocument, model)
         this.model = model
 
         classSection = targetDocument.createElement('chapter')
@@ -80,7 +82,7 @@ class ClassDoc {
     ClassDoc mergeProperties() {
         propertiesTable.addFirst { title("Properties - $classSimpleName") }
         def propertyTableHeader = propertiesTable.thead[0].tr[0]
-        propertyTableHeader.td[0].addAfter { td('Description'); td('Type') }
+        propertyTableHeader.td[0].addAfter { td('Description') }
 
         Set<String> props = [] as Set
 
@@ -95,23 +97,27 @@ class ClassDoc {
             if (!property) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
             }
-            String type = property.type.signature
-            tr.td[0].children = { literal(propName) }
+            def type = property.type
+            def signature = property.signature
+            tr.td[0].children = { link(linkend: signature) { literal(propName) } }
             tr.td[0].addAfter { td() }
-            javadocConverter.parse(property).docbook.each { node ->
+            def propComment = javadocConverter.parse(property).docbook
+            propComment.each { node ->
                 tr.td[1] << node
             }
-            tr.td[1].addAfter {
-                td {
-                    if (type.startsWith('org.gradle')) {
-                        apilink('class': type)
-                    } else if (type.startsWith('java.lang.') || type.startsWith('java.util.') || type.startsWith('java.io.')) {
-                        classname(type.tokenize('.').last())
-                    } else {
-                        classname(type)
+
+            propertiesTable.addAfter {
+                section(id: signature) {
+                    title(role: 'signature') {
+                        appendChild linkRenderer.link(type)
+                        text(' ')
+                        literal(role: 'name', propName)
+                        if (!property.writeable) {
+                            text(' (read-only)')
+                        }
                     }
-                    if (!property.writeable) {
-                        text(" (read-only)")
+                    propComment.each { node ->
+                        appendChild(node)
                     }
                 }
             }
@@ -137,7 +143,7 @@ class ClassDoc {
         methodsTable.addFirst { title("Methods - $classSimpleName")}
 
         def methodTableHeader = methodsTable.thead[0].tr[0]
-        methodTableHeader.td[0].addAfter { td('Description'); td('Signature') }
+        methodTableHeader.td[0].addAfter { td('Description') }
 
         methodsTable.tr.each { Element tr ->
             def cells = tr.td
@@ -160,21 +166,28 @@ class ClassDoc {
                 }
 
                 String signature = method.signature
-                row.td[0].children = { literal(methodName) }
+                row.td[0].children = { link(linkend: signature) { literal(methodName) } }
                 row.td[0].addAfter { td() }
                 def comment = javadocConverter.parse(method).docbook
                 comment.each { node ->
                     row.td[1] << node
                 }
-                row.td[1].addAfter {
-                    td {
-                        literal(signature)
-                    }
-                }
 
                 methodsTable.addAfter {
                     section(id: signature) {
-                        title(signature)
+                        title(role: 'signature') {
+                            appendChild linkRenderer.link(method.returnType)
+                            literal(role: 'name', method.name)
+                            text('(')
+                            method.parameters.eachWithIndex {param, i ->
+                                if (i > 0) {
+                                    text(', ')
+                                }
+                                appendChild linkRenderer.link(param.type)
+                                text(" $param.name")
+                            }
+                            text(')')
+                        }
                         comment.each { node -> appendChild(node) }
                     }
                 }

@@ -36,8 +36,17 @@
 
 .sidebar li.selected {
     font-weight: bold;
-    color: #505050;
     font-size: 110%;
+    color: #5283a1;
+    /*color: #505050;*/
+    background-color: #ebf4f7;
+    border: solid #c3d9e6 1px;
+    padding-top: 0.1em;
+    padding-bottom: 0.1em;
+    margin-left: -0.7em;
+    padding-left: 0.7em;
+    -webkit-border-radius: 2px;
+    -moz-border-radius: 2px;
 }
 
 .sidebar ul.sections {
@@ -46,4 +55,28 @@
 
 .book .titlepage .releaseinfo {
     color: #666666;
+}
+
+.signature {
+    background-color: #f5f5f5;
+    border: solid #e7e7e7 1px;
+    color: #666666;
+    width: auto;
+    margin-right: -1em;
+    padding-right: 1em;
+    margin-left: -1em;
+    padding-left: 1em;
+    padding-top: 0.3em;
+    padding-bottom: 0.3em;
+    font-weight: normal;
+    -webkit-border-radius: 4px;
+    -moz-border-radius: 4px;
+}
+
+.signature .literal {
+    font-size: 120%;
+    font-weight: bold;
+    color: #5283a1;
+    padding-left: 0.4em;
+    padding-right: 0.2em;
 }

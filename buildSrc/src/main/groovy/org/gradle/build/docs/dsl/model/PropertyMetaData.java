@@ -67,6 +67,14 @@ public class PropertyMetaData implements Serializable, LanguageElement {
         this.rawCommentText = rawCommentText;
     }
 
+    public String getSignature() {
+        StringBuilder builder = new StringBuilder();
+        builder.append(type.getSignature());
+        builder.append(' ');
+        builder.append(name);
+        return builder.toString();
+    }
+
     public PropertyMetaData getOverriddenProperty() {
         LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
         queue.add(ownerClass.getSuperClass());

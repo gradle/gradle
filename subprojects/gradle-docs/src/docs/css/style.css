@@ -48,3 +48,11 @@ h3 {
     font-size: 130%;
     margin-top: 1.4em;
 }
+
+h1 a, h2 a, h3 a, h4 a, h5 a {
+    color: inherit;
+}
+
+h1 a:visited, h2 a:visited, h3 a:visited, h4 a:visited, h5 a:visited {
+    color: inherit;
+}

@@ -58,6 +58,12 @@ public class TypeMetaData implements Serializable {
     public String getSignature() {
         StringBuilder builder = new StringBuilder();
         builder.append(name);
+        builder.append(getArraySuffix());
+        return builder.toString();
+    }
+
+    public String getArraySuffix() {
+        StringBuilder builder = new StringBuilder();
         for (int i = 0; i < arrayDimensions; i++) {
             builder.append("[]");
         }

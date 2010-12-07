@@ -44,17 +44,18 @@ class ClassDocTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, null, javadocConverter).mergeProperties()
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).mergeProperties()
         }
 
         then:
         format { doc.propertiesTable } == '''<table><title>Properties - Class</title>
-            <thead><tr><td>Name</td><td>Description</td><td>Type</td><td>Extra column</td></tr></thead>
-            <tr><td><literal>propName</literal></td><td>propName comment</td><td><apilink class="org.gradle.Type"/> (read-only)</td><td>some value</td></tr>
+            <thead><tr><td>Name</td><td>Description</td><td>Extra column</td></tr></thead>
+            <tr><td><link linkend="propSignature"><literal>propName</literal></link></td><td>propName comment</td><td>some value</td></tr>
         </table>'''
 
         _ * classMetaData.findProperty('propName') >> propertyMetaData
         _ * propertyMetaData.type >> new TypeMetaData('org.gradle.Type')
+        _ * propertyMetaData.signature >> 'propSignature'
         _ * javadocConverter.parse(propertyMetaData) >> ({[document.createTextNode('propName comment')]} as DocComment)
     }
 
@@ -83,16 +84,18 @@ class ClassDocTest extends XmlSpecification {
 
         then:
         format { doc.propertiesTable } == '''<table><title>Properties - Class</title>
-            <thead><tr><td>Name</td><td>Description</td><td>Type</td><td>Extra column</td></tr></thead>
-            <tr><td><literal>propName</literal></td><td>propName comment</td><td><apilink class="org.gradle.Type"/> (read-only)</td><td>some value</td></tr>
-            <tr><td><literal>inherited2</literal></td><td>inherited2 comment</td><td><apilink class="org.gradle.Type3"/> (read-only)</td><td>adds extra column</td></tr>
-        <tr><td>inherited1</td><td/><td/><td/></tr></table>'''
+            <thead><tr><td>Name</td><td>Description</td><td>Extra column</td></tr></thead>
+            <tr><td><link linkend="propSignature"><literal>propName</literal></link></td><td>propName comment</td><td>some value</td></tr>
+            <tr><td><link linkend="inherited2Signature"><literal>inherited2</literal></link></td><td>inherited2 comment</td><td>adds extra column</td></tr>
+        <tr><td>inherited1</td><td/><td/></tr></table>'''
 
         _ * classMetaData.findProperty('propName') >> propertyMetaData
         _ * classMetaData.findProperty('inherited2') >> inherited2MetaData
         _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
         _ * propertyMetaData.type >> new TypeMetaData('org.gradle.Type')
+        _ * propertyMetaData.signature >> 'propSignature'
         _ * inherited2MetaData.type >> new TypeMetaData('org.gradle.Type3')
+        _ * inherited2MetaData.signature >> 'inherited2Signature'
         _ * docModel.getClassDoc('org.gradle.SuperClass') >> superClassDoc
         _ * javadocConverter.parse(propertyMetaData) >> ({[document.createTextNode('propName comment')]} as DocComment)
         _ * javadocConverter.parse(inherited2MetaData) >> ({[document.createTextNode('inherited2 comment')]} as DocComment)
@@ -117,20 +120,22 @@ class ClassDocTest extends XmlSpecification {
 
         when:
         ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, null, javadocConverter).mergeMethods()
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).mergeMethods()
         }
 
         then:
         format { doc.methodsTable } == '''<table><title>Methods - Class</title>
-            <thead><tr><td>Name</td><td>Description</td><td>Signature</td><td>Extra column</td></tr></thead>
-            <tr><td><literal>methodName</literal></td><td>method description</td><td><literal>method-signature</literal></td><td>some value</td></tr><tr><td><literal>methodName</literal></td><td>overloaded description</td><td><literal>overloaded-signature</literal></td></tr>
+            <thead><tr><td>Name</td><td>Description</td><td>Extra column</td></tr></thead>
+            <tr><td><link linkend="method-signature"><literal>methodName</literal></link></td><td>method description</td><td>some value</td></tr><tr><td><link linkend="overloaded-signature"><literal>methodName</literal></link></td><td>overloaded description</td></tr>
         </table>'''
 
         _ * classMetaData.declaredMethods >> ([method1, method2] as LinkedHashSet)
         _ * method1.name >> 'methodName'
         _ * method1.signature >> 'method-signature'
+        _ * method1.returnType >> new TypeMetaData('ReturnType')
         _ * method2.name >> 'methodName'
         _ * method2.signature >> 'overloaded-signature'
+        _ * method2.returnType >> new TypeMetaData('ReturnType2')
         _ * javadocConverter.parse(method1) >> ({[document.createTextNode('method description')]} as DocComment)
         _ * javadocConverter.parse(method2) >> ({[document.createTextNode('overloaded description')]} as DocComment)
     }
