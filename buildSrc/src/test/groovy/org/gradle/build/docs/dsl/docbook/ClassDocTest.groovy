@@ -18,11 +18,7 @@ package org.gradle.build.docs.dsl.docbook
 import groovy.xml.dom.DOMCategory
 import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.XmlSpecification
-import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
-import org.gradle.build.docs.dsl.model.PropertyMetaData
-import org.gradle.build.docs.dsl.model.TypeMetaData
-import org.gradle.build.docs.dsl.model.ParameterMetaData
+import org.gradle.build.docs.dsl.model.*
 
 class ClassDocTest extends XmlSpecification {
     final JavadocConverter javadocConverter = Mock()
@@ -95,9 +91,8 @@ class ClassDocTest extends XmlSpecification {
         <title>Properties - Class</title>
         <thead>
             <tr>
-                <td>Name</td>
+                <td>Property</td>
                 <td>Description</td>
-                <td>Extra column</td>
             </tr>
         </thead>
         <tr>
@@ -109,15 +104,20 @@ class ClassDocTest extends XmlSpecification {
             <td>
                 <para>propName comment</para>
             </td>
-            <td>some value</td>
         </tr>
     </table>
-    <section id="org.gradle.Class:propName">
-        <title role="signature">
+    <section id="org.gradle.Class:propName" role="detail">
+        <title>
             <classname>org.gradle.Type</classname>
             <literal role="name">propName</literal> (read-only)
         </title>
         <para>propName comment</para>
+        <segmentedlist>
+            <segtitle>Extra column</segtitle>
+            <seglistitem>
+                <seg>some value</seg>
+            </seglistitem>
+        </segmentedlist>
     </section>
 </section>'''
 
@@ -245,15 +245,15 @@ class ClassDocTest extends XmlSpecification {
             </td>
         </tr>
     </table>
-    <section id="org.gradle.Class:methodName()">
-        <title role="signature">
+    <section id="org.gradle.Class:methodName()" role="detail">
+        <title>
             <classname>ReturnType1</classname>
             <literal role="name">methodName</literal>()
         </title>
         <para>method comment</para>
     </section>
-    <section id="org.gradle.Class:methodName(ParamType)">
-        <title role="signature">
+    <section id="org.gradle.Class:methodName(ParamType)" role="detail">
+        <title>
             <classname>ReturnType2</classname>
             <literal role="name">methodName</literal>(
             <classname>ParamType</classname> p)
@@ -384,8 +384,8 @@ class ClassDocTest extends XmlSpecification {
             </td>
         </tr>
     </table>
-    <section id="org.gradle.Class:block(groovy.lang.Closure)">
-        <title role="signature">
+    <section id="org.gradle.Class:block(groovy.lang.Closure)" role="detail">
+        <title>
             <literal role="name">block</literal>{ }
         </title>
         <para>comment</para>

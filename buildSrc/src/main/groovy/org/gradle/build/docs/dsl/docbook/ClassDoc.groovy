@@ -136,32 +136,26 @@ class ClassDoc {
         }
 
         def propertyTableHeader = propertiesTable.thead[0].tr[0]
-        propertyTableHeader.td[0].addAfter { td('Description') }
-        def colCount = propertyTableHeader.td.size()
+        def cells = propertyTableHeader.td.collect { it }
+        cells = cells.subList(1, cells.size())
 
-        propertiesTable.children = { }
-        propertiesTable << {
+        propertiesTable.children = {
             title("Properties - $classSimpleName")
             thead {
-                appendChild(propertyTableHeader)
+                tr { td('Property'); td('Description') }
+            }
+            classProperties.each { propDoc ->
+                tr {
+                    td { link(linkend: propDoc.id) { literal(propDoc.name) } }
+                    td { appendChild(propDoc.description) }
+                }
             }
         }
 
         classProperties.each { propDoc ->
-            propertiesTable << {
-                tr {
-                    td { link(linkend: propDoc.id) { literal(propDoc.name) } }
-                    td { appendChild(propDoc.description) }
-                    propDoc.additionalValues.each { td ->
-                        appendChild(td)
-                    }
-                    (colCount - 2 - propDoc.additionalValues.size()).times { td() }
-                }
-            }
-
             propertiesSection << {
-                section(id: propDoc.id) {
-                    title(role: 'signature') {
+                section(id: propDoc.id, role: 'detail') {
+                    title {
                         appendChild linkRenderer.link(propDoc.metaData.type)
                         text(' ')
                         literal(role: 'name', propDoc.name)
@@ -169,8 +163,16 @@ class ClassDoc {
                             text(' (read-only)')
                         }
                     }
-                    propDoc.comment.each { node ->
-                        appendChild(node)
+                    appendChildren propDoc.comment
+                    if (propDoc.additionalValues) {
+                        segmentedlist {
+                            cells.each { Element node -> segtitle { appendChildren(node.childNodes) } }
+                            seglistitem {
+                                propDoc.additionalValues.each { Element node ->
+                                    seg { appendChildren(node.childNodes) }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -248,8 +250,8 @@ class ClassDoc {
             }
 
             methodsTable.parentNode << {
-                section(id: method.id) {
-                    title(role: 'signature') {
+                section(id: method.id, role: 'detail') {
+                    title {
                         appendChild linkRenderer.link(method.metaData.returnType)
                         literal(role: 'name', method.name)
                         text('(')
@@ -262,7 +264,7 @@ class ClassDoc {
                         }
                         text(')')
                     }
-                    method.comment.each { node -> appendChild(node) }
+                    appendChildren method.comment
                 }
             }
         }
@@ -293,11 +295,11 @@ class ClassDoc {
                     }
                 }
                 classBlocks.each { block ->
-                    section(id: block.id) {
-                        title(role: 'signature') {
+                    section(id: block.id, role: 'detail') {
+                        title {
                             literal(role: 'name', block.name); text('{ }')
                         }
-                        block.blockMethod.comment.each { node -> appendChild(node) }
+                        appendChildren block.blockMethod.comment
                     }
                 }
             }

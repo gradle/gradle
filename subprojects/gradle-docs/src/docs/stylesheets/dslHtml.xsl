@@ -29,11 +29,26 @@
     <!-- No table of contents -->
     <xsl:param name="generate.toc"/>
 
+    <xsl:template name="formal.object.heading"></xsl:template>
+
     <!-- customise the stylesheets to add to the <head> element -->
     <xsl:template name="output.html.stylesheets">
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link href="style.css" rel="stylesheet" type="text/css"/>
         <link href="dsl.css" rel="stylesheet" type="text/css"/>
+    </xsl:template>
+
+    <!-- Customise the page titles -->
+    <xsl:template match="book" mode="object.title.markup.textonly">
+        <xsl:value-of select="bookinfo/titleabbrev"/>
+        <xsl:text> Version </xsl:text>
+        <xsl:value-of select="bookinfo/releaseinfo"/>
+    </xsl:template>
+
+    <xsl:template match="chapter" mode="object.title.markup.textonly">
+        <xsl:value-of select="title"/>
+        <xsl:text> - </xsl:text>
+        <xsl:apply-templates select="/book" mode="object.title.markup.textonly"/>
     </xsl:template>
 
     <!-- customise the layout of the html page -->
@@ -123,7 +138,7 @@
       - Customised header for property and method detail sections
       -->
 
-    <xsl:template match="section/title[@role='signature']" mode="titlepage.mode">
+    <xsl:template match="section[@role='detail']/title" mode="titlepage.mode">
         <xsl:variable name="level">
             <xsl:call-template name="section.level">
                 <xsl:with-param name="node" select="ancestor::section"/>
@@ -141,19 +156,29 @@
     </xsl:template>
 
     <!--
-      - Customised <segmentedlist> format
+      - Customised <segmentedlist> formats
       -->
     <xsl:template match="segmentedlist">
         <div>
             <xsl:call-template name="common.html.attributes"/>
             <xsl:call-template name="anchor"/>
             <table>
-                <xsl:apply-templates select="seglistitem/seg"/>
+                <xsl:apply-templates select="seglistitem/seg" mode="seglist.table"/>
             </table>
         </div>
     </xsl:template>
 
-    <xsl:template match="seg">
+    <xsl:template match="section[@role='detail']/segmentedlist">
+        <div>
+            <xsl:call-template name="common.html.attributes"/>
+            <xsl:call-template name="anchor"/>
+            <dl>
+                <xsl:apply-templates select="seglistitem/seg" mode="seglist.list"/>
+            </dl>
+        </div>
+    </xsl:template>
+
+    <xsl:template match="seg" mode="seglist.table">
         <xsl:variable name="segnum" select="count(preceding-sibling::seg)+1"/>
         <xsl:variable name="seglist" select="ancestor::segmentedlist"/>
         <xsl:variable name="segtitles" select="$seglist/segtitle"/>
@@ -161,5 +186,13 @@
             <th><xsl:apply-templates select="$segtitles[$segnum=position()]" mode="segtitle-in-seg"/>:</th>
             <td><xsl:apply-templates/></td>
         </tr>
+    </xsl:template>
+
+    <xsl:template match="seg" mode="seglist.list">
+        <xsl:variable name="segnum" select="count(preceding-sibling::seg)+1"/>
+        <xsl:variable name="seglist" select="ancestor::segmentedlist"/>
+        <xsl:variable name="segtitles" select="$seglist/segtitle"/>
+        <dt><xsl:apply-templates select="$segtitles[$segnum=position()]" mode="segtitle-in-seg"/>:</dt>
+        <dd><xsl:apply-templates/></dd>
     </xsl:template>
 </xsl:stylesheet>

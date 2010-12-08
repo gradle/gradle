@@ -70,13 +70,18 @@ class XmlSpecification extends Specification {
                 target.append(" $attr.name=\"$attr.value\"")
             }
 
-            List<Node> trimmedContent = prettyPrint ? element.childNodes.inject([]) { list, child ->
-                if (child instanceof Text && child.textContent.trim().length() == 0) {
+            List<Node> trimmedContent;
+            if (prettyPrint) {
+                trimmedContent = element.childNodes.inject([]) { list, child ->
+                    if (!(child instanceof Text) || child.textContent.trim().length() != 0) {
+                        list << child
+                    }
                     return list
                 }
-                list << child
-                return list
-            } : element.childNodes.collect { it }
+            } else {
+                trimmedContent = element.childNodes.collect { it }
+            }
+
             if (trimmedContent.isEmpty()) {
                 target.append('/>')
                 return
@@ -98,10 +103,12 @@ class XmlSpecification extends Specification {
 
             return
         }
+
         if (node instanceof Text) {
             target.append(node.nodeValue.replace('&', '&amp;').replace('<', '&lt;').replace('>', '&gt;'))
             return
         }
+        
         throw new UnsupportedOperationException("Don't know how to format DOM node: $node")
     }
 }

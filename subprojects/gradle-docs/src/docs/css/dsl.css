@@ -64,9 +64,11 @@
     margin-bottom: 1.6em;
 }
 
-.segmentedlist table {
+.segmentedlist table, .table table {
     border: solid #d0d0d0 1px;
     border-collapse: collapse;
+    margin-left: -0.8em;
+    margin-right: -0.8em;
 }
 
 .segmentedlist th {
@@ -74,6 +76,7 @@
     padding-right: 0.8em;
     padding-top: 0.3em;
     padding-bottom: 0.3em;
+    color: #505050;
 }
 
 .segmentedlist td {
@@ -83,15 +86,19 @@
     padding-bottom: 0.3em;
 }
 
+.segmentedlist dt {
+    font-weight: bold;
+}
+
 .signature {
     background-color: #f5f5f5;
     border: solid #e7e7e7 1px;
     color: #666666;
     width: auto;
-    margin-right: -1em;
-    padding-right: 1em;
-    margin-left: -1em;
-    padding-left: 1em;
+    margin-right: -0.8em;
+    padding-right: 0.8em;
+    margin-left: -0.8em;
+    padding-left: 0.8em;
     padding-top: 0.3em;
     padding-bottom: 0.3em;
     font-weight: normal;

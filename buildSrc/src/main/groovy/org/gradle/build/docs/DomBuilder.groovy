@@ -18,6 +18,7 @@ package org.gradle.build.docs
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
+import org.w3c.dom.NodeList
 
 class DomBuilder extends BuilderSupport {
     Document document
@@ -76,6 +77,14 @@ class DomBuilder extends BuilderSupport {
 
     def appendChild(Node node) {
         current.appendChild(document.importNode(node, true))
+    }
+
+    def appendChildren(Iterable<? extends Node> nodes) {
+        nodes.each { appendChild(it) }
+    }
+
+    def appendChildren(NodeList nodes) {
+        nodes.each { appendChild(it) }
     }
 
     def text(String text) {

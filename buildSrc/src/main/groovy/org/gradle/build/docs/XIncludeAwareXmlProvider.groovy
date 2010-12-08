@@ -15,11 +15,15 @@
  */
 package org.gradle.build.docs
 
-import org.w3c.dom.Document
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
+import javax.xml.transform.OutputKeys
+import javax.xml.transform.Transformer
+import javax.xml.transform.TransformerFactory
+import javax.xml.transform.dom.DOMSource
+import javax.xml.transform.stream.StreamResult
+import org.w3c.dom.Document
 import org.w3c.dom.Element
-import groovy.xml.dom.DOMUtil
 
 class XIncludeAwareXmlProvider {
     final Iterable<java.io.File> classpath
@@ -48,7 +52,12 @@ class XIncludeAwareXmlProvider {
 
     void write(File destFile) {
         destFile.withOutputStream {OutputStream stream ->
-            DOMUtil.serialize(root, stream)
+            TransformerFactory factory = TransformerFactory.newInstance();
+            Transformer transformer = factory.newTransformer();
+//                transformer.setOutputProperty(OutputKeys.INDENT, "no");
+            transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+            transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/xml");
+            transformer.transform(new DOMSource(root), new StreamResult(stream));
         }
     }
 

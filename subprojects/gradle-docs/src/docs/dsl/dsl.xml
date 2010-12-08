@@ -1,6 +1,7 @@
 <book id="dsl">
     <bookinfo>
         <title>Gradle Build Language Reference</title>
+        <titleabbrev>Gradle DSL</titleabbrev>
     </bookinfo>
 
     <section>
