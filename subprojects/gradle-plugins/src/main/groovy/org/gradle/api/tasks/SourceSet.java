@@ -109,8 +109,9 @@ public interface SourceSet {
     SourceDirectorySet getResources();
 
     /**
-     * Configures the non-Java resources for this set. The given closure is used to configure the {@code
-     * SourceDirectorySet} which contains the resources.
+     * Configures the non-Java resources for this set.
+     *
+     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the resources.
      *
      * @param configureClosure The closure to use to configure the resources.
      * @return this
@@ -125,8 +126,9 @@ public interface SourceSet {
     SourceDirectorySet getJava();
 
     /**
-     * Configures the Java source for this set. The given closure is used to configure the {@code SourceDirectorySet}
-     * which contains the Java source.
+     * Configures the Java source for this set.
+     *
+     * <p>The given closure is used to configure the {@code SourceDirectorySet} which contains the Java source.
      *
      * @param configureClosure The closure to use to configure the Java source.
      * @return this
@@ -134,8 +136,8 @@ public interface SourceSet {
     SourceSet java(Closure configureClosure);
 
     /**
-     * All Java source files for this source set. This includes, for example, source which is directly compiled, and source
-     * which is indirectly compiled through joint compilation.
+     * All Java source files for this source set. This includes, for example, source which is directly compiled, and
+     * source which is indirectly compiled through joint compilation.
      *
      * @return the Java source. Never returns null.
      */
@@ -182,7 +184,6 @@ public interface SourceSet {
      *
      * @param verb The action, may be null.
      * @param target The target, may be null
-     *
      * @return The task name, generally of the form ${verb}${name}${noun}
      */
     String getTaskName(String verb, String target);

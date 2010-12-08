@@ -10,11 +10,9 @@
             </thead>
             <tr>
                 <td>groovyOptions</td>
-                <td>-</td>
             </tr>
             <tr>
                 <td>options</td>
-                <td>-</td>
             </tr>
             <tr>
                 <td>source</td>
@@ -39,6 +37,14 @@
             <tr>
                 <td>targetCompatibility</td>
                 <td><literal>project.targetCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>includes</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>excludes</td>
+                <td><literal>[]</literal></td>
             </tr>
         </table>
     </section>

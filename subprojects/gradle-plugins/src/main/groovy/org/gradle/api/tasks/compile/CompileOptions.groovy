@@ -78,15 +78,35 @@ class CompileOptions extends AbstractOptions {
      * Specifies whether to use the Ant {@code <depend>} task.
      */
     boolean useDepend = false
+
+    /**
+     * The options for using the Ant {@code <depend>} task.
+     */
     DependOptions dependOptions = new DependOptions()
+
+    /**
+     * The compiler to use.
+     */
     @Input @Optional
     String compiler = null
     @Input
     boolean includeJavaRuntime = false
+
+    /**
+     * The bootstrap classpath to use when compiling.
+     */
     @Input @Optional
     String bootClasspath = null
+
+    /**
+     * The extension dirs to use when compiling.
+     */
     @Input @Optional
     String extensionDirs = null
+
+    /**
+     * The arguments to pass to the compiler.
+     */
     @Input
     List compilerArgs = []
 

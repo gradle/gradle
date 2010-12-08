@@ -23,16 +23,29 @@ import org.gradle.api.tasks.Optional
  * @author Hans Dockter
  */
 class ForkOptions extends AbstractOptions {
+    /**
+     * The executable to use to fork the compiler.
+     */
     @Input @Optional
     String executable = null
+
+    /**
+     * The initial heap size for the compiler process.
+     */
     String memoryInitialSize = null
+
+    /**
+     * The maximum heap size for the compiler process.
+     */
     String memoryMaximumSize = null
     String tempDir = null
 
+    /**
+     * The JVM command-line arguments for the compiler process.
+     */
     List jvmArgs
 
     Map fieldName2AntMap() {
         [tempDir: 'tempdir']
     }
-    
 }

@@ -43,17 +43,19 @@ import java.util.Map;
  */
 public interface Script {
     /**
-     * <p>Configures the delegate object for this script using plugins or scripts. The given closure is used to
-     * configure an {@link org.gradle.api.plugins.ObjectConfigurationAction} which is then used to configure the
-     * delegate object.</p>
+     * <p>Configures the delegate object for this script using plugins or scripts.
+     *
+     * <p>The given closure is used to configure an {@link org.gradle.api.plugins.ObjectConfigurationAction} which is
+     * then used to configure the delegate object.</p>
      *
      * @param closure The closure to configure the {@code ObjectConfigurationAction}.
      */
     void apply(Closure closure);
 
     /**
-     * <p>Configures the delegate object for this script using plugins or scripts. The following options are
-     * available:</p>
+     * <p>Configures the delegate object for this script using plugins or scripts.
+     *
+     * <p>The following options are available:</p>
      *
      * <ul><li>{@code from}: A script to apply to the delegate object. Accepts any path supported by {@link
      * #uri(Object)}.</li>
@@ -76,8 +78,10 @@ public interface Script {
     ScriptHandler getBuildscript();
 
     /**
-     * Configures the classpath for this script. The given closure is executed against this script's {@link
-     * ScriptHandler}. The {@link ScriptHandler} is passed to the closure as the closure's delegate.
+     * Configures the classpath for this script.
+     *
+     * <p>The given closure is executed against this script's {@link ScriptHandler}. The {@link ScriptHandler} is passed
+     * to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the script classpath.
      */

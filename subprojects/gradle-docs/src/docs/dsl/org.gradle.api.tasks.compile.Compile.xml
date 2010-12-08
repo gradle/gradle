@@ -10,7 +10,6 @@
             </thead>
             <tr>
                 <td>options</td>
-                <td>-</td>
             </tr>
             <tr>
                 <td>sourceCompatibility</td>
@@ -31,6 +30,14 @@
             <tr>
                 <td>destinationDir</td>
                 <td><literal><replaceable>sourceSet</replaceable>.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>includes</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>excludes</td>
+                <td><literal>[]</literal></td>
             </tr>
         </table>
     </section>

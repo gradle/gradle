@@ -5,8 +5,61 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>groovy</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>destinationDir</td>
+                <td><literal><replaceable>${project.docsDir}</replaceable>/groovydoc</literal></td>
+            </tr>
+            <tr>
+                <td>groovyClasspath</td>
+                <td><literal>project.configurations.groovy</literal></td>
+            </tr>
+            <tr>
+                <td>use</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>windowTitle</td>
+                <td><literal><replaceable>${project.name}</replaceable> <replaceable>{project.version}</replaceable> API</literal></td>
+            </tr>
+            <tr>
+                <td>docTitle</td>
+                <td><literal><replaceable>${project.name}</replaceable> <replaceable>{project.version}</replaceable> API</literal></td>
+            </tr>
+            <tr>
+                <td>header</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>footer</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>overview</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>includePrivate</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>links</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>includes</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>excludes</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td><literal>sourceSets.main.groovy</literal></td>
+            </tr>
         </table>
     </section>
     <section>
