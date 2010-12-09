@@ -15,11 +15,13 @@
  */
 package org.gradle.build.docs.dsl.model;
 
+import org.gradle.api.Action;
+
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MethodMetaData implements Serializable, LanguageElement {
+public class MethodMetaData implements Serializable, LanguageElement, TypeContainer {
     private final String name;
     private final ClassMetaData ownerClass;
     private final List<ParameterMetaData> parameters = new ArrayList<ParameterMetaData>();
@@ -92,5 +94,12 @@ public class MethodMetaData implements Serializable, LanguageElement {
         }
         builder.append(')');
         return builder.toString();
+    }
+
+    public void visitTypes(Action<TypeMetaData> action) {
+        action.execute(returnType);
+        for (ParameterMetaData parameter : parameters) {
+            parameter.visitTypes(action);
+        }
     }
 }

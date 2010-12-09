@@ -15,10 +15,12 @@
  */
 package org.gradle.build.docs.dsl.model;
 
+import org.gradle.api.Action;
+
 import java.io.Serializable;
 import java.util.LinkedList;
 
-public class PropertyMetaData implements Serializable, LanguageElement {
+public class PropertyMetaData implements Serializable, LanguageElement, TypeContainer {
     private TypeMetaData type;
     private boolean writeable;
     private String rawCommentText;
@@ -94,5 +96,9 @@ public class PropertyMetaData implements Serializable, LanguageElement {
         }
 
         return null;
+    }
+
+    public void visitTypes(Action<TypeMetaData> action) {
+        action.execute(type);
     }
 }

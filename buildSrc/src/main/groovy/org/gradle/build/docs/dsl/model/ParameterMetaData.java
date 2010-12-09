@@ -15,9 +15,11 @@
  */
 package org.gradle.build.docs.dsl.model;
 
+import org.gradle.api.Action;
+
 import java.io.Serializable;
 
-public class ParameterMetaData implements Serializable {
+public class ParameterMetaData implements Serializable, TypeContainer {
     private final MethodMetaData ownerMethod;
     private final String name;
     private TypeMetaData type;
@@ -45,5 +47,9 @@ public class ParameterMetaData implements Serializable {
         builder.append(" ");
         builder.append(name);
         return builder.toString();
+    }
+
+    public void visitTypes(Action<TypeMetaData> action) {
+        action.execute(type);
     }
 }

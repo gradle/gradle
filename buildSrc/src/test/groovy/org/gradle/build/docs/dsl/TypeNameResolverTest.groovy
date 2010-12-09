@@ -18,6 +18,7 @@ package org.gradle.build.docs.dsl
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import spock.lang.Specification
+import org.gradle.build.docs.dsl.model.TypeMetaData
 
 class TypeNameResolverTest extends Specification {
     final ClassMetaDataRepository<ClassMetaData> metaDataRepository = Mock()
@@ -114,7 +115,7 @@ class TypeNameResolverTest extends Specification {
         _ * metaDataRepository.get('org.gradle.SomeClass.Outer') >> outerClass
         _ * outerClass.innerClassNames >> ['org.gradle.SomeClass.Outer.Sibling']
     }
-    
+
     def resolvesUnqualifiedNameToJavaLangPackage() {
         when:
         def name = typeNameResolver.resolve('String', classMetaData)
@@ -125,6 +126,27 @@ class TypeNameResolverTest extends Specification {
         _ * classMetaData.imports >> []
     }
 
+    def resolvesUnqualifiedNameToJavaUtilPackageInGroovySource() {
+        when:
+        def name = typeNameResolver.resolve('Set', classMetaData)
+
+        then:
+        name == 'java.util.Set'
+        _ * classMetaData.innerClassNames >> []
+        _ * classMetaData.imports >> []
+        _ * classMetaData.groovy >> true
+    }
+
+    def resolvesUnqualifiedNameToImportedJavaPackage() {
+        when:
+        def name = typeNameResolver.resolve('Set', classMetaData)
+
+        then:
+        name == 'java.util.Set'
+        _ * classMetaData.innerClassNames >> []
+        _ * classMetaData.imports >> ['java.util.*']
+    }
+
     def resolvesPrimitiveType() {
         when:
         def name = typeNameResolver.resolve('boolean', classMetaData)
@@ -132,4 +154,23 @@ class TypeNameResolverTest extends Specification {
         then:
         name == 'boolean'
     }
+
+    def resolvesParameterisedTypes() {
+        def typeMetaData = type('SomeClass')
+        typeMetaData.addTypeArg(type('String'))
+
+        when:
+        typeNameResolver.resolve(typeMetaData, classMetaData)
+
+        then:
+        typeMetaData.signature == 'org.gradle.SomeClass<java.lang.String>'
+
+        _ * classMetaData.innerClassNames >> []
+        _ * classMetaData.imports >> ['org.gradle.SomeClass']
+    }
+
+    def type(String name) {
+        return new TypeMetaData(name)
+    }
 }
+

@@ -52,7 +52,7 @@ public class JavaClass extends A implements GroovyInterface, JavaInterface {
     /**
      * A boolean property.
      */
-    public boolean isFlag() {
+    boolean isFlag() {
         return false;
     }
 

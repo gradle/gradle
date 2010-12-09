@@ -16,6 +16,7 @@
 package org.gradle.build.docs.dsl.model;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.api.Action;
 import org.gradle.build.docs.model.Attachable;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.gradle.util.GUtil;
@@ -23,7 +24,7 @@ import org.gradle.util.GUtil;
 import java.io.Serializable;
 import java.util.*;
 
-public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, LanguageElement {
+public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, LanguageElement, TypeContainer {
     private final String className;
     private String superClassName;
     private final String packageName;
@@ -221,5 +222,14 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
         method.setReturnType(returnType);
         method.setRawCommentText(rawCommentText);
         return method;
+    }
+
+    public void visitTypes(Action<TypeMetaData> action) {
+        for (PropertyMetaData propertyMetaData : declaredProperties.values()) {
+            propertyMetaData.visitTypes(action);
+        }
+        for (MethodMetaData methodMetaData : declaredMethods) {
+            methodMetaData.visitTypes(action);
+        }
     }
 }

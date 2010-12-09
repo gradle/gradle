@@ -17,6 +17,7 @@ package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.w3c.dom.Element
+import org.gradle.build.docs.dsl.model.ClassMetaData
 
 class MethodDoc {
     final String id
@@ -24,9 +25,17 @@ class MethodDoc {
     final List<Element> comment
 
     MethodDoc(MethodMetaData metaData, List<Element> comment) {
+        this(metaData.ownerClass, metaData, comment)
+    }
+
+    MethodDoc(ClassMetaData referringClass, MethodMetaData metaData, List<Element> comment) {
         this.metaData = metaData
-        id = "$metaData.ownerClass.className:$metaData.overrideSignature"
+        id = "$referringClass.className:$metaData.overrideSignature"
         this.comment = comment
+    }
+
+    MethodDoc forClass(ClassMetaData c) {
+        return new MethodDoc(c, metaData, comment)
     }
 
     String getName() {

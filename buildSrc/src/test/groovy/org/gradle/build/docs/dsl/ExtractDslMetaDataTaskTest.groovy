@@ -20,7 +20,6 @@ import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.testfixtures.ProjectBuilder
 import spock.lang.Specification
-import spock.lang.Ignore
 
 class ExtractDslMetaDataTaskTest extends Specification {
     final Project project = new ProjectBuilder().build()
@@ -500,9 +499,71 @@ class ExtractDslMetaDataTaskTest extends Specification {
         propMetaData.type.signature == 'org.gradle.test.JavaClassWithInnerTypes.InnerClass'
     }
 
-    @Ignore
-    def handlesImplicitImportsInGroovySource() {
-        expect: false
+    def handlesParameterizedTypesInGroovySource() {
+        task.source testFile('org/gradle/test/GroovyClassWithParameterizedTypes.groovy')
+        task.source testFile('org/gradle/test/GroovyInterface.groovy')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def metaData = repository.get('org.gradle.test.GroovyClassWithParameterizedTypes')
+
+        def property = metaData.findDeclaredProperty('setProp')
+        property.type.signature == 'java.util.Set<org.gradle.test.GroovyInterface>'
+
+        property = metaData.findDeclaredProperty('mapProp')
+        property.type.signature == 'java.util.Map<org.gradle.test.GroovyInterface, org.gradle.test.GroovyClassWithParameterizedTypes>'
+
+        property = metaData.findDeclaredProperty('wildcardProp')
+        property.type.signature == 'java.util.List<?>'
+
+        property = metaData.findDeclaredProperty('upperBoundProp')
+        property.type.signature == 'java.util.List<? extends org.gradle.test.GroovyInterface>'
+
+        property = metaData.findDeclaredProperty('lowerBoundProp')
+        property.type.signature == 'java.util.List<? super org.gradle.test.GroovyInterface>'
+
+        property = metaData.findDeclaredProperty('nestedProp')
+        property.type.signature == 'java.util.List<? super java.util.Set<? extends java.util.Map<?, org.gradle.test.GroovyInterface[]>>>[]'
+    }
+
+    def handlesParameterizedTypesInJavaSource() {
+        task.source testFile('org/gradle/test/JavaClassWithParameterizedTypes.java')
+        task.source testFile('org/gradle/test/GroovyInterface.groovy')
+        task.source testFile('org/gradle/test/JavaInterface.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def metaData = repository.get('org.gradle.test.JavaClassWithParameterizedTypes')
+
+        def property = metaData.findDeclaredProperty('setProp')
+        property.type.signature == 'java.util.Set<org.gradle.test.GroovyInterface>'
+
+        property = metaData.findDeclaredProperty('mapProp')
+        property.type.signature == 'java.util.Map<org.gradle.test.GroovyInterface, org.gradle.test.JavaClassWithParameterizedTypes>'
+
+        property = metaData.findDeclaredProperty('wildcardProp')
+        property.type.signature == 'java.util.List<?>'
+
+        property = metaData.findDeclaredProperty('upperBoundProp')
+        property.type.signature == 'java.util.List<? extends org.gradle.test.GroovyInterface>'
+
+        property = metaData.findDeclaredProperty('lowerBoundProp')
+        property.type.signature == 'java.util.List<? super org.gradle.test.GroovyInterface>'
+
+        property = metaData.findDeclaredProperty('nestedProp')
+        property.type.signature == 'java.util.List<? super java.util.Set<? extends java.util.Map<?, org.gradle.test.GroovyInterface[]>>>[]'
+
+        def method = metaData.declaredMethods.find { it.name == 'paramMethod' }
+        method.returnType.signature == 'T'
+
+        def param = method.parameters[0]
+        param.type.signature == 'T'
     }
 
     def testFile(String fileName) {

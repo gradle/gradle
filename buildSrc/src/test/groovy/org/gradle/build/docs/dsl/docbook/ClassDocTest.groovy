@@ -458,6 +458,7 @@ class ClassDocTest extends XmlSpecification {
         _ * propertyDoc.description >> parse("<para>$name comment</para>")
         _ * propertyDoc.metaData >> property(name, null)
         _ * propertyDoc.additionalValues >> []
+        _ * propertyDoc.forClass(!null) >> propertyDoc
         return propertyDoc
     }
 
@@ -485,6 +486,7 @@ class ClassDocTest extends XmlSpecification {
         MethodDoc methodDoc = Mock()
         _ * methodDoc.name >> name
         _ * methodDoc.metaData >> method(name, null)
+        _ * methodDoc.forClass(!null) >> methodDoc
         return methodDoc
     }
 

@@ -27,15 +27,14 @@ import org.codehaus.groovy.antlr.parser.GroovyRecognizer
 import org.codehaus.groovy.antlr.treewalker.PreOrderTraversal
 import org.codehaus.groovy.antlr.treewalker.SourceCodeTraversal
 import org.codehaus.groovy.antlr.treewalker.Visitor
+import org.gradle.api.Action
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceTask
 import org.gradle.api.tasks.TaskAction
 import org.gradle.build.docs.dsl.model.ClassMetaData
-import org.gradle.build.docs.dsl.model.MethodMetaData
-import org.gradle.build.docs.dsl.model.PropertyMetaData
+import org.gradle.build.docs.dsl.model.TypeMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
-import org.gradle.build.docs.dsl.model.ParameterMetaData
 import org.gradle.util.Clock
 
 /**
@@ -128,15 +127,11 @@ class ExtractDslMetaDataTask extends SourceTask {
             for (int i = 0; i < classMetaData.interfaceNames.size(); i++) {
                 classMetaData.interfaceNames[i] = resolver.resolve(classMetaData.interfaceNames[i], classMetaData)
             }
-            classMetaData.declaredProperties.each { PropertyMetaData prop ->
-                resolver.resolve(prop.type, classMetaData)
-            }
-            classMetaData.declaredMethods.each { MethodMetaData method ->
-                resolver.resolve(method.returnType, classMetaData)
-                method.parameters.each { ParameterMetaData parameter ->
-                    resolver.resolve(parameter.type, classMetaData)
+            classMetaData.visitTypes(new Action<TypeMetaData>() {
+                void execute(TypeMetaData t) {
+                    resolver.resolve(t, classMetaData)
                 }
-            }
+            })
         } catch (Exception e) {
             throw new RuntimeException("Could not resolve types in class '$classMetaData.className'.", e)
         }

@@ -31,44 +31,48 @@ public class ClassLinkRenderer {
     }
 
     Node link(TypeMetaData type) {
-        String className = type.getName();
-        Element linkElement;
-        
-        String suffix = type.getArraySuffix();
+        final Element linkElement = document.createElement("classname");
 
-        if (model.isKnownType(className)) {
-            linkElement = document.createElement("apilink");
-            linkElement.setAttribute("class", className);
-            if (suffix.length() > 0) {
-                Element el = document.createElement("classname");
-                el.appendChild(linkElement);
-                el.appendChild(document.createTextNode(suffix));
-                linkElement = el;
+        type.visitSignature(new TypeMetaData.SignatureVisitor() {
+            public void visitText(String text) {
+                linkElement.appendChild(document.createTextNode(text));
             }
+
+            public void visitType(String name) {
+                linkElement.appendChild(addType(name));
+            }
+        });
+
+        linkElement.normalize();
+        if (linkElement.getChildNodes().getLength() == 1 && linkElement.getFirstChild() instanceof Element) {
+            return linkElement.getFirstChild();
         }
-        else if (className.startsWith("java.")) {
-            linkElement = document.createElement("ulink");
+        return linkElement;
+    }
+
+    private Node addType(String className) {
+        if (model.isKnownType(className)) {
+            Element linkElement = document.createElement("apilink");
+            linkElement.setAttribute("class", className);
+            return linkElement;
+        } else if (className.startsWith("java.")) {
+            Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("http://download.oracle.com/javase/1.5.0/docs/api/%s.html",
                     className.replace(".", "/")));
             Element classNameElement = document.createElement("classname");
-            classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".") + suffix));
+            classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
-        }
-        else if (className.startsWith("groovy.")) {
-            linkElement = document.createElement("ulink");
+            return linkElement;
+        } else if (className.startsWith("groovy.")) {
+            Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("http://groovy.codehaus.org/gapi/%s.html", className.replace(
                     ".", "/")));
             Element classNameElement = document.createElement("classname");
-            classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".") + suffix));
+            classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
             return linkElement;
+        } else {
+            return document.createTextNode(className);
         }
-        else {
-            linkElement = document.createElement("classname");
-            linkElement.appendChild(document.createTextNode(className + suffix));
-        }
-
-
-        return linkElement;
     }
 }

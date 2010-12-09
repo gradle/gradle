@@ -115,7 +115,7 @@ class ClassDoc {
             ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
             supertype.getClassProperties().each { propertyDoc ->
                 if (props.add(propertyDoc.name)) {
-                    classProperties << propertyDoc
+                    classProperties << propertyDoc.forClass(classMetaData)
                 }
             }
         }
@@ -209,7 +209,7 @@ class ClassDoc {
             ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
             supertype.getClassMethods().each { method ->
                 if (signatures.add(method.metaData.overrideSignature)) {
-                    classMethods << method
+                    classMethods << method.forClass(classMetaData)
                 }
             }
         }

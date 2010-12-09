@@ -17,6 +17,7 @@ package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.model.PropertyMetaData
 import org.w3c.dom.Element
+import org.gradle.build.docs.dsl.model.ClassMetaData
 
 class PropertyDoc {
     private final String id
@@ -26,11 +27,19 @@ class PropertyDoc {
     private final PropertyMetaData metaData
 
     PropertyDoc(PropertyMetaData propertyMetaData, List<Element> comment, List<Element> additionalValues) {
+        this(propertyMetaData.ownerClass, propertyMetaData, comment, additionalValues)
+    }
+
+    PropertyDoc(ClassMetaData referringClass, PropertyMetaData propertyMetaData, List<Element> comment, List<Element> additionalValues) {
         name = propertyMetaData.name
         this.metaData = propertyMetaData
-        id = "${propertyMetaData.ownerClass.className}:$name"
+        id = "${referringClass.className}:$name"
         this.comment = comment
         this.additionalValues = additionalValues
+    }
+
+    PropertyDoc forClass(ClassMetaData classMetaData) {
+        return new PropertyDoc(classMetaData, metaData, comment, additionalValues)
     }
 
     String getId() {

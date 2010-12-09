@@ -53,7 +53,7 @@ class ClassLinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('java.util.List', true))
 
         then:
-        format(link) == '<ulink url="http://download.oracle.com/javase/1.5.0/docs/api/java/util/List.html"><classname>List[]</classname></ulink>'
+        format(link) == '<classname><ulink url="http://download.oracle.com/javase/1.5.0/docs/api/java/util/List.html"><classname>List</classname></ulink>[]</classname>'
     }
 
     def rendersLinkToGroovyClass() {
@@ -69,7 +69,7 @@ class ClassLinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('groovy.lang.Closure', true))
 
         then:
-        format(link) == '<ulink url="http://groovy.codehaus.org/gapi/groovy/lang/Closure.html"><classname>Closure[]</classname></ulink>'
+        format(link) == '<classname><ulink url="http://groovy.codehaus.org/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>[]</classname>'
     }
 
     def rendersLinkToExternalClass() {
@@ -86,6 +86,21 @@ class ClassLinkRendererTest extends XmlSpecification {
 
         then:
         format(link) == '<classname>some.other.Class[]</classname>'
+    }
+
+    def rendersLinkToParameterizedType() {
+        def metaData = type('org.gradle.SomeClass')
+        metaData.addTypeArg(type('Type1'))
+        metaData.addTypeArg(type('Type2'))
+
+        when:
+        def link = renderer.link(metaData)
+
+        then:
+        format(link) == '<classname><apilink class="org.gradle.SomeClass"/>&lt;<apilink class="Type1"/>, <apilink class="Type2"/>&gt;</classname>'
+        _ * model.isKnownType('org.gradle.SomeClass') >> Mock(ClassDoc)
+        _ * model.isKnownType('Type1') >> Mock(ClassDoc)
+        _ * model.isKnownType('Type2') >> Mock(ClassDoc)
     }
 
     def type(String name, boolean isArray = false) {
