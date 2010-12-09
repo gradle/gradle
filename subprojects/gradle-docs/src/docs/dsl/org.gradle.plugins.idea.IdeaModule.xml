@@ -5,8 +5,69 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>idea</literal> plugin</td>
+                    <td>Default with <literal>idea</literal> and <literal>java</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>moduleDir</td>
+                <td><literal>project.projectDir</literal></td>
+            </tr>
+            <tr>
+                <td>sourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>source dirs from <literal>project.sourceSets.main.allSource</literal></td>
+            </tr>
+            <tr>
+                <td>testSourceDirs</td>
+                <td><literal>[]</literal></td>
+                <td>source dirs from <literal>project.sourceSets.test.allSource</literal></td>
+            </tr>
+            <tr>
+                <td>excludeDirs</td>
+                <td><literal>[project.buildDir, project.file('.gradle')]</literal></td>
+            </tr>
+            <tr>
+                <td>outputDir</td>
+                <td><literal>null</literal></td>
+                <td><literal>project.sourceSets.main.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>testOutputDir</td>
+                <td><literal>null</literal></td>
+                <td><literal>project.sourceSets.test.classesDir</literal></td>
+            </tr>
+            <tr>
+                <td>javaVersion</td>
+                <td><literal>'inherited'</literal></td>
+            </tr>
+            <tr>
+                <td>downloadSources</td>
+                <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>downloadJavadoc</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>variables</td>
+                <td><literal>[:]</literal></td>
+            </tr>
+            <tr>
+                <td>scopes</td>
+                <td><literal>[:]</literal></td>
+                <td>
+                    <itemizedlist>
+                        <listitem><literal>COMPILE</literal> -> <literal>project.configurations.compile</literal></listitem>
+                        <listitem><literal>RUNTIME</literal> -> <literal>project.configurations.runtime - project.configurations.compile</literal></listitem>
+                        <listitem><literal>TEST</literal> -> <literal>project.configurations.testRuntime - project.configurations.runtime</literal></listitem>
+                    </itemizedlist>
+                </td>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iml</literal></td>
+            </tr>
         </table>
     </section>
     <section>

@@ -34,11 +34,11 @@
             </tr>
             <tr>
                 <td>downloadSources</td>
-                <td>true</td>
+                <td><literal>true</literal></td>
             </tr>
             <tr>
                 <td>downloadJavadoc</td>
-                <td>false</td>
+                <td><literal>false</literal></td>
             </tr>
             <tr>
                 <td>outputFile</td>

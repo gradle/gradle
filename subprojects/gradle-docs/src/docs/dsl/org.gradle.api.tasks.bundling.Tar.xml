@@ -5,6 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
             <tr>

@@ -22,6 +22,7 @@ import org.gradle.api.java.archives.internal.DefaultManifest
 import org.gradle.util.ConfigureUtil
 import org.gradle.api.internal.file.copy.CopySpecImpl
 import org.gradle.api.file.FileCopyDetails
+import org.gradle.api.java.archives.Manifest
 
 /**
  * Assembles a JAR archive.
@@ -31,7 +32,7 @@ import org.gradle.api.file.FileCopyDetails
 public class Jar extends Zip {
     public static final String DEFAULT_EXTENSION = 'jar'
 
-    private DefaultManifest manifest
+    private Manifest manifest
     private final CopySpecImpl metaInf
 
     Jar() {
@@ -42,7 +43,7 @@ public class Jar extends Zip {
         metaInf.addChild().from {
             MapFileTree manifestSource = new MapFileTree(temporaryDir)
             manifestSource.add('MANIFEST.MF') {OutputStream outstr ->
-                DefaultManifest manifest = getManifest() ?: new DefaultManifest(null)
+                Manifest manifest = getManifest() ?: new DefaultManifest(null)
                 manifest.writeTo(new OutputStreamWriter(outstr))
             }
             manifestSource
@@ -54,14 +55,32 @@ public class Jar extends Zip {
         }
     }
 
-    public DefaultManifest getManifest() {
+    /**
+     * Returns the manifest for this JAR archive.
+     * @return The manifest
+     */
+    public Manifest getManifest() {
         return manifest;
     }
 
-    public void setManifest(DefaultManifest manifest) {
+    /**
+     * Sets the manifest for this JAR archive.
+     *
+     * @param manifest The manifest. May be null.
+     */
+    public void setManifest(Manifest manifest) {
         this.manifest = manifest;
     }
 
+    /**
+     * Configures the manifest for this JAR archive.
+     *
+     * <p>The given closure is executed to configure the manifest. The {@link org.gradle.api.java.archives.Manifest}
+     * is passed to the closure as its delegate.</p>
+     *
+     * @param configureClosure The closure.
+     * @return This.
+     */
     public Jar manifest(Closure configureClosure) {
         if (getManifest() == null) {
             manifest = new DefaultManifest(project.fileResolver)
@@ -74,6 +93,15 @@ public class Jar extends Zip {
         return metaInf.addChild()
     }
 
+    /**
+     * Adds content to this JAR arhive's META-INF directory.
+     *
+     * <p>The given closure is executed to configure a {@code CopySpec}. The {@link CopySpec} is passed to the closure
+     * as its delegate.</p>
+     *
+     * @param configureClosure The closure.
+     * @return The created {@code CopySpec}
+     */
     public CopySpec metaInf(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getMetaInf())
     }

@@ -28,6 +28,7 @@ import org.gradle.api.artifacts.ResolvedConfiguration
 import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.Dependency
+import org.gradle.api.artifacts.Configuration
 
 /**
  * Generates an IDEA module file.
@@ -36,64 +37,64 @@ import org.gradle.api.artifacts.Dependency
  */
 public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
-     * The content root directory of the module. Must not be null.
+     * The content root directory of the module.
      */
     @InputFiles
     File moduleDir
 
     /**
-     * The dirs containing the production sources. Must not be null.
+     * The dirs containing the production sources.
      */
     @InputFiles
-    Set sourceDirs
+    Set<File> sourceDirs
 
     /**
-     * The dirs containing the test sources. Must not be null.
+     * The dirs containing the test sources.
      */
     @InputFiles
-    Set testSourceDirs
+    Set<File> testSourceDirs
 
     /**
-     * The dirs to be excluded by idea. Must not be null.
+     * The dirs to be excluded by idea.
      */
     @InputFiles
-    Set excludeDirs
+    Set<File> excludeDirs
 
     /**
-     * The idea output dir for the production sources. If null no entry for output dirs is created.
+     * The idea output dir for the production sources. If {@code null} no entry for output dirs is created.
      */
     @InputFiles @Optional
     File outputDir
 
     /**
-     * The idea output dir for the test sources. If null no entry for test output dirs is created.
+     * The idea output dir for the test sources. If {@code null} no entry for test output dirs is created.
      */
     @InputFiles @Optional
     File testOutputDir
 
     /**
-     * If this is null the value of the existing or default ipr XML (inherited) is used. If it is set
-     * to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
+     * The JDK to use for this module. If this is {@code null} the value of the existing or default ipr XML (inherited)
+     * is used. If it is set to <code>inherited</code>, the project SDK is used. Otherwise the SDK for the corresponding
      * value of java version is used for this module
      */
     @Input @Optional
     String javaVersion = org.gradle.plugins.idea.model.Module.INHERITED
 
     /**
-     * Whether to download and add sources associated with the dependency jars. Defaults to true. 
+     * Whether to download and add sources associated with the dependency jars.
      */
     @Input
     boolean downloadSources = true
 
     /**
-     * Whether to download and add javadoc associated with the dependency jars. Defaults to false.
+     * Whether to download and add javadoc associated with the dependency jars.
      */
     @Input
     boolean downloadJavadoc = false
 
     /**
      * The variables to be used for replacing absolute paths in the iml entries. For example, you might add a
-     * GRADLE_USER_HOME variable to point to the Gradle user home dir.
+     * {@code GRADLE_USER_HOME} variable to point to the Gradle user home dir.
      */
     Map<String, File> variables = [:]
 
@@ -102,7 +103,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
      * The values of those keys are sets of  {@link org.gradle.api.artifacts.Configuration}  objects. The files of the
      * plus configurations are added minus the files from the minus configurations.
      */
-    Map scopes = [:]
+    Map<String, Map<String, Configuration>> scopes = [:]
 
     @Override protected Module create() {
         return new Module(xmlTransformer, pathFactory)
@@ -193,12 +194,12 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         }
     }
 
-    private Set getScopeDependencies(Map configurations, Closure filter) {
+    private Set getScopeDependencies(Map<String, Configuration> configurations, Closure filter) {
         Set firstLevelDependencies = new LinkedHashSet()
-        configurations.plus.each { configuration ->
+        configurations.plus.each { Configuration configuration ->
             firstLevelDependencies.addAll(configuration.getAllDependencies().findAll(filter))
         }
-        configurations.minus.each { configuration ->
+        configurations.minus.each { Configuration configuration ->
             configuration.getAllDependencies().findAll(filter).each { minusDep ->
                 // This deals with dependencies that are defined in different scopes with different
                 // artifacts. Right now we accept the fact, that in such a situation some artifacts

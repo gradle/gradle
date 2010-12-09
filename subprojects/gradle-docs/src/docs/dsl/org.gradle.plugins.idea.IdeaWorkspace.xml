@@ -5,8 +5,13 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>idea</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>outputFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iws</literal></td>
+            </tr>
         </table>
     </section>
     <section>

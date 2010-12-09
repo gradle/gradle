@@ -73,7 +73,7 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     }
 
     /**
-     * The path where the archive is constructed. The path is simply the destinationDir plus the archiveName.
+     * The path where the archive is constructed. The path is simply the {@code destinationDir} plus the {@code archiveName}.
      *
      * @return a File object with the path to the archive
      */

@@ -5,8 +5,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>manifest</td>
+            </tr>
+            <tr>
+                <td>destinationDir</td>
+                <td><literal>project.libsDir</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -17,6 +25,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>manifest</td>
+            </tr>
+            <tr>
+                <td>metaInf</td>
+            </tr>
         </table>
     </section>
 </section>

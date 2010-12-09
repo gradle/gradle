@@ -5,10 +5,26 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>idea</literal> plugin</td>
+                    <td>Default with <literal>idea</literal> and <literal>java</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>javaVersion</td>
+                <td><literal>'1.6'</literal></td>
+                <td><literal>project.sourceCompatibility</literal></td>
+            </tr>
+            <tr>
+                <td>subprojects</td>
+                <td><literal>project.allprojects</literal></td>
+            </tr>
+            <tr>
+                <td>wildcards</td>
+                <td><literal>['!?*.java', '!?*.groovy']</literal></td>
+            </tr>
+            <tr>
+                <td>outputFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
             </tr>
         </table>
     </section>

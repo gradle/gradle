@@ -28,10 +28,10 @@ import org.gradle.plugins.idea.model.Project
  */
 public class IdeaProject extends XmlGeneratorTask<Project> {
     /**
-     * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped, if the Idea plugin has been
+     * The subprojects that should be mapped to modules in the ipr file. The subprojects will only be mapped if the Idea plugin has been
      * applied to them.
      */
-    Set subprojects
+    Set<Project> subprojects
 
     /**
      * The java version used for defining the project sdk.
@@ -40,7 +40,7 @@ public class IdeaProject extends XmlGeneratorTask<Project> {
     String javaVersion
 
     /**
-     * The wildcard resource patterns. Must not be null.
+     * The wildcard resource patterns.
      */
     @Input
     Set wildcards

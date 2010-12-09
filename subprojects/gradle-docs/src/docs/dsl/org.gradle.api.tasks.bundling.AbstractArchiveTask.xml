@@ -5,13 +5,35 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>archiveName</td>
             </tr>
             <tr>
+                <td>archivePath</td>
+            </tr>
+            <tr>
+                <td>appendix</td>
+            </tr>
+            <tr>
+                <td>baseName</td>
+                <td><literal>project.archivesBaseName</literal></td>
+            </tr>
+            <tr>
+                <td>version</td>
+                <td><literal>project.version</literal></td>
+            </tr>
+            <tr>
+                <td>extension</td>
+            </tr>
+            <tr>
+                <td>classifier</td>
+            </tr>
+            <tr>
                 <td>destinationDir</td>
+                <td><literal>project.distsDir</literal></td>
             </tr>
         </table>
     </section>
