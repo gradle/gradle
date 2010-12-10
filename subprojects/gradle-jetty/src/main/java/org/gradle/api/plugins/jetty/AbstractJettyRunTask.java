@@ -22,7 +22,10 @@ import org.gradle.api.plugins.jetty.internal.ConsoleScanner;
 import org.gradle.api.plugins.jetty.internal.JettyPluginServer;
 import org.gradle.api.plugins.jetty.internal.JettyPluginWebAppContext;
 import org.gradle.api.plugins.jetty.internal.Monitor;
-import org.gradle.api.tasks.*;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
+import org.gradle.api.tasks.TaskAction;
 import org.gradle.util.GFileUtils;
 import org.mortbay.jetty.Connector;
 import org.mortbay.jetty.RequestLog;
@@ -138,8 +141,6 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
      * A scanner to check ENTER hits on the console.
      */
     protected Thread consoleScanner;
-
-    public static final String PORT_SYSPROPERTY = "jetty.port";
 
     public abstract void validateConfiguration();
 
@@ -446,7 +447,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public Integer getStopPort() {
-        return stopPort;
+        Integer stopPortSystemProperty = JettySystemProperty.getStopPort();
+        return stopPortSystemProperty != null ? stopPortSystemProperty : stopPort;
     }
 
     public void setStopPort(Integer stopPort) {
@@ -454,7 +456,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public String getStopKey() {
-        return stopKey;
+        String stopKeySystemProperty = JettySystemProperty.getStopKey();
+        return stopKeySystemProperty != null ? stopKeySystemProperty : stopKey;
     }
 
     public void setStopKey(String stopKey) {
@@ -470,7 +473,8 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
     }
 
     public Integer getHttpPort() {
-        return httpPort;
+        Integer httpPortSystemProperty = JettySystemProperty.getHttpPort();
+        return httpPortSystemProperty != null ? httpPortSystemProperty : httpPort;
     }
 
     public void setHttpPort(Integer httpPort) {

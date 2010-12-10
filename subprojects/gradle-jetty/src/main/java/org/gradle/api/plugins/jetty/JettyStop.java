@@ -65,7 +65,8 @@ public class JettyStop extends ConventionTask {
      * Returns port to listen to stop jetty on sending stop command.
      */
     public Integer getStopPort() {
-        return stopPort;
+        Integer stopPortSystemProperty = JettySystemProperty.getStopPort();
+        return stopPortSystemProperty != null ? stopPortSystemProperty : stopPort;
     }
 
     /**
@@ -81,7 +82,8 @@ public class JettyStop extends ConventionTask {
      * @see #setStopKey(String)
      */
     public String getStopKey() {
-        return stopKey;
+        String stopKeySystemProperty = JettySystemProperty.getStopKey();
+        return stopKeySystemProperty != null ? stopKeySystemProperty : stopKey;
     }
 
     /**
