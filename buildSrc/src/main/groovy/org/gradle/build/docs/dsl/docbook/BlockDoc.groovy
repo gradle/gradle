@@ -16,12 +16,19 @@
 package org.gradle.build.docs.dsl.docbook
 
 import org.w3c.dom.Element
+import org.gradle.build.docs.dsl.model.TypeMetaData
 
 class BlockDoc {
     private final MethodDoc blockMethod
+    private final PropertyDoc blockProperty
+    private final TypeMetaData type
+    private boolean multiValued
 
-    BlockDoc(MethodDoc blockMethod) {
+    BlockDoc(MethodDoc blockMethod, PropertyDoc blockProperty, TypeMetaData type, boolean multiValued) {
         this.blockMethod = blockMethod
+        this.type = type
+        this.blockProperty = blockProperty
+        this.multiValued = multiValued
     }
 
     String getId() {
@@ -32,11 +39,23 @@ class BlockDoc {
         return blockMethod.name
     }
 
+    boolean isMultiValued() {
+        return multiValued
+    }
+
+    TypeMetaData getType() {
+        return type
+    }
+
     Element getDescription() {
         return blockMethod.description;
     }
 
     List<Element> getComment() {
         return blockMethod.comment
+    }
+    
+    PropertyDoc getBlockProperty() {
+        return blockProperty
     }
 }

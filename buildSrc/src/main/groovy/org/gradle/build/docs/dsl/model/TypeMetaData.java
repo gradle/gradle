@@ -51,16 +51,18 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return arrayDimensions + (varargs ? 1 : 0);
     }
 
-    public void addArrayDimension() {
+    public TypeMetaData addArrayDimension() {
         arrayDimensions++;
+        return this;
     }
 
     public boolean isVarargs() {
         return varargs;
     }
 
-    public void setVarargs() {
+    public TypeMetaData setVarargs() {
         this.varargs = true;
+        return this;
     }
 
     public String getSignature() {
@@ -89,11 +91,12 @@ public class TypeMetaData implements Serializable, TypeContainer {
         return builder.toString();
     }
 
-    public void addTypeArg(TypeMetaData typeArg) {
+    public TypeMetaData addTypeArg(TypeMetaData typeArg) {
         if (typeArgs == null) {
             typeArgs = new ArrayList<TypeMetaData>();
         }
         typeArgs.add(typeArg);
+        return this;
     }
 
     public void visitTypes(Action<TypeMetaData> action) {
@@ -146,16 +149,19 @@ public class TypeMetaData implements Serializable, TypeContainer {
         }
     }
 
-    public void setWildcard() {
+    public TypeMetaData setWildcard() {
         wildcard = true;
+        return this;
     }
 
-    public void setUpperBounds(TypeMetaData upperBounds) {
+    public TypeMetaData setUpperBounds(TypeMetaData upperBounds) {
         this.upperBounds = upperBounds;
+        return this;
     }
 
-    public void setLowerBounds(TypeMetaData lowerBounds) {
+    public TypeMetaData setLowerBounds(TypeMetaData lowerBounds) {
         this.lowerBounds = lowerBounds;
+        return this;
     }
 
     public interface SignatureVisitor {

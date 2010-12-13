@@ -126,15 +126,17 @@ class TypeNameResolverTest extends Specification {
         _ * classMetaData.imports >> []
     }
 
-    def resolvesUnqualifiedNameToJavaUtilPackageInGroovySource() {
-        when:
-        def name = typeNameResolver.resolve('Set', classMetaData)
-
-        then:
-        name == 'java.util.Set'
+    def resolvesUnqualifiedNameToDefaultPackagesAndClassesInGroovySource() {
         _ * classMetaData.innerClassNames >> []
         _ * classMetaData.imports >> []
         _ * classMetaData.groovy >> true
+
+        expect:
+        typeNameResolver.resolve('Set', classMetaData) == 'java.util.Set'
+        typeNameResolver.resolve('File', classMetaData) == 'java.io.File'
+        typeNameResolver.resolve('Closure', classMetaData) == 'groovy.lang.Closure'
+        typeNameResolver.resolve('BigDecimal', classMetaData) == 'java.math.BigDecimal'
+        typeNameResolver.resolve('BigInteger', classMetaData) == 'java.math.BigInteger'
     }
 
     def resolvesUnqualifiedNameToImportedJavaPackage() {

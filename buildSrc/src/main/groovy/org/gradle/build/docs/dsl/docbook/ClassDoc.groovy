@@ -160,8 +160,15 @@ class ClassDoc {
                 if (!methodDoc.description) {
                     throw new RuntimeException("Docbook content for '$className $method.signature' does not contain a description paragraph.")
                 }
-                if (method.parameters.size() == 1 && method.parameters[0].type.signature == Closure.class.name && classMetaData.findProperty(method.name)) {
-                    classBlocks << new BlockDoc(methodDoc)
+                def property = findProperty(method.name)
+                def multiValued = false
+                if (method.parameters.size() == 1 && method.parameters[0].type.signature == Closure.class.name && property) {
+                    def type = property.metaData.type
+                    if (type.name == 'java.util.List' || type.name == 'java.util.Collection' || type.name == 'java.util.Set' || type.name == 'java.util.Iterable') {
+                        type = type.typeArgs[0]
+                        multiValued = true
+                    }
+                    classBlocks << new BlockDoc(methodDoc, property, type, multiValued)
                 } else {
                     classMethods << methodDoc
                     signatures << method.overrideSignature
@@ -238,6 +245,10 @@ class ClassDoc {
             throw new RuntimeException("Docbook content for $className does not contain a description paragraph.")
         }
         return paras[0]
+    }
+
+    PropertyDoc findProperty(String name) {
+        return classProperties.find { it.name == name }
     }
 
     BlockDoc getBlock(String name) {

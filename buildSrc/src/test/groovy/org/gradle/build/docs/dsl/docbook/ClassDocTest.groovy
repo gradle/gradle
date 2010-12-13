@@ -106,9 +106,14 @@ class ClassDocTest extends XmlSpecification {
         ClassMetaData classMetaData = classMetaData()
         PropertyMetaData blockProperty = property('block', classMetaData)
         MethodMetaData blockMethod = method('block', classMetaData, paramTypes: [Closure.class.name])
+        PropertyMetaData compositeBlockProperty = property('listBlock', classMetaData, type: new TypeMetaData('java.util.List').addTypeArg(new TypeMetaData('BlockType')))
+        MethodMetaData compositeBlockMethod = method('listBlock', classMetaData, paramTypes: [Closure.class.name])
         MethodMetaData tooManyParams = method('block', classMetaData, paramTypes: ['String', 'boolean'])
         MethodMetaData notAClosure = method('block', classMetaData, paramTypes: ['String'])
         MethodMetaData noBlockProperty = method('notBlock', classMetaData, paramTypes: [Closure.class.name])
+        _ * classMetaData.findProperty('block') >> blockProperty
+        _ * classMetaData.findProperty('listBlock') >> compositeBlockProperty
+        _ * classMetaData.declaredMethods >> [blockMethod, compositeBlockMethod, tooManyParams, notAClosure, noBlockProperty]
 
         def content = parse('''
 <section>
@@ -116,6 +121,7 @@ class ClassDocTest extends XmlSpecification {
         <table>
             <thead><tr><td>Name</td></tr></thead>
             <tr><td>block</td></tr>
+            <tr><td>listBlock</td></tr>
             <tr><td>notBlock</td></tr>
         </table>
     </section>
@@ -123,6 +129,7 @@ class ClassDocTest extends XmlSpecification {
         <table>
             <thead><tr>Name</tr></thead>
             <tr><td>block</td></tr>
+            <tr><td>listBlock</td></tr>
         </table>
     </section>
 </section>
@@ -134,16 +141,20 @@ class ClassDocTest extends XmlSpecification {
         }
 
         then:
-        doc.classProperties.size() == 1
+        doc.classProperties.size() == 2
         doc.classProperties[0].name == 'block'
+        doc.classProperties[1].name == 'listBlock'
 
         doc.classMethods.size() == 3
 
-        doc.classBlocks.size() == 1
+        doc.classBlocks.size() == 2
         doc.classBlocks[0].name == 'block'
+        doc.classBlocks[0].type.signature == 'org.gradle.Type'
+        !doc.classBlocks[0].multiValued
 
-        _ * classMetaData.findProperty('block') >> blockProperty
-        _ * classMetaData.declaredMethods >> [blockMethod, tooManyParams, notAClosure, noBlockProperty]
+        doc.classBlocks[1].name == 'listBlock'
+        doc.classBlocks[1].type.signature == 'BlockType'
+        doc.classBlocks[1].multiValued
     }
 
     def buildsExtensionsForClass(){
@@ -203,7 +214,8 @@ class ClassDocTest extends XmlSpecification {
         PropertyMetaData property = Mock()
         _ * property.name >> name
         _ * property.ownerClass >> classMetaData
-        _ * property.type >> new TypeMetaData(args.type ?: 'org.gradle.Type')
+        def type = args.type instanceof TypeMetaData ? args.type : new TypeMetaData(args.type ?: 'org.gradle.Type')
+        _ * property.type >> type
         _ * property.signature >> "$name-signature"
         _ * javadocConverter.parse(property) >> ({[parse("<para>${args.comment ?: 'comment'}</para>")]} as DocComment)
         return property

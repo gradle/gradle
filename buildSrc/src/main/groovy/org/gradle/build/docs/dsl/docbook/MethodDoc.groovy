@@ -15,9 +15,9 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
+import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.w3c.dom.Element
-import org.gradle.build.docs.dsl.model.ClassMetaData
 
 class MethodDoc {
     private final String id

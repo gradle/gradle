@@ -33,15 +33,15 @@ class ClassExtensionDoc {
     }
 
     List<PropertyDoc> getExtensionProperties() {
-        return extensionClass.inject([]) {list, eClass -> eClass.classProperties.inject(list) {x, prop -> x << prop } }
+        return extensionClass.inject([]) {list, eClass -> eClass.classProperties.inject(list) {x, prop -> x << prop } }.sort { it.name }
     }
 
     List<MethodDoc> getExtensionMethods() {
-        return extensionClass.inject([]) {list, eClass -> eClass.classMethods.inject(list) {x, method -> x << method } }
+        return extensionClass.inject([]) {list, eClass -> eClass.classMethods.inject(list) {x, method -> x << method } }.sort { it.name }
     }
 
     List<BlockDoc> getExtensionBlocks() {
-        return extensionClass.inject([]) {list, eClass -> eClass.classBlocks.inject(list) {x, block -> x << block } }
+        return extensionClass.inject([]) {list, eClass -> eClass.classBlocks.inject(list) {x, block -> x << block } }.sort { it.name }
     }
 }
 

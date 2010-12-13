@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
+import org.gradle.util.UncheckedException;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -32,6 +33,7 @@ import java.util.Set;
 public class TypeNameResolver {
     private final Set<String> primitiveTypes = new HashSet<String>();
     private final List<String> groovyImplicitImportPackages = new ArrayList<String>();
+    private final List<String> groovyImplicitTypes = new ArrayList<String>();
     private final ClassMetaDataRepository<ClassMetaData> metaDataRepository;
 
     public TypeNameResolver(ClassMetaDataRepository<ClassMetaData> metaDataRepository) {
@@ -47,6 +49,18 @@ public class TypeNameResolver {
         primitiveTypes.add("void");
         groovyImplicitImportPackages.add("java.util.");
         groovyImplicitImportPackages.add("java.io.");
+        groovyImplicitImportPackages.add("java.net.");
+        groovyImplicitImportPackages.add("groovy.lang.");
+        groovyImplicitImportPackages.add("groovy.util.");
+        groovyImplicitTypes.add("java.math.BigDecimal");
+        groovyImplicitTypes.add("java.math.BigInteger");
+
+        // check that groovy is visible.
+        try {
+            getClass().getClassLoader().loadClass("groovy.lang.Closure");
+        } catch (ClassNotFoundException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
     }
 
     /**
@@ -126,6 +140,10 @@ public class TypeNameResolver {
         }
 
         if (classMetaData.isGroovy()) {
+            candidateClassName = "java.math." + name;
+            if (groovyImplicitTypes.contains(candidateClassName)) {
+                return candidateClassName;
+            }
             for (String prefix : groovyImplicitImportPackages) {
                 candidateClassName = prefix + name;
                 if (isVisibleClass(candidateClassName)) {

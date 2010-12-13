@@ -388,7 +388,7 @@ class ClassDocRendererTest extends XmlSpecification {
             </chapter>
         ''')
         ClassDoc classDoc = classDoc('Class', content: content)
-        BlockDoc block = blockDoc('block', id: 'blockId', description: 'block description', comment: 'block comment')
+        BlockDoc block = blockDoc('block', id: 'blockId', description: 'block description', comment: 'block comment', type: 'org.gradle.Type')
         _ * classDoc.classBlocks >> [block]
 
         when:
@@ -425,6 +425,13 @@ class ClassDocRendererTest extends XmlSpecification {
         <section id="blockId" role="detail">
             <title><literal role="name">block</literal> { }</title>
             <para>block comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg><classname>org.gradle.Type</classname> from <link linkend="block">
+                            <literal>block</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
         </section>
     </section>
     <section>
@@ -490,6 +497,13 @@ class ClassDocRendererTest extends XmlSpecification {
         <section id="blockId" role="detail">
             <title><literal role="name">blockName</literal> { }</title>
             <para>comment</para>
+            <segmentedlist>
+                <segtitle>Delegates to</segtitle>
+                <seglistitem>
+                    <seg><classname>BlockType</classname> from <link linkend="blockName">
+                            <literal>blockName</literal></link></seg>
+                </seglistitem>
+            </segmentedlist>
         </section>
     </section>
 </chapter>'''
@@ -524,7 +538,9 @@ class ClassDocRendererTest extends XmlSpecification {
 
     def linkRenderer() {
         ClassLinkRenderer renderer = Mock()
-        _ * renderer.link(!null) >> { args -> parse("<classname>${args[0].signature}</classname>") }
+        _ * renderer.link(!null) >> {
+            args -> parse("<classname>${args[0].signature}</classname>")
+        }
         return renderer
     }
 
@@ -590,10 +606,13 @@ class ClassDocRendererTest extends XmlSpecification {
 
     def blockDoc(Map<String, ?> args = [:], String name) {
         BlockDoc blockDoc = Mock()
+        PropertyDoc blockPropDoc = propertyDoc(name)
         _ * blockDoc.name >> name
         _ * blockDoc.id >> (args.id ?: name)
         _ * blockDoc.description >> parse("<para>${args.description ?: 'description'}</para>")
         _ * blockDoc.comment >> [parse("<para>${args.comment ?: 'comment'}</para>")]
+        _ * blockDoc.type >> new TypeMetaData(args.type ?: 'BlockType')
+        _ * blockDoc.blockProperty >> blockPropDoc
         blockDoc
     }
 

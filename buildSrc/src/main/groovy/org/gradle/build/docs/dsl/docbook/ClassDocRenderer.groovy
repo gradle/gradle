@@ -202,6 +202,23 @@ class ClassDocRenderer {
                             literal(role: 'name', block.name); text(' { }')
                         }
                         appendChildren block.comment
+                        segmentedlist {
+                            segtitle('Delegates to')
+                            seglistitem {
+                                seg {
+                                    if (block.multiValued) {
+                                        text('Each ')
+                                        appendChild linkRenderer.link(block.type)
+                                        text(' in ')
+                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
+                                    } else {
+                                        appendChild linkRenderer.link(block.type)
+                                        text(' from ')
+                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -336,6 +353,23 @@ class ClassDocRenderer {
                             literal(role: 'name', block.name); text(' { }')
                         }
                         appendChildren block.comment
+                        segmentedlist {
+                            segtitle('Delegates to')
+                            seglistitem {
+                                seg {
+                                    if (block.multiValued) {
+                                        text('Each ')
+                                        appendChild linkRenderer.link(block.type)
+                                        text(' in ')
+                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
+                                    } else {
+                                        appendChild linkRenderer.link(block.type)
+                                        text(' from ')
+                                        link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
