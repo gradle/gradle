@@ -23,74 +23,83 @@ import org.w3c.dom.Node
 import org.gradle.build.docs.dsl.model.MethodMetaData
 
 class ClassDoc {
-    final Element classSection
-    final String className
-    final String id
-    final String classSimpleName
+    private final String className
+    private final String id
+    private final String simpleName
     final ClassMetaData classMetaData
-    final List<PropertyDoc> classProperties = []
-    final List<MethodDoc> classMethods = []
-    final List<BlockDoc> classBlocks = []
+    private final Element classSection
+    private final ExtensionMetaData extensionMetaData
+    private final List<PropertyDoc> classProperties = []
+    private final List<MethodDoc> classMethods = []
+    private final List<BlockDoc> classBlocks = []
+    private final List<ClassExtensionDoc> classExtensions = []
     private final JavadocConverter javadocConverter
     private final DslDocModel model
-    private final ClassLinkRenderer linkRenderer
-    final Element propertiesTable
-    final Element methodsTable
+    private final Element propertiesTable
+    private final Element methodsTable
+    private final Element propertiesSection
+    private final Element methodsSection
+    private List<Element> comment
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
         this.className = className
         id = className
-        classSimpleName = className.tokenize('.').last()
+        simpleName = className.tokenize('.').last()
         this.classMetaData = classMetaData
         this.javadocConverter = javadocConverter
-        linkRenderer = new ClassLinkRenderer(targetDocument, model)
         this.model = model
+        this.extensionMetaData = extensionMetaData
 
         classSection = targetDocument.createElement('chapter')
 
-        classSection.setAttribute('id', id)
-        classSection.addFirst {
-            title(classSimpleName)
-        }
         classContent.childNodes.each { Node n ->
             classSection << n
         }
 
         propertiesTable = getTable('Properties')
+        propertiesSection = propertiesTable.parentNode
         methodsTable = getTable('Methods')
+        methodsSection = methodsTable.parentNode
     }
+
+    def getId() { return id }
+
+    def getName() { return className }
+
+    def getSimpleName() { return simpleName }
+
+    def getComment() { return comment }
 
     def getClassProperties() { return classProperties }
 
     def getClassMethods() { return classMethods }
 
+    def getClassBlocks() { return classBlocks }
+
+    def getClassExtensions() { return classExtensions }
+
+    def getClassSection() { return classSection }
+
+    def getPropertiesTable() { return propertiesTable }
+
+    def getPropertiesSection() { return propertiesSection }
+
+    def getMethodsTable() { return methodsTable }
+
+    def getMethodsSection() { return methodsSection }
+
+    def getBlocksTable() { return getTable('Script blocks') }
+
     ClassDoc mergeContent() {
+        buildDescription()
         buildProperties()
         buildMethods()
-        mergeDescription()
-        mergeProperties()
-        mergeMethods()
-        mergeBlocks()
+        buildExtensions()
         return this
     }
 
-    ClassDoc mergeDescription() {
-        def properties = getSection('Properties')
-
-        def javadocComment = javadocConverter.parse(classMetaData)
-        javadocComment.docbook.each { node ->
-            properties.addBefore(node)
-        }
-
-        classSection.title[0].addAfter {
-            segmentedlist {
-                segtitle('API Documentation')
-                seglistitem {
-                    seg { apilink('class': className, style: style) }
-                }
-            }
-        }
-
+    ClassDoc buildDescription() {
+        comment = javadocConverter.parse(classMetaData).docbook
         return this
     }
 
@@ -109,6 +118,9 @@ class ClassDoc {
             }
             def additionalValues = cells.subList(1, cells.size())
             PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property).docbook, additionalValues)
+            if (propertyDoc.description == null) {
+                throw new RuntimeException("Docbook content for '$className.$propName' does not contain a description paragraph.")
+            }
             classProperties << propertyDoc
         }
         if (classMetaData.superClassName) {
@@ -121,63 +133,6 @@ class ClassDoc {
         }
 
         classProperties.sort { it.name }
-        return this
-    }
-
-    ClassDoc mergeProperties() {
-        def propertiesSection = propertiesTable.parentNode
-
-        if (classProperties.isEmpty()) {
-            propertiesSection.children = {
-                title('Properties')
-                para('No properties')
-            }
-            return this
-        }
-
-        def propertyTableHeader = propertiesTable.thead[0].tr[0]
-        def cells = propertyTableHeader.td.collect { it }
-        cells = cells.subList(1, cells.size())
-
-        propertiesTable.children = {
-            title("Properties - $classSimpleName")
-            thead {
-                tr { td('Property'); td('Description') }
-            }
-            classProperties.each { propDoc ->
-                tr {
-                    td { link(linkend: propDoc.id) { literal(propDoc.name) } }
-                    td { appendChild(propDoc.description) }
-                }
-            }
-        }
-
-        classProperties.each { propDoc ->
-            propertiesSection << {
-                section(id: propDoc.id, role: 'detail') {
-                    title {
-                        appendChild linkRenderer.link(propDoc.metaData.type)
-                        text(' ')
-                        literal(role: 'name', propDoc.name)
-                        if (!propDoc.metaData.writeable) {
-                            text(' (read-only)')
-                        }
-                    }
-                    appendChildren propDoc.comment
-                    if (propDoc.additionalValues) {
-                        segmentedlist {
-                            cells.each { Element node -> segtitle { appendChildren(node.childNodes) } }
-                            seglistitem {
-                                propDoc.additionalValues.each { Element node ->
-                                    seg { appendChildren(node.childNodes) }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
         return this
     }
 
@@ -196,6 +151,9 @@ class ClassDoc {
             }
             methods.each { method ->
                 def methodDoc = new MethodDoc(method, javadocConverter.parse(method).docbook)
+                if (!methodDoc.description) {
+                    throw new RuntimeException("Docbook content for '$className $method.signature' does not contain a description paragraph.")
+                }
                 if (method.parameters.size() == 1 && method.parameters[0].type.signature == Closure.class.name && classMetaData.findProperty(method.name)) {
                     classBlocks << new BlockDoc(methodDoc)
                 } else {
@@ -220,90 +178,18 @@ class ClassDoc {
         return this
     }
 
-    ClassDoc mergeMethods() {
-        def methodsSection = methodsTable.parentNode
-
-        if (classMethods.isEmpty()) {
-            methodsSection.children = {
-                title('Methods')
-                para('No methods')
+    ClassDoc buildExtensions() {
+        extensionMetaData.extensionClasses.keySet().each { String pluginId ->
+            List<ClassDoc> extensionClasses = []
+            extensionMetaData.extensionClasses.get(pluginId).each { String extensionClass ->
+                extensionClasses << model.getClassDoc(extensionClass)
             }
-            return this
-        }
-        
-        methodsTable.children = {
-            title("Methods - $classSimpleName")
-            thead {
-                tr {
-                    td('Name')
-                    td('Description')
-                }
-            }
+            extensionClasses.sort { it.name }
+            classExtensions << new ClassExtensionDoc(pluginId, extensionClasses)
         }
 
-        classMethods.each { method ->
-            methodsTable << {
-                tr {
-                    td { link(linkend: method.id) { literal(method.name) } }
-                    td { appendChild method.description }
-                }
-            }
+        classExtensions.sort { it.pluginId }
 
-            methodsTable.parentNode << {
-                section(id: method.id, role: 'detail') {
-                    title {
-                        appendChild linkRenderer.link(method.metaData.returnType)
-                        literal(role: 'name', method.name)
-                        text('(')
-                        method.metaData.parameters.eachWithIndex {param, i ->
-                            if (i > 0) {
-                                text(', ')
-                            }
-                            appendChild linkRenderer.link(param.type)
-                            text(" $param.name")
-                        }
-                        text(')')
-                    }
-                    appendChildren method.comment
-                }
-            }
-        }
-
-        return this
-    }
-
-    ClassDoc mergeBlocks() {
-        getSection('Properties').addAfter {
-            section {
-                title('Script blocks')
-                if (classBlocks.isEmpty()) {
-                    para('No script blocks')
-                    return
-                }
-                table {
-                    title("Script blocks - $classSimpleName")
-                    thead {
-                        tr {
-                            td('Name'); td('Description')
-                        }
-                    }
-                    classBlocks.each { block ->
-                        tr {
-                            td { link(linkend: block.id) { literal(block.name) } }
-                            td { appendChild block.description }
-                        }
-                    }
-                }
-                classBlocks.each { block ->
-                    section(id: block.id, role: 'detail') {
-                        title {
-                            literal(role: 'name', block.name); text('{ }')
-                        }
-                        appendChildren block.blockMethod.comment
-                    }
-                }
-            }
-        }
         return this
     }
 

@@ -76,7 +76,11 @@ class DomBuilder extends BuilderSupport {
     }
 
     def appendChild(Node node) {
-        current.appendChild(document.importNode(node, true))
+        if (!current) {
+            elements << (Element) document.importNode(node, true)
+        } else  {
+            current.appendChild(document.importNode(node, true))
+        }
     }
 
     def appendChildren(Iterable<? extends Node> nodes) {

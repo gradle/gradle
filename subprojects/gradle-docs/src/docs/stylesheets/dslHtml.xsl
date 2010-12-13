@@ -92,7 +92,7 @@
             Home
         </li>
         <ul class='sections'>
-            <xsl:apply-templates select="section" mode="sidebar"/>
+            <xsl:apply-templates select="section" mode="sidebar.link"/>
         </ul>
     </xsl:template>
 
@@ -109,16 +109,27 @@
             <xsl:value-of select="title"/>
         </li>
         <ul class='sections'>
-            <xsl:apply-templates select="section" mode="sidebar"/>
+            <xsl:apply-templates select="section[table]" mode="sidebar.link"/>
         </ul>
     </xsl:template>
 
-    <xsl:template match="section" mode="sidebar">
+    <xsl:template match="section" mode="sidebar.link">
         <li>
             <xsl:call-template name="customXref">
                 <xsl:with-param name="target" select="."/>
+                <xsl:with-param name="content">
+                    <xsl:choose>
+                        <xsl:when test="titleabbrev"><xsl:value-of select="titleabbrev"/></xsl:when>
+                        <xsl:otherwise><xsl:value-of select="title"/></xsl:otherwise>
+                    </xsl:choose>
+                </xsl:with-param>
             </xsl:call-template>
         </li>
+        <xsl:if test="section[table]">
+            <ul class='sections'>
+                <xsl:apply-templates select="section[table]" mode="sidebar.link"/>
+            </ul>
+        </xsl:if>
     </xsl:template>
 
     <xsl:template match="table" mode="sidebar">

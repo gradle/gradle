@@ -20,9 +20,9 @@ import org.w3c.dom.Element
 import org.gradle.build.docs.dsl.model.ClassMetaData
 
 class MethodDoc {
-    final String id
+    private final String id
     private final MethodMetaData metaData
-    final List<Element> comment
+    private final List<Element> comment
 
     MethodDoc(MethodMetaData metaData, List<Element> comment) {
         this(metaData.ownerClass, metaData, comment)
@@ -38,6 +38,10 @@ class MethodDoc {
         return new MethodDoc(c, metaData, comment)
     }
 
+    String getId() {
+        return id
+    }
+
     String getName() {
         return metaData.name
     }
@@ -48,5 +52,9 @@ class MethodDoc {
 
     Element getDescription() {
         return comment.find { it.nodeName == 'para' }
+    }
+    
+    List<Element> getComment() {
+        return comment
     }
 }

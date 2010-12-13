@@ -22,7 +22,7 @@ import org.gradle.build.docs.dsl.model.ClassMetaData
 class PropertyDoc {
     private final String id
     private final String name
-    final List<Element> comment
+    private final List<Element> comment
     private final List<Element> additionalValues
     private final PropertyMetaData metaData
 
@@ -56,6 +56,10 @@ class PropertyDoc {
 
     Element getDescription() {
         return comment.find { it.nodeName == 'para' }
+    }
+
+    List<Element> getComment() {
+        return comment
     }
 
     List<Element> getAdditionalValues() {

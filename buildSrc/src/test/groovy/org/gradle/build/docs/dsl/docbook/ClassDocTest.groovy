@@ -15,8 +15,6 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import groovy.xml.dom.DOMCategory
-import org.gradle.build.docs.BuildableDOMCategory
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.*
 
@@ -63,93 +61,6 @@ class ClassDocTest extends XmlSpecification {
         _ * superDoc.getClassProperties() >> [propertyDocC, propertyDocA]
     }
 
-    def mergesPropertyMetaDataIntoPropertiesSection() {
-        ClassMetaData classMetaData = classMetaData()
-        PropertyMetaData propertyMetaData = property('propName', classMetaData, comment: 'propName comment')
-
-        def content = parse('''
-<section>
-    <section><title>Properties</title>
-        <table>
-            <thead><tr><td>Name</td><td>Extra column</td></tr></thead>
-            <tr><td>propName</td><td>some value</td></tr>
-        </table>
-    </section>
-    <section><title>Methods</title><table><thead><tr></tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties().mergeProperties()
-        }
-
-        then:
-        formatTree { doc.getSection('Properties') } == '''<section>
-    <title>Properties</title>
-    <table>
-        <title>Properties - Class</title>
-        <thead>
-            <tr>
-                <td>Property</td>
-                <td>Description</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>
-                <link linkend="org.gradle.Class:propName">
-                    <literal>propName</literal>
-                </link>
-            </td>
-            <td>
-                <para>propName comment</para>
-            </td>
-        </tr>
-    </table>
-    <section id="org.gradle.Class:propName" role="detail">
-        <title>
-            <classname>org.gradle.Type</classname>
-            <literal role="name">propName</literal> (read-only)
-        </title>
-        <para>propName comment</para>
-        <segmentedlist>
-            <segtitle>Extra column</segtitle>
-            <seglistitem>
-                <seg>some value</seg>
-            </seglistitem>
-        </segmentedlist>
-    </section>
-</section>'''
-
-        _ * classMetaData.findProperty('propName') >> propertyMetaData
-    }
-
-    def removesPropertiesTableWhenClassHasNoProperties() {
-        ClassMetaData classMetaData = classMetaData()
-
-        def content = parse('''
-<section>
-    <section><title>Properties</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-        </table>
-    </section>
-    <section><title>Methods</title><table><thead><tr></tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties().mergeProperties()
-        }
-
-        then:
-        formatTree { doc.getSection('Properties') } == '''<section>
-    <title>Properties</title>
-    <para>No properties</para>
-</section>'''
-    }
-
     def buildsMethodsForClass() {
         ClassMetaData classMetaData = classMetaData()
         MethodMetaData methodA = method('a', classMetaData)
@@ -189,106 +100,6 @@ class ClassDocTest extends XmlSpecification {
         _ * classMetaData.superClassName >> 'org.gradle.SuperClass'
         _ * docModel.getClassDoc('org.gradle.SuperClass') >> superClass
         _ * superClass.classMethods >> [methodC, methodAOverridden]
-    }
-
-    def mergesMethodMetaDataIntoMethodsSection() {
-        ClassMetaData classMetaData = classMetaData()
-        MethodMetaData method1 = method('methodName', classMetaData, returnType: 'ReturnType1', comment: 'method comment')
-        MethodMetaData method2 = method('methodName', classMetaData, returnType: 'ReturnType2', comment: 'overloaded comment', paramTypes: ['ParamType'])
-
-        def content = parse('''
-<section>
-    <section><title>Methods</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-            <tr><td>methodName</td></tr>
-        </table>
-    </section>
-    <section><title>Properties</title><table><thead><tr>Name</tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildMethods().mergeMethods()
-        }
-
-        then:
-        formatTree { doc.getSection('Methods') } == '''<section>
-    <title>Methods</title>
-    <table>
-        <title>Methods - Class</title>
-        <thead>
-            <tr>
-                <td>Name</td>
-                <td>Description</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>
-                <link linkend="org.gradle.Class:methodName()">
-                    <literal>methodName</literal>
-                </link>
-            </td>
-            <td>
-                <para>method comment</para>
-            </td>
-        </tr>
-        <tr>
-            <td>
-                <link linkend="org.gradle.Class:methodName(ParamType)">
-                    <literal>methodName</literal>
-                </link>
-            </td>
-            <td>
-                <para>overloaded comment</para>
-            </td>
-        </tr>
-    </table>
-    <section id="org.gradle.Class:methodName()" role="detail">
-        <title>
-            <classname>ReturnType1</classname>
-            <literal role="name">methodName</literal>()
-        </title>
-        <para>method comment</para>
-    </section>
-    <section id="org.gradle.Class:methodName(ParamType)" role="detail">
-        <title>
-            <classname>ReturnType2</classname>
-            <literal role="name">methodName</literal>(
-            <classname>ParamType</classname> p)
-        </title>
-        <para>overloaded comment</para>
-    </section>
-</section>'''
-
-        _ * classMetaData.declaredMethods >> ([method1, method2] as Set)
-    }
-
-    def removesMethodsTableWhenClassHasNoMethods() {
-        ClassMetaData classMetaData = classMetaData()
-
-        def content = parse('''
-<section>
-    <section><title>Methods</title>
-        <table>
-            <thead><tr><td>Name</td></tr></thead>
-        </table>
-    </section>
-    <section><title>Properties</title><table><thead><tr>Name</tr></thead></table></section>
-</section>
-''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildMethods().mergeMethods()
-        }
-
-        then:
-        formatTree { doc.getSection('Methods') } == '''<section>
-    <title>Methods</title>
-    <para>No methods</para>
-</section>'''
     }
 
     def buildsBlocksForClass() {
@@ -335,95 +146,42 @@ class ClassDocTest extends XmlSpecification {
         _ * classMetaData.declaredMethods >> [blockMethod, tooManyParams, notAClosure, noBlockProperty]
     }
 
-    def mergesBlockMetaDataIntoBlocksSection() {
+    def buildsExtensionsForClass(){
         ClassMetaData classMetaData = classMetaData()
-        PropertyMetaData blockProperty = property('block', classMetaData)
-        MethodMetaData blockMethod = method('block', classMetaData, paramTypes: [Closure.class.name])
+        ExtensionMetaData extensionMetaData = new ExtensionMetaData('org.gradle.Class')
+        extensionMetaData.add('a', 'org.gradle.ExtensionA1')
+        extensionMetaData.add('a', 'org.gradle.ExtensionA2')
+        extensionMetaData.add('b', 'org.gradle.ExtensionB')
+        ClassDoc extensionA1 = classDoc('org.gradle.ExtensionA1')
+        ClassDoc extensionA2 = classDoc('org.gradle.ExtensionA2')
+        ClassDoc extensionB = classDoc('org.gradle.ExtensionB')
+        _ * docModel.getClassDoc('org.gradle.ExtensionA1') >> extensionA1
+        _ * docModel.getClassDoc('org.gradle.ExtensionA2') >> extensionA2
+        _ * docModel.getClassDoc('org.gradle.ExtensionB') >> extensionB
 
-        def content = parse('''
-        <section>
-            <section><title>Methods</title>
-                <table>
-                    <thead><tr><td>Name</td></tr></thead>
-                    <tr><td>block</td></tr>
-                </table>
+        def content = parse('''<section>
+                <section><title>Properties</title>
+                    <table><thead><tr><td/></tr></thead></table>
+                </section>
+                <section><title>Methods</title>
+                    <table><thead><tr><td/></tr></thead></table>
+                </section>
             </section>
-            <section><title>Properties</title>
-                <table>
-                    <thead><tr>Name</tr></thead>
-                    <tr><td>block</td></tr>
-                </table>
-            </section>
-        </section>
         ''')
 
         when:
         ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties().buildMethods().mergeBlocks()
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, extensionMetaData, docModel, javadocConverter).buildExtensions()
         }
 
         then:
-        formatTree { doc.getSection('Script blocks') } == '''<section>
-    <title>Script blocks</title>
-    <table>
-        <title>Script blocks - Class</title>
-        <thead>
-            <tr>
-                <td>Name</td>
-                <td>Description</td>
-            </tr>
-        </thead>
-        <tr>
-            <td>
-                <link linkend="org.gradle.Class:block(groovy.lang.Closure)">
-                    <literal>block</literal>
-                </link>
-            </td>
-            <td>
-                <para>comment</para>
-            </td>
-        </tr>
-    </table>
-    <section id="org.gradle.Class:block(groovy.lang.Closure)" role="detail">
-        <title>
-            <literal role="name">block</literal>{ }
-        </title>
-        <para>comment</para>
-    </section>
-</section>'''
+        doc.classExtensions.size() == 2
 
-        _ * classMetaData.findProperty('block') >> blockProperty
-        _ * classMetaData.declaredMethods >> [blockMethod]
-    }
+        doc.classExtensions[0].pluginId == 'a'
+        doc.classExtensions[0].extensionClasses == [extensionA1, extensionA2]
 
-    def removesBlockTableWhenClassHasNoScriptBlocks() {
-        ClassMetaData classMetaData = classMetaData()
-
-        def content = parse('''
-        <section>
-            <section><title>Methods</title>
-                <table>
-                    <thead><tr><td>Name</td></tr></thead>
-                </table>
-            </section>
-            <section><title>Properties</title>
-                <table>
-                    <thead><tr>Name</tr></thead>
-                </table>
-            </section>
-        </section>
-        ''')
-
-        when:
-        ClassDoc doc = withCategories {
-            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties().buildMethods().mergeBlocks()
-        }
-
-        then:
-        formatTree { doc.getSection('Script blocks') } == '''<section>
-    <title>Script blocks</title>
-    <para>No script blocks</para>
-</section>'''
+        doc.classExtensions[1].pluginId == 'b'
+        doc.classExtensions[1].extensionClasses == [extensionB]
     }
 
     def classMetaData(String name = 'org.gradle.Class') {
@@ -488,21 +246,5 @@ class ClassDocTest extends XmlSpecification {
         _ * methodDoc.metaData >> method(name, null)
         _ * methodDoc.forClass(!null) >> methodDoc
         return methodDoc
-    }
-
-    def formatTree(Closure cl) {
-        use(DOMCategory) {
-            use(BuildableDOMCategory) {
-                return formatTree(cl.call())
-            }
-        }
-    }
-
-    def withCategories(Closure cl) {
-        use(DOMCategory) {
-            use(BuildableDOMCategory) {
-                cl.call()
-            }
-        }
     }
 }

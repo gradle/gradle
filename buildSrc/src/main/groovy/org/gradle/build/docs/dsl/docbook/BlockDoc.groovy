@@ -18,12 +18,14 @@ package org.gradle.build.docs.dsl.docbook
 import org.w3c.dom.Element
 
 class BlockDoc {
-    final String id;
-    final MethodDoc blockMethod
+    private final MethodDoc blockMethod
 
     BlockDoc(MethodDoc blockMethod) {
-        id = blockMethod.id
         this.blockMethod = blockMethod
+    }
+
+    String getId() {
+        return blockMethod.id
     }
 
     String getName() {
@@ -32,5 +34,9 @@ class BlockDoc {
 
     Element getDescription() {
         return blockMethod.description;
+    }
+
+    List<Element> getComment() {
+        return blockMethod.comment
     }
 }

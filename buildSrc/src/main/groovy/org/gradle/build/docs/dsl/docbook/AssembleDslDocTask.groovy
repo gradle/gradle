@@ -102,7 +102,7 @@ class AssembleDslDocTask extends DefaultTask {
         provider.parse(pluginsMetaDataFile)
         Map<String, ExtensionMetaData> extensions = [:]
         provider.root.plugin.each { Element plugin ->
-            def description = plugin.'@description'
+            def pluginId = plugin.'@id'
             plugin.extends.each { Element e ->
                 def targetClass = e.'@targetClass'
                 def extensionClass = e.'@extensionClass'
@@ -111,7 +111,7 @@ class AssembleDslDocTask extends DefaultTask {
                     extension = new ExtensionMetaData(targetClass)
                     extensions[targetClass] = extension
                 }
-                extension.add(description, extensionClass)
+                extension.add(pluginId, extensionClass)
             }
         }
         return extensions
@@ -175,16 +175,19 @@ class AssembleDslDocTask extends DefaultTask {
     def mergeType(Element tr, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
         String className = tr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
-        linkRepository.put(className, new LinkMetaData(LinkMetaData.Style.Dsldoc))
-
-        Element root = tr.ownerDocument.documentElement
-        root << classDoc.classSection
-
-        tr.children = {
-            td {
-                link(linkend: classDoc.id) { literal(classDoc.classSimpleName) }
+        try {
+            new ClassDocRenderer(new ClassLinkRenderer(tr.ownerDocument, model)).mergeContent(classDoc)
+            linkRepository.put(className, new LinkMetaData(LinkMetaData.Style.Dsldoc))
+            Element root = tr.ownerDocument.documentElement
+            root << classDoc.classSection
+            tr.children = {
+                td {
+                    link(linkend: classDoc.id) { literal(classDoc.simpleName) }
+                }
+                td(classDoc.description)
             }
-            td(classDoc.description)
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to generate documentation for class '$className'.", e)
         }
     }
 }

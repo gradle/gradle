@@ -24,6 +24,7 @@ repositories {
 
 dependencies {
     compile gradleApi()
+    compile 'com.google.collections:google-collections:1.0@jar'
     groovy localGroovy()
     testCompile 'junit:junit:4.8.1@jar'
     testCompile 'org.spockframework:spock-core:0.4-groovy-1.7@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'

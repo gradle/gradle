@@ -24,6 +24,8 @@ import org.w3c.dom.Text
 import org.w3c.dom.Attr
 import javax.xml.parsers.DocumentBuilder
 import org.xml.sax.InputSource
+import org.gradle.build.docs.BuildableDOMCategory
+import groovy.xml.dom.DOMCategory
 
 class XmlSpecification extends Specification {
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
@@ -33,6 +35,20 @@ class XmlSpecification extends Specification {
         factory.setNamespaceAware(true)
         DocumentBuilder builder = factory.newDocumentBuilder()
         return builder.parse(new InputSource(new StringReader(str))).documentElement
+    }
+
+    def formatTree(Closure cl) {
+        withCategories {
+            return formatTree(cl.call())
+        }
+    }
+
+    def withCategories(Closure cl) {
+        use(DOMCategory) {
+            use(BuildableDOMCategory) {
+                return cl.call()
+            }
+        }
     }
 
     def format(Node... nodes) {

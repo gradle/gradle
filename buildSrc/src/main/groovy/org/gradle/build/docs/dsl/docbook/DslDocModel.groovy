@@ -75,7 +75,7 @@ class DslDocModel {
             doc.mergeContent()
             return doc
         } catch (Exception e) {
-            throw new RuntimeException("Could not generate the class documentation for class '$className'.", e)
+            throw new RuntimeException("Could not load the class documentation for class '$className'.", e)
         }
     }
 }
