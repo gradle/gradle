@@ -10,6 +10,18 @@
             <tr>
                 <td>distsDir</td>
             </tr>
+            <tr>
+                <td>distsDirName</td>
+            </tr>
+            <tr>
+                <td>libsDir</td>
+            </tr>
+            <tr>
+                <td>libsDirName</td>
+            </tr>
+            <tr>
+                <td>archivesBaseName</td>
+            </tr>
         </table>
     </section>
     <section>

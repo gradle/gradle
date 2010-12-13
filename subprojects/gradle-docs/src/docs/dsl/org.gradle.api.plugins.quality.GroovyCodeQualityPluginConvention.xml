@@ -7,6 +7,18 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>codeNarcConfigFileName</td>
+            </tr>
+            <tr>
+                <td>codeNarcConfigFile</td>
+            </tr>
+            <tr>
+                <td>codeNarcReportsDirName</td>
+            </tr>
+            <tr>
+                <td>codeNarcReportsDir</td>
+            </tr>
         </table>
     </section>
     <section>

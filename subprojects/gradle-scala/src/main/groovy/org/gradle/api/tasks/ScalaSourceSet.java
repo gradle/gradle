@@ -20,21 +20,22 @@ import org.gradle.api.file.FileTree;
 import org.gradle.api.file.SourceDirectorySet;
 
 /**
- * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link org.gradle.api.tasks.SourceSet}
- * by the {@link org.gradle.api.plugins.scala.ScalaPlugin}.
+ * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link
+ * org.gradle.api.tasks.SourceSet} by the {@link org.gradle.api.plugins.scala.ScalaPlugin}.
  */
 public interface ScalaSourceSet {
     /**
-     * Returns the source to be compiled by the Scala compiler for this source set. This may contain both Java
-     * and Scala source files.
+     * Returns the source to be compiled by the Scala compiler for this source set. This may contain both Java and Scala
+     * source files.
      *
      * @return The Scala source. Never returns null.
      */
     SourceDirectorySet getScala();
 
     /**
-     * Configures the Scala source for this set. The given closure is used to configure the {@code SourceDirectorySet}
-     * which contains the Scala source.
+     * Configures the Scala source for this set.
+     *
+     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the Scala source.
      *
      * @param configureClosure The closure to use to configure the Scala source.
      * @return this

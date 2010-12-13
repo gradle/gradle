@@ -19,9 +19,22 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 
 class JavaCodeQualityPluginConvention {
+
+    /**
+     * The name of the Checkstyle configuration file, relative to the project directory.
+     */
     String checkstyleConfigFileName
+
+    /**
+     * The name of the directory to write Checkstyle results to, relative to the build directory.
+     */
     String checkstyleResultsDirName
+
+    /**
+     * The set of properties to substitute into the Checkstyle configuration file.
+     */
     Map<String, Object> checkstyleProperties = [:]
+
     private ProjectInternal project
 
     def JavaCodeQualityPluginConvention(Project project) {
@@ -30,10 +43,16 @@ class JavaCodeQualityPluginConvention {
         checkstyleResultsDirName = 'checkstyle'
     }
 
+    /**
+     * The Checkstyle configuration file.
+     */
     File getCheckstyleConfigFile() {
         project.file(checkstyleConfigFileName)
     }
 
+    /**
+     * The directory to write the Checkstyle results into.
+     */
     File getCheckstyleResultsDir() {
         project.fileResolver.withBaseDir(project.buildDir).resolve(checkstyleResultsDirName)
     }

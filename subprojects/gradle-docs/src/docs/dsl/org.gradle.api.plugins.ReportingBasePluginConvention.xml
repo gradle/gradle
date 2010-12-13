@@ -10,6 +10,9 @@
             <tr>
                 <td>reportsDirName</td>
             </tr>
+            <tr>
+                <td>reportsDir</td>
+            </tr>
         </table>
     </section>
     <section>

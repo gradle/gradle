@@ -21,8 +21,19 @@ import org.gradle.api.internal.project.ProjectInternal
 public class BasePluginConvention {
     ProjectInternal project
 
+    /**
+     * The name for the distributions directory. This in interpreted relative to the project' build directory.
+     */
     String distsDirName
+
+    /**
+     * The name for the libs directory. This in interpreted relative to the project' build directory.
+     */
     String libsDirName
+
+    /**
+     * The base name to use for archive files.
+     */
     String archivesBaseName
 
     BasePluginConvention(Project project) {

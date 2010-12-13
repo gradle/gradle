@@ -77,6 +77,14 @@ class JavaPluginConvention {
         metaInf = []
     }
 
+    /**
+     * Configures the source sets of this project.
+     *
+     * <p>The given closure is executed to configure the {@link SourceSetContainer}. The {@link SourceSetContainer}
+     * is passed to the closure as its delegate.
+     *
+     * @param closure The closure to execute.
+     */
     def sourceSets(Closure closure) {
         sourceSets.configure(closure)
     }
@@ -114,13 +122,13 @@ class JavaPluginConvention {
      * Returns the source compatibility used for compiling Java sources.
      */
     JavaVersion getSourceCompatibility() {
-            srcCompat ?: JavaVersion.VERSION_1_5
+        srcCompat ?: JavaVersion.VERSION_1_5
     }
 
     /**
      * Sets the source compatibility used for compiling Java sources.
      *
-     * @value The value for the source compatibilty as defined by   {@link JavaVersion#toVersion(Object)}
+     * @value The value for the source compatibility as defined by {@link JavaVersion#toVersion(Object)}
      */
     void setSourceCompatibility(def value) {
         srcCompat = JavaVersion.toVersion(value)
@@ -130,7 +138,7 @@ class JavaPluginConvention {
      * Returns the target compatibility used for compiling Java sources.
      */
     JavaVersion getTargetCompatibility() {
-            targetCompat ?: sourceCompatibility
+        targetCompat ?: sourceCompatibility
     }
 
     /**
@@ -143,15 +151,17 @@ class JavaPluginConvention {
     }
 
     /**
-     * Returns a new instance of an {@link Manifest}.
+     * Creates a new instance of a {@link Manifest}.
      */
     public Manifest manifest() {
         return manifest(null);
     }
 
     /**
-     * Returns a new instance of an {@link Manifest}. The closure configures
+     * Creates and configures a new instance of a {@link Manifest}. The given closure configures
      * the new manifest instance before it is returned.
+     *
+     * @param closure The closure to use to configure the manifest.
      */
     public Manifest manifest(Closure closure) {
         return ConfigureUtil.configure(closure, new DefaultManifest(((ProjectInternal) getProject()).fileResolver));

@@ -33,8 +33,9 @@ public interface GroovySourceSet {
     SourceDirectorySet getGroovy();
 
     /**
-     * Configures the Groovy source for this set. The given closure is used to configure the {@code SourceDirectorySet}
-     * which contains the Groovy source.
+     * Configures the Groovy source for this set.
+     *
+     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the Groovy source.
      *
      * @param configureClosure The closure to use to configure the Groovy source.
      * @return this

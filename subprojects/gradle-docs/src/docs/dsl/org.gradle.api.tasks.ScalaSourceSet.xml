@@ -7,6 +7,8 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr><td>scala</td></tr>
+            <tr><td>allScala</td></tr>
         </table>
     </section>
     <section>
@@ -17,6 +19,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>scala</td>
+            </tr>
         </table>
     </section>
 </section>

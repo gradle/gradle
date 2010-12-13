@@ -101,6 +101,9 @@
                 <td>org.gradle.api.Project</td>
             </tr>
             <tr>
+                <td>org.gradle.api.Task</td>
+            </tr>
+            <tr>
                 <td>org.gradle.api.invocation.Gradle</td>
             </tr>
             <tr>
@@ -111,6 +114,9 @@
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.SourceSet</td>
+            </tr>
+            <tr>
+                <td>org.gradle.api.artifacts.Configuration</td>
             </tr>
         </table>
     </section>

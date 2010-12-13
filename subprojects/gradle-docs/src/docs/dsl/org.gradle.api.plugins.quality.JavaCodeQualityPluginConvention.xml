@@ -7,6 +7,21 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>checkstyleConfigFileName</td>
+            </tr>
+            <tr>
+                <td>checkstyleConfigFile</td>
+            </tr>
+            <tr>
+                <td>checkstyleResultsDirName</td>
+            </tr>
+            <tr>
+                <td>checkstyleResultsDir</td>
+            </tr>
+            <tr>
+                <td>checkstyleProperties</td>
+            </tr>
         </table>
     </section>
     <section>

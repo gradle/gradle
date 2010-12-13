@@ -7,6 +7,33 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>docsDirName</td>
+            </tr>
+            <tr>
+                <td>docsDir</td>
+            </tr>
+            <tr>
+                <td>testResultsDirName</td>
+            </tr>
+            <tr>
+                <td>testResultsDir</td>
+            </tr>
+            <tr>
+                <td>testReportDirName</td>
+            </tr>
+            <tr>
+                <td>testReportDir</td>
+            </tr>
+            <tr>
+                <td>sourceSets</td>
+            </tr>
+            <tr>
+                <td>sourceCompatibility</td>
+            </tr>
+            <tr>
+                <td>targetCompatibility</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -17,6 +44,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>sourceSets</td>
+            </tr>
+            <tr>
+                <td>manifest</td>
+            </tr>
         </table>
     </section>
 </section>

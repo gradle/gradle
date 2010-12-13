@@ -128,7 +128,7 @@ public interface SourceSet {
     /**
      * Configures the Java source for this set.
      *
-     * <p>The given closure is used to configure the {@code SourceDirectorySet} which contains the Java source.
+     * <p>The given closure is used to configure the {@link SourceDirectorySet} which contains the Java source.
      *
      * @param configureClosure The closure to use to configure the Java source.
      * @return this

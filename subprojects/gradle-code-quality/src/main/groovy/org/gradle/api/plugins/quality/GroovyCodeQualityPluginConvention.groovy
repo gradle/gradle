@@ -19,7 +19,14 @@ import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 
 class GroovyCodeQualityPluginConvention {
+    /**
+     * The name of the CodeNarc configuration file, relative to the project directory.
+     */
     String codeNarcConfigFileName
+
+    /**
+     * The name of the directory to write CodeNarc reports into.
+     */
     String codeNarcReportsDirName
     private final ProjectInternal project
 
@@ -29,10 +36,16 @@ class GroovyCodeQualityPluginConvention {
         codeNarcReportsDirName = 'codenarc'
     }
 
+    /**
+     * The CodeNarc configuration file.
+     */
     File getCodeNarcConfigFile() {
         project.file(codeNarcConfigFileName)
     }
 
+    /**
+     * The directory to write CodeNarc reports into.
+     */
     File getCodeNarcReportsDir() {
         project.fileResolver.withBaseDir(project.reportsDir).resolve(codeNarcReportsDirName)
     }
