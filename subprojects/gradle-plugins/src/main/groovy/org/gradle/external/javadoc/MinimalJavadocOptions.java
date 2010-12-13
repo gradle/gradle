@@ -16,6 +16,9 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFiles;
+import org.gradle.api.tasks.Optional;
 import org.gradle.process.ExecSpec;
 
 import java.io.File;
@@ -28,12 +31,14 @@ import java.util.List;
  * @author Tom Eyckmans
  */
 public interface MinimalJavadocOptions {
+    @Input @Optional
     String getOverview();
 
     void setOverview(String overview);
 
     MinimalJavadocOptions overview(String overview);
 
+    @Input @Optional
     JavadocMemberLevel getMemberLevel();
 
     void setMemberLevel(JavadocMemberLevel memberLevel);
@@ -48,18 +53,21 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions showAll();
 
+    @Input @Optional
     String getDoclet();
 
     void setDoclet(String docletClass);
 
     MinimalJavadocOptions doclet(String docletClass);
 
+    @InputFiles
     List<File> getDocletpath();
 
     void setDocletpath(List<File> docletpath);
 
     MinimalJavadocOptions docletpath(File ... docletpath);
 
+    @Input @Optional
     String getSource();
 
     void setSource(String source);
@@ -74,12 +82,14 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions classpath(File ... classpath);
 
+    @InputFiles
     List<File> getBootClasspath();
 
     void setBootClasspath(List<File> bootClasspath);
 
     MinimalJavadocOptions bootClasspath(File ... bootClasspath);
 
+    @InputFiles
     List<File> getExtDirs();
 
     void setExtDirs(List<File> extDirs);
@@ -96,6 +106,7 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions quiet();
 
+    @Input
     boolean isBreakIterator();
 
     void setBreakIterator(boolean breakIterator);
@@ -104,12 +115,14 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions breakIterator();
 
+    @Input @Optional
     String getLocale();
 
     void setLocale(String locale);
 
     MinimalJavadocOptions locale(String locale);
 
+    @Input @Optional
     String getEncoding();
 
     void setEncoding(String encoding);
@@ -134,12 +147,14 @@ public interface MinimalJavadocOptions {
 
     MinimalJavadocOptions destinationDirectory(File directory);
 
+    @Input @Optional
     String getWindowTitle();
 
     void setWindowTitle(String windowTitle);
 
     StandardJavadocDocletOptions windowTitle(String windowTitle);
 
+    @Input @Optional
     String getHeader();
 
     void setHeader(String header);

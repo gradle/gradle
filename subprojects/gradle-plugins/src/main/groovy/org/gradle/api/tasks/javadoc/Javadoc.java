@@ -19,10 +19,7 @@ package org.gradle.api.tasks.javadoc;
 import org.gradle.api.GradleException;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.SimpleFileCollection;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.external.javadoc.internal.JavadocExecHandleBuilder;
 import org.gradle.external.javadoc.MinimalJavadocOptions;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
@@ -103,7 +100,8 @@ public class Javadoc extends SourceTask {
 
     private void executeExternalJavadoc() {
         javadocExecHandleBuilder.setExecutable(executable);
-        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(getOptionsFile());
+        javadocExecHandleBuilder.execDirectory(getProject().getRootDir()).options(options).optionsFile(
+                getOptionsFile());
 
         ExecAction execAction = javadocExecHandleBuilder.getExecHandle();
         if (!failOnError) {
@@ -162,6 +160,8 @@ public class Javadoc extends SourceTask {
      *
      * @return The title, possibly null.
      */
+    @Input
+    @Optional
     public String getTitle() {
         return title;
     }
@@ -184,7 +184,7 @@ public class Javadoc extends SourceTask {
 
     /**
      * Sets whether javadoc generation is accompanied by verbose output or not. The verbose output is done via println
-     * (by the underlying ant task). Thus it is not catched by our logging.
+     * (by the underlying ant task). Thus it is not handled by our logging.
      *
      * @param verbose Whether the output should be verbose.
      */
@@ -194,23 +194,49 @@ public class Javadoc extends SourceTask {
         }
     }
 
+    /**
+     * Returns the classpath to use to resolve type references in the source code.
+     *
+     * @return The classpath.
+     */
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
     }
 
-    public void setClasspath(FileCollection configuration) {
-        this.classpath = configuration;
+    /**
+     * Sets the classpath to use to resolve type references in this source code.
+     *
+     * @param classpath The classpath. Must not be null.
+     */
+    public void setClasspath(FileCollection classpath) {
+        this.classpath = classpath;
     }
 
+    /**
+     * Returns the javadoc generation options.
+     *
+     * @return The options. Never returns null.
+     */
+    @Nested
     public MinimalJavadocOptions getOptions() {
         return options;
     }
 
+    /**
+     * Sets the javadoc generation options.
+     *
+     * @param options The options. Must not be null.
+     */
     public void setOptions(MinimalJavadocOptions options) {
         this.options = options;
     }
 
+    /**
+     * Specifies whether this task should fail when errors are encountered during javadoc generation. When {@code true},
+     * this task will fail on javadoc error. When {@code false}, this task will ignore javadoc errors.
+     */
+    @Input
     public boolean isFailOnError() {
         return failOnError;
     }
@@ -223,6 +249,13 @@ public class Javadoc extends SourceTask {
         return new File(getTemporaryDir(), "javadoc.options");
     }
 
+    /**
+     * Returns the javadoc executable to use to generation the javadoc. When {@code null}, the javadoc executable for
+     * the current jvm is used.
+     *
+     * @return The executable. May be null.
+     */
+    @Input @Optional
     public String getExecutable() {
         return executable;
     }

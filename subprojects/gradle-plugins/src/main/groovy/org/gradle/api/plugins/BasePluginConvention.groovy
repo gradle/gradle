@@ -32,10 +32,20 @@ public class BasePluginConvention {
         libsDirName = 'libs'
     }
 
+    /**
+     * Returns the directory to generate TAR and ZIP archives into.
+     *
+     * @return The directory. Never returns null.
+     */
     File getDistsDir() {
         project.fileResolver.withBaseDir(project.buildDir).resolve(distsDirName)
     }
 
+    /**
+     * Returns the directory to generate JAR and WAR archives into.
+     *
+     * @return The directory. Never returns null.
+     */
     File getLibsDir() {
         project.fileResolver.withBaseDir(project.buildDir).resolve(libsDirName)
     }

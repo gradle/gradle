@@ -10,6 +10,11 @@
             </thead>
             <tr>
                 <td>compression</td>
+                <td><literal>Compression.NONE</literal></td>
+            </tr>
+            <tr>
+                <td>extension</td>
+                <td><literal>tar</literal></td>
             </tr>
         </table>
     </section>

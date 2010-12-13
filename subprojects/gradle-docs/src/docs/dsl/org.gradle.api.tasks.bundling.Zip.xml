@@ -8,6 +8,10 @@
                     <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>extension</td>
+                <td><literal>zip</literal></td>
+            </tr>
         </table>
     </section>
     <section>

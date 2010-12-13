@@ -5,9 +5,25 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>war</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>extension</td>
+                <td><literal>war</literal></td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+                <td><literal>project.configurations.runtime - project.configurations.providedRuntime</literal></td>
+            </tr>
+            <tr>
+                <td>webXml</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td><literal>[project.webAppDir]</literal></td>
+            </tr>
         </table>
     </section>
     <section>
@@ -18,6 +34,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>webInf</td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+            </tr>
         </table>
     </section>
 </section>

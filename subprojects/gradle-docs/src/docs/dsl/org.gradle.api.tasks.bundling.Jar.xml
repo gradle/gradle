@@ -15,6 +15,10 @@
                 <td>destinationDir</td>
                 <td><literal>project.libsDir</literal></td>
             </tr>
+            <tr>
+                <td>extension</td>
+                <td><literal>jar</literal></td>
+            </tr>
         </table>
     </section>
     <section>

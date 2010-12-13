@@ -26,7 +26,7 @@ import org.gradle.api.internal.file.copy.CopySpecImpl
 
 /**
  * Assembles a WAR archive.
- * 
+ *
  * @author Hans Dockter
  */
 class War extends Jar {
@@ -67,29 +67,67 @@ class War extends Jar {
         return webInf.addChild()
     }
 
+    /**
+     * Adds some content to the {@code WEB-INF} directory for this WAR archive.
+     *
+     * <p>The given closure is executed to configure a {@link CopySpec}. The {@code CopySpec} is passed to the closure
+     * as its delegate.
+     *
+     * @param configureClosure The closure to execute
+     * @return The newly created {@code CopySpec}.
+     */
     CopySpec webInf(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getWebInf())
     }
 
+    /**
+     * Returns the classpath to include in the WAR archive. Any JAR or ZIP files in this classpath are included in the
+     * {@code WEB-INF/lib} directory. Any directories in this classpath are included in the {@code WEB-INF/classes}
+     * directory.
+     *
+     * @return The classpath. Returns an empty collection when there is no classpath to include in the WAR.
+     */
     @InputFiles @Optional
     FileCollection getClasspath() {
         return classpath
     }
 
+    /**
+     * Sets the classpath to include in the WAR archive.
+     *
+     * @param classpath The classpath. Must not be null.
+     */
     void setClasspath(Object classpath) {
         this.classpath = project.files(classpath)
     }
 
+    /**
+     * Adds files to the classpath to include in the WAR archive.
+     *
+     * @param classpath The files to add. These are evaluated as for {@link org.gradle.api.Project#files(Object [])}
+     */
     void classpath(Object... classpath) {
         FileCollection oldClasspath = getClasspath()
         this.classpath = project.files(oldClasspath ?: [], classpath)
     }
 
+    /**
+     * Returns the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is
+     * included in the WAR.
+     *
+     * @return The {@code web.xml} file.
+     */
     @InputFile @Optional
     public File getWebXml() {
         return webXml;
     }
 
+    /**
+     * Sets the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is
+     * included in the WAR.
+     *
+     * @param webXml The {@code web.xml} file. Maybe null.
+     */
     public void setWebXml(File webXml) {
         this.webXml = webXml;
     }
