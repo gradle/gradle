@@ -66,16 +66,16 @@ class XmlSpecification extends Specification {
     def format(Iterable<? extends Node> nodes, boolean prettyPrint = false) {
         StringBuilder builder = new StringBuilder()
         nodes.each { node ->
-            format(node, builder, 0, prettyPrint)
+            format(node, builder, 0, prettyPrint, prettyPrint)
         }
         return builder.toString()
     }
 
-    def format(Node node, Appendable target, int depth, boolean prettyPrint) {
+    def format(Node node, Appendable target, int depth, boolean prettyPrint, boolean indentSelf) {
         if (node instanceof Element) {
             Element element = (Element) node
 
-            if (prettyPrint && depth > 0) {
+            if (indentSelf && depth > 0) {
                 target.append('\n')
                 depth.times { target.append('    ') }
             }
@@ -86,16 +86,16 @@ class XmlSpecification extends Specification {
                 target.append(" $attr.name=\"$attr.value\"")
             }
 
-            List<Node> trimmedContent;
-            if (prettyPrint) {
+            List<Node> trimmedContent = element.childNodes.collect { it };
+            boolean inlineContent = trimmedContent.find { it instanceof Text && it.textContent.trim() }
+
+            if (prettyPrint && !inlineContent) {
                 trimmedContent = element.childNodes.inject([]) { list, child ->
                     if (!(child instanceof Text) || child.textContent.trim().length() != 0) {
                         list << child
                     }
                     return list
                 }
-            } else {
-                trimmedContent = element.childNodes.collect { it }
             }
 
             if (trimmedContent.isEmpty()) {
@@ -104,13 +104,12 @@ class XmlSpecification extends Specification {
             }
             target.append('>')
 
-            boolean hasChildElements = trimmedContent.find { it instanceof Element }
 
             trimmedContent.each { child ->
-                format(child, target, depth + 1, prettyPrint)
+                format(child, target, depth + 1, prettyPrint, prettyPrint && !inlineContent)
             }
 
-            if (prettyPrint && hasChildElements) {
+            if (prettyPrint && indentSelf && !inlineContent) {
                 target.append('\n')
                 depth.times { target.append('    ') }
             }

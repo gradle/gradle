@@ -77,24 +77,27 @@ class ClassDocRenderer {
             }
         }
 
-        classProperties.each { propDoc ->
-            propertiesSection << {
-                section(id: propDoc.id, role: 'detail') {
-                    title {
-                        appendChild linkRenderer.link(propDoc.metaData.type)
-                        text(' ')
-                        literal(role: 'name', propDoc.name)
-                        if (!propDoc.metaData.writeable) {
-                            text(' (read-only)')
+        propertiesSection.addAfter {
+            section {
+                title('Property details')
+                classProperties.each { propDoc ->
+                    section(id: propDoc.id, role: 'detail') {
+                        title {
+                            appendChild linkRenderer.link(propDoc.metaData.type)
+                            text(' ')
+                            literal(role: 'name', propDoc.name)
+                            if (!propDoc.metaData.writeable) {
+                                text(' (read-only)')
+                            }
                         }
-                    }
-                    appendChildren propDoc.comment
-                    if (propDoc.additionalValues) {
-                        segmentedlist {
-                            cells.each { Element node -> segtitle { appendChildren(node.childNodes) } }
-                            seglistitem {
-                                propDoc.additionalValues.each { Element node ->
-                                    seg { appendChildren(node.childNodes) }
+                        appendChildren propDoc.comment
+                        if (propDoc.additionalValues) {
+                            segmentedlist {
+                                cells.each { Element node -> segtitle { appendChildren(node.childNodes) } }
+                                seglistitem {
+                                    propDoc.additionalValues.each { Element node ->
+                                        seg { appendChildren(node.childNodes) }
+                                    }
                                 }
                             }
                         }
@@ -114,6 +117,7 @@ class ClassDocRenderer {
                 title('Methods')
                 para('No methods')
             }
+            return
         }
 
         methodsTable.children = {
@@ -124,48 +128,57 @@ class ClassDocRenderer {
                     td('Description')
                 }
             }
-        }
-
-        classMethods.each { method ->
-            methodsTable << {
+            classMethods.each { method ->
                 tr {
                     td { link(linkend: method.id) { literal(method.name) } }
                     td { appendChild method.description }
                 }
             }
+        }
 
-            methodsTable.parentNode << {
-                section(id: method.id, role: 'detail') {
-                    title {
-                        appendChild linkRenderer.link(method.metaData.returnType)
-                        literal(role: 'name', method.name)
-                        text('(')
-                        method.metaData.parameters.eachWithIndex {param, i ->
-                            if (i > 0) {
-                                text(', ')
+        methodsSection.addAfter {
+            section {
+                title('Method details')
+                classMethods.each { method ->
+                    section(id: method.id, role: 'detail') {
+                        title {
+                            appendChild linkRenderer.link(method.metaData.returnType)
+                            text(' ')
+                            literal(role: 'name', method.name)
+                            text('(')
+                            method.metaData.parameters.eachWithIndex {param, i ->
+                                if (i > 0) {
+                                    text(', ')
+                                }
+                                appendChild linkRenderer.link(param.type)
+                                text(" $param.name")
                             }
-                            appendChild linkRenderer.link(param.type)
-                            text(" $param.name")
+                            text(')')
                         }
-                        text(')')
+                        appendChildren method.comment
                     }
-                    appendChildren method.comment
                 }
             }
         }
     }
 
     void mergeBlocks(ClassDoc classDoc) {
-        def propertiesSection = classDoc.propertiesSection
+        def targetSection = classDoc.methodsSection
         def classBlocks = classDoc.classBlocks
 
-        propertiesSection.addAfter {
+        if (classBlocks.isEmpty()) {
+            targetSection.addBefore {
+                section {
+                    title('Script blocks')
+                    para('No script blocks')
+                }
+            }
+            return
+        }
+
+        targetSection.addBefore {
             section {
                 title('Script blocks')
-                if (classBlocks.isEmpty()) {
-                    para('No script blocks')
-                    return
-                }
                 table {
                     title("Script blocks - $classDoc.simpleName")
                     thead {
@@ -180,6 +193,9 @@ class ClassDocRenderer {
                         }
                     }
                 }
+            }
+            section {
+                title('Script block details')
                 classBlocks.each { block ->
                     section(id: block.id, role: 'detail') {
                         title {
@@ -196,68 +212,135 @@ class ClassDocRenderer {
         if (!classDoc.classExtensions) {
             return
         }
+        mergeExtensionProperties(classDoc)
+        mergeExtensionMethods(classDoc)
+        mergeExtensionBlocks(classDoc)
+    }
 
+    void mergeExtensionProperties(ClassDoc classDoc) {
         classDoc.propertiesTable.addAfter {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
+                if (!extension.extensionProperties) {
+                    return
+                }
                 section {
-                    title { text("Properties added by "); literal(extension.pluginId); text(" plugin") }
+                    title { text("Properties added by the "); literal(extension.pluginId); text(" plugin") }
                     titleabbrev { literal(extension.pluginId); text(" plugin") }
                     table {
                         title { text("Properties - "); literal(extension.pluginId); text(" plugin") }
                         thead { tr { td('Property'); td('Description') } }
-                        extension.extensionClasses.each { extensionClass ->
-                            extensionClass.classProperties.each { propertyDoc ->
-                                tr {
-                                    td { literal(propertyDoc.name) }
-                                    td { appendChild propertyDoc.description }
-                                }
+                        extension.extensionProperties.each { propertyDoc ->
+                            tr {
+                                td { link(linkend: propertyDoc.id) { literal(propertyDoc.name) } }
+                                td { appendChild propertyDoc.description }
                             }
                         }
                     }
                 }
             }
         }
+        classDoc.propertyDetailsSection << {
+            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+                extension.extensionProperties.each { propDoc ->
+                    section(id: propDoc.id, role: 'detail') {
+                        title {
+                            appendChild linkRenderer.link(propDoc.metaData.type)
+                            text(' ')
+                            literal(role: 'name', propDoc.name)
+                            if (!propDoc.metaData.writeable) {
+                                text(' (read-only)')
+                            }
+                        }
+                        appendChildren propDoc.comment
+                    }
+                }
+            }
+        }
+    }
+
+    void mergeExtensionMethods(ClassDoc classDoc) {
         classDoc.methodsTable.addAfter {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
+                if (!extension.extensionMethods) {
+                    return
+                }
                 section {
-                    title { text("Methods added by "); literal(extension.pluginId); text(" plugin") }
+                    title { text("Methods added by the "); literal(extension.pluginId); text(" plugin") }
                     titleabbrev { literal(extension.pluginId); text(" plugin") }
                     table {
                         title { text("Methods - "); literal(extension.pluginId); text(" plugin") }
                         thead { tr { td('Method'); td('Description') } }
-                        extension.extensionClasses.each { extensionClass ->
-                            extensionClass.classMethods.each { methodDoc ->
-                                tr {
-                                    td { literal(methodDoc.name) }
-                                    td { appendChild methodDoc.description }
-                                }
+                        extension.extensionMethods.each { methodDoc ->
+                            tr {
+                                td { link(linkend: methodDoc.id) { literal(methodDoc.name) } }
+                                td { appendChild methodDoc.description }
                             }
                         }
                     }
                 }
             }
         }
+        classDoc.methodDetailsSection << {
+            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+                extension.extensionMethods.each { method ->
+                    section(id: method.id, role: 'detail') {
+                        title {
+                            appendChild linkRenderer.link(method.metaData.returnType)
+                            text(' ')
+                            literal(role: 'name', method.name)
+                            text('(')
+                            method.metaData.parameters.eachWithIndex {param, i ->
+                                if (i > 0) {
+                                    text(', ')
+                                }
+                                appendChild linkRenderer.link(param.type)
+                                text(" $param.name")
+                            }
+                            text(')')
+                        }
+                        appendChildren method.comment
+                    }
+                }
+            }
+        }
+    }
+
+    void mergeExtensionBlocks(ClassDoc classDoc) {
         classDoc.blocksTable.addAfter {
             classDoc.classExtensions.each { ClassExtensionDoc extension ->
+                if (!extension.extensionBlocks) {
+                    return
+                }
                 section {
-                    title { text("Blocks added by "); literal(extension.pluginId); text(" plugin") }
+                    title { text("Script blocks added by the "); literal(extension.pluginId); text(" plugin") }
 
                     titleabbrev { literal(extension.pluginId); text(" plugin") }
                     table {
-                        title { text("Blocks - "); literal(extension.pluginId); text(" plugin") }
+                        title { text("Script blocks - "); literal(extension.pluginId); text(" plugin") }
                         thead { tr { td('Block'); td('Description') } }
-                        extension.extensionClasses.each { extensionClass ->
-                            extensionClass.classBlocks.each { blockDoc ->
-                                tr {
-                                    td { literal(blockDoc.name) }
-                                    td { appendChild blockDoc.description }
-                                }
+                        extension.extensionBlocks.each { blockDoc ->
+                            tr {
+                                td { link(linkend: blockDoc.id) { literal(blockDoc.name) } }
+                                td { appendChild blockDoc.description }
                             }
                         }
+                    }
+                }
+            }
+        }
+        classDoc.blockDetailsSection << {
+            classDoc.classExtensions.each { ClassExtensionDoc extension ->
+                extension.extensionBlocks.each { block ->
+                    section(id: block.id, role: 'detail') {
+                        title {
+                            literal(role: 'name', block.name); text(' { }')
+                        }
+                        appendChildren block.comment
                     }
                 }
             }
         }
     }
 }
+
 

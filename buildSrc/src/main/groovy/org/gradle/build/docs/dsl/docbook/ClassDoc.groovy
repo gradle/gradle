@@ -84,11 +84,17 @@ class ClassDoc {
 
     def getPropertiesSection() { return propertiesSection }
 
+    def getPropertyDetailsSection() { return getSection('Property details') }
+
     def getMethodsTable() { return methodsTable }
 
     def getMethodsSection() { return methodsSection }
 
+    def getMethodDetailsSection() { return getSection('Method details') }
+
     def getBlocksTable() { return getTable('Script blocks') }
+
+    def getBlockDetailsSection() { return getSection('Script block details') }
 
     ClassDoc mergeContent() {
         buildDescription()
