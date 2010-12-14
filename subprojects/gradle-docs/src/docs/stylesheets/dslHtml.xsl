@@ -17,6 +17,9 @@
     <xsl:import href="html/chunkfast.xsl"/>
     <xsl:import href="userGuideHtmlCommon.xsl"/>
 
+    <xsl:output method="html" doctype-system="http://www.w3.org/TR/html4/strict.dtd"
+         doctype-public="-//W3C//DTD HTML 4.01//EN"/>
+
     <xsl:param name="root.filename">index</xsl:param>
     <xsl:param name="chunk.section.depth">0</xsl:param>
     <xsl:param name="chunk.quietly">1</xsl:param>
@@ -77,7 +80,7 @@
                 <div class="content">
                     <xsl:copy-of select="$content"/>
                 </div>
-                <script src="sidebar.js" type="text/javascript"/>
+                <!--<script src="sidebar.js" type="text/javascript"/>-->
             </body>
         </html>
         <xsl:value-of select="$chunk.append"/>
