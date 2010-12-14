@@ -159,12 +159,12 @@
             </xsl:call-template>
         </xsl:variable>
 
-        <xsl:call-template name="anchor">
-            <xsl:with-param name="node" select="ancestor::section"/>
-            <xsl:with-param name="conditional" select="0"/>
-        </xsl:call-template>
         <xsl:element name="h{$level+1}">
             <xsl:attribute name="class">signature</xsl:attribute>
+            <xsl:call-template name="anchor">
+                <xsl:with-param name="node" select="ancestor::section"/>
+                <xsl:with-param name="conditional" select="0"/>
+            </xsl:call-template>
             <xsl:apply-templates/>
         </xsl:element>
     </xsl:template>
