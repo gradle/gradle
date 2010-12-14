@@ -203,6 +203,8 @@ class ClassDocTest extends XmlSpecification {
 
     def classDoc(String name = 'org.gradle.Class') {
         ClassDoc doc = Mock()
+        _ * doc.name >> name
+        _ * doc.toString() >> "ClassDoc '$name'"
         return doc
     }
 
