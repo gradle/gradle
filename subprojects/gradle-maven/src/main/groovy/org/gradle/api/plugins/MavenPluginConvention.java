@@ -55,6 +55,11 @@ public class MavenPluginConvention {
         this.pomDirName = pomDirName;
     }
 
+    /**
+     * Returns the set of rules for how to map Gradle dependencies to Maven scopes.
+     *
+     * @return The mapping rules.
+     */
     public Conf2ScopeMappingContainer getConf2ScopeMappings() {
         return conf2ScopeMappings;
     }

@@ -25,6 +25,9 @@ public class JettyPluginConvention {
     private String stopKey;
     private Integer httpPort = 8080;
 
+    /**
+     * Returns the TCP port for Jetty to listen on for incoming HTTP requests.
+     */
     public Integer getHttpPort() {
         return httpPort;
     }
@@ -33,6 +36,9 @@ public class JettyPluginConvention {
         this.httpPort = httpPort;
     }
 
+    /**
+     * Returns the TCP port for Jetty to listen on for stop requests.
+     */
     public Integer getStopPort() {
         return stopPort;
     }
@@ -41,6 +47,9 @@ public class JettyPluginConvention {
         this.stopPort = stopPort;
     }
 
+    /**
+     * Returns the key to use to stop Jetty.
+     */
     public String getStopKey() {
         return stopKey;
     }

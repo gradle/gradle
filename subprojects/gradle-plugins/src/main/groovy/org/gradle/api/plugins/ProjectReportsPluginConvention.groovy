@@ -19,13 +19,19 @@ import org.gradle.api.Project
 import org.gradle.util.WrapUtil
 
 public class ProjectReportsPluginConvention {
+    /**
+     * The name of the directory to generate the project reports into, relative to the project's reports dir.
+     */
     String projectReportDirName = 'project'
     private final Project project
 
     def ProjectReportsPluginConvention(Project project) {
         this.project = project;
     }
-    
+
+    /**
+     * Returns the directory to generate the project reports into.
+     */
     File getProjectReportDir() {
         new File(project.convention.getPlugin(ReportingBasePluginConvention).reportsDir, projectReportDirName)
     }

@@ -32,7 +32,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Executes a Java application.
+ * Executes a Java application in a child process.
  *
  * @author Hans Dockter
  */

@@ -13,6 +13,9 @@
             <tr>
                 <td>pomDir</td>
             </tr>
+            <tr>
+                <td>conf2ScopeMappings</td>
+            </tr>
         </table>
     </section>
     <section>

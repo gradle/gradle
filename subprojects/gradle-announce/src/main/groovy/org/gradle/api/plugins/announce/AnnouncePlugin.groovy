@@ -34,8 +34,16 @@ class AnnouncePlugin implements Plugin<Project> {
 }
 
 class AnnouncePluginConvention {
+    /**
+     * The username to use for announcements
+     */
     String username
+
+    /**
+     * The password to use for announcements
+     */
     String password
+
     Project project
     AnnouncerFactory announcerFactory
 
@@ -44,11 +52,19 @@ class AnnouncePluginConvention {
         this.announcerFactory = new DefaultAnnouncerFactory(this)
     }
 
+    /**
+     * Configures the announce plugin convention. The given closure configures the {@link AnnouncePluginConvention}.
+     */
     def announce(Closure closure) {
         closure.delegate = this
         closure()
     }
 
+    /**
+     * Sends an announcement of the given type.
+     * @param msg The content of the announcement
+     * @param type The announcement type.
+     */
     def announce(String msg, def type) {
         announcerFactory.createAnnouncer(type).send(project.name, msg)
     }

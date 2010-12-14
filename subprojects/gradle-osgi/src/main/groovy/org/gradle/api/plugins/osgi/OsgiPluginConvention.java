@@ -36,7 +36,7 @@ public class OsgiPluginConvention {
     }
 
     /**
-     * Returns a new instance of {@link org.gradle.api.plugins.osgi.OsgiManifest}. The returned object is preconfigured with:
+     * Creates a new instance of {@link org.gradle.api.plugins.osgi.OsgiManifest}. The returned object is preconfigured with:
      * <blockquote>
      * <pre>
      * version: project.version
@@ -60,7 +60,7 @@ public class OsgiPluginConvention {
     }
 
     /**
-     * Returns a new instance of an  {@link org.gradle.api.plugins.osgi.OsgiManifest} . The closure configures
+     * Creates and configures a new instance of an  {@link org.gradle.api.plugins.osgi.OsgiManifest} . The closure configures
      * the new manifest instance before it is returned.
      */
     public OsgiManifest osgiManifest(Closure closure) {

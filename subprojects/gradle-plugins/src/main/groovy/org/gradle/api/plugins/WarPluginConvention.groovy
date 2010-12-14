@@ -18,6 +18,9 @@ package org.gradle.api.plugins
 import org.gradle.api.Project
 
 public class WarPluginConvention {
+    /**
+     * The name of the web application directory, relative to the project directory.
+     */
     String webAppDirName
     final Project project
 
@@ -26,6 +29,9 @@ public class WarPluginConvention {
         webAppDirName = 'src/main/webapp'
     }
 
+    /**
+     * Returns the web application directory.
+     */
     File getWebAppDir() {
         project.file(webAppDirName)
     }

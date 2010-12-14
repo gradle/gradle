@@ -7,6 +7,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>webAppDirName</td>
+            </tr>
+            <tr>
+                <td>webAppDir</td>
+            </tr>
         </table>
     </section>
     <section>

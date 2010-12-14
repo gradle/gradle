@@ -5,8 +5,79 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default</td>
                 </tr>
             </thead>
+            <tr>
+                <td>allJvmArgs</td>
+            </tr>
+            <tr>
+                <td>jvmArgs</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>systemProperties</td>
+                <td><literal>[:]</literal></td>
+            </tr>
+            <tr>
+                <td>bootstrapClasspath</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>maxHeapSize</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>enableAssertions</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>debug</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>main</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>args</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>executable</td>
+                <td><filename>java</filename> executable for current JVM</td>
+            </tr>
+            <tr>
+                <td>workingDir</td>
+                <td><literal>project.projectDir</literal></td>
+            </tr>
+            <tr>
+                <td>environment</td>
+                <td>Current process' environment</td>
+            </tr>
+            <tr>
+                <td>standardInput</td>
+                <td>An empty <classname>InputStream</classname></td>
+            </tr>
+            <tr>
+                <td>standardOutput</td>
+                <td><literal>System.out</literal></td>
+            </tr>
+            <tr>
+                <td>errorOutput</td>
+                <td><literal>System.err</literal></td>
+            </tr>
+            <tr>
+                <td>ignoreExitValue</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>commandLine</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -17,6 +88,33 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>jvmArgs</td>
+            </tr>
+            <tr>
+                <td>systemProperties</td>
+            </tr>
+            <tr>
+                <td>bootstrapClasspath</td>
+            </tr>
+            <tr>
+                <td>args</td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+            </tr>
+            <tr>
+                <td>copyTo</td>
+            </tr>
+            <tr>
+                <td>executable</td>
+            </tr>
+            <tr>
+                <td>workingDir</td>
+            </tr>
+            <tr>
+                <td>environment</td>
+            </tr>
         </table>
     </section>
 </section>

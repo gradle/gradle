@@ -7,6 +7,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>username</td>
+            </tr>
+            <tr>
+                <td>password</td>
+            </tr>
         </table>
     </section>
     <section>
@@ -17,6 +23,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>announce</td>
+            </tr>
         </table>
     </section>
 </section>

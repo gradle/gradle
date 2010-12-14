@@ -7,6 +7,15 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>httpPort</td>
+            </tr>
+            <tr>
+                <td>stopPort</td>
+            </tr>
+            <tr>
+                <td>stopKey</td>
+            </tr>
         </table>
     </section>
     <section>

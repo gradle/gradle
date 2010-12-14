@@ -21,7 +21,7 @@ import java.util.Collection;
 import java.util.Map;
 
 /**
- * Defines a set of rules for how to map the Gradle dependendencies to a pom. This mapping is based
+ * Defines a set of rules for how to map the Gradle dependencies to a pom. This mapping is based
  * on the configuration the dependencies belong to.
  *
  * @author Hans Dockter
