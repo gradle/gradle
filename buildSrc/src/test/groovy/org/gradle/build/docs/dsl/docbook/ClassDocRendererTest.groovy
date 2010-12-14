@@ -104,7 +104,7 @@ class ClassDocRendererTest extends XmlSpecification {
     <section>
         <title>Property details</title>
         <section id="propId" role="detail">
-            <title><classname>org.gradle.Type</classname> <literal role="name">propName</literal> (read-only)</title>
+            <title><classname>org.gradle.Type</classname> <literal>propName</literal> (read-only)</title>
             <para>prop comment</para>
             <segmentedlist>
                 <segtitle>Extra column</segtitle>
@@ -205,7 +205,7 @@ class ClassDocRendererTest extends XmlSpecification {
     <section>
         <title>Property details</title>
         <section id="propId" role="detail">
-            <title><classname>SomeType</classname> <literal role="name">propName</literal> (read-only)</title>
+            <title><classname>SomeType</classname> <literal>propName</literal> (read-only)</title>
             <para>comment</para>
         </section>
     </section>
@@ -249,9 +249,7 @@ class ClassDocRendererTest extends XmlSpecification {
             </thead>
             <tr>
                 <td>
-                    <link linkend="method1Id">
-                        <literal>methodName</literal>
-                    </link>
+                    <literal><link linkend="method1Id">methodName</link>()</literal>
                 </td>
                 <td>
                     <para>method description</para>
@@ -259,9 +257,7 @@ class ClassDocRendererTest extends XmlSpecification {
             </tr>
             <tr>
                 <td>
-                    <link linkend="method2Id">
-                        <literal>methodName</literal>
-                    </link>
+                    <literal><link linkend="method2Id">methodName</link>(p)</literal>
                 </td>
                 <td>
                     <para>overloaded description</para>
@@ -272,11 +268,11 @@ class ClassDocRendererTest extends XmlSpecification {
     <section>
         <title>Method details</title>
         <section id="method1Id" role="detail">
-            <title><classname>ReturnType1</classname> <literal role="name">methodName</literal>()</title>
+            <title><classname>ReturnType1</classname> <literal>methodName</literal>()</title>
             <para>method comment</para>
         </section>
         <section id="method2Id" role="detail">
-            <title><classname>ReturnType2</classname> <literal role="name">methodName</literal>(<classname>ParamType</classname> p)</title>
+            <title><classname>ReturnType2</classname> <literal>methodName</literal>(<classname>ParamType</classname> p)</title>
             <para>overloaded comment</para>
         </section>
     </section>
@@ -330,9 +326,7 @@ class ClassDocRendererTest extends XmlSpecification {
                 </thead>
                 <tr>
                     <td>
-                        <link linkend="methodId">
-                            <literal>methodName</literal>
-                        </link>
+                        <literal><link linkend="methodId">methodName</link>()</literal>
                     </td>
                     <td>
                         <para>description</para>
@@ -344,7 +338,7 @@ class ClassDocRendererTest extends XmlSpecification {
     <section>
         <title>Method details</title>
         <section id="methodId" role="detail">
-            <title><classname>ReturnType</classname> <literal role="name">methodName</literal>()</title>
+            <title><classname>ReturnType</classname> <literal>methodName</literal>()</title>
             <para>comment</para>
         </section>
     </section>
@@ -423,7 +417,7 @@ class ClassDocRendererTest extends XmlSpecification {
     <section>
         <title>Script block details</title>
         <section id="blockId" role="detail">
-            <title><literal role="name">block</literal> { }</title>
+            <title><literal>block</literal> { }</title>
             <para>block comment</para>
             <segmentedlist>
                 <segtitle>Delegates to</segtitle>
@@ -495,7 +489,7 @@ class ClassDocRendererTest extends XmlSpecification {
     <section>
         <title>Script block details</title>
         <section id="blockId" role="detail">
-            <title><literal role="name">blockName</literal> { }</title>
+            <title><literal>blockName</literal> { }</title>
             <para>comment</para>
             <segmentedlist>
                 <segtitle>Delegates to</segtitle>

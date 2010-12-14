@@ -88,9 +88,7 @@ public class JavadocConverter {
         ClassMetaData ownerClass = methodMetaData.getOwnerClass();
         String rawCommentText = methodMetaData.getRawCommentText();
         try {
-            DocCommentImpl docComment = parse(rawCommentText, ownerClass, commentSource);
-            adjustGetterComment(docComment);
-            return docComment;
+            return parse(rawCommentText, ownerClass, commentSource);
         } catch (Exception e) {
             throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s", ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
         }
@@ -129,6 +127,7 @@ public class JavadocConverter {
         handler.add(new HeaderHandler(nodes, document));
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData));
         handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
+        handler.add(new TableHandler(nodes, document));
         handler.add(new UnknownElementTagHandler(nodes, document));
 
         while (lexer.next()) {
@@ -179,6 +178,10 @@ public class JavadocConverter {
             blockElements.add("itemizedlist");
             blockElements.add("orderedlist");
             blockElements.add("listitem");
+            blockElements.add("table");
+            blockElements.add("tr");
+            blockElements.add("td");
+            blockElements.add("thead");
         }
 
         public void appendChild(String text) {
@@ -436,6 +439,67 @@ public class JavadocConverter {
 
         public void onEndTag(String tag) {
             nodes.pop("title");
+        }
+    }
+
+    private static class TableHandler implements TagHandler {
+        private final NodeStack nodes;
+        private final Document document;
+        private Element currentTable;
+        private Element currentRow;
+        private Element header;
+
+        public TableHandler(NodeStack nodes, Document document) {
+            this.nodes = nodes;
+            this.document = document;
+        }
+
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
+            if (tokenType != JavadocLexer.TokenType.StartElement) {
+                return false;
+            }
+            if (tag.equals("table")) {
+                if (currentTable != null) {
+                    throw new UnsupportedOperationException("A table within a table is not supported.");
+                }
+                currentTable = document.createElement("table");
+                nodes.push(tag, currentTable);
+                return true;
+            }
+            if (tag.equals("tr")) {
+                currentRow = document.createElement("tr");
+                nodes.push(tag, currentRow);
+                return true;
+            }
+            if (tag.equals("th")) {
+                if (header == null) {
+                    header = document.createElement("thead");
+                    currentTable.insertBefore(header, null);
+                    header.appendChild(currentRow);
+                }
+                nodes.push(tag, document.createElement("td"));
+                return true;
+            }
+            if (tag.equals("td")) {
+                nodes.push(tag, document.createElement("td"));
+                return true;
+            }
+            return false;
+        }
+
+        public void onEndTag(String tag) {
+            if (tag.equals("table")) {
+                currentTable = null;
+                header = null;
+            }
+            if (tag.equals("tr")) {
+                currentRow = null;
+            }
+            nodes.pop(tag);
+        }
+
+        public void onText(String text) {
+            nodes.appendChild(text);
         }
     }
 

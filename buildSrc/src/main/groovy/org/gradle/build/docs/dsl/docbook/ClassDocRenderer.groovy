@@ -85,7 +85,7 @@ class ClassDocRenderer {
                         title {
                             appendChild linkRenderer.link(propDoc.metaData.type)
                             text(' ')
-                            literal(role: 'name', propDoc.name)
+                            literal(propDoc.name)
                             if (!propDoc.metaData.writeable) {
                                 text(' (read-only)')
                             }
@@ -130,7 +130,19 @@ class ClassDocRenderer {
             }
             classMethods.each { method ->
                 tr {
-                    td { link(linkend: method.id) { literal(method.name) } }
+                    td {
+                        literal {
+                            link(linkend: method.id) { text(method.name) }
+                            text('(')
+                            method.metaData.parameters.eachWithIndex { param, index ->
+                                if ( index > 0 ) {
+                                    text(', ')
+                                }
+                                text(param.name)
+                            }
+                            text(')')
+                        }
+                    }
                     td { appendChild method.description }
                 }
             }
@@ -144,7 +156,7 @@ class ClassDocRenderer {
                         title {
                             appendChild linkRenderer.link(method.metaData.returnType)
                             text(' ')
-                            literal(role: 'name', method.name)
+                            literal(method.name)
                             text('(')
                             method.metaData.parameters.eachWithIndex {param, i ->
                                 if (i > 0) {
@@ -199,7 +211,7 @@ class ClassDocRenderer {
                 classBlocks.each { block ->
                     section(id: block.id, role: 'detail') {
                         title {
-                            literal(role: 'name', block.name); text(' { }')
+                            literal(block.name); text(' { }')
                         }
                         appendChildren block.comment
                         segmentedlist {
@@ -263,7 +275,7 @@ class ClassDocRenderer {
                         title {
                             appendChild linkRenderer.link(propDoc.metaData.type)
                             text(' ')
-                            literal(role: 'name', propDoc.name)
+                            literal(propDoc.name)
                             if (!propDoc.metaData.writeable) {
                                 text(' (read-only)')
                             }
@@ -287,10 +299,22 @@ class ClassDocRenderer {
                     table {
                         title { text("Methods - "); literal(extension.pluginId); text(" plugin") }
                         thead { tr { td('Method'); td('Description') } }
-                        extension.extensionMethods.each { methodDoc ->
+                        extension.extensionMethods.each { method ->
                             tr {
-                                td { link(linkend: methodDoc.id) { literal(methodDoc.name) } }
-                                td { appendChild methodDoc.description }
+                                td {
+                                    literal {
+                                        link(linkend: method.id) { text(method.name) }
+                                        text('(')
+                                        method.metaData.parameters.eachWithIndex { param, index ->
+                                            if ( index > 0 ) {
+                                                text(', ')
+                                            }
+                                            text(param.name)
+                                        }
+                                        text(')')
+                                    }
+                                }
+                                td { appendChild method.description }
                             }
                         }
                     }
@@ -304,7 +328,7 @@ class ClassDocRenderer {
                         title {
                             appendChild linkRenderer.link(method.metaData.returnType)
                             text(' ')
-                            literal(role: 'name', method.name)
+                            literal(method.name)
                             text('(')
                             method.metaData.parameters.eachWithIndex {param, i ->
                                 if (i > 0) {
@@ -350,7 +374,7 @@ class ClassDocRenderer {
                 extension.extensionBlocks.each { block ->
                     section(id: block.id, role: 'detail') {
                         title {
-                            literal(role: 'name', block.name); text(' { }')
+                            literal(block.name); text(' { }')
                         }
                         appendChildren block.comment
                         segmentedlist {
