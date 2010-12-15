@@ -18,11 +18,10 @@ package org.gradle.build.docs.dsl.docbook;
 import org.gradle.build.docs.dsl.TypeNameResolver;
 import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.TypeMetaData;
+import org.gradle.build.docs.model.ClassMetaDataRepository;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-
-import java.util.Arrays;
 
 /**
  * Converts a javadoc link into docbook.
@@ -31,22 +30,51 @@ public class JavadocLinkConverter {
     private final Document document;
     private final TypeNameResolver typeNameResolver;
     private final ClassLinkRenderer linkRenderer;
+    private final ClassMetaDataRepository<ClassMetaData> repository;
 
-    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, ClassLinkRenderer linkRenderer) {
+    public JavadocLinkConverter(Document document, TypeNameResolver typeNameResolver, ClassLinkRenderer linkRenderer, ClassMetaDataRepository<ClassMetaData> repository) {
         this.document = document;
         this.typeNameResolver = typeNameResolver;
         this.linkRenderer = linkRenderer;
+        this.repository = repository;
     }
 
-    public Iterable<? extends Node> resolve(String link, ClassMetaData classMetaData) {
+    public Node resolve(String link, ClassMetaData classMetaData) {
         String className = typeNameResolver.resolve(link, classMetaData);
 
         if (className == null || className.contains("#")) {
             Element element = document.createElement("UNHANDLED-LINK");
             element.appendChild(document.createTextNode(link));
-            return Arrays.asList(element);
+            return element;
         }
 
-        return Arrays.asList(linkRenderer.link(new TypeMetaData(className)));
+        return linkRenderer.link(new TypeMetaData(className));
+    }
+
+    public Node resolveValue(String fieldName, ClassMetaData classMetaData) {
+        String[] parts = fieldName.split("#");
+        ClassMetaData targetClass;
+        if (parts[0].length() > 0) {
+            String targetClassName = typeNameResolver.resolve(parts[0], classMetaData);
+            targetClass = repository.find(targetClassName);
+            if (targetClass == null) {
+                Element element = document.createElement("UNHANDLED-VALUE");
+                element.appendChild(document.createTextNode(targetClassName + ":" + parts[1]));
+                return element;
+            }
+        } else {
+            targetClass = classMetaData;
+        }
+
+        String value = targetClass.getConstants().get(parts[1]);
+        if (value == null) {
+            Element element = document.createElement("NO-VALUE-FOR_FIELD");
+            element.appendChild(document.createTextNode(targetClass.getClassName() + ":" + parts[1]));
+            return element;
+        }
+
+        Element element = document.createElement("literal");
+        element.appendChild(document.createTextNode(value));
+        return element;
     }
 }

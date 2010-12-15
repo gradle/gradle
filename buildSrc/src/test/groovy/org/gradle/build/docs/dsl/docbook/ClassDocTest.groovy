@@ -29,6 +29,7 @@ class ClassDocTest extends XmlSpecification {
         ClassDoc superDoc = classDoc()
         PropertyDoc propertyDocA = propertyDoc('a')
         PropertyDoc propertyDocC = propertyDoc('c')
+        PropertyDoc propertyDocCForThisClass = propertyDoc('c')
 
         def content = parse('''
 <section>
@@ -52,13 +53,66 @@ class ClassDocTest extends XmlSpecification {
         doc.classProperties.size() == 3
         doc.classProperties[0].name == 'a'
         doc.classProperties[1].name == 'b'
-        doc.classProperties[2] == propertyDocC
+        doc.classProperties[2] == propertyDocCForThisClass
 
         _ * classMetaData.findProperty('b') >> propertyB
         _ * classMetaData.findProperty('a') >> propertyA
         _ * classMetaData.superClassName >> 'org.gradle.SuperType'
         _ * docModel.getClassDoc('org.gradle.SuperType') >> superDoc
         _ * superDoc.getClassProperties() >> [propertyDocC, propertyDocA]
+        _ * propertyDocC.forClass(classMetaData) >> propertyDocCForThisClass
+    }
+
+    def canAttachAdditionalValuesToProperty() {
+        ClassMetaData classMetaData = classMetaData()
+        PropertyMetaData propertyA = property('a', classMetaData, comment: 'prop a')
+        PropertyMetaData propertyB = property('b', classMetaData, comment: 'prop b')
+        ClassDoc superDoc = classDoc()
+        PropertyDoc inheritedPropertyA = propertyDoc('a')
+        PropertyDoc inheritedPropertyB = propertyDoc('b')
+
+        def content = parse('''
+<section>
+    <section><title>Properties</title>
+        <table>
+            <thead><tr><td>Name</td><td>value1</td><td>value2</td></tr></thead>
+            <tr><td>a</td><td>overridden</td><td>specific</td></tr>
+            <tr><td>b</td><td></td><td></td></tr>
+        </table>
+    </section>
+    <section><title>Methods</title><table><thead><tr></tr></thead></table></section>
+</section>
+''')
+
+        when:
+        ClassDoc doc = withCategories {
+            new ClassDoc('org.gradle.Class', content, document, classMetaData, null, docModel, javadocConverter).buildProperties()
+        }
+
+        then:
+        doc.classProperties.size() == 2
+        def prop = doc.classProperties[0]
+        prop.name == 'a'
+        prop.additionalValues.size() == 2
+        prop.additionalValues[0].key == 'value1'
+        format(prop.additionalValues[0].value) == 'overridden'
+        prop.additionalValues[1].key == 'value2'
+        format(prop.additionalValues[1].value) == 'specific'
+
+        prop = doc.classProperties[1]
+        prop.name == 'b'
+        prop.additionalValues.size() == 1
+        prop.additionalValues[0].key == 'value1'
+        format(prop.additionalValues[0].value) == 'inherited'
+
+        _ * classMetaData.findProperty('b') >> propertyB
+        _ * classMetaData.findProperty('a') >> propertyA
+        _ * classMetaData.superClassName >> 'org.gradle.SuperType'
+        _ * docModel.getClassDoc('org.gradle.SuperType') >> superDoc
+        _ * superDoc.findProperty('a') >> inheritedPropertyA
+        _ * inheritedPropertyA.additionalValues >> [new ExtraAttributeDoc(parse('<td>value1</td>'), parse('<td>inherited</td>'))]
+        _ * superDoc.findProperty('b') >> inheritedPropertyB
+        _ * inheritedPropertyB.additionalValues >> [new ExtraAttributeDoc(parse('<td>value1</td>'), parse('<td>inherited</td>'))]
     }
 
     def buildsMethodsForClass() {
@@ -127,7 +181,7 @@ class ClassDocTest extends XmlSpecification {
     </section>
     <section><title>Properties</title>
         <table>
-            <thead><tr>Name</tr></thead>
+            <thead><tr><td>Name</td></tr></thead>
             <tr><td>block</td></tr>
             <tr><td>listBlock</td></tr>
         </table>
@@ -157,7 +211,7 @@ class ClassDocTest extends XmlSpecification {
         doc.classBlocks[1].multiValued
     }
 
-    def buildsExtensionsForClass(){
+    def buildsExtensionsForClass() {
         ClassMetaData classMetaData = classMetaData()
         ExtensionMetaData extensionMetaData = new ExtensionMetaData('org.gradle.Class')
         extensionMetaData.add('a', 'org.gradle.ExtensionA1')
@@ -230,7 +284,6 @@ class ClassDocTest extends XmlSpecification {
         _ * propertyDoc.description >> parse("<para>$name comment</para>")
         _ * propertyDoc.metaData >> property(name, null)
         _ * propertyDoc.additionalValues >> []
-        _ * propertyDoc.forClass(!null) >> propertyDoc
         return propertyDoc
     }
 

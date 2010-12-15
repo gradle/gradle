@@ -12,4 +12,8 @@ class GroovyClassWithParameterizedTypes {
     List<? super GroovyInterface> lowerBoundProp
 
     List<? super Set<? extends Map<?, GroovyInterface[]>>>[] nestedProp
+
+    static <T> T paramMethod(T param) {
+        null
+    }
 }

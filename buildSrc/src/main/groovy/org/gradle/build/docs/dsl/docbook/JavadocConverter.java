@@ -127,6 +127,7 @@ public class JavadocConverter {
         handler.add(new HeaderHandler(nodes, document));
         handler.add(new LinkHandler(nodes, linkConverter, classMetaData));
         handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
+        handler.add(new ValueTagHandler(nodes, linkConverter, classMetaData));
         handler.add(new TableHandler(nodes, document));
         handler.add(new UnknownElementTagHandler(nodes, document));
 
@@ -503,6 +504,35 @@ public class JavadocConverter {
         }
     }
 
+    private static class ValueTagHandler implements TagHandler {
+        private StringBuilder field;
+        private final JavadocLinkConverter linkConverter;
+        private final ClassMetaData classMetaData;
+        private final NodeStack nodes;
+
+        public ValueTagHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData) {
+            this.nodes = nodes;
+            this.linkConverter = linkConverter;
+            this.classMetaData = classMetaData;
+        }
+
+        public boolean onStartTag(String tag, JavadocLexer.TokenType tokenType) {
+            if (tokenType != JavadocLexer.TokenType.StartTag || !tag.equals("value")) {
+                return false;
+            }
+            field = new StringBuilder();
+            return true;
+        }
+
+        public void onText(String text) {
+            field.append(text);
+        }
+
+        public void onEndTag(String tag) {
+            nodes.appendChild(linkConverter.resolveValue(field.toString(), classMetaData));
+        }
+    }
+
     private static class LinkHandler implements TagHandler {
         private final NodeStack nodes;
         private final JavadocLinkConverter linkConverter;
@@ -529,9 +559,7 @@ public class JavadocConverter {
 
         public void onEndTag(String tag) {
             String className = link.toString().split("\\s+")[0];
-            for (Node node : linkConverter.resolve(className, classMetaData)) {
-                nodes.appendChild(node);
-            }
+            nodes.appendChild(linkConverter.resolve(className, classMetaData));
             link = null;
         }
     }

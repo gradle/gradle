@@ -23,14 +23,14 @@ class PropertyDoc {
     private final String id
     private final String name
     private final List<Element> comment
-    private final List<Element> additionalValues
+    private final List<ExtraAttributeDoc> additionalValues
     private final PropertyMetaData metaData
 
-    PropertyDoc(PropertyMetaData propertyMetaData, List<Element> comment, List<Element> additionalValues) {
+    PropertyDoc(PropertyMetaData propertyMetaData, List<Element> comment, List<ExtraAttributeDoc> additionalValues) {
         this(propertyMetaData.ownerClass, propertyMetaData, comment, additionalValues)
     }
 
-    PropertyDoc(ClassMetaData referringClass, PropertyMetaData propertyMetaData, List<Element> comment, List<Element> additionalValues) {
+    PropertyDoc(ClassMetaData referringClass, PropertyMetaData propertyMetaData, List<Element> comment, List<ExtraAttributeDoc> additionalValues) {
         name = propertyMetaData.name
         this.metaData = propertyMetaData
         id = "${referringClass.className}:$name"
@@ -62,7 +62,7 @@ class PropertyDoc {
         return comment
     }
 
-    List<Element> getAdditionalValues() {
+    List<ExtraAttributeDoc> getAdditionalValues() {
         return additionalValues
     }
 }

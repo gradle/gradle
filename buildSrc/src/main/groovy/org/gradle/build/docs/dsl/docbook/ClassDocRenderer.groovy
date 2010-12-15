@@ -15,8 +15,6 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.w3c.dom.Element
-
 class ClassDocRenderer {
     private final ClassLinkRenderer linkRenderer
 
@@ -93,10 +91,12 @@ class ClassDocRenderer {
                         appendChildren propDoc.comment
                         if (propDoc.additionalValues) {
                             segmentedlist {
-                                cells.each { Element node -> segtitle { appendChildren(node.childNodes) } }
+                                propDoc.additionalValues.each { attributeDoc ->
+                                    segtitle { appendChildren(attributeDoc.title) }
+                                }
                                 seglistitem {
-                                    propDoc.additionalValues.each { Element node ->
-                                        seg { appendChildren(node.childNodes) }
+                                    propDoc.additionalValues.each { ExtraAttributeDoc attributeDoc ->
+                                        seg { appendChildren(attributeDoc.value) }
                                     }
                                 }
                             }
@@ -281,6 +281,18 @@ class ClassDocRenderer {
                             }
                         }
                         appendChildren propDoc.comment
+                        if (propDoc.additionalValues) {
+                            segmentedlist {
+                                propDoc.additionalValues.each { attributeDoc ->
+                                    segtitle { appendChildren(attributeDoc.title) }
+                                }
+                                seglistitem {
+                                    propDoc.additionalValues.each { ExtraAttributeDoc attributeDoc ->
+                                        seg { appendChildren(attributeDoc.value) }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }

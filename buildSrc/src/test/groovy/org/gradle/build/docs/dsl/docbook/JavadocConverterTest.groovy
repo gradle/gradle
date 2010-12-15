@@ -207,8 +207,8 @@ literal code</programlisting><para> does something.
 
         then:
         format(result.docbook) == '''<para><xref/> <xref/></para>'''
-        1 * linkConverter.resolve('someClass', classMetaData) >> [document.createElement("xref")]
-        1 * linkConverter.resolve('otherClass', classMetaData) >> [document.createElement("xref")]
+        1 * linkConverter.resolve('someClass', classMetaData) >> document.createElement("xref")
+        1 * linkConverter.resolve('otherClass', classMetaData) >> document.createElement("xref")
         0 * linkConverter._
     }
 
@@ -298,6 +298,20 @@ text3</section>'''
  *
 '''
         format(result.docbook) == '''<para>before </para><para><emphasis>inherited value</emphasis></para><para> after</para>'''
+    }
+
+    def convertsValueTag() {
+        PropertyMetaData propertyMetaData = Mock()
+
+        when:
+        def result = parser.parse(propertyMetaData)
+
+        then:
+        _ * propertyMetaData.rawCommentText >> '{@value org.gradle.SomeClass#CONST}'
+        _ * propertyMetaData.ownerClass >> classMetaData
+        _ * linkConverter.resolveValue('org.gradle.SomeClass#CONST', classMetaData) >> document.importNode(parse('<literal>some-value</literal>'), true)
+
+        format(result.docbook) == '''<para><literal>some-value</literal></para>'''
     }
 
     def convertsMethodComment() {

@@ -37,7 +37,7 @@ class DslDocModel {
         this.classpath = classpath
         this.classMetaData = classMetaData
         this.extensionMetaData = extensionMetaData
-        javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, new TypeNameResolver(classMetaData), new ClassLinkRenderer(document, this)))
+        javadocConverter = new JavadocConverter(document, new JavadocLinkConverter(document, new TypeNameResolver(classMetaData), new ClassLinkRenderer(document, this), classMetaData))
     }
 
     boolean isKnownType(String className) {

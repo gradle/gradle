@@ -15,6 +15,7 @@
  */
 package org.gradle.build.docs.dsl;
 
+import groovyjarjarantlr.collections.AST;
 import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.antlr.GroovySourceAST;
 import org.codehaus.groovy.antlr.LineColumn;
@@ -164,8 +165,13 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         }
 
         ASTIterator children = new ASTIterator(t);
-        children.skip(MODIFIERS);
-        children.skip(TYPE_PARAMETERS);
+        if (groovy) {
+            children.skip(TYPE_PARAMETERS);
+            children.skip(MODIFIERS);
+        } else {
+            children.skip(MODIFIERS);
+            children.skip(TYPE_PARAMETERS);
+        }
 
         String rawCommentText = getJavaDocCommentsBeforeNode(t);
         TypeMetaData returnType = extractTypeName(children.current);
@@ -223,6 +229,12 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         }
 
         int modifiers = extractModifiers(t);
+        boolean isConst = getCurrentClass().isInterface() || (Modifier.isStatic(modifiers) && Modifier.isFinal(modifiers));
+        if (isConst) {
+            visitConst(t);
+            return;
+        }
+
         boolean isProp = groovy && !Modifier.isStatic(modifiers) && !Modifier.isPublic(modifiers)
                 && !Modifier.isProtected(modifiers) && !Modifier.isPrivate(modifiers);
         if (!isProp) {
@@ -244,6 +256,33 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
                     propertyName)), TypeMetaData.VOID, "");
             setterMethod.addParameter(propertyName, propertyType);
         }
+    }
+
+    private void visitConst(GroovySourceAST t) {
+        String constName = extractIdent(t);
+        GroovySourceAST assign = t.childOfType(ASSIGN);
+        String value = null;
+        if (assign != null) {
+            value = extractLiteral(assign.getFirstChild());
+        }
+        getCurrentClass().getConstants().put(constName, value);
+    }
+
+    private String extractLiteral(AST ast) {
+        switch (ast.getType()) {
+            case EXPR:
+                // The java grammar wraps initialisers in an EXPR token
+                return extractLiteral(ast.getFirstChild());
+            case NUM_INT:
+            case NUM_LONG:
+            case NUM_FLOAT:
+            case NUM_DOUBLE:
+            case NUM_BIG_INT:
+            case NUM_BIG_DECIMAL:
+            case STRING_LITERAL:
+                return ast.getText();
+        }
+        return null;
     }
 
     public GroovySourceAST pop() {

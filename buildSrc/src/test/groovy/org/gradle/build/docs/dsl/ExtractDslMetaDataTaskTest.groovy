@@ -301,6 +301,47 @@ class ExtractDslMetaDataTaskTest extends Specification {
         metaData.declaredPropertyNames == ['intProp'] as Set
     }
 
+    def extractsConstantsFromGroovySource() {
+        task.source testFile('org/gradle/test/GroovyClassWithConstants.groovy')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def metaData = repository.get('org.gradle.test.GroovyClassWithConstants')
+        metaData.constants.keySet() == ['INT_CONST', 'STRING_CONST', 'OBJECT_CONST', 'BIG_DECIMAL_CONST'] as Set
+
+        metaData.constants['INT_CONST'] == '9'
+        metaData.constants['STRING_CONST'] == 'some-string'
+        metaData.constants['BIG_DECIMAL_CONST'] == '1.02'
+        metaData.constants['OBJECT_CONST'] == null
+    }
+
+    def extractsConstantsFromJavaSource() {
+        task.source testFile('org/gradle/test/JavaClassWithConstants.java')
+        task.source testFile('org/gradle/test/JavaInterfaceWithConstants.java')
+
+        when:
+        task.extract()
+        repository.load(task.destFile)
+
+        then:
+        def metaData = repository.get('org.gradle.test.JavaClassWithConstants')
+        metaData.constants.keySet() == ['INT_CONST', 'STRING_CONST', 'OBJECT_CONST', 'CHAR_CONST'] as Set
+
+        metaData.constants['INT_CONST'] == '9'
+        metaData.constants['STRING_CONST'] == 'some-string'
+        metaData.constants['CHAR_CONST'] == 'a'
+        metaData.constants['OBJECT_CONST'] == null
+
+        metaData = repository.get('org.gradle.test.JavaInterfaceWithConstants')
+        metaData.constants.keySet() == ['INT_CONST', 'STRING_CONST'] as Set
+
+        metaData.constants['INT_CONST'] == '120'
+        metaData.constants['STRING_CONST'] == 'some-string'
+    }
+
     def handlesFullyQualifiedNamesInGroovySource() {
         task.source testFile('org/gradle/test/GroovyClassWithFullyQualifiedNames.groovy')
         task.source testFile('org/gradle/test/sub/SubJavaInterface.java')
@@ -527,6 +568,10 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         property = metaData.findDeclaredProperty('nestedProp')
         property.type.signature == 'java.util.List<? super java.util.Set<? extends java.util.Map<?, org.gradle.test.GroovyInterface[]>>>[]'
+
+        def method = metaData.declaredMethods.find { it.name == 'paramMethod' }
+        method.returnType.signature == 'T'
+        method.parameters[0].type.signature == 'T'
     }
 
     def handlesParameterizedTypesInJavaSource() {

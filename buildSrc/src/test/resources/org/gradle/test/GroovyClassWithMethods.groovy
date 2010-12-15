@@ -22,7 +22,7 @@ class GroovyClassWithMethods {
     /**
      * A method that returns a reference type.
      */
-    GroovyInterface refTypeMethod(JavaInterface someThing, boolean aFlag) {
+    public final GroovyInterface refTypeMethod(JavaInterface someThing, boolean aFlag) {
         null
     }
 

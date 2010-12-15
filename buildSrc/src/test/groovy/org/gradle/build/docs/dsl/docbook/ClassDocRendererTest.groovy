@@ -70,7 +70,7 @@ class ClassDocRendererTest extends XmlSpecification {
         ClassDoc classDoc = classDoc('Class', content: content)
         PropertyDoc propDoc = propertyDoc('propName', id: 'propId', description: 'prop description', comment: 'prop comment', type: 'org.gradle.Type')
         _ * classDoc.classProperties >> [propDoc]
-        _ * propDoc.additionalValues >> [parse('<td>some value</td>')]
+        _ * propDoc.additionalValues >> [new ExtraAttributeDoc(parse('<td>Extra column</td>'), parse('<td>some value</td>'))]
 
         when:
         withCategories {

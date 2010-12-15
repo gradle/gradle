@@ -111,10 +111,18 @@ class ClassDoc {
 
     ClassDoc buildProperties() {
         Set<String> props = [] as Set
+
+        List<Element> header = propertiesTable.thead.tr[0].td.collect { it }
+        if (header.size() < 1) {
+            throw new RuntimeException("Expected at least 1 <td> in <thead>/<tr>, found: $header")
+        }
+
+        ClassDoc superClass = classMetaData.superClassName ? model.getClassDoc(classMetaData.superClassName) : null
+
         propertiesTable.tr.each { Element tr ->
             def cells = tr.td.collect { it }
-            if (cells.size() < 1) {
-                throw new RuntimeException("Expected at least 1 cell in <tr>, found: $tr")
+            if (cells.size() != header.size()) {
+                throw new RuntimeException("Expected ${header.size()} <td> elements in <tr>, found: $tr")
             }
             String propName = cells[0].text().trim()
             props << propName
@@ -122,16 +130,31 @@ class ClassDoc {
             if (!property) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
             }
-            def additionalValues = cells.subList(1, cells.size())
-            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property).docbook, additionalValues)
+
+            def additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>()
+
+            if (superClass) {
+                def overriddenProp = superClass.findProperty(propName)
+                if (overriddenProp) {
+                    overriddenProp.additionalValues.each { attributeDoc ->
+                        additionalValues.put(attributeDoc.key, attributeDoc)
+                    }
+                }
+            }
+
+            header.eachWithIndex { col, i ->
+                if (i == 0 || !cells[i].firstChild) { return }
+                def attributeDoc = new ExtraAttributeDoc(col, cells[i])
+                additionalValues.put(attributeDoc.key, attributeDoc)
+            }
+            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property).docbook, additionalValues.values() as List)
             if (propertyDoc.description == null) {
                 throw new RuntimeException("Docbook content for '$className.$propName' does not contain a description paragraph.")
             }
             classProperties << propertyDoc
         }
-        if (classMetaData.superClassName) {
-            ClassDoc supertype = model.getClassDoc(classMetaData.superClassName)
-            supertype.getClassProperties().each { propertyDoc ->
+        if (superClass) {
+            superClass.getClassProperties().each { propertyDoc ->
                 if (props.add(propertyDoc.name)) {
                     classProperties << propertyDoc.forClass(classMetaData)
                 }
