@@ -365,8 +365,11 @@ public class JettyRun extends AbstractJettyRunTask {
         this.jettyEnvXml = jettyEnvXml;
     }
 
-//    @InputFile @Optional
-
+    /**
+     * Returns the {@code web.xml} file to use. When {@code null}, no {@code web.xml} file is used.
+     */
+    @InputFile
+    @Optional
     public File getWebXml() {
         return webXml;
     }
@@ -375,6 +378,9 @@ public class JettyRun extends AbstractJettyRunTask {
         this.webXml = webXml;
     }
 
+    /**
+     * Returns the directory containing the web application source files.
+     */
     @InputDirectory
     public File getWebAppSourceDirectory() {
         return webAppSourceDirectory;

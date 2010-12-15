@@ -10,6 +10,7 @@
             </thead>
             <tr>
                 <td>manifest</td>
+                <td/>
             </tr>
             <tr>
                 <td>destinationDir</td>

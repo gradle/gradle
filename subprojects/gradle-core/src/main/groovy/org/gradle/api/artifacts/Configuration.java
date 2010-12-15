@@ -364,7 +364,7 @@ public interface Configuration extends FileCollection {
 
     /**
      * Creates a copy of this configuration that contains the dependencies directly in this configuration
-     * and those derived from superconfigurations.  The new configuation will be in the
+     * and those derived from superconfigurations.  The new configuration will be in the
      * UNRESOLVED state, but will retain all other attributes of this configuration except superconfigurations.
      * {@link #getHierarchy()} for the copy will not include any superconfigurations.
      * @return copy of this configuration

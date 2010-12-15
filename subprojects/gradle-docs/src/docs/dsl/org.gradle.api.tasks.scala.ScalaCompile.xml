@@ -5,8 +5,45 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with the <literal>scala</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>scalaClasspath</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>scalaCompileOptions</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>source</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>includes</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>excludes</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>sourceCompatibility</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>targetCompatibility</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>classpath</td>
+                <td>??</td>
+            </tr>
+            <tr>
+                <td>destinationDir</td>
+                <td>??</td>
+            </tr>
         </table>
     </section>
     <section>

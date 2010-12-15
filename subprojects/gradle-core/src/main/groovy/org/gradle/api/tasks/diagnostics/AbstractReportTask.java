@@ -78,7 +78,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     protected abstract void generate(Project project) throws IOException;
 
     /**
-     * Returns the file which the report will be written to. When set to {@code null}, the report is written to stdout.
+     * Returns the file which the report will be written to. When set to {@code null}, the report is written to {@code System.out}.
      * Defaults to {@code null}.
      *
      * @return The output file. May be null.
@@ -90,7 +90,7 @@ public abstract class AbstractReportTask extends ConventionTask {
     }
 
     /**
-     * Sets the file which the report will be written to. Set this to {@code null} to write the report to stdout.
+     * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
      *
      * @param outputFile The output file. May be null.
      */

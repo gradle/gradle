@@ -10,9 +10,11 @@
             </thead>
             <tr>
                 <td>groovyOptions</td>
+                <td/>
             </tr>
             <tr>
                 <td>options</td>
+                <td/>
             </tr>
             <tr>
                 <td>source</td>

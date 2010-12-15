@@ -102,6 +102,9 @@ public class JettyRunWar extends AbstractJettyRunTask {
     public void finishConfigurationBeforeStart() {
     }
 
+    /**
+     * Returns the web application to deploy.
+     */
     @InputFile
     public File getWebApp() {
         return webApp;

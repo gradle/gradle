@@ -37,12 +37,11 @@ public class OsgiPluginConvention {
 
     /**
      * Creates a new instance of {@link org.gradle.api.plugins.osgi.OsgiManifest}. The returned object is preconfigured with:
-     * <blockquote>
      * <pre>
      * version: project.version
      * name: project.archivesBaseName
      * symbolicName: project.group + "." + project.archivesBaseName (see below for exceptions to this rule)
-     * </pre></blockquote>
+     * </pre>
      *
      * The symbolic name is usually the group + "." + archivesBaseName, with the following exceptions
      * <ul>

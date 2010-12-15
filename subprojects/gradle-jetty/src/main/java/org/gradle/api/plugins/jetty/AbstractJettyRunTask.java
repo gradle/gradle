@@ -411,6 +411,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.scanIntervalSeconds = scanIntervalSeconds;
     }
 
+    /**
+     * Returns the context path to use to deploy the web application.
+     */
     public String getContextPath() {
         return contextPath;
     }
@@ -435,6 +438,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.reload = reload;
     }
 
+    /**
+     * Returns the jetty configuration file to use. When {@code null}, no configuration file is used.
+     */
     @InputFile
     @Optional
     public File getJettyConfig() {
@@ -445,6 +451,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.jettyConfig = jettyConfig;
     }
 
+    /**
+     * Returns the TCP port for Jetty to listen on for stop requests.
+     */
     public Integer getStopPort() {
         return stopPort;
     }
@@ -453,6 +462,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.stopPort = stopPort;
     }
 
+    /**
+     * Returns the key to use to stop Jetty.
+     */
     public String getStopKey() {
         return stopKey;
     }
@@ -461,6 +473,10 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.stopKey = stopKey;
     }
 
+    /**
+     * Specifies whether the Jetty server should run in the background. When {@code true}, this task completes as
+     * soon as the server has started. When {@code false}, this task blocks until the Jetty server is stopped.
+     */
     public boolean isDaemon() {
         return daemon;
     }
@@ -469,6 +485,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.daemon = daemon;
     }
 
+    /**
+     * Returns the TCP port for Jetty to listen on for incoming HTTP requests.
+     */
     public Integer getHttpPort() {
         return httpPort;
     }
@@ -501,6 +520,9 @@ public abstract class AbstractJettyRunTask extends ConventionTask {
         this.requestLog = requestLog;
     }
 
+    /**
+     * Returns the classpath to make available to the web application.
+     */
     @InputFiles
     public Iterable<File> getAdditionalRuntimeJars() {
         return additionalRuntimeJars;

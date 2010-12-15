@@ -10,6 +10,7 @@
             </thead>
             <tr>
                 <td>options</td>
+                <td/>
             </tr>
             <tr>
                 <td>sourceCompatibility</td>

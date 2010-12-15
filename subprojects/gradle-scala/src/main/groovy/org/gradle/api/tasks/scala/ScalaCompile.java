@@ -42,6 +42,9 @@ public class ScalaCompile extends AbstractCompile {
         compiler = new IncrementalScalaCompiler(new DefaultScalaJavaJointCompiler(scalaCompiler, javaCompiler), getOutputs());
     }
 
+    /**
+     * Returns the classpath to use to load the Scala compiler.
+     */
     @InputFiles
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
@@ -59,11 +62,17 @@ public class ScalaCompile extends AbstractCompile {
         this.compiler = compiler;
     }
 
+    /**
+     * Returns the Scala compilation options.
+     */
     @Nested
     public ScalaCompileOptions getScalaCompileOptions() {
         return compiler.getScalaCompileOptions();
     }
 
+    /**
+     * Returns the Java compilation options.
+     */
     @Nested
     public CompileOptions getOptions() {
         return compiler.getCompileOptions();

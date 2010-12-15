@@ -94,7 +94,7 @@ public class Jar extends Zip {
     }
 
     /**
-     * Adds content to this JAR arhive's META-INF directory.
+     * Adds content to this JAR archive's META-INF directory.
      *
      * <p>The given closure is executed to configure a {@code CopySpec}. The {@link CopySpec} is passed to the closure
      * as its delegate.</p>

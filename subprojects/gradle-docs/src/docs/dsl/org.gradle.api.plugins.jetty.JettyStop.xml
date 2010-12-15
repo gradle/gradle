@@ -5,8 +5,18 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>jetty</literal> plugin</td>
                 </tr>
             </thead>
+            <tr>
+                <td>stopPort</td>
+                <td><literal>project.stopPort</literal></td>
+            </tr>
+            <tr>
+                <td>stopKey</td>
+
+                <td><literal>project.stopKey</literal></td>
+            </tr>
         </table>
     </section>
     <section>

@@ -17,14 +17,17 @@
             <tr>
                 <td>subprojects</td>
                 <td><literal>project.allprojects</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>wildcards</td>
                 <td><literal>['!?*.java', '!?*.groovy']</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.ipr</literal></td>
+                <td/>
             </tr>
         </table>
     </section>

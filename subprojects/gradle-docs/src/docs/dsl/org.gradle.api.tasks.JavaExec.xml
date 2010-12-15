@@ -10,6 +10,7 @@
             </thead>
             <tr>
                 <td>allJvmArgs</td>
+                <td/>
             </tr>
             <tr>
                 <td>jvmArgs</td>
@@ -77,6 +78,7 @@
             </tr>
             <tr>
                 <td>commandLine</td>
+                <td/>
             </tr>
         </table>
     </section>

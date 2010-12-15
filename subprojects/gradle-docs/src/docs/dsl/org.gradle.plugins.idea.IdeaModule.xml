@@ -12,6 +12,7 @@
             <tr>
                 <td>moduleDir</td>
                 <td><literal>project.projectDir</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>sourceDirs</td>
@@ -26,6 +27,7 @@
             <tr>
                 <td>excludeDirs</td>
                 <td><literal>[project.buildDir, project.file('.gradle')]</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>outputDir</td>
@@ -40,18 +42,22 @@
             <tr>
                 <td>javaVersion</td>
                 <td><literal>'inherited'</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>downloadSources</td>
                 <td><literal>true</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>downloadJavadoc</td>
                 <td><literal>false</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>variables</td>
                 <td><literal>[:]</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>scopes</td>
@@ -67,6 +73,7 @@
             <tr>
                 <td>outputFile</td>
                 <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.name}</replaceable>.iml</literal></td>
+                <td/>
             </tr>
         </table>
     </section>

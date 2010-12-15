@@ -10,6 +10,7 @@
             </thead>
             <tr>
                 <td>orgEclipseWstCommonComponentInputFile</td>
+                <td/>
             </tr>
             <tr>
                 <td>orgEclipseWstCommonComponentOutputFile</td>
@@ -17,7 +18,7 @@
             </tr>
             <tr>
                 <td>orgEclipseWstCommonProjectFacetCoreInputFile</td>
-                <td>??</td>
+                <td/>
             </tr>
             <tr>
                 <td>orgEclipseWstCommonProjectFacetCoreOutputFile</td>
