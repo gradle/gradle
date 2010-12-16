@@ -5,13 +5,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>antlr</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>antlr</td>
+                <td><literal>[<replaceable>${project.projectDir}</replaceable>/src/<replaceable>${sourceSet.name}</replaceable>/antlr]</literal></td>
             </tr>
             <tr>
                 <td>allAntlr</td>
+                <td><literal>[antlr]</literal></td>
             </tr>
         </table>
     </section>

@@ -21,6 +21,7 @@ import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import org.gradle.build.docs.dsl.model.MethodMetaData
+import org.w3c.dom.Text
 
 class ClassDoc {
     private final String className
@@ -110,14 +111,47 @@ class ClassDoc {
     }
 
     ClassDoc buildProperties() {
-        Set<String> props = [] as Set
-
         List<Element> header = propertiesTable.thead.tr[0].td.collect { it }
         if (header.size() < 1) {
             throw new RuntimeException("Expected at least 1 <td> in <thead>/<tr>, found: $header")
         }
+        Map<String, Element> inheritedValueTitleMapping = [:]
+        List<Element> valueTitles = []
+        header.eachWithIndex { element, index ->
+            if (index == 0) { return }
+            Element override = element.overrides[0]
+            if (override) {
+                element.removeChild(override)
+                inheritedValueTitleMapping.put(override.textContent, element)
+            }
+            if (element.firstChild instanceof Text) {
+                element.firstChild.textContent = element.firstChild.textContent.replaceFirst(/^\s+/, '')
+            }
+            if (element.lastChild instanceof Text) {
+                element.lastChild.textContent = element.lastChild.textContent.replaceFirst(/\s+$/, '')
+            }
+            valueTitles.add(element)
+        }
 
         ClassDoc superClass = classMetaData.superClassName ? model.getClassDoc(classMetaData.superClassName) : null
+
+        Map<String, PropertyDoc> props = new TreeMap<String, PropertyDoc>()
+        if (superClass) {
+            superClass.getClassProperties().each { propertyDoc ->
+                def additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>()
+                propertyDoc.additionalValues.each { attributeDoc ->
+                    def key = attributeDoc.key
+                    if (inheritedValueTitleMapping[key]) {
+                        ExtraAttributeDoc newAttribute = new ExtraAttributeDoc(inheritedValueTitleMapping[key], attributeDoc.valueCell)
+                        additionalValues.put(newAttribute.key, newAttribute)
+                    } else {
+                        additionalValues.put(key, attributeDoc)
+                    }
+                }
+
+                props[propertyDoc.name] = propertyDoc.forClass(classMetaData, additionalValues.values() as List)
+            }
+        }
 
         propertiesTable.tr.each { Element tr ->
             def cells = tr.td.collect { it }
@@ -125,7 +159,6 @@ class ClassDoc {
                 throw new RuntimeException("Expected ${header.size()} <td> elements in <tr>, found: $tr")
             }
             String propName = cells[0].text().trim()
-            props << propName
             PropertyMetaData property = classMetaData.findProperty(propName)
             if (!property) {
                 throw new RuntimeException("No metadata for property '$className.$propName'. Available properties: ${classMetaData.propertyNames}")
@@ -134,7 +167,7 @@ class ClassDoc {
             def additionalValues = new LinkedHashMap<String, ExtraAttributeDoc>()
 
             if (superClass) {
-                def overriddenProp = superClass.findProperty(propName)
+                def overriddenProp = props.get(propName)
                 if (overriddenProp) {
                     overriddenProp.additionalValues.each { attributeDoc ->
                         additionalValues.put(attributeDoc.key, attributeDoc)
@@ -144,24 +177,19 @@ class ClassDoc {
 
             header.eachWithIndex { col, i ->
                 if (i == 0 || !cells[i].firstChild) { return }
-                def attributeDoc = new ExtraAttributeDoc(col, cells[i])
+                def attributeDoc = new ExtraAttributeDoc(valueTitles[i-1], cells[i])
                 additionalValues.put(attributeDoc.key, attributeDoc)
             }
             PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property).docbook, additionalValues.values() as List)
             if (propertyDoc.description == null) {
                 throw new RuntimeException("Docbook content for '$className.$propName' does not contain a description paragraph.")
             }
-            classProperties << propertyDoc
-        }
-        if (superClass) {
-            superClass.getClassProperties().each { propertyDoc ->
-                if (props.add(propertyDoc.name)) {
-                    classProperties << propertyDoc.forClass(classMetaData)
-                }
-            }
+
+            props[propName] = propertyDoc
         }
 
-        classProperties.sort { it.name }
+        classProperties.addAll(props.values())
+
         return this
     }
 

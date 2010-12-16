@@ -5,13 +5,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>java</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>reportsDirName</td>
+                <td><literal>'reports'</literal></td>
             </tr>
             <tr>
                 <td>reportsDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.reportsDirName}</replaceable></literal></td>
             </tr>
         </table>
     </section>

@@ -79,9 +79,9 @@ import java.util.Set;
  * <p>A project generally has a number of dependencies it needs in order to do its work.  Also, a project generally
  * produces a number of artifacts, which other projects can use. Those dependencies are grouped in configurations, and
  * can be retrieved and uploaded from repositories. You use the {@link org.gradle.api.artifacts.ConfigurationContainer}
- * returned by {@link #getConfigurations()} ()} method to manage the configurations. The {@link
+ * returned by {@link #getConfigurations()} method to manage the configurations. The {@link
  * org.gradle.api.artifacts.dsl.DependencyHandler} returned by {@link #getDependencies()} method to manage the
- * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} ()} method
+ * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} method
  * to manage the artifacts. The {@link org.gradle.api.artifacts.dsl.RepositoryHandler} returned by {@link
  * #getRepositories()} ()} method to manage the repositories.</p>
  *

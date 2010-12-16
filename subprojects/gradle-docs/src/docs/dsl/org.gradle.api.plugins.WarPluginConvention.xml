@@ -5,13 +5,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>war</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>webAppDirName</td>
+                <td><literal>'src/main/webapp'</literal></td>
             </tr>
             <tr>
                 <td>webAppDir</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.webAppDirName}</replaceable></literal></td>
             </tr>
         </table>
     </section>

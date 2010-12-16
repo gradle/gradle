@@ -5,22 +5,28 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>code-quality</literal> and <literal>java</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>checkstyleConfigFileName</td>
+                <td><literal>'config/checkstyle/checkstyle.xml'</literal></td>
             </tr>
             <tr>
                 <td>checkstyleConfigFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.checkstyleConfigFileName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>checkstyleResultsDirName</td>
+                <td><literal>checkstyle</literal></td>
             </tr>
             <tr>
                 <td>checkstyleResultsDir</td>
+                <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.checkstyleResultsDirName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>checkstyleProperties</td>
+                <td><literal>[:]</literal></td>
             </tr>
         </table>
     </section>

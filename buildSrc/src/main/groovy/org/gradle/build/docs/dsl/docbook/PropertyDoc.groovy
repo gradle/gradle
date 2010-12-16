@@ -38,7 +38,7 @@ class PropertyDoc {
         this.additionalValues = additionalValues
     }
 
-    PropertyDoc forClass(ClassMetaData classMetaData) {
+    PropertyDoc forClass(ClassMetaData classMetaData, List<ExtraAttributeDoc> additionalValues) {
         return new PropertyDoc(classMetaData, metaData, comment, additionalValues)
     }
 

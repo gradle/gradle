@@ -26,6 +26,11 @@ class ExtraAttributeDoc {
         this.valueCell = valueCell
     }
 
+    @Override
+    String toString() {
+        return "attribute[key: $key, value: $valueCell.textContent]"
+    }
+
     String getKey() {
         return titleCell.textContent
     }

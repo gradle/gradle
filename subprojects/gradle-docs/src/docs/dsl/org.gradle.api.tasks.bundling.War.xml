@@ -5,7 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>war</literal> plugin</td>
+                    <td>Default with <literal>war</literal> plugin <overrides>Default with <literal>java</literal> plugin</overrides></td>
                 </tr>
             </thead>
             <tr>

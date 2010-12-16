@@ -5,13 +5,16 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>announce</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>username</td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>password</td>
+                <td><literal>null</literal></td>
             </tr>
         </table>
     </section>

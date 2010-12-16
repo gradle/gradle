@@ -5,19 +5,24 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default with <literal>code-quality</literal> and <literal>groovy</literal> plugin</td>
                 </tr>
             </thead>
             <tr>
                 <td>codeNarcConfigFileName</td>
+                <td><literal>'config/codenarc/codenarc.xml'</literal></td>
             </tr>
             <tr>
                 <td>codeNarcConfigFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/<replaceable>${project.codeNarcConfigFileName}</replaceable></literal></td>
             </tr>
             <tr>
                 <td>codeNarcReportsDirName</td>
+                <td><literal>'codenarc'</literal></td>
             </tr>
             <tr>
                 <td>codeNarcReportsDir</td>
+                <td><literal><replaceable>${project.reportsDir}</replaceable>/<replaceable>${project.codeNarcReportsDirName}</replaceable></literal></td>
             </tr>
         </table>
     </section>
