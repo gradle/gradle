@@ -18,11 +18,15 @@ package org.gradle.api.tasks.wrapper;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.GradleException;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
+import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.GUtil;
+import org.gradle.util.GradleVersion;
 
 import java.io.File;
 import java.net.URL;
@@ -67,11 +71,8 @@ public class Wrapper extends DefaultTask {
         PROJECT, GRADLE_USER_HOME
     }
 
-    @Input
-    private String scriptDestinationPath;
-
-    @Input
-    private String jarPath;
+    private Object scriptFile;
+    private Object jarFile;
 
     @Input
     private String distributionPath;
@@ -82,7 +83,7 @@ public class Wrapper extends DefaultTask {
     @Input
     private String archiveClassifier;
 
-    @Input
+//    @Input
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
 
     @Input
@@ -94,39 +95,44 @@ public class Wrapper extends DefaultTask {
     @Input
     private String archivePath;
 
-    @Input
+//    @Input
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
 
     private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
 
     public Wrapper() {
-        scriptDestinationPath = "";
-        jarPath = "";
+        scriptFile = "gradlew";
+        jarFile = "gradle/wrapper/gradle-wrapper.jar";
         distributionPath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         archiveName = DEFAULT_ARCHIVE_NAME;
         archiveClassifier = DEFAULT_ARCHIVE_CLASSIFIER;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
         urlRoot = DEFAULT_URL_ROOT;
+        gradleVersion = new GradleVersion().getVersion();
     }
 
     @TaskAction
     void generate() {
-        String wrapperDir = GUtil.isTrue(jarPath) ? jarPath + "/" : "";
-        new File(getProject().getProjectDir(), wrapperDir).mkdirs();
-        String wrapperJar = wrapperDir + WRAPPER_JAR;
-        String wrapperPropertiesPath = wrapperDir + WRAPPER_PROPERTIES;
-        File jarFileDestination = new File(getProject().getProjectDir(), wrapperJar);
-        File propertiesFileDestination = new File(getProject().getProjectDir(), wrapperPropertiesPath);
+        File jarFileDestination = getJarFile();
+        File propertiesFileDestination = getPropertiesFile();
+        File scriptFileDestination = getScriptFile();
+        FileResolver resolver = getServices().get(FileResolver.class).withBaseDir(scriptFileDestination.getParentFile());
+        String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
+        String propertiesFileRelativePath = resolver.resolveAsRelativePath(propertiesFileDestination);
+
+        propertiesFileDestination.delete();
+        jarFileDestination.delete();
+        scriptFileDestination.delete();
+
+        writeProperties(propertiesFileDestination);
+
         URL jarFileSource = getClass().getResource("/" + WRAPPER_JAR_BASE_NAME + ".jar");
         if (jarFileSource == null) {
             throw new GradleException("Cannot locate wrapper JAR resource.");
         }
-        propertiesFileDestination.delete();
-        jarFileDestination.delete();
-        writeProperties(propertiesFileDestination);
         GFileUtils.copyURLToFile(jarFileSource, jarFileDestination);
-        File scriptDestinationDir = new File(getProject().getProjectDir(), scriptDestinationPath);
-        wrapperScriptGenerator.generate(wrapperJar, wrapperPropertiesPath, scriptDestinationDir);
+
+        wrapperScriptGenerator.generate(jarFileRelativePath, propertiesFileRelativePath, scriptFileDestination);
     }
 
     private void writeProperties(File propertiesFileDestination) {
@@ -143,12 +149,26 @@ public class Wrapper extends DefaultTask {
     }
 
     /**
-     * Returns the script destination path.
+     * Returns the file to write the wrapper script to.
+     */
+    @OutputFile
+    public File getScriptFile() {
+        return getProject().file(scriptFile);
+    }
+
+    public void setScriptFile(Object scriptFile) {
+        this.scriptFile = scriptFile;
+    }
+
+    /**
+     * Returns the script destination path, relative to the project directory.
      *
      * @see #setScriptDestinationPath(String)
      */
+    @Deprecated
     public String getScriptDestinationPath() {
-        return scriptDestinationPath;
+        DeprecationLogger.nagUser("getScriptDestinationPath()", "getScriptFile()");
+        return getProject().relativePath(getScriptFile().getParentFile());
     }
 
     /**
@@ -159,17 +179,42 @@ public class Wrapper extends DefaultTask {
      * @param scriptDestinationPath Any object which <code>toString</code> method specifies the path. Most likely a
      * String or File object.
      */
+    @Deprecated
     public void setScriptDestinationPath(String scriptDestinationPath) {
-        this.scriptDestinationPath = scriptDestinationPath;
+        DeprecationLogger.nagUser("setScriptDestinationPath()", "setScriptFile()");
+        setScriptFile(scriptDestinationPath + "/gradlew");
     }
 
     /**
-     * Returns the jar path.
+     * Returns the file to write the wrapper jar file to.
+     */
+    @OutputFile
+    public File getJarFile() {
+        return getProject().file(jarFile);
+    }
+
+    public void setJarFile(Object jarFile) {
+        this.jarFile = jarFile;
+    }
+
+    /**
+     * Returns the file to write the wrapper properties to.
+     */
+    @OutputFile
+    public File getPropertiesFile() {
+        File jarFileDestination = getJarFile();
+        return new File(jarFileDestination.getParentFile(), jarFileDestination.getName().replaceAll("\\.jar$", ".properties"));
+    }
+
+    /**
+     * Returns the jar path, relative to the project directory.
      *
      * @see #setJarPath(String)
      */
+    @Deprecated
     public String getJarPath() {
-        return jarPath.toString();
+        DeprecationLogger.nagUser("getJarPath()", "getJarFile()");
+        return getProject().relativePath(getJarFile().getParentFile());
     }
 
     /**
@@ -177,8 +222,10 @@ public class Wrapper extends DefaultTask {
      * jar path must be a path relative to the project dir. The gradle-wrapper.jar must be submitted to your version
      * control system. Defaults to empty string, i.e. the jar is placed into the project root dir.
      */
+    @Deprecated
     public void setJarPath(String jarPath) {
-        this.jarPath = jarPath;
+        DeprecationLogger.nagUser("setJarPath()", "setJarFile()");
+        setJarFile(jarPath + "/gradle-wrapper.jar");
     }
 
     /**

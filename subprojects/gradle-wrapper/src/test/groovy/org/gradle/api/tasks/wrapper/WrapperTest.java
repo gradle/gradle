@@ -19,10 +19,7 @@ package org.gradle.api.tasks.wrapper;
 import org.gradle.api.internal.AbstractTask;
 import org.gradle.api.tasks.AbstractTaskTest;
 import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
-import org.gradle.util.GUtil;
-import org.gradle.util.TemporaryFolder;
-import org.gradle.util.TestFile;
-import org.gradle.util.WrapUtil;
+import org.gradle.util.*;
 import org.gradle.wrapper.GradleWrapperMain;
 import org.jmock.Expectations;
 import org.jmock.Mockery;
@@ -44,12 +41,9 @@ import static org.junit.Assert.*;
  */
 @RunWith(org.jmock.integration.junit4.JMock.class)
 public class WrapperTest extends AbstractTaskTest {
-    public static final String TEST_TEXT = "sometext";
-    public static final String TEST_FILE_NAME = "somefile";
 
     private Wrapper wrapper;
     private WrapperScriptGenerator wrapperScriptGeneratorMock;
-    private String distributionPath;
     private String targetWrapperJarPath;
     private Mockery context = new Mockery();
     private TestFile expectedTargetWrapperJar;
@@ -71,9 +65,8 @@ public class WrapperTest extends AbstractTaskTest {
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
                 targetWrapperJarPath + "/" + Wrapper.WRAPPER_PROPERTIES);
         new File(getProject().getProjectDir(), targetWrapperJarPath).mkdirs();
-        distributionPath = "somepath";
         wrapper.setJarPath(targetWrapperJarPath);
-        wrapper.setDistributionPath(distributionPath);
+        wrapper.setDistributionPath("somepath");
         wrapper.setUnixWrapperScriptGenerator(wrapperScriptGeneratorMock);
     }
 
@@ -82,10 +75,13 @@ public class WrapperTest extends AbstractTaskTest {
     }
 
     @Test
-    public void testWrapper() {
+    public void testWrapperDefaults() {
         wrapper = createTask(Wrapper.class);
-        assertEquals("", wrapper.getJarPath());
-        assertEquals("", wrapper.getScriptDestinationPath());
+        assertEquals(new File(getProject().getProjectDir(), "gradle/wrapper/gradle-wrapper.jar"), wrapper.getJarFile());
+        assertEquals("gradle/wrapper", wrapper.getJarPath());
+        assertEquals(new File(getProject().getProjectDir(), "gradlew"), wrapper.getScriptFile());
+        assertEquals(".", wrapper.getScriptDestinationPath());
+        assertEquals(new GradleVersion().getVersion(), wrapper.getGradleVersion());
         assertEquals(Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, wrapper.getDistributionPath());
         assertEquals(Wrapper.DEFAULT_ARCHIVE_NAME, wrapper.getArchiveName());
         assertEquals(Wrapper.DEFAULT_ARCHIVE_CLASSIFIER, wrapper.getArchiveClassifier());
@@ -103,8 +99,7 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testCheckInputs() throws IOException {
         assertThat(wrapper.getInputs().getProperties().keySet(),
-                equalTo(WrapUtil.toSet("jarPath", "archiveClassifier", "distributionBase", "archiveBase",
-                        "distributionPath", "archiveName", "urlRoot", "scriptDestinationPath", "gradleVersion", "archivePath")));
+                equalTo(WrapUtil.toSet("archiveClassifier", "distributionPath", "archiveName", "urlRoot", "gradleVersion", "archivePath")));
     }
 
     @Test
@@ -126,9 +121,9 @@ public class WrapperTest extends AbstractTaskTest {
         context.checking(new Expectations() {
             {
                 one(wrapperScriptGeneratorMock).generate(
-                        targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR,
-                        targetWrapperJarPath + "/" + Wrapper.WRAPPER_PROPERTIES,
-                        new File(getProject().getProjectDir(), wrapper.getScriptDestinationPath()));
+                        "../" + targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR,
+                        "../" + targetWrapperJarPath + "/" + Wrapper.WRAPPER_PROPERTIES,
+                        wrapper.getScriptFile());
             }
         });
         wrapper.execute();

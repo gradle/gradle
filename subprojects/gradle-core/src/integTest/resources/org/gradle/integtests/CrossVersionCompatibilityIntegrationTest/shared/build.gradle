@@ -1,6 +1,6 @@
 
 task wrapper(type: Wrapper) {
-    doFirst {
+    if (project.hasProperty('distVersion')) {
         gradleVersion = distVersion
         urlRoot = new File(project.distZip).parentFile.toURI().toString()
     }
