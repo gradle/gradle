@@ -17,10 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.project.IsolatedAntBuilder;
-import org.gradle.api.tasks.InputFiles;
-import org.gradle.api.tasks.OutputDirectory;
-import org.gradle.api.tasks.SourceTask;
-import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.*;
 import org.gradle.util.GUtil;
 
 import java.io.File;
@@ -46,6 +43,9 @@ public class ScalaDoc extends SourceTask {
         this.antScalaDoc = antScalaDoc;
     }
 
+    /**
+     * Returns the directory to generate the API documentation into.
+     */
     @OutputDirectory
     public File getDestinationDir() {
         return destinationDir;
@@ -69,6 +69,9 @@ public class ScalaDoc extends SourceTask {
         this.classpath = classpath;
     }
 
+    /**
+     * Returns the classpath to use to load the ScalaDoc tool.
+     */
     @InputFiles
     public FileCollection getScalaClasspath() {
         return scalaClasspath;
@@ -78,6 +81,10 @@ public class ScalaDoc extends SourceTask {
         this.scalaClasspath = scalaClasspath;
     }
 
+    /**
+     * Returns the ScalaDoc generation options.
+     */
+    @Nested
     public ScalaDocOptions getScalaDocOptions() {
         return scalaDocOptions;
     }
@@ -86,6 +93,10 @@ public class ScalaDoc extends SourceTask {
         this.scalaDocOptions = scalaDocOptions;
     }
 
+    /**
+     * Returns the documentation title.
+     */
+    @Input @Optional
     public String getTitle() {
         return title;
     }

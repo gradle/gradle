@@ -5,44 +5,20 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with the <literal>scala</literal> plugin</td>
+                    <td>Default with <literal>scala</literal> plugin <overrides>Default with <litera>java</litera> plugin</overrides></td>
                 </tr>
             </thead>
             <tr>
                 <td>scalaClasspath</td>
-                <td>??</td>
+                <td><literal>project.configurations.scalaTools</literal></td>
             </tr>
             <tr>
                 <td>scalaCompileOptions</td>
-                <td>??</td>
+                <td/>
             </tr>
             <tr>
                 <td>source</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>includes</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>excludes</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>sourceCompatibility</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>targetCompatibility</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>classpath</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>destinationDir</td>
-                <td>??</td>
+                <td><literal><replaceable>sourceSet</replaceable>.scala</literal></td>
             </tr>
         </table>
     </section>

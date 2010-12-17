@@ -1070,7 +1070,7 @@ public interface Project extends Comparable<Project> {
     void artifacts(Closure configureClosure);
 
     /**
-     * <p>Return the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
+     * <p>Returns the {@link Convention} for this project.</p> <p/> <p>You can access this property in your build file
      * using <code>convention</code>. You can also can also access the properties and methods of the convention object
      * as if they were properties and methods of this project. See <a href="#properties">here</a> for more details</p>
      *

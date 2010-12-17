@@ -90,8 +90,8 @@ import java.util.Set;
  *
  * <li>A {@link Buildable} object.</li>
  *
- * <li>A {@code Collection}, {@code Map} or an array. May contain any of the types listed here. The elements of the
- * collection/map/array are recursively converted to tasks.</li>
+ * <li>A {@code Iterable}, {@code Collection}, {@code Map} or array. May contain any of the types listed here. The elements of the
+ * iterable/collection/map/array are recursively converted to tasks.</li>
  *
  * <li>A {@code Callable}. The {@code call()} method may return any of the types listed here. Its return value is
  * recursively converted to tasks. A {@code null} return value is treated as an empty collection.</li>

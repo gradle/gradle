@@ -16,58 +16,71 @@
 package org.gradle.api.tasks.scala
 
 import org.gradle.api.tasks.compile.AbstractOptions
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
+import org.gradle.api.tasks.InputFile
 
 public class ScalaDocOptions extends AbstractOptions {
 
     /**
      * Generate deprecation information.
      */
+    @Input
     boolean deprecation = true
 
     /**
      * Generate unchecked information.
      */
+    @Input
     boolean unchecked = true
 
     /**
      * Text to appear in the window title.
      */
+    @Input @Optional
     String windowTitle
 
     /**
      * Html text to appear in the main frame title.
      */
+    @Input @Optional
     String docTitle
 
     /**
      * Html text to appear in the header for each page.
      */
+    @Input @Optional
     String header
 
     /**
      * Html text to appear in the footer for each page.
      */
+    @Input @Optional
     String footer
 
     /**
      * Html text to appear in the top text for each page.
      */
+    @Input @Optional
     String top
 
     /**
      * Html text to appear in the bottom text for each page.
      */
+    @Input @Optional
     String bottom
 
     /**
      * Style sheet to override default style.
      */
+    @InputFile @Optional
     File styleSheet
 
     /**
      * Additional parameters passed to the compiler.
      * Each parameter must start with '-'.
      */
+    @Input @Optional
     List<String> additionalParameters
 
 

@@ -22,11 +22,11 @@
             </tr>
             <tr>
                 <td>windowTitle</td>
-                <td><literal><replaceable>${project.name}</replaceable> <replaceable>{project.version}</replaceable> API</literal></td>
+                <td><literal>project.apiDocTitle</literal></td>
             </tr>
             <tr>
                 <td>docTitle</td>
-                <td><literal><replaceable>${project.name}</replaceable> <replaceable>{project.version}</replaceable> API</literal></td>
+                <td><literal>project.apiDocTitle</literal></td>
             </tr>
             <tr>
                 <td>header</td>

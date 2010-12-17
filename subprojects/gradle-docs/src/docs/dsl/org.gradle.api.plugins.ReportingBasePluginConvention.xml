@@ -16,6 +16,10 @@
                 <td>reportsDir</td>
                 <td><literal><replaceable>${project.buildDir}</replaceable>/<replaceable>${project.reportsDirName}</replaceable></literal></td>
             </tr>
+            <tr>
+                <td>apiDocTitle</td>
+                <td><literal><replaceable>${project.name}</replaceable> <replaceable>{project.version}</replaceable> API</literal></td>
+            </tr>
         </table>
     </section>
     <section>

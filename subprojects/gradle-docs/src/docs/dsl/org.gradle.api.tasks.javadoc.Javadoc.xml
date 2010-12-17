@@ -18,7 +18,7 @@
             </tr>
             <tr>
                 <td>title</td>
-                <td><literal><replaceable>${project.name}</replaceable> <replaceable>{project.version}</replaceable> API</literal></td>
+                <td><literal>project.apiDocTitle</literal></td>
             </tr>
             <tr>
                 <td>classpath</td>
