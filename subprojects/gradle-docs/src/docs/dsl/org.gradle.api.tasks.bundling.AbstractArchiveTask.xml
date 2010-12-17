@@ -5,7 +5,7 @@
             <thead>
                 <tr>
                     <td>Name</td>
-                    <td>Default with <literal>java</literal> plugin</td>
+                    <td>Default with <literal>java</literal> plugin <overrides>Default</overrides></td>
                 </tr>
             </thead>
             <tr>
@@ -39,30 +39,6 @@
             <tr>
                 <td>destinationDir</td>
                 <td><literal>project.distsDir</literal></td>
-            </tr>
-            <tr>
-                <td>dirMode</td>
-                <td><literal>0755</literal></td>
-            </tr>
-            <tr>
-                <td>fileMode</td>
-                <td><literal>0644</literal></td>
-            </tr>
-            <tr>
-                <td>caseSensitive</td>
-                <td><literal>true</literal></td>
-            </tr>
-            <tr>
-                <td>includes</td>
-                <td><literal>[]</literal></td>
-            </tr>
-            <tr>
-                <td>excludes</td>
-                <td><literal>[]</literal></td>
-            </tr>
-            <tr>
-                <td>source</td>
-                <td><literal>[]</literal></td>
             </tr>
         </table>
     </section>

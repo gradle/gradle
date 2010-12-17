@@ -5,8 +5,21 @@
             <thead>
                 <tr>
                     <td>Name</td>
+                    <td>Default</td>
                 </tr>
             </thead>
+            <tr>
+                <td>scriptFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/gradlew</literal></td>
+            </tr>
+            <tr>
+                <td>jarFile</td>
+                <td><literal><replaceable>${project.projectDir}</replaceable>/gradle/wrapper/gradle-wrapper.jar</literal></td>
+            </tr>
+            <tr>
+                <td>propertiesFile</td>
+                <td><literal>jarFile</literal>, replacing <literal>.jar</literal> with <literal>.properties</literal></td>
+            </tr>
         </table>
     </section>
     <section>

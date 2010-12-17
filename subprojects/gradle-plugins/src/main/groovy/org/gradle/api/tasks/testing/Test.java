@@ -661,6 +661,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         return useTestFramework(new TestNGTestFramework(this), testFrameworkConfigure);
     }
 
+    /**
+     * Returns the classpath to use to execute the tests.
+     */
     @InputFiles
     public FileCollection getClasspath() {
         return classpath;
@@ -670,6 +673,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.classpath = classpath;
     }
 
+    /**
+     * Specifies whether the test report should be generated.
+     */
     public boolean isTestReport() {
         return testReport;
     }
@@ -686,6 +692,9 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testReport = false;
     }
 
+    /**
+     * Returns the directories containing the test source.
+     */
     @InputFiles
     public List<File> getTestSrcDirs() {
         return testSrcDirs;
@@ -695,6 +704,11 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
         this.testSrcDirs = testSrcDir;
     }
 
+    /**
+     * Specifies whether test classes should be detected. When {@code true} the classes which match the include and
+     * exclude patterns are scanned for test classes, and any found are executed. When {@code false} the classes which
+     * match the include and exclude patterns are executed.
+     */
     public boolean isScanForTestClasses() {
         return scanForTestClasses;
     }

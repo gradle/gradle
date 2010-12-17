@@ -56,6 +56,9 @@ public class Upload extends ConventionTask {
         configuration.publish(repositories.getResolvers(), isUploadDescriptor() ? getDescriptorDestination() : null);
     }
 
+    /**
+     * Specifies whether the dependency descriptor should be uploaded.
+     */
     public boolean isUploadDescriptor() {
         return uploadDescriptor;
     }
@@ -64,6 +67,9 @@ public class Upload extends ConventionTask {
         this.uploadDescriptor = uploadDescriptor;
     }
 
+    /**
+     * Returns the path to generate the dependency descriptor to.
+     */
     public File getDescriptorDestination() {
         return descriptorDestination;
     }
@@ -72,6 +78,9 @@ public class Upload extends ConventionTask {
         this.descriptorDestination = descriptorDestination;
     }
 
+    /**
+     * Returns the repositories to upload to.
+     */
     public RepositoryHandler getRepositories() {
         return repositories;
     }
@@ -80,6 +89,9 @@ public class Upload extends ConventionTask {
         this.repositories = repositories;
     }
 
+    /**
+     * Returns the configuration to upload.
+     */
     public Configuration getConfiguration() {
         return configuration;
     }
@@ -88,6 +100,9 @@ public class Upload extends ConventionTask {
         this.configuration = configuration;
     }
 
+    /**
+     * Configures the set of repositories to upload to.
+     */
     public RepositoryHandler repositories(Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, repositories);
     }

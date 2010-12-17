@@ -68,7 +68,7 @@ import java.util.regex.Pattern;
  */
 public interface CopySpec extends CopySourceSpec, CopyProcessingSpec, PatternFilterable {
     /**
-     * Returns true if this CopySpec uses case-sensitive pattern matching. The default is true.
+     * Specifies whether case-sensitive pattern matching should be used.
      *
      * @return true for case-sensitive matching.
      */

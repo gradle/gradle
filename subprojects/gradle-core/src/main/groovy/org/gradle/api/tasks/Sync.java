@@ -39,8 +39,22 @@ public class Sync extends AbstractCopyTask {
         return action;
     }
 
+    /**
+     * Returns the directory to copy files into.
+     *
+     * @return The destination dir.
+     */
     @OutputDirectory
     public File getDestinationDir() {
         return getCopyAction().getDestinationDir();
+    }
+
+    /**
+     * Sets the directory to copy files into. This is the same as calling {@link #into(Object)} on this task.
+     *
+     * @param destinationDir The destination directory. Must not be null.
+     */
+    public void setDestinationDir(File destinationDir) {
+        into(destinationDir);
     }
 }
