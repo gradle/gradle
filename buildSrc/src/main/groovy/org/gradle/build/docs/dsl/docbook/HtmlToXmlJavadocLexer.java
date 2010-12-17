@@ -21,7 +21,6 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
     private final JavadocLexer lexer;
     private final LinkedList<String> elementStack = new LinkedList<String>();
     private final Set<String> blockElements = new HashSet<String>();
-    private final LinkedList<Token> pendingTokens = new LinkedList<Token>();
 
     public HtmlToXmlJavadocLexer(JavadocLexer lexer) {
         this.lexer = lexer;
@@ -38,52 +37,67 @@ public class HtmlToXmlJavadocLexer implements JavadocLexer {
         blockElements.add("h6");
     }
 
-    public Token getToken() {
-        return pendingTokens.getFirst();
+    public void visit(TokenVisitor visitor) {
+        lexer.visit(new VisitorImpl(visitor));
     }
 
-    public boolean next() {
-        if (pendingTokens.size() > 0) {
-            pendingTokens.removeFirst();
-            if (pendingTokens.size() > 0) {
-                return true;
-            }
-        }
-
-        boolean next = lexer.next();
-        if (!next) {
-            return false;
-        }
-
-        Token token = lexer.getToken();
-        switch (token.tokenType) {
-            case StartElement:
-                if (token.value.equals("li")) {
-                    unwindTo("li");
-                } else if (blockElements.contains(token.value)) {
-                    unwindTo("p");
-                }
-                // FALL THROUGH
-            case StartTag:
-                elementStack.addFirst(token.value);
-                break;
-            case End:
-                unwindTo(token.value);
-                break;
-            default:
-        }
-
-        pendingTokens.addLast(token);
-        return true;
-    }
-
-    private void unwindTo(String element) {
+    private void unwindTo(String element, TokenVisitor visitor) {
         if (elementStack.contains(element)) {
             while (!elementStack.getFirst().equals(element)) {
-                pendingTokens.add(new Token(TokenType.End, elementStack.removeFirst()));
+                visitor.onEndHtmlElement(elementStack.removeFirst());
             }
             elementStack.removeFirst();
-            pendingTokens.add(new Token(TokenType.End, element));
+            visitor.onEndHtmlElement(element);
+        }
+    }
+
+    private class VisitorImpl extends TokenVisitor {
+        private final TokenVisitor visitor;
+
+        public VisitorImpl(TokenVisitor visitor) {
+            this.visitor = visitor;
+        }
+
+        @Override
+        public void onStartHtmlElement(String name) {
+            if (name.equals("li")) {
+                unwindTo("li", visitor);
+            } else if (blockElements.contains(name)) {
+                unwindTo("p", visitor);
+            }
+            elementStack.addFirst(name);
+            visitor.onStartHtmlElement(name);
+        }
+
+        @Override
+        public void onHtmlElementAttribute(String name, String value) {
+            visitor.onHtmlElementAttribute(name, value);
+        }
+
+        @Override
+        public void onStartHtmlElementComplete(String name) {
+            visitor.onStartHtmlElementComplete(name);
+        }
+
+        @Override
+        public void onEndHtmlElement(String name) {
+            unwindTo(name, visitor);
+            visitor.onEndHtmlElement(name);
+        }
+
+        @Override
+        public void onStartJavadocTag(String name) {
+            visitor.onStartJavadocTag(name);
+        }
+
+        @Override
+        public void onEndJavadocTag(String name) {
+            visitor.onEndJavadocTag(name);
+        }
+
+        @Override
+        public void onText(String text) {
+            visitor.onText(text);
         }
     }
 }

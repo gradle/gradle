@@ -42,6 +42,11 @@ class JavadocScanner {
         pushText(rawCommentText);
     }
 
+    @Override
+    public String toString() {
+        return input.substring(pos);
+    }
+
     public boolean isEmpty() {
         return pos == input.length();
     }
@@ -146,5 +151,9 @@ class JavadocScanner {
             throw UncheckedException.asUncheckedException(e);
         }
         input.insert(pos, builder.toString().trim());
+    }
+
+    public char getFirst() {
+        return input.charAt(pos);
     }
 }

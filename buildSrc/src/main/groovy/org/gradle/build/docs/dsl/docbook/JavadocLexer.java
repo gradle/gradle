@@ -16,21 +16,32 @@
 package org.gradle.build.docs.dsl.docbook;
 
 public interface JavadocLexer {
-    Token getToken();
+    /**
+     * Visits the tokens in the input stream for this lexer. Reads to the end of the input.
+     */
+    void visit(TokenVisitor visitor);
 
-    boolean next();
+    class TokenVisitor {
+        void onStartHtmlElement(String name) {
+        }
 
-    enum TokenType {
-        StartElement, StartTag, Text, End
-    }
+        void onHtmlElementAttribute(String name, String value) {
+        }
 
-    class Token {
-        final TokenType tokenType;
-        final String value;
+        void onStartHtmlElementComplete(String name) {
+        }
 
-        public Token(TokenType tokenType, String value) {
-            this.tokenType = tokenType;
-            this.value = value;
+        void onEndHtmlElement(String name) {
+        }
+
+        void onStartJavadocTag(String name) {
+        }
+
+        void onEndJavadocTag(String name) {
+        }
+
+        void onText(String text) {
         }
     }
+
 }

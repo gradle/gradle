@@ -212,6 +212,28 @@ literal code</programlisting><para> does something.
         0 * linkConverter._
     }
 
+    def convertsAnAElementWithNameAttribute() {
+        _ * classMetaData.rawCommentText >> '<a name="anchor"/>'
+
+        when:
+        def result = parser.parse(classMetaData)
+
+        then:
+        format(result.docbook) == '<anchor id="org.gradle.Class.anchor"/>'
+        _ * classMetaData.className >> 'org.gradle.Class'
+    }
+
+    def convertsAnAElementWithAUrlFragment() {
+        _ * classMetaData.rawCommentText >> '<a href="#anchor">some value</a>'
+
+        when:
+        def result = parser.parse(classMetaData)
+
+        then:
+        format(result.docbook) == '<para><link linkend="org.gradle.Class.anchor">some value</link></para>'
+        _ * classMetaData.className >> 'org.gradle.Class'
+    }
+
     def convertsAnEmElementToAnEmphasisElement() {
         _ * classMetaData.rawCommentText >> '<em>text</em>'
 
@@ -333,7 +355,7 @@ text3</section>'''
         def result = parser.parse(propertyMetaData)
 
         then:
-        format(result.docbook) == '''<para><UNHANDLED-ELEMENT>&lt;unknown&gt;text</UNHANDLED-ELEMENT><UNHANDLED-ELEMENT>&lt;inheritdoc&gt;<UNHANDLED-TAG>&lt;unknown&gt;text</UNHANDLED-TAG><UNHANDLED-TAG>&lt;p&gt;text</UNHANDLED-TAG><UNHANDLED-TAG>&lt;&gt;unknown</UNHANDLED-TAG></UNHANDLED-ELEMENT></para>'''
+        format(result.docbook) == '''<para><UNHANDLED-ELEMENT>&lt;unknown&gt;text&lt;/unknown&gt;</UNHANDLED-ELEMENT><UNHANDLED-ELEMENT>&lt;inheritdoc&gt;<UNHANDLED-TAG>{@unknown text}</UNHANDLED-TAG><UNHANDLED-TAG>{@p text}</UNHANDLED-TAG><UNHANDLED-TAG>{@ unknown}</UNHANDLED-TAG></UNHANDLED-ELEMENT></para>'''
     }
 
     def handlesMissingStartTags() {

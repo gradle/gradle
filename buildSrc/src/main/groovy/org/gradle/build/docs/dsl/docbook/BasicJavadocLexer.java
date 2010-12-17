@@ -23,8 +23,12 @@ import java.util.regex.Pattern;
  * Converts the main description of a javadoc comment into a stream of tokens.
  */
 class BasicJavadocLexer implements JavadocLexer {
-    private static final Pattern HTML_ELEMENT = Pattern.compile("<\\\\?.+?>");
-    private static final Pattern END_ELEMENT_NAME = Pattern.compile("(/>)|>");
+    private static final Pattern HTML_ELEMENT = Pattern.compile("(?s)<\\\\?.+?>");
+    private static final Pattern ELEMENT_ATTRIBUTE = Pattern.compile("(?s)\\w+(\\s*=\\s*('.*?')|(\".*?\"))?");
+    private static final Pattern END_ATTRIBUTE_NAME = Pattern.compile("=|(\\s)|(/>)|>");
+    private static final Pattern ATTRIBUTE_SEPARATOR = Pattern.compile("\\s*=\\s*");
+    private static final Pattern END_ELEMENT_NAME = Pattern.compile("\\s+|(/>)|>");
+    private static final Pattern END_ELEMENT = Pattern.compile("(/>)|>");
     private static final Pattern HTML_ENCODED_CHAR = Pattern.compile("&#\\d+;");
     private static final Pattern HTML_ENTITY = Pattern.compile("&.+?;");
     private static final Pattern TAG = Pattern.compile("(?s)\\{@.+?\\}");
@@ -36,122 +40,155 @@ class BasicJavadocLexer implements JavadocLexer {
         ENTITIES.put("amp", "&");
         ENTITIES.put("lt", "<");
         ENTITIES.put("gt", ">");
+        ENTITIES.put("quot", "\"");
+        ENTITIES.put("apos", "'");
     }
 
     private final JavadocScanner scanner;
-    private TokenType tokenType;
-    private String value;
-    private String inlineTag;
-    private boolean implicitEnd;
 
     BasicJavadocLexer(JavadocScanner scanner) {
         this.scanner = scanner;
-    }
-
-    public Token getToken() {
-        return new Token(tokenType, value);
     }
 
     public void pushText(String rawCommentText) {
         scanner.pushText(rawCommentText);
     }
 
-    public boolean next() {
-        if (implicitEnd) {
-            tokenType = TokenType.End;
-            implicitEnd = false;
-            return true;
-        }
-
-        if (scanner.isEmpty()) {
-            tokenType = null;
-            value = null;
-            return false;
-        }
-
-        scanner.mark();
+    public void visit(TokenVisitor visitor) {
         while (!scanner.isEmpty()) {
-            if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
-                break;
-            }
-            if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
-                break;
-            }
-            if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
-                break;
+            if (scanner.lookingAt(HTML_ELEMENT)) {
+                parseStartElement(visitor);
+                continue;
             }
             if (scanner.lookingAt(TAG)) {
-                break;
+                parseJavadocTag(visitor);
+                continue;
             }
-            if (inlineTag != null && scanner.lookingAt('}')) {
-                break;
+
+            StringBuilder text = new StringBuilder();
+            while (!scanner.isEmpty()) {
+                if (scanner.lookingAt(HTML_ELEMENT)) {
+                    break;
+                }
+                if (scanner.lookingAt(TAG)) {
+                    break;
+                }
+                if (scanner.lookingAt(HTML_ENCODED_CHAR)) {
+                    parseHtmlEncodedChar(text);
+                } else if (scanner.lookingAt(HTML_ENTITY)) {
+                    parseHtmlEntity(text);
+                } else {
+                    text.append(scanner.getFirst());
+                    scanner.next();
+                }
             }
+
+            visitor.onText(text.toString());
+        }
+    }
+
+    private void parseHtmlEntity(StringBuilder buffer) {
+        scanner.next();
+        scanner.mark();
+        scanner.find(';');
+        String value = ENTITIES.get(scanner.region().toLowerCase());
+        buffer.append(value);
+        scanner.next();
+    }
+
+    private void parseHtmlEncodedChar(StringBuilder buffer) {
+        scanner.next(2);
+        scanner.mark();
+        scanner.find(';');
+        String value = new String(new char[]{(char) Integer.parseInt(scanner.region())});
+        buffer.append(value);
+        scanner.next();
+    }
+
+    private void parseJavadocTag(TokenVisitor visitor) {
+        // start of tag marker
+        scanner.next(2);
+
+        // tag name
+        scanner.mark();
+        scanner.find(END_TAG_NAME);
+        String tagName = scanner.region();
+        visitor.onStartJavadocTag(tagName);
+        scanner.skip(WHITESPACE_WITH_EOL);
+
+        // value
+        if (!scanner.lookingAt('}')) {
+            scanner.mark();
+            scanner.find('}');
+            String value = scanner.region();
+            visitor.onText(value);
+        }
+
+        // end of tag marker
+        if (scanner.lookingAt('}')) {
+            visitor.onEndJavadocTag(tagName);
+            scanner.next();
+        }
+    }
+
+    private void parseStartElement(TokenVisitor visitor) {
+        // start element marker
+        scanner.next();
+        boolean isEnd = false;
+        if (scanner.lookingAt('/')) {
+            isEnd = true;
             scanner.next();
         }
 
-        String region = scanner.region();
-        if (region.length() > 0) {
-            tokenType = TokenType.Text;
-            value = region;
-            return true;
+        // element name
+        scanner.skip(WHITESPACE_WITH_EOL);
+        scanner.mark();
+        scanner.find(END_ELEMENT_NAME);
+        String elementName = scanner.region().toLowerCase();
+        if (isEnd) {
+            visitor.onEndHtmlElement(elementName);
+        } else {
+            visitor.onStartHtmlElement(elementName);
         }
 
-        if (inlineTag == null && scanner.lookingAt(HTML_ELEMENT)) {
+        // attributes
+        scanner.skip(WHITESPACE_WITH_EOL);
+        while (!scanner.isEmpty() && scanner.lookingAt(ELEMENT_ATTRIBUTE)) {
+            // attribute name
+            scanner.mark();
+            scanner.find(END_ATTRIBUTE_NAME);
+            String attrName = scanner.region();
+
+            // separator
+            scanner.skip(ATTRIBUTE_SEPARATOR);
+
+            // value
+            char quote = scanner.getFirst();
             scanner.next();
-            tokenType = TokenType.StartElement;
-            if (scanner.lookingAt('/')) {
-                tokenType = TokenType.End;
-                scanner.next();
+            StringBuilder attrValue = new StringBuilder();
+            while (!scanner.isEmpty() && !scanner.lookingAt(quote)) {
+                if (scanner.lookingAt(HTML_ENCODED_CHAR)) {
+                    parseHtmlEncodedChar(attrValue);
+                } else if (scanner.lookingAt(HTML_ENTITY)) {
+                    parseHtmlEntity(attrValue);
+                } else {
+                    attrValue.append(scanner.getFirst());
+                    scanner.next();
+                }
             }
-            scanner.mark();
-            scanner.find(END_ELEMENT_NAME);
-            if (scanner.lookingAt('/')) {
-                implicitEnd = true;
-            }
-            value = scanner.region().toLowerCase();
-            scanner.skip(END_ELEMENT_NAME);
-            return true;
-        }
-
-        if (inlineTag == null && scanner.lookingAt(HTML_ENCODED_CHAR)) {
-            scanner.next(2);
-            scanner.mark();
-            scanner.find(';');
-            tokenType = TokenType.Text;
-            value = new String(new char[]{(char) Integer.parseInt(scanner.region())});
+            visitor.onHtmlElementAttribute(attrName, attrValue.toString());
             scanner.next();
-            return true;
-        }
-
-        if (inlineTag == null && scanner.lookingAt(HTML_ENTITY)) {
-            scanner.next();
-            scanner.mark();
-            scanner.find(';');
-            tokenType = TokenType.Text;
-            value = ENTITIES.get(scanner.region().toLowerCase());
-            scanner.next();
-            return true;
-        }
-
-        if (scanner.lookingAt(TAG)) {
-            scanner.next(2);
-            scanner.mark();
-            scanner.find(END_TAG_NAME);
-            tokenType = TokenType.StartTag;
-            value = scanner.region();
-            inlineTag = value;
             scanner.skip(WHITESPACE_WITH_EOL);
-            return true;
         }
 
-        if (inlineTag != null && scanner.lookingAt('}')) {
-            tokenType = TokenType.End;
-            value = inlineTag;
-            inlineTag = null;
-            scanner.next();
-            return true;
+        if (!isEnd) {
+            visitor.onStartHtmlElementComplete(elementName);
         }
 
-        throw new IllegalStateException();
+        // end element marker
+        if (scanner.lookingAt('/')) {
+            visitor.onEndHtmlElement(elementName);
+        }
+        scanner.skip(END_ELEMENT);
     }
 }
