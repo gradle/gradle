@@ -121,8 +121,8 @@ public class WrapperTest extends AbstractTaskTest {
         context.checking(new Expectations() {
             {
                 one(wrapperScriptGeneratorMock).generate(
-                        "../" + targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR,
-                        "../" + targetWrapperJarPath + "/" + Wrapper.WRAPPER_PROPERTIES,
+                        toNative("../" + targetWrapperJarPath + "/" + Wrapper.WRAPPER_JAR),
+                        toNative("../" + targetWrapperJarPath + "/" + Wrapper.WRAPPER_PROPERTIES),
                         wrapper.getScriptFile());
             }
         });
@@ -139,5 +139,9 @@ public class WrapperTest extends AbstractTaskTest {
         assertEquals(properties.getProperty(Wrapper.DISTRIBUTION_VERSION_PROPERTY), wrapper.getGradleVersion());
         assertEquals(properties.getProperty(Wrapper.ZIP_STORE_BASE_PROPERTY), wrapper.getArchiveBase().toString());
         assertEquals(properties.getProperty(Wrapper.ZIP_STORE_PATH_PROPERTY), wrapper.getArchivePath());
+    }
+
+    private String toNative(String s) {
+        return s.replace("/", File.separator);
     }
 }
