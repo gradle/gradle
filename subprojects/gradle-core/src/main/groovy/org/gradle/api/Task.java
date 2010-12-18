@@ -61,7 +61,7 @@ import java.util.Set;
  *
  * <p>Groovy closures can also be used to provide a task action. When the action is executed, the closure is called with
  * the task as parameter.  You can add action closures to a task by calling {@link #doFirst(groovy.lang.Closure)} or
- * {@link #doLast(groovy.lang.Closure)}  or using the left-shift &lt;&lt; operator.</p>
+ * {@link #doLast(groovy.lang.Closure)}  or using the left-shift {@code <<} operator.</p>
  *
  * <p>There are 2 special exceptions which a task action can throw to abort execution and continue without failing the
  * build. A task action can abort execution of the action and continue to the next action of the task by throwing a
@@ -222,7 +222,7 @@ public interface Task extends Comparable<Task> {
      * <p>You may add multiple such predicates. The task is skipped if any of the predicates return false.</p>
      *
      * <p>Typical usage (from Java):</p>
-     * <pre>myTask.onlyIf(new Spec<Task>() {
+     * <pre>myTask.onlyIf(new Spec&lt;Task>() {
      *    boolean isSatisfiedBy(Task task) {
      *       return task.dependsOnTaskDidWork();
      *    }
