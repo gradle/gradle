@@ -57,7 +57,7 @@ class ExtractDslMetaDataTaskTest extends Specification {
         metaData.interfaceNames == ['org.gradle.test.Interface1', 'org.gradle.test.Interface2']
     }
 
-    def extractsMetaDataFromJavaSource() {
+    def extractsClassMetaDataFromJavaSource() {
         task.source testFile('org/gradle/test/JavaClass.java')
         task.source testFile('org/gradle/test/JavaInterface.java')
         task.source testFile('org/gradle/test/A.groovy')
@@ -99,33 +99,45 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         def prop = metaData.findDeclaredProperty('readOnly')
         prop.type.signature == 'java.lang.Object'
-        !prop.writeable
         prop.rawCommentText.contains('A read-only property.')
+        !prop.writeable
+        prop.getter.rawCommentText.contains('A read-only property.')
+        !prop.setter
 
         prop = metaData.findDeclaredProperty('writeOnly')
         prop.type.signature == 'org.gradle.test.JavaInterface'
-        prop.writeable
         prop.rawCommentText.contains('A write-only property.')
+        prop.writeable
+        !prop.getter
+        prop.setter.rawCommentText.contains('A write-only property.')
 
         prop = metaData.findDeclaredProperty('someProp')
         prop.type.signature == 'org.gradle.test.GroovyInterface'
-        prop.writeable
         prop.rawCommentText.contains('A property.')
+        prop.writeable
+        prop.getter.rawCommentText.contains('A property.')
+        prop.setter.rawCommentText == ''
 
         prop = metaData.findDeclaredProperty('groovyProp')
         prop.type.signature == 'org.gradle.test.GroovyInterface'
-        prop.writeable
         prop.rawCommentText.contains('A groovy property.')
+        prop.writeable
+        prop.getter.rawCommentText == ''
+        prop.setter.rawCommentText == ''
 
         prop = metaData.findDeclaredProperty('readOnlyGroovyProp')
         prop.type.signature == 'java.lang.String'
-        !prop.writeable
         prop.rawCommentText.contains('A read-only groovy property.')
+        !prop.writeable
+        prop.getter.rawCommentText == ''
+        !prop.setter
 
         prop = metaData.findDeclaredProperty('arrayProp')
         prop.type.signature == 'java.lang.String[]'
-        prop.writeable
         prop.rawCommentText.contains('An array property.')
+        prop.writeable
+        prop.getter.rawCommentText == ''
+        prop.setter.rawCommentText == ''
     }
 
     def extractsPropertyMetaDataFromJavaSource() {
@@ -142,29 +154,38 @@ class ExtractDslMetaDataTaskTest extends Specification {
 
         def prop = metaData.findDeclaredProperty('readOnly')
         prop.type.signature == 'java.lang.String'
-        !prop.writeable
         prop.rawCommentText.contains('A read-only property.')
+        !prop.writeable
+        prop.getter.rawCommentText.contains('A read-only property.')
+        !prop.setter
 
         prop = metaData.findDeclaredProperty('writeOnly')
         prop.type.signature == 'org.gradle.test.JavaInterface'
-        prop.writeable
         prop.rawCommentText.contains('A write-only property.')
+        prop.writeable
+        !prop.getter
+        prop.setter.rawCommentText.contains('A write-only property.')
 
         prop = metaData.findDeclaredProperty('someProp')
         prop.type.signature == 'org.gradle.test.JavaInterface'
-        prop.writeable
         prop.rawCommentText.contains('A property.')
+        prop.writeable
+        prop.getter.rawCommentText.contains('A property.')
+        prop.setter.rawCommentText.contains('The setter for a property.')
 
         prop = metaData.findDeclaredProperty('flag')
         prop.type.signature == 'boolean'
-        !prop.writeable
         prop.rawCommentText.contains('A boolean property.')
+        !prop.writeable
+        prop.getter.rawCommentText.contains('A boolean property.')
+        !prop.setter
 
         prop = metaData.findDeclaredProperty('arrayProp')
-
         prop.type.signature == 'org.gradle.test.JavaInterface[][][]'
-        !prop.writeable
         prop.rawCommentText.contains('An array property.')
+        !prop.writeable
+        prop.getter.rawCommentText.contains('An array property.')
+        !prop.setter
     }
 
     def extractsMethodMetaDataFromGroovySource() {

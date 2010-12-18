@@ -136,14 +136,15 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
         imports.add(importName);
     }
 
-    public PropertyMetaData addReadableProperty(String name, TypeMetaData type, String rawCommentText) {
+    public PropertyMetaData addReadableProperty(String name, TypeMetaData type, String rawCommentText, MethodMetaData getterMethod) {
         PropertyMetaData property = getProperty(name);
         property.setType(type);
         property.setRawCommentText(rawCommentText);
+        property.setGetter(getterMethod);
         return property;
     }
 
-    public PropertyMetaData addWriteableProperty(String name, TypeMetaData type, String rawCommentText) {
+    public PropertyMetaData addWriteableProperty(String name, TypeMetaData type, String rawCommentText, MethodMetaData setterMethod) {
         PropertyMetaData property = getProperty(name);
         if (property.getType() == null) {
             property.setType(type);
@@ -151,7 +152,7 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
         if (!GUtil.isTrue(property.getRawCommentText())) {
             property.setRawCommentText(rawCommentText);
         }
-        property.setWriteable(true);
+        property.setSetter(setterMethod);
         return property;
     }
 
@@ -169,6 +170,15 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
 
     public Set<MethodMetaData> getDeclaredMethods() {
         return declaredMethods;
+    }
+
+    public MethodMetaData findDeclaredMethod(String signature) {
+        for (MethodMetaData method : declaredMethods) {
+            if (method.getOverrideSignature().equals(signature)) {
+                return method;
+            }
+        }
+        return null;
     }
 
     /**

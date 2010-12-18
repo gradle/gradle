@@ -30,12 +30,101 @@ class MethodMetaDataTest extends Specification {
         method.signature == 'ReturnType method(ParamType param1, ParamType2 param2)'
     }
 
-    def formatsOverrideSignature() {
+    def formatsOverrideSignatureUsingRawParameterTypes() {
         method.returnType = new TypeMetaData('ReturnType')
-        method.addParameter('param', new TypeMetaData('ParamType'))
+        method.addParameter('param', new TypeMetaData('ParamType').addTypeArg(new TypeMetaData("Type1")))
         method.addParameter('param2', new TypeMetaData('ParamType2'))
 
         expect:
         method.overrideSignature == 'method(ParamType, ParamType2)'
+    }
+
+    def locatesOverriddenMethodInSuperClass() {
+        ClassMetaData superClassMetaData = Mock()
+        MethodMetaData overriddenMethod = Mock()
+
+        when:
+        def m = method.overriddenMethod
+
+        then:
+        m == overriddenMethod
+        _ * owner.superClass >> superClassMetaData
+        _ * owner.interfaces >> []
+        1 * superClassMetaData.findDeclaredMethod('method()') >> overriddenMethod
+    }
+
+    def locatesOverriddenMethodInDirectlyImplementedInterface() {
+        ClassMetaData interfaceMetaData = Mock()
+        MethodMetaData overriddenMethod = Mock()
+
+        when:
+        def m = method.overriddenMethod
+
+        then:
+        m == overriddenMethod
+        _ * owner.superClass >> null
+        _ * owner.interfaces >> [interfaceMetaData]
+        1 * interfaceMetaData.findDeclaredMethod('method()') >> overriddenMethod
+    }
+
+    def locatesOverriddenMethodInAncestorClass() {
+        ClassMetaData superClassMetaData = Mock()
+        ClassMetaData ancestorClassMetaData = Mock()
+        MethodMetaData overriddenMethod = Mock()
+
+        when:
+        def m = method.overriddenMethod
+
+        then:
+        m == overriddenMethod
+        _ * owner.superClass >> superClassMetaData
+        _ * owner.interfaces >> []
+        1 * superClassMetaData.findDeclaredMethod('method()') >> null
+        _ * superClassMetaData.superClass >> ancestorClassMetaData
+        _ * superClassMetaData.interfaces >> []
+        1 * ancestorClassMetaData.findDeclaredMethod('method()') >> overriddenMethod
+    }
+
+    def locatesOverriddenMethodInInterfaceOfAncestorClass() {
+        ClassMetaData superClassMetaData = Mock()
+        ClassMetaData interfaceMetaData = Mock()
+        MethodMetaData overriddenMethod = Mock()
+
+        when:
+        def m = method.overriddenMethod
+
+        then:
+        m == overriddenMethod
+        _ * owner.superClass >> superClassMetaData
+        _ * owner.interfaces >> []
+        1 * superClassMetaData.findDeclaredMethod('method()') >> null
+        _ * superClassMetaData.superClass >> null
+        _ * superClassMetaData.interfaces >> [interfaceMetaData]
+        1 * interfaceMetaData.findDeclaredMethod('method()') >> overriddenMethod
+    }
+
+    def hasNoOverriddenMethodWhenNoSuperClass() {
+        when:
+        def m = method.overriddenMethod
+
+        then:
+        m == null
+        _ * owner.superClass >> null
+        _ * owner.interfaces >> []
+    }
+
+    def hasNoOverriddenMethodWhenMethodDoesNotOverrideMethodInSuperClass() {
+        ClassMetaData superClassMetaData = Mock()
+
+        when:
+        def m = method.overriddenMethod
+
+        then:
+        m == null
+        _ * owner.superClass >> superClassMetaData
+        _ * owner.interfaces >> []
+        1 * superClassMetaData.findDeclaredMethod('method()') >> null
+        _ * superClassMetaData.superClass >> null
+        _ * superClassMetaData.interfaces >> []
     }
 }

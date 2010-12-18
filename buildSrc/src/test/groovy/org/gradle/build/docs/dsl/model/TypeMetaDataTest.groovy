@@ -20,6 +20,64 @@ import spock.lang.Specification
 class TypeMetaDataTest extends Specification {
     final TypeMetaData type = new TypeMetaData('org.gradle.SomeType')
 
+    def rawTypeForSimpleType() {
+        expect:
+        type.rawType.signature == 'org.gradle.SomeType'
+    }
+
+    def rawTypeForArrayType() {
+        type.addArrayDimension()
+        type.addArrayDimension()
+
+        expect:
+        type.rawType.signature == 'org.gradle.SomeType[][]'
+    }
+
+    def rawTypeForVarargsType() {
+        type.setVarargs()
+
+        expect:
+        type.rawType.signature == 'org.gradle.SomeType...'
+    }
+
+    def rawTypeForParameterizedArrayType() {
+        type.addArrayDimension()
+        type.addArrayDimension()
+        type.addTypeArg(new TypeMetaData('Type1'))
+
+        expect:
+        type.rawType.signature == 'org.gradle.SomeType[][]'
+    }
+
+    def rawTypeForParameterizedType() {
+        type.addTypeArg(new TypeMetaData('Type1'))
+        type.addTypeArg(new TypeMetaData('Type2'))
+
+        expect:
+        type.rawType.signature == 'org.gradle.SomeType'
+    }
+
+    def rawTypeForWildcardType() {
+        type.setWildcard()
+
+        expect:
+        type.rawType.signature == 'java.lang.Object'
+    }
+
+    def rawTypeForWildcardWithUpperBound() {
+        type.setUpperBounds(new TypeMetaData('OtherType'))
+
+        expect:
+        type.rawType.signature == 'OtherType'
+    }
+
+    def rawTypeForWildcardWithLowerBound() {
+        type.setLowerBounds(new TypeMetaData('OtherType'))
+
+        expect:
+        type.rawType.signature == 'java.lang.Object'
+    }
+
     def formatsSignature() {
         expect:
         type.signature == 'org.gradle.SomeType'
@@ -63,7 +121,7 @@ class TypeMetaDataTest extends Specification {
         expect:
         type.signature == '? extends OtherType'
     }
-    
+
     def formatsSignatureForWildcardWithLowerBound() {
         type.setLowerBounds(new TypeMetaData('OtherType'))
 

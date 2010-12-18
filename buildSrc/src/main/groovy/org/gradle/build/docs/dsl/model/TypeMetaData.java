@@ -23,6 +23,7 @@ import java.util.List;
 
 public class TypeMetaData implements Serializable, TypeContainer {
     public static final TypeMetaData VOID = new TypeMetaData("void");
+    public static final TypeMetaData OBJECT = new TypeMetaData("java.lang.Object");
 
     private String name;
     private int arrayDimensions;
@@ -63,6 +64,19 @@ public class TypeMetaData implements Serializable, TypeContainer {
     public TypeMetaData setVarargs() {
         this.varargs = true;
         return this;
+    }
+
+    public TypeMetaData getRawType() {
+        if (wildcard || lowerBounds != null) {
+            return OBJECT;
+        }
+        if (upperBounds != null) {
+            return upperBounds.getRawType();
+        }
+        TypeMetaData rawType = new TypeMetaData(name);
+        rawType.arrayDimensions = arrayDimensions;
+        rawType.varargs = varargs;
+        return rawType;
     }
 
     public String getSignature() {

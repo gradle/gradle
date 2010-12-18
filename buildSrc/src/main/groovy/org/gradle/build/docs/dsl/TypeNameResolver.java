@@ -157,7 +157,7 @@ public class TypeNameResolver {
 
     private boolean isVisibleClass(String candidateClassName) {
         try {
-            ClassLoader.getSystemClassLoader().loadClass(candidateClassName);
+            getClass().getClassLoader().loadClass(candidateClassName);
             return true;
         } catch (ClassNotFoundException e) {
             // Ignore

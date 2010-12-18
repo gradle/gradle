@@ -725,14 +725,21 @@ public class JavadocConverter {
 
     private class InheritedMethodCommentSource implements CommentSource {
         private final GenerationListener listener;
+        private final MethodMetaData methodMetaData;
 
         public InheritedMethodCommentSource(GenerationListener listener, MethodMetaData methodMetaData) {
             this.listener = listener;
+            this.methodMetaData = methodMetaData;
         }
 
         public Iterable<? extends Node> getCommentText() {
-            listener.warning("No inherited javadoc comment found.");
-            return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+            MethodMetaData overriddenMethod = methodMetaData.getOverriddenMethod();
+            if (overriddenMethod == null) {
+                listener.warning("No inherited javadoc comment found.");
+                return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+            }
+
+            return parse(overriddenMethod, listener).getDocbook();
         }
     }
 }

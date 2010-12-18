@@ -183,7 +183,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         if (matcher.matches()) {
             int startName = matcher.start(2);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
-            getCurrentClass().addReadableProperty(propName, returnType, rawCommentText);
+            getCurrentClass().addReadableProperty(propName, returnType, rawCommentText, method);
             return;
         }
 
@@ -195,7 +195,7 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
             int startName = matcher.start(1);
             String propName = name.substring(startName, startName + 1).toLowerCase() + name.substring(startName + 1);
             TypeMetaData type = method.getParameters().get(0).getType();
-            getCurrentClass().addWriteableProperty(propName, type, rawCommentText);
+            getCurrentClass().addWriteableProperty(propName, type, rawCommentText, method);
         }
     }
 
@@ -248,13 +248,14 @@ public class SourceMetaDataVisitor extends VisitorAdapter {
         TypeMetaData propertyType = extractTypeName(children.current);
         ClassMetaData currentClass = getCurrentClass();
 
-        currentClass.addReadableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t));
-        currentClass.addMethod(String.format("get%s", StringUtils.capitalize(propertyName)), propertyType, "");
+        MethodMetaData getterMethod = currentClass.addMethod(String.format("get%s", StringUtils.capitalize(
+                propertyName)), propertyType, "");
+        currentClass.addReadableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t), getterMethod);
         if (!Modifier.isFinal(modifiers)) {
-            currentClass.addWriteableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t));
             MethodMetaData setterMethod = currentClass.addMethod(String.format("set%s", StringUtils.capitalize(
                     propertyName)), TypeMetaData.VOID, "");
             setterMethod.addParameter(propertyName, propertyType);
+            currentClass.addWriteableProperty(propertyName, propertyType, getJavaDocCommentsBeforeNode(t), setterMethod);
         }
     }
 

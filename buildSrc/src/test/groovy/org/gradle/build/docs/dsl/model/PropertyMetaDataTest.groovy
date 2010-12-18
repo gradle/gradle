@@ -29,92 +29,74 @@ class PropertyMetaDataTest extends Specification {
         propertyMetaData.signature == 'org.gradle.SomeClass prop'
     }
 
-    def locatesInheritedCommentInSuperClass() {
-        ClassMetaData superClassMetaData = Mock()
+    def usesGetterToLocateOverriddenProperty() {
+        MethodMetaData getter = Mock()
+        MethodMetaData overriddenGetter = Mock()
+        ClassMetaData overriddenClass = Mock()
         PropertyMetaData overriddenProperty = Mock()
+        propertyMetaData.getter = getter
 
         when:
         def p = propertyMetaData.overriddenProperty
 
         then:
-        _ * classMetaData.superClass >> superClassMetaData
-        _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
+        _ * getter.overriddenMethod >> overriddenGetter
+        _ * overriddenGetter.ownerClass >> overriddenClass
+        _ * overriddenClass.findDeclaredProperty('prop') >> overriddenProperty
     }
 
-    def locatesInheritedCommentInInterface() {
-        ClassMetaData interfaceMetaData = Mock()
+    def usesSetterToLocateOverriddenPropertyWhenPropertyHasNoGetter() {
+        MethodMetaData setter = Mock()
+        MethodMetaData overriddenSetter = Mock()
+        ClassMetaData overriddenClass = Mock()
         PropertyMetaData overriddenProperty = Mock()
+        propertyMetaData.setter = setter
 
         when:
         def p = propertyMetaData.overriddenProperty
 
         then:
-        _ * classMetaData.superClass >> null
-        _ * classMetaData.interfaces >> [interfaceMetaData]
-        _ * interfaceMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
+        _ * setter.overriddenMethod >> overriddenSetter
+        _ * overriddenSetter.ownerClass >> overriddenClass
+        _ * overriddenClass.findDeclaredProperty('prop') >> overriddenProperty
     }
 
-    def locatesInheritedCommentInAncestorClass() {
-        ClassMetaData superClassMetaData = Mock()
-        ClassMetaData ancestorClassMetaData = Mock()
+    def usesSetterToLocateOverriddenPropertyWhenGetterDoesNotOverrideAnything() {
+        MethodMetaData getter = Mock()
+        MethodMetaData setter = Mock()
+        MethodMetaData overriddenSetter = Mock()
+        ClassMetaData overriddenClass = Mock()
         PropertyMetaData overriddenProperty = Mock()
+        propertyMetaData.getter = getter
+        propertyMetaData.setter = setter
 
         when:
         def p = propertyMetaData.overriddenProperty
 
         then:
-        _ * classMetaData.superClass >> superClassMetaData
-        _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findDeclaredProperty('prop') >> null
-        _ * superClassMetaData.superClass >> ancestorClassMetaData
-        _ * superClassMetaData.interfaces >> []
-        _ * ancestorClassMetaData.findDeclaredProperty('prop') >> overriddenProperty
         p == overriddenProperty
+        1 * getter.overriddenMethod >> null
+        _ * setter.overriddenMethod >> overriddenSetter
+        _ * overriddenSetter.ownerClass >> overriddenClass
+        _ * overriddenClass.findDeclaredProperty('prop') >> overriddenProperty
     }
 
-    def locatesInheritedCommentInInterfaceOfAncestorClass() {
-        ClassMetaData superClassMetaData = Mock()
-        ClassMetaData interfaceMetaData = Mock()
-        PropertyMetaData overriddenProperty = Mock()
-
+    def hasNoOverriddenPropertyWhenGetterDoesNotOverrideAnythingAndHasNoSetter() {
         when:
         def p = propertyMetaData.overriddenProperty
 
         then:
-        _ * classMetaData.superClass >> superClassMetaData
-        _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findDeclaredProperty('prop') >> null
-        _ * superClassMetaData.superClass >> null
-        _ * superClassMetaData.interfaces >> [interfaceMetaData]
-        _ * interfaceMetaData.findDeclaredProperty('prop') >> overriddenProperty
-        p == overriddenProperty
-    }
-
-    def hasEmptyInheritedCommentWhenNoSuperClass() {
-        when:
-        def p = propertyMetaData.overriddenProperty
-
-        then:
-        _ * classMetaData.superClass >> null
-        _ * classMetaData.interfaces >> []
         p == null
     }
 
-    def hasEmptyInheritedCommentWhenPropertyDoesNotOverridePropertyInSuperClass() {
-        ClassMetaData superClassMetaData = Mock()
-
+    def hasNoOverriddenPropertyWhenGetterAndSetterDoNotOverrideAnything() {
         when:
         def p = propertyMetaData.overriddenProperty
 
         then:
-        _ * classMetaData.superClass >> superClassMetaData
-        _ * classMetaData.interfaces >> []
-        _ * superClassMetaData.findDeclaredProperty('prop') >> null
-        _ * superClassMetaData.superClass >> null
-        _ * superClassMetaData.interfaces >> []
         p == null
     }
 }
+

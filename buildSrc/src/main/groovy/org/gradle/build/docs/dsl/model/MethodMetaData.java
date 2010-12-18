@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 
 import java.io.Serializable;
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 public class MethodMetaData implements Serializable, LanguageElement, TypeContainer {
@@ -52,6 +53,29 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
 
     public void setReturnType(TypeMetaData returnType) {
         this.returnType = returnType;
+    }
+
+    public MethodMetaData getOverriddenMethod() {
+        LinkedList<ClassMetaData> queue = new LinkedList<ClassMetaData>();
+        queue.add(ownerClass.getSuperClass());
+        queue.addAll(ownerClass.getInterfaces());
+        
+        String overrideSignature = getOverrideSignature();
+
+        while (!queue.isEmpty()) {
+            ClassMetaData cl = queue.removeFirst();
+            if (cl == null) {
+                continue;
+            }
+            MethodMetaData overriddenMethod = cl.findDeclaredMethod(overrideSignature);
+            if (overriddenMethod != null) {
+                return overriddenMethod;
+            }
+            queue.add(cl.getSuperClass());
+            queue.addAll(cl.getInterfaces());
+        }
+
+        return null;
     }
 
     public List<ParameterMetaData> getParameters() {
@@ -99,7 +123,7 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
             if (i > 0) {
                 builder.append(", ");
             }
-            builder.append(param.getType().getSignature());
+            builder.append(param.getType().getRawType().getSignature());
         }
         builder.append(')');
         return builder.toString();
