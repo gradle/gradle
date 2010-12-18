@@ -39,7 +39,7 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
 
     @Override
     public String toString() {
-        return String.format("%s.%s", ownerClass, name);
+        return String.format("%s.%s()", ownerClass, name);
     }
 
     public ClassMetaData getOwnerClass() {

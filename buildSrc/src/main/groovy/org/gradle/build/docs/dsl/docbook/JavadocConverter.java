@@ -41,56 +41,53 @@ public class JavadocConverter {
         this.linkConverter = linkConverter;
     }
 
-    public DocComment parse(ClassMetaData classMetaData) {
-        CommentSource commentSource = new CommentSource() {
-            public List<? extends Node> getCommentText() {
-                throw new UnsupportedOperationException();
-            }
-        };
-
-        String rawCommentText = classMetaData.getRawCommentText();
+    public DocComment parse(ClassMetaData classMetaData, GenerationListener listener) {
+        listener.start(String.format("class %s", classMetaData));
         try {
-            return parse(rawCommentText, classMetaData, commentSource);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nComment: %s", classMetaData.getClassName(), rawCommentText), e);
+            String rawCommentText = classMetaData.getRawCommentText();
+            try {
+                return parse(rawCommentText, classMetaData, new NoOpCommentSource(), listener);
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nComment: %s", classMetaData, rawCommentText), e);
+            }
+        } finally {
+            listener.finish();
         }
     }
 
-    public DocComment parse(final PropertyMetaData propertyMetaData) {
-        CommentSource commentSource = new CommentSource() {
-            public Iterable<? extends Node> getCommentText() {
-                PropertyMetaData overriddenProperty = propertyMetaData.getOverriddenProperty();
-                if (overriddenProperty == null) {
-                    return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
-                }
-                return parse(overriddenProperty).getDocbook();
-            }
-        };
-
-        ClassMetaData ownerClass = propertyMetaData.getOwnerClass();
-        String rawCommentText = propertyMetaData.getRawCommentText();
+    public DocComment parse(final PropertyMetaData propertyMetaData, final GenerationListener listener) {
+        listener.start(String.format("property %s", propertyMetaData));
         try {
-            DocCommentImpl docComment = parse(rawCommentText, ownerClass, commentSource);
-            adjustGetterComment(docComment);
-            return docComment;
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText), e);
+            ClassMetaData ownerClass = propertyMetaData.getOwnerClass();
+            String rawCommentText = propertyMetaData.getRawCommentText();
+            try {
+                CommentSource commentSource = new InheritedPropertyCommentSource(propertyMetaData, listener);
+                DocCommentImpl docComment = parse(rawCommentText, ownerClass, commentSource, listener);
+                adjustGetterComment(docComment);
+                return docComment;
+            } catch (Exception e) {
+                throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nProperty: %s%nComment: %s", ownerClass.getClassName(), propertyMetaData.getName(), rawCommentText), e);
+            }
+        } finally {
+            listener.finish();
         }
     }
 
-    public DocComment parse(final MethodMetaData methodMetaData) {
-        CommentSource commentSource = new CommentSource() {
-            public Iterable<? extends Node> getCommentText() {
-                return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
-            }
-        };
-
-        ClassMetaData ownerClass = methodMetaData.getOwnerClass();
-        String rawCommentText = methodMetaData.getRawCommentText();
+    public DocComment parse(final MethodMetaData methodMetaData, final GenerationListener listener) {
+        listener.start(String.format("method %s", methodMetaData));
         try {
-            return parse(rawCommentText, ownerClass, commentSource);
-        } catch (Exception e) {
-            throw new GradleException(String.format("Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s", ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
+            ClassMetaData ownerClass = methodMetaData.getOwnerClass();
+            String rawCommentText = methodMetaData.getRawCommentText();
+            try {
+                CommentSource commentSource = new InheritedMethodCommentSource(listener, methodMetaData);
+                return parse(rawCommentText, ownerClass, commentSource, listener);
+            } catch (Exception e) {
+                throw new GradleException(String.format(
+                        "Could not convert javadoc comment to docbook.%nClass: %s%nMethod: %s%nComment: %s",
+                        ownerClass.getClassName(), methodMetaData.getSignature(), rawCommentText), e);
+            }
+        } finally {
+            listener.finish();
         }
     }
 
@@ -114,31 +111,27 @@ public class JavadocConverter {
         }
     }
 
-    private DocCommentImpl parse(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
-        List<Element> nodes = textToDom(rawCommentText, classMetaData, inheritedCommentSource);
-        return new DocCommentImpl(nodes);
-    }
-
-    private List<Element> textToDom(String rawCommentText, ClassMetaData classMetaData, CommentSource inheritedCommentSource) {
+    private DocCommentImpl parse(String rawCommentText, ClassMetaData classMetaData,
+                                 CommentSource inheritedCommentSource, GenerationListener listener) {
         JavadocLexer lexer = new HtmlToXmlJavadocLexer(new BasicJavadocLexer(new JavadocScanner(rawCommentText)));
         NodeStack nodes = new NodeStack(document);
         final HtmlGeneratingTokenHandler handler = new HtmlGeneratingTokenHandler(nodes, document);
         handler.add(new HtmlElementTranslatingHandler(nodes, document));
         handler.add(new JavadocTagToElementTranslatingHandler(nodes, document));
         handler.add(new HeaderHandler(nodes, document));
-        handler.add(new LinkHandler(nodes, linkConverter, classMetaData));
+        handler.add(new LinkHandler(nodes, linkConverter, classMetaData, listener));
         handler.add(new InheritDocHandler(nodes, inheritedCommentSource));
-        handler.add(new ValueHtmlElementHandler(nodes, linkConverter, classMetaData));
+        handler.add(new ValueHtmlElementHandler(nodes, linkConverter, classMetaData, listener));
         handler.add(new TableHandler(nodes, document));
         handler.add(new AnchorElementHandler(nodes, document, classMetaData));
         handler.add(new AToLinkTranslatingHandler(nodes, document, classMetaData));
-        handler.add(new UnknownJavadocTagHandler(nodes, document));
-        handler.add(new UnknownHtmlElementHandler(nodes, document));
+        handler.add(new UnknownJavadocTagHandler(nodes, document, listener));
+        handler.add(new UnknownHtmlElementHandler(nodes, document, listener));
 
         lexer.visit(handler);
 
         nodes.complete();
-        return nodes.nodes;
+        return new DocCommentImpl(nodes.nodes);
     }
 
     private static class DocCommentImpl implements DocComment {
@@ -365,13 +358,16 @@ public class JavadocConverter {
     private static class UnknownJavadocTagHandler implements JavadocTagHandler {
         private final NodeStack nodes;
         private final Document document;
+        private final GenerationListener listener;
 
-        private UnknownJavadocTagHandler(NodeStack nodes, Document document) {
+        private UnknownJavadocTagHandler(NodeStack nodes, Document document, GenerationListener listener) {
             this.nodes = nodes;
             this.document = document;
+            this.listener = listener;
         }
 
         public boolean onJavadocTag(String tag, String value) {
+            listener.warning(String.format("Unsupported Javadoc tag '%s'", tag));
             Element element = document.createElement("UNHANDLED-TAG");
             element.appendChild(document.createTextNode(String.format("{@%s %s}", tag, value)));
             nodes.appendChild(element);
@@ -382,13 +378,16 @@ public class JavadocConverter {
     private static class UnknownHtmlElementHandler implements HtmlElementHandler {
         private final NodeStack nodes;
         private final Document document;
+        private final GenerationListener listener;
 
-        private UnknownHtmlElementHandler(NodeStack nodes, Document document) {
+        private UnknownHtmlElementHandler(NodeStack nodes, Document document, GenerationListener listener) {
             this.nodes = nodes;
             this.document = document;
+            this.listener = listener;
         }
 
         public boolean onStartElement(String elementName, Map<String, String> attributes) {
+            listener.warning(String.format("Unsupported HTML element <%s>", elementName));
             Element element = document.createElement("UNHANDLED-ELEMENT");
             element.appendChild(document.createTextNode(String.format("<%s>", elementName)));
             nodes.push(elementName, element);
@@ -633,18 +632,21 @@ public class JavadocConverter {
         private final JavadocLinkConverter linkConverter;
         private final ClassMetaData classMetaData;
         private final NodeStack nodes;
+        private final GenerationListener listener;
 
-        public ValueHtmlElementHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData) {
+        public ValueHtmlElementHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+                                       GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
+            this.listener = listener;
         }
 
         public boolean onJavadocTag(String tag, String value) {
             if (!tag.equals("value")) {
                 return false;
             }
-            nodes.appendChild(linkConverter.resolveValue(value, classMetaData));
+            nodes.appendChild(linkConverter.resolveValue(value, classMetaData, listener));
             return true;
         }
     }
@@ -653,18 +655,21 @@ public class JavadocConverter {
         private final NodeStack nodes;
         private final JavadocLinkConverter linkConverter;
         private final ClassMetaData classMetaData;
+        private final GenerationListener listener;
 
-        private LinkHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData) {
+        private LinkHandler(NodeStack nodes, JavadocLinkConverter linkConverter, ClassMetaData classMetaData,
+                            GenerationListener listener) {
             this.nodes = nodes;
             this.linkConverter = linkConverter;
             this.classMetaData = classMetaData;
+            this.listener = listener;
         }
 
         public boolean onJavadocTag(String tag, String value) {
             if (!tag.equals("link")) {
                 return false;
             }
-            nodes.appendChild(linkConverter.resolve(value, classMetaData));
+            nodes.appendChild(linkConverter.resolve(value, classMetaData, listener));
             return true;
         }
     }
@@ -693,4 +698,41 @@ public class JavadocConverter {
         Iterable<? extends Node> getCommentText();
     }
 
+    private static class NoOpCommentSource implements CommentSource {
+        public List<? extends Node> getCommentText() {
+            throw new UnsupportedOperationException();
+        }
+    }
+
+    private class InheritedPropertyCommentSource implements CommentSource {
+        private final PropertyMetaData propertyMetaData;
+        private final GenerationListener listener;
+
+        public InheritedPropertyCommentSource(PropertyMetaData propertyMetaData, GenerationListener listener) {
+            this.propertyMetaData = propertyMetaData;
+            this.listener = listener;
+        }
+
+        public Iterable<? extends Node> getCommentText() {
+            PropertyMetaData overriddenProperty = propertyMetaData.getOverriddenProperty();
+            if (overriddenProperty == null) {
+                listener.warning("No inherited javadoc comment found.");
+                return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+            }
+            return parse(overriddenProperty, listener).getDocbook();
+        }
+    }
+
+    private class InheritedMethodCommentSource implements CommentSource {
+        private final GenerationListener listener;
+
+        public InheritedMethodCommentSource(GenerationListener listener, MethodMetaData methodMetaData) {
+            this.listener = listener;
+        }
+
+        public Iterable<? extends Node> getCommentText() {
+            listener.warning("No inherited javadoc comment found.");
+            return Arrays.asList(document.createTextNode("!!NO INHERITED DOC COMMENT!!"));
+        }
+    }
 }

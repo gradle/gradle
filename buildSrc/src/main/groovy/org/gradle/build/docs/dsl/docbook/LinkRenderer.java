@@ -44,7 +44,7 @@ public class LinkRenderer {
         primitiveTypes.add("void");
     }
 
-    Node link(TypeMetaData type) {
+    Node link(TypeMetaData type, final GenerationListener listener) {
         final Element linkElement = document.createElement("classname");
 
         type.visitSignature(new TypeMetaData.SignatureVisitor() {
@@ -53,7 +53,7 @@ public class LinkRenderer {
             }
 
             public void visitType(String name) {
-                linkElement.appendChild(addType(name));
+                linkElement.appendChild(addType(name, listener));
             }
         });
 
@@ -64,7 +64,7 @@ public class LinkRenderer {
         return linkElement;
     }
 
-    private Node addType(String className) {
+    private Node addType(String className, GenerationListener listener) {
         if (model.isKnownType(className)) {
             Element linkElement = document.createElement("apilink");
             linkElement.setAttribute("class", className);
@@ -76,7 +76,7 @@ public class LinkRenderer {
             classNameElement.appendChild(document.createTextNode(className));
             return classNameElement;
         }
-        
+
         if (className.startsWith("java.")) {
             Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("http://download.oracle.com/javase/1.5.0/docs/api/%s.html",
@@ -97,18 +97,20 @@ public class LinkRenderer {
             return linkElement;
         }
 
+        listener.warning(String.format("Could not generate link for unknown class %s", className));
         Element element = document.createElement("UNKNOWN-CLASS");
         element.appendChild(document.createTextNode(className));
         return element;
     }
 
-    public Node link(MethodMetaData method) {
+    public Node link(MethodMetaData method, GenerationListener listener) {
         if (model.isKnownType(method.getOwnerClass().getClassName())) {
             Element apilink = document.createElement("apilink");
             apilink.setAttribute("class", method.getOwnerClass().getClassName());
             apilink.setAttribute("method", method.getOverrideSignature());
             return apilink;
         } else {
+            listener.warning(String.format("Could not generate link for method %s", method));
             Element element = document.createElement("UNKNOWN-METHOD");
             element.appendChild(document.createTextNode(String.format("%s.%s()", method.getOwnerClass().getClassName(),
                     method.getName())));

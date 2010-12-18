@@ -20,8 +20,6 @@ import org.gradle.build.docs.dsl.model.ClassMetaData;
 import org.gradle.build.docs.dsl.model.MethodMetaData;
 import org.gradle.build.docs.dsl.model.TypeMetaData;
 import org.gradle.build.docs.model.ClassMetaDataRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
@@ -35,7 +33,6 @@ import java.util.regex.Pattern;
  * Converts a javadoc link into docbook.
  */
 public class JavadocLinkConverter {
-    private static final Logger LOGGER = LoggerFactory.getLogger(JavadocLinkConverter.class);
     private final Pattern linkPattern = Pattern.compile("(?s)\\s*([\\w\\.]*)(#(\\w+)(\\((.*)\\))?)?.*");
     private final Document document;
     private final TypeNameResolver typeNameResolver;
@@ -53,20 +50,19 @@ public class JavadocLinkConverter {
     /**
      * Converts a javadoc link into docbook.
      */
-    public Node resolve(String link, ClassMetaData classMetaData) {
-        Node node = doResolve(link, classMetaData);
+    public Node resolve(String link, ClassMetaData classMetaData, GenerationListener listener) {
+        Node node = doResolve(link, classMetaData, listener);
         if (node != null) {
             return node;
         }
 
-        LOGGER.warn("Could not convert Javadoc link '{}' relative to class {}", link, classMetaData.getClassName());
-
+        listener.warning(String.format("Could not convert Javadoc link '%s'", link));
         Element element = document.createElement("UNHANDLED-LINK");
         element.appendChild(document.createTextNode(link));
         return element;
     }
 
-    private Node doResolve(String link, ClassMetaData classMetaData) {
+    private Node doResolve(String link, ClassMetaData classMetaData, GenerationListener listener) {
         Matcher matcher = linkPattern.matcher(link);
         if (!matcher.matches()) {
             return null;
@@ -80,7 +76,7 @@ public class JavadocLinkConverter {
             }
         }
         if (matcher.group(2) == null) {
-            return linkRenderer.link(new TypeMetaData(className));
+            return linkRenderer.link(new TypeMetaData(className), listener);
         }
 
         ClassMetaData targetClass;
@@ -122,7 +118,7 @@ public class JavadocLinkConverter {
             return null;
         }
 
-        return linkRenderer.link(method);
+        return linkRenderer.link(method, listener);
     }
 
     private MethodMetaData findMethod(String name, ClassMetaData targetClass) {
@@ -145,13 +141,14 @@ public class JavadocLinkConverter {
     /**
      * Converts a javadoc value link into docbook.
      */
-    public Node resolveValue(String fieldName, ClassMetaData classMetaData) {
+    public Node resolveValue(String fieldName, ClassMetaData classMetaData, GenerationListener listener) {
         String[] parts = fieldName.split("#");
         ClassMetaData targetClass;
         if (parts[0].length() > 0) {
             String targetClassName = typeNameResolver.resolve(parts[0], classMetaData);
             targetClass = repository.find(targetClassName);
             if (targetClass == null) {
+                listener.warning(String.format("Could not local target class '%s' for field value link '%s'", targetClass, fieldName));
                 Element element = document.createElement("UNHANDLED-VALUE");
                 element.appendChild(document.createTextNode(targetClassName + ":" + parts[1]));
                 return element;
@@ -162,6 +159,7 @@ public class JavadocLinkConverter {
 
         String value = targetClass.getConstants().get(parts[1]);
         if (value == null) {
+            listener.warning(String.format("Field '%s' does not have any value", fieldName));
             Element element = document.createElement("NO-VALUE-FOR_FIELD");
             element.appendChild(document.createTextNode(targetClass.getClassName() + ":" + parts[1]));
             return element;

@@ -17,17 +17,23 @@ package org.gradle.build.docs.dsl.docbook
 
 class ClassDocRenderer {
     private final LinkRenderer linkRenderer
+    private final GenerationListener listener = new DefaultGenerationListener()
 
     ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
     }
 
     void mergeContent(ClassDoc classDoc) {
-        mergeDescription(classDoc)
-        mergeProperties(classDoc)
-        mergeMethods(classDoc)
-        mergeBlocks(classDoc)
-        mergeExtensions(classDoc)
+        listener.start("class $classDoc.className")
+        try {
+            mergeDescription(classDoc)
+            mergeProperties(classDoc)
+            mergeMethods(classDoc)
+            mergeBlocks(classDoc)
+            mergeExtensions(classDoc)
+        } finally {
+            listener.finish()
+        }
     }
 
     void mergeDescription(ClassDoc classDoc) {
@@ -81,7 +87,7 @@ class ClassDocRenderer {
                 classProperties.each { propDoc ->
                     section(id: propDoc.id, role: 'detail') {
                         title {
-                            appendChild linkRenderer.link(propDoc.metaData.type)
+                            appendChild linkRenderer.link(propDoc.metaData.type, listener)
                             text(' ')
                             literal(propDoc.name)
                             if (!propDoc.metaData.writeable) {
@@ -154,7 +160,7 @@ class ClassDocRenderer {
                 classMethods.each { method ->
                     section(id: method.id, role: 'detail') {
                         title {
-                            appendChild linkRenderer.link(method.metaData.returnType)
+                            appendChild linkRenderer.link(method.metaData.returnType, listener)
                             text(' ')
                             literal(method.name)
                             text('(')
@@ -162,7 +168,7 @@ class ClassDocRenderer {
                                 if (i > 0) {
                                     text(', ')
                                 }
-                                appendChild linkRenderer.link(param.type)
+                                appendChild linkRenderer.link(param.type, listener)
                                 text(" $param.name")
                             }
                             text(')')
@@ -220,11 +226,11 @@ class ClassDocRenderer {
                                 seg {
                                     if (block.multiValued) {
                                         text('Each ')
-                                        appendChild linkRenderer.link(block.type)
+                                        appendChild linkRenderer.link(block.type, listener)
                                         text(' in ')
                                         link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
                                     } else {
-                                        appendChild linkRenderer.link(block.type)
+                                        appendChild linkRenderer.link(block.type, listener)
                                         text(' from ')
                                         link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
                                     }
@@ -273,7 +279,7 @@ class ClassDocRenderer {
                 extension.extensionProperties.each { propDoc ->
                     section(id: propDoc.id, role: 'detail') {
                         title {
-                            appendChild linkRenderer.link(propDoc.metaData.type)
+                            appendChild linkRenderer.link(propDoc.metaData.type, listener)
                             text(' ')
                             literal(propDoc.name)
                             if (!propDoc.metaData.writeable) {
@@ -338,7 +344,7 @@ class ClassDocRenderer {
                 extension.extensionMethods.each { method ->
                     section(id: method.id, role: 'detail') {
                         title {
-                            appendChild linkRenderer.link(method.metaData.returnType)
+                            appendChild linkRenderer.link(method.metaData.returnType, listener)
                             text(' ')
                             literal(method.name)
                             text('(')
@@ -346,7 +352,7 @@ class ClassDocRenderer {
                                 if (i > 0) {
                                     text(', ')
                                 }
-                                appendChild linkRenderer.link(param.type)
+                                appendChild linkRenderer.link(param.type, listener)
                                 text(" $param.name")
                             }
                             text(')')
@@ -395,11 +401,11 @@ class ClassDocRenderer {
                                 seg {
                                     if (block.multiValued) {
                                         text('Each ')
-                                        appendChild linkRenderer.link(block.type)
+                                        appendChild linkRenderer.link(block.type, listener)
                                         text(' in ')
                                         link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
                                     } else {
-                                        appendChild linkRenderer.link(block.type)
+                                        appendChild linkRenderer.link(block.type, listener)
                                         text(' from ')
                                         link(linkend: block.blockProperty.id) { literal(block.blockProperty.name) }
                                     }

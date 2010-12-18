@@ -532,7 +532,7 @@ class ClassDocRendererTest extends XmlSpecification {
 
     def linkRenderer() {
         LinkRenderer renderer = Mock()
-        _ * renderer.link(!null) >> {
+        _ * renderer.link(!null, !null) >> {
             args -> parse("<classname>${args[0].signature}</classname>")
         }
         return renderer

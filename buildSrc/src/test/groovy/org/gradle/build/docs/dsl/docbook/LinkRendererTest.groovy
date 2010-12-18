@@ -21,12 +21,13 @@ import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.gradle.build.docs.dsl.model.ClassMetaData
 
 class LinkRendererTest extends XmlSpecification {
-    private DslDocModel model = Mock()
-    private LinkRenderer renderer = new LinkRenderer(document, model)
+    final DslDocModel model = Mock()
+    final GenerationListener listener = Mock()
+    final LinkRenderer renderer = new LinkRenderer(document, model)
 
     def rendersLinkToApiClass() {
         when:
-        def link = renderer.link(type('org.gradle.SomeClass'))
+        def link = renderer.link(type('org.gradle.SomeClass'), listener)
 
         then:
         format(link) == '<apilink class="org.gradle.SomeClass"/>'
@@ -35,7 +36,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToApiClassArray() {
         when:
-        def link = renderer.link(type('org.gradle.SomeClass', true))
+        def link = renderer.link(type('org.gradle.SomeClass', true), listener)
 
         then:
         format(link) == '<classname><apilink class="org.gradle.SomeClass"/>[]</classname>'
@@ -44,7 +45,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToJavaClass() {
         when:
-        def link = renderer.link(type('java.util.List'))
+        def link = renderer.link(type('java.util.List'), listener)
 
         then:
         format(link) == '<ulink url="http://download.oracle.com/javase/1.5.0/docs/api/java/util/List.html"><classname>List</classname></ulink>'
@@ -52,7 +53,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToJavaClassArray() {
         when:
-        def link = renderer.link(type('java.util.List', true))
+        def link = renderer.link(type('java.util.List', true), listener)
 
         then:
         format(link) == '<classname><ulink url="http://download.oracle.com/javase/1.5.0/docs/api/java/util/List.html"><classname>List</classname></ulink>[]</classname>'
@@ -60,7 +61,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToPrimitiveType() {
         when:
-        def link = renderer.link(type('boolean'))
+        def link = renderer.link(type('boolean'), listener)
 
         then:
         format(link) == '<classname>boolean</classname>'
@@ -68,7 +69,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToGroovyClass() {
         when:
-        def link = renderer.link(type('groovy.lang.Closure'))
+        def link = renderer.link(type('groovy.lang.Closure'), listener)
 
         then:
         format(link) == '<ulink url="http://groovy.codehaus.org/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>'
@@ -76,7 +77,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToGroovyClassArray() {
         when:
-        def link = renderer.link(type('groovy.lang.Closure', true))
+        def link = renderer.link(type('groovy.lang.Closure', true), listener)
 
         then:
         format(link) == '<classname><ulink url="http://groovy.codehaus.org/gapi/groovy/lang/Closure.html"><classname>Closure</classname></ulink>[]</classname>'
@@ -84,7 +85,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToExternalClass() {
         when:
-        def link = renderer.link(type('some.other.Class'))
+        def link = renderer.link(type('some.other.Class'), listener)
 
         then:
         format(link) == '<UNKNOWN-CLASS>some.other.Class</UNKNOWN-CLASS>'
@@ -92,7 +93,7 @@ class LinkRendererTest extends XmlSpecification {
 
     def rendersLinkToExternalClassArray() {
         when:
-        def link = renderer.link(type('some.other.Class', true))
+        def link = renderer.link(type('some.other.Class', true), listener)
 
         then:
         format(link) == '<classname><UNKNOWN-CLASS>some.other.Class</UNKNOWN-CLASS>[]</classname>'
@@ -104,7 +105,7 @@ class LinkRendererTest extends XmlSpecification {
         metaData.addTypeArg(type('Type2'))
 
         when:
-        def link = renderer.link(metaData)
+        def link = renderer.link(metaData, listener)
 
         then:
         format(link) == '<classname><apilink class="org.gradle.SomeClass"/>&lt;<apilink class="Type1"/>, <apilink class="Type2"/>&gt;</classname>'
@@ -117,7 +118,7 @@ class LinkRendererTest extends XmlSpecification {
         def method = method('someMethod', 'org.gradle.SomeClass')
 
         when:
-        def link = renderer.link(method)
+        def link = renderer.link(method, listener)
 
         then:
         format(link) == '<apilink class="org.gradle.SomeClass" method="someMethod()"/>'

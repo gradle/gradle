@@ -41,6 +41,7 @@ class ClassDoc {
     private final Element propertiesSection
     private final Element methodsSection
     private List<Element> comment
+    private final GenerationListener listener = new DefaultGenerationListener()
 
     ClassDoc(String className, Element classContent, Document targetDocument, ClassMetaData classMetaData, ExtensionMetaData extensionMetaData, DslDocModel model, JavadocConverter javadocConverter) {
         this.className = className
@@ -106,7 +107,7 @@ class ClassDoc {
     }
 
     ClassDoc buildDescription() {
-        comment = javadocConverter.parse(classMetaData).docbook
+        comment = javadocConverter.parse(classMetaData, listener).docbook
         return this
     }
 
@@ -180,7 +181,7 @@ class ClassDoc {
                 def attributeDoc = new ExtraAttributeDoc(valueTitles[i-1], cells[i])
                 additionalValues.put(attributeDoc.key, attributeDoc)
             }
-            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property).docbook, additionalValues.values() as List)
+            PropertyDoc propertyDoc = new PropertyDoc(property, javadocConverter.parse(property, listener).docbook, additionalValues.values() as List)
             if (propertyDoc.description == null) {
                 throw new RuntimeException("Docbook content for '$className.$propName' does not contain a description paragraph.")
             }
@@ -207,7 +208,7 @@ class ClassDoc {
                 throw new RuntimeException("No metadata for method '$className.$methodName()'. Available methods: ${classMetaData.declaredMethods.collect {it.name} as TreeSet}")
             }
             methods.each { method ->
-                def methodDoc = new MethodDoc(method, javadocConverter.parse(method).docbook)
+                def methodDoc = new MethodDoc(method, javadocConverter.parse(method, listener).docbook)
                 if (!methodDoc.description) {
                     throw new RuntimeException("Docbook content for '$className $method.signature' does not contain a description paragraph.")
                 }
