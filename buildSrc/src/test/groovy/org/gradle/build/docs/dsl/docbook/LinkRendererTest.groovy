@@ -17,27 +17,29 @@ package org.gradle.build.docs.dsl.docbook
 
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.TypeMetaData
+import org.gradle.build.docs.dsl.model.MethodMetaData
+import org.gradle.build.docs.dsl.model.ClassMetaData
 
-class ClassLinkRendererTest extends XmlSpecification {
+class LinkRendererTest extends XmlSpecification {
     private DslDocModel model = Mock()
-    private ClassLinkRenderer renderer = new ClassLinkRenderer(document, model)
+    private LinkRenderer renderer = new LinkRenderer(document, model)
 
-    def rendersLinkToGradleClass() {
+    def rendersLinkToApiClass() {
         when:
         def link = renderer.link(type('org.gradle.SomeClass'))
 
         then:
         format(link) == '<apilink class="org.gradle.SomeClass"/>'
-        _ * model.isKnownType('org.gradle.SomeClass') >> Mock(ClassDoc)
+        _ * model.isKnownType('org.gradle.SomeClass') >> true
     }
 
-    def rendersLinkToGradleClassArray() {
+    def rendersLinkToApiClassArray() {
         when:
         def link = renderer.link(type('org.gradle.SomeClass', true))
 
         then:
         format(link) == '<classname><apilink class="org.gradle.SomeClass"/>[]</classname>'
-        _ * model.isKnownType('org.gradle.SomeClass') >> Mock(ClassDoc)
+        _ * model.isKnownType('org.gradle.SomeClass') >> true
     }
 
     def rendersLinkToJavaClass() {
@@ -54,6 +56,14 @@ class ClassLinkRendererTest extends XmlSpecification {
 
         then:
         format(link) == '<classname><ulink url="http://download.oracle.com/javase/1.5.0/docs/api/java/util/List.html"><classname>List</classname></ulink>[]</classname>'
+    }
+
+    def rendersLinkToPrimitiveType() {
+        when:
+        def link = renderer.link(type('boolean'))
+
+        then:
+        format(link) == '<classname>boolean</classname>'
     }
 
     def rendersLinkToGroovyClass() {
@@ -77,7 +87,7 @@ class ClassLinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('some.other.Class'))
 
         then:
-        format(link) == '<classname>some.other.Class</classname>'
+        format(link) == '<UNKNOWN-CLASS>some.other.Class</UNKNOWN-CLASS>'
     }
 
     def rendersLinkToExternalClassArray() {
@@ -85,7 +95,7 @@ class ClassLinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('some.other.Class', true))
 
         then:
-        format(link) == '<classname>some.other.Class[]</classname>'
+        format(link) == '<classname><UNKNOWN-CLASS>some.other.Class</UNKNOWN-CLASS>[]</classname>'
     }
 
     def rendersLinkToParameterizedType() {
@@ -98,9 +108,30 @@ class ClassLinkRendererTest extends XmlSpecification {
 
         then:
         format(link) == '<classname><apilink class="org.gradle.SomeClass"/>&lt;<apilink class="Type1"/>, <apilink class="Type2"/>&gt;</classname>'
-        _ * model.isKnownType('org.gradle.SomeClass') >> Mock(ClassDoc)
-        _ * model.isKnownType('Type1') >> Mock(ClassDoc)
-        _ * model.isKnownType('Type2') >> Mock(ClassDoc)
+        _ * model.isKnownType('org.gradle.SomeClass') >> true
+        _ * model.isKnownType('Type1') >> true
+        _ * model.isKnownType('Type2') >> true
+    }
+
+    def rendersLinkToApiMethod() {
+        def method = method('someMethod', 'org.gradle.SomeClass')
+
+        when:
+        def link = renderer.link(method)
+
+        then:
+        format(link) == '<apilink class="org.gradle.SomeClass" method="someMethod()"/>'
+        _ * model.isKnownType('org.gradle.SomeClass') >> true
+    }
+
+    def method(String name, String className) {
+        MethodMetaData method = Mock()
+        ClassMetaData ownerClass = Mock()
+        _ * method.name >> name
+        _ * method.overrideSignature >> "$name()"
+        _ * method.ownerClass >> ownerClass
+        _ * ownerClass.className >> className
+        return method
     }
 
     def type(String name, boolean isArray = false) {

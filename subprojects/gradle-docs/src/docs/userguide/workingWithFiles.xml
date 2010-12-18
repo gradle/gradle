@@ -22,7 +22,7 @@
     <section id="sec:locating_files">
         <title>Locating files</title>
         <para>You can locate a file relative to the project directory using the
-            <apilink class="org.gradle.api.Project" method="file"/> method.
+            <apilink class="org.gradle.api.Project" method="file(java.lang.Object)"/> method.
         </para>
         <sample id="resolveFile" dir="userguide/files/file" title="Locating files">
             <sourcefile file="build.gradle"/>
@@ -54,7 +54,7 @@
 
         <para>
             One way to obtain a <literal>FileCollection</literal> instance is to use the
-            <apilink class="org.gradle.api.Project" method="files"/> method. You can pass this method any number of
+            <apilink class="org.gradle.api.Project" method="files(java.lang.Object...)"/> method. You can pass this method any number of
             objects, which are then converted into a set of <classname>File</classname> objects. The
             <literal>files()</literal> method accepts any type of object as its parameters. These are evaluated relative
             to the project directory, as for the <literal>file()</literal> method, described in <xref linkend="sec:locating_files"/>.
@@ -111,7 +111,7 @@
 
         <para>
             One way to obtain a <literal>FileTree</literal> instance is to use the
-            <apilink class="org.gradle.api.Project" method="fileTree"/> method.
+            <apilink class="org.gradle.api.Project" method="fileTree(java.util.Map&lt;java.lang.String, ?>)"/> method.
             This creates a <literal>FileTree</literal> defined with a base directory, and optionally some Ant-style
             include and exclude patterns.
         </para>
@@ -173,8 +173,8 @@
             the files to. You may also specify how to transform the files as they are copied. You do all this using a
             <firstterm>copy spec</firstterm>. A copy spec is represented by the <apilink class="org.gradle.api.file.CopySpec"/> interface. The
             <literal>Copy</literal> task implements this interface.
-            You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from"/>
-            method. To specify the destination directory, you use the <apilink class="org.gradle.api.file.CopySpec" method="into"/>
+            You specify the source files using the <apilink class="org.gradle.api.file.CopySpec" method="from(java.lang.Object...)"/>
+            method. To specify the destination directory, you use the <apilink class="org.gradle.api.file.CopySpec" method="into(java.lang.Object)"/>
             method.
         </para>
         <sample id="copy" dir="userguide/files/copy" title="Copying files using the copy task">

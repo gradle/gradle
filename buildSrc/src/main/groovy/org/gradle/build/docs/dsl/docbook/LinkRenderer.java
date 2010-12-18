@@ -16,18 +16,32 @@
 package org.gradle.build.docs.dsl.docbook;
 
 import org.apache.commons.lang.StringUtils;
+import org.gradle.build.docs.dsl.model.MethodMetaData;
 import org.gradle.build.docs.dsl.model.TypeMetaData;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 
-public class ClassLinkRenderer {
+import java.util.HashSet;
+import java.util.Set;
+
+public class LinkRenderer {
     private final Document document;
     private final DslDocModel model;
+    private final Set<String> primitiveTypes = new HashSet<String>();
 
-    public ClassLinkRenderer(Document document, DslDocModel model) {
+    public LinkRenderer(Document document, DslDocModel model) {
         this.document = document;
         this.model = model;
+        primitiveTypes.add("boolean");
+        primitiveTypes.add("byte");
+        primitiveTypes.add("short");
+        primitiveTypes.add("int");
+        primitiveTypes.add("long");
+        primitiveTypes.add("char");
+        primitiveTypes.add("float");
+        primitiveTypes.add("double");
+        primitiveTypes.add("void");
     }
 
     Node link(TypeMetaData type) {
@@ -55,7 +69,15 @@ public class ClassLinkRenderer {
             Element linkElement = document.createElement("apilink");
             linkElement.setAttribute("class", className);
             return linkElement;
-        } else if (className.startsWith("java.")) {
+        }
+
+        if (primitiveTypes.contains(className)) {
+            Element classNameElement = document.createElement("classname");
+            classNameElement.appendChild(document.createTextNode(className));
+            return classNameElement;
+        }
+        
+        if (className.startsWith("java.")) {
             Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("http://download.oracle.com/javase/1.5.0/docs/api/%s.html",
                     className.replace(".", "/")));
@@ -63,7 +85,9 @@ public class ClassLinkRenderer {
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
             return linkElement;
-        } else if (className.startsWith("groovy.")) {
+        }
+
+        if (className.startsWith("groovy.")) {
             Element linkElement = document.createElement("ulink");
             linkElement.setAttribute("url", String.format("http://groovy.codehaus.org/gapi/%s.html", className.replace(
                     ".", "/")));
@@ -71,8 +95,24 @@ public class ClassLinkRenderer {
             classNameElement.appendChild(document.createTextNode(StringUtils.substringAfterLast(className, ".")));
             linkElement.appendChild(classNameElement);
             return linkElement;
+        }
+
+        Element element = document.createElement("UNKNOWN-CLASS");
+        element.appendChild(document.createTextNode(className));
+        return element;
+    }
+
+    public Node link(MethodMetaData method) {
+        if (model.isKnownType(method.getOwnerClass().getClassName())) {
+            Element apilink = document.createElement("apilink");
+            apilink.setAttribute("class", method.getOwnerClass().getClassName());
+            apilink.setAttribute("method", method.getOverrideSignature());
+            return apilink;
         } else {
-            return document.createTextNode(className);
+            Element element = document.createElement("UNKNOWN-METHOD");
+            element.appendChild(document.createTextNode(String.format("%s.%s()", method.getOwnerClass().getClassName(),
+                    method.getName())));
+            return element;
         }
     }
 }

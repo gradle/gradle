@@ -664,8 +664,7 @@ public class JavadocConverter {
             if (!tag.equals("link")) {
                 return false;
             }
-            String className = value.split("\\s+")[0];
-            nodes.appendChild(linkConverter.resolve(className, classMetaData));
+            nodes.appendChild(linkConverter.resolve(value, classMetaData));
             return true;
         }
     }

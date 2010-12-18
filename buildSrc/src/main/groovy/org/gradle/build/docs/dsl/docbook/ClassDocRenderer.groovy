@@ -16,9 +16,9 @@
 package org.gradle.build.docs.dsl.docbook
 
 class ClassDocRenderer {
-    private final ClassLinkRenderer linkRenderer
+    private final LinkRenderer linkRenderer
 
-    ClassDocRenderer(ClassLinkRenderer linkRenderer) {
+    ClassDocRenderer(LinkRenderer linkRenderer) {
         this.linkRenderer = linkRenderer
     }
 

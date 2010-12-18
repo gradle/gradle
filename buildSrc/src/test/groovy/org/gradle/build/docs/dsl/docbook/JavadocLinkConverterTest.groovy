@@ -19,9 +19,10 @@ import org.gradle.build.docs.dsl.TypeNameResolver
 import org.gradle.build.docs.dsl.XmlSpecification
 import org.gradle.build.docs.dsl.model.ClassMetaData
 import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.gradle.build.docs.dsl.model.MethodMetaData
 
 class JavadocLinkConverterTest extends XmlSpecification {
-    final ClassLinkRenderer linkRenderer = Mock()
+    final LinkRenderer linkRenderer = Mock()
     final TypeNameResolver nameResolver = Mock()
     final ClassMetaData classMetaData = Mock()
     final ClassMetaDataRepository<ClassMetaData> repository = Mock()
@@ -37,6 +38,16 @@ class JavadocLinkConverterTest extends XmlSpecification {
         _ * linkRenderer.link({it.name == 'org.gradle.SomeClass'}) >> parse('<someLinkElement/>')
     }
 
+    def convertsFullyQualifiedClassNameToLink() {
+        when:
+        def link = converter.resolve('org.gradle.SomeClass', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+        _ * nameResolver.resolve('org.gradle.SomeClass', classMetaData) >> 'org.gradle.SomeClass'
+        _ * linkRenderer.link({it.name == 'org.gradle.SomeClass'}) >> parse('<someLinkElement/>')
+    }
+
     def resolvesUnknownFullyQualifiedClassName() {
         when:
         def link = converter.resolve('org.gradle.SomeClass', classMetaData)
@@ -45,7 +56,100 @@ class JavadocLinkConverterTest extends XmlSpecification {
         format(link) == '''<UNHANDLED-LINK>org.gradle.SomeClass</UNHANDLED-LINK>'''
     }
 
-    def convertsValueToLiteralValue() {
+    def convertsClassAndMethodNameToLink() {
+        ClassMetaData targetClass = Mock()
+        MethodMetaData method = method('someName')
+        _ * nameResolver.resolve('SomeClass', classMetaData) >> 'org.gradle.SomeClass'
+        _ * repository.find('org.gradle.SomeClass') >> targetClass
+        _ * targetClass.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('SomeClass#someName', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsMethodNameToLink() {
+        MethodMetaData method = method('someName')
+        _ * classMetaData.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('#someName', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsMethodSignatureToLink() {
+        MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass, java.lang.Object)')
+        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
+        _ * nameResolver.resolve('Object', classMetaData) >>'java.lang.Object'
+        _ * classMetaData.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('#someName(SomeClass, Object)', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsMethodSignatureWithNoParamsToLink() {
+        MethodMetaData method = method('someName', signature: 'someName()')
+        _ * classMetaData.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('#someName()', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsMethodSignatureWithArrayTypeToLink() {
+        MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass[], java.lang.Object)')
+        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
+        _ * nameResolver.resolve('Object', classMetaData) >>'java.lang.Object'
+        _ * classMetaData.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('#someName(SomeClass[], Object)', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsMethodNameWithLabelToLink() {
+        MethodMetaData method = method('someName')
+        _ * classMetaData.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('#someName this is the label.', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsMethodSignatureWithLabelToLink() {
+        MethodMetaData method = method('someName', signature: 'someName(org.gradle.SomeClass, java.lang.Object)')
+        _ * nameResolver.resolve('SomeClass', classMetaData) >>'org.gradle.SomeClass'
+        _ * nameResolver.resolve('Object', classMetaData) >>'java.lang.Object'
+        _ * classMetaData.declaredMethods >> ([method] as Set)
+        _ * linkRenderer.link(method) >> parse('<someLinkElement/>')
+
+        when:
+        def link = converter.resolve('#someName(SomeClass, Object) this is a label', classMetaData)
+
+        then:
+        format(link) == '<someLinkElement/>'
+    }
+
+    def convertsValueLinkToLiteralValue() {
         ClassMetaData otherClass = Mock()
 
         when:
@@ -58,7 +162,7 @@ class JavadocLinkConverterTest extends XmlSpecification {
         _ * otherClass.constants >> [someField: 'value']
     }
 
-    def convertsValueInSameClassToLiteralValue() {
+    def convertsValueLinkInSameClassToLiteralValue() {
         when:
         def link = converter.resolveValue('#someField', classMetaData)
 
@@ -66,4 +170,12 @@ class JavadocLinkConverterTest extends XmlSpecification {
         format(link) == '<literal>value</literal>'
         _ * classMetaData.constants >> [someField: 'value']
     }
+
+    private MethodMetaData method(Map<String, ?> args = [:], String name) {
+        def MethodMetaData method = Mock()
+        _ * method.name >> name
+        _ * method.overrideSignature >> args.signature
+        return method
+    }
 }
+

@@ -200,7 +200,7 @@ literal code</programlisting><para> does something.
     }
 
     def convertsALinkTag() {
-        _ * classMetaData.rawCommentText >> '{@link someClass} {@link otherClass label}'
+        _ * classMetaData.rawCommentText >> '{@link someClass} {@link otherClass#method(a, b) label}'
 
         when:
         def result = parser.parse(classMetaData)
@@ -208,7 +208,7 @@ literal code</programlisting><para> does something.
         then:
         format(result.docbook) == '''<para><xref/> <xref/></para>'''
         1 * linkConverter.resolve('someClass', classMetaData) >> document.createElement("xref")
-        1 * linkConverter.resolve('otherClass', classMetaData) >> document.createElement("xref")
+        1 * linkConverter.resolve('otherClass#method(a, b) label', classMetaData) >> document.createElement("xref")
         0 * linkConverter._
     }
 

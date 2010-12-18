@@ -83,7 +83,7 @@ import java.util.Set;
  * org.gradle.api.artifacts.dsl.DependencyHandler} returned by {@link #getDependencies()} method to manage the
  * dependencies. The {@link org.gradle.api.artifacts.dsl.ArtifactHandler} returned by {@link #getArtifacts()} method
  * to manage the artifacts. The {@link org.gradle.api.artifacts.dsl.RepositoryHandler} returned by {@link
- * #getRepositories()} ()} method to manage the repositories.</p>
+ * #getRepositories()} method to manage the repositories.</p>
  *
  * <h3>Multi-project Builds</h3>
  *

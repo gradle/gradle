@@ -119,12 +119,24 @@ class BasicJavadocLexerTest extends Specification {
 
     def ignoresWhitespaceAndEOLCharsBetweenJavadocTagNameAndValue() {
         when:
-        lexer.pushText("{@link\n  Something  \n}")
+        lexer.pushText("* {@link\n *  Something}")
         lexer.visit(visitor)
 
         then:
         1 * visitor.onStartJavadocTag('link')
-        1 * visitor.onText('Something  \n')
+        1 * visitor.onText('Something')
+        1 * visitor.onEndJavadocTag('link')
+        0 * visitor._
+    }
+
+    def javadocTagCanContainEOLChars() {
+        when:
+        lexer.pushText(" * {@link #Something(Object,\n * String\n * }")
+        lexer.visit(visitor)
+
+        then:
+        1 * visitor.onStartJavadocTag('link')
+        1 * visitor.onText('#Something(Object,\nString\n')
         1 * visitor.onEndJavadocTag('link')
         0 * visitor._
     }

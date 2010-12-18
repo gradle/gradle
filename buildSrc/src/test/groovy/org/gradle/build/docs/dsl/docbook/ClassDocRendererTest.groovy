@@ -22,7 +22,7 @@ import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.gradle.build.docs.dsl.model.ParameterMetaData
 
 class ClassDocRendererTest extends XmlSpecification {
-    final ClassLinkRenderer linkRenderer = linkRenderer()
+    final LinkRenderer linkRenderer = linkRenderer()
     final ClassDocRenderer renderer = new ClassDocRenderer(linkRenderer)
 
     def mergesClassMetaDataIntoMainSection() {
@@ -531,7 +531,7 @@ class ClassDocRendererTest extends XmlSpecification {
     }
 
     def linkRenderer() {
-        ClassLinkRenderer renderer = Mock()
+        LinkRenderer renderer = Mock()
         _ * renderer.link(!null) >> {
             args -> parse("<classname>${args[0].signature}</classname>")
         }

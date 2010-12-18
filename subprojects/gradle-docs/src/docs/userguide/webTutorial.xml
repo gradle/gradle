@@ -50,7 +50,7 @@
         </sample>
         <para>This also applies the War plugin to your project. Running <userinput>gradle jettyRun</userinput> will
             run your web application in an embedded Jetty web container. Running <userinput>gradle jettyRunWar</userinput>
-            will build and test the WAR file, and then run it in an embedded web container.
+            will build the WAR file, and then run it in an embedded web container.
         </para>
         <para>TODO: which url, configure port, uses source files in place and can edit your files and reload.</para>
     </section>

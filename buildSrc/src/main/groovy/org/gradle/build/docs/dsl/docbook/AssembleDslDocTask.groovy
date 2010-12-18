@@ -177,7 +177,7 @@ class AssembleDslDocTask extends DefaultTask {
         String className = tr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
         try {
-            new ClassDocRenderer(new ClassLinkRenderer(tr.ownerDocument, model)).mergeContent(classDoc)
+            new ClassDocRenderer(new LinkRenderer(tr.ownerDocument, model)).mergeContent(classDoc)
             def linkMetaData = linkRepository.get(className)
             linkMetaData.style = LinkMetaData.Style.Dsldoc
             classDoc.classMethods.each { methodDoc ->
