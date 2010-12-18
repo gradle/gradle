@@ -32,6 +32,7 @@ import org.gradle.build.docs.model.ClassMetaDataRepository
 import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.gradle.build.docs.dsl.LinkMetaData
 import org.gradle.api.Project
+import org.gradle.build.docs.dsl.ClassLinkMetaData
 
 /**
  * Generates the docbook source for the DSL reference guide.
@@ -78,9 +79,9 @@ class AssembleDslDocTask extends DefaultTask {
     private def transformDocument(Document document) {
         ClassMetaDataRepository<ClassMetaData> classRepository = new SimpleClassMetaDataRepository<ClassMetaData>()
         classRepository.load(classMetaDataFile)
-        ClassMetaDataRepository<LinkMetaData> linkRepository = new SimpleClassMetaDataRepository<LinkMetaData>()
+        ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
         classRepository.each {name, ClassMetaData metaData ->
-            linkRepository.put(name, new LinkMetaData(metaData.groovy ? LinkMetaData.Style.Groovydoc : LinkMetaData.Style.Javadoc))
+            linkRepository.put(name, new ClassLinkMetaData(metaData))
         }
 
         use(DOMCategory) {
@@ -117,7 +118,7 @@ class AssembleDslDocTask extends DefaultTask {
         return extensions
     }
 
-    def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def mergeContent(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
         def title = typeTable.title[0].text()
 
         if (title.matches('(?i).* types')) {
@@ -157,7 +158,7 @@ class AssembleDslDocTask extends DefaultTask {
         }
     }
 
-    def mergeTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def mergeTypes(Element typeTable, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
         typeTable.addFirst {
             thead {
                 tr {
@@ -172,12 +173,16 @@ class AssembleDslDocTask extends DefaultTask {
         }
     }
 
-    def mergeType(Element tr, DslDocModel model, ClassMetaDataRepository<LinkMetaData> linkRepository) {
+    def mergeType(Element tr, DslDocModel model, ClassMetaDataRepository<ClassLinkMetaData> linkRepository) {
         String className = tr.td[0].text().trim()
         ClassDoc classDoc = model.getClassDoc(className)
         try {
             new ClassDocRenderer(new ClassLinkRenderer(tr.ownerDocument, model)).mergeContent(classDoc)
-            linkRepository.put(className, new LinkMetaData(LinkMetaData.Style.Dsldoc))
+            def linkMetaData = linkRepository.get(className)
+            linkMetaData.style = LinkMetaData.Style.Dsldoc
+            classDoc.classMethods.each { methodDoc ->
+                linkMetaData.addMethod(methodDoc.metaData, methodDoc.id, LinkMetaData.Style.Dsldoc)
+            }
             Element root = tr.ownerDocument.documentElement
             root << classDoc.classSection
             tr.children = {

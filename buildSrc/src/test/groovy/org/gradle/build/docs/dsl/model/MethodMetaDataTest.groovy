@@ -23,9 +23,19 @@ class MethodMetaDataTest extends Specification {
 
     def formatsSignature() {
         method.returnType = new TypeMetaData('ReturnType')
-        method.addParameter('param', new TypeMetaData('ParamType'))
+        method.addParameter('param1', new TypeMetaData('ParamType'))
+        method.addParameter('param2', new TypeMetaData('ParamType2'))
 
         expect:
-        method.signature == 'ReturnType method(ParamType param)'
+        method.signature == 'ReturnType method(ParamType param1, ParamType2 param2)'
+    }
+
+    def formatsOverrideSignature() {
+        method.returnType = new TypeMetaData('ReturnType')
+        method.addParameter('param', new TypeMetaData('ParamType'))
+        method.addParameter('param2', new TypeMetaData('ParamType2'))
+
+        expect:
+        method.overrideSignature == 'method(ParamType, ParamType2)'
     }
 }

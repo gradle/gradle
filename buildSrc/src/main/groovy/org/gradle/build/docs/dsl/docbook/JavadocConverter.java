@@ -582,7 +582,6 @@ public class JavadocConverter {
             }
             Element element = document.createElement("anchor");
             String id = String.format("%s.%s", classMetaData.getClassName(), attributes.get("name"));
-            System.out.println("==> adding anchor " + id);
             element.setAttribute("id", id);
             nodes.appendChild(element);
             return true;
@@ -616,7 +615,6 @@ public class JavadocConverter {
             }
             Element element = document.createElement("link");
             String targetId = String.format("%s.%s", classMetaData.getClassName(), href.substring(1));
-            System.out.println("==> adding link to " + targetId);
             element.setAttribute("linkend", targetId);
             nodes.push(elementName, element);
             return true;

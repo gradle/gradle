@@ -20,14 +20,15 @@ package org.gradle.build.docs
 import groovy.xml.MarkupBuilder
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.file.FileCollection
+import org.gradle.build.docs.dsl.ClassLinkMetaData
+import org.gradle.build.docs.dsl.LinkMetaData
+import org.gradle.build.docs.model.ClassMetaDataRepository
+import org.gradle.build.docs.model.SimpleClassMetaDataRepository
 import org.w3c.dom.Document
 import org.w3c.dom.Element
 import org.gradle.api.tasks.*
-import org.gradle.build.docs.dsl.LinkMetaData
-import org.gradle.build.docs.model.SimpleClassMetaDataRepository
-import org.gradle.build.docs.model.ClassMetaDataRepository
-import org.gradle.api.InvalidUserDataException
 
 /**
  * Transforms userguide source into docbook, replacing custom xml elements.
@@ -103,7 +104,7 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformApiLinks(Document doc) {
-        ClassMetaDataRepository<LinkMetaData> linkRepository = new SimpleClassMetaDataRepository<LinkMetaData>()
+        ClassMetaDataRepository<ClassLinkMetaData> linkRepository = new SimpleClassMetaDataRepository<ClassLinkMetaData>()
         linkRepository.load(linksFile)
 
         doc.documentElement.depthFirst().findAll { it.name() == 'apilink' }.each {Element element ->
@@ -113,7 +114,8 @@ public class UserGuideTransformTask extends DefaultTask {
             }
             String methodName = element.'@method'
 
-            LinkMetaData linkMetaData = linkRepository.get(className)
+            def classMetaData = linkRepository.get(className)
+            LinkMetaData linkMetaData = methodName ? classMetaData.getMethod(methodName) : classMetaData.classLink
             String style = element.'@style' ?: linkMetaData.style.toString().toLowerCase()
 
             Element ulinkElement = doc.createElement('ulink')
@@ -132,15 +134,16 @@ public class UserGuideTransformTask extends DefaultTask {
                 default:
                     throw new InvalidUserDataException("Unknown api link style '$style'.")
             }
+            if (linkMetaData.urlFragment) {
+                href = "$href#$linkMetaData.urlFragment"
+            }
 
             ulinkElement.setAttribute('url', href)
 
             Element classNameElement = doc.createElement('classname')
             ulinkElement.appendChild(classNameElement)
 
-            String classBaseName = className.tokenize('.').last()
-            String linkText = methodName ? "$classBaseName.$methodName()" : classBaseName
-            classNameElement.appendChild(doc.createTextNode(linkText))
+            classNameElement.appendChild(doc.createTextNode(linkMetaData.displayName))
 
             element.parentNode.replaceChild(ulinkElement, element)
         }

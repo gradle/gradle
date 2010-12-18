@@ -77,7 +77,16 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
         StringBuilder builder = new StringBuilder();
         builder.append(returnType.getSignature());
         builder.append(' ');
-        builder.append(getOverrideSignature());
+        builder.append(name);
+        builder.append('(');
+        for (int i = 0; i < parameters.size(); i++) {
+            ParameterMetaData param =  parameters.get(i);
+            if (i > 0) {
+                builder.append(", ");
+            }
+            builder.append(param.getSignature());
+        }
+        builder.append(')');
         return builder.toString();
     }
 
@@ -90,7 +99,7 @@ public class MethodMetaData implements Serializable, LanguageElement, TypeContai
             if (i > 0) {
                 builder.append(", ");
             }
-            builder.append(param.getSignature());
+            builder.append(param.getType().getSignature());
         }
         builder.append(')');
         return builder.toString();

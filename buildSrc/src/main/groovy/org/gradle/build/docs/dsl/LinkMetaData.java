@@ -15,24 +15,30 @@
  */
 package org.gradle.build.docs.dsl;
 
-import org.gradle.build.docs.model.Attachable;
-import org.gradle.build.docs.model.ClassMetaDataRepository;
-
 import java.io.Serializable;
 
-public class LinkMetaData implements Serializable, Attachable<LinkMetaData> {
+public class LinkMetaData implements Serializable {
     enum Style { Javadoc, Groovydoc, Dsldoc }
 
     private final Style style;
+    private final String displayName;
+    private final String urlFragment;
 
-    public LinkMetaData(Style style) {
+    public LinkMetaData(Style style, String displayName, String urlFragment) {
         this.style = style;
+        this.displayName = displayName;
+        this.urlFragment = urlFragment;
     }
 
     public Style getStyle() {
         return style;
     }
 
-    public void attach(ClassMetaDataRepository<LinkMetaData> linkMetaDataClassMetaDataRepository) {
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public String getUrlFragment() {
+        return urlFragment;
     }
 }
