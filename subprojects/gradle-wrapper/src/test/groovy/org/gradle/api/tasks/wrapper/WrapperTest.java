@@ -78,7 +78,7 @@ public class WrapperTest extends AbstractTaskTest {
     public void testWrapperDefaults() {
         wrapper = createTask(Wrapper.class);
         assertEquals(new File(getProject().getProjectDir(), "gradle/wrapper/gradle-wrapper.jar"), wrapper.getJarFile());
-        assertEquals("gradle/wrapper", wrapper.getJarPath());
+        assertEquals(toNative("gradle/wrapper"), wrapper.getJarPath());
         assertEquals(new File(getProject().getProjectDir(), "gradlew"), wrapper.getScriptFile());
         assertEquals(".", wrapper.getScriptDestinationPath());
         assertEquals(new GradleVersion().getVersion(), wrapper.getGradleVersion());
