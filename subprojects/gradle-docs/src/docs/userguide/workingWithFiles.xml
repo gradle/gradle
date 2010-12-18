@@ -111,7 +111,7 @@
 
         <para>
             One way to obtain a <literal>FileTree</literal> instance is to use the
-            <apilink class="org.gradle.api.Project" method="fileTree(java.util.Map&lt;java.lang.String, ?>)"/> method.
+            <apilink class="org.gradle.api.Project" method="fileTree(java.util.Map)"/> method.
             This creates a <literal>FileTree</literal> defined with a base directory, and optionally some Ant-style
             include and exclude patterns.
         </para>

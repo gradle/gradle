@@ -30,7 +30,7 @@ class LinePerThreadBufferingOutputStreamTest extends MultithreadedTestCase {
         10.times {
             start {
                 100.times {
-                    outstr.write('write ' as byte[])
+                    outstr.write('write '.getBytes())
                     outstr.print(it)
                     outstr.println()
                 }

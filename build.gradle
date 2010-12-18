@@ -56,7 +56,7 @@ libraries = [
         commons_lang: 'commons-lang:commons-lang:2.5@jar',
         dom4j: 'dom4j:dom4j:1.6.1@jar',
         google_collections: 'com.google.collections:google-collections:1.0@jar',
-        groovy: 'org.codehaus.groovy:groovy-all:1.7.5@jar',
+        groovy: 'org.codehaus.groovy:groovy-all:1.7.6@jar',
         ivy: 'org.apache.ivy:ivy:2.2.0@jar',
         jaxen: 'jaxen:jaxen:1.1@jar',
         slf4j_api: 'org.slf4j:slf4j-api:1.6.1@jar',

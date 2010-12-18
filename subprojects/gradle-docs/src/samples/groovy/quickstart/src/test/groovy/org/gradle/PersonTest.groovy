@@ -16,7 +16,7 @@ class PersonTest {
     }
 
     @Test public void usingCorrectVersionOfGroovy() {
-        assertEquals('1.7.5', InvokerHelper.version)
+        assertEquals('1.7.6', InvokerHelper.version)
     }
     
     @Test public void testResourcesAreAvailable() {
