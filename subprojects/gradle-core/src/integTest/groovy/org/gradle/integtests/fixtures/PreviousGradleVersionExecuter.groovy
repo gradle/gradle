@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
+import java.util.regex.Matcher
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist
@@ -51,7 +52,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         def zipFile = dist.userHomeDir.parentFile.file("gradle-$version-bin.zip")
         if (!zipFile.isFile()) {
             try {
-                URL url = new URL("http://dist.codehaus.org/gradle/${zipFile.name}")
+                URL url = binDistributionUrl
                 System.out.println("downloading $url");
                 zipFile.copyFrom(url)
             } catch (Throwable t) {
@@ -60,6 +61,18 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
             }
         }
         return zipFile
+    }
+
+    private URL getBinDistributionUrl() {
+        def matcher = version =~ /(\d+\.\d+).*/
+        assert matcher.matches()
+        def majorVersion = matcher.group(1) as BigDecimal
+
+        if (majorVersion >= 0.9) {
+            return new URL("http://gradle.artifactoryonline.com/gradle/distributions//gradle-$version-bin.zip")
+        } else {
+            return new URL("http://dist.codehaus.org/gradle/gradle-$version-bin.zip")
+        }
     }
 
     def TestFile getGradleHomeDir() {
