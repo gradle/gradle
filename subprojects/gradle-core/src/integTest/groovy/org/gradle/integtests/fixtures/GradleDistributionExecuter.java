@@ -123,7 +123,8 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
         GradleExecuter returnedExecuter = inProcessGradleExecuter;
 
         if (EXECUTER != Executer.embedded || !inProcessGradleExecuter.canExecute()) {
-            ForkingGradleExecuter forkingGradleExecuter = EXECUTER == Executer.daemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
+            boolean useDaemon = EXECUTER == Executer.daemon && getExecutable() == null;
+            ForkingGradleExecuter forkingGradleExecuter = useDaemon ? new DaemonGradleExecuter(dist.getGradleHomeDir()) : new ForkingGradleExecuter(dist.getGradleHomeDir());
             copyTo(forkingGradleExecuter);
             returnedExecuter = forkingGradleExecuter;
         }
