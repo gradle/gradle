@@ -445,7 +445,7 @@ task releaseArtifacts {
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadDists, ':docs:uploadDocs'
+    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, ':docs:uploadDocs'
 }
 
 task wrapper(type: Wrapper, dependsOn: binZip)
