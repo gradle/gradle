@@ -316,6 +316,26 @@ class Release {
         return status ? "Gradle $version ($status)" : "Gradle $version"
     }
 
+    def String getAllDistributionUrl() {
+        return "${distributionBase}gradle-${version}-all.zip"
+    }
+
+    def String getBinDistributionUrl() {
+        return "${distributionBase}gradle-${version}-bin.zip"
+    }
+
+    def String getSrcDistributionUrl() {
+        return "${distributionBase}gradle-${version}-src.zip"
+    }
+
+    def String getDistributionBase() {
+        if (majorVersion == '0.7' || majorVersion == '0.8') {
+            return "http://dist.codehaus.org/gradle/"
+        } else {
+            return "http://gradle.artifactoryonline.com/gradle/distributions/"
+        }
+    }
+
     def String getDocsUrl() {
         return "/${version}/docs"
     }

@@ -20,7 +20,7 @@
 <div id="gettingstarted">
     <h2>Getting started</h2>
     <ol>
-        <li>Download <a href="http://dist.codehaus.org/gradle/gradle-${currentRelease.version}-all.zip" title="gradle-${currentRelease.version}-all.zip">${currentRelease.version}</a></li>
+        <li>Download <a href="${currentRelease.allDistributionUrl}" title="gradle-${currentRelease.version}-all.zip">${currentRelease.version}</a></li>
         <li>Try the <a href="tutorials.html">tutorials</a></li>
         <li>Read the <a href="documentation.html">documentation</a></li>
         <li>Join the <a href="community.html">community</a></li>
