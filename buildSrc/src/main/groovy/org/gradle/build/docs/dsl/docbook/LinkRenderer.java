@@ -97,8 +97,8 @@ public class LinkRenderer {
             return linkElement;
         }
 
-        listener.warning(String.format("Could not generate link for unknown class %s", className));
-        Element element = document.createElement("UNKNOWN-CLASS");
+        listener.warning(String.format("Could not generate link for unknown class '%s'", className));
+        Element element = document.createElement("classname");
         element.appendChild(document.createTextNode(className));
         return element;
     }

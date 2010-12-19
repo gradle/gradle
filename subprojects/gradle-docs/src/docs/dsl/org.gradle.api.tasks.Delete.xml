@@ -19,6 +19,9 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>delete</td>
+            </tr>
         </table>
     </section>
 </section>

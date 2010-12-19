@@ -46,6 +46,18 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>natures</td>
+            </tr>
+            <tr>
+                <td>referencedProjects</td>
+            </tr>
+            <tr>
+                <td>buildCommand</td>
+            </tr>
+            <tr>
+                <td>link</td>
+            </tr>
         </table>
     </section>
 </section>

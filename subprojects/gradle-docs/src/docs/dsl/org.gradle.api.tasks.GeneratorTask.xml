@@ -23,6 +23,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>beforeConfigured</td>
+            </tr>
+            <tr>
+                <td>whenConfigured</td>
+            </tr>
         </table>
     </section>
 </section>

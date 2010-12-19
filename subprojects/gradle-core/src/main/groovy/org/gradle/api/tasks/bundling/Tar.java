@@ -49,7 +49,7 @@ public class Tar extends AbstractArchiveTask {
     }
 
     /**
-     * Returns the compression to use for this archive. The default is {@link org.gradle.api.tasks.bundling.Compression#NONE}.
+     * Returns the compression to use for this archive.
      * @return The compression. Never returns null.
      */
     public Compression getCompression() {

@@ -63,9 +63,10 @@
 
     <section>
         <title>Build script structure</title>
-        <para>A build script is made up of zero or more statements and blocks. Statements can include method calls
-            or property assignments. Being a Groovy script, a build script can also contain method and class definitions.
-            The blocks are listed below:</para>
+        <para>A build script is made up of zero or more statements and script blocks. Statements can include method calls,
+            property assignments, and local variable definitions. A script block is a method call which takes a closure
+            as a parameter. The closure is treated as a <firstterm>configuration closure</firstterm> which configures
+            some delegate object as it executes. The top level script blocks are listed below.</para>
         <table>
             <title>Build script blocks</title>
             <tr>
@@ -87,9 +88,15 @@
                 <td>repositories</td>
             </tr>
             <tr>
+                <td>sourceSets</td>
+            </tr>
+            <tr>
                 <td>subprojects</td>
             </tr>
         </table>
+        <para>A build script is also a Groovy script, and so can contain those elements allowed in a Groovy script,
+            such as method definitions and class definitions.
+        </para>
     </section>
 
     <section>

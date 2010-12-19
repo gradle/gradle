@@ -20,6 +20,38 @@
                 <td>propertiesFile</td>
                 <td><literal>jarFile</literal>, replacing <literal>.jar</literal> with <literal>.properties</literal></td>
             </tr>
+            <tr>
+                <td>distributionPath</td>
+                <td><literal>'wrapper/dists'</literal></td>
+            </tr>
+            <tr>
+                <td>distributionBase</td>
+                <td><literal>PathBase.GRADLE_USER_HOME</literal></td>
+            </tr>
+            <tr>
+                <td>archivePath</td>
+                <td><literal>'wrapper/dists'</literal></td>
+            </tr>
+            <tr>
+                <td>archiveBase</td>
+                <td><literal>PathBase.GRADLE_USER_HOME</literal></td>
+            </tr>
+            <tr>
+                <td>archiveName</td>
+                <td><literal>'gradle'</literal></td>
+            </tr>
+            <tr>
+                <td>archiveClassifier</td>
+                <td><literal>'bin'</literal></td>
+            </tr>
+            <tr>
+                <td>urlRoot</td>
+                <td><literal>'http://dist.codehaus.org/gradle'</literal></td>
+            </tr>
+            <tr>
+                <td>gradleVersion</td>
+                <td><literal>gradle.gradleVersion</literal></td>
+            </tr>
         </table>
     </section>
     <section>

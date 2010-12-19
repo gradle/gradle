@@ -14,91 +14,91 @@
             </tr>
             <tr>
                 <td>testResultsDir</td>
-                <td>??</td>
+                <td><literal>project.testResultsDir</literal></td>
             </tr>
             <tr>
                 <td>testReportDir</td>
-                <td>??</td>
+                <td><literal>project.testReportDir</literal></td>
             </tr>
             <tr>
                 <td>classpath</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>testReport</td>
-                <td>??</td>
+                <td><literal>project.sourceSets.test.runtimeClasspath</literal></td>
             </tr>
             <tr>
                 <td>testSrcDirs</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>scanForTestClasses</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>forkEvery</td>
-                <td>??</td>
-            </tr>
-            <tr>
-                <td>maxParallelForks</td>
-                <td>??</td>
+                <td><literal>project.sourceSets.test.java.srcDirs</literal></td>
             </tr>
             <tr>
                 <td>workingDir</td>
-                <td><literal>??</literal></td>
+                <td><literal>project.projectDir</literal></td>
+            </tr>
+            <tr>
+                <td>testReport</td>
+                <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>scanForTestClasses</td>
+                <td><literal>true</literal></td>
+            </tr>
+            <tr>
+                <td>forkEvery</td>
+                <td><literal>0</literal></td>
+            </tr>
+            <tr>
+                <td>maxParallelForks</td>
+                <td><literal>1</literal></td>
             </tr>
             <tr>
                 <td>executable</td>
-                <td><literal>??</literal></td>
+                <td><command>java</command> command for the current JVM.</td>
             </tr>
             <tr>
                 <td>systemProperties</td>
-                <td><literal>??</literal></td>
+                <td><literal>[:]</literal></td>
             </tr>
             <tr>
                 <td>bootstrapClasspath</td>
-                <td><literal>??</literal></td>
+                <td><literal>[]</literal></td>
             </tr>
             <tr>
                 <td>maxHeapSize</td>
-                <td><literal>??</literal></td>
+                <td><literal>null</literal></td>
             </tr>
             <tr>
                 <td>jvmArgs</td>
-                <td><literal>??</literal></td>
+                <td><literal>[]</literal></td>
             </tr>
             <tr>
                 <td>enableAssertions</td>
-                <td><literal>??</literal></td>
+                <td><literal><literal>true</literal></literal></td>
             </tr>
             <tr>
                 <td>debug</td>
-                <td><literal>??</literal></td>
+                <td><literal>false</literal></td>
             </tr>
             <tr>
                 <td>allJvmArgs</td>
-                <td><literal>??</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>environment</td>
-                <td><literal>??</literal></td>
+                <td>environment of the current process</td>
             </tr>
             <tr>
                 <td>ignoreFailures</td>
-                <td><literal>??</literal></td>
+                <td><literal>false</literal></td>
             </tr>
             <tr>
                 <td>options</td>
-                <td><literal>??</literal></td>
+                <td/>
             </tr>
             <tr>
                 <td>includes</td>
-                <td><literal>??</literal></td>
+                <td>[]</td>
             </tr>
             <tr>
                 <td>excludes</td>
-                <td><literal>??</literal></td>
+                <td>[]</td>
             </tr>
         </table>
     </section>

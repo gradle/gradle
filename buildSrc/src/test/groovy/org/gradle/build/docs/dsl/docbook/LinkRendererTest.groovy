@@ -88,7 +88,7 @@ class LinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('some.other.Class'), listener)
 
         then:
-        format(link) == '<UNKNOWN-CLASS>some.other.Class</UNKNOWN-CLASS>'
+        format(link) == '<classname>some.other.Class</classname>'
     }
 
     def rendersLinkToExternalClassArray() {
@@ -96,7 +96,7 @@ class LinkRendererTest extends XmlSpecification {
         def link = renderer.link(type('some.other.Class', true), listener)
 
         then:
-        format(link) == '<classname><UNKNOWN-CLASS>some.other.Class</UNKNOWN-CLASS>[]</classname>'
+        format(link) == '<classname><classname>some.other.Class</classname>[]</classname>'
     }
 
     def rendersLinkToParameterizedType() {

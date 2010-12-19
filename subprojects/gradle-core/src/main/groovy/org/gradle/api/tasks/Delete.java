@@ -64,7 +64,7 @@ public class Delete extends ConventionTask {
     }
 
     /**
-     * Adds some files to be deleted by this task.
+     * Adds some files to be deleted by this task. The given targets are evaluated as for {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param targets Any type of object accepted by {@link org.gradle.api.Project#files(Object...)}
      */

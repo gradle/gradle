@@ -70,6 +70,27 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>facet</td>
+            </tr>
+            <tr>
+                <td>variables</td>
+            </tr>
+            <tr>
+                <td>property</td>
+            </tr>
+            <tr>
+                <td>resource</td>
+            </tr>
+            <tr>
+                <td>withXml</td>
+            </tr>
+            <tr>
+                <td>beforeConfigured</td>
+            </tr>
+            <tr>
+                <td>whenConfigured</td>
+            </tr>
         </table>
     </section>
 </section>

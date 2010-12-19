@@ -45,6 +45,30 @@
             <tr>
                 <td>from</td>
             </tr>
+            <tr>
+                <td>into</td>
+            </tr>
+            <tr>
+                <td>with</td>
+            </tr>
+            <tr>
+                <td>include</td>
+            </tr>
+            <tr>
+                <td>exclude</td>
+            </tr>
+            <tr>
+                <td>rename</td>
+            </tr>
+            <tr>
+                <td>filter</td>
+            </tr>
+            <tr>
+                <td>expand</td>
+            </tr>
+            <tr>
+                <td>eachFile</td>
+            </tr>
         </table>
     </section>
 </section>

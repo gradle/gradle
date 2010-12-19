@@ -47,6 +47,21 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>commandLine</td>
+            </tr>
+            <tr>
+                <td>args</td>
+            </tr>
+            <tr>
+                <td>executable</td>
+            </tr>
+            <tr>
+                <td>workingDir</td>
+            </tr>
+            <tr>
+                <td>environment</td>
+            </tr>
         </table>
     </section>
 </section>

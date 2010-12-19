@@ -161,14 +161,26 @@ public class EclipseWtp extends ConventionTask {
         resources.add(new WbResource(args.deployPath, args.sourcePath))
     }
 
+    /**
+     * Adds a closure to be called when the XML content for each file has been generated, but before the content is
+     * written to the file.
+     */
     void withXml(Closure closure) {
         withXmlActions.add(closure);
     }
 
+    /**
+     * Adds a closure to be called when the model has been loaded from the input files, and before this task has
+     * configured the model.
+     */
     void beforeConfigured(Closure closure) {
         beforeConfiguredActions.add(closure);
     }
 
+    /**
+     * Adds a closure to be called after this task has configured model, and before it generates the XML content for the
+     * files.
+     */
     void whenConfigured(Closure closure) {
         whenConfiguredActions.add(closure);
     }

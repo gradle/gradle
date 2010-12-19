@@ -54,6 +54,12 @@
                     <td>Name</td>
                 </tr>
             </thead>
+            <tr>
+                <td>containers</td>
+            </tr>
+            <tr>
+                <td>variables</td>
+            </tr>
         </table>
     </section>
 </section>

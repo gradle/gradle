@@ -305,9 +305,15 @@ class ClassDoc {
 
     BlockDoc getBlock(String name) {
         def block = classBlocks.find { it.name == name }
-        if (!block) {
-            throw new RuntimeException("Class $className does not have a script block '$name'.")
+        if (block) {
+            return block
         }
-        return block
+        for (extensionDoc in classExtensions) {
+            block = extensionDoc.extensionBlocks.find { it.name == name }
+            if (block) {
+                return block
+            }
+        }
+        throw new RuntimeException("Class $className does not have a script block '$name'.")
     }
 }
