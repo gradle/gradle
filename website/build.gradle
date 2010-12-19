@@ -329,10 +329,11 @@ class Release {
     }
 
     def String getDistributionBase() {
-        if (majorVersion == '0.7' || majorVersion == '0.8') {
-            return "http://dist.codehaus.org/gradle/"
-        } else {
+        def version = majorVersion as BigDecimal
+        if (version >= 0.9) {
             return "http://gradle.artifactoryonline.com/gradle/distributions/"
+        } else {
+            return "http://dist.codehaus.org/gradle/"
         }
     }
 
