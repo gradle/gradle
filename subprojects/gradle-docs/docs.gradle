@@ -321,7 +321,7 @@ task websiteProperties {
         def properties = new Properties()
         properties.version = version.toString()
         propertiesFile.parentFile.mkdirs()
-        propertiesFile.withWriter { writer -> properties.store(writer, 'documentation version properties') }
+        propertiesFile.withOutputStream { outputStream -> properties.store(outputStream, 'documentation version properties') }
     }
 }
 
