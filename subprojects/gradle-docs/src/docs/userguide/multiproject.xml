@@ -590,7 +590,7 @@
             interfaces but tested with all classes from <literal>api</literal>.
         </para>
         <section id="disable_dependency_projects">
-            <title>Disable the build of dependency projects.</title>
+            <title>Disabling the build of dependency projects</title>
             <para>Sometimes you don't want depended on projects to be built when doing a partial build.
                 To disable the build of the depended on projects you can run gradle with the <code>-a</code> option.
             </para>
