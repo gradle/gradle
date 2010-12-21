@@ -616,7 +616,7 @@
             <output args=":api:build"/>
         </sample>
 
-        <para>While you are working in a typical development cycle repeatedly building and testing changes to a
+        <para>While you are working in a typical development cycle repeatedly building and testing changes to
             the :api project (knowing that you are only changing files in this one project), you may not want to
             even suffer the expense of :shared:compile checking to see what has changed in the :shared project.
             Adding the <literal>-a</literal> option will cause gradle to use cached jars to resolve any project lib
