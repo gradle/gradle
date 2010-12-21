@@ -563,7 +563,7 @@
                 </para>
             </footnote>
             A <emphasis>lib</emphasis>
-            dependency is a special form of an execution dependency. It causes the other project to be build first and
+            dependency is a special form of an execution dependency. It causes the other project to be built first and
             adds the jar with the classes of the other project to the classpath. It also add the dependencies of the
             other project to the classpath. So you can enter the
             <literal>api</literal>
