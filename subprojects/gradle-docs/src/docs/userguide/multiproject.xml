@@ -637,7 +637,7 @@
         </sample>
 
         <para>You also might want to refactor some part of the :api project that is used in other projects.
-            If you make these types of changes, it is not sufficient to test just the :api,
+            If you make these types of changes, it is not sufficient to test just the :api
             project, you also need to test all projects that depend on the :api project.
             The <literal>buildDependents</literal> task also tests all the projects that have a project lib dependency
             (in the testRuntime configuration) on the specified project.
