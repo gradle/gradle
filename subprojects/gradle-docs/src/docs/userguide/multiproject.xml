@@ -559,7 +559,7 @@
             <literal>build.gradle</literal> of the root project.
             <footnote>
                 <para>We do this here, as it makes the layout a bit easier. We usually put the project specific stuff
-                    into the buildscript of the respective projects.
+                    into the build script of the respective projects.
                 </para>
             </footnote>
             A <emphasis>lib</emphasis>
