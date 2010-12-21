@@ -671,7 +671,7 @@
         <para>Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message
             for this chapter is that multi-project builds with Gradle are usually
             <emphasis>not</emphasis>
-            difficult. There are six elements you need to remember: <literal>allproject</literal>, <literal>
+            difficult. There are six elements you need to remember: <literal>allprojects</literal>, <literal>
             subprojects</literal>, <literal>dependsOn</literal>, <literal>childrenDependOnMe</literal>,
             <literal>dependsOnChildren</literal>
             and project lib dependencies.
