@@ -468,7 +468,7 @@
                 <literal>date</literal>
                 and
                 <literal>hello</literal>
-                task have a
+                projects have a
                 <emphasis>configuration</emphasis>
                 dependency on <literal>webDist</literal>, as all the build logic for the webapp projects is injected by
                 <literal>webDist</literal>. The
