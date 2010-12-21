@@ -241,7 +241,7 @@
             The root project is the only project in a path that is not specified by its name. The path
             <literal>:bluewhale</literal>
             corresponds to the file system path
-            <literal>water/project</literal>
+            <literal>water/bluewhale</literal>
             in the case of the example above.
         </para>
         <para>The path of a task is simply its project path plus the task name. For example <literal>
