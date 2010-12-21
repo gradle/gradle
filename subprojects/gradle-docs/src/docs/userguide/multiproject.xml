@@ -659,7 +659,7 @@
         </para>
         <para>Method inheritance might be interesting to use as Gradle's
             <emphasis>Configuration Injection</emphasis>
-            does not support methods yet (but will in a future release.).
+            does not support methods yet (but will in a future release).
         </para>
         <para>You might be wondering why we have implemented a feature we obviously don't like that much. One reason is
             that it is offered by other tools and we want to have the check mark in a feature comparison :). And we like
