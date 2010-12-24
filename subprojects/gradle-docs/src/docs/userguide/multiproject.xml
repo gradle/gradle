@@ -234,7 +234,7 @@
             The root project is the only project in a path that is not specified by its name. The path
             <literal>:bluewhale</literal>
             corresponds to the file system path
-            <literal>water/project</literal>
+            <literal>water/bluewhale</literal>
             in the case of the example above.
         </para>
         <para>The path of a task is simply its project path plus the task name. For example <literal>
@@ -457,7 +457,7 @@
                 <literal>date</literal>
                 and
                 <literal>hello</literal>
-                task have a
+                projects have a
                 <emphasis>configuration</emphasis>
                 dependency on <literal>webDist</literal>, as all the build logic for the webapp projects is injected by
                 <literal>webDist</literal>. The
@@ -547,12 +547,12 @@
             <literal>build.gradle</literal> of the root project.
             <footnote>
                 <para>We do this here, as it makes the layout a bit easier. We usually put the project specific stuff
-                    into the buildscript of the respective projects.
+                    into the build script of the respective projects.
                 </para>
             </footnote>
             A <emphasis>lib</emphasis>
-            dependency is a special form of an execution dependency. It causes the other project to be build first and
-            adds the jar with the classes of the other project to the classpath. It also add the dependencies of the
+            dependency is a special form of an execution dependency. It causes the other project to be built first and
+            adds the jar with the classes of the other project to the classpath. It also adds the dependencies of the
             other project to the classpath. So you can enter the
             <literal>api</literal>
             directory and trigger a <userinput>gradle compile</userinput>. First
@@ -578,7 +578,7 @@
             interfaces but tested with all classes from <literal>api</literal>.
         </para>
         <section id="disable_dependency_projects">
-            <title>Disable the build of dependency projects.</title>
+            <title>Disabling the build of dependency projects</title>
             <para>Sometimes you don't want depended on projects to be built when doing a partial build.
                 To disable the build of the depended on projects you can run gradle with the <code>-a</code> option.
             </para>
@@ -604,7 +604,7 @@
             <output args=":api:build"/>
         </sample>
 
-        <para>While you are working in a typical development cycle repeatedly building and testing changes to a
+        <para>While you are working in a typical development cycle repeatedly building and testing changes to
             the :api project (knowing that you are only changing files in this one project), you may not want to
             even suffer the expense of :shared:compile checking to see what has changed in the :shared project.
             Adding the <literal>-a</literal> option will cause gradle to use cached jars to resolve any project lib
@@ -625,7 +625,7 @@
         </sample>
 
         <para>You also might want to refactor some part of the :api project that is used in other projects.
-            If you make these types of changes, it is not sufficient to test just the :api,
+            If you make these types of changes, it is not sufficient to test just the :api
             project, you also need to test all projects that depend on the :api project.
             The <literal>buildDependents</literal> task also tests all the projects that have a project lib dependency
             (in the testRuntime configuration) on the specified project.
@@ -647,7 +647,7 @@
         </para>
         <para>Method inheritance might be interesting to use as Gradle's
             <emphasis>Configuration Injection</emphasis>
-            does not support methods yet (but will in a future release.).
+            does not support methods yet (but will in a future release).
         </para>
         <para>You might be wondering why we have implemented a feature we obviously don't like that much. One reason is
             that it is offered by other tools and we want to have the check mark in a feature comparison :). And we like
@@ -659,7 +659,7 @@
         <para>Writing this chapter was pretty exhausting and reading it might have a similar effect. Our final message
             for this chapter is that multi-project builds with Gradle are usually
             <emphasis>not</emphasis>
-            difficult. There are six elements you need to remember: <literal>allproject</literal>, <literal>
+            difficult. There are six elements you need to remember: <literal>allprojects</literal>, <literal>
             subprojects</literal>, <literal>dependsOn</literal>, <literal>childrenDependOnMe</literal>,
             <literal>dependsOnChildren</literal>
             and project lib dependencies.
