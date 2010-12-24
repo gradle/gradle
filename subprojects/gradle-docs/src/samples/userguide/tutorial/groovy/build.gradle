@@ -1,0 +1,27 @@
+// START SNIPPET propertyAccessors
+// Using a getter method
+println buildDir
+println project.buildDir
+println getProject().getBuildDir()
+
+// Using a setter method
+buildDir = 'target'
+getProject().setBuildDir('target')
+// END SNIPPET propertyAccessors
+
+// START SNIPPET closureAsLastParam
+repositories {
+    println "in a closure"
+}
+getProject().repositories({ println "in a closure" })
+// END SNIPPET closureAsLastParam
+
+configurations { compile }
+
+// START SNIPPET closureDelegates
+dependencies {
+    assert delegate == project.dependencies
+    compile('junit:junit:4.8.1')
+    delegate.compile('junit:junit:4.8.1')
+}
+// END SNIPPET closureDelegates

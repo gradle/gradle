@@ -1,5 +1,7 @@
+// START SNIPPET project-name
 println name
 println project.name
+// END SNIPPET project-name
 
 task check << {
 }
