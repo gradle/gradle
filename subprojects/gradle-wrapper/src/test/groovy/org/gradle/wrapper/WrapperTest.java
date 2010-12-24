@@ -15,17 +15,20 @@
  */
 package org.gradle.wrapper;
 
+import org.gradle.util.JUnit4GroovyMockery;
+import org.gradle.util.SetSystemProperties;
+import org.gradle.util.TemporaryFolder;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
-import org.jmock.lib.legacy.ClassImposteriser;
-import org.junit.After;
 import org.junit.Before;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
 import java.util.Properties;
 
 /**
@@ -36,50 +39,38 @@ public class WrapperTest {
     Wrapper wrapper;
     BootstrapMainStarter bootstrapMainStarterMock;
     Install installMock;
-
-    JUnit4Mockery context = new JUnit4Mockery();
-
-    private File propertiesDir = new File("propertiesDir");
-    private File propertiesFile;
+    final JUnit4Mockery context = new JUnit4GroovyMockery();
+    @Rule
+    public final SetSystemProperties systemProperties = new SetSystemProperties();
+    @Rule
+    public final TemporaryFolder tmpDir = new TemporaryFolder();
+    private File propertiesDir = tmpDir.getDir();
+    private File propertiesFile = new File(propertiesDir, "wrapper.properties");
 
     @Before
     public void setUp() throws IOException {
-        context.setImposteriser(ClassImposteriser.INSTANCE);
         wrapper = new Wrapper();
         bootstrapMainStarterMock = context.mock(BootstrapMainStarter.class);
         installMock = context.mock(Install.class);
-        propertiesDir.mkdirs();
-        propertiesFile = new File(propertiesDir, "wrapper.properties");
         Properties testProperties = new Properties();
         testProperties.load(WrapperTest.class.getResourceAsStream("/org/gradle/wrapper/wrapper.properties"));
         testProperties.store(new FileOutputStream(propertiesFile), null);
         System.setProperty(Wrapper.WRAPPER_PROPERTIES_PROPERTY, propertiesFile.getCanonicalPath());
     }
 
-    @After
-    public void tearDown() {
-        propertiesFile.delete();
-        propertiesDir.delete();
-        System.getProperties().remove(Wrapper.WRAPPER_PROPERTIES_PROPERTY);
-    }
-
     @Test
     public void execute() throws Exception {
         final String[] expectedArgs = { "arg1", "arg2" };
-        final int expectedExitValue = 5;
-        final String expectedGradleHome = "somepath";
+        final File expectedGradleHome = new File("somepath");
         context.checking(new Expectations() {{
           one(installMock).createDist(
-                  "test" + Wrapper.URL_ROOT_PROPERTY,
-                  "test" + Wrapper.DISTRIBUTION_BASE_PROPERTY,
-                  "test" + Wrapper.DISTRIBUTION_PATH_PROPERTY,
-                  "test" + Wrapper.DISTRIBUTION_NAME_PROPERTY,
-                  "test" + Wrapper.DISTRIBUTION_VERSION_PROPERTY,
-                  "test" + Wrapper.DISTRIBUTION_CLASSIFIER_PROPERTY,
-                  "test" + Wrapper.ZIP_STORE_BASE_PROPERTY,
-                  "test" + Wrapper.ZIP_STORE_PATH_PROPERTY
+                  new URI("http://server/test/gradle.zip"),
+                  "testDistBase",
+                  "testDistPath",
+                  "testZipBase",
+                  "testZipPath"
           ); will(returnValue(expectedGradleHome));
-          one(bootstrapMainStarterMock).start(expectedArgs, expectedGradleHome, "test" + Wrapper.DISTRIBUTION_VERSION_PROPERTY);
+          one(bootstrapMainStarterMock).start(expectedArgs, expectedGradleHome);
         }});
         wrapper.execute(expectedArgs, installMock, bootstrapMainStarterMock);
     }

@@ -18,6 +18,7 @@ package org.gradle.wrapper;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.net.URI;
 import java.util.Arrays;
 import java.util.Properties;
 
@@ -27,18 +28,15 @@ import java.util.Properties;
 public class Wrapper {
     public static final String WRAPPER_PROPERTIES_PROPERTY = "org.gradle.wrapper.properties";
     
-    public static final String URL_ROOT_PROPERTY = "urlRoot";
+    public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
     public static final String ZIP_STORE_BASE_PROPERTY = "zipStoreBase";
     public static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
-    public static final String DISTRIBUTION_VERSION_PROPERTY = "distributionVersion";
     public static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
-    public static final String DISTRIBUTION_NAME_PROPERTY = "distributionName";
-    public static final String DISTRIBUTION_CLASSIFIER_PROPERTY = "distributionClassifier";
 
     public void execute(String[] args, Install install, BootstrapMainStarter bootstrapMainStarter) throws Exception {
         Properties wrapperProperties = new Properties();
-        InputStream inStream = new FileInputStream(new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY)));
+        InputStream inStream = new FileInputStream(getWrapperPropertiesFile());
         try {
             wrapperProperties.load(inStream);
         } finally {
@@ -47,20 +45,30 @@ public class Wrapper {
         if (GradleWrapperMain.isDebug()) {
             System.out.println("wrapperProperties = " + wrapperProperties);
         }
-        String version = (String) wrapperProperties.get(DISTRIBUTION_VERSION_PROPERTY);
-        String gradleHome = install.createDist(
-                (String) wrapperProperties.get(URL_ROOT_PROPERTY),
-                (String) wrapperProperties.get(DISTRIBUTION_BASE_PROPERTY),
-                (String) wrapperProperties.get(DISTRIBUTION_PATH_PROPERTY),
-                (String) wrapperProperties.get(DISTRIBUTION_NAME_PROPERTY),
-                version,
-                (String) wrapperProperties.get(DISTRIBUTION_CLASSIFIER_PROPERTY),
-                (String) wrapperProperties.get(ZIP_STORE_BASE_PROPERTY),
-                (String) wrapperProperties.get(ZIP_STORE_PATH_PROPERTY)
+        File gradleHome = install.createDist(
+                new URI(getProperty(wrapperProperties, DISTRIBUTION_URL_PROPERTY)),
+                getProperty(wrapperProperties, DISTRIBUTION_BASE_PROPERTY),
+                getProperty(wrapperProperties, DISTRIBUTION_PATH_PROPERTY),
+                getProperty(wrapperProperties, ZIP_STORE_BASE_PROPERTY),
+                getProperty(wrapperProperties, ZIP_STORE_PATH_PROPERTY)
         );
         if (GradleWrapperMain.isDebug()) {
             System.out.println("args = " + Arrays.asList(args));
         }
-        bootstrapMainStarter.start(args, gradleHome, version);
+        bootstrapMainStarter.start(args, gradleHome);
+    }
+
+    private File getWrapperPropertiesFile() {
+        return new File(System.getProperty(WRAPPER_PROPERTIES_PROPERTY));
+    }
+
+    private String getProperty(Properties wrapperProperties, String propertyName) {
+        String value = wrapperProperties.getProperty(propertyName);
+        if (value == null) {
+            throw new RuntimeException(String.format(
+                    "No value with key '%s' specified in wrapper properties file '%s'.", propertyName,
+                    getWrapperPropertiesFile()));
+        }
+        return value;
     }
 }

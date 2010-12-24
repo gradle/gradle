@@ -17,6 +17,7 @@
 package org.gradle.wrapper;
 
 import java.io.*;
+import java.net.URI;
 import java.net.URL;
 import java.net.URLConnection;
 
@@ -27,7 +28,7 @@ class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
 
-    public void download(String address, File destination) throws Exception {
+    public void download(URI address, File destination) throws Exception {
         if (destination.exists()) {
             return;
         }
@@ -36,12 +37,12 @@ class Download implements IDownload {
         downloadInternal(address, destination);
     }
 
-    private void downloadInternal(String address, File destination) throws Exception {
+    private void downloadInternal(URI address, File destination) throws Exception {
         OutputStream out = null;
         URLConnection conn;
         InputStream in = null;
         try {
-            URL url = new URL(address);
+            URL url = address.toURL();
             out = new BufferedOutputStream(
                     new FileOutputStream(destination));
             conn = url.openConnection();

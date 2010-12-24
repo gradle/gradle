@@ -17,6 +17,7 @@
 package org.gradle.wrapper;
 
 import java.io.*;
+import java.net.URI;
 import java.util.Enumeration;
 import java.util.Locale;
 import java.util.zip.ZipEntry;
@@ -39,34 +40,36 @@ public class Install {
         this.pathAssembler = pathAssembler;
     }
 
-    public String createDist(String urlRoot, String distBase, String distPath, String distName, String distVersion,
-                             String distClassifier, String zipBase, String zipPath) throws Exception {
-        String gradleHome = pathAssembler.gradleHome(distBase, distPath, distName, distVersion);
-        File gradleHomeFile = new File(gradleHome);
-        if (!alwaysDownload && !alwaysUnpack && gradleHomeFile.isDirectory()) {
+    public File createDist(URI distributionUrl, String distBase, String distPath, String zipBase, String zipPath) throws Exception {
+        File gradleHome = pathAssembler.gradleHome(distBase, distPath, distributionUrl);
+        if (!alwaysDownload && !alwaysUnpack && gradleHome.isDirectory()) {
             return gradleHome;
         }
-        File localZipFile = new File(pathAssembler.distZip(zipBase, zipPath, distName, distVersion, distClassifier));
+        File localZipFile = pathAssembler.distZip(zipBase, zipPath, distributionUrl);
         if (alwaysDownload || !localZipFile.exists()) {
             File tmpZipFile = new File(localZipFile.getParentFile(), localZipFile.getName() + ".part");
             tmpZipFile.delete();
-            String downloadUrl = urlRoot + "/" + distName + "-" + distVersion + "-" + distClassifier + ".zip";
-            System.out.println("Downloading " + downloadUrl);
-            download.download(downloadUrl, tmpZipFile);
+            System.out.println("Downloading " + distributionUrl);
+            download.download(distributionUrl, tmpZipFile);
             tmpZipFile.renameTo(localZipFile);
         }
-        if (gradleHomeFile.isDirectory()) {
-            System.out.println("Deleting directory " + gradleHomeFile.getAbsolutePath());
-            deleteDir(gradleHomeFile);
+        if (gradleHome.isDirectory()) {
+            System.out.println("Deleting directory " + gradleHome.getAbsolutePath());
+            deleteDir(gradleHome);
         }
-        File distDest = gradleHomeFile.getParentFile();
+        File distDest = gradleHome.getParentFile();
         System.out.println("Unzipping " + localZipFile.getAbsolutePath() + " to " + distDest.getAbsolutePath());
         unzip(localZipFile, distDest);
+        if (!gradleHome.isDirectory()) {
+            throw new RuntimeException(String.format(
+                    "Gradle distribution '%s' does not contain expected directory '%s'.", distributionUrl,
+                    gradleHome.getName()));
+        }
         setExecutablePermissions(gradleHome);
         return gradleHome;
     }
 
-    private void setExecutablePermissions(String gradleHome) {
+    private void setExecutablePermissions(File gradleHome) {
         if (isWindows()) {
             return;
         }

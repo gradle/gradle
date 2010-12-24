@@ -24,9 +24,9 @@ import java.net.URLClassLoader;
  * @author Hans Dockter
  */
 public class BootstrapMainStarter {
-    public void start(String[] args, String gradleHome, String version) throws Exception {
+    public void start(String[] args, File gradleHome) throws Exception {
         boolean debug = GradleWrapperMain.isDebug();
-        File gradleJar = new File(gradleHome, "lib/gradle-launcher-" + version + ".jar");
+        File gradleJar = findLauncherJar(gradleHome);
         if (debug) {
             System.out.println("gradleJar = " + gradleJar.getAbsolutePath());
         }
@@ -35,5 +35,14 @@ public class BootstrapMainStarter {
         Class<?> mainClass = contextClassLoader.loadClass("org.gradle.launcher.GradleMain");
         Method mainMethod = mainClass.getMethod("main", String[].class);
         mainMethod.invoke(null, new Object[] {args});
+    }
+
+    private File findLauncherJar(File gradleHome) {
+        for (File file : new File(gradleHome, "lib").listFiles()) {
+            if (file.getName().matches("gradle-launcher-.*\\.jar")) {
+                return file;
+            }
+        }
+        throw new RuntimeException(String.format("Could not locate the Gradle launcher JAR in Gradle distribution '%s'.", gradleHome));
     }
 }

@@ -15,6 +15,11 @@
  */
 package org.gradle.wrapper;
 
+import java.io.File;
+import java.net.URI;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 /**
  * @author Hans Dockter
  */
@@ -31,12 +36,31 @@ public class PathAssembler {
         this.gradleUserHome = gradleUserHome;
     }
 
-    public String gradleHome(String distBase, String distPath, String distName, String distVersion) {
-        return getBaseDir(distBase) + "/" + distPath + "/" + distName + "-" + distVersion ;
+    public File gradleHome(String distBase, String distPath, URI distUrl) {
+        return new File(getBaseDir(distBase), distPath + "/" + getDistHome(distUrl));
     }
 
-    public String distZip(String zipBase, String zipPath, String distName, String distVersion, String distClassifier) {
-        return getBaseDir(zipBase) + "/" + zipPath + "/" + distName + "-" + distVersion + "-" + distClassifier + ".zip";
+    public File distZip(String zipBase, String zipPath, URI distUrl) {
+        return new File(getBaseDir(zipBase), zipPath + "/" + getDistName(distUrl));
+    }
+
+    private String getDistHome(URI distUrl) {
+        String name = getDistName(distUrl);
+        Matcher matcher = Pattern.compile("(\\p{Alpha}+-\\d+\\.\\d+.*?)(-\\p{Alpha}+)?\\.zip").matcher(name);
+        if (!matcher.matches()) {
+            throw new RuntimeException(String.format("Cannot determine Gradle version from distribution URL '%s'.",
+                    distUrl));
+        }
+        return matcher.group(1);
+    }
+
+    private String getDistName(URI distUrl) {
+        String path = distUrl.getPath();
+        int p = path.lastIndexOf("/");
+        if (p < 0) {
+            return path;
+        }
+        return path.substring(p + 1);
     }
 
     private String getBaseDir(String base) {

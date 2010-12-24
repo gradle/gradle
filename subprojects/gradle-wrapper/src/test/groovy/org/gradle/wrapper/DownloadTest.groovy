@@ -30,7 +30,7 @@ class DownloadTest {
     File testDir
     File downloadFile
     File rootDir
-    String sourceRoot
+    URI sourceRoot
     File remoteFile
     @Rule
     public TemporaryFolder tmpDir = new TemporaryFolder();
@@ -41,7 +41,7 @@ class DownloadTest {
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')
         (remoteFile = new File(testDir, 'remoteFile')).write('sometext')
-        sourceRoot = "file:///$remoteFile.canonicalPath"
+        sourceRoot = new URI("file:///$remoteFile.canonicalPath")
     }
 
     @Test public void testDownload() {

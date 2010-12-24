@@ -37,16 +37,12 @@
                 <td><literal>PathBase.GRADLE_USER_HOME</literal></td>
             </tr>
             <tr>
-                <td>archiveName</td>
-                <td><literal>'gradle'</literal></td>
-            </tr>
-            <tr>
-                <td>archiveClassifier</td>
-                <td><literal>'bin'</literal></td>
-            </tr>
-            <tr>
-                <td>urlRoot</td>
-                <td><literal>'http://dist.codehaus.org/gradle'</literal></td>
+                <td>distributionUrl</td>
+                <td><literal>'http://gradle.artifactoryonline.com/gradle/distributions/gradle-${gradleVersion}-bin.zip'</literal>
+                    (or
+                    <literal>'http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots/gradle-${gradleVersion}-bin.zip'</literal>
+                    for snapshot versions).
+                </td>
             </tr>
             <tr>
                 <td>gradleVersion</td>
