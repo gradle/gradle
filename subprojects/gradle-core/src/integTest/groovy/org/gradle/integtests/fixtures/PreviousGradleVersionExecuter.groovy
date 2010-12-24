@@ -67,7 +67,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         assert matcher.matches()
         def majorVersion = matcher.group(1) as BigDecimal
 
-        if (majorVersion >= 0.9) {
+        if (version == '0.9' || majorVersion > 0.9) {
             return new URL("http://gradle.artifactoryonline.com/gradle/distributions//gradle-$version-bin.zip")
         } else {
             return new URL("http://dist.codehaus.org/gradle/gradle-$version-bin.zip")
