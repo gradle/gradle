@@ -91,6 +91,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public File getWorkingDir() {
         return options.getWorkingDir();
     }
@@ -113,6 +114,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public String getExecutable() {
         return options.getExecutable();
     }
@@ -135,6 +137,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public Map<String, Object> getSystemProperties() {
         return options.getSystemProperties();
     }
@@ -165,6 +168,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public FileCollection getBootstrapClasspath() {
         return options.getBootstrapClasspath();
     }
@@ -201,6 +205,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public List<String> getJvmArgs() {
         return options.getJvmArgs();
     }
@@ -231,6 +236,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public boolean getEnableAssertions() {
         return options.getEnableAssertions();
     }
@@ -273,6 +279,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public Map<String, Object> getEnvironment() {
         return options.getEnvironment();
     }
@@ -567,6 +574,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * {@inheritDoc}
      */
+    @Input
     public boolean isIgnoreFailures() {
         return ignoreFailures;
     }
@@ -676,6 +684,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
     /**
      * Specifies whether the test report should be generated.
      */
+    @Input
     public boolean isTestReport() {
         return testReport;
     }
@@ -709,6 +718,7 @@ public class Test extends ConventionTask implements JavaForkOptions, PatternFilt
      * exclude patterns are scanned for test classes, and any found are executed. When {@code false} the classes which
      * match the include and exclude patterns are executed.
      */
+    @Input
     public boolean isScanForTestClasses() {
         return scanForTestClasses;
     }
