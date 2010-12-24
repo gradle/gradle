@@ -17,7 +17,6 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
-import java.util.regex.Matcher
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist
