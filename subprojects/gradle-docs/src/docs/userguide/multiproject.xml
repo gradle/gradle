@@ -32,7 +32,7 @@
                 <layout>
                     build.gradle
                     settings.gradle
-                    bluewhale
+                    bluewhale/
                 </layout>
                 <sourcefile file="settings.gradle"/>
             </sample>
@@ -59,8 +59,8 @@
                 <layout>
                     build.gradle
                     settings.gradle
-                    bluewhale
-                    krill
+                    bluewhale/
+                    krill/
                 </layout>
                 <sourcefile file="settings.gradle"/>
             </sample>
@@ -114,9 +114,7 @@
                 <layout>
                     build.gradle
                     settings.gradle
-                    bluewhale
                     bluewhale/build.gradle
-                    krill
                     krill/build.gradle
                 </layout>
                 <sourcefile file="settings.gradle"/>
@@ -138,11 +136,9 @@
                     <layout>
                         build.gradle
                         settings.gradle
-                        bluewhale
                         bluewhale/build.gradle
-                        krill
                         krill/build.gradle
-                        tropicalFish
+                        tropicalFish/
                     </layout>
                     <sourcefile file="settings.gradle"/>
                     <sourcefile file="build.gradle"/>
@@ -160,11 +156,8 @@
                     <layout>
                         build.gradle
                         settings.gradle
-                        bluewhale
                         bluewhale/build.gradle
-                        krill
                         krill/build.gradle
-                        tropicalFish
                         tropicalFish/build.gradle
                     </layout>
                     <sourcefile file="settings.gradle"/>
@@ -270,9 +263,7 @@
                 <sample id="multiprojectFirstMessages" dir="userguide/multiproject/dependencies/firstMessages/messages" includeLocation="true" title="Dependencies and execution order">
                     <layout>
                         settings.gradle
-                        consumer
                         consumer/build.gradle
-                        producer
                         producer/build.gradle
                     </layout>
                     <sourcefile file="settings.gradle"/>
@@ -289,9 +280,7 @@
                 <sample id="multiprojectMessagesHack" dir="userguide/multiproject/dependencies/messagesHack/messages" title="Dependencies and execution order">
                     <layout>
                         settings.gradle
-                        aProducer
                         aProducer/build.gradle
-                        consumer
                         consumer/build.gradle
                     </layout>
                     <sourcefile file="settings.gradle"/>
@@ -321,9 +310,7 @@
                 <sample id="multiprojectMessagesDependencies" dir="userguide/multiproject/dependencies/messagesWithDependencies/messages" includeLocation="true" title="Declaring dependencies">
                     <layout>
                         settings.gradle
-                        consumer
                         consumer/build.gradle
-                        producer
                         producer/build.gradle
                     </layout>
                     <sourcefile file="settings.gradle"/>
@@ -456,9 +443,11 @@
                 <layout>
                     settings.gradle
                     build.gradle
-                    date
+                    date/
+                    date/src/main/java/
                     date/src/main/java/org/gradle/sample/DateServlet.java
-                    hello
+                    hello/
+                    hello/src/main/java/
                     hello/src/main/java/org/gradle/sample/HelloServlet.java
                 </layout>
                 <sourcefile file="settings.gradle"/>
@@ -525,23 +514,22 @@
             <layout>
                 settings.gradle
                 build.gradle
-                api
+                api/
+                api/src/main/java/
                 api/src/main/java/org/gradle/sample/api/Person.java
                 api/src/main/java/org/gradle/sample/apiImpl/PersonImpl.java
-                services
-                services/personService
+                services/personService/
+                services/personService/src/main/java/
                 services/personService/src/main/java/org/gradle/sample/services/PersonService.java
+                services/personService/src/test/java/
                 services/personService/src/test/java/org/gradle/sample/services/PersonServiceTest.java
-                shared
+                shared/
+                shared/src/main/java/
                 shared/src/main/java/org/gradle/sample/shared/Helper.java
             </layout>
         </sample>
-        <para>We have the projects <literal>shared</literal>,
-            <literal>api</literal>
-            and <literal>personService</literal>.
-            <literal>personService</literal>
-            has a lib dependency on the other two projects.
-            <literal>api</literal>
+        <para>We have the projects <literal>shared</literal>, <literal>api</literal> and<literal>personService</literal>.
+            <literal>personService</literal> has a lib dependency on the other two projects. <literal>api</literal>
             has a lib dependency on <literal>shared</literal>.
             <footnote>
                 <para>

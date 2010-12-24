@@ -13,42 +13,37 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='gradle_wrapper' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='gradle_wrapper'>
     <title>The Gradle Wrapper</title>
     <para>Gradle is a new tool. You can't expect it to be installed on machines beyond your sphere of influence. An
         example are continuous integration server where Gradle is not installed and where you have no admin rights for
         the machine. Or what if you provide an open source project and you want to make it as easy as possible for your
         users to build it?
     </para>
-    <para>There is a simple and good news. Gradle provides a solution for this. It ships with a
-        <emphasis>Wrapper</emphasis>
-        task.
+    <para>There is a simple and good <apilink class="org.gradle.api.tasks.wrapper.Wrapper"/> task.
         <footnote>
             <para>If you download the Gradle source distribution or check out Gradle from SVN, you can build Gradle via
-                the Gradle wrapper.
-            </para>
-        </footnote>
-        <footnote>
-            <para>Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See
+                the Gradle wrapper. Gradle itself is continuously built by Bamboo and Teamcity via this wrapper. See
                 <ulink url='website:ci-server.html'/>
             </para>
         </footnote>
         You can create such a task in your build script.
     </para>
-    <sample id="wrapperSimple" dir="userguide/wrapper" title="Wrapper task">
-        <sourcefile file="build.gradle" snippet="wrapper-simple"/>
+    <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper task">
+        <sourcefile file="build.gradle"/>
     </sample>
     <para>The build master usually explicitly executes this task. After such
         an execution you find the following new or updated files in your project directory (in case the default configuration of the wrapper task is
         used).
     </para>
-    <screen><![CDATA[
-project-root/
-  gradlew
-  gradlew.bat
-  gradle-wrapper.jar
-  gradle-wrapper.properties
-]]></screen>
+    <sample id="wrapperSimple" dir="userguide/wrapper/simple" title="Wrapper generated files">
+        <layout after="wrapper">
+            gradlew
+            gradlew.bat
+            gradle/wrapper/gradle-wrapper.jar
+            gradle/wrapper/gradle-wrapper.properties
+        </layout>
+    </sample>
     <para>All these files must be submitted to your version control system. The <command>gradlew</command> command
         can be used <emphasis>exactly</emphasis> the same way as the <command>gradle</command> command.
     </para>
@@ -64,17 +59,15 @@ project-root/
             command.
         </para>
         <para>You can specify where the wrapper files should be stored (within your project directory):</para>
-        <sample id="wrapperCustomized" dir="userguide/wrapper" title="Configuration of wrapper task">
+        <sample id="wrapperCustomized" dir="userguide/wrapper/customized" title="Configuration of wrapper task">
             <sourcefile file="build.gradle"/>
+            <layout after="wrapper">
+                gradlew
+                gradlew.bat
+                wrapper/wrapper.jar
+                wrapper/wrapper.properties
+            </layout>
         </sample>
-        <screen><![CDATA[
-project-root/
-  gradlew
-  gradlew.bat
-  wrapper/
-    gradle-wrapper.jar
-    gradle-wrapper.properties
-]]></screen>
         <para>
             You can specify the download URL of the wrapper distribution. You can also specify where the wrapper distribution
             should be stored and unpacked (either within the project or within the gradle user home dir). If the wrapper

@@ -17,7 +17,6 @@
 
 package org.gradle.build.docs
 
-import groovy.xml.MarkupBuilder
 import groovy.xml.dom.DOMCategory
 import org.gradle.api.DefaultTask
 import org.gradle.api.InvalidUserDataException
@@ -76,12 +75,14 @@ public class UserGuideTransformTask extends DefaultTask {
 
     private def transform(Document doc) {
         use(DOMCategory) {
-            addVersionInfo(doc)
-            applyConditionalChunks(doc)
-            transformSamples(doc)
-            transformApiLinks(doc)
-            transformWebsiteLinks(doc)
-            fixProgramListings(doc)
+            use(BuildableDOMCategory) {
+                addVersionInfo(doc)
+                applyConditionalChunks(doc)
+                transformSamples(doc)
+                transformApiLinks(doc)
+                transformWebsiteLinks(doc)
+                fixProgramListings(doc)
+            }
         }
     }
 
@@ -163,120 +164,92 @@ public class UserGuideTransformTask extends DefaultTask {
     }
 
     def transformSamples(Document doc) {
-        File samplesFile = new File(destFile.parentFile, 'samples.xml')
-        samplesFile.withWriter {Writer writer ->
-            MarkupBuilder xml = new MarkupBuilder(writer)
-            xml.samples {
-                doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each {Element element ->
-                	validator.validate(element)
-                    String sampleId = element.'@id'
-                    String srcDir = element.'@dir'
-
-                    // This class handles the responsibility of adding the location tips to the first child of first
-                    // example defined in the sample.
-                    SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
-                   
-                    xml.sample(id: sampleId, dir: srcDir)
-
-                    String title = element.'@title' 
-
-                    Element exampleElement = doc.createElement('example')
-                    exampleElement.setAttribute('id', sampleId)
-                    Element titleElement = doc.createElement('title')
-               	   	titleElement.appendChild(doc.createTextNode(title))
-               	   	exampleElement.appendChild(titleElement);
-                    
-                    element.children().each {Element child ->
-                        if (child.name() == 'sourcefile') {
-                            String file = child.'@file'
-                           
-                            Element sourcefileTitle = doc.createElement("para")
-                    		Element commandElement = doc.createElement('filename')
-                        	commandElement.appendChild(doc.createTextNode(file))
-                        	sourcefileTitle.appendChild(commandElement)
-                        	exampleElement.appendChild(sourcefileTitle);
-
-                            Element programListingElement = doc.createElement('programlisting')
-                            if (file.endsWith('.gradle') || file.endsWith('.groovy')) {
-                                programListingElement.setAttribute('language', 'java')
-                            }
-                            else if (file.endsWith('.xml')) {
-                                programListingElement.setAttribute('language', 'xml')
-                            }
-                            File srcFile
-                            String snippet = child.'@snippet'
-                            if (snippet) {
-                                srcFile = new File(snippetsDir, "$srcDir/$file-$snippet")
-                            } else {
-                                srcFile = new File(snippetsDir, "$srcDir/$file")
-                            }
-                            programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
-                            exampleElement.appendChild(programListingElement)
-                        } else if (child.name() == 'output') {
-                            String args = child.'@args'
-                            String outputFile = child.'@outputFile' ?: "${sampleId}.out"
-                            boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
-
-                            xml.sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile, ignoreExtraLines: ignoreExtraLines)
-
-                            Element outputTitle = doc.createElement("para")
-                            outputTitle.appendChild(doc.createTextNode("Output of "))
-                            Element commandElement = doc.createElement('userinput')
-                            commandElement.appendChild(doc.createTextNode("gradle $args"))
-                            outputTitle.appendChild(commandElement)
-                            exampleElement.appendChild(outputTitle)
-
-                            Element screenElement = doc.createElement('screen')
-                            File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
-                            screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
-                            exampleElement.appendChild(screenElement)
-                        } else if (child.name() == 'test') {
-                            String args = child.'@args'
-
-                            xml.sample(id: sampleId, dir: srcDir, args: args)
-                        } else if (child.name() == 'layout') {
-                        	Element outputTitle = doc.createElement("para")
-                    		outputTitle.appendChild(doc.createTextNode("Build layout"))
-                    		exampleElement.appendChild(outputTitle)
-
-                            Element programListingElement = doc.createElement('programlisting')
-                            exampleElement.appendChild(programListingElement)
-                            StringBuilder content = new StringBuilder()
-                            content.append("${srcDir.tokenize('/').last()}/\n")
-                            List stack = []
-                            child.text().eachLine {
-                                def fileName = it.trim()
-                                if (!fileName) {
-                                    return
-                                }
-                                File file = new File(snippetsDir, "$srcDir/$fileName")
-                                if (!file.exists()) {
-                                    throw new RuntimeException("Sample file $file does not exist for sample ${sampleId}.")
-                                }
-                                List context = fileName.tokenize('/')
-
-                                int common = 0;
-                                while (common < stack.size() && common < context.size() && stack[common] == context[common]) {
-                                    common++;
-                                }
-                                stack = stack.subList(0, common)
-
-                                (stack.size() + 1).times { content.append("  ") }
-                                content.append("${context.subList(stack.size(), context.size()).join('/')}${file.directory ? '/' : ''}\n")
-                                if (file.directory) {
-                                    stack = context
-                                }
-                            }
-                            programListingElement.appendChild(doc.createTextNode(content.toString()))
-                        }
-
-                        locationHandler.processSampleLocation(exampleElement)
-                    }
-                    element.parentNode.insertBefore(exampleElement, element)
-                    element.parentNode.removeChild(element)
-                }
-            }
+        XIncludeAwareXmlProvider samplesXmlProvider = new XIncludeAwareXmlProvider(classpath)
+        samplesXmlProvider.emptyDoc() << {
+            samples()
         }
+        Element samplesXml = samplesXmlProvider.root.documentElement
+        doc.documentElement.depthFirst().findAll { it.name() == 'sample' }.each { Element element ->
+            validator.validate(element)
+            String sampleId = element.'@id'
+            String srcDir = element.'@dir'
+
+            // This class handles the responsibility of adding the location tips to the first child of first
+            // example defined in the sample.
+            SampleElementLocationHandler locationHandler = new SampleElementLocationHandler(doc, element, srcDir)
+            SampleLayoutHandler layoutHandler = new SampleLayoutHandler(srcDir)
+
+            samplesXml << { sample(id: sampleId, dir: srcDir) }
+
+            String title = element.'@title'
+
+            Element exampleElement = doc.createElement('example')
+            exampleElement.setAttribute('id', sampleId)
+            Element titleElement = doc.createElement('title')
+            titleElement.appendChild(doc.createTextNode(title))
+            exampleElement.appendChild(titleElement);
+
+            element.children().each {Element child ->
+                if (child.name() == 'sourcefile') {
+                    String file = child.'@file'
+
+                    Element sourcefileTitle = doc.createElement("para")
+                    Element commandElement = doc.createElement('filename')
+                    commandElement.appendChild(doc.createTextNode(file))
+                    sourcefileTitle.appendChild(commandElement)
+                    exampleElement.appendChild(sourcefileTitle);
+
+                    Element programListingElement = doc.createElement('programlisting')
+                    if (file.endsWith('.gradle') || file.endsWith('.groovy')) {
+                        programListingElement.setAttribute('language', 'java')
+                    }
+                    else if (file.endsWith('.xml')) {
+                        programListingElement.setAttribute('language', 'xml')
+                    }
+                    File srcFile
+                    String snippet = child.'@snippet'
+                    if (snippet) {
+                        srcFile = new File(snippetsDir, "$srcDir/$file-$snippet")
+                    } else {
+                        srcFile = new File(snippetsDir, "$srcDir/$file")
+                    }
+                    programListingElement.appendChild(doc.createTextNode(normalise(srcFile.text)))
+                    exampleElement.appendChild(programListingElement)
+                } else if (child.name() == 'output') {
+                    String args = child.'@args'
+                    String outputFile = child.'@outputFile' ?: "${sampleId}.out"
+                    boolean ignoreExtraLines = child.'@ignoreExtraLines' ?: false
+
+                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args, outputFile: outputFile, ignoreExtraLines: ignoreExtraLines) }
+
+                    Element outputTitle = doc.createElement("para")
+                    outputTitle.appendChild(doc.createTextNode("Output of "))
+                    Element commandElement = doc.createElement('userinput')
+                    commandElement.appendChild(doc.createTextNode("gradle $args"))
+                    outputTitle.appendChild(commandElement)
+                    exampleElement.appendChild(outputTitle)
+
+                    Element screenElement = doc.createElement('screen')
+                    File srcFile = new File(sourceFile.parentFile, "../../../src/samples/userguideOutput/${outputFile}").canonicalFile
+                    screenElement.appendChild(doc.createTextNode("> gradle $args\n" + normalise(srcFile.text)))
+                    exampleElement.appendChild(screenElement)
+                } else if (child.name() == 'test') {
+                    String args = child.'@args'
+                    samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
+                } else if (child.name() == 'layout') {
+                    String args = child.'@after'
+                    Element sampleElement = samplesXml << { sample(id: sampleId, dir: srcDir, args: args) }
+                    layoutHandler.handle(child.text(), exampleElement, sampleElement)
+                }
+
+                locationHandler.processSampleLocation(exampleElement)
+            }
+            element.parentNode.insertBefore(exampleElement, element)
+            element.parentNode.removeChild(element)
+        }
+
+        File samplesFile = new File(destFile.parentFile, 'samples.xml')
+        samplesXmlProvider.write(samplesFile, true)
     }
 
     void applyConditionalChunks(Document doc) {

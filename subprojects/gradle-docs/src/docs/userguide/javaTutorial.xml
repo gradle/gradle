@@ -193,10 +193,9 @@
         </para>
         <sample id="javaMultiProject" dir="java/multiproject" includeLocation="true" title="Multi-project build - hierarchical layout">
             <layout>
-                api
-                services
-                services/webservice
-                shared
+                api/
+                services/webservice/
+                shared/
             </layout>
         </sample>
         <para>Here we have three projects. Project <literal>api</literal> produces a JAR file which is shipped to the

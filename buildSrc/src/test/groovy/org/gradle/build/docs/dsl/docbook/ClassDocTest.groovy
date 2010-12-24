@@ -15,7 +15,7 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.build.docs.dsl.XmlSpecification
+import org.gradle.build.docs.XmlSpecification
 import org.gradle.build.docs.dsl.model.*
 
 class ClassDocTest extends XmlSpecification {

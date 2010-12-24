@@ -29,13 +29,13 @@ class DomBuilder extends BuilderSupport {
         this.document = document
         this.parent = document
     }
-    
-    def DomBuilder(Element parent) {
+
+    def DomBuilder(Node parent) {
         this.document = parent.ownerDocument
         this.parent = parent
     }
 
-    def DomBuilder(Document document, Element parent) {
+    def DomBuilder(Document document, Node parent) {
         this.document = document
         this.parent = parent
     }

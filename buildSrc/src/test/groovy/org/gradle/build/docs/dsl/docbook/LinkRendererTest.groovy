@@ -15,7 +15,7 @@
  */
 package org.gradle.build.docs.dsl.docbook
 
-import org.gradle.build.docs.dsl.XmlSpecification
+import org.gradle.build.docs.XmlSpecification
 import org.gradle.build.docs.dsl.model.TypeMetaData
 import org.gradle.build.docs.dsl.model.MethodMetaData
 import org.gradle.build.docs.dsl.model.ClassMetaData

@@ -27,6 +27,8 @@ import org.junit.runner.Description
 import org.junit.runner.Runner
 import org.junit.runner.notification.Failure
 import org.junit.runner.notification.RunNotifier
+import com.google.common.collect.ListMultimap
+import com.google.common.collect.ArrayListMultimap
 
 class UserGuideSamplesRunner extends Runner {
     static final String NL = System.properties['line.separator']
@@ -101,6 +103,19 @@ class UserGuideSamplesRunner extends Runner {
                     throw e
                 }
             }
+
+            run.files.each { path ->
+                println "  checking file '$path' exists"
+                File file = new File(rootProjectDir, path).canonicalFile
+                Assert.assertTrue("Expected file '$file' does not exist.", file.exists())
+                Assert.assertTrue("Expected file '$file' is not a file.", file.isFile())
+            }
+            run.dirs.each { path ->
+                println "  checking directory '$path' exists"
+                File file = new File(rootProjectDir, path).canonicalFile
+                Assert.assertTrue("Expected directory '$file' does not exist.", file.exists())
+                Assert.assertTrue("Expected directory '$file' is not a directory.", file.isDirectory())
+            }
         } catch (Throwable e) {
             throw new AssertionError("Integration test for sample '$run.id' in dir '$run.subDir' with args $run.args failed:${NL}$e.message").initCause(e)
         }
@@ -170,7 +185,7 @@ class UserGuideSamplesRunner extends Runner {
 
     static Collection<SampleRun> getScriptsForSamples(File userguideInfoDir) {
         Node samples = new XmlParser().parse(new File(userguideInfoDir, 'samples.xml'))
-        Map<String, List<GradleRun>> samplesByDir = new LinkedHashMap<String, List<GradleRun>>()
+        ListMultimap<String, GradleRun> samplesByDir = ArrayListMultimap.create()
 
         samples.children().each {Node sample ->
             String id = sample.'@id'
@@ -178,24 +193,29 @@ class UserGuideSamplesRunner extends Runner {
             String args = sample.'@args'
             String outputFile = sample.'@outputFile'
             boolean ignoreExtraLines = Boolean.valueOf(sample.'@ignoreExtraLines')
-            if (!samplesByDir[dir]) {
-                samplesByDir[dir] = []
-            }
-            GradleRun run = new GradleRun(id: id, subDir: dir, args: args ? args.split('\\s+') as List : null, envs: [:], expectFailure: false, outputFile: outputFile)
+
+            GradleRun run = new GradleRun(id: id)
+            run.subDir = dir
+            run.args = args ? args.split('\\s+') as List : []
+            run.outputFile = outputFile
             run.ignoreExtraLines = ignoreExtraLines as boolean
-            samplesByDir[dir] << run
+
+            sample.file.each { file -> run.files << file.'@path' }
+            sample.dir.each { file -> run.dirs << file.'@path' }
+
+            samplesByDir.put(dir, run)
         }
 
         // Some custom values
-        samplesByDir['userguide/tutorial/properties'].each { it.envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue' }
-        samplesByDir['userguide/buildlifecycle/taskExecutionEvents']*.expectFailure = true
-        samplesByDir['userguide/buildlifecycle/buildProjectEvaluateEvents']*.expectFailure = true
+        samplesByDir.get('userguide/tutorial/properties').each { it.envs['ORG_GRADLE_PROJECT_envProjectProp'] = 'envPropertyValue' }
+        samplesByDir.get('userguide/buildlifecycle/taskExecutionEvents')*.expectFailure = true
+        samplesByDir.get('userguide/buildlifecycle/buildProjectEvaluateEvents')*.expectFailure = true
 
         Map<String, SampleRun> samplesById = new TreeMap<String, SampleRun>()
 
         // Remove duplicates for a given directory.
-        samplesByDir.values().collect {List<GradleRun> dirSamples ->
-            Collection<GradleRun> runs = dirSamples.findAll {it.args}
+        samplesByDir.asMap().values().collect {List<GradleRun> dirSamples ->
+            Collection<GradleRun> runs = dirSamples.findAll {it.mustRun}
             if (!runs) {
                 // No samples in this dir have any args, so just run gradle tasks in the dir
                 def sample = dirSamples[0]
@@ -232,4 +252,10 @@ class GradleRun {
     String outputFile
     boolean expectFailure
     boolean ignoreExtraLines
+    List files = []
+    List dirs = []
+
+    boolean getMustRun() {
+        return args || files || dirs
+    }
 }

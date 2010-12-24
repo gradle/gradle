@@ -39,8 +39,7 @@ class SampleElementLocationHandler {
         this.includeLocation = Boolean.valueOf(sampleElement.'@includeLocation')
     }
 
-    public void processSampleLocation(Element child) {
-        
+    public void processSampleLocation(Element parentElement) {
         if (includeLocation && !locationIncluded) {
             Element tipElement = doc.createElement('tip')
             tipElement.setAttribute('role', 'exampleLocation')
@@ -55,7 +54,7 @@ class SampleElementLocationHandler {
             textElement.appendChild(doc.createTextNode(' which is in both the binary and source distributions of Gradle.'))
             filenameElement.appendChild(doc.createTextNode("samples/$srcDir"))
 
-            child.appendChild(tipElement)
+            parentElement.appendChild(tipElement)
 
             locationIncluded = true
         }

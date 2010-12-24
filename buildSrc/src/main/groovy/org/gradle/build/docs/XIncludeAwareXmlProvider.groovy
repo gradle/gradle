@@ -24,10 +24,11 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 import org.w3c.dom.Document
 import org.w3c.dom.Element
+import org.w3c.dom.Node
 
 class XIncludeAwareXmlProvider {
     final Iterable<java.io.File> classpath
-    Element root
+    Document root
 
     XIncludeAwareXmlProvider(Iterable<File> classpath) {
         this.classpath = classpath
@@ -43,18 +44,24 @@ class XIncludeAwareXmlProvider {
         def oldClassloader = Thread.currentThread().getContextClassLoader()
         Thread.currentThread().setContextClassLoader(classloader)
         try {
-            root = parseSourceFile(sourceFile).documentElement
+            root = parseSourceFile(sourceFile)
         } finally {
             Thread.currentThread().setContextClassLoader(oldClassloader)
         }
-        return root
+        return root.documentElement
     }
 
-    void write(File destFile) {
+    Node emptyDoc() {
+        root = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
+    }
+
+    void write(File destFile, boolean indent = false) {
         destFile.withOutputStream {OutputStream stream ->
             TransformerFactory factory = TransformerFactory.newInstance();
             Transformer transformer = factory.newTransformer();
-//                transformer.setOutputProperty(OutputKeys.INDENT, "no");
+            if (indent) {
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes")
+            }
             transformer.setOutputProperty(OutputKeys.METHOD, "xml");
             transformer.setOutputProperty(OutputKeys.MEDIA_TYPE, "text/xml");
             transformer.transform(new DOMSource(root), new StreamResult(stream));
@@ -62,7 +69,7 @@ class XIncludeAwareXmlProvider {
     }
 
     Document getDocument() {
-        return root.ownerDocument
+        return root
     }
     
     private Document parseSourceFile(File sourceFile) {

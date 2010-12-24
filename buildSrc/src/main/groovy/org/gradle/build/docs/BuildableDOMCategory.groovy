@@ -19,31 +19,32 @@ import org.w3c.dom.Element
 import org.w3c.dom.Node
 
 class BuildableDOMCategory {
-    public static setText(Element element, String value) {
+    public static void setText(Element element, String value) {
         while (element.hasChildNodes()) {
             element.removeChild(element.getFirstChild())
         }
         element.appendChild(element.ownerDocument.createTextNode(value))
     }
 
-    public static setChildren(Element element, Closure cl) {
+    public static void setChildren(Node element, Closure cl) {
         while (element.hasChildNodes()) {
             element.removeChild(element.getFirstChild())
         }
         leftShift(element, cl)
     }
 
-    public static leftShift(Element parent, Closure cl) {
+    public static def leftShift(Node parent, Closure cl) {
         DomBuilder builder = new DomBuilder(parent)
         cl.delegate = builder
         cl.call()
+        return builder.elements[0]
     }
 
-    public static leftShift(Element parent, Node node) {
+    public static void leftShift(Node parent, Node node) {
         parent.appendChild(parent.ownerDocument.importNode(node, true))
     }
 
-    public static addFirst(Element parent, Closure cl) {
+    public static void addFirst(Node parent, Closure cl) {
         DomBuilder builder = new DomBuilder(parent.ownerDocument, null)
         cl.delegate = builder
         cl.call()
@@ -53,7 +54,7 @@ class BuildableDOMCategory {
         }
     }
 
-    public static addBefore(Element sibling, Closure cl) {
+    public static void addBefore(Node sibling, Closure cl) {
         DomBuilder builder = new DomBuilder(sibling.ownerDocument, null)
         cl.delegate = builder
         cl.call()
@@ -63,12 +64,12 @@ class BuildableDOMCategory {
         }
     }
 
-    public static addBefore(Element sibling, Node n) {
+    public static void addBefore(Element sibling, Node n) {
         def parent = sibling.parentNode
         parent.insertBefore(n, sibling)
     }
 
-    public static addAfter(Element sibling, Closure cl) {
+    public static void addAfter(Element sibling, Closure cl) {
         DomBuilder builder = new DomBuilder(sibling.ownerDocument, null)
         cl.delegate = builder
         cl.call()

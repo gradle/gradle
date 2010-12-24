@@ -13,19 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.build.docs.dsl
+package org.gradle.build.docs
 
-import spock.lang.Specification
-import org.w3c.dom.Document
-import javax.xml.parsers.DocumentBuilderFactory
-import org.w3c.dom.Node
-import org.w3c.dom.Element
-import org.w3c.dom.Text
-import org.w3c.dom.Attr
-import javax.xml.parsers.DocumentBuilder
-import org.xml.sax.InputSource
-import org.gradle.build.docs.BuildableDOMCategory
 import groovy.xml.dom.DOMCategory
+import javax.xml.parsers.DocumentBuilder
+import javax.xml.parsers.DocumentBuilderFactory
+import org.xml.sax.InputSource
+import spock.lang.Specification
+import org.w3c.dom.*
 
 class XmlSpecification extends Specification {
     final Document document = DocumentBuilderFactory.newInstance().newDocumentBuilder().newDocument()
