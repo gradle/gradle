@@ -138,7 +138,7 @@ public class WrapperTest extends AbstractTaskTest {
     @Test
     public void testCheckInputs() throws IOException {
         assertThat(wrapper.getInputs().getProperties().keySet(),
-                equalTo(WrapUtil.toSet("distributionPath", "distributionUrl", "archivePath")));
+                equalTo(WrapUtil.toSet("distributionBase", "distributionPath", "distributionUrl", "archiveBase", "archivePath")));
     }
 
     @Test

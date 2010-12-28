@@ -23,6 +23,7 @@ import org.gradle.api.internal.file.SimpleFileCollection;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.cache.CacheRepository;
+import org.gradle.cache.DefaultSerializer;
 import org.gradle.cache.PersistentIndexedCache;
 import org.gradle.util.ChangeListener;
 import org.gradle.util.DiffUtil;
@@ -40,6 +41,7 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     private final FileSnapshotter inputFilesSnapshotter;
     private final FileSnapshotter outputFilesSnapshotter;
     private PersistentIndexedCache<String, TaskHistory> taskHistoryCache;
+    private DefaultSerializer<TaskHistory> serializer;
 
     public DefaultTaskArtifactStateRepository(CacheRepository repository, FileSnapshotter inputFilesSnapshotter, FileSnapshotter outputFilesSnapshotter) {
         this.repository = repository;
@@ -56,7 +58,8 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
     }
 
     private void loadTasks(TaskInternal task) {
-        taskHistoryCache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache();
+        serializer = new DefaultSerializer<TaskHistory>();
+        taskHistoryCache = repository.cache("taskArtifacts").forObject(task.getProject().getGradle()).open().openIndexedCache(serializer);
     }
 
     private static Set<String> outputFiles(TaskInternal task) {
@@ -311,8 +314,14 @@ public class DefaultTaskArtifactStateRepository implements TaskArtifactStateRepo
         }
 
         private TaskHistory getHistory() {
-            TaskHistory history = taskHistoryCache.get(task.getPath());
-            return history == null ? new TaskHistory() : history;
+            ClassLoader original = serializer.getClassLoader();
+            serializer.setClassLoader(task.getClass().getClassLoader());
+            try {
+                TaskHistory history = taskHistoryCache.get(task.getPath());
+                return history == null ? new TaskHistory() : history;
+            } finally {
+                serializer.setClassLoader(original);
+            }
         }
 
         public TaskExecution getExecution() {

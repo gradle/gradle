@@ -64,5 +64,4 @@ class IncrementalJavaProjectBuildIntegrationTest {
         executer.withTasks("jar").run();
         jar.assertHasNotChangedSince(snapshot);
     }
-
 }

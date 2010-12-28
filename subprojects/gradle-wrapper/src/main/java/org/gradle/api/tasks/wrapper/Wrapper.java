@@ -75,12 +75,12 @@ public class Wrapper extends DefaultTask {
     @Input
     private String distributionPath;
 
+    @Input
+    private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
+
     private String archiveName;
 
     private String archiveClassifier;
-
-    //    @Input
-    private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
 
     private GradleVersion gradleVersion;
 
@@ -89,7 +89,7 @@ public class Wrapper extends DefaultTask {
     @Input
     private String archivePath;
 
-    //    @Input
+    @Input
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
 
     private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();

@@ -15,12 +15,32 @@
  */
 package org.gradle.cache;
 
+import org.gradle.util.ClassLoaderObjectInputStream;
+
 import java.io.*;
 
 public class DefaultSerializer<T> implements Serializer<T> {
+    private ClassLoader classLoader;
+
+    public DefaultSerializer() {
+        classLoader = getClass().getClassLoader();
+    }
+
+    public DefaultSerializer(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
+    public ClassLoader getClassLoader() {
+        return classLoader;
+    }
+
+    public void setClassLoader(ClassLoader classLoader) {
+        this.classLoader = classLoader;
+    }
+
     public T read(InputStream instr) throws Exception {
         try {
-            return (T) new ObjectInputStream(instr).readObject();
+            return (T) new ClassLoaderObjectInputStream(instr, classLoader).readObject();
         } catch (StreamCorruptedException e) {
             return null;
         }

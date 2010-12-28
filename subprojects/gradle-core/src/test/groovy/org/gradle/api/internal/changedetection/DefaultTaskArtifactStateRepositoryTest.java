@@ -20,10 +20,7 @@ import org.gradle.api.DefaultTask;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.cache.CacheBuilder;
-import org.gradle.cache.CacheRepository;
-import org.gradle.cache.PersistentCache;
-import org.gradle.cache.PersistentIndexedCache;
+import org.gradle.cache.*;
 import org.gradle.util.*;
 import org.hamcrest.Matcher;
 import org.jmock.Expectations;
@@ -581,7 +578,7 @@ public class DefaultTaskArtifactStateRepositoryTest {
             one(builder).open();
             will(returnValue(persistentCache));
             
-            one(persistentCache).openIndexedCache();
+            one(persistentCache).openIndexedCache(with(notNullValue(Serializer.class)));
             will(returnValue(new TestIndexedCache()));
         }});
     }
