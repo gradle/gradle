@@ -24,20 +24,18 @@ class JvmTest extends Specification {
     @Rule public final SetSystemProperties sysProp = new SetSystemProperties()
 
     def usesSystemPropertyToDetermineIfCompatibleWithJava5() {
-        println System.properties['java.version']
+        System.properties['java.version'] = '1.5'
 
         expect:
-        System.properties['java.version'] = '1.5'
         def jvm = new Jvm()
         jvm.java5Compatible
         !jvm.java6Compatible
     }
 
     def usesSystemPropertyToDetermineIfCompatibleWithJava6() {
-        println System.properties['java.version']
+        System.properties['java.version'] = '1.6'
 
         expect:
-        System.properties['java.version'] = '1.6'
         def jvm = new Jvm()
         jvm.java5Compatible
         jvm.java6Compatible

@@ -59,12 +59,17 @@ class PathTest extends Specification {
     }
 
     def convertsRelativePathToAbsolutePath() {
-        expect:
+        when:
         def Path path = Path.path(':')
+
+        then:
         path.absolutePath('path') == ':path'
         path.resolve('path') == Path.path(':path')
 
+        when:
         path = Path.path(':sub')
+
+        then:
         path.absolutePath('path') == ':sub:path'
         path.resolve('path') == Path.path(':sub:path')
     }
@@ -80,12 +85,17 @@ class PathTest extends Specification {
     }
 
     def convertsAbsolutePathToRelativePath() {
-        expect:
+        when:
         def path = Path.path(':')
+
+        then:
         path.relativePath(':') == ':'
         path.relativePath(':path') == 'path'
 
+        when:
         path = Path.path(':sub')
+
+        then:
         path.relativePath(':') == ':'
         path.relativePath(':sub') == ':sub'
         path.relativePath(':sub:path') == 'path'

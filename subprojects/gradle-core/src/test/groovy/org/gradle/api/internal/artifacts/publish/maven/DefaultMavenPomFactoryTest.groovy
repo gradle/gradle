@@ -41,6 +41,6 @@ public class DefaultMavenPomFactoryTest extends Specification {
         mavenPom.mavenProject != null
         mavenPom.pomDependenciesConverter.is(pomDependenciesConverter)
         mavenPom.configurations.is(configurationContainer)
-        mavenPom.fileResolver = fileResolver
+        mavenPom.fileResolver == fileResolver
     }
 }

@@ -178,17 +178,17 @@ class CommandLineParserTest extends Specification {
         parser.option('a', 'b', 'long-option-a')
 
         expect:
-        def result = parser.parse(['--long-option-a'])
-        result.hasOption('a')
-        result.hasOption('b')
-        result.hasOption('long-option-a')
-        result.option('a') == result.option('long-option-a')
-        result.option('a') == result.option('b')
+        def longOptionResult = parser.parse(['--long-option-a'])
+        longOptionResult.hasOption('a')
+        longOptionResult.hasOption('b')
+        longOptionResult.hasOption('long-option-a')
+        longOptionResult.option('a') == longOptionResult.option('long-option-a')
+        longOptionResult.option('a') == longOptionResult.option('b')
 
-        result = parser.parse(['-a'])
-        result.hasOption('a')
-        result.hasOption('b')
-        result.hasOption('long-option-a')
+        def shortOptionResult = parser.parse(['-a'])
+        shortOptionResult.hasOption('a')
+        shortOptionResult.hasOption('b')
+        shortOptionResult.hasOption('long-option-a')
     }
 
     def parsesCommandLineWhenOptionAppearsMultipleTimes() {
@@ -215,26 +215,26 @@ class CommandLineParserTest extends Specification {
         parser.option('a')
 
         expect:
-        def result = parser.parse(['a'])
-        result.extraArguments == ['a']
-        !result.hasOption('a')
+        def singleArgResult = parser.parse(['a'])
+        singleArgResult.extraArguments == ['a']
+        !singleArgResult.hasOption('a')
 
-        result = parser.parse(['a', 'b'])
-        result.extraArguments == ['a', 'b']
-        !result.hasOption('a')
+        def multipleArgsResult = parser.parse(['a', 'b'])
+        multipleArgsResult.extraArguments == ['a', 'b']
+        !multipleArgsResult.hasOption('a')
     }
 
     def parsesCommandLineWithOptionsAndSubcommand() {
         parser.option('a')
 
         expect:
-        def result = parser.parse(['-a', 'a'])
-        result.extraArguments == ['a']
-        result.hasOption('a')
+        def optionBeforeSubcommandResult = parser.parse(['-a', 'a'])
+        optionBeforeSubcommandResult.extraArguments == ['a']
+        optionBeforeSubcommandResult.hasOption('a')
 
-        result = parser.parse(['a', '-a'])
-        result.extraArguments == ['a', '-a']
-        !result.hasOption('a')
+        def optionAfterSubcommandResult = parser.parse(['a', '-a'])
+        optionAfterSubcommandResult.extraArguments == ['a', '-a']
+        !optionAfterSubcommandResult.hasOption('a')
     }
 
     def parsesCommandLineWithOptionsAndSubcommandWhenMixedOptionsAllowed() {
@@ -242,23 +242,27 @@ class CommandLineParserTest extends Specification {
         parser.allowMixedSubcommandsAndOptions()
 
         expect:
-        def result = parser.parse(['-a', 'a'])
-        result.extraArguments == ['a']
-        result.hasOption('a')
+        def optionBeforeSubcommandResult = parser.parse(['-a', 'a'])
+        optionBeforeSubcommandResult.extraArguments == ['a']
+        optionBeforeSubcommandResult.hasOption('a')
 
-        result = parser.parse(['a', '-a'])
-        result.extraArguments == ['a']
-        result.hasOption('a')
+        def optionAfterSubcommandResult = parser.parse(['a', '-a'])
+        optionAfterSubcommandResult.extraArguments == ['a']
+        optionAfterSubcommandResult.hasOption('a')
     }
 
     def parsesCommandLineWithSubcommandThatHasOptions() {
-        expect:
+        when:
         def result = parser.parse(['a', '--option', 'b'])
+
+        then:
         result.extraArguments == ['a', '--option', 'b']
 
+        when:
         parser.allowMixedSubcommandsAndOptions()
-
         result = parser.parse(['a', '--option', 'b'])
+
+        then:
         result.extraArguments == ['a', '--option', 'b']
     }
 

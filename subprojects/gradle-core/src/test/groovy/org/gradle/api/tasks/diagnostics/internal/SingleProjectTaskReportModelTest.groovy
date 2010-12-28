@@ -69,12 +69,13 @@ class SingleProjectTaskReportModelTest extends TaskModelSpecification {
         model.build([task1, task2, task3, task4, task5])
 
         then:
-        TaskDetails t = (model.getTasksForGroup('group1') as List).first()
-        t.task == task3
-        t.children*.task == [task1, task2]
-        t = (model.getTasksForGroup('group2') as List).first()
-        t.task == task5
-        t.children*.task == [task4]
+        TaskDetails task3Details = (model.getTasksForGroup('group1') as List).first()
+        task3Details.task == task3
+        task3Details.children*.task == [task1, task2]
+
+        TaskDetails task5Details = (model.getTasksForGroup('group2') as List).first()
+        task5Details.task == task5
+        task5Details.children*.task == [task4]
     }
 
     def theDependenciesOfATopLevelTaskAreTheUnionOfTheDependenciesOfItsChildren() {
