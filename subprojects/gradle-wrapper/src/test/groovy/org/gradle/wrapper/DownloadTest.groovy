@@ -41,7 +41,7 @@ class DownloadTest {
         rootDir = new File(testDir, 'root')
         downloadFile = new File(rootDir, 'file')
         (remoteFile = new File(testDir, 'remoteFile')).write('sometext')
-        sourceRoot = new URI("file:///$remoteFile.canonicalPath")
+        sourceRoot = remoteFile.toURI()
     }
 
     @Test public void testDownload() {
