@@ -82,7 +82,7 @@ public class Wrapper extends DefaultTask {
     //    @Input
     private PathBase distributionBase = PathBase.GRADLE_USER_HOME;
 
-    private String gradleVersion;
+    private GradleVersion gradleVersion;
 
     private String urlRoot;
 
@@ -101,7 +101,7 @@ public class Wrapper extends DefaultTask {
         archiveName = DEFAULT_ARCHIVE_NAME;
         archiveClassifier = DEFAULT_ARCHIVE_CLASSIFIER;
         archivePath = DEFAULT_DISTRIBUTION_PARENT_NAME;
-        gradleVersion = new GradleVersion().getVersion();
+        gradleVersion = new GradleVersion();
     }
 
     @TaskAction
@@ -246,7 +246,7 @@ public class Wrapper extends DefaultTask {
      * @see #setGradleVersion(String)
      */
     public String getGradleVersion() {
-        return gradleVersion;
+        return gradleVersion.getVersion();
     }
 
     /**
@@ -254,7 +254,7 @@ public class Wrapper extends DefaultTask {
      * use for building your project.
      */
     public void setGradleVersion(String gradleVersion) {
-        this.gradleVersion = gradleVersion;
+        this.gradleVersion = new GradleVersion(gradleVersion);
     }
 
     /**
@@ -289,10 +289,10 @@ public class Wrapper extends DefaultTask {
         if (urlRoot != null) {
             return urlRoot;
         }
-        if (getGradleVersion().matches("\\d+\\.\\d+(\\.\\d+)*(-\\p{Alpha}+-\\d+)?")) {
-            return RELEASE_REPOSITORY;
+        if (gradleVersion.isSnapshot()) {
+            return SNAPSHOT_REPOSITORY;
         }
-        return SNAPSHOT_REPOSITORY;
+        return RELEASE_REPOSITORY;
     }
 
     /**

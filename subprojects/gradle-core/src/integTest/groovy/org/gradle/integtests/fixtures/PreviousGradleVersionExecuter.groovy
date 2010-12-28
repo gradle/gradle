@@ -17,23 +17,28 @@ package org.gradle.integtests.fixtures
 
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
+import org.gradle.util.GradleVersion
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist
-    def final String version
+    def final GradleVersion version
 
     PreviousGradleVersionExecuter(GradleDistribution dist, String version) {
         this.dist = dist
-        this.version = version
+        this.version = new GradleVersion(version)
     }
 
     def String toString() {
-        "Gradle $version"
+        version.toString()
+    }
+
+    String getVersion() {
+        return version.version
     }
 
     @Override
     boolean worksWith(Jvm jvm) {
-        return version == '0.9-rc-1' ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
+        return version == new GradleVersion('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }
 
     protected ExecutionResult doRun() {
@@ -48,7 +53,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     TestFile getBinDistribution() {
-        def zipFile = dist.userHomeDir.parentFile.file("gradle-$version-bin.zip")
+        def zipFile = dist.userHomeDir.parentFile.file("gradle-$version.version-bin.zip")
         if (!zipFile.isFile()) {
             try {
                 URL url = binDistributionUrl
@@ -63,14 +68,10 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     private URL getBinDistributionUrl() {
-        def matcher = version =~ /(\d+\.\d+).*/
-        assert matcher.matches()
-        def majorVersion = matcher.group(1) as BigDecimal
-
-        if (version == '0.9' || majorVersion > 0.9) {
-            return new URL("http://gradle.artifactoryonline.com/gradle/distributions//gradle-$version-bin.zip")
+        if (version >= new GradleVersion('0.9')) {
+            return new URL("http://gradle.artifactoryonline.com/gradle/distributions//gradle-$version.version-bin.zip")
         } else {
-            return new URL("http://dist.codehaus.org/gradle/gradle-$version-bin.zip")
+            return new URL("http://dist.codehaus.org/gradle/gradle-$version.version-bin.zip")
         }
     }
 
@@ -81,7 +82,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     private TestFile findGradleHome() {
         // maybe download and unzip distribution
         TestFile versionsDir = dist.distributionsDir.parentFile.file('previousVersions')
-        TestFile gradleHome = versionsDir.file("gradle-$version")
+        TestFile gradleHome = versionsDir.file("gradle-$version.version")
         TestFile markerFile = gradleHome.file('ok.txt')
         if (!markerFile.isFile()) {
             TestFile zipFile = binDistribution
