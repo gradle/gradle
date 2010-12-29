@@ -107,10 +107,24 @@ public class WrapperTest extends AbstractTaskTest {
     }
 
     @Test
+    public void testDownloadsFromOldReleaseRepositoryForPre09ReleaseVersions() {
+        wrapper.setGradleVersion("0.9-rc-3");
+        assertEquals("http://dist.codehaus.org/gradle", wrapper.getUrlRoot());
+        assertEquals("http://dist.codehaus.org/gradle/gradle-0.9-rc-3-bin.zip", wrapper.getDistributionUrl());
+    }
+
+    @Test
     public void testDownloadsFromSnapshotRepositoryForSnapshotVersions() {
-        wrapper.setGradleVersion("0.9-20101224110000+1100");
+        wrapper.setGradleVersion("0.9.1-20101224110000+1100");
         assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots", wrapper.getUrlRoot());
-        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots/gradle-0.9-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
+        assertEquals("http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots/gradle-0.9.1-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
+    }
+
+    @Test
+    public void testDownloadsFromOldSnapshotRepositoryForPre09SnapshotVersions() {
+        wrapper.setGradleVersion("0.9-20101224110000+1100");
+        assertEquals("http://snapshots.dist.codehaus.org/gradle", wrapper.getUrlRoot());
+        assertEquals("http://snapshots.dist.codehaus.org/gradle/gradle-0.9-20101224110000+1100-bin.zip", wrapper.getDistributionUrl());
     }
 
     @Test

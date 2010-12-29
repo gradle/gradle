@@ -22,6 +22,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
+import org.gradle.api.tasks.wrapper.internal.DistributionLocator;
 import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
 import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GFileUtils;
@@ -54,8 +55,6 @@ public class Wrapper extends DefaultTask {
     static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
     static final String ZIP_STORE_PATH_PROPERTY = "zipStorePath";
 
-    public static final String RELEASE_REPOSITORY = "http://gradle.artifactoryonline.com/gradle/distributions";
-    public static final String SNAPSHOT_REPOSITORY = "http://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots";
     public static final String DEFAULT_DISTRIBUTION_PARENT_NAME = "wrapper/dists";
     public static final String DEFAULT_ARCHIVE_NAME = "gradle";
     public static final String DEFAULT_ARCHIVE_CLASSIFIER = "bin";
@@ -93,6 +92,7 @@ public class Wrapper extends DefaultTask {
     private PathBase archiveBase = PathBase.GRADLE_USER_HOME;
 
     private WrapperScriptGenerator wrapperScriptGenerator = new WrapperScriptGenerator();
+    private final DistributionLocator locator = new DistributionLocator();
 
     public Wrapper() {
         scriptFile = "gradlew";
@@ -272,7 +272,7 @@ public class Wrapper extends DefaultTask {
         if (distributionUrl != null) {
             return distributionUrl;
         }
-        return String.format("%s/%s-%s-%s.zip", getUrlRoot(), getArchiveName(), getGradleVersion(), getArchiveClassifier());
+        return locator.getDistribution(getUrlRoot(), gradleVersion, archiveName, archiveClassifier);
     }
 
     public void setDistributionUrl(String url) {
@@ -289,10 +289,7 @@ public class Wrapper extends DefaultTask {
         if (urlRoot != null) {
             return urlRoot;
         }
-        if (gradleVersion.isSnapshot()) {
-            return SNAPSHOT_REPOSITORY;
-        }
-        return RELEASE_REPOSITORY;
+        return locator.getDistributionRepository(gradleVersion);
     }
 
     /**

@@ -18,6 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 import org.gradle.util.GradleVersion
+import org.gradle.api.tasks.wrapper.internal.DistributionLocator
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist
@@ -68,11 +69,7 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
     }
 
     private URL getBinDistributionUrl() {
-        if (version >= new GradleVersion('0.9')) {
-            return new URL("http://gradle.artifactoryonline.com/gradle/distributions//gradle-$version.version-bin.zip")
-        } else {
-            return new URL("http://dist.codehaus.org/gradle/gradle-$version.version-bin.zip")
-        }
+        return new URL(new DistributionLocator().getDistributionFor(version))
     }
 
     def TestFile getGradleHomeDir() {
