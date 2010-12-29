@@ -83,7 +83,7 @@ public abstract class AbstractCompile extends SourceTask {
     /**
      * Sets the Java language level to use to compile the source files.
      *
-     * @return The source language level. Must not be null.
+     * @param sourceCompatibility The source language level. Must not be null.
      */
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;

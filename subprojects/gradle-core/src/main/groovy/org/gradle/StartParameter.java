@@ -520,7 +520,6 @@ public class StartParameter {
 
     /**
      * Returns true if a profile report will be generated.
-     * @return
      */
     public boolean isProfile() {
         return profile;
