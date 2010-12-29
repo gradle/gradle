@@ -43,10 +43,10 @@ repositories {
 }
 dependencies {
     groovy group: 'org.codehaus.groovy', name: 'groovy-all', version: '1.6.0'
-    scalaTools group: 'org.scala-lang', name: 'scala-compiler', version: '2.7.6'
-    scalaTools group: 'org.scala-lang', name: 'scala-library', version: '2.7.6'
+    scalaTools group: 'org.scala-lang', name: 'scala-compiler', version: '2.8.1'
+    scalaTools group: 'org.scala-lang', name: 'scala-library', version: '2.8.1'
 
-    compile group: 'org.scala-lang', name: 'scala-library', version: '2.7.6'
+    compile group: 'org.scala-lang', name: 'scala-library', version: '2.8.1'
 }
 
 sourceSets.each {

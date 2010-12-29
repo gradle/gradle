@@ -85,14 +85,13 @@ public class ScalaDocTest extends AbstractTaskTest {
     }
 
     @Test
-    public void testSetsDocTitleAndWindowTitleIfNotSet() {
+    public void testSetsDocTitleIfNotSet() {
         setUpMocksAndAttributes(scalaDoc);
         scalaDoc.setTitle("title");
 
         scalaDoc.generate();
 
         assertThat(scalaDoc.getScalaDocOptions().getDocTitle(), equalTo("title"));
-        assertThat(scalaDoc.getScalaDocOptions().getWindowTitle(), equalTo("title"));
     }
 
     private void setUpMocksAndAttributes(final ScalaDoc docTask) {

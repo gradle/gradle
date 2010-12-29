@@ -111,9 +111,6 @@ public class ScalaDoc extends SourceTask {
         if (!GUtil.isTrue(options.getDocTitle())) {
             options.setDocTitle(getTitle());
         }
-        if (!GUtil.isTrue(options.getWindowTitle())) {
-            options.setWindowTitle(getTitle());
-        }
         getAntScalaDoc().execute(getSource(), getDestinationDir(), getClasspath(), getScalaClasspath(), options);
     }
 
