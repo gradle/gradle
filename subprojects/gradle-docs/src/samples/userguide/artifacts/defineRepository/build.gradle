@@ -15,6 +15,12 @@ repositories {
 }
 //END SNIPPET maven-central-jar-repo
 
+//START SNIPPET maven-local
+repositories {
+    mavenLocal()
+}
+//END SNIPPET maven-local
+
 //START SNIPPET maven-like-repo
 repositories {
     mavenRepo urls: "http://repo.mycompany.com/maven2"

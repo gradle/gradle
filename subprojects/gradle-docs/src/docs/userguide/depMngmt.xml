@@ -410,13 +410,10 @@
     </section>
     <section id='sec:repositories'>
         <title>Repositories</title>
-        <section id='sub:introduction'>
-            <title>Introduction</title>
-            <para>The Gradle repository management, based on Apache Ivy, gives you have a lot of freedom
-                regarding the repository layout and the retrieval policies. Additionally Gradle provides a couple of convenience
-                method to add preconfigured repositories.
-            </para>
-        </section>
+        <para>Gradle repository management, based on Apache Ivy, gives you a lot of freedom
+            regarding repository layout and retrieval policies. Additionally Gradle provides various convenience
+            method to add preconfigured repositories.
+        </para>
         <section id='sub:maven_repo'>
             <title>Maven repositories</title>
             <para>To add the central Maven2 repository (<ulink url='http://repo1.maven.org/maven2'/>) simply
@@ -425,16 +422,16 @@
             <sample id="mavenCentral" dir="userguide/artifacts/defineRepository" title="Adding central Maven repository">
                 <sourcefile file="build.gradle" snippet="maven-central"/>
             </sample>
-            <para>Now Gradle looks for your dependencies in this repository.
+            <para>Now Gradle will look for your dependencies in this repository.
             </para>
             <para>Quite often certain jars are not in the official Maven repository for licensing reasons (e.g. JTA),
                 but its POMs are.
             </para>
-            <sample id="mavenCentralJarRepo" dir="userguide/artifacts/defineRepository" title="Adding many Maven repositories">
+            <sample id="mavenCentralJarRepo" dir="userguide/artifacts/defineRepository" title="Adding several Maven repositories">
                 <sourcefile file="build.gradle" snippet="maven-central-jar-repo"/>
             </sample>
-            <para>Gradle looks first in the central Maven repository for the POM and the JAR. If the JAR can't be
-                found there, its looks for it in the other repositories.
+            <para>Gradle will look first in the central Maven repository for the POM and the JAR. If the JAR can't be
+                found there, it will look for it in the other repositories.
             </para>
             <para>For adding a custom Maven repository you can say:
             </para>
@@ -449,6 +446,10 @@
             </sample>
             <para>The first URL is used to look for POMs and JARs. The subsequent URLs are used to look for JARs.
             </para>
+            <para>To use the local Maven cache as a repository you can say:</para>
+            <sample id="mavenLocalRepo" dir="userguide/artifacts/defineRepository" title="Adding the local Maven cache as a repository">
+                <sourcefile file="build.gradle" snippet="maven-local"/>
+            </sample>
             <section>
             	<title>Accessing password protected Maven repositories</title>
             	<para>To access a password protected Maven repository (basic authentication) you need to use one of Ivy features:</para>
