@@ -45,7 +45,7 @@ public class UriScriptSource implements ScriptSource {
     public String getClassName() {
         if (className == null) {
             URI sourceUri = resource.getURI();
-            String name = StringUtils.substringAfterLast(sourceUri.getPath(), "/");
+            String name = StringUtils.substringBeforeLast(StringUtils.substringAfterLast(sourceUri.getPath(), "/"), ".");
             StringBuilder className = new StringBuilder(name.length());
             for (int i = 0; i < name.length(); i++) {
                 char ch = name.charAt(i);
@@ -58,6 +58,7 @@ public class UriScriptSource implements ScriptSource {
             if (!Character.isJavaIdentifierStart(className.charAt(0))) {
                 className.insert(0, '_');
             }
+            className.setLength(Math.min(className.length(), 30));
             className.append('_');
             String path = sourceUri.toString();
             className.append(HashUtil.createHash(path));

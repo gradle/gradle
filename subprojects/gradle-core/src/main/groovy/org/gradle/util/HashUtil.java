@@ -37,7 +37,7 @@ public class HashUtil {
             throw UncheckedException.asUncheckedException(e);
         }
         messageDigest.update(scriptText.getBytes());
-        return new BigInteger(1, messageDigest.digest()).toString(16);
+        return new BigInteger(1, messageDigest.digest()).toString(32);
     }
 
     public static byte[] createHash(File file) {

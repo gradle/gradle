@@ -112,18 +112,30 @@ public class UriScriptSourceTest {
     }
     
     @Test
-    public void encodesScriptFileBaseNameToClassName() {
+    public void generatesClassNameFromFileNameByRemovingExtensionAndAddingHashOfURL() {
         UriScriptSource source = new UriScriptSource("<file-type>", scriptFile);
-        assertThat(source.getClassName(), matchesRegexp("build_script_[0-9a-z]+"));
+        assertThat(source.getClassName(), matchesRegexp("build_[0-9a-z]{25,26}"));
+    }
 
-        source = new UriScriptSource("<file-type>", new File(testDir, "name with-some + invalid.chars"));
-        assertThat(source.getClassName(), matchesRegexp("name_with_some___invalid_chars_[0-9a-z]+"));
+    @Test
+    public void truncatesClassNameAt30Characters() {
+        UriScriptSource source = new UriScriptSource("<file-type>", new File(testDir, "a-long-file-name-12345678901234567890.gradle"));
+        assertThat(source.getClassName(), matchesRegexp("a_long_file_name_1234567890123_[0-9a-z]{25,26}"));
+    }
 
-        source = new UriScriptSource("<file-type>", new File(testDir, "123"));
-        assertThat(source.getClassName(), matchesRegexp("_123_[0-9a-z]+"));
+    @Test
+    public void encodesReservedCharactersInClassName() {
+        UriScriptSource source = new UriScriptSource("<file-type>", new File(testDir, "name-+.chars.gradle"));
+        assertThat(source.getClassName(), matchesRegexp("name___chars_[0-9a-z]{25,26}"));
+    }
+
+    @Test
+    public void prefixesClassNameWhenFirstCharacterIsNotValidIdentifierStartChar() {
+        UriScriptSource source = new UriScriptSource("<file-type>", new File(testDir, "123"));
+        assertThat(source.getClassName(), matchesRegexp("_123_[0-9a-z]{25,26}"));
 
         source = new UriScriptSource("<file-type>", new File(testDir, "-"));
-        assertThat(source.getClassName(), matchesRegexp("__[0-9a-z]+"));
+        assertThat(source.getClassName(), matchesRegexp("__[0-9a-z]{25,26}"));
     }
 
     @Test
