@@ -1,0 +1,20 @@
+apply plugin: 'java'
+
+def repoUrl = hasProperty('repoUrl') ? repoUrl : uri('repo')
+
+repositories {
+    mavenRepo(urls: repoUrl) {
+        if (project.hasProperty('noTimeout')) {
+            setSnapshotTimeout(0)
+        }
+    }
+}
+
+dependencies {
+    compile "org.gradle:testproject:1.0-SNAPSHOT"
+}
+
+task retrieve(type: Sync) {
+    into 'build'
+    from configurations.compile
+}

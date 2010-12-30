@@ -59,9 +59,7 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     protected GradleExecuter usingBuildFile(File file) {
-        StartParameter parameter = startParameter();
-        parameter.setBuildFile(file);
-        return new InProcessGradleExecuter(parameter);
+        return new InProcessGradleExecuter(startParameter()).usingBuildScript(file);
     }
 
     protected GradleExecuter usingBuildScript(String script) {

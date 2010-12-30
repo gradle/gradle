@@ -21,9 +21,11 @@ import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
-import org.apache.ivy.util.PropertiesFile;
+import org.gradle.util.UncheckedException;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -52,8 +54,8 @@ public class GradleIBiblioResolver extends IBiblioResolver {
 
             Calendar calendarLastResolved = Calendar.getInstance();
             calendarLastResolved.setTime(new Date(lastResolvedTime));
-            if (calendarLastResolved.get(Calendar.YEAR) == year &&
-                    calendarLastResolved.get(Calendar.DAY_OF_YEAR) == dayOfYear) {
+            if (calendarLastResolved.get(Calendar.YEAR) == year && calendarLastResolved.get(Calendar.DAY_OF_YEAR)
+                    == dayOfYear) {
                 return false;
             }
             return true;
@@ -88,6 +90,22 @@ public class GradleIBiblioResolver extends IBiblioResolver {
     }
 
     @Override
+    public void setRoot(String root) {
+        super.setRoot(root);
+        URI rootUri;
+        try {
+            rootUri = new URI(root);
+        } catch (URISyntaxException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+        if (rootUri.getScheme().equalsIgnoreCase("file")) {
+            setSnapshotTimeout(ALWAYS);
+        } else {
+            setSnapshotTimeout(DAILY);
+        }
+    }
+
+    @Override
     protected ResolvedModuleRevision findModuleInCache(DependencyDescriptor dd, ResolveData data) {
         setChangingPattern(null);
         ResolvedModuleRevision moduleRevision = super.findModuleInCache(dd, data);
@@ -111,22 +129,34 @@ public class GradleIBiblioResolver extends IBiblioResolver {
         cacheProperties.save();
     }
 
-    private Long getLastResolvedTime(PropertiesFile cacheProperties) {
+    private long getLastResolvedTime(PropertiesFile cacheProperties) {
         String lastResolvedProp = cacheProperties.getProperty("resolved.time");
-        Long lastResolvedTime = lastResolvedProp != null ? Long.parseLong(lastResolvedProp) : 0;
-        return lastResolvedTime;
+        if (lastResolvedProp != null) {
+            return Long.parseLong(lastResolvedProp);
+        }
+        // No resolved.time property - assume that the properties file modification time == the resolve time
+        return cacheProperties.file.lastModified();
     }
 
     private PropertiesFile getCacheProperties(DependencyDescriptor dd, ResolvedModuleRevision moduleRevision) {
         DefaultRepositoryCacheManager cacheManager = (DefaultRepositoryCacheManager) getRepositoryCacheManager();
         PropertiesFile props = new PropertiesFile(new File(cacheManager.getRepositoryCacheRoot(),
-                IvyPatternHelper.substitute(
-                        cacheManager.getDataFilePattern(), moduleRevision.getId())), "ivy cached data file for " + dd.getDependencyRevisionId());
+                IvyPatternHelper.substitute(cacheManager.getDataFilePattern(), moduleRevision.getId())),
+                "ivy cached data file for " + dd.getDependencyRevisionId());
         return props;
     }
 
     public interface CacheTimeoutStrategy {
         boolean isCacheTimedOut(long lastResolvedTime);
+    }
+
+    private static class PropertiesFile extends org.apache.ivy.util.PropertiesFile {
+        private final File file;
+
+        private PropertiesFile(File file, String header) {
+            super(file, header);
+            this.file = file;
+        }
     }
 
     public static class Interval implements CacheTimeoutStrategy {

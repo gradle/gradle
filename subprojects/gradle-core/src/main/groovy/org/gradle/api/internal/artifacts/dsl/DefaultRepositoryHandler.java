@@ -16,6 +16,7 @@
 package org.gradle.api.internal.artifacts.dsl;
 
 import groovy.lang.Closure;
+import org.apache.ivy.plugins.resolver.AbstractResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.FileSystemResolver;
 import org.gradle.api.InvalidUserDataException;
@@ -100,15 +101,20 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
     }
 
     public DependencyResolver mavenRepo(Map args) {
+        return mavenRepo(args, null);
+    }
+
+    public DependencyResolver mavenRepo(Map args, Closure configClosure) {
         List<String> urls = createStringifiedListFromMapArg(args, "urls");
         if (urls == null) {
             throw new InvalidUserDataException("You must specify a urls for a Maven repo.");
         }
         List<String> extraUrls = urls.subList(1, urls.size());
-        return add(getResolverFactory().createMavenRepoResolver(
+        AbstractResolver resolver = getResolverFactory().createMavenRepoResolver(
                 getNameFromMap(args, urls.get(0)),
                 urls.get(0),
-                urls.size() == 1 ? new String[0] : extraUrls.toArray(new String[extraUrls.size()])));
+                urls.size() == 1 ? new String[0] : extraUrls.toArray(new String[extraUrls.size()]));
+        return add(resolver, configClosure);
     }
 
     public GroovyMavenDeployer mavenDeployer(Map args) {

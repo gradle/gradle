@@ -20,14 +20,30 @@ import spock.lang.Specification
 /**
  * @author Hans Dockter
  */
-class GradleIBiblioResolverTest extends Specification{
+class GradleIBiblioResolverTest extends Specification {
     GradleIBiblioResolver gradleIBiblioResolver = new GradleIBiblioResolver()
 
-    def testInit() {
+    def defaults() {
         expect:
         gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.DAILY)
     }
-    
+
+    def usesDailyExpiryForRemoteUrls() {
+        when:
+        gradleIBiblioResolver.setRoot("http://server/repo")
+
+        then:
+        gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.DAILY)
+    }
+
+    def usesAlwaysExpiryForLocalUrls() {
+        when:
+        gradleIBiblioResolver.setRoot(new File(".").toURI().toString())
+
+        then:
+        gradleIBiblioResolver.getSnapshotTimeout().is(GradleIBiblioResolver.ALWAYS)
+    }
+
     def timeoutStrategyNever_shouldReturnAlwaysFalse() {
         expect:
         !GradleIBiblioResolver.NEVER.isCacheTimedOut(0)

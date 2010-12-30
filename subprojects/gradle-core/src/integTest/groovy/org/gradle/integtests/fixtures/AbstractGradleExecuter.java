@@ -30,11 +30,13 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private Map<String, String> environmentVars = new HashMap<String, String>();
     private String executable;
     private File userHomeDir;
+    private File buildScript;
 
     public GradleExecuter reset() {
         args.clear();
         tasks.clear();
         workingDir = null;
+        buildScript = null;
         quiet = false;
         taskList = false;
         searchUpwards = false;
@@ -61,6 +63,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (workingDir != null) {
             executer.inDirectory(workingDir);
         }
+        if (buildScript != null) {
+            executer.usingBuildScript(buildScript);
+        }
         executer.withTasks(tasks);
         executer.withArguments(args);
         executer.withEnvironmentVars(environmentVars);
@@ -74,7 +79,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         executer.withUserHomeDir(userHomeDir);
     }
 
-    public GradleExecuter usingBuildScript(String script) {
+    public GradleExecuter usingBuildScript(File buildScript) {
+        this.buildScript = buildScript;
+        return this;
+    }
+
+    public GradleExecuter usingBuildScript(String scriptText) {
         throw new UnsupportedOperationException();
     }
 
@@ -161,6 +171,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
 
     protected List<String> getAllArgs() {
         List<String> allArgs = new ArrayList<String>();
+        if (buildScript != null) {
+            allArgs.add("--build-file");
+            allArgs.add(buildScript.getAbsolutePath());
+        }
         if (quiet) {
             allArgs.add("--quiet");
         }

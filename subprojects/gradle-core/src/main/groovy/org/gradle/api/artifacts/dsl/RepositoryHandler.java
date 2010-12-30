@@ -166,6 +166,8 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      */
     DependencyResolver mavenRepo(Map args);
 
+    DependencyResolver mavenRepo(Map args, Closure configClosure);
+
     GroovyMavenDeployer mavenDeployer();
 
     GroovyMavenDeployer mavenDeployer(Closure configureClosure);

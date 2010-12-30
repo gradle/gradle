@@ -15,21 +15,81 @@
  */
 package org.gradle.integtests.maven
 
-import org.junit.Test
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.HttpServer
 import org.gradle.integtests.fixtures.TestResources
+import org.junit.Before
 import org.junit.Rule
-import org.gradle.integtests.AbstractIntegrationTest
+import org.junit.Test
 
 /**
  * @author Hans Dockter
  */
-class MavenSnapshotIntegrationTest extends AbstractIntegrationTest {
-    @Rule
-    public final TestResources testResources = new TestResources()
+class MavenSnapshotIntegrationTest {
+    @Rule public GradleDistribution distribution = new GradleDistribution()
+    @Rule public GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final TestResources testResources = new TestResources()
+
+    @Before
+    public void setup() {
+        distribution.requireOwnUserHomeDir()
+    }
 
     @Test
-    public void retrievesAndCacheSnapshot() {
-        File buildFile = testFile("projectWithMavenSnapshots.gradle");
-        usingBuildFile(buildFile).withTasks('clean', 'retrieveWithTimedOutSnapshotInCache').run();
+    public void retrievesAndCacheLocalSnapshot() {
+        def producerProject = distribution.testFile('producer.gradle')
+        def consumerProject = distribution.testFile('projectWithMavenSnapshots.gradle')
+
+        // Publish the first snapshot
+        executer.usingBuildScript(producerProject).withTasks('uploadArchives').run()
+
+        // Retrieve the first snapshot
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').run()
+        def jarFile = distribution.testFile('build/testproject-1.0-SNAPSHOT.jar')
+        def snapshot = jarFile.assertIsFile().snapshot()
+
+        // Retrieve again should use cached snapshot
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').run().assertTasksSkipped(':retrieve')
+        jarFile.assertHasNotChangedSince(snapshot)
+
+        // Publish the second snapshot
+        executer.usingBuildScript(producerProject).withTasks('uploadArchives').withArguments("-PemptyJar").run()
+
+        // Retrieve again should use updated snapshot
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').run().assertTasksNotSkipped(':retrieve')
+        jarFile.assertHasChangedSince(snapshot)
+    }
+
+    @Test
+    public void retrievesAndCacheSnapshotViaHttp() {
+        HttpServer server = new HttpServer()
+        server.add('/repo', distribution.testFile('repo'))
+        server.start()
+        String repoUrl = "-PrepoUrl=http://localhost:${server.port}/repo"
+
+        def producerProject = distribution.testFile('producer.gradle')
+        def consumerProject = distribution.testFile('projectWithMavenSnapshots.gradle')
+
+        // Publish the first snapshot
+        executer.usingBuildScript(producerProject).withTasks('uploadArchives').run()
+
+        // Retrieve the first snapshot
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments(repoUrl).run()
+        def jarFile = distribution.testFile('build/testproject-1.0-SNAPSHOT.jar')
+        def snapshot = jarFile.assertIsFile().snapshot()
+
+        // Publish the second snapshot
+        executer.usingBuildScript(producerProject).withTasks('uploadArchives').withArguments("-PemptyJar").run()
+
+        // Retrieve again should use cached snapshot
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments(repoUrl).run().assertTasksSkipped(':retrieve')
+        jarFile.assertHasNotChangedSince(snapshot)
+
+        // Retrieve again with zero timeout should use updated snapshot
+        executer.usingBuildScript(consumerProject).withTasks('retrieve').withArguments("-PnoTimeout", repoUrl).run().assertTasksNotSkipped(':retrieve')
+        jarFile.assertHasChangedSince(snapshot)
+        
+        server.stop()
     }
 }

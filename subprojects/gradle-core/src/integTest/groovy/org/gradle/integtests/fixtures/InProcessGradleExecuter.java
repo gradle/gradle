@@ -106,8 +106,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
-    public GradleExecuter usingBuildScript(String script) {
-        parameter.useEmbeddedBuildFile(script);
+    public GradleExecuter usingBuildScript(File buildScript) {
+        parameter.setBuildFile(buildScript);
+        return this;
+    }
+
+    @Override
+    public GradleExecuter usingBuildScript(String scriptText) {
+        parameter.useEmbeddedBuildFile(scriptText);
         return this;
     }
 
