@@ -195,9 +195,10 @@ public class JUnitIntegrationTest {
         executer.withTasks('test').run()
 
         JUnitTestExecutionResult result = new JUnitTestExecutionResult(dist.testDir)
-        result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner$SomeInner')
+        result.assertTestClassesExecuted('org.gradle.EmptyRunWithSubclass', 'org.gradle.TestsOnInner', 'org.gradle.TestsOnInner$SomeInner')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestsExecuted('ok')
         result.testClass('org.gradle.EmptyRunWithSubclass').assertTestPassed('ok')
+        result.testClass('org.gradle.TestsOnInner').assertTestPassed('ok')
         result.testClass('org.gradle.TestsOnInner$SomeInner').assertTestPassed('ok')
     }
 

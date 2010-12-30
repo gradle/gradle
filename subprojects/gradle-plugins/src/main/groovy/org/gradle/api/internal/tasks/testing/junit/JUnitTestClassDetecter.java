@@ -58,6 +58,13 @@ class JUnitTestClassDetecter extends TestClassVisitor {
         this.superClassName = superName;
     }
 
+    @Override
+    public void visitInnerClass(String name, String outerName, String innerName, int access) {
+        if (name.equals(className) && (access & Opcodes.ACC_STATIC) == 0) {
+            isAbstract = true;
+        }
+    }
+
     /**
      * Visits an annotation of the class.
      *
