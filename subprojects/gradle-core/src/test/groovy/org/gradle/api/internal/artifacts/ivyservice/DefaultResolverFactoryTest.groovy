@@ -19,15 +19,19 @@ package org.gradle.api.internal.artifacts.ivyservice
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.artifacts.ResolverContainer
-import org.junit.Before
+import org.gradle.util.JUnit4GroovyMockery
+import org.jmock.integration.junit4.JMock
 import org.junit.Test
+import org.junit.runner.RunWith
 import org.apache.ivy.plugins.resolver.*
-import static org.junit.Assert.assertEquals
-import static org.junit.Assert.assertTrue
+import static org.junit.Assert.*
+import static org.hamcrest.Matchers.*
+import org.gradle.api.internal.Factory
 
 /**
  * @author Hans Dockter
  */
+@RunWith(JMock.class)
 class DefaultResolverFactoryTest {
     static final String RESOLVER_URL = 'http://a.b.c/'
     static final Map RESOLVER_MAP = [name: 'mapresolver', url: 'http://x.y.z/']
@@ -40,13 +44,11 @@ class DefaultResolverFactoryTest {
     static final String TEST_REPO_URL = 'http://www.gradle.org'
     static final File TEST_CACHE_DIR = 'somepath' as File
 
-    DefaultResolverFactory factory
+    final JUnit4GroovyMockery context = new JUnit4GroovyMockery()
+    final LocalMavenCacheLocator localMavenCacheLocator = context.mock(LocalMavenCacheLocator.class)
+    final DefaultResolverFactory factory = new DefaultResolverFactory(context.mock(Factory.class), localMavenCacheLocator)
 
-    @Before public void setUp() {
-        factory = new DefaultResolverFactory()
-    }
-
-    @Test (expected = InvalidUserDataException) public void testCreateResolver() {
+    @Test(expected = InvalidUserDataException) public void testCreateResolver() {
         checkMavenResolver(factory.createResolver(RESOLVER_URL), RESOLVER_URL, RESOLVER_URL)
         checkMavenResolver(factory.createResolver(RESOLVER_MAP), RESOLVER_MAP.name, RESOLVER_MAP.url)
         DependencyResolver resolver = factory.createResolver(TEST_RESOLVER)
@@ -100,6 +102,19 @@ class DefaultResolverFactoryTest {
 
     }
 
+    @Test public void testCreateLocalMavenRepo() {
+        File repoDir = new File(".m2/repository")
+
+        context.checking {
+            one(localMavenCacheLocator).getLocalMavenCache()
+            will(returnValue(repoDir))
+        }
+
+        def repo = factory.createMavenLocalResolver('name')
+        assertThat(repo, instanceOf(GradleIBiblioResolver))
+        assertThat(repo.root, equalTo(repoDir.toURI().toString() + '/'))
+    }
+
     private void checkNoModuleRepository(RepositoryResolver resolver, String expectedName, List expectedArtifactPatterns,
                                          List expectedIvyPatterns) {
         assertEquals(expectedName, resolver.name)
@@ -107,5 +122,4 @@ class DefaultResolverFactoryTest {
         assert expectedArtifactPatterns == resolver.artifactPatterns
         assertTrue(resolver.allownomd)
     }
-
 }

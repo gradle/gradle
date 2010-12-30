@@ -80,6 +80,7 @@ class MavenSnapshotIntegrationTest {
         def snapshot = jarFile.assertIsFile().snapshot()
 
         // Publish the second snapshot
+        Thread.sleep(1100)
         executer.usingBuildScript(producerProject).withTasks('uploadArchives').withArguments("-PemptyJar").run()
 
         // Retrieve again should use cached snapshot

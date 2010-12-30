@@ -67,7 +67,7 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * @throws org.gradle.api.InvalidUserDataException In the case neither rootDir nor rootDirs is specified of if both
      * are specified.
      */
-    FileSystemResolver flatDir(Map args);
+    FileSystemResolver flatDir(Map<String, ?> args);
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
@@ -80,13 +80,13 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * <tr><th>Key</th>
      *     <th>Description of Associated Value</th></tr>
      * <tr><td><code>name</code></td>
-     *     <td><em>(optional)</em> The name of the repository. The default is {@link #DEFAULT_MAVEN_CENTRAL_REPO_NAME}
+     *     <td><em>(optional)</em> The name of the repository. The default is {@value #DEFAULT_MAVEN_CENTRAL_REPO_NAME}
      * is used as the name. A name must be unique amongst a repository group.
      * </td></tr>
      * <tr><td><code>urls</code></td>
      *     <td>A single jar repository or a collection of jar repositories. Sometimes the artifact
-     * lives in a different repository than the pom. In such a case you can specify further locations to look for an artifact.
-     * But be aware that the pom is only looked up in the root repository</td></tr>
+     * lives in a different repository than the POM. In such a case you can specify further locations to look for an artifact.
+     * But be aware that the POM is only looked up in the root repository</td></tr>
      * </table>
      *
      * <p>Examples:
@@ -102,11 +102,11 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * @return the added resolver
      * @see #mavenRepo(java.util.Map)
      */
-    DependencyResolver mavenCentral(Map args);
+    DependencyResolver mavenCentral(Map<String, ?> args);
 
     /**
      * Adds a repository which looks in the Maven central repository for dependencies. The URL used to access this repository is
-     * {@link #MAVEN_CENTRAL_URL}. The name of the repository is {@link #DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
+     * {@value #MAVEN_CENTRAL_URL}. The name of the repository is {@value #DEFAULT_MAVEN_CENTRAL_REPO_NAME}.
      *
      * <p>Examples:
      * <pre>
@@ -123,7 +123,24 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
     DependencyResolver mavenCentral();
 
     /**
-     * Adds a repository which is Maven compatible. The compatibility is in regard to layout, snapshothandling and
+     * Adds a repository which looks in the local Maven cache for dependencies. The name of the repository is
+     * {@value #DEFAULT_MAVEN_LOCAL_REPO_NAME}.
+     *
+     * <p>Examples:
+     * <pre>
+     * repositories {
+     *     mavenLocal()
+     * }
+     * </pre>
+     * </p>
+     *
+     * @return the added resolver
+     * @see #mavenRepo(java.util.Map)
+     */
+    DependencyResolver mavenLocal();
+
+    /**
+     * Adds a repository which is Maven compatible. The compatibility is in regard to layout, snapshot handling and
      * dealing with the pom.xml. This repository can't be used for publishing in a Maven compatible way. For publishing
      * to a Maven repository, have a look at {@link #mavenDeployer(java.util.Map)} or {@link #mavenInstaller(java.util.Map)}.
      *
@@ -164,9 +181,9 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * @return the added repository
      * @see #mavenCentral(java.util.Map)
      */
-    DependencyResolver mavenRepo(Map args);
+    DependencyResolver mavenRepo(Map<String, ?> args);
 
-    DependencyResolver mavenRepo(Map args, Closure configClosure);
+    DependencyResolver mavenRepo(Map<String, ?> args, Closure configClosure);
 
     GroovyMavenDeployer mavenDeployer();
 
@@ -187,22 +204,22 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * to point to information related to a particular repository. A name must be unique amongst a repository group.
      * </td></tr>
      * </table>
-     * 
+     *
      * @param args The argument to create the repository
      * @return The added repository
      * @see #mavenDeployer(java.util.Map, groovy.lang.Closure)
      */
-    GroovyMavenDeployer mavenDeployer(Map args);
+    GroovyMavenDeployer mavenDeployer(Map<String, ?> args);
 
     /**
      * Behaves the same way as {@link #mavenDeployer(java.util.Map)}. Additionally a closure can be passed to
      * further configure the added repository.
-     *  
+     *
      * @param args The argument to create the repository
      * @param configureClosure
      * @return The added repository
      */
-    GroovyMavenDeployer mavenDeployer(Map args, Closure configureClosure);
+    GroovyMavenDeployer mavenDeployer(Map<String, ?> args, Closure configureClosure);
 
     MavenResolver mavenInstaller();
 
@@ -227,7 +244,7 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * @return The added repository
      * @see #mavenInstaller(java.util.Map, groovy.lang.Closure) (java.util.Map, groovy.lang.Closure)
      */
-    MavenResolver mavenInstaller(Map args);
+    MavenResolver mavenInstaller(Map<String, ?> args);
 
     /**
      * Behaves the same way as {@link #mavenInstaller(java.util.Map)}. Additionally a closure can be passed to
@@ -237,6 +254,6 @@ public interface RepositoryHandler extends ResolverContainer, ResolverProvider {
      * @param configureClosure
      * @return The added repository
      */
-    MavenResolver mavenInstaller(Map args, Closure configureClosure);
+    MavenResolver mavenInstaller(Map<String, ?> args, Closure configureClosure);
 
 }

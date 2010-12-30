@@ -27,7 +27,7 @@ public class DefaultClassPathProvider extends AbstractClassPathProvider {
         List<Pattern> gradleApiPatterns = toPatterns("gradle-\\w+", "ivy", "slf4j", "ant");
         gradleApiPatterns.addAll(groovyPatterns);
         // Add the test fixture runtime, too
-        gradleApiPatterns.addAll(toPatterns("commons-io", "asm", "commons-lang", "commons-collections"));
+        gradleApiPatterns.addAll(toPatterns("commons-io", "asm", "commons-lang", "commons-collections", "maven-ant-tasks"));
         add("GRADLE_API", gradleApiPatterns);
         add("GRADLE_CORE", toPatterns("gradle-core"));
         add("ANT", toPatterns("ant", "ant-launcher"));

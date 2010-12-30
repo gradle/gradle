@@ -100,6 +100,10 @@ public class DefaultRepositoryHandler extends DefaultResolverContainer implement
                 urls == null ? new String[0] : urls.toArray(new String[urls.size()])));
     }
 
+    public DependencyResolver mavenLocal() {
+        return add(getResolverFactory().createMavenLocalResolver(DEFAULT_MAVEN_LOCAL_REPO_NAME));
+    }
+
     public DependencyResolver mavenRepo(Map args) {
         return mavenRepo(args, null);
     }

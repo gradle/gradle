@@ -92,6 +92,7 @@ public class GradleIBiblioResolver extends IBiblioResolver {
     @Override
     public void setRoot(String root) {
         super.setRoot(root);
+
         URI rootUri;
         try {
             rootUri = new URI(root);

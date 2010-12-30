@@ -101,6 +101,17 @@ class DefaultRepositoryHandlerTest extends DefaultResolverContainerTest {
         assertEquals([expectedResolver], repositoryHandler.resolvers)
     }
 
+    @Test
+    public void testMavenLocalWithNoArgs() {
+        context.checking {
+            one(resolverFactoryMock).createMavenLocalResolver(ResolverContainer.DEFAULT_MAVEN_LOCAL_REPO_NAME)
+            will(returnValue(expectedResolver))
+        }
+        prepareResolverFactoryToTakeAndReturnExpectedResolver()
+        assert repositoryHandler.mavenLocal().is(expectedResolver)
+        assertEquals([expectedResolver], repositoryHandler.resolvers)
+    }
+
     @Test(expected = InvalidUserDataException)
     public void testMavenRepoWithMissingUrls() {
         repositoryHandler.mavenRepo([name: 'someName'])

@@ -51,9 +51,15 @@ import java.util.Map;
  */
 public class DefaultResolverFactory implements ResolverFactory {
     private final Factory<? extends LoggingManagerInternal> loggingManagerFactory;
+    private final LocalMavenCacheLocator localMavenCacheLocator;
 
     public DefaultResolverFactory(Factory<? extends LoggingManagerInternal> loggingManagerFactory) {
+        this(loggingManagerFactory, new LocalMavenCacheLocator());
+    }
+
+    DefaultResolverFactory(Factory<? extends LoggingManagerInternal> loggingManagerFactory, LocalMavenCacheLocator localMavenCacheLocator) {
         this.loggingManagerFactory = loggingManagerFactory;
+        this.localMavenCacheLocator = localMavenCacheLocator;
     }
 
     public DependencyResolver createResolver(Object userDescription) {
@@ -107,6 +113,11 @@ public class DefaultResolverFactory implements ResolverFactory {
         tmpFile.mkdir();
         DeleteOnExit.addFile(tmpFile);
         return tmpFile;
+    }
+
+    public AbstractResolver createMavenLocalResolver(String name) {
+        String cacheDir = localMavenCacheLocator.getLocalMavenCache().toURI().toString();
+        return createMavenRepoResolver(name, cacheDir);
     }
 
     public AbstractResolver createMavenRepoResolver(String name, String root, String... jarRepoUrls) {

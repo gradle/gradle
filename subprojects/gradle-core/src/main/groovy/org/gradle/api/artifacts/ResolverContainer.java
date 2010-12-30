@@ -54,13 +54,13 @@ import java.util.List;
  */
 public interface ResolverContainer extends NamedDomainObjectContainer<DependencyResolver>, NamedDomainObjectCollection<DependencyResolver> {
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
+    String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
     String MAVEN_CENTRAL_URL = "http://repo1.maven.org/maven2/";
     String MAVEN_REPO_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier]).[ext]";
     String FLAT_DIR_RESOLVER_PATTERN = "[artifact](-[revision])(-[classifier]).[ext]";
     String DEFAULT_CACHE_ARTIFACT_PATTERN
             = "[organisation]/[module](/[branch])/[type]s/[artifact]-[revision](-[classifier])(.[ext])";
     String DEFAULT_CACHE_IVY_PATTERN = "[organisation]/[module](/[branch])/ivy-[revision].xml";
-    String DEFAULT_CACHE_NAME = "default-gradle-cache";
     String INTERNAL_REPOSITORY_NAME = "internal-repository";
     String DEFAULT_CACHE_DIR_NAME = "cache";
     String RESOLVER_NAME = "name";
