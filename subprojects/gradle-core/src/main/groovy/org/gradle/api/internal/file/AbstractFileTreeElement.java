@@ -15,10 +15,10 @@
  */
 package org.gradle.api.internal.file;
 
-import org.gradle.api.file.FileTreeElement;
+import org.apache.commons.io.IOUtils;
 import org.gradle.api.GradleException;
 import org.gradle.api.UncheckedIOException;
-import org.apache.commons.io.IOUtils;
+import org.gradle.api.file.FileTreeElement;
 
 import java.io.*;
 
@@ -53,12 +53,7 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
 
     public boolean copyTo(File target) {
         try {
-            if (!needsCopy(target)) {
-                return false;
-            }
-
             target.getParentFile().mkdirs();
-
             if (isDirectory()) {
                 target.mkdirs();
             } else {
@@ -78,15 +73,5 @@ public abstract class AbstractFileTreeElement implements FileTreeElement {
         } finally {
             outputStream.close();
         }
-    }
-
-    boolean needsCopy(File dest) {
-        if (dest.exists()) {
-            if (getLastModified() == dest.lastModified()) {
-                return false;
-            }
-            // possibly add option to check file size too
-        }
-        return true;
     }
 }

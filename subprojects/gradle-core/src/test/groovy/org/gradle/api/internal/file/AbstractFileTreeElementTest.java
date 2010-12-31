@@ -16,41 +16,46 @@
 package org.gradle.api.internal.file;
 
 import org.gradle.api.file.RelativePath;
-import org.gradle.util.TestFile;
-import org.gradle.util.TemporaryFolder;
 import org.gradle.util.GFileUtils;
-
-import static org.junit.Assert.*;
-
+import org.gradle.util.TemporaryFolder;
+import org.gradle.util.TestFile;
 import org.junit.Rule;
 import org.junit.Test;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
+
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 public class AbstractFileTreeElementTest {
     @Rule
     public final TemporaryFolder tmpDir = new TemporaryFolder();
 
     @Test
-    public void testNeedsCopy() throws IOException {
-        TestFile source = tmpDir.createFile("src");
-        TestFile dest = tmpDir.getDir().file("dest");
-        dest.assertDoesNotExist();
+    public void canCopyToOutputStream() {
+        TestFile src = tmpDir.file("src");
+        src.write("content");
 
-        TestFileTreeElement element = new TestFileTreeElement(source);
+        ByteArrayOutputStream outstr = new ByteArrayOutputStream();
+        new TestFileTreeElement(src).copyTo(outstr);
 
-        assertTrue(element.needsCopy(dest));
-
-        element.copyTo(dest);
-
-        assertFalse(element.needsCopy(dest));
-
-        dest.setLastModified(source.lastModified() - 1000);
-        assertTrue(element.needsCopy(dest));
+        assertThat(new String(outstr.toByteArray()), equalTo("content"));
     }
 
+    @Test
+    public void canCopyToFile() {
+        TestFile src = tmpDir.file("src");
+        src.write("content");
+        TestFile dest = tmpDir.file("dir/dest");
+
+        new TestFileTreeElement(src).copyTo(dest);
+
+        dest.assertIsFile();
+        assertThat(dest.getText(), equalTo("content"));
+    }
+    
     private class TestFileTreeElement extends AbstractFileTreeElement {
         private final TestFile file;
 
