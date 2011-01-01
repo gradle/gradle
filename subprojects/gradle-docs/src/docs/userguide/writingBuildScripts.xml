@@ -1,5 +1,5 @@
 <!--
-  ~ Copyright 2009 the original author or authors.
+  ~ Copyright 2010 the original author or authors.
   ~
   ~ Licensed under the Apache License, Version 2.0 (the "License");
   ~ you may not use this file except in compliance with the License.
@@ -136,10 +136,21 @@
     </section>
     <section>
         <title>Some Groovy basics</title>
-        <para>Groovy provides a number of features for creating DSLs, and the Gradle build language takes advantage of these.
+        <para>Groovy provides plenty of features for creating DSLs, and the Gradle build language takes advantage of these.
             Understanding how the build language works will help you when you write your build script, and in particular,
             when you start to write customs plugins and tasks.
         </para>
+        <section>
+            <title>Groovy JDK</title>
+            <para>
+                Groovy adds lots of useful methods to JVM classes. For example, <classname>Iterable</classname> gets
+                an <literal>each</literal> method, which iterates over the elements of the <classname>Iterable</classname>:
+            </para>
+            <sample id="groovyBasics" dir="userguide/tutorial/groovy" title="Groovy JDK methods">
+                <sourcefile file="build.gradle" snippet="groovyJdk"/>
+            </sample>
+            <para>Have a look at <ulink url="http://groovy.codehaus.org/groovy-jdk/"/> for more details.</para>
+        </section>
         <section>
             <title>Property accessors</title>
             <para>
@@ -150,8 +161,27 @@
             </sample>
         </section>
         <section>
+            <title>Optional parentheses on method calls</title>
+            <para>
+                Parentheses are optional for method calls.
+            </para>
+            <sample id="groovyBasics" dir="userguide/tutorial/groovy" title="Method call without parentheses">
+                <sourcefile file="build.gradle" snippet="methodCallWithoutParentheses"/>
+            </sample>
+        </section>
+        <section>
+            <title>List and map literals</title>
+            <para>
+                Groovy provides some shortcuts for defining <classname>List</classname> and <classname>Map</classname>
+                instances.
+            </para>
+            <sample id="groovyBasics" dir="userguide/tutorial/groovy" title="List and map literals">
+                <sourcefile file="build.gradle" snippet="listAndMapLiterals"/>
+            </sample>
+        </section>
+        <section>
             <title>Closures as the last parameter in a method</title>
-            <para>The Gradle DSL makes heavy use of closures (see <ulink url="http://groovy.codehaus.org/Closures"/>).
+            <para>The Gradle DSL uses closures in many places. You can find out more about closures <ulink url="http://groovy.codehaus.org/Closures">here</ulink>.
                 When the last parameter of a method is a closure, you can place the closure after the method call:
             </para>
             <sample id="groovyBasics" dir="userguide/tutorial/groovy" title="Closure as method parameter">

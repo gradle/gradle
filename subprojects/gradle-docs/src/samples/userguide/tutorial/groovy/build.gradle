@@ -1,22 +1,49 @@
+apply plugin: 'java'
+
+// START SNIPPET groovyJdk
+// Iterable gets an each() method
+configurations.runtime.each { File f -> println f }
+// END SNIPPET groovyJdk
+
 // START SNIPPET propertyAccessors
 // Using a getter method
-println buildDir
 println project.buildDir
 println getProject().getBuildDir()
 
 // Using a setter method
-buildDir = 'target'
+project.buildDir = 'target'
 getProject().setBuildDir('target')
 // END SNIPPET propertyAccessors
+
+// START SNIPPET methodCallWithoutParentheses
+test.systemProperty 'some.prop', 'value'
+test.systemProperty('some.prop', 'value')
+// END SNIPPET methodCallWithoutParentheses
+
+// START SNIPPET listAndMapLiterals
+// List literal
+test.includes = ['org/gradle/api/**', 'org/gradle/internal/**']
+
+List<String> list = new ArrayList<String>()
+list.add('org/gradle/api/**')
+list.add('org/gradle/internal/**')
+test.includes = list
+
+// Map literal
+apply plugin: 'java'
+
+Map<String, String> map = new HashMap<String, String>()
+map.put('plugin', 'java')
+apply(map)
+// END SNIPPET listAndMapLiterals
 
 // START SNIPPET closureAsLastParam
 repositories {
     println "in a closure"
 }
-getProject().repositories({ println "in a closure" })
+repositories() { println "in a closure" }
+repositories({ println "in a closure" })
 // END SNIPPET closureAsLastParam
-
-configurations { compile }
 
 // START SNIPPET closureDelegates
 dependencies {
