@@ -54,6 +54,7 @@ class MavenSnapshotIntegrationTest {
         jarFile.assertHasNotChangedSince(snapshot)
 
         // Publish the second snapshot
+        Thread.sleep(1100)
         executer.usingBuildScript(producerProject).withTasks('uploadArchives').withArguments("-PemptyJar").run()
 
         // Retrieve again should use updated snapshot
