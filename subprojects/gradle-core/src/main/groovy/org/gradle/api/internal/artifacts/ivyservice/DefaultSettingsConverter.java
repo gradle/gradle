@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import org.apache.commons.lang.StringUtils;
 import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
@@ -188,16 +189,24 @@ public class DefaultSettingsConverter implements SettingsConverter {
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_STARTED) {
                 total = 0;
-                DefaultSettingsConverter.logger.lifecycle("Download " + evt.getResource().getName());
+                DefaultSettingsConverter.logger.lifecycle(String.format("%s %s", StringUtils.capitalize(getRequestType(evt)), evt.getResource().getName()));
                 logger = progressLoggerFactory.start(DefaultSettingsConverter.class.getName());
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_PROGRESS) {
                 total += evt.getLength();
-                logger.progress(String.format("%s/%s downloaded", getLengthText(total), getLengthText(evt)));
+                logger.progress(String.format("%s/%s %sed", getLengthText(total), getLengthText(evt), getRequestType(evt)));
             }
             if (evt.getEventType() == TransferEvent.TRANSFER_COMPLETED
                     || evt.getEventType() == TransferEvent.TRANSFER_ERROR) {
                 logger.completed();
+            }
+        }
+
+        private String getRequestType(TransferEvent evt) {
+            if (evt.getRequestType() == TransferEvent.REQUEST_PUT) {
+                return "upload";
+            } else {
+                return "download";
             }
         }
     }
