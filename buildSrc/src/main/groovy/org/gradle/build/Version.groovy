@@ -71,9 +71,9 @@ class Version {
 
     String getDistributionUrl() {
         if (release) {
-            'https://dav.codehaus.org/dist/gradle'
+            'https://gradle.artifactoryonline.com/gradle/distributions'
         } else {
-            'https://dav.codehaus.org/snapshots.dist/gradle'
+            'https://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots'
         }
     }
 }

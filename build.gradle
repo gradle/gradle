@@ -28,7 +28,7 @@ import org.gradle.build.Git
  * setting certain properties. Those properties can be set in the gradle.properties file in the the gradle user home. The
  * following properties can be set:
  *
- * Uploading distributions to Gradle's release and snapshot repository at codehaus: codehausUserName, codehausUserPassword
+ * Uploading distributions to Gradle's release and snapshot repository at codehaus: artifactoryUserName, artifactoryUserPassword
  * Uploading the userguide and the javadoc to Gradle's website: websiteFtpUserName, websiteFtpUserPassword
  * Using the build to create a new distribution and install it on the local machine: gradle_installPath
  */
@@ -391,10 +391,9 @@ uploadDists {
     dependsOn testedDists
     uploadDescriptor = false
     doFirst {
-        it.repositories.add(new WebdavResolver()) {
+        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
+        it.repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
             name = 'gradleReleases'
-            user = codehausUserName
-            userPassword = codehausUserPassword
             addArtifactPattern("${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]" as String)
         }
     }
@@ -403,8 +402,8 @@ uploadDists {
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(uploadDists)) {
         // check properties defined and fail early
-        codehausUserName
-        codehausUserPassword
+        artifactoryUserName
+        artifactoryUserPassword
     }
 }
 
