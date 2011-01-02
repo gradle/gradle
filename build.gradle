@@ -444,14 +444,12 @@ task releaseArtifacts {
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, ':docs:uploadDocs'
+    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadDists, ':docs:uploadDocs'
 }
 
-task wrapper(type: Wrapper, dependsOn: binZip)
-wrapper.doFirst {task ->
-    task.configure {
+task wrapper(type: Wrapper) {
+    doFirst {
         gradleVersion = version
-        jarPath = 'wrapper'
     }
 }
 
