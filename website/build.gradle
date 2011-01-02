@@ -70,8 +70,8 @@ task configureReleases << {
 
     version = gradleCoreProperties.version
     releases << new Release(version: version, status: 'Current Release')
+    releases << new Release(version: '0.9')
     releases << new Release(version: '0.8')
-    releases << new Release(version: '0.7')
 }
 
 task html(dependsOn: configureReleases) << {
@@ -309,7 +309,9 @@ class Release {
     }
 
     def String getReleaseNoteVersion() {
-        return majorVersion
+        Matcher matcher = version =~ /(\d+(\.\d+)+).*/
+        matcher.matches()
+        return matcher.group(1)
     }
 
     def String getDisplayName() {
