@@ -21,7 +21,7 @@ import org.gradle.api.file.SourceDirectorySet;
 
 /**
  * A {@code ScalaSourceSetConvention} defines the properties and methods added to a {@link
- * org.gradle.api.tasks.SourceSet} by the {@link org.gradle.api.plugins.scala.ScalaPlugin}.
+ * org.gradle.api.tasks.SourceSet} by the {@code ScalaPlugin}.
  */
 public interface ScalaSourceSet {
     /**
