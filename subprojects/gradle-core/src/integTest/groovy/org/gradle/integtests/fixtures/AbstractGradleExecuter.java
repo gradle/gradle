@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.Jvm;
-
 import java.io.File;
 import java.util.*;
 
@@ -26,28 +24,34 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     private File workingDir;
     private boolean quiet;
     private boolean taskList;
+    private boolean dependencyList;
     private boolean searchUpwards;
     private Map<String, String> environmentVars = new HashMap<String, String>();
+    private List<File> initScripts = new ArrayList<File>();
     private String executable;
     private File userHomeDir;
     private File buildScript;
+    private File projectDir;
+    private String buildScriptText;
+    private File settingsFile;
 
     public GradleExecuter reset() {
         args.clear();
         tasks.clear();
+        initScripts.clear();
         workingDir = null;
+        projectDir = null;
         buildScript = null;
+        buildScriptText = null;
+        settingsFile = null;
         quiet = false;
         taskList = false;
+        dependencyList = false;
         searchUpwards = false;
         executable = null;
         userHomeDir = null;
         environmentVars.clear();
         return this;
-    }
-
-    public boolean worksWith(Jvm jvm) {
-        return jvm.isJava5Compatible();
     }
 
     public GradleExecuter inDirectory(File directory) {
@@ -63,8 +67,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (workingDir != null) {
             executer.inDirectory(workingDir);
         }
+        if (projectDir != null) {
+            executer.usingProjectDirectory(projectDir);
+        }
         if (buildScript != null) {
             executer.usingBuildScript(buildScript);
+        }
+        if (buildScriptText != null) {
+            executer.usingBuildScript(buildScriptText);
+        }
+        if (settingsFile != null) {
+            executer.usingSettingsFile(settingsFile);
+        }
+        for (File initScript : initScripts) {
+            executer.usingInitScript(initScript);
         }
         executer.withTasks(tasks);
         executer.withArguments(args);
@@ -76,6 +92,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
         if (taskList) {
             executer.withTaskList();
         }
+        if (dependencyList) {
+            executer.withDependencyList();
+        }
         executer.withUserHomeDir(userHomeDir);
     }
 
@@ -85,15 +104,23 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter usingBuildScript(String scriptText) {
-        throw new UnsupportedOperationException();
+        this.buildScriptText = scriptText;
+        return this;
+    }
+
+    public GradleExecuter usingProjectDirectory(File projectDir) {
+        this.projectDir = projectDir;
+        return this;
     }
 
     public GradleExecuter usingSettingsFile(File settingsFile) {
-        throw new UnsupportedOperationException();
+        this.settingsFile = settingsFile;
+        return this;
     }
 
     public GradleExecuter usingInitScript(File initScript) {
-        throw new UnsupportedOperationException();
+        initScripts.add(initScript);
+        return this;
     }
 
     public File getUserHomeDir() {
@@ -134,7 +161,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
     }
 
     public GradleExecuter withDependencyList() {
-        throw new UnsupportedOperationException();
+        dependencyList = true;
+        return this;
     }
 
     public GradleExecuter withArguments(String... args) {
@@ -175,11 +203,30 @@ public abstract class AbstractGradleExecuter implements GradleExecuter {
             allArgs.add("--build-file");
             allArgs.add(buildScript.getAbsolutePath());
         }
+        if (buildScriptText != null) {
+            allArgs.add("--embedded");
+            allArgs.add(buildScriptText);
+        }
+        if (projectDir != null) {
+            allArgs.add("--project-dir");
+            allArgs.add(projectDir.getAbsolutePath());
+        }
+        for (File initScript : initScripts) {
+            allArgs.add("--init-script");
+            allArgs.add(initScript.getAbsolutePath());
+        }
+        if (settingsFile != null) {
+            allArgs.add("--settings-file");
+            allArgs.add(settingsFile.getAbsolutePath());
+        }
         if (quiet) {
             allArgs.add("--quiet");
         }
         if (taskList) {
             allArgs.add("tasks");
+        }
+        if (dependencyList) {
+            allArgs.add("dependencies");
         }
         if (!searchUpwards) {
             allArgs.add("--no-search-upward");

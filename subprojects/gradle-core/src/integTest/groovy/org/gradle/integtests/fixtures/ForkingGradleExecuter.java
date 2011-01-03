@@ -16,22 +16,18 @@
 
 package org.gradle.integtests.fixtures;
 
+import org.gradle.api.Action;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
 import org.gradle.util.OperatingSystem;
 import org.gradle.util.TestFile;
-import org.hamcrest.BaseMatcher;
-import org.hamcrest.Description;
 import org.hamcrest.Matcher;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import static org.gradle.util.Matchers.*;
@@ -146,8 +142,9 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
 
     private static class ForkedExecutionResult extends AbstractExecutionResult {
         private final Map result;
-        private final Pattern skippedTaskPattern = Pattern.compile("(:\\w+(:\\w+)*)\\s+((SKIPPED)|(UP-TO-DATE))");
-        private final Pattern notSkippedTaskPattern = Pattern.compile("(:\\w+(:\\w+)*)");
+        private final Pattern skippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)\\s+((SKIPPED)|(UP-TO-DATE))");
+        private final Pattern notSkippedTaskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)");
+        private final Pattern taskPattern = Pattern.compile("(:\\S+?(:\\S+?)*)(\\s+.+)?");
 
         public ForkedExecutionResult(Map result) {
             this.result = result;
@@ -162,36 +159,54 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksExecuted(String... taskPaths) {
-            throw new UnsupportedOperationException();
+            List<String> tasks = grepTasks(taskPattern);
+            List<String> expectedTasks = Arrays.asList(taskPaths);
+            assertThat(String.format("Expected tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
+            return this;
         }
 
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
-            List<String> tasks = findTasks(skippedTaskPattern);
-            assertThat(tasks, equalTo(Arrays.asList(taskPaths)));
+            Set<String> tasks = new HashSet<String>(grepTasks(skippedTaskPattern));
+            Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
+            assertThat(String.format("Expected skipped tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
             return this;
         }
 
         public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
-            List<String> tasks = findTasks(notSkippedTaskPattern);
-            assertThat(tasks, equalTo(Arrays.asList(taskPaths)));
+            Set<String> tasks = new HashSet<String>(grepTasks(notSkippedTaskPattern));
+            Set<String> expectedTasks = new HashSet<String>(Arrays.asList(taskPaths));
+            assertThat(String.format("Expected executed tasks %s not found in process output:%n%s", expectedTasks, getOutput()), tasks, equalTo(expectedTasks));
             return this;
         }
 
-        private List<String> findTasks(Pattern pattern) {
-            List<String> tasks = new ArrayList<String>();
+        private List<String> grepTasks(final Pattern pattern) {
+            final List<String> tasks = new ArrayList<String>();
+
+            eachLine(new Action<String>() {
+                public void execute(String s) {
+                    java.util.regex.Matcher matcher = pattern.matcher(s);
+                    if (matcher.matches()) {
+                        String taskName = matcher.group(1);
+                        if (!taskName.startsWith(":buildSrc:")) {
+                            tasks.add(taskName);
+                        }
+                    }
+                }
+            });
+
+            return tasks;
+        }
+
+        private void eachLine(Action<String> action) {
             BufferedReader reader = new BufferedReader(new StringReader(getOutput()));
             String line;
             try {
                 while ((line = reader.readLine()) != null) {
-                    java.util.regex.Matcher matcher = pattern.matcher(line);
-                    if (matcher.matches()) {
-                        tasks.add(matcher.group(1));
-                    }
+                    action.execute(line);
                 }
             } catch (IOException e) {
                 throw new RuntimeException(e);
             }
-            return tasks;
         }
     }
 
@@ -215,18 +230,29 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             return this;
         }
 
-        public ExecutionFailure assertThatCause(final Matcher<String> matcher) {
-            assertThat(getError(), containsLine(new BaseMatcher<String>() {
-                public boolean matches(Object o) {
-                    String str = (String) o;
-                    String prefix = "Cause: ";
-                    return str.startsWith(prefix) && matcher.matches(str.substring(prefix.length()));
+        public ExecutionFailure assertThatCause(Matcher<String> matcher) {
+            Pattern causePattern = Pattern.compile("(?m)^Cause: ");
+            String error = getError();
+            java.util.regex.Matcher regExpMatcher = causePattern.matcher(error);
+            int pos = 0;
+            while (pos < error.length()) {
+                if (!regExpMatcher.find(pos)) {
+                    break;
                 }
-
-                public void describeTo(Description description) {
-                    matcher.describeTo(description);
+                int start = regExpMatcher.end();
+                String cause;
+                if (regExpMatcher.find(start)) {
+                    cause = error.substring(start, regExpMatcher.start());
+                    pos = regExpMatcher.start();
+                } else {
+                    cause = error.substring(start);
+                    pos = error.length();
                 }
-            }));
+                if (matcher.matches(cause)) {
+                    return this;
+                }
+            }
+            fail(String.format("No matching cause found in '%s'", error));
             return this;
         }
 

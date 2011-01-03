@@ -83,7 +83,7 @@ public abstract class GradleLauncher {
         return getFactory().newInstance(startParameter);
     }
 
-    private static synchronized GradleLauncherFactory getFactory() {
+    public static synchronized GradleLauncherFactory getFactory() {
         if (factory == null) {
             factory = new DefaultGradleLauncherFactory();
         }

@@ -92,7 +92,6 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void canConfigureTasksWhenTheyAreDefined() {
         testFile("build.gradle").writelns(
-                "import org.gradle.integtests.TestTask",
                 "task withDescription { description = 'value' }",
                 "task(asMethod)\n{ description = 'value' }",
                 "task asStatement(type: TestTask) { property = 'value' }",
@@ -105,7 +104,8 @@ public class TaskDefinitionIntegrationTest extends AbstractIntegrationTest {
                 "[withDescription, asMethod].each {",
                 "    assert 'value' == it.description",
                 "}",
-                "task all(dependsOn: tasks.all)");
+                "task all(dependsOn: tasks.all)",
+                "class TestTask extends DefaultTask { String property }");
         inTestDirectory().withTasks("all").run();
     }
 

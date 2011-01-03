@@ -16,14 +16,15 @@
 
 package org.gradle.integtests;
 
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFile;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.TestFile;
 
 import java.io.File;
+import java.io.IOException;
 
 public class TransformerTask extends DefaultTask {
     private File inputFile;
@@ -58,9 +59,8 @@ public class TransformerTask extends DefaultTask {
     }
 
     @TaskAction
-    public void transform() {
-        TestFile inputFile = new TestFile(this.inputFile);
-        TestFile outputFile = new TestFile(this.outputFile);
-        outputFile.write(String.format(format, inputFile.getText()));
+    public void transform() throws IOException {
+        String text = DefaultGroovyMethods.getText(inputFile);
+        DefaultGroovyMethods.setText(outputFile, String.format(format, text));
     }
 }

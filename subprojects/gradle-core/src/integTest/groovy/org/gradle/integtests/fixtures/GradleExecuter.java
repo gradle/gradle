@@ -15,8 +15,6 @@
  */
 package org.gradle.integtests.fixtures;
 
-import org.gradle.util.Jvm;
-
 import java.io.File;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +60,11 @@ public interface GradleExecuter {
     GradleExecuter usingInitScript(File initScript);
 
     /**
+     * Uses the given project directory
+     */
+    GradleExecuter usingProjectDirectory(File projectDir);
+
+    /**
      * Uses the given build script
      */
     GradleExecuter usingBuildScript(File buildScript);
@@ -96,6 +99,4 @@ public interface GradleExecuter {
      * @return The result.
      */
     ExecutionFailure runWithFailure();
-
-    boolean worksWith(Jvm jvm);
 }

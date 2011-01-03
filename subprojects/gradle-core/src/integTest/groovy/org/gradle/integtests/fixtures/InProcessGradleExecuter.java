@@ -31,17 +31,15 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.initialization.CommandLineParser;
 import org.gradle.initialization.DefaultCommandLineConverter;
+import org.gradle.initialization.DefaultGradleLauncherFactory;
 import org.hamcrest.Matcher;
 
 import java.io.File;
 import java.io.StringWriter;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
+import java.util.*;
 
-import static org.gradle.util.Matchers.containsLine;
-import static org.gradle.util.Matchers.hasMessage;
-import static org.gradle.util.WrapUtil.toList;
+import static org.gradle.util.Matchers.*;
+import static org.gradle.util.WrapUtil.*;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -106,6 +104,12 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     }
 
     @Override
+    public GradleExecuter usingProjectDirectory(File projectDir) {
+        parameter.setProjectDir(projectDir);
+        return this;
+    }
+
+    @Override
     public GradleExecuter usingBuildScript(File buildScript) {
         parameter.setBuildFile(buildScript);
         return this;
@@ -163,14 +167,16 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         if (isQuiet()) {
             parameter.setLogLevel(LogLevel.QUIET);
         }
+        DefaultGradleLauncherFactory factory = (DefaultGradleLauncherFactory) GradleLauncher.getFactory();
+        factory.addListener(listener);
         GradleLauncher gradleLauncher = GradleLauncher.newInstance(parameter);
-        gradleLauncher.addListener(listener);
         gradleLauncher.addStandardOutputListener(outputListener);
         gradleLauncher.addStandardErrorListener(errorListener);
         try {
             return gradleLauncher.run();
         } finally {
             System.clearProperty("test.single");
+            factory.removeListener(listener);
         }
     }
 
@@ -190,7 +196,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
 
     private static class BuildListenerImpl implements TaskExecutionGraphListener {
         private final List<String> executedTasks = new ArrayList<String>();
-        private final List<String> skippedTasks = new ArrayList<String>();
+        private final Set<String> skippedTasks = new HashSet<String>();
 
         public void graphPopulated(TaskExecutionGraph graph) {
             List<Task> planned = new ArrayList<Task>(graph.getAllTasks());
@@ -214,10 +220,10 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static class TaskListenerImpl implements TaskExecutionListener {
         private final List<Task> planned;
         private final List<String> executedTasks;
-        private final List<String> skippedTasks;
+        private final Set<String> skippedTasks;
         private Task current;
 
-        public TaskListenerImpl(List<Task> planned, List<String> executedTasks, List<String> skippedTasks) {
+        public TaskListenerImpl(List<Task> planned, List<String> executedTasks, Set<String> skippedTasks) {
             this.planned = planned;
             this.executedTasks = executedTasks;
             this.skippedTasks = skippedTasks;
@@ -227,25 +233,41 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
             assertThat(current, nullValue());
             assertTrue(planned.contains(task));
             current = task;
+
+            String taskPath = path(task);
+            if (taskPath.startsWith(":buildSrc:")) {
+                return;
+            }
+
+            executedTasks.add(taskPath);
         }
 
         public void afterExecute(Task task, TaskState state) {
             assertThat(task, sameInstance(current));
             current = null;
-            executedTasks.add(task.getPath());
-            if (state.getSkipped()) {
-                skippedTasks.add(task.getPath());
+
+            String taskPath = path(task);
+            if (taskPath.startsWith(":buildSrc:")) {
+                return;
             }
+
+            if (state.getSkipped()) {
+                skippedTasks.add(taskPath);
+            }
+        }
+
+        private String path(Task task) {
+            return task.getProject().getGradle().getParent() == null ? task.getPath() : ":" + task.getProject().getRootProject().getName() + task.getPath();
         }
     }
 
     public static class InProcessExecutionResult extends AbstractExecutionResult {
         private final List<String> plannedTasks;
-        private final List<String> skippedTasks;
+        private final Set<String> skippedTasks;
         private final String output;
         private final String error;
 
-        public InProcessExecutionResult(List<String> plannedTasks, List<String> skippedTasks, String output,
+        public InProcessExecutionResult(List<String> plannedTasks, Set<String> skippedTasks, String output,
                                         String error) {
             this.plannedTasks = plannedTasks;
             this.skippedTasks = skippedTasks;
@@ -268,14 +290,14 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         }
 
         public ExecutionResult assertTasksSkipped(String... taskPaths) {
-            List<String> expected = Arrays.asList(taskPaths);
+            Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
             assertThat(skippedTasks, equalTo(expected));
             return this;
         }
 
         public ExecutionResult assertTasksNotSkipped(String... taskPaths) {
-            List<String> expected = Arrays.asList(taskPaths);
-            List<String> notSkipped = new ArrayList<String>(plannedTasks);
+            Set<String> expected = new HashSet<String>(Arrays.asList(taskPaths));
+            Set<String> notSkipped = new HashSet<String>(plannedTasks);
             notSkipped.removeAll(skippedTasks);
             assertThat(notSkipped, equalTo(expected));
             return this;
@@ -285,7 +307,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
     private static class InProcessExecutionFailure extends InProcessExecutionResult implements ExecutionFailure {
         private final GradleException failure;
 
-        public InProcessExecutionFailure(List<String> tasks, List<String> skippedTasks, String output, String error,
+        public InProcessExecutionFailure(List<String> tasks, Set<String> skippedTasks, String output, String error,
                                          GradleException failure) {
             super(tasks, skippedTasks, output, error);
             this.failure = failure;

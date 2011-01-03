@@ -25,7 +25,8 @@ import org.junit.Rule;
 import java.io.File;
 
 public abstract class AbstractIntegrationTest implements TestFileContext {
-    @Rule public GradleDistribution distribution = new GradleDistribution();
+    @Rule public final GradleDistribution distribution = new GradleDistribution();
+    @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter();
 
     public TestFile getTestDir() {
         return distribution.getTestDir();
@@ -55,21 +56,19 @@ public abstract class AbstractIntegrationTest implements TestFileContext {
     }
 
     protected GradleExecuter inDirectory(File directory) {
-        return new InProcessGradleExecuter(startParameter()).inDirectory(directory);
+        return executer.inDirectory(directory);
     }
 
     protected GradleExecuter usingBuildFile(File file) {
-        return new InProcessGradleExecuter(startParameter()).usingBuildScript(file);
+        return executer.usingBuildScript(file);
     }
 
     protected GradleExecuter usingBuildScript(String script) {
-        return new InProcessGradleExecuter(startParameter()).usingBuildScript(script);
+        return executer.usingBuildScript(script);
     }
 
     protected GradleExecuter usingProjectDir(File projectDir) {
-        StartParameter parameter = startParameter();
-        parameter.setProjectDir(projectDir);
-        return new InProcessGradleExecuter(parameter);
+        return executer.usingProjectDirectory(projectDir);
     }
 
     protected ArtifactBuilder artifactBuilder() {

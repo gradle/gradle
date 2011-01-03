@@ -16,13 +16,14 @@
 
 package org.gradle.integtests;
 
+import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.DefaultTask;
 import org.gradle.api.tasks.InputDirectory;
 import org.gradle.api.tasks.OutputDirectory;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.util.TestFile;
 
 import java.io.File;
+import java.io.IOException;
 
 public class DirTransformerTask extends DefaultTask {
     private File inputDir;
@@ -47,12 +48,11 @@ public class DirTransformerTask extends DefaultTask {
     }
 
     @TaskAction
-    public void transform() {
-        TestFile inputDir = new TestFile(this.inputDir);
-        for (File file : inputDir.listFiles()) {
-            TestFile inputFile = new TestFile(file);
-            TestFile outputFile = new TestFile(outputDir, inputFile.getName());
-            outputFile.write(String.format("[%s]", inputFile.getText()));
+    public void transform() throws IOException {
+        for (File inputFile : inputDir.listFiles()) {
+            File outputFile = new File(outputDir, inputFile.getName());
+            String text = DefaultGroovyMethods.getText(inputFile);
+            DefaultGroovyMethods.setText(outputFile, String.format("[%s]", text));
         }
     }
 }

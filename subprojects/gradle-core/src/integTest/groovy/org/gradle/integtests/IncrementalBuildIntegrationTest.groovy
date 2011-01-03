@@ -22,8 +22,12 @@ import org.gradle.util.TestFile
 import org.junit.Test
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
+import org.gradle.integtests.fixtures.TestResources
+import org.junit.Rule
 
 class IncrementalBuildIntegrationTest extends AbstractIntegrationTest {
+    @Rule public final TestResources resource = new TestResources()
+
     @Test
     public void skipsTaskWhenOutputFileIsUpToDate() {
         testFile('build.gradle') << '''
@@ -220,7 +224,7 @@ task a(type: org.gradle.integtests.GeneratorTask) {
 
         inTestDirectory().withTasks('a').withArguments('-Ptext=text').run().assertTasksExecuted(':a').assertTasksSkipped()
 
-        inTestDirectory().withTasks('a').withArguments('-Ptext=text', '-i').run().assertTasksExecuted(':a').assertTasksSkipped(':a')
+        inTestDirectory().withTasks('a').withArguments('-Ptext=text').run().assertTasksExecuted(':a').assertTasksSkipped(':a')
 
         inTestDirectory().withTasks('a').withArguments('-Ptext=newtext').run().assertTasksExecuted(':a').assertTasksSkipped()
     }
@@ -349,9 +353,9 @@ task b(dependsOn: a)
 
     @Test
     public void canShareArtifactsBetweenBuilds() {
-        testFile('build.gradle') << '''
+        def buildFile = testFile('build.gradle') << '''
 task otherBuild(type: GradleBuild) {
-    buildFile = 'other.gradle'
+    buildFile = 'build.gradle'
     tasks = ['generate']
     startParameter.searchUpwards = false
 }
@@ -360,15 +364,15 @@ task transform(type: org.gradle.integtests.TransformerTask) {
     inputFile = file('generated.txt')
     outputFile = file('out.txt')
 }
-'''
-        testFile('other.gradle') << '''
 task generate(type: org.gradle.integtests.TransformerTask) {
     inputFile = file('src.txt')
     outputFile = file('generated.txt')
 }
 '''
-        testFile('src.txt').text = 'content'     
-        inTestDirectory().withTasks('transform').run().assertTasksExecuted(':otherBuild', ':transform').assertTasksSkipped()
-        inTestDirectory().withTasks('transform').run().assertTasksExecuted(':otherBuild', ':transform').assertTasksSkipped(':transform')
+        testFile('settings.gradle') << 'rootProject.name = "build"'
+        testFile('src.txt').text = 'content'
+
+        usingBuildFile(buildFile).withTasks('transform').run().assertTasksExecuted(':otherBuild', ':build:generate', ':transform').assertTasksSkipped()
+        usingBuildFile(buildFile).withTasks('transform').run().assertTasksExecuted(':otherBuild', ':build:generate', ':transform').assertTasksSkipped(':transform', ':build:generate')
     }
 }

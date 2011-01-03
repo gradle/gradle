@@ -25,17 +25,17 @@ public interface ExecutionResult {
     void assertErrorHasNoStackTraces();
 
     /**
-     * Asserts that exactly the given set of tasks have been executed
+     * Asserts that exactly the given set of tasks have been executed in the given order. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksExecuted(String... taskPaths);
 
     /**
-     * Asserts that exactly the given set of tasks have been skipped
+     * Asserts that exactly the given set of tasks have been skipped. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksSkipped(String... taskPaths);
 
     /**
-     * Asserts that exactly the given set of tasks have not been skipped 
+     * Asserts that exactly the given set of tasks have not been skipped. Note: ignores buildSrc tasks.
      */
     ExecutionResult assertTasksNotSkipped(String... taskPaths);
 }

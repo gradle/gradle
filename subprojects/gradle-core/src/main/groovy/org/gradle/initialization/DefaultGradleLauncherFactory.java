@@ -68,6 +68,14 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
         GradleLauncher.injectCustomFactory(this);
     }
 
+    public void addListener(Object listener) {
+        sharedServices.get(ListenerManager.class).addListener(listener);
+    }
+
+    public void removeListener(Object listener) {
+        sharedServices.get(ListenerManager.class).removeListener(listener);
+    }
+
     public StartParameter createStartParameter(String... commandLineArgs) {
         return commandLineConverter.convert(Arrays.asList(commandLineArgs));
     }

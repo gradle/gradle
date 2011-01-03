@@ -25,9 +25,11 @@ import java.io.File;
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsProjectEvaluationFailsWithGroovyException() {
-        ExecutionFailure failure = usingBuildScript("\ncreateTakk('do-stuff')").runWithFailure();
+        TestFile buildFile = testFile("build.gradle");
+        buildFile.writelns("", "createTakk('do-stuff')");
+        ExecutionFailure failure = usingBuildFile(buildFile).runWithFailure();
 
-        failure.assertHasFileName("Embedded build file");
+        failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
         failure.assertHasDescription("A problem occurred evaluating root project 'reportsProjectEvaluationFailsWithGroovyException");
         failure.assertHasCause("Could not find method createTakk() for arguments [do-stuff] on root project 'reportsProjectEvaluationFailsWithGroovyException");
@@ -101,7 +103,22 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void reportsTaskActionExecutionFailsFromJavaWithRuntimeException() {
-        File buildFile = testFile("build.gradle").write("task brokenJavaTask(type: org.gradle.integtests.BrokenTask)");
+        testFile("buildSrc/src/main/java/org/gradle/BrokenTask.java").writelns(
+                "package org.gradle;",
+                "import org.gradle.api.Action;",
+                "import org.gradle.api.DefaultTask;",
+                "import org.gradle.api.Task;",
+                "public class BrokenTask extends DefaultTask {",
+                "    public BrokenTask() {",
+                "        doFirst(new Action<Task>() {",
+                "            public void execute(Task task) {",
+                "                throw new RuntimeException(\"broken action\");",
+                "            }",
+                "        });",
+                "    }",
+                "}"
+        );
+        File buildFile = testFile("build.gradle").write("task brokenJavaTask(type: org.gradle.BrokenTask)");
 
         ExecutionFailure failure = usingBuildFile(buildFile).withTasks("brokenJavaTask").runWithFailure();
 

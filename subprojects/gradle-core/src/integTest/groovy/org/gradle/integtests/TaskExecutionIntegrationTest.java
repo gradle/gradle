@@ -17,25 +17,18 @@
 package org.gradle.integtests;
 
 import org.gradle.util.TestFile;
-import org.junit.Before;
 import org.junit.Test;
 
 import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
 
 public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
-    public static boolean graphListenerNotified;
-
-    @Before
-    public void setUp() {
-        graphListenerNotified = false;
-    }
-
     @Test
     public void taskCanAccessTaskGraph() {
         TestFile buildFile = testFile("build.gradle");
-        buildFile.writelns("import org.gradle.integtests.TaskExecutionIntegrationTest",
+        buildFile.writelns(
+                "boolean notified = false",
                 "task a(dependsOn: 'b') << { task ->",
+                "    assert notified",
                 "    assert gradle.taskGraph.hasTask(task)",
                 "    assert gradle.taskGraph.hasTask(':a')",
                 "    assert gradle.taskGraph.hasTask(a)",
@@ -52,10 +45,9 @@ public class TaskExecutionIntegrationTest extends AbstractIntegrationTest {
                 "    assert graph.hasTask(b)",
                 "    assert graph.allTasks.contains(a)",
                 "    assert graph.allTasks.contains(b)",
-                "    TaskExecutionIntegrationTest.graphListenerNotified = true", "}");
+                "    notified = true",
+                "}");
         usingBuildFile(buildFile).withTasks("a").run().assertTasksExecuted(":b", ":a");
-
-        assertTrue(graphListenerNotified);
     }
 
     @Test
