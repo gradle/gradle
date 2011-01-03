@@ -1,5 +1,0 @@
-task archetype << {
-    sourceSets.all.each { sourceSet ->
-        allSource.sourceTrees.srcDirs.flatten().each { project.mkdir(it) }
-    }
-}

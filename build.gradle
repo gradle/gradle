@@ -448,9 +448,7 @@ task release {
 }
 
 task wrapper(type: Wrapper) {
-    doFirst {
-        gradleVersion = version
-    }
+    gradleVersion = '0.9.1'
 }
 
 def groovyProjects() {

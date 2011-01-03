@@ -13,8 +13,8 @@
 if "%OS%"=="Windows_NT" setlocal
 
 @rem Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
-@rem set GRADLE_OPTS=%GRADLE_OPTS% -Xmx512
-@rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512
+@rem set GRADLE_OPTS=%GRADLE_OPTS% -Xmx512m
+@rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512m
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.\
@@ -101,8 +101,8 @@ set CMD_LINE_ARGS=%$
 @rem Setup the command line
 
 set STARTER_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
-set CLASSPATH=%DIRNAME%\wrapper\gradle-wrapper.jar
-set WRAPPER_PROPERTIES=%DIRNAME%\wrapper\gradle-wrapper.properties
+set CLASSPATH=%DIRNAME%\gradle\wrapper\gradle-wrapper.jar
+set WRAPPER_PROPERTIES=%DIRNAME%\gradle\wrapper\gradle-wrapper.properties
 set JAVA_EXE=%JAVA_HOME%\bin\java.exe
 
 set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS% -Dorg.gradle.wrapper.properties="%WRAPPER_PROPERTIES%"

@@ -7,8 +7,10 @@
 ##############################################################################
 
 # Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
-# GRADLE_OPTS="$GRADLE_OPTS -Xmx512"
-# JAVA_OPTS="$JAVA_OPTS -Xmx512"
+# GRADLE_OPTS="$GRADLE_OPTS -Xmx512m"
+# JAVA_OPTS="$JAVA_OPTS -Xmx512m"
+
+GRADLE_APP_NAME=Gradle
 
 warn ( ) {
     echo "${PROGNAME}: $*"
@@ -61,8 +63,8 @@ if $cygwin ; then
 fi
 
 STARTER_MAIN_CLASS=org.gradle.wrapper.GradleWrapperMain
-CLASSPATH=`dirname "$0"`/wrapper/gradle-wrapper.jar
-WRAPPER_PROPERTIES=`dirname "$0"`/wrapper/gradle-wrapper.properties
+CLASSPATH=`dirname "$0"`/gradle/wrapper/gradle-wrapper.jar
+WRAPPER_PROPERTIES=`dirname "$0"`/gradle/wrapper/gradle-wrapper.properties
 # Determine the Java command to use to start the JVM.
 if [ -z "$JAVACMD" ] ; then
     if [ -n "$JAVA_HOME" ] ; then
@@ -133,8 +135,11 @@ if $cygwin ; then
     esac
 fi
 
+GRADLE_APP_BASE_NAME=`basename "$0"`
+
 "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
+        -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" \
         -Dorg.gradle.wrapper.properties="$WRAPPER_PROPERTIES" \
         $STARTER_MAIN_CLASS \
         "$@"
