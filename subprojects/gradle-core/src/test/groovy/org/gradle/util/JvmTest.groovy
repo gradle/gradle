@@ -27,7 +27,7 @@ class JvmTest extends Specification {
         System.properties['java.version'] = '1.5'
 
         expect:
-        def jvm = new Jvm()
+        def jvm = Jvm.current()
         jvm.java5Compatible
         !jvm.java6Compatible
     }
@@ -36,9 +36,23 @@ class JvmTest extends Specification {
         System.properties['java.version'] = '1.6'
 
         expect:
-        def jvm = new Jvm()
+        def jvm = Jvm.current()
         jvm.java5Compatible
         jvm.java6Compatible
     }
 
+    def usesSystemPropertyToDetermineIfAppleJvm() {
+        System.properties['java.vm.vendor'] = 'Apple Inc.'
+
+        expect:
+        def jvm = Jvm.current()
+        jvm.appleJvm
+    }
+
+    def appleJvmFiltersEnvironmentVariables() {
+        Map<String, String> env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
+
+        expect:
+        new Jvm.AppleJvm().getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
+    }
 }

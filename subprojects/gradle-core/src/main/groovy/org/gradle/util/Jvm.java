@@ -19,13 +19,19 @@ package org.gradle.util;
 import org.apache.tools.ant.util.JavaEnvUtils;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Jvm {
     public static Jvm current() {
+        String vendor = System.getProperty("java.vm.vendor");
+        if (vendor.toLowerCase().startsWith("apple inc.")) {
+            return new AppleJvm();
+        }
         return new Jvm();
     }
 
-    Jvm() {
+    private Jvm() {
     }
 
     @Override
@@ -49,6 +55,10 @@ public class Jvm {
         return System.getProperty("java.version").startsWith("1.6");
     }
 
+    public boolean isAppleJvm() {
+        return false;
+    }
+
     public File getToolsJar() {
         File javaHome = new File(System.getProperty("java.home"));
         File toolsJar = new File(javaHome, "/lib/tools.jar");
@@ -65,4 +75,26 @@ public class Jvm {
         return toolsJar;
     }
 
+    public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
+        return envVars;
+    }
+
+    static class AppleJvm extends Jvm {
+        @Override
+        public boolean isAppleJvm() {
+            return true;
+        }
+
+        @Override
+        public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {
+            Map<String, Object> vars = new HashMap<String, Object>();
+            for (Map.Entry<String, ?> entry : envVars.entrySet()) {
+                if (entry.getKey().matches("APP_NAME_\\d+") || entry.getKey().matches("JAVA_MAIN_CLASS_\\d+")) {
+                    continue;
+                }
+                vars.put(entry.getKey(), entry.getValue());
+            }
+            return vars;
+        }
+    }
 }
