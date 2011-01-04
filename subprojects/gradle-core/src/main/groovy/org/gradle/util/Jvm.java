@@ -23,15 +23,18 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class Jvm {
+    private final OperatingSystem os;
+
     public static Jvm current() {
         String vendor = System.getProperty("java.vm.vendor");
         if (vendor.toLowerCase().startsWith("apple inc.")) {
-            return new AppleJvm();
+            return new AppleJvm(OperatingSystem.current());
         }
-        return new Jvm();
+        return new Jvm(OperatingSystem.current());
     }
 
-    private Jvm() {
+    Jvm(OperatingSystem os) {
+        this.os = os;
     }
 
     @Override
@@ -81,7 +84,7 @@ public class Jvm {
                 return toolsJar;
             }
         }
-        if (javaHome.getName().matches("jre\\d+") && OperatingSystem.current().isWindows()) {
+        if (javaHome.getName().matches("jre\\d+") && os.isWindows()) {
             javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", System.getProperty("java.version")));
             toolsJar = new File(javaHome, "lib/tools.jar");
             if (toolsJar.exists()) {
@@ -96,6 +99,10 @@ public class Jvm {
     }
 
     static class AppleJvm extends Jvm {
+        AppleJvm(OperatingSystem os) {
+            super(os);
+        }
+
         @Override
         public boolean isAppleJvm() {
             return true;

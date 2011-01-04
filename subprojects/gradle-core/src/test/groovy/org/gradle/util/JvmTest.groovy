@@ -22,6 +22,7 @@ import org.junit.Rule
 class JvmTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
     @Rule public final SetSystemProperties sysProp = new SetSystemProperties()
+    final OperatingSystem os = Mock()
 
     def usesSystemPropertyToDetermineIfCompatibleWithJava5() {
         System.properties['java.version'] = '1.5'
@@ -68,10 +69,10 @@ class JvmTest extends Specification {
         TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
         System.properties['java.home'] = tmpDir.createDir('jre6').absolutePath
         System.properties['java.version'] = '1.6.0'
-        System.properties['os.name'] = 'Windows'
+        _ * os.windows >> true
 
         expect:
-        def jvm = Jvm.current()
+        def jvm = new Jvm(os)
         jvm.javaHome == javaHomeDir
         jvm.toolsJar == toolsJar
     }
@@ -91,6 +92,7 @@ class JvmTest extends Specification {
 
         expect:
         def jvm = Jvm.current()
+        jvm instanceof Jvm.AppleJvm
         jvm.appleJvm
     }
 
@@ -98,6 +100,7 @@ class JvmTest extends Specification {
         Map<String, String> env = ['APP_NAME_1234': 'App', 'JAVA_MAIN_CLASS_1234': 'MainClass', 'OTHER': 'value']
 
         expect:
-        new Jvm.AppleJvm().getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
+        def jvm = new Jvm.AppleJvm(os)
+        jvm.getInheritableEnvironmentVariables(env) == ['OTHER': 'value']
     }
 }
