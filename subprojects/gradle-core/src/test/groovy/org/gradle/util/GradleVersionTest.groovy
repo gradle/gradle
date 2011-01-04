@@ -38,6 +38,7 @@ class GradleVersionTest extends Specification {
     def canConstructSnapshotVersion() {
         expect:
         new GradleVersion('0.9-20101220110000+1100').snapshot
+        new GradleVersion('0.9-20101220110000-0800').snapshot
         !new GradleVersion('0.9-rc-1').snapshot
     }
 
@@ -110,6 +111,7 @@ class GradleVersionTest extends Specification {
         a | b
         '0.9-20101220110000+1100' | '0.9-20101220100000+1100'
         '0.9-20101220110000+1000' | '0.9-20101220100000+1100'
+        '0.9-20101220110000-0100' | '0.9-20101220100000+0000'
         '0.9' | '0.9-20101220100000+1000'
     }
 
