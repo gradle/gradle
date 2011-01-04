@@ -36,7 +36,7 @@ public class GradleVersion implements Comparable<GradleVersion> {
     private final static String VERSION = "version";
     private final static String FILE_NAME = "/org/gradle/version.properties";
     public final static String URL = "http://www.gradle.org";
-    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+))?(-(\\d{14}\\+\\d{4}))?");
+    private final static Pattern VERSION_PATTERN = Pattern.compile("(\\d+(\\.\\d+)+)(-(\\p{Alpha}+)-(\\d+))?(-(\\d{14}[-+]\\d{4}))?");
 
     private final String version;
     private final String buildTime;
