@@ -1,9 +1,6 @@
 set STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
-set JAVA_EXE=%JAVA_HOME%\bin\java.exe
-
 set GRADLE_OPTS=%JAVA_OPTS% %GRADLE_OPTS%
-set GRADLE_OPTS=%GRADLE_OPTS%
 
 @rem Execute Gradle
 "%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
@@ -12,12 +9,13 @@ set GRADLE_OPTS=%GRADLE_OPTS%
 @rem End local scope for the variables with windows NT shell
 if "%ERRORLEVEL%"=="0" goto mainEnd
 
+:fail
 if not "%OS%"=="Windows_NT" echo 1 > nul | choice /n /c:1
 
 rem Set variable GRADLE_EXIT_CONSOLE if you need the _script_ return code instead of
 rem the _cmd.exe /c_ return code!
-if  not "" == "%GRADLE_EXIT_CONSOLE%" exit "%ERRORLEVEL%"
-exit /b "%ERRORLEVEL%"
+if  not "" == "%GRADLE_EXIT_CONSOLE%" exit 1
+exit /b 1
 
 :mainEnd
 if "%OS%"=="Windows_NT" endlocal

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
 import org.gradle.util.GUtil;
+import org.gradle.util.Jvm;
 import org.gradle.util.OperatingSystem;
 import org.gradle.util.TestFile;
 import org.hamcrest.Matcher;
@@ -78,7 +79,7 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
         builder.setStandardOutput(outStream);
         builder.setErrorOutput(errStream);
         builder.environment("GRADLE_HOME", "");
-        builder.environment("JAVA_HOME", System.getProperty("java.home"));
+        builder.environment("JAVA_HOME", Jvm.current().getJavaHome());
         builder.environment("GRADLE_OPTS", "-ea");
         builder.environment(getEnvironmentVars());
         builder.workingDir(getWorkingDir());

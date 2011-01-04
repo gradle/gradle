@@ -216,10 +216,6 @@
         </para>
         <variablelist>
             <varlistentry>
-                <term><literal>GRADLE_HOME</literal></term>
-                <listitem><para>Specifies the root directory of the Gradle installation to use.</para></listitem>
-            </varlistentry>
-            <varlistentry>
                 <term><literal>GRADLE_OPTS</literal></term>
                 <listitem><para>Specifies command-line arguments to use to start the JVM. This can be useful for setting
                     the system properties to use for running Gradle. For example you could set <literal>GRADLE_OPTS="-Dorg.gradle.daemon=true"</literal>

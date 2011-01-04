@@ -59,20 +59,36 @@ public class Jvm {
         return false;
     }
 
+    public File getJavaHome() {
+        File toolsJar = getToolsJar();
+        return toolsJar == null ? new File(System.getProperty("java.home")) : toolsJar.getParentFile().getParentFile();
+    }
+
+    public File getBinDir() {
+        return new File(getJavaHome(), "bin");
+    }
+
     public File getToolsJar() {
         File javaHome = new File(System.getProperty("java.home"));
-        File toolsJar = new File(javaHome, "/lib/tools.jar");
+        File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
             return toolsJar;
         }
         if (javaHome.getName().equalsIgnoreCase("jre")) {
             javaHome = javaHome.getParentFile();
-            toolsJar = new File(javaHome + "/lib/tools.jar");
+            toolsJar = new File(javaHome, "lib/tools.jar");
+            if (toolsJar.exists()) {
+                return toolsJar;
+            }
         }
-        if (!toolsJar.exists()) {
-            return null;
+        if (javaHome.getName().matches("jre\\d+") && OperatingSystem.current().isWindows()) {
+            javaHome = new File(javaHome.getParentFile(), String.format("jdk%s", System.getProperty("java.version")));
+            toolsJar = new File(javaHome, "lib/tools.jar");
+            if (toolsJar.exists()) {
+                return toolsJar;
+            }
         }
-        return toolsJar;
+        return null;
     }
 
     public Map<String, ?> getInheritableEnvironmentVariables(Map<String, ?> envVars) {

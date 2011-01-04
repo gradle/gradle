@@ -37,7 +37,6 @@ public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implem
         return version.version
     }
 
-    @Override
     boolean worksWith(Jvm jvm) {
         return version == new GradleVersion('0.9-rc-1') ? jvm.isJava6Compatible() : jvm.isJava5Compatible()
     }

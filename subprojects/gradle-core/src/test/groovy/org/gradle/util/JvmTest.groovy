@@ -41,6 +41,51 @@ class JvmTest extends Specification {
         jvm.java6Compatible
     }
 
+    def looksForToolsJarInJavaHomeDirectory() {
+        TestFile javaHomeDir = tmpDir.createDir('jdk')
+        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
+        System.properties['java.home'] = javaHomeDir.absolutePath
+
+        expect:
+        def jvm = Jvm.current()
+        jvm.javaHome == javaHomeDir
+        jvm.toolsJar == toolsJar
+    }
+
+    def looksForToolsJarInParentOfJavaHomeDirectory() {
+        TestFile javaHomeDir = tmpDir.createDir('jdk')
+        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
+        System.properties['java.home'] = javaHomeDir.file('jre').absolutePath
+
+        expect:
+        def jvm = Jvm.current()
+        jvm.javaHome == javaHomeDir
+        jvm.toolsJar == toolsJar
+    }
+
+    def looksForToolsJarInSiblingOfJavaHomeDirectoryOnWindows() {
+        TestFile javaHomeDir = tmpDir.createDir('jdk1.6.0')
+        TestFile toolsJar = javaHomeDir.file('lib/tools.jar').createFile()
+        System.properties['java.home'] = tmpDir.createDir('jre6').absolutePath
+        System.properties['java.version'] = '1.6.0'
+        System.properties['os.name'] = 'Windows'
+
+        expect:
+        def jvm = Jvm.current()
+        jvm.javaHome == javaHomeDir
+        jvm.toolsJar == toolsJar
+    }
+
+    def usesSystemPropertyToLocateJavaHomeWhenToolsJarNotFound() {
+        TestFile javaHomeDir = tmpDir.createDir('jdk')
+        System.properties['java.home'] = javaHomeDir.absolutePath
+
+        expect:
+        def jvm = Jvm.current()
+        jvm.javaHome == javaHomeDir
+        jvm.toolsJar == null
+    }
+
     def usesSystemPropertyToDetermineIfAppleJvm() {
         System.properties['java.vm.vendor'] = 'Apple Inc.'
 

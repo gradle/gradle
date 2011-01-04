@@ -26,6 +26,7 @@ import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.ClientProcess;
+import org.gradle.util.Jvm;
 import org.gradle.util.OperatingSystem;
 
 import java.io.File;
@@ -244,8 +245,7 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
       MyExecutionInfo executionInfo = new MyExecutionInfo();
 
       //set some environment variables that need to be passed to the script.
-      executionInfo.addEnvironmentVariable( "GRADLE_HOME", getGradleHomeDirectory().getAbsolutePath() );
-      executionInfo.addEnvironmentVariable( "JAVA_HOME", System.getProperty( "java.home" ) );
+      executionInfo.addEnvironmentVariable( "JAVA_HOME", Jvm.current().getJavaHome().getAbsolutePath() );
 
       executionInfo.setWorkingDirectory( currentDirectory );
 
@@ -366,7 +366,6 @@ public abstract class AbstractGradleServerProtocol implements ProcessLauncherSer
      * happen because of setup issues or errors that occur in gradle.
      *
      * @param returnCode the return code of the application
-     * @param message Whatever information we can gleen about what went wrong.
     */
    protected abstract void reportClientExit( boolean wasPremature, int returnCode, String output );
 

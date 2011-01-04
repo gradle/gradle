@@ -18,7 +18,10 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.TestResources
+import org.gradle.util.Jvm
 import org.gradle.util.OperatingSystem
+import org.junit.Ignore
 import org.junit.Rule
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -27,12 +30,12 @@ import org.junit.runner.RunWith
 public class CommandLineIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public final TestResources resources = new TestResources()
 
     @Test
     public void hasNonZeroExitCodeOnBuildFailure() {
-        File javaprojectDir = new File(dist.samplesDir, 'java/quickstart')
-        ExecutionFailure failure = executer.inDirectory(javaprojectDir).withTasks('unknown').runWithFailure()
-        failure.assertHasDescription("Task 'unknown' not found in root project 'quickstart'.")
+        ExecutionFailure failure = executer.withTasks('unknown').runWithFailure()
+        failure.assertHasDescription("Task 'unknown' not found in root project 'commandLine'.")
     }
 
     @Test
@@ -46,5 +49,84 @@ public class CommandLineIntegrationTest {
             javaprojectDir = new File(dist.samplesDir, 'java/multiproject/../quickstart')
         }
         executer.inDirectory(javaprojectDir).withTasks('classes').run()
+    }
+
+    @Test
+    public void canDefineJavaHomeViaEnvironmentVariable() {
+        String expectedJavaHome = "-PexpectedJavaHome=${System.properties['java.home']}"
+        String javaHome = System.properties['java.home']
+
+        // Handle on the system PATH, with no JAVA_HOME specified
+        String path = String.format('%s%s%s', Jvm.current().binDir, File.pathSeparator, System.getenv('PATH'))
+        executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '')
+                .withArguments(expectedJavaHome)
+                .withTasks('checkJavaHome')
+                .run()
+
+        // Handle JAVA_HOME specified
+        executer.withEnvironmentVars('JAVA_HOME': javaHome)
+                .withArguments(expectedJavaHome)
+                .withTasks('checkJavaHome')
+                .run()
+
+        // Handle JAVA_HOME with trailing separator
+        executer.withEnvironmentVars('JAVA_HOME': javaHome + File.separator)
+                .withArguments(expectedJavaHome)
+                .withTasks('checkJavaHome')
+                .run()
+
+        if (!OperatingSystem.current().isWindows()) {
+            return
+        }
+
+        // Handle JAVA_HOME wrapped in quotes
+        executer.withEnvironmentVars('JAVA_HOME': "\"$javaHome\"")
+                .withArguments(expectedJavaHome)
+                .withTasks('checkJavaHome')
+                .run()
+
+        // Handle JAVA_HOME with slash separators. This is allowed by the JVM
+        executer.withEnvironmentVars('JAVA_HOME': javaHome.replace(File.separator, '/'))
+                .withArguments(expectedJavaHome)
+                .withTasks('checkJavaHome')
+                .run()
+    }
+
+    @Test
+    public void failsWhenJavaHomeDoetNotPointToAJavaInstallation() {
+        def failure = executer.withEnvironmentVars('JAVA_HOME': dist.testDir)
+                .withTasks('checkJavaHome')
+                .runWithFailure()
+        assert failure.output.contains('ERROR: JAVA_HOME is set to an invalid directory')
+    }
+
+    @Test
+    public void canDefineGradleUserHomeViaEnvironmentVariable() {
+        // the actual testing is done in the build script.
+        File gradleUserHomeDir = dist.testDir.file('customUserHome')
+        executer.withUserHomeDir(null)
+                .withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath)
+                .withTasks("checkGradleUserHomeViaSystemEnv")
+                .run();
+    }
+
+    @Test
+    public void checkDefaultGradleUserHome() {
+        // the actual testing is done in the build script.
+        executer.withUserHomeDir(null).
+                withTasks("checkDefaultGradleUserHome")
+                .run();
+    }
+
+    @Test @Ignore
+    public void systemPropGradleUserHomeHasPrecedenceOverEnvVariable() {
+        // the actual testing is done in the build script.
+        File gradleUserHomeDir = dist.testFile("customUserHome")
+        File systemPropGradleUserHomeDir = dist.testFile("systemPropCustomUserHome")
+        executer.withUserHomeDir(null)
+                .withArguments("-Dgradle.user.home=" + systemPropGradleUserHomeDir.absolutePath)
+                .withEnvironmentVars('GRADLE_USER_HOME': gradleUserHomeDir.absolutePath)
+                .withTasks("checkSystemPropertyGradleUserHomeHasPrecedence")
+                .run()
     }
 }
