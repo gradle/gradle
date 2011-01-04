@@ -12,7 +12,10 @@ if [ -z "$JAVACMD" ] ; then
     fi
 fi
 if [ ! -x "$JAVACMD" ] ; then
-    die "JAVA_HOME is not defined correctly, can not execute: $JAVACMD"
+    die "ERROR: JAVA_HOME is set to an invalid directory: $JAVA_HOME
+
+Please set the JAVA_HOME variable in your environment to match the
+location of your Java installation."
 fi
 if [ -z "$JAVA_HOME" ] ; then
     warn "JAVA_HOME environment variable is not set"
@@ -31,17 +34,6 @@ if [ "$cygwin" = "false" -a "$darwin" = "false" ] ; then
         fi
     else
         warn "Could not query businessSystem maximum file descriptor limit: $MAX_FD_LIMIT"
-    fi
-fi
-
-# Setup Profiler
-useprofiler=false
-if [ "$PROFILER" != "" ] ; then
-    if [ -r "$PROFILER" ] ; then
-        . $PROFILER
-        useprofiler=true
-    else
-        die "Profiler file not found: $PROFILER"
     fi
 fi
 
@@ -66,8 +58,8 @@ if $cygwin ; then
     done
     OURCYGPATTERN="(^($ROOTDIRS))"
     # Add a user-defined pattern to the cygpath arguments
-    if [ "$GROOVY_CYGPATTERN" != "" ] ; then
-        OURCYGPATTERN="$OURCYGPATTERN|($GROOVY_CYGPATTERN)"
+    if [ "$GRADLE_CYGPATTERN" != "" ] ; then
+        OURCYGPATTERN="$OURCYGPATTERN|($GRADLE_CYGPATTERN)"
     fi
     # Now convert the arguments - kludge to limit ourselves to /bin/sh
     i=0
@@ -94,20 +86,14 @@ if $cygwin ; then
         (8) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" ;;
         (9) set -- "$args0" "$args1" "$args2" "$args3" "$args4" "$args5" "$args6" "$args7" "$args8" ;;
     esac
-
 fi
 
 GRADLE_APP_BASE_NAME=`basename "$0"`
 
 STARTER_MAIN_CLASS=org.gradle.launcher.GradleMain
 
-# Start the Profiler or the JVM
-if $useprofiler ; then
-    runProfiler
-else
-    exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
+exec "$JAVACMD" $JAVA_OPTS $GRADLE_OPTS \
         -classpath "$CLASSPATH" \
         -Dorg.gradle.appname="$GRADLE_APP_BASE_NAME" \
         $STARTER_MAIN_CLASS \
         "$@"
-fi

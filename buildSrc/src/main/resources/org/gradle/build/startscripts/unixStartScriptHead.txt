@@ -16,14 +16,15 @@ GRADLE_APP_NAME=Gradle
 MAX_FD="maximum"
 
 warn ( ) {
-    echo "${PROGNAME}: $*"
+    echo "$*"
 }
 
 die ( ) {
-    warn "$*"
+    echo
+    echo "$*"
+    echo
     exit 1
 }
-
 
 # OS specific support (must be 'true' or 'false').
 cygwin=false
@@ -61,27 +62,24 @@ fi
 
 # For Cygwin, ensure paths are in UNIX format before anything is touched.
 if $cygwin ; then
-    [ -n "$GRADLE_HOME" ] && GRADLE_HOME=`cygpath --unix "$GRADLE_HOME"`
     [ -n "$JAVACMD" ] && JAVACMD=`cygpath --unix "$JAVACMD"`
     [ -n "$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "$JAVA_HOME"`
 fi
 
-# Attempt to set GRADLE_HOME if it is not already set.
-if [ -z "$GRADLE_HOME" -o ! -d "$GRADLE_HOME" ] ; then
-    # Resolve links: $0 may be a link to groovy's home.
-    PRG="$0"
-    # Need this for relative symlinks.
-    while [ -h "$PRG" ] ; do
-        ls=`ls -ld "$PRG"`
-        link=`expr "$ls" : '.*-> \(.*\)$'`
-        if expr "$link" : '/.*' > /dev/null; then
-            PRG="$link"
-        else
-            PRG=`dirname "$PRG"`"/$link"
-        fi
-    done
-    SAVED="`pwd`"
-    cd "`dirname \"$PRG\"`/.."
-    GRADLE_HOME="`pwd -P`"
-    cd "$SAVED"
-fi
+# Attempt to set GRADLE_HOME
+# Resolve links: $0 may be a link
+PRG="$0"
+# Need this for relative symlinks.
+while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+        PRG="$link"
+    else
+        PRG=`dirname "$PRG"`"/$link"
+    fi
+done
+SAVED="`pwd`"
+cd "`dirname \"$PRG\"`/.."
+GRADLE_HOME="`pwd -P`"
+cd "$SAVED"
