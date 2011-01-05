@@ -21,12 +21,9 @@ import java.util.List;
 /**
  * This is an abstraction of a Gradle project
  *
- * This is a mirror of ProjectView inside Gradle, but this is meant
- * to aid backward and forward compatibility by shielding you from direct
- * changes within gradle. 
+ * This is a mirror of ProjectView inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
  *
  * @author mhunsicker
-
  */
 public interface ProjectVersion1 {
 
@@ -36,8 +33,7 @@ public interface ProjectVersion1 {
     public String getName();
 
     /**
-     * @return The full project name. This is just the project name if its off of the root.
-     * Otherwise, its all of its ancestors separated by colons with this project being last.
+     * @return The full project name. This is just the project name if its off of the root. Otherwise, its all of its ancestors separated by colons with this project being last.
      */
     public String getFullProjectName();
 
@@ -50,7 +46,6 @@ public interface ProjectVersion1 {
      * @return the .gradle file this project is defined in
      */
     public File getFile();
-
 
     /**
      * @return the sub projects of this project
@@ -67,7 +62,7 @@ public interface ProjectVersion1 {
      */
     public List<ProjectVersion1> getDependantProjects();
 
-    public ProjectVersion1 getSubProject( String name );
+    public ProjectVersion1 getSubProject(String name);
 
     public ProjectVersion1 getSubProjectFromFullPath(String fullProjectName);
 
@@ -78,8 +73,7 @@ public interface ProjectVersion1 {
      *
      * defaultTasks 'task name'
      *
-     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this
-     * project and does not return them for subprojects.
+     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this project and does not return them for subprojects.
      *
      * @return a list of default tasks or an empty list if none exist
      */

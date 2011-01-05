@@ -52,7 +52,7 @@ public class FileLinkDefinitionLord {
         addPrefixedFileLink("Ant Compiler Error", "[ant:javac]", ".java", ":");       //handles java compiler errors
         addPrefixedFileLink("Compiler Warning", "Note:", ".java", null);               //handles java compiler warnings such as deprecated APIs
         addCustomComplexFileLink(new OptionalLineNumberFileLinkDefinition("Build File Errors", "Build file '", ".gradle", "line:"));       //handles errors in a gradle build file
-        addPrefixedFileLink("Ant Checkstyle Error/Warning", "[ant:checkstyle]", ".java", ":");//handles checkstyle errors/warnings
+        addPrefixedFileLink("Ant Checkstyle Error/Warning", "[ant:checkstyle]", ".java", ":"); //handles checkstyle errors/warnings
         addPrefixedFileLink("Checkstyle Error (report xml)", "See the report at", ".xml", null);   //handles checkstyle errors. Links to the report xml file.
         addPrefixedFileLink("Codenarc Error", "See the report at", ".html", null);      //handles Codenarc errors. Links to the report file.
         addCustomComplexFileLink(new TestReportFileLinkDefinition());

@@ -35,8 +35,8 @@ package org.gradle.external.javadoc.internal;
 import java.io.IOException;
 
 /**
- * @author Tom Eyckmans
  * @param <T> The type which this option represents.
+ * @author Tom Eyckmans
  */
 public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOption<T> {
     public EnumJavadocOptionFileOption(String option) {
@@ -48,7 +48,7 @@ public class EnumJavadocOptionFileOption<T> extends AbstractJavadocOptionFileOpt
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null ) {
+        if (value != null) {
             writerContext.writeOption(value.toString().toLowerCase());
         }
     }

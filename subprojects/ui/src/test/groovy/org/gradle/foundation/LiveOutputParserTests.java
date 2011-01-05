@@ -136,19 +136,19 @@ public class LiveOutputParserTests extends TestCase {
                 fileLink1);
         appendTextWithoutFileLinks("Note: /home/user/modules/gradle/"); //does NOT end with a newline. This is just to push a potential edge case
 
-        String remaindingOutputText = "subprojects/gradle-core/src/test/groovy/org/gradle/integtests/DistributionIntegrationTestRunner.java uses or overrides a deprecated API.\n" +
-                "\n" +
-                "Cause: Checkstyle check violations were found in main Java source. See the report at /home/user/modules/gradle/subprojects/gradle-core/build/checkstyle/main.xml.\n" +
-                "\n" +
-                "\n" +
-                "Build file '/home/user/modules/gradle/subprojects/gradle-ui/ui.gradle'\n" +
-                "\n" +
-                "* What went wrong:\n" +
-                "Execution failed for task ':ui:codenarcTest'.\n" +
-                "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/modules/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n" +
-                "\n" +
-                "* Try:\n" +
-                "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
+        String remaindingOutputText = "subprojects/gradle-core/src/test/groovy/org/gradle/integtests/DistributionIntegrationTestRunner.java uses or overrides a deprecated API.\n"
+                + "\n"
+                + "Cause: Checkstyle check violations were found in main Java source. See the report at /home/user/modules/gradle/subprojects/gradle-core/build/checkstyle/main.xml.\n"
+                + "\n"
+                + "\n"
+                + "Build file '/home/user/modules/gradle/subprojects/gradle-ui/ui.gradle'\n"
+                + "\n"
+                + "* What went wrong:\n"
+                + "Execution failed for task ':ui:codenarcTest'.\n"
+                + "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/modules/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n"
+                + "\n"
+                + "* Try:\n"
+                + "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
 
         //now add that one large chunk. We should find the last four
         appendTextWithFileLinks(remaindingOutputText, fileLink2, fileLink3, fileLink4, fileLink5);

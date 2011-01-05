@@ -71,24 +71,20 @@ public class FavoritesIntegrationTest {
         Task subsubCompileTask = TestUtility.createTask(context, "compile", "compile description");
         Task subsubLibTask = TestUtility.createTask(context, "lib", "lib description");
         Task subsubDocTask = TestUtility.createTask(context, "doc", "doc description");
-        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null,
-                new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
+        Project subsubProject = TestUtility.createMockProject(context, "mysubsubproject", "filepath3", 2, null, new Task[]{subsubCompileTask, subsubLibTask, subsubDocTask}, null, (Project[]) null);
 
         Task subCompileTask1 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask1 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask1 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1,
-                new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null,
+        Project subProject1 = TestUtility.createMockProject(context, "mysubproject1", "filepath2a", 1, new Project[]{subsubProject}, new Task[]{subCompileTask1, subLibTask1, subDocTask1}, null,
                 (Project[]) null);
 
         Task subCompileTask2 = TestUtility.createTask(context, "compile", "compile description");
         Task subLibTask2 = TestUtility.createTask(context, "lib", "lib description");
         Task subDocTask2 = TestUtility.createTask(context, "doc", "doc description");
-        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null,
-                new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
+        Project subProject2 = TestUtility.createMockProject(context, "mysubproject2", "filepath2b", 1, null, new Task[]{subCompileTask2, subLibTask2, subDocTask2}, null, (Project[]) null);
 
-        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0,
-                new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
+        Project rootProject = TestUtility.createMockProject(context, "myrootproject", "filepath1", 0, new Project[]{subProject1, subProject2}, null, null, (Project[]) null);
 
         buildInformation = new BuildInformation(rootProject);
 
@@ -105,8 +101,7 @@ public class FavoritesIntegrationTest {
         Assert.assertNotNull(mySubProject1Doc);
         mySubSubProject = buildInformation.getProjectFromFullPath("myrootproject:mysubproject1:mysubsubproject");
         Assert.assertNotNull(mySubSubProject);
-        mySubSubProjectCompile = buildInformation.getTaskFromFullPath(
-                "myrootproject:mysubproject1:mysubsubproject:compile");
+        mySubSubProjectCompile = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:compile");
         Assert.assertNotNull(mySubSubProjectCompile);
         mySubSubProjectLib = buildInformation.getTaskFromFullPath("myrootproject:mysubproject1:mysubsubproject:lib");
         Assert.assertNotNull(mySubSubProjectLib);
@@ -152,12 +147,10 @@ public class FavoritesIntegrationTest {
         assertFavorite(originalFavoriteTask1, "mysubproject1:compile", "favorite 1", true);
 
         FavoriteTask originalFavoriteTask2 = originalEditor.getFavoriteTasks().get(1);
-        assertFavorite(originalFavoriteTask2, "mysubproject1:mysubsubproject:lib", "mysubproject1:mysubsubproject:lib",
-                false);
+        assertFavorite(originalFavoriteTask2, "mysubproject1:mysubsubproject:lib", "mysubproject1:mysubsubproject:lib", false);
 
         File file = tempDir.createFile("fred.favorite-tasks");
-        originalEditor.exportToFile(new TestUtility.TestExportInteraction(file,
-                true)); //confirm overwrite because the above function actually creates the file.
+        originalEditor.exportToFile(new TestUtility.TestExportInteraction(file, true)); //confirm overwrite because the above function actually creates the file.
 
         FavoritesEditor newEditor = new FavoritesEditor();
         newEditor.importFromFile(new TestUtility.TestImportInteraction(file));
@@ -171,9 +164,8 @@ public class FavoritesIntegrationTest {
     }
 
     /**
-     * This verifies that the serialization mechananism corrects the extension so that it is correct. We'll save a file
-     * with the wrong extension. The save mechanism should save it with the correct extension appended to the end
-     * (leaving the wrong extension in tact, just not at the end).
+     * This verifies that the serialization mechananism corrects the extension so that it is correct. We'll save a file with the wrong extension. The save mechanism should save it with the correct
+     * extension appended to the end (leaving the wrong extension in tact, just not at the end).
      */
     @Test
     public void testEnsureFileHasCorrectExtension() {
@@ -191,19 +183,15 @@ public class FavoritesIntegrationTest {
         //Make sure the correct file doesn't already exist before we've even done our test. This is highly unlikely, but it might happen.
         //Technically, I should place these in a new temporary directory, but I didn't want the hassle of cleanup.
         if (correctFile.exists()) {
-            throw new AssertionFailedError(
-                    "'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
+            throw new AssertionFailedError("'correct' file already exists. This means this test WILL succeed but perhaps not for the correct reasons.");
         }
 
         //do the export
-        originalEditor.exportToFile(new TestUtility.TestExportInteraction(incorrectFile,
-                true)); //confirm overwrite because the above function actually creates the file.
+        originalEditor.exportToFile(new TestUtility.TestExportInteraction(incorrectFile, true)); //confirm overwrite because the above function actually creates the file.
 
         //it should have been saved to the correct file
         if (!correctFile.exists()) {
-            throw new AssertionFailedError(
-                    "failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath()
-                            + "'");
+            throw new AssertionFailedError("failed to correct the file name. Expected it to be saved to '" + correctFile.getAbsolutePath() + "'");
         }
 
         //now read in the file to verify it actually worked.
@@ -214,21 +202,18 @@ public class FavoritesIntegrationTest {
         assertFavorite(readInFavoriteTask, favoriteTask1);
     }
 
-    private void assertFavorite(FavoriteTask favoriteTaskToTest, String expectedFullTaskName,
-                                String expectedDisplayName, boolean expectedAlwaysShowOutput) {
+    private void assertFavorite(FavoriteTask favoriteTaskToTest, String expectedFullTaskName, String expectedDisplayName, boolean expectedAlwaysShowOutput) {
         Assert.assertEquals(expectedFullTaskName, favoriteTaskToTest.getFullCommandLine());
         Assert.assertEquals(expectedDisplayName, favoriteTaskToTest.getDisplayName());
         Assert.assertEquals(expectedAlwaysShowOutput, favoriteTaskToTest.alwaysShowOutput());
     }
 
     private void assertFavorite(FavoriteTask favoriteTaskToTest, FavoriteTask expectedFavoriteTask) {
-        assertFavorite(favoriteTaskToTest, expectedFavoriteTask.getFullCommandLine(),
-                expectedFavoriteTask.getDisplayName(), expectedFavoriteTask.alwaysShowOutput());
+        assertFavorite(favoriteTaskToTest, expectedFavoriteTask.getFullCommandLine(), expectedFavoriteTask.getDisplayName(), expectedFavoriteTask.alwaysShowOutput());
     }
 
     /**
-     * This confirms that overwriting a file requires confirmation. We'll create a file (just by creating a temporary
-     * file), then try to save to it.
+     * This confirms that overwriting a file requires confirmation. We'll create a file (just by creating a temporary file), then try to save to it.
      */
     @Test
     public void testConfirmOverwrite() {  //we should be prompted to confirm overwriting an existing file.
@@ -247,8 +232,7 @@ public class FavoritesIntegrationTest {
 
         long originalSize = file.length();
 
-        TestOverwriteConfirmExportInteraction exportInteraction = new TestOverwriteConfirmExportInteraction(file,
-                false);
+        TestOverwriteConfirmExportInteraction exportInteraction = new TestOverwriteConfirmExportInteraction(file, false);
 
         //do the export
         originalEditor.exportToFile(exportInteraction);
@@ -305,29 +289,29 @@ public class FavoritesIntegrationTest {
         FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
 
         //now change the display names and the alwaysShowOutput field, just so we can verify that all fields are copied.
-        editFavorite(editor, favoriteTask1, "name1", false );
-        editFavorite(editor, favoriteTask2, "name2", true );
-        editFavorite(editor, favoriteTask3, "name3", false );
+        editFavorite(editor, favoriteTask1, "name1", false);
+        editFavorite(editor, favoriteTask2, "name2", true);
+        editFavorite(editor, favoriteTask3, "name3", false);
 
         //duplicate a single task
-        FavoriteTask favoriteTask4 = editor.duplicateFavorite( favoriteTask1 );
-        Assert.assertNotNull( favoriteTask4 );
-        Assert.assertEquals( favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine() );
-        Assert.assertEquals( favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName() );
-        Assert.assertEquals( favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput() );
+        FavoriteTask favoriteTask4 = editor.duplicateFavorite(favoriteTask1);
+        Assert.assertNotNull(favoriteTask4);
+        Assert.assertEquals(favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine());
+        Assert.assertEquals(favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName());
+        Assert.assertEquals(favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput());
 
         //there should be 4 tasks now
-        Assert.assertEquals( 4, editor.getFavoriteTasks().size() );
+        Assert.assertEquals(4, editor.getFavoriteTasks().size());
 
         //now duplicate another one
-        FavoriteTask favoriteTask5 = editor.duplicateFavorite( favoriteTask2 );
+        FavoriteTask favoriteTask5 = editor.duplicateFavorite(favoriteTask2);
         Assert.assertNotNull(favoriteTask5);
-        Assert.assertEquals( favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine() );
-        Assert.assertEquals( favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName() );
-        Assert.assertEquals( favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput() );
+        Assert.assertEquals(favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine());
+        Assert.assertEquals(favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName());
+        Assert.assertEquals(favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput());
 
         //there should be 5 tasks now
-        Assert.assertEquals( 5, editor.getFavoriteTasks().size() );
+        Assert.assertEquals(5, editor.getFavoriteTasks().size());
     }
 
     /**
@@ -343,43 +327,42 @@ public class FavoritesIntegrationTest {
         FavoriteTask favoriteTask3 = editor.addFavorite(mySubSubProjectDoc, false);
 
         //now change the display names and the alwaysShowOutput field, just so we can verify that all fields are copied.
-        editFavorite(editor, favoriteTask1, "name1", false );
-        editFavorite(editor, favoriteTask2, "name2", true );
-        editFavorite(editor, favoriteTask3, "name3", false );
+        editFavorite(editor, favoriteTask1, "name1", false);
+        editFavorite(editor, favoriteTask2, "name2", true);
+        editFavorite(editor, favoriteTask3, "name3", false);
 
         //get the ones to dupicate in a list
         List<FavoriteTask> tasksToCopy = new ArrayList<FavoriteTask>();
-        tasksToCopy.add( favoriteTask1 );
-        tasksToCopy.add( favoriteTask2 );
+        tasksToCopy.add(favoriteTask1);
+        tasksToCopy.add(favoriteTask2);
 
         //now peform the duplication
-        editor.duplicateFavorites( tasksToCopy );
+        editor.duplicateFavorites(tasksToCopy);
 
         //there should be 5 tasks now
-        Assert.assertEquals( 5, editor.getFavoriteTasks().size() );
+        Assert.assertEquals(5, editor.getFavoriteTasks().size());
 
         //the 4th one (3 from index 0) should be the same as the first one
-        FavoriteTask favoriteTask4 = editor.getFavoriteTasks().get( 3 );
+        FavoriteTask favoriteTask4 = editor.getFavoriteTasks().get(3);
 
-        Assert.assertNotNull( favoriteTask4 );
-        Assert.assertEquals( favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine() );
-        Assert.assertEquals( favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName() );
-        Assert.assertEquals( favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput() );
+        Assert.assertNotNull(favoriteTask4);
+        Assert.assertEquals(favoriteTask1.getFullCommandLine(), favoriteTask4.getFullCommandLine());
+        Assert.assertEquals(favoriteTask1.getDisplayName(), favoriteTask4.getDisplayName());
+        Assert.assertEquals(favoriteTask1.alwaysShowOutput(), favoriteTask4.alwaysShowOutput());
 
         //the 5th one (4 from index 0) should be the same as the second one
-        FavoriteTask favoriteTask5 = editor.getFavoriteTasks().get( 4 );
+        FavoriteTask favoriteTask5 = editor.getFavoriteTasks().get(4);
         Assert.assertNotNull(favoriteTask5);
-        Assert.assertEquals( favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine() );
-        Assert.assertEquals( favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName() );
-        Assert.assertEquals( favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput() );       
+        Assert.assertEquals(favoriteTask2.getFullCommandLine(), favoriteTask5.getFullCommandLine());
+        Assert.assertEquals(favoriteTask2.getDisplayName(), favoriteTask5.getDisplayName());
+        Assert.assertEquals(favoriteTask2.alwaysShowOutput(), favoriteTask5.alwaysShowOutput());
     }
 
     /**
-    This sets the display name of the favorite task to the specified new name.
+     * This sets the display name of the favorite task to the specified new name.
      */
-    private void editFavorite( FavoritesEditor editor, FavoriteTask favoriteTask, final String newDisplayName, final boolean newAlwaysShowOutput )
-    {
-       editor.editFavorite( favoriteTask, new FavoritesEditor.EditFavoriteInteraction() {
+    private void editFavorite(FavoritesEditor editor, FavoriteTask favoriteTask, final String newDisplayName, final boolean newAlwaysShowOutput) {
+        editor.editFavorite(favoriteTask, new FavoritesEditor.EditFavoriteInteraction() {
             public boolean editFavorite(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
                 favoriteTask.displayName = newDisplayName;
                 favoriteTask.alwaysShowOutput = newAlwaysShowOutput;
@@ -391,6 +374,6 @@ public class FavoritesIntegrationTest {
             }
         });
 
-        Assert.assertEquals( newDisplayName, favoriteTask.getDisplayName() );
+        Assert.assertEquals(newDisplayName, favoriteTask.getDisplayName());
     }
 }

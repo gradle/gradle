@@ -23,12 +23,9 @@ import java.util.List;
 /**
  * This is an abstraction from Gradle that allows you to obtain and edit favorites.
  *
- * This is a mirror of FavoritesEditor inside Gradle, but this is meant
- * to aid backward and forward compatibility by shielding you from direct
- * changes within gradle.
+ * <p>This is a mirror of FavoritesEditor inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
  *
  * @author mhunsicker
-
  */
 public interface FavoritesEditorVersion1 {
 
@@ -36,7 +33,7 @@ public interface FavoritesEditorVersion1 {
      * Adds the specified favorite.
      *
      * @param fullCommandLine the command line that this favorite executes
-     * @param displayName  a more user-friendly name for the command
+     * @param displayName a more user-friendly name for the command
      * @param alwaysShowOutput true to always show output when this favorite is executed. False to only show output when errors occur.
      * @return the favorite added
      */
@@ -44,13 +41,14 @@ public interface FavoritesEditorVersion1 {
 
     /**
      * Sets new values on the specified favorite task. This provides a simple way to programmatically edit favorite tasks.
+     *
      * @param favoriteTask the favorite to edit
      * @param newFullCommandLine the new command line
      * @param newDisplayName the new display name
      * @param newAlwaysShowOutput the new value for whether or not to always show output (vs only showing it when an error occurs).
      * @returns null if successful otherwise, an error suitable for displaying to the user.
      */
-    public String editFavorite( FavoriteTaskVersion1 favoriteTask, String newFullCommandLine, String newDisplayName, boolean newAlwaysShowOutput );
+    public String editFavorite(FavoriteTaskVersion1 favoriteTask, String newFullCommandLine, String newDisplayName, boolean newAlwaysShowOutput);
 
     /**
      * @return a list of all favorites in the system
@@ -59,6 +57,7 @@ public interface FavoritesEditorVersion1 {
 
     /**
      * Returns the favorite with the specified command line
+     *
      * @param fullCommandLine the command line of the sought favorite
      * @return the matching favorite or null if no match found.
      */
@@ -66,6 +65,7 @@ public interface FavoritesEditorVersion1 {
 
     /**
      * Returns the favorite with the specified display name
+     *
      * @param displayName the display name of the sought favorite
      * @return the matching favorite or null if no match found.
      */
@@ -73,29 +73,33 @@ public interface FavoritesEditorVersion1 {
 
     /**
      * Returns the favorite with the specified task
+     *
      * @param task the task of the sought favorite
      * @return the matching favorite or null if no match found.
      */
-    public FavoriteTaskVersion1 getFavorite( TaskVersion1 task);
+    public FavoriteTaskVersion1 getFavorite(TaskVersion1 task);
 
     /**
      * Display a Swing dialog prompting the user to enter a favorite.
+     *
      * @param parent the parent window of the dialog.
      * @return the favorite that was added or null if the user canceled
      */
-    public FavoriteTaskVersion1 promptUserToAddFavorite( Window parent );
+    public FavoriteTaskVersion1 promptUserToAddFavorite(Window parent);
 
     /**
      * Display a Swing dialog prompting the user to edit the specified favorite
+     *
      * @param parent the parent window of the dialog
      * @param favorite the favorite to edit
      * @return true if the user made changes and accepted them, false if the user canceled.
      */
-    public boolean promptUserToEditFavorite( Window parent, FavoriteTaskVersion1 favorite );
+    public boolean promptUserToEditFavorite(Window parent, FavoriteTaskVersion1 favorite);
 
     /**
      * Removes the specified favorites.
+     *
      * @param favoritesToRemove the favorites to remove
      */
-    public void removeFavorites( List<FavoriteTaskVersion1> favoritesToRemove);
+    public void removeFavorites(List<FavoriteTaskVersion1> favoritesToRemove);
 }

@@ -15,7 +15,8 @@
  */
 package org.gradle.api.internal.plugins.osgi;
 
-import org.junit.Test;import static org.junit.Assert.assertNotNull;
+import org.junit.Test;
+import static org.junit.Assert.assertNotNull;
 
 /**
  * @author Hans Dockter

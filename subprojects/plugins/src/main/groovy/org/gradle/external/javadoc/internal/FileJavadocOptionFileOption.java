@@ -21,7 +21,7 @@ import java.io.IOException;
 
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} whose value is a file.
- * 
+ *
  * @author Tom Eyckmans
  */
 public class FileJavadocOptionFileOption extends AbstractJavadocOptionFileOption<File> {
@@ -34,7 +34,7 @@ public class FileJavadocOptionFileOption extends AbstractJavadocOptionFileOption
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null ) {
+        if (value != null) {
             writerContext.writeValueOption(option, value.getAbsolutePath());
         }
     }

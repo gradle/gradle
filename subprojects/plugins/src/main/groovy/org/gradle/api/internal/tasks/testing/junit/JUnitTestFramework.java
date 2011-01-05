@@ -64,8 +64,7 @@ public class JUnitTestFramework implements TestFramework {
         if (!testTask.isTestReport()) {
             return;
         }
-        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(),
-                testTask.getProject().getAnt());
+        antJUnitReport.execute(testTask.getTestResultsDir(), testTask.getTestReportDir(), testTask.getProject().getAnt());
     }
 
     public JUnitOptions getOptions() {
@@ -96,10 +95,7 @@ public class JUnitTestFramework implements TestFramework {
         }
 
         public TestClassProcessor create(ServiceRegistry serviceRegistry) {
-            return new JUnitTestClassProcessor(
-                    testResultsDir,
-                    serviceRegistry.get(IdGenerator.class),
-                    new JULRedirector());
+            return new JUnitTestClassProcessor(testResultsDir, serviceRegistry.get(IdGenerator.class), new JULRedirector());
         }
     }
 }

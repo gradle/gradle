@@ -80,8 +80,8 @@ public class DefaultArtifactPom implements ArtifactPom {
         PublishArtifact publishArtifact = new MavenArtifact(artifact, src);
         ArtifactKey artifactKey = new ArtifactKey(publishArtifact);
         if (this.artifacts.containsKey(artifactKey)) {
-            throw new InvalidUserDataException(String.format("A POM cannot have multiple artifacts with the same type and classifier. Already have %s, trying to add %s.",
-                    this.artifacts.get(artifactKey), publishArtifact));
+            throw new InvalidUserDataException(String.format("A POM cannot have multiple artifacts with the same type and classifier. Already have %s, trying to add %s.", this.artifacts.get(
+                    artifactKey), publishArtifact));
         }
 
         if (publishArtifact.getClassifier() != null) {
@@ -97,8 +97,7 @@ public class DefaultArtifactPom implements ArtifactPom {
                 return;
             }
             if (PACKAGING_TYPES.contains(this.artifact.getType())) {
-                throw new InvalidUserDataException("A POM can not have multiple main artifacts. " +
-                        "Already have " + this.artifact + ", trying to add " + publishArtifact);
+                throw new InvalidUserDataException("A POM can not have multiple main artifacts. " + "Already have " + this.artifact + ", trying to add " + publishArtifact);
             }
             addArtifact(this.artifact);
         }

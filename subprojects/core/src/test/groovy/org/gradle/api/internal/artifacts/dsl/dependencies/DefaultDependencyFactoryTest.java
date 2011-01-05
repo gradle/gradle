@@ -78,7 +78,7 @@ public class DefaultDependencyFactoryTest {
     }
 
     private Point createAnonymousPoint() {
-        return new Point(5,4);
+        return new Point(5, 4);
     }
 
     @Test(expected = InvalidUserDataException.class)

@@ -48,8 +48,8 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         serviceRegistry = context.mock(ServiceRegistry.class);
 
         context.checking(new Expectations(){{
-            allowing(testMock).getTestClassesDir();will(returnValue(testClassesDir));
-            allowing(testMock).getClasspath();will(returnValue(classpathMock));
+            allowing(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
+            allowing(testMock).getClasspath(); will(returnValue(classpathMock));
         }});
     }
 

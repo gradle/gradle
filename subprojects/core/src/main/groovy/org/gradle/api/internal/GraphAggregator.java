@@ -24,7 +24,7 @@ public class GraphAggregator<N> {
     private final CachingDirectedGraphWalker<N, N> graphWalker;
 
     public GraphAggregator(DirectedGraph<N, ?> graph) {
-        graphWalker = new CachingDirectedGraphWalker<N,N>(new ConnectedNodesAsValuesDirectedGraph<N>(graph));
+        graphWalker = new CachingDirectedGraphWalker<N, N>(new ConnectedNodesAsValuesDirectedGraph<N>(graph));
     }
 
     public Result<N> group(Collection<? extends N> startNodes, Collection<? extends N> allNodes) {

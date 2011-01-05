@@ -97,7 +97,7 @@ public class DefaultArtifactsToModuleDescriptorConverterTest {
 
     private Artifact expectedIvyArtifact(Configuration configuration, ModuleDescriptor moduleDescriptor, Map<String, String> additionalExtraAttributes) {
         PublishArtifact publishArtifact = configuration.getArtifacts().iterator().next();
-        Map<String,String> extraAttributes = WrapUtil.toMap(Dependency.CLASSIFIER, publishArtifact.getClassifier());
+        Map<String, String> extraAttributes = WrapUtil.toMap(Dependency.CLASSIFIER, publishArtifact.getClassifier());
         extraAttributes.putAll(additionalExtraAttributes);
         return new DefaultArtifact(moduleDescriptor.getModuleRevisionId(),
                 publishArtifact.getDate(),

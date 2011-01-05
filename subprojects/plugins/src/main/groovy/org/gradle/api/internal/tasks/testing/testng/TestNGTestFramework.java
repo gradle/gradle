@@ -44,8 +44,7 @@ public class TestNGTestFramework implements TestFramework {
     public TestNGTestFramework(Test testTask) {
         this.testTask = testTask;
         options = new TestNGOptions(testTask.getProject().getProjectDir());
-        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property(
-                "sourceCompatibility")));
+        options.setAnnotationsOnSourceCompatibility(JavaVersion.toVersion(testTask.getProject().property("sourceCompatibility")));
         detector = new TestNGDetector(testTask.getTestClassesDir(), testTask.getClasspath());
     }
 

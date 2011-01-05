@@ -170,7 +170,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     }
 
     /**
-     * -docletpath  classpathlist 
+     * -docletpath  classpathlist
      * Specifies the path to the doclet starting class file (specified with the -doclet option) and any jar files it depends on.
      * If the starting class file is in a jar file, then this specifies the path to that jar file, as shown in the example below.
      * You can specify an absolute path or a path relative to the current directory. If classpathlist contains multiple paths or jar files,
@@ -212,7 +212,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      *
      * Use the value of release corresponding to that used when compiling the code with javac.
      */
-    private final JavadocOptionFileOption<String> source;// TODO bind with the sourceCompatibility property
+    private final JavadocOptionFileOption<String> source; // TODO bind with the sourceCompatibility property
 
     public String getSource() {
         return source.getValue();
@@ -250,7 +250,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * For an in-depth description of how the Javadoc tool uses -classpath to find user classes as it relates to extension classes and
      * bootstrap classes, see How Classes Are Found.
      */
-    private final JavadocOptionFileOption<List<File>> classpath;// TODO link to runtime configuration ?
+    private final JavadocOptionFileOption<List<File>> classpath; // TODO link to runtime configuration ?
 
     public List<File> getClasspath() {
         return classpath.getValue();

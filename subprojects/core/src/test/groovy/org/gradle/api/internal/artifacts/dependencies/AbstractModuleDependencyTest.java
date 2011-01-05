@@ -22,12 +22,18 @@ import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.util.HelperUtil;
 import org.gradle.util.JUnit4GroovyMockery;
+
 import static org.gradle.util.Matchers.*;
+
 import org.gradle.util.WrapUtil;
+
 import static org.hamcrest.Matchers.*;
+
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
+
 import static org.junit.Assert.*;
+
 import org.junit.Test;
 import org.junit.runner.RunWith;
 
@@ -57,8 +63,8 @@ abstract public class AbstractModuleDependencyTest {
 
     @Test
     public void exclude() {
-        Map<String,String> excludeArgs1 = WrapUtil.toMap("key", "value");
-        Map<String,String> excludeArgs2 = WrapUtil.toMap("key2", "value2");
+        Map<String, String> excludeArgs1 = WrapUtil.toMap("key", "value");
+        Map<String, String> excludeArgs2 = WrapUtil.toMap("key2", "value2");
 
         getDependency().exclude(excludeArgs1);
         getDependency().exclude(excludeArgs2);

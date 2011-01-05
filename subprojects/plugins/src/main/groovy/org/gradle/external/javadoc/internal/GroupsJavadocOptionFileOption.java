@@ -35,8 +35,8 @@ public class GroupsJavadocOptionFileOption extends AbstractJavadocOptionFileOpti
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null && !value.isEmpty() ) {
-            for ( final String group : value.keySet() ) {
+        if (value != null && !value.isEmpty()) {
+            for (final String group : value.keySet()) {
                 final List<String> groupPackages = value.get(group);
 
                 writerContext

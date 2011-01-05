@@ -52,8 +52,8 @@ public class TestNGTestFrameworkTest extends AbstractTestFrameworkTest {
         context.checking(new Expectations() {{
             allowing(projectMock).getProjectDir(); will(returnValue(new File("projectDir")));
             allowing(projectMock).property("sourceCompatibility"); will(returnValue(sourceCompatibility));
-            allowing(testMock).getTestClassesDir();will(returnValue(testClassesDir));
-            allowing(testMock).getClasspath();will(returnValue(classpathMock));
+            allowing(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
+            allowing(testMock).getClasspath(); will(returnValue(classpathMock));
             allowing(testMock).getTemporaryDir(); will(returnValue(temporaryDir));
         }});
     }

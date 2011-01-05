@@ -24,9 +24,8 @@ import antlr.collections.impl.IndexedVector;
 import antlr.preprocessor.GrammarFile;
 
 /**
- * Antlr defines its {@link antlr.preprocessor.Grammar} class as package-protected for some unfortunate reason. So this
- * class acts as a delegate to the Antlr {@link antlr.preprocessor.Grammar} class, hiding all the ugly necessary
- * reflection code.
+ * Antlr defines its {@link antlr.preprocessor.Grammar} class as package-protected for some unfortunate reason. So this class acts as a delegate to the Antlr {@link antlr.preprocessor.Grammar} class,
+ * hiding all the ugly necessary reflection code.
  *
  * @author Steve Ebersole
  */
@@ -54,8 +53,7 @@ public class GrammarDelegate {
             final Method getSuperGrammarMethod = ANTLR_GRAMMAR_CLASS.getMethod("getSuperGrammar", NO_ARG_SIGNATURE);
             getSuperGrammarMethod.setAccessible(true);
             final Object antlrSuperGrammarGrammarMetadata = getSuperGrammarMethod.invoke(antlrGrammarMetadata, NO_ARGS);
-            this.superGrammarDelegate = antlrSuperGrammarGrammarMetadata == null ? null : new GrammarDelegate(
-                    antlrSuperGrammarGrammarMetadata);
+            this.superGrammarDelegate = antlrSuperGrammarGrammarMetadata == null ? null : new GrammarDelegate(antlrSuperGrammarGrammarMetadata);
 
             Method getOptionsMethod = ANTLR_GRAMMAR_CLASS.getMethod("getOptions", NO_ARG_SIGNATURE);
             getOptionsMethod.setAccessible(true);
@@ -65,12 +63,10 @@ public class GrammarDelegate {
             getRHSMethod.setAccessible(true);
 
             final Object importVocabOption = options == null ? null : options.getElement("importVocab");
-            this.importVocab = importVocabOption == null ? null : vocabName((String) getRHSMethod.invoke(
-                    importVocabOption, NO_ARGS));
+            this.importVocab = importVocabOption == null ? null : vocabName((String) getRHSMethod.invoke(importVocabOption, NO_ARGS));
 
             final Object exportVocabOption = options == null ? null : options.getElement("exportVocab");
-            this.exportVocab = exportVocabOption == null ? null : vocabName((String) getRHSMethod.invoke(
-                    exportVocabOption, NO_ARGS));
+            this.exportVocab = exportVocabOption == null ? null : vocabName((String) getRHSMethod.invoke(exportVocabOption, NO_ARGS));
         } catch (Throwable t) {
             throw new IllegalStateException("Error accessing  Antlr grammar metadata", t);
         }
@@ -104,8 +100,7 @@ public class GrammarDelegate {
     }
 
     /**
-     * Retrieves the grammar delegate associated with this grammars super grammar deduced during preprocessing from its
-     * extends clause.
+     * Retrieves the grammar delegate associated with this grammars super grammar deduced during preprocessing from its extends clause.
      *
      * @return The super-grammar grammar delegate
      */
@@ -149,7 +144,7 @@ public class GrammarDelegate {
         try {
             return Class.forName(className, true, GrammarDelegate.class.getClassLoader());
         } catch (ClassNotFoundException e) {
-            throw new IllegalStateException("Unable to locate Antlr class [" + className + "]", e );
+            throw new IllegalStateException("Unable to locate Antlr class [" + className + "]", e);
         }
     }
 }

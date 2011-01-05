@@ -70,7 +70,7 @@ public class JavadocOptionFileWriterContext {
     }
 
     public JavadocOptionFileWriterContext writeValueOption(String option, Collection<String> values) throws IOException {
-        for ( final String value : values ) {
+        for (final String value : values) {
             writeValueOption(option, value);
         }
         return this;
@@ -90,7 +90,7 @@ public class JavadocOptionFileWriterContext {
     }
 
     public JavadocOptionFileWriterContext writeMultilineValuesOption(String option, Collection<String> values) throws IOException {
-        for(String value : values) {
+        for (String value : values) {
             writeValueOption(option, value);
         }
         return this;
@@ -99,7 +99,7 @@ public class JavadocOptionFileWriterContext {
     public JavadocOptionFileWriterContext writePathOption(String option, Collection<File> files, String joinValuesBy) throws IOException {
         StringBuilder builder = new StringBuilder();
         Iterator<File> filesIt = files.iterator();
-        while ( filesIt.hasNext() ) {
+        while (filesIt.hasNext()) {
             builder.append(filesIt.next().getAbsolutePath());
             if (filesIt.hasNext()) {
                 builder.append(joinValuesBy);
@@ -108,5 +108,4 @@ public class JavadocOptionFileWriterContext {
         writeValueOption(option, builder.toString());
         return this;
     }
-
 }

@@ -58,8 +58,7 @@ public class UriResource implements Resource {
                 inputStream.close();
             }
         } catch (FileNotFoundException e) {
-            throw new ResourceNotFoundException(String.format(String.format("Could not read %s as it does not exist.",
-                    getDisplayName())));
+            throw new ResourceNotFoundException(String.format(String.format("Could not read %s as it does not exist.", getDisplayName())));
         } catch (Exception e) {
             throw new ResourceException(String.format("Could not read %s.", getDisplayName()), e);
         }
@@ -73,7 +72,7 @@ public class UriResource implements Resource {
             } finally {
                 inputStream.close();
             }
-        } catch (FileNotFoundException e ) {
+        } catch (FileNotFoundException e) {
             return false;
         } catch (Exception e) {
             throw new ResourceException(String.format("Could not determine if %s exists.", getDisplayName()), e);

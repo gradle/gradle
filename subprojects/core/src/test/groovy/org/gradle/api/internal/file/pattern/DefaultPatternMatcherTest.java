@@ -124,7 +124,7 @@ public class DefaultPatternMatcherTest {
     }
 
     @Test public void testGreedy() {
-        matcher = new DefaultPatternMatcher(true, true, "a","**");
+        matcher = new DefaultPatternMatcher(true, true, "a", "**");
         path = new RelativePath(true, "a", "b", "c");
         assertTrue(matcher.isSatisfiedBy(path));
 

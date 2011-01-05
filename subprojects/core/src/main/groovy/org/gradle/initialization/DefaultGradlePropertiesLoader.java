@@ -39,12 +39,9 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
         loadProperties(settingsDir, startParameter, getAllSystemProperties(), getAllEnvProperties());
     }
 
-    void loadProperties(File settingsDir, StartParameter startParameter, Map<String, String> systemProperties,
-                        Map<String, String> envProperties) {
+    void loadProperties(File settingsDir, StartParameter startParameter, Map<String, String> systemProperties, Map<String, String> envProperties) {
         gradleProperties.clear();
-        addGradleProperties(
-                new File(settingsDir, Project.GRADLE_PROPERTIES),
-                new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
+        addGradleProperties(new File(settingsDir, Project.GRADLE_PROPERTIES), new File(startParameter.getGradleUserHomeDir(), Project.GRADLE_PROPERTIES));
         setSystemProperties(startParameter.getSystemPropertiesArgs());
         gradleProperties.putAll(getEnvProjectProperties(envProperties));
         gradleProperties.putAll(getSystemProjectProperties(systemProperties));
@@ -89,10 +86,8 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private Map<String, String> getSystemProjectProperties(Map<String, String> systemProperties) {
         Map<String, String> systemProjectProperties = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : systemProperties.entrySet()) {
-            if (entry.getKey().startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX) &&
-                    entry.getKey().length() > SYSTEM_PROJECT_PROPERTIES_PREFIX.length()) {
-                systemProjectProperties.put(entry.getKey().substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.length()),
-                        entry.getValue());
+            if (entry.getKey().startsWith(SYSTEM_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > SYSTEM_PROJECT_PROPERTIES_PREFIX.length()) {
+                systemProjectProperties.put(entry.getKey().substring(SYSTEM_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
             }
         }
         logger.debug("Found system project properties: {}", systemProjectProperties.keySet());
@@ -102,10 +97,8 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private Map<String, String> getEnvProjectProperties(Map<String, String> envProperties) {
         Map<String, String> envProjectProperties = new HashMap<String, String>();
         for (Map.Entry<String, String> entry : envProperties.entrySet()) {
-            if (entry.getKey().startsWith(ENV_PROJECT_PROPERTIES_PREFIX) &&
-                    entry.getKey().length() > ENV_PROJECT_PROPERTIES_PREFIX.length()) {
-                envProjectProperties.put(entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length()),
-                        entry.getValue());
+            if (entry.getKey().startsWith(ENV_PROJECT_PROPERTIES_PREFIX) && entry.getKey().length() > ENV_PROJECT_PROPERTIES_PREFIX.length()) {
+                envProjectProperties.put(entry.getKey().substring(ENV_PROJECT_PROPERTIES_PREFIX.length()), entry.getValue());
             }
         }
         logger.debug("Found env project properties: {}", envProjectProperties.keySet());
@@ -120,8 +113,7 @@ public class DefaultGradlePropertiesLoader implements IGradlePropertiesLoader {
     private void addSystemPropertiesFromGradleProperties() {
         for (String key : gradleProperties.keySet()) {
             if (key.startsWith(Project.SYSTEM_PROP_PREFIX + '.')) {
-                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), gradleProperties.get(
-                        key));
+                System.setProperty(key.substring((Project.SYSTEM_PROP_PREFIX + '.').length()), gradleProperties.get(key));
             }
         }
     }

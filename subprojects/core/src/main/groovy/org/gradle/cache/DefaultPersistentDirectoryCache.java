@@ -76,7 +76,7 @@ public class DefaultPersistentDirectoryCache implements PersistentCache {
 
     public <K, V> BTreePersistentIndexedCache<K, V> openIndexedCache(Serializer<V> serializer) {
         if (indexedCache == null) {
-            indexedCache = new BTreePersistentIndexedCache<K,V>(this, serializer);
+            indexedCache = new BTreePersistentIndexedCache<K, V>(this, serializer);
         }
         return indexedCache;
     }

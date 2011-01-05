@@ -92,6 +92,6 @@ public class XRef {
      * @return The grammar file metadata.  May be null if none found.
      */
     public GrammarFileMetadata getGrammarFileByExportVocab(String vocabName) {
-        return filesByExportVocab.get(vocabName );
+        return filesByExportVocab.get(vocabName);
     }
 }

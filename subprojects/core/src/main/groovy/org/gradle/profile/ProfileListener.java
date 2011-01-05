@@ -60,8 +60,7 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
         buildProfile.setBuildFinished(System.currentTimeMillis());
 
         HTMLProfileReport report = new HTMLProfileReport(buildProfile);
-        File file = new File(result.getGradle().getRootProject().getBuildDir(), "reports/profile/profile-"+
-                FILE_DATE_FORMAT.format(new Date(profileStarted)) + ".html" );
+        File file = new File(result.getGradle().getRootProject().getBuildDir(), "reports/profile/profile-" + FILE_DATE_FORMAT.format(new Date(profileStarted)) + ".html");
         file.getParentFile().mkdirs();
         try {
             file.createNewFile();
@@ -81,7 +80,6 @@ public class ProfileListener implements BuildListener, ProjectEvaluationListener
         projectProfile.setAfterEvaluate(System.currentTimeMillis());
         projectProfile.setState(state);
     }
-
 
     // TaskExecutionListener
     public void beforeExecute(Task task) {

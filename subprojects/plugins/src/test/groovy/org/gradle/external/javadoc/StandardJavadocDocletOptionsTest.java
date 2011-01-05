@@ -473,7 +473,7 @@ public class StandardJavadocDocletOptionsTest {
 
     @Test
     public void testFluentExcludeDocFilesSubDir() {
-        final String[] excludeDocFilesSubDirValue = new String[]{".hg",".svn",".bzr", ".git"};
+        final String[] excludeDocFilesSubDirValue = new String[]{".hg", ".svn", ".bzr", ".git"};
         assertEquals(options, options.excludeDocFilesSubDir(excludeDocFilesSubDirValue));
         assertArrayEquals(excludeDocFilesSubDirValue, options.getExcludeDocFilesSubDir().toArray());
     }

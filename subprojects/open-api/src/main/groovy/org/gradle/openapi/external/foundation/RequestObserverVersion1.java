@@ -16,43 +16,37 @@
 package org.gradle.openapi.external.foundation;
 
 /**
- * This allows you to observer when Gradle commands are executed/complete. It is
- * an abstraction of a GradlePluginLord.RequestObserver.
+ * This allows you to observer when Gradle commands are executed/complete. It is an abstraction of a GradlePluginLord.RequestObserver.
  *
- * This is a mirror of GradlePluginLord.RequestObserver inside Gradle, but
- * this is meant to aid backward and forward compatibility by shielding you
- * from direct changes within gradle.
+ * <p>This is a mirror of GradlePluginLord.RequestObserver inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
  *
  * @author mhunsicker
  */
 public interface RequestObserverVersion1 {
 
     /**
-     * Notification that an execution request was added to the queue. This is
-     * the normal request that initiates a gradle command.
+     * Notification that an execution request was added to the queue. This is the normal request that initiates a gradle command.
+     *
      * @param request the request that was added
      */
-  public void executionRequestAdded( RequestVersion1 request );
+    public void executionRequestAdded(RequestVersion1 request);
 
     /**
-     * Notification that a refresh request was added to the queue. This type
-     * of request updates the task tree.
-     * @param request
+     * Notification that a refresh request was added to the queue. This type of request updates the task tree.
      */
-  public void refreshRequestAdded( RequestVersion1 request );
+    public void refreshRequestAdded(RequestVersion1 request);
 
-  /**
-   * Notification that a command is about to be executed. This is mostly useful
-   * for IDE's that may need to save their files. This is always called after
-   * a request has been added to the queue.
-  */
-  public void aboutToExecuteRequest( RequestVersion1 request );
+    /**
+     * Notification that a command is about to be executed. This is mostly useful for IDE's that may need to save their files. This is always called after a request has been added to the queue.
+     */
+    public void aboutToExecuteRequest(RequestVersion1 request);
 
-  /**
-   * Notification that a request has completed execution.
-   * @param request the original request containing the command that was executed
-   * @param result the result of the command
-   * @param output the output from gradle executing the command
-   */
-  public void requestExecutionComplete( RequestVersion1 request, int result, String output );
+    /**
+     * Notification that a request has completed execution.
+     *
+     * @param request the original request containing the command that was executed
+     * @param result the result of the command
+     * @param output the output from gradle executing the command
+     */
+    public void requestExecutionComplete(RequestVersion1 request, int result, String output);
 }

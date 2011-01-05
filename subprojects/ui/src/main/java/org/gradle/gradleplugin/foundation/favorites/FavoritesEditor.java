@@ -114,8 +114,6 @@ public class FavoritesEditor implements SettingsSerializable {
         AddSeparately, AddAsSingleCommand, Cancel
     }
 
-    ;
-
     /**
 
      */

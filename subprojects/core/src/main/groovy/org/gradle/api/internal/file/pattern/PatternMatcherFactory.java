@@ -24,8 +24,7 @@ import org.gradle.api.specs.Spec;
 public class PatternMatcherFactory {
     public static Spec<RelativePath> getPatternMatcher(boolean partialMatchDirs, boolean caseSensitive, String pattern) {
         // trailing / or \ assumes **
-        if (  pattern.endsWith("/") ||
-              pattern.endsWith("\\") ) {
+        if (pattern.endsWith("/") || pattern.endsWith("\\")) {
             pattern = pattern + "**";
         }
 

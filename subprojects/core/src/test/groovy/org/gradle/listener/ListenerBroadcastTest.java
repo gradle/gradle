@@ -87,7 +87,7 @@ public class ListenerBroadcastTest {
         broadcast.add(listener1);
         broadcast.add(listener2);
 
-        MethodInvocation invocation = new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[] { "param" });
+        MethodInvocation invocation = new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[]{"param"});
         broadcast.dispatch(invocation);
     }
 
@@ -105,7 +105,7 @@ public class ListenerBroadcastTest {
     public void canUseDispatchToReceiveNotifications() throws NoSuchMethodException {
         final Dispatch<MethodInvocation> dispatch1 = context.mock(Dispatch.class, "listener1");
         final Dispatch<MethodInvocation> dispatch2 = context.mock(Dispatch.class, "listener2");
-        final MethodInvocation invocation = new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[] { "param" });
+        final MethodInvocation invocation = new MethodInvocation(TestListener.class.getMethod("event1", String.class), new Object[]{"param"});
 
         context.checking(new Expectations() {{
             one(dispatch1).dispatch(invocation);
@@ -177,7 +177,7 @@ public class ListenerBroadcastTest {
     @Test
     public void actionCanHaveFewerParametersThanEventMethod() {
         final Action<Integer> action = context.mock(Action.class);
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             one(action).execute(1);
             one(action).execute(2);
         }});
@@ -212,7 +212,7 @@ public class ListenerBroadcastTest {
 
         broadcast.getSource().event1("event");
     }
-    
+
     @Test
     public void wrapsExceptionThrownByListener() {
         final TestListener listener = context.mock(TestListener.class);

@@ -28,40 +28,40 @@ import java.util.List;
  @author mhunsicker
  */
 public class FileLinkTests extends TestCase {
-   public static void parseOutputTest( String textToSearch, FileLink ... expectedResults ) {
-       parseTest( textToSearch, false, expectedResults );
-   }
+    public static void parseOutputTest(String textToSearch, FileLink... expectedResults) {
+        parseTest(textToSearch, false, expectedResults);
+    }
 
-   public static void parseTest( String textToSearch, boolean verifyFileExists, FileLink ... expectedResults ) {
-       OutputParser outputParser = new OutputParser( new FileLinkDefinitionLord(), verifyFileExists );
-      List<FileLink> fileLinks = outputParser.parseText( textToSearch );
+    public static void parseTest(String textToSearch, boolean verifyFileExists, FileLink... expectedResults) {
+        OutputParser outputParser = new OutputParser(new FileLinkDefinitionLord(), verifyFileExists);
+        List<FileLink> fileLinks = outputParser.parseText(textToSearch);
 
-      TestUtility.assertListContents( fileLinks, expectedResults );
-   }
+        TestUtility.assertListContents(fileLinks, expectedResults);
+    }
 
-   public void testCompileErrors() {
-       String outputText = ":distributionDiskResources SKIPPED\n" +
-            ":installDiskResources SKIPPED\n" +
-            ":idea-plugins:ideagradle:compileJava\n" +
-            "[ant:javac] /home/user/project/modules/plugins/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java:186: cannot find symbol\n" +
-            "[ant:javac] symbol  : constructor Integer()\n" +
-            "[ant:javac] location: class java.lang.Integer\n" +
-            "[ant:javac]       SwingUtilities.invokeLater( new Integer() );\n" +
-            "[ant:javac]                                   ^\n";
+    public void testCompileErrors() {
+       String outputText = ":distributionDiskResources SKIPPED\n"
+               + ":installDiskResources SKIPPED\n"
+               + ":idea-plugins:ideagradle:compileJava\n"
+               + "[ant:javac] /home/user/project/modules/plugins/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java:186: cannot find symbol\n"
+               + "[ant:javac] symbol  : constructor Integer()\n"
+               + "[ant:javac] location: class java.lang.Integer\n"
+               + "[ant:javac]       SwingUtilities.invokeLater( new Integer() );\n"
+               + "[ant:javac]                                   ^\n";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/project/modules/plugins/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java" ), 114, 215, 186 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/project/modules/plugins/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java"), 114, 215, 186));
    }
 
    public void testNotes() {
-       String outputText = ":distributionDiskResources SKIPPED\n" +
-            ":installDiskResources SKIPPED\n" +
-            ":idea-plugins:ideagradle:compileJava\n" +
-            "[ant:javac] Note: /home/user/project/modules/plugins/gradle/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java uses or overrides a deprecated API.\n" +
-            "[ant:javac] Note: Recompile with -Xlint:deprecation for details.\n" +
-            "[ant:javac] 1 error\n" +
-            "Total time: 4.622 secs";
+       String outputText = ":distributionDiskResources SKIPPED\n"
+               + ":installDiskResources SKIPPED\n"
+               + ":idea-plugins:ideagradle:compileJava\n"
+               + "[ant:javac] Note: /home/user/project/modules/plugins/gradle/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java uses or overrides a deprecated API.\n"
+               + "[ant:javac] Note: Recompile with -Xlint:deprecation for details.\n"
+               + "[ant:javac] 1 error\n"
+               + "Total time: 4.622 secs";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/project/modules/plugins/gradle/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java" ), 120, 224, -1 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/project/modules/plugins/gradle/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java"), 120, 224, -1));
    }
 
    /**
@@ -69,18 +69,17 @@ public class FileLinkTests extends TestCase {
     occur naturally together. One with the line number, one without.
     */
    public void testGradleBuildFile() {
-       String outputText = "FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* Where:\n" +
-            "Build file '/home/user/gradle/build.gradle' line: 431\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "blah blah blah\n" +
-            "Build file '/home/user/gradle/build.gradle'" +
-            "Total time: 4.622 secs";
+       String outputText = "FAILURE: Build failed with an exception.\n"
+               + "\n"
+               + "* Where:\n"
+               + "Build file '/home/user/gradle/build.gradle' line: 431\n"
+               + "\n"
+               + "* What went wrong:\n"
+               + "blah blah blah\n"
+               + "Build file '/home/user/gradle/build.gradle'"
+               + "Total time: 4.622 secs";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/gradle/build.gradle" ), 63, 104, 431 ),
-                                               new FileLink( new File( "/home/user/gradle/build.gradle" ), 152, 182, -1 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/gradle/build.gradle"), 63, 104, 431), new FileLink(new File("/home/user/gradle/build.gradle"), 152, 182, -1));
    }
 
 
@@ -89,20 +88,20 @@ public class FileLinkTests extends TestCase {
     the file, the line of the problem, and the cause.
     */
    public void testCheckstyleSingleErrorOutput() {
-       String outputText = ":processResources\n" +
-            ":idea-plugins:compile\n" +
-            ":compile\n" +
-            ":copyNativeLibs\n" +
-            ":distributionDiskResources SKIPPED\n" +
-            ":installDiskResources SKIPPED\n" +
-            "[ant:checkstyle] /home/user/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java:38: 'if' construct must use '{}'s." +
-            "FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "blah blah blah\n" +
-            "Total time: 4.622 secs";
+       String outputText = ":processResources\n"
+               + ":idea-plugins:compile\n"
+               + ":compile\n"
+               + ":copyNativeLibs\n"
+               + ":distributionDiskResources SKIPPED\n"
+               + ":installDiskResources SKIPPED\n"
+               + "[ant:checkstyle] /home/user/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java:38: 'if' construct must use '{}'s."
+               + "FAILURE: Build failed with an exception.\n"
+               + "\n"
+               + "* What went wrong:\n"
+               + "blah blah blah\n"
+               + "Total time: 4.622 secs";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java" ), 147, 262, 38 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java"), 147, 262, 38));
    }
 
    /**
@@ -110,34 +109,34 @@ public class FileLinkTests extends TestCase {
     The file link we're looking for just has the file's path
     */
    public void testCheckstyleReportErrorFile() {
-       String outputText = ":processResources\n" +
-            ":plugins:compile\n" +
-            ":compile\n" +
-            ":copyNativeLibs\n" +
-            ":distributionDiskResources SKIPPED\n" +
-            ":installDiskResources SKIPPED\n" +
-            "FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Cause: Checkstyle check violations were found in main Java source. See the report at /home/user/gradle/subprojects/gradle-core/build/checkstyle/main.xml\n" +
-            "Total time: 4.622 secs" +
-            "blah blah blah";
+       String outputText = ":processResources\n"
+               + ":plugins:compile\n"
+               + ":compile\n"
+               + ":copyNativeLibs\n"
+               + ":distributionDiskResources SKIPPED\n"
+               + ":installDiskResources SKIPPED\n"
+               + "FAILURE: Build failed with an exception.\n"
+               + "\n"
+               + "* What went wrong:\n"
+               + "Cause: Checkstyle check violations were found in main Java source. See the report at /home/user/gradle/subprojects/gradle-core/build/checkstyle/main.xml\n"
+               + "Total time: 4.622 secs"
+               + "blah blah blah";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/gradle/subprojects/gradle-core/build/checkstyle/main.xml" ), 271, 338, -1 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/gradle/subprojects/gradle-core/build/checkstyle/main.xml"), 271, 338, -1));
    }
 
    /**
     Tests that any HTML reports (prefixed with "See the report at ") are found.
     */
    public void testHTMLReport() {
-       String outputText = "* What went wrong:\n" +
-            "Execution failed for task ':ui:codenarcTest'.\n" +
-            "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n" +
-            "\n" +
-            "* Try:\n" +
-            "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
+       String outputText = "* What went wrong:\n"
+               + "Execution failed for task ':ui:codenarcTest'.\n"
+               + "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n"
+               + "\n"
+               + "* Try:\n"
+               + "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html" ), 150, 222, -1 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html"), 150, 222, -1));
    }
 
    /**
@@ -148,11 +147,11 @@ public class FileLinkTests extends TestCase {
     spaces in the prefix). So I added BasicFileLinkDefintion.getStartOfFile() to skip over these spaces.
     */
    public void testOffByOneCharacterBug() {
-       String outputText = "[ant:javac] Note: /home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java uses or overrides a deprecated API.\n" +
-                          "Build file '/home/user/modules/build.gradle'";
+       String outputText = "[ant:javac] Note: /home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java uses or overrides a deprecated API.\n"
+               + "Build file '/home/user/modules/build.gradle'";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java" ), 18, 85, -1 ),
-                                         new FileLink( new File( "/home/user/modules/build.gradle" ), 134, 165, -1 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java"), 18, 85, -1),
+               new FileLink(new File("/home/user/modules/build.gradle"), 134, 165, -1));
    }
 
    /**
@@ -161,48 +160,48 @@ public class FileLinkTests extends TestCase {
       is present.
       */
    public void testFailedTestsReportFile() {
-       String outputText = "FAILURE: Build failed with an exception.\n" +
-            "\n" +
-            "* Where:\n" +
-            "Build file '/home/user/gradle/gradle/build.gradle'\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Execution failed for task ':integTest'.\n" +
-            "Cause: There were failing tests. See the report at /home/user/gradle/gradle/build/reports/tests.\n" +
-            "Total time: 4.622 secs\n" +
-            "blah blah blah";
+       String outputText = "FAILURE: Build failed with an exception.\n"
+               + "\n"
+               + "* Where:\n"
+               + "Build file '/home/user/gradle/gradle/build.gradle'\n"
+               + "\n"
+               + "* What went wrong:\n"
+               + "Execution failed for task ':integTest'.\n"
+               + "Cause: There were failing tests. See the report at /home/user/gradle/gradle/build/reports/tests.\n"
+               + "Total time: 4.622 secs\n"
+               + "blah blah blah";
 
-      parseOutputTest( outputText, new FileLink( new File( "/home/user/gradle/gradle/build.gradle" ), 63, 100, -1 ),
-                                         new FileLink( new File( "/home/user/gradle/gradle/build/reports/tests/index.html" ), 213, 258, -1 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/gradle/gradle/build.gradle"), 63, 100, -1),
+               new FileLink(new File("/home/user/gradle/gradle/build/reports/tests/index.html"), 213, 258, -1));
    }
 
    /**
     This tests for multiple files found in a single output.
     */
    public void testMultiples() {
-       String outputText = ":distributionDiskResources SKIPPED\n" +
-            ":installDiskResources SKIPPED\n" +
-            ":idea-plugins:ideagradle:compileJava\n\n" +
-            "[ant:checkstyle] /home/user/modules/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java:38: 'if' construct must use '{}'s.\n" +
-            "Note: /home/user/modules/gradle/subprojects/gradle-core/src/test/groovy/org/gradle/integtests/DistributionIntegrationTestRunner.java uses or overrides a deprecated API.\n" +
-            "\n" +
-            "Cause: Checkstyle check violations were found in main Java source. See the report at /home/user/modules/gradle/subprojects/gradle-core/build/checkstyle/main.xml.\n" +
-            "\n" +
-            "\n" +
-            "Build file '/home/user/modules/gradle/subprojects/gradle-ui/ui.gradle'\n" +
-            "\n" +
-            "* What went wrong:\n" +
-            "Execution failed for task ':ui:codenarcTest'.\n" +
-            "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/modules/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n" +
-            "\n" +
-            "* Try:\n" +
-            "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
+       String outputText = ":distributionDiskResources SKIPPED\n"
+               + ":installDiskResources SKIPPED\n"
+               + ":idea-plugins:ideagradle:compileJava\n\n"
+               + "[ant:checkstyle] /home/user/modules/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java:38: 'if' construct must use '{}'s.\n"
+               + "Note: /home/user/modules/gradle/subprojects/gradle-core/src/test/groovy/org/gradle/integtests/DistributionIntegrationTestRunner.java uses or overrides a deprecated API.\n"
+               + "\n"
+               + "Cause: Checkstyle check violations were found in main Java source. See the report at /home/user/modules/gradle/subprojects/gradle-core/build/checkstyle/main.xml.\n"
+               + "\n"
+               + "\n"
+               + "Build file '/home/user/modules/gradle/subprojects/gradle-ui/ui.gradle'\n"
+               + "\n"
+               + "* What went wrong:\n"
+               + "Execution failed for task ':ui:codenarcTest'.\n"
+               + "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/modules/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n"
+               + "\n"
+               + "* Try:\n"
+               + "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
 
-            parseOutputTest( outputText, new FileLink( new File( "/home/user/modules/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java" ), 120, 243, 38 ),
-                                                       new FileLink( new File( "/home/user/modules/gradle/subprojects/gradle-core/src/test/groovy/org/gradle/integtests/DistributionIntegrationTestRunner.java" ), 282, 408, -1 ),
-                                                       new FileLink( new File( "/home/user/modules/gradle/subprojects/gradle-core/build/checkstyle/main.xml" ), 531, 606, -1 ),
-                                                       new FileLink( new File( "/home/user/modules/gradle/subprojects/gradle-ui/ui.gradle" ), 622, 679, -1 ),
-                                                       new FileLink( new File( "/home/user/modules/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html" ), 832, 912, -1 ) );
+            parseOutputTest(outputText, new FileLink(new File("/home/user/modules/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java"), 120, 243, 38),
+                    new FileLink(new File("/home/user/modules/gradle/subprojects/gradle-core/src/test/groovy/org/gradle/integtests/DistributionIntegrationTestRunner.java"), 282, 408, -1),
+                    new FileLink(new File("/home/user/modules/gradle/subprojects/gradle-core/build/checkstyle/main.xml"), 531, 606, -1),
+                    new FileLink(new File("/home/user/modules/gradle/subprojects/gradle-ui/ui.gradle"), 622, 679, -1),
+                    new FileLink(new File("/home/user/modules/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html"), 832, 912, -1));
    }
 
     /**
@@ -210,16 +209,16 @@ public class FileLinkTests extends TestCase {
      * want to explicitly test this because I had to explicitly search for case insensitive matches.
      */
    public void testFileExtensionCaseSensitivity() {
-       String outputText = ":distributionDiskResources SKIPPED\n" +
-            ":installDiskResources SKIPPED\n" +
-            "/home/user/files/Thing.java:38: 'if' construct must use '{}'s.\n" +
-            "/home/user/files/Thing2.JAVA:929: cannot find symbol\n" +
-            "/home/user/files/Thing3.JaVa:77: incompatible types\n" +
-            "* Try:\n" +
-            "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
+       String outputText = ":distributionDiskResources SKIPPED\n"
+               + ":installDiskResources SKIPPED\n"
+               + "/home/user/files/Thing.java:38: 'if' construct must use '{}'s.\n"
+               + "/home/user/files/Thing2.JAVA:929: cannot find symbol\n"
+               + "/home/user/files/Thing3.JaVa:77: incompatible types\n"
+               + "* Try:\n"
+               + "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
 
-       parseOutputTest( outputText, new FileLink( new File( "/home/user/files/Thing.java" ), 65, 95, 38 ),
-                                    new FileLink( new File( "/home/user/files/Thing2.JAVA" ), 128, 160, 929 ),
-                                    new FileLink( new File( "/home/user/files/Thing3.JaVa" ), 181, 212, 77 ) );
+       parseOutputTest(outputText, new FileLink(new File("/home/user/files/Thing.java"), 65, 95, 38),
+               new FileLink(new File("/home/user/files/Thing2.JAVA"), 128, 160, 929),
+               new FileLink(new File("/home/user/files/Thing3.JaVa"), 181, 212, 77));
    }
 }

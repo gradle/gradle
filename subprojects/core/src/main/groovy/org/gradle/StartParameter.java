@@ -526,26 +526,26 @@ public class StartParameter {
 
     @Override
     public String toString() {
-        return "StartParameter{" +
-                "taskNames=" + taskNames +
-                ", excludedTaskNames=" + excludedTaskNames +
-                ", currentDir=" + currentDir +
-                ", searchUpwards=" + searchUpwards +
-                ", projectProperties=" + projectProperties +
-                ", systemPropertiesArgs=" + systemPropertiesArgs +
-                ", gradleUserHomeDir=" + gradleUserHomeDir +
-                ", cacheUsage=" + cacheUsage +
-                ", buildScriptSource=" + buildScriptSource +
-                ", settingsScriptSource=" + settingsScriptSource +
-                ", buildExecuter=" + buildExecuter +
-                ", defaultProjectSelector=" + defaultProjectSelector +
-                ", logLevel=" + logLevel +
-                ", showStacktrace=" + showStacktrace +
-                ", buildFile=" + buildFile +
-                ", initScripts=" + initScripts +
-                ", dryRun=" + dryRun +
-                ", noOpt=" + noOpt +
-                ", profile=" + profile +
-                '}';
+        return "StartParameter{"
+                + "taskNames=" + taskNames
+                + ", excludedTaskNames=" + excludedTaskNames
+                + ", currentDir=" + currentDir
+                + ", searchUpwards=" + searchUpwards
+                + ", projectProperties=" + projectProperties
+                + ", systemPropertiesArgs=" + systemPropertiesArgs
+                + ", gradleUserHomeDir=" + gradleUserHomeDir
+                + ", cacheUsage=" + cacheUsage
+                + ", buildScriptSource=" + buildScriptSource
+                + ", settingsScriptSource=" + settingsScriptSource
+                + ", buildExecuter=" + buildExecuter
+                + ", defaultProjectSelector=" + defaultProjectSelector
+                + ", logLevel=" + logLevel
+                + ", showStacktrace=" + showStacktrace
+                + ", buildFile=" + buildFile
+                + ", initScripts=" + initScripts
+                + ", dryRun=" + dryRun
+                + ", noOpt=" + noOpt
+                + ", profile=" + profile
+                + '}';
     }
 }

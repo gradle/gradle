@@ -24,16 +24,16 @@ import java.util.List;
 
 /**
  * Implementation of settings node. It basically mirrors a DOM.
+ *
  * @author mhunsicker
  */
 public class TestSettingsNodeVersion1 implements SettingsNodeVersion1 {
 
     private String name;
     private String value;
-    private HashMap<String,String> attributes = new HashMap<String, String>();
+    private HashMap<String, String> attributes = new HashMap<String, String>();
     private SettingsNodeVersion1 parent;
     private List<SettingsNodeVersion1> children = new ArrayList<SettingsNodeVersion1>();
-
 
     public TestSettingsNodeVersion1() {
         //this creates a root settings node.
@@ -79,7 +79,7 @@ public class TestSettingsNodeVersion1 implements SettingsNodeVersion1 {
         Iterator<SettingsNodeVersion1> iterator = children.iterator();
         while (iterator.hasNext()) {
             SettingsNodeVersion1 childNode = iterator.next();
-            if (name.equals(childNode.getName() )) {
+            if (name.equals(childNode.getName())) {
                 return childNode;
             }
         }
@@ -96,7 +96,7 @@ public class TestSettingsNodeVersion1 implements SettingsNodeVersion1 {
         Iterator<SettingsNodeVersion1> iterator = children.iterator();
         while (iterator.hasNext()) {
             SettingsNodeVersion1 childNode = iterator.next();
-            if (name.equals(childNode.getName()) ) {
+            if (name.equals(childNode.getName())) {
                 children.add(childNode);
             }
         }
@@ -170,10 +170,10 @@ public class TestSettingsNodeVersion1 implements SettingsNodeVersion1 {
     }
 
     public SettingsNodeVersion1 addChild(String name) {
-        SettingsNodeVersion1 childNode = new TestSettingsNodeVersion1( this );
-        childNode.setName( name );
+        SettingsNodeVersion1 childNode = new TestSettingsNodeVersion1(this);
+        childNode.setName(name);
 
-        children.add( childNode );
+        children.add(childNode);
         return childNode;
     }
 
@@ -232,7 +232,7 @@ public class TestSettingsNodeVersion1 implements SettingsNodeVersion1 {
     }
 
     public void removeFromParent() {
-        ((TestSettingsNodeVersion1) this.parent).children.remove( this );
+        ((TestSettingsNodeVersion1) this.parent).children.remove(this);
         this.parent = null;
     }
 

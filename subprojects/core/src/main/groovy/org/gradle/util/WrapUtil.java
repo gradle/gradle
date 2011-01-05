@@ -91,7 +91,7 @@ public class WrapUtil {
      * Wraps the given key and value in a mutable sorted map.
      */
     public static <K, V> SortedMap<K, V> toSortedMap(K key, V value) {
-        SortedMap<K, V> map = new TreeMap<K,V>();
+        SortedMap<K, V> map = new TreeMap<K, V>();
         map.put(key, value);
         return map;
     }

@@ -38,7 +38,7 @@ public class ClassMetaData implements Serializable, Attachable<ClassMetaData>, L
     private final List<String> innerClassNames = new ArrayList<String>();
     private String outerClassName;
     private transient ClassMetaDataRepository<ClassMetaData> metaDataRepository;
-    public final HashMap<String,String> constants = new HashMap<String, String>();
+    public final HashMap<String, String> constants = new HashMap<String, String>();
 
     public ClassMetaData(String className, String packageName, boolean isInterface, boolean isGroovy, String rawClassComment) {
         this.className = className;

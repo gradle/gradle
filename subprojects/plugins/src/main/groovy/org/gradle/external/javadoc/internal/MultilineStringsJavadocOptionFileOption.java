@@ -25,7 +25,7 @@ import java.io.IOException;
  */
 public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadocOptionFileOption<List<String>> {
 
-   // We should never attempt to join strings so if you see this, there's a problem
+    // We should never attempt to join strings so if you see this, there's a problem
     private static final String JOIN_BY = "Not Used!";
 
     protected MultilineStringsJavadocOptionFileOption(String option) {
@@ -37,8 +37,8 @@ public class MultilineStringsJavadocOptionFileOption extends AbstractListJavadoc
     }
 
     public void writeCollectionValue(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null && !value.isEmpty() ) {
+        if (value != null && !value.isEmpty()) {
             writerContext.writeMultilineValuesOption(option, value);
-       }
+        }
     }
 }

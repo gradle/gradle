@@ -77,8 +77,7 @@ public class AbstractFileCollectionTest {
             collection.getSingleFile();
             fail();
         } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo(
-                    "Expected collection-display-name to contain exactly one file, however, it contains 2 files."));
+            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains 2 files."));
         }
     }
 
@@ -89,8 +88,7 @@ public class AbstractFileCollectionTest {
             collection.getSingleFile();
             fail();
         } catch (IllegalStateException e) {
-            assertThat(e.getMessage(), equalTo(
-                    "Expected collection-display-name to contain exactly one file, however, it contains no files."));
+            assertThat(e.getMessage(), equalTo("Expected collection-display-name to contain exactly one file, however, it contains no files."));
         }
     }
 
@@ -178,7 +176,7 @@ public class AbstractFileCollectionTest {
         assertTrue(new TestFileCollection().isEmpty());
         assertFalse(new TestFileCollection(new File("f1")).isEmpty());
     }
-    
+
     @Test
     public void throwsStopExceptionWhenEmpty() {
         TestFileCollection collection = new TestFileCollection();
@@ -234,8 +232,7 @@ public class AbstractFileCollectionTest {
             new TestFileCollection().asType(Integer.class);
             fail();
         } catch (UnsupportedOperationException e) {
-            assertThat(e.getMessage(), equalTo(
-                    "Cannot convert collection-display-name to type Integer, as this type is not supported."));
+            assertThat(e.getMessage(), equalTo("Cannot convert collection-display-name to type Integer, as this type is not supported."));
         }
     }
 
@@ -273,7 +270,7 @@ public class AbstractFileCollectionTest {
         FileCollection filtered = collection.filter(HelperUtil.toClosure("{f -> f.name == 'f1'}"));
         assertThat(filtered.getFiles(), equalTo(toSet(file1)));
     }
-    
+
     @Test
     public void filteredCollectionIsLive() {
         File file1 = new File("f1");
@@ -306,7 +303,7 @@ public class AbstractFileCollectionTest {
     public void filteredCollectionHasSameDependenciesAsThis() {
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency();
 
-        assertThat(collection.filter(HelperUtil.toClosure("{true}")).getBuildDependencies(), sameInstance( collection.dependency));
+        assertThat(collection.filter(HelperUtil.toClosure("{true}")).getBuildDependencies(), sameInstance(collection.dependency));
     }
 
     private class TestFileCollection extends AbstractFileCollection {

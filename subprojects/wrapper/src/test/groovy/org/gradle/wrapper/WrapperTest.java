@@ -60,7 +60,7 @@ public class WrapperTest {
 
     @Test
     public void execute() throws Exception {
-        final String[] expectedArgs = { "arg1", "arg2" };
+        final String[] expectedArgs = {"arg1", "arg2"};
         final File expectedGradleHome = new File("somepath");
         context.checking(new Expectations() {{
           one(installMock).createDist(

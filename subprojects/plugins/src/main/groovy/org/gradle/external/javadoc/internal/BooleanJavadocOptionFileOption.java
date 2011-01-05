@@ -20,7 +20,7 @@ import java.io.IOException;
 
 /**
  * A {@link org.gradle.external.javadoc.JavadocOptionFileOption} whose value is a boolean.
- * 
+ *
  * @author Tom Eyckmans
  */
 public class BooleanJavadocOptionFileOption extends AbstractJavadocOptionFileOption<Boolean> {
@@ -33,7 +33,7 @@ public class BooleanJavadocOptionFileOption extends AbstractJavadocOptionFileOpt
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null && value) {
+        if (value != null && value) {
             writerContext.writeOption(option);
         }
     }
