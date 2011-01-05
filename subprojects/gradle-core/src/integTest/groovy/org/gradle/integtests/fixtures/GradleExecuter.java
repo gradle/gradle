@@ -53,6 +53,9 @@ public interface GradleExecuter {
      */
     GradleExecuter withArguments(List<String> args);
 
+    /**
+     * Sets the environment variables to use when executing the build. Defaults to the environment of this process.
+     */
     GradleExecuter withEnvironmentVars(Map<String, ?> environment);
 
     GradleExecuter usingSettingsFile(File settingsFile);

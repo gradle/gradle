@@ -40,7 +40,7 @@ public class DefaultProcessForkOptionsTest {
     @Before
     public void setup() {
         context.checking {
-            allowing(resolver).resolveLater(new File('.').absoluteFile)
+            allowing(resolver).resolveLater(".")
             will(returnValue(workingDir))
         }
         options = new DefaultProcessForkOptions(resolver)

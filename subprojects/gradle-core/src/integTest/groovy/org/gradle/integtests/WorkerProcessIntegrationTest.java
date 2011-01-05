@@ -21,7 +21,7 @@ import org.gradle.CacheUsage;
 import org.gradle.api.Action;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.DefaultClassPathRegistry;
-import org.gradle.api.internal.file.IdentityFileResolver;
+import org.gradle.api.internal.file.BaseDirConverter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.cache.DefaultCacheFactory;
 import org.gradle.cache.DefaultCacheRepository;
@@ -59,7 +59,7 @@ public class WorkerProcessIntegrationTest {
     private final TcpMessagingServer server = new TcpMessagingServer(getClass().getClassLoader());
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder();
     private final ClassPathRegistry classPathRegistry = new DefaultClassPathRegistry(new WorkerProcessClassPathProvider(new DefaultCacheRepository(tmpDir.getDir(), CacheUsage.ON, new DefaultCacheFactory())));
-    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new IdentityFileResolver(), new LongIdGenerator());
+    private final DefaultWorkerProcessFactory workerFactory = new DefaultWorkerProcessFactory(LogLevel.INFO, server, classPathRegistry, new BaseDirConverter(tmpDir.getTestDir()), new LongIdGenerator());
     private final ListenerBroadcast<TestListenerInterface> broadcast = new ListenerBroadcast<TestListenerInterface>(
             TestListenerInterface.class);
     private final RemoteExceptionListener exceptionListener = new RemoteExceptionListener(broadcast);

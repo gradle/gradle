@@ -6,7 +6,7 @@ task javaexecTask(type: JavaExec, dependsOn: classes) {
     testFile = file("$buildDir/$name")
     classpath(sourceSets.main.classesDir)
     main = 'org.gradle.TestMain'
-    args testFile.absolutePath
+    args projectDir, testFile
     doLast {
         assert testFile.exists()
     }
@@ -18,7 +18,7 @@ task javaexecByMethod(dependsOn: classes) {
         javaexec {
             classpath(sourceSets.main.classesDir)
             main = 'org.gradle.TestMain'
-            args testFile.absolutePath
+            args projectDir, testFile
         }
     }
     doLast {

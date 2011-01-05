@@ -220,11 +220,8 @@ public class DefaultFileOperationsTest extends Specification {
 
     def javaexec() {
         File testFile = tmpDir.file("someFile")
-        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
         List files = ClasspathUtil.getClasspath(getClass().classLoader)
-        println "Using classpath:"
-        files.each {println it}
-        println "==="
 
         when:
         ExecResult result = fileOperations.javaexec {
@@ -239,7 +236,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def javaexecWithNonZeroExitValueShouldThrowException() {
-        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
 
         when:
         fileOperations.javaexec {
@@ -251,7 +248,7 @@ public class DefaultFileOperationsTest extends Specification {
     }
 
     def javaexecWithNonZeroExitValueAndIgnoreExitValueShouldNotThrowException() {
-        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
 
         when:
         ExecResult result = fileOperations.javaexec {
@@ -268,7 +265,7 @@ public class DefaultFileOperationsTest extends Specification {
             return
         }
 
-        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
         File testFile = tmpDir.file("someFile")
 
         when:
@@ -287,7 +284,7 @@ public class DefaultFileOperationsTest extends Specification {
         if (OperatingSystem.current().isWindows()) {
             return
         }
-        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
 
         when:
         fileOperations.exec {
@@ -304,7 +301,7 @@ public class DefaultFileOperationsTest extends Specification {
         if (OperatingSystem.current().isWindows()) {
             return
         }
-        fileOperations = new DefaultFileOperations(new IdentityFileResolver(), taskResolver, temporaryFileProvider)
+        fileOperations = new DefaultFileOperations(resolver(), taskResolver, temporaryFileProvider)
 
         when:
         ExecResult result = fileOperations.exec {
@@ -316,6 +313,10 @@ public class DefaultFileOperationsTest extends Specification {
 
         then:
         result.exitValue != 0
+    }
+
+    def resolver() {
+        return new BaseDirConverter(tmpDir.testDir)
     }
 }
 

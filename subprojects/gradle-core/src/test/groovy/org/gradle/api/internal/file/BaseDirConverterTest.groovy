@@ -141,6 +141,7 @@ class BaseDirConverterTest {
     @Test public void testResolveRelativePath() {
         String relativeFileName = "relative"
         assertEquals(new File(baseDir, relativeFileName), baseDirConverter.resolve(relativeFileName))
+        assertEquals(baseDir, baseDirConverter.resolve("."))
     }
 
     @Test public void testResolveFileWithAbsolutePath() {

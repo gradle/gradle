@@ -6,11 +6,7 @@ task execTask(type: Exec) {
     dependsOn sourceSets.main.runtimeClasspath
     testFile = file("$buildDir/$name")
     executable = Jvm.current().getJavaExecutable()
-    workingDir = buildDir
-    args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', testFile.name
-    doFirst {
-        mkdir buildDir
-    }
+    args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
     doLast {
         assert testFile.exists()
     }
@@ -20,11 +16,9 @@ task execByMethod {
     dependsOn sourceSets.main.runtimeClasspath
     testFile = file("$buildDir/$name")
     doFirst {
-        mkdir buildDir
         exec {
             executable = Jvm.current().getJavaExecutable()
-            workingDir = buildDir
-            args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', testFile.name
+            args '-cp', sourceSets.main.runtimeClasspath.asPath, 'org.gradle.TestMain', projectDir, testFile
         }
     }
     doLast {

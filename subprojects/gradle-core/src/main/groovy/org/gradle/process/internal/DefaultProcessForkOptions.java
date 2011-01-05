@@ -32,7 +32,7 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
 
     public DefaultProcessForkOptions(FileResolver resolver) {
         this.resolver = resolver;
-        workingDir = resolver.resolveLater(new File(".").getAbsoluteFile());
+        workingDir = resolver.resolveLater(".");
     }
 
     protected FileResolver getResolver() {

@@ -43,7 +43,7 @@ public class DefaultJavaForkOptionsTest {
     @Before
     public void setup() {
         context.checking {
-            allowing(resolver).resolveLater(new File('.').absoluteFile)
+            allowing(resolver).resolveLater(".")
         }
         options = new DefaultJavaForkOptions(resolver, Jvm.current())
     }
