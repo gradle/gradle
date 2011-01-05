@@ -46,7 +46,7 @@ dependencies {
 webSrcDir = file('src')
 
 gradleCorePath = projectDir.parentFile
-File generatedDocs = new File("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs")
+File generatedDocs = new File("$gradleCorePath/subprojects/docs/build/websiteDocs")
 
 //buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 buildWebsiteDir = new File(buildDir, 'website')
