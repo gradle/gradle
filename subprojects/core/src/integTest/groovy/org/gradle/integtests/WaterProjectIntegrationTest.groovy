@@ -21,14 +21,12 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class WaterProjectIntegrationTest {
     final static String NL = System.properties['line.separator']
 

@@ -27,7 +27,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import org.gradle.foundation.TestUtility
 
@@ -35,7 +34,6 @@ import org.gradle.foundation.TestUtility
  This tests the multiproject sample with the GradleView mechanism.
  @author mhunsicker
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class MultiprojectProjectAndTaskListIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'javaproject'

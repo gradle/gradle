@@ -24,7 +24,6 @@ import static org.gradle.util.Matchers.*
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.*
 
-@RunWith(DistributionIntegrationTestRunner.class)
 public class JUnitIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final TestResources resources = new TestResources()

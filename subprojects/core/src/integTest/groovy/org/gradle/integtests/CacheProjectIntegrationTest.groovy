@@ -25,13 +25,11 @@ import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.junit.Assert.*
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class CacheProjectIntegrationTest {
     static final String TEST_FILE = "build/test.txt"
 

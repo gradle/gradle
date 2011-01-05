@@ -21,14 +21,12 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class SamplesGroovyMultiProjectIntegrationTest {
     static final String TEST_PROJECT_NAME = 'testproject'
 

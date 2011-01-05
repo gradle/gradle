@@ -25,13 +25,11 @@ import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class SamplesJavaMultiProjectIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'java/multiproject'

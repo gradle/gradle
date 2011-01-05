@@ -19,7 +19,6 @@ package org.gradle.integtests.openapi;
 import java.awt.Font
 import java.util.concurrent.TimeUnit
 import javax.swing.UIManager
-import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ui.OutputUILordVersion1
@@ -27,7 +26,6 @@ import org.gradle.openapi.external.ui.SinglePaneUIVersion1
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.startsWith
 
 /**
@@ -35,7 +33,6 @@ import static org.hamcrest.Matchers.startsWith
  *
  * @author mhunsicker
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 public class OutputUILordTest  {
   @Rule public final GradleDistribution dist = new GradleDistribution()
   @Rule public final OpenApiFixture openApi = new OpenApiFixture()

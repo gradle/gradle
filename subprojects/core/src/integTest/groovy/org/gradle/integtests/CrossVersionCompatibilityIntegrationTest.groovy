@@ -21,9 +21,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.Jvm
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(DistributionIntegrationTestRunner.class)
 class CrossVersionCompatibilityIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final TestResources resources = new TestResources()

@@ -17,14 +17,12 @@
 
 package org.gradle.integtests.testng
 
-import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.ExecutionResult
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.gradle.util.Matchers.containsLine
 import static org.hamcrest.Matchers.*
 import static org.junit.Assert.assertThat
@@ -32,7 +30,6 @@ import static org.junit.Assert.assertThat
 /**
  * @author Tom Eyckmans
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 public class TestNGIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()

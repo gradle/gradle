@@ -22,13 +22,11 @@ import org.gradle.util.TestFile
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.gradle.integtests.fixtures.Sample
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class SamplesWebProjectIntegrationTest {
     static final String WEB_PROJECT_NAME = 'customised'
 

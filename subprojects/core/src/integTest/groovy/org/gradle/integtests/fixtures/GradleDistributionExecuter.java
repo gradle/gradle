@@ -33,6 +33,7 @@ import java.io.File;
  * Gradle in the current process.
  */
 public class GradleDistributionExecuter extends AbstractGradleExecuter implements MethodRule {
+    private static final String IGNORE_SYS_PROP = "org.gradle.integtest.ignore";
     private static final String EXECUTER_SYS_PROP = "org.gradle.integtest.executer";
     private static final Executer EXECUTER;
     private GradleDistribution dist;
@@ -55,7 +56,16 @@ public class GradleDistributionExecuter extends AbstractGradleExecuter implement
     public GradleDistributionExecuter() {
     }
 
-    public Statement apply(Statement base, FrameworkMethod method, Object target) {
+    public Statement apply(Statement base, final FrameworkMethod method, Object target) {
+        if (System.getProperty(IGNORE_SYS_PROP) != null) {
+            return new Statement() {
+                @Override
+                public void evaluate() throws Throwable {
+                    System.out.println(String.format("Skipping test '%s'", method.getName()));
+                }
+            };
+        }
+
         if (dist == null) {
             dist = RuleHelper.getField(target, GradleDistribution.class);
         }

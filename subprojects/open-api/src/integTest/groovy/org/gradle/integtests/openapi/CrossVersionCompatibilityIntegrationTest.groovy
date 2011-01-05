@@ -16,7 +16,6 @@
 package org.gradle.integtests.openapi
 
 import org.gradle.api.internal.AbstractClassPathProvider
-import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.BasicGradleDistribution
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
@@ -24,11 +23,9 @@ import org.gradle.util.Jvm
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 
-@RunWith(DistributionIntegrationTestRunner.class)
 class CrossVersionCompatibilityIntegrationTest {
     private final Logger logger = LoggerFactory.getLogger(CrossVersionCompatibilityIntegrationTest)
     @Rule public final GradleDistribution dist = new GradleDistribution()

@@ -19,14 +19,12 @@ import org.gradle.integtests.fixtures.GradleDistribution;
 import org.gradle.integtests.fixtures.GradleDistributionExecuter;
 import org.junit.Rule;
 import org.junit.Test;
-import org.junit.runner.RunWith;
 
 import java.io.File;
 
 /**
  * @author Hans Dockter
  */
-@RunWith (DistributionIntegrationTestRunner.class)
 public class ClientModuleDependenciesResolveIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution();
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter();

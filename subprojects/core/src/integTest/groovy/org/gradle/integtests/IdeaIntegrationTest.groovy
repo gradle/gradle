@@ -26,10 +26,8 @@ import org.gradle.integtests.fixtures.TestResources
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import junit.framework.AssertionFailedError
 
-@RunWith(DistributionIntegrationTestRunner)
 class IdeaIntegrationTest {
     @Rule
     public final GradleDistribution dist = new GradleDistribution()

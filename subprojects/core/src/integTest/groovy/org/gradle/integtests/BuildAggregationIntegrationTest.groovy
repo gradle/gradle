@@ -21,10 +21,8 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 
-@RunWith(DistributionIntegrationTestRunner.class)
 class BuildAggregationIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()

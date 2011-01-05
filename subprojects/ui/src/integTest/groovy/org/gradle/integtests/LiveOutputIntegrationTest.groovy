@@ -26,7 +26,6 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.locks.Lock
 import java.util.concurrent.locks.ReentrantLock
@@ -36,7 +35,6 @@ import java.util.concurrent.locks.Condition
 This tests the that live output is gathered while executing a task.
 @author mhunsicker
 */
-@RunWith(DistributionIntegrationTestRunner.class)
 class LiveOutputIntegrationTest {
 
     static final String JAVA_PROJECT_NAME = 'javaproject'

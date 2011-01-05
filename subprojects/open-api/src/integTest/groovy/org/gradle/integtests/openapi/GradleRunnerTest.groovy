@@ -16,7 +16,6 @@
 package org.gradle.integtests.openapi
 
 import junit.framework.AssertionFailedError
-import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.runner.GradleRunnerFactory
@@ -26,9 +25,7 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 
-@RunWith(DistributionIntegrationTestRunner.class)
 class GradleRunnerTest {
 
   static final String JAVA_PROJECT_NAME = 'javaproject'

@@ -19,11 +19,8 @@ import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
-import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.TestResources
 
-@RunWith(DistributionIntegrationTestRunner.class)
 class MavenProjectIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()

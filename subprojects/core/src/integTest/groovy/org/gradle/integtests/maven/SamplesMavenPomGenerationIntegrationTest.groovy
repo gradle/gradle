@@ -28,15 +28,12 @@ import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.junit.Assert.*
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.DistributionIntegrationTestRunner
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class SamplesMavenPomGenerationIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()

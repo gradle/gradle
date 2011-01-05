@@ -22,7 +22,6 @@ import java.util.concurrent.TimeUnit
 import javax.swing.JFrame
 import javax.swing.JLabel
 import junit.framework.AssertionFailedError
-import org.gradle.integtests.DistributionIntegrationTestRunner
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.openapi.external.ExternalUtility
@@ -36,7 +35,6 @@ import org.gradle.util.OperatingSystem
 import org.junit.Assert
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.gradle.openapi.external.ui.*
 import static org.hamcrest.Matchers.*
 
@@ -44,7 +42,6 @@ import static org.hamcrest.Matchers.*
  * This tests numerous aspects of the Open API UI. This is how the Idea plugin extracts the UI from
  * Gradle.
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 public class OpenApiUiTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final TestResources resources = new TestResources('testproject')

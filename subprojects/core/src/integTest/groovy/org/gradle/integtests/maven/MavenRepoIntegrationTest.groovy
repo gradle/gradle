@@ -21,14 +21,11 @@ import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.util.TestFile
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import org.gradle.integtests.fixtures.Sample
-import org.gradle.integtests.DistributionIntegrationTestRunner
 
 /**
  * @author Hans Dockter
  */
-@RunWith(DistributionIntegrationTestRunner.class)
 class MavenRepoIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()

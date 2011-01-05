@@ -22,11 +22,9 @@ import org.gradle.util.TestFile
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import org.junit.runner.RunWith
 import static org.hamcrest.Matchers.*
 import org.gradle.integtests.fixtures.Sample
 
-@RunWith (DistributionIntegrationTestRunner.class)
 class SamplesScalaQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
