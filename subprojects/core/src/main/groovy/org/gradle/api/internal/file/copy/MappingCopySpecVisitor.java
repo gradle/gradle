@@ -115,8 +115,7 @@ public class MappingCopySpecVisitor extends DelegatingCopySpecVisitor {
         public boolean copyTo(File target) {
             if (filterChain.hasFilters()) {
                 return super.copyTo(target);
-            }
-            else {
+            } else {
                 return fileDetails.copyTo(target);
             }
         }

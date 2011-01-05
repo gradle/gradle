@@ -131,7 +131,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
 
             extraJvmArgs.add(argument);
         }
-        
+
         boolean xdebugFound = false;
         boolean xrunjdwpFound = false;
         Set<Object> matches = new HashSet<Object>();
@@ -139,8 +139,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
             if (extraJvmArg.toString().equals("-Xdebug")) {
                 xdebugFound = true;
                 matches.add(extraJvmArg);
-            }
-            else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
+            } else if (extraJvmArg.toString().equals("-Xrunjdwp:transport=dt_socket,server=y,suspend=y,address=5005")) {
                 xrunjdwpFound = true;
                 matches.add(extraJvmArg);
             }
@@ -148,7 +147,7 @@ public class DefaultJavaForkOptions extends DefaultProcessForkOptions implements
         if (xdebugFound && xrunjdwpFound) {
             debug = true;
             extraJvmArgs.removeAll(matches);
-        }else {
+        } else {
             debug = false;
         }
 

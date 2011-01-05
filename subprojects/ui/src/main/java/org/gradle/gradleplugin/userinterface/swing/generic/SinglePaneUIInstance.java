@@ -15,66 +15,58 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
-
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 import org.gradle.gradleplugin.userinterface.swing.common.PreferencesAssistant;
 
-import javax.swing.JPanel;
-import javax.swing.JSplitPane;
-import javax.swing.SwingUtilities;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
-import java.awt.Window;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.HierarchyEvent;
 import java.awt.event.HierarchyListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 
 /**
- * A simple UI for gradle. This is a single panel that can be inserted into a stand-alone application or an IDE. This is
- * meant to hide most of the complexities of gradle. 'single pane' means that both the tabbed pane and the output pane
- * are contained within a single pane that this maintains. Meaning, you add this to a UI and its a self-contained gradle
- * UI. This is opposed to a multi-pane concept where the output would be separated from the tabbed pane.
+ * A simple UI for gradle. This is a single panel that can be inserted into a stand-alone application or an IDE. This is meant to hide most of the complexities of gradle. 'single pane' means that both
+ * the tabbed pane and the output pane are contained within a single pane that this maintains. Meaning, you add this to a UI and its a self-contained gradle UI. This is opposed to a multi-pane concept
+ * where the output would be separated from the tabbed pane.
  *
  * @author mhunsicker
-  */
-public class SinglePaneUIInstance extends AbstractGradleUIInstance
-{
+ */
+public class SinglePaneUIInstance extends AbstractGradleUIInstance {
     private static final String SPLITTER_PREFERENCES_ID = "splitter-id";
 
     private JSplitPane splitter;
-   private OutputPanelLord outputPanelLord;
+    private OutputPanelLord outputPanelLord;
 
-   public SinglePaneUIInstance() { }
-
+    public SinglePaneUIInstance() {
+    }
 
     public void initialize(SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
 
-        outputPanelLord = new OutputPanelLord( gradlePluginLord, alternateUIInteraction );
+        outputPanelLord = new OutputPanelLord(gradlePluginLord, alternateUIInteraction);
 
-        super.initialize( settings, alternateUIInteraction );
+        super.initialize(settings, alternateUIInteraction);
     }
 
-   /**
-    We've overridden this to setup our splitter and our output window.
-    */
-   @Override
+    /**
+     * We've overridden this to setup our splitter and our output window.
+     */
+    @Override
     protected void setupUI() {
         mainPanel = new JPanel(new BorderLayout());
         mainPanel.add(createCenterPanel(), BorderLayout.CENTER);
     }
 
     public OutputUILord getOutputUILord() {
-      return outputPanelLord;
-   }
+        return outputPanelLord;
+    }
 
-   private Component createCenterPanel() {
+    private Component createCenterPanel() {
         splitter = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
 
-        splitter.setTopComponent( createMainGradlePanel());
-        splitter.setBottomComponent( outputPanelLord.getMainPanel());
+        splitter.setTopComponent(createMainGradlePanel());
+        splitter.setBottomComponent(outputPanelLord.getMainPanel());
 
         splitter.setContinuousLayout(true);
 
@@ -92,19 +84,17 @@ public class SinglePaneUIInstance extends AbstractGradleUIInstance
                     }
                     PreferencesAssistant.restoreSettings(settings, splitter, SPLITTER_PREFERENCES_ID, SinglePaneUIInstance.class);
 
-
                     //Now that we're visible, this is so we save the location when the splitter is moved.
                     splitter.addPropertyChangeListener(new PropertyChangeListener() {
                         public void propertyChange(PropertyChangeEvent evt) {
                             if (JSplitPane.DIVIDER_LOCATION_PROPERTY.equals(evt.getPropertyName())) {
-                               PreferencesAssistant.saveSettings(settings, splitter, SPLITTER_PREFERENCES_ID, SinglePaneUIInstance.class);
+                                PreferencesAssistant.saveSettings(settings, splitter, SPLITTER_PREFERENCES_ID, SinglePaneUIInstance.class);
                             }
                         }
                     });
                 }
             }
         });
-
 
         splitter.setResizeWeight(1);   //this keeps the bottom the same size when resizing the window. Extra space is added/removed from the top.
 

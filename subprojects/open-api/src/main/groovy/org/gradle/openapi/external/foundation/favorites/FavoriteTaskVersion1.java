@@ -26,8 +26,7 @@ package org.gradle.openapi.external.foundation.favorites;
  *
  * @author mhunsicker
  */
-public interface FavoriteTaskVersion1
-{
+public interface FavoriteTaskVersion1 {
     /**<!====== getFullCommandLine ============================================>
        @return the command line that is executed
        @author mhunsicker

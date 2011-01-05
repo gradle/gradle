@@ -27,8 +27,7 @@ import java.awt.Component;
 
  @author mhunsicker
   */
-public interface GradleTabVersion1
-{
+public interface GradleTabVersion1 {
    /*
       @return the name of this tab
       @author mhunsicker

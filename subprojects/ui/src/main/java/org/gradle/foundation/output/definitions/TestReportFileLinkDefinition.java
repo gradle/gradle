@@ -21,74 +21,63 @@ import java.io.File;
 import java.util.List;
 
 /**
- This is a special FileLinkDefinition for handling test reports. At the time of this writing,
- the test reports error message merely told you the directory to visit, not the actual file.
- So this appends 'index.html' to the directory to generate the file.
+ * This is a special FileLinkDefinition for handling test reports. At the time of this writing, the test reports error message merely told you the directory to visit, not the actual file. So this
+ * appends 'index.html' to the directory to generate the file.
+ *
+ * @author mhunsicker
+ */
+public class TestReportFileLinkDefinition implements FileLinkDefinition {
+    private String expression;
+    private String prefix;
 
- @author mhunsicker
-*/
-public class TestReportFileLinkDefinition implements FileLinkDefinition
-{
-   private String expression;
-   private String prefix;
+    public TestReportFileLinkDefinition() {
+        prefix = "There were failing tests. See the report at ";
+        expression = prefix + ".*";
+    }
 
-   public TestReportFileLinkDefinition()
-   {
-      prefix = "There were failing tests. See the report at ";
-      expression = prefix + ".*";
-   }
+    public String getSearchExpression() {
+        return expression;
+    }
 
-   public String getSearchExpression()
-   {
-      return expression;
-   }
+    /**
+     * This is called for each match. Parse this to turn it into a FileLink. We're actually looking for a sentence, so we find the period, then get whatever's between it and our prefix, then we have
+     * our directory.
+     *
+     * <!      Name        Description>
+     *
+     * @param fullSearchTest the full text that was searched
+     * @param matchedText the text that was matched
+     * @param start the index into the entire searched text where the matchedText starts
+     * @param end the index into the entire searched text where the matchedText ends
+     * @return a FileLink or null if this is a false positive
+     */
+    public int parseFileLink(String fullSearchTest, String matchedText, int start, int end, boolean verifyFileExists, List<FileLink> fileLinks) {
+        int indexOfPeriod = matchedText.lastIndexOf('.');   //the path ends with a dot
+        if (indexOfPeriod == -1) {
+            return -1;
+        }
 
-   /**
-      This is called for each match. Parse this to turn it into a FileLink.
-      We're actually looking for a sentence, so we find the period, then get
-      whatever's between it and our prefix, then we have our directory. 
+        String path = matchedText.substring(prefix.length(), indexOfPeriod).trim();
+        File directory = new File(path);
+        if (verifyFileExists && !directory.exists()) {
+            return -1;
+        }
 
-      <!      Name        Description>
-    @param  fullSearchTest the full text that was searched
-    @param  matchedText the text that was matched
-    @param  start       the index into the entire searched text where the matchedText starts
-    @param  end         the index into the entire searched text where the matchedText ends
-    @param fileLinks
-      @return a FileLink or null if this is a false positive
-   */
-   public int parseFileLink( String fullSearchTest, String matchedText, int start, int end, boolean verifyFileExists, List<FileLink> fileLinks )
-   {
-      int indexOfPeriod = matchedText.lastIndexOf( '.' );   //the path ends with a dot
-      if( indexOfPeriod == -1 )
-      {
-         return -1;
-      }
+        File file = new File(directory, "index.html");
+        if (verifyFileExists && !file.exists()) {
+            return -1;
+        }
 
-      String path = matchedText.substring( prefix.length(), indexOfPeriod ).trim();
-      File directory = new File( path );
-      if( verifyFileExists && !directory.exists() )
-      {
-         return -1;
-      }
+        fileLinks.add(new FileLink(file, start + prefix.length(), end, -1, this));
+        return end;
+    }
 
-      File file = new File( directory, "index.html" );
-      if( verifyFileExists && !file.exists() )
-      {
-         return -1;
-      }
+    @Override
+    public String toString() {
+        return getName();
+    }
 
-      fileLinks.add( new FileLink( file, start + prefix.length(), end, -1, this ) );
-      return end;
-   }
-
-   @Override
-   public String toString()
-   {
-      return getName();
-   }
-
-   public String getName()
-   {
-      return "TestReportFileLinkDefinition";
-   }
+    public String getName() {
+        return "TestReportFileLinkDefinition";
+    }
 }

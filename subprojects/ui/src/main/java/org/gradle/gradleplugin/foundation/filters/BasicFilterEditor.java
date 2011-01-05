@@ -228,8 +228,7 @@ public class BasicFilterEditor implements ProjectAndTaskFilter {
     }
 
     public BasicProjectAndTaskFilter createFilter() {
-        return new BasicProjectAndTaskFilter(filteredOutProjectNames, filteredOutTaskNames,
-                filterOutTasksWithNoDescription);
+        return new BasicProjectAndTaskFilter(filteredOutProjectNames, filteredOutTaskNames, filterOutTasksWithNoDescription);
     }
 
     /**

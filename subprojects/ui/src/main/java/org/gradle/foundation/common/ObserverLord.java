@@ -18,25 +18,21 @@ package org.gradle.foundation.common;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import javax.swing.SwingUtilities;
-import java.awt.EventQueue;
+import javax.swing.*;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * This is a Swing-friendly observer manager class. Swing-friendly, but can be used by non-Swing classes. Its meant to
- * abstract the fact that you probably need to be in the Event Dispatch Thread when receiving notifications inside
- * Swing-related classes.
+ * This is a Swing-friendly observer manager class. Swing-friendly, but can be used by non-Swing classes. Its meant to abstract the fact that you probably need to be in the Event Dispatch Thread when
+ * receiving notifications inside Swing-related classes.
  *
- * To use this class, add it as a member variable (don't derive from this!) of a class that you want to be observered.
- * You can have multiple instances of this if you want to allow for a finer granularity of observing (similar to
- * components having mouse move listeners and mouse (click) listeners). Next, create an interface for the observers. Now
- * implement add and remove observer functions that call the add and remove functions here. Lastly, implement
- * ObserverNotification and have it call the aforementioned observer interface appropriately. Note: you should actually
- * implement ObserverNotification for each "message" you want to send. Example: One that would tell a view a node was
- * added. One that would tell a view a node was deleted, etc. While you have multiple notification classes, you only
- * need 1 (or few) actual observer interfaces, containing all the possible functions called by all notifications.
+ * To use this class, add it as a member variable (don't derive from this!) of a class that you want to be observered. You can have multiple instances of this if you want to allow for a finer
+ * granularity of observing (similar to components having mouse move listeners and mouse (click) listeners). Next, create an interface for the observers. Now implement add and remove observer
+ * functions that call the add and remove functions here. Lastly, implement ObserverNotification and have it call the aforementioned observer interface appropriately. Note: you should actually
+ * implement ObserverNotification for each "message" you want to send. Example: One that would tell a view a node was added. One that would tell a view a node was deleted, etc. While you have multiple
+ * notification classes, you only need 1 (or few) actual observer interfaces, containing all the possible functions called by all notifications.
  *
  * @author mhunsicker
  */
@@ -48,8 +44,7 @@ public class ObserverLord<E> {
     private final Logger logger = Logging.getLogger(ObserverLord.class);
 
     /**
-     * Implement this for each call to ObserverLord.notifyObservers. The notify function usually just has a single call
-     * to a function on the observer.
+     * Implement this for each call to ObserverLord.notifyObservers. The notify function usually just has a single call to a function on the observer.
      *
      * Example:
      * <pre>
@@ -117,8 +112,8 @@ public class ObserverLord<E> {
     }
 
     /**
-     * Here is where we notify all the event queue observers. To notify the event queue observers we have to make sure
-     * it occurs in the event queue thread. If we're not in the event queue, we'll wrap it in an invoke and wait.
+     * Here is where we notify all the event queue observers. To notify the event queue observers we have to make sure it occurs in the event queue thread. If we're not in the event queue, we'll wrap
+     * it in an invoke and wait.
      *
      * <!       Name        Dir   Description  > <!       Name        Dir   Description  >
      *
@@ -146,8 +141,7 @@ public class ObserverLord<E> {
     }
 
     /**
-     * The internal mechanism that actually notifies the observers. We just iterate though each observer and pass it to
-     * the notification mechanism.
+     * The internal mechanism that actually notifies the observers. We just iterate though each observer and pass it to the notification mechanism.
      *
      *
      * <!       Name         Dir  Description  >

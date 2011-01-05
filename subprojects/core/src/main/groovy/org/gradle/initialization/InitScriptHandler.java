@@ -24,8 +24,7 @@ import java.util.List;
 /**
  * Finds and executes all init scripts for a given build.
  */
-public class InitScriptHandler
-{
+public class InitScriptHandler {
     private final InitScriptFinder finder;
     private final InitScriptProcessor processor;
 

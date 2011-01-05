@@ -16,54 +16,52 @@
 package org.gradle.gradleplugin.foundation.request;
 
 import org.gradle.StartParameter;
-import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
 import org.gradle.foundation.ipc.gradle.ExecuteGradleCommandServerProtocol;
 import org.gradle.foundation.queue.ExecutionQueue;
+import org.gradle.gradleplugin.foundation.GradlePluginLord;
 
 import java.io.File;
 
 /**
- * This represents a reques to gradle that is executed in a separate process using the ProcessLauncherServer. This
- * version is for directly executing commands in gradle (the most common type of request).
+ * This represents a reques to gradle that is executed in a separate process using the ProcessLauncherServer. This version is for directly executing commands in gradle (the most common type of
+ * request).
  *
  * @author mhunsicker
-*/
+ */
 public class ExecutionRequest extends AbstractRequest {
 
-   public static final Type TYPE = new Type() {};
+    public static final Type TYPE = new Type() {
+    };
 
     public ExecutionRequest(long requestID, String fullCommandLine, String displayName, boolean forceOutputToBeShown, ExecutionQueue executionQueue) {
         super(requestID, fullCommandLine, displayName, forceOutputToBeShown, executionQueue);
     }
 
     /**
-     * This is called right before this command is executed (because the settings such as log level and stack trace
-     * level can be changed between the time someone initiates a command and it executes). The execution takes place in
-     * another process so this should create the appropriate Protocol suitable for passing the results of the execution
-     * back to us.
+     * This is called right before this command is executed (because the settings such as log level and stack trace level can be changed between the time someone initiates a command and it executes).
+     * The execution takes place in another process so this should create the appropriate Protocol suitable for passing the results of the execution back to us.
      *
-     * @param  logLevel             the user's log level.
-     * @param  stackTraceLevel      the user's stack trace level
-     * @param  currentDirectory     the current working directory of your gradle project
-     * @param  gradleHomeDirectory  the gradle home directory
-     * @param  customGradleExecutor the path to a custom gradle executable. May be null.
+     * @param logLevel the user's log level.
+     * @param stackTraceLevel the user's stack trace level
+     * @param currentDirectory the current working directory of your gradle project
+     * @param gradleHomeDirectory the gradle home directory
+     * @param customGradleExecutor the path to a custom gradle executable. May be null.
      * @return a protocol that our server will use to communicate with the launched gradle process.
-    */
-    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory, File customGradleExecutor) {
+     */
+    public ProcessLauncherServer.Protocol createServerProtocol(LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel, File currentDirectory, File gradleHomeDirectory,
+                                                               File customGradleExecutor) {
         executionInteraction.reportExecutionStarted();  //go ahead and fire off that the execution has started. It has from the user's standpoint.
 
         return new ExecuteGradleCommandServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor, getFullCommandLine(), logLevel, stackTraceLevel, executionInteraction);
     }
 
-   public void executeAgain( GradlePluginLord gradlePluginLord )
-   {
-      gradlePluginLord.addExecutionRequestToQueue( getFullCommandLine(), getDisplayName(), forceOutputToBeShown() );
-   }
+    public void executeAgain(GradlePluginLord gradlePluginLord) {
+        gradlePluginLord.addExecutionRequestToQueue(getFullCommandLine(), getDisplayName(), forceOutputToBeShown());
+    }
 
-   public Type getType()
-   {
-      return TYPE;
-   }
+    public Type getType() {
+        return TYPE;
+    }
 }

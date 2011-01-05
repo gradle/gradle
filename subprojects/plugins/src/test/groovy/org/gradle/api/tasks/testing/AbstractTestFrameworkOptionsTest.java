@@ -28,8 +28,7 @@ public class AbstractTestFrameworkOptionsTest<T extends TestFramework> {
 
     protected T testFrameworkMock;
 
-    protected void setUp(Class<T> testFrameworkClass) throws Exception
-    {
+    protected void setUp(Class<T> testFrameworkClass) throws Exception {
         context.setImposteriser(ClassImposteriser.INSTANCE);
 
         testFrameworkMock = context.mock(testFrameworkClass);

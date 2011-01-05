@@ -22,6 +22,7 @@ import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.junit.Test;
+
 import static org.junit.Assert.*;
 import static org.hamcrest.Matchers.*;
 
@@ -56,8 +57,7 @@ public class DefaultInitScriptFinderTest {
         return results;
     }
 
-    private List<File> getSourceFiles(List<ScriptSource> sources)
-    {
+    private List<File> getSourceFiles(List<ScriptSource> sources) {
         List<File> results = new ArrayList<File>(sources.size());
         for (ScriptSource source : sources) {
             results.add(source.getResource().getFile());

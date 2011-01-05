@@ -41,17 +41,16 @@ public class OptionLessStringsJavadocOptionFileOption implements OptionLessJavad
     }
 
     public void setValue(List<String> value) {
-        if ( value == null ) {
+        if (value == null) {
             this.value.clear();
-        }
-        else {
+        } else {
             this.value = value;
         }
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null && !value.isEmpty() ) {
-            for ( String singleValue : value ) {
+        if (value != null && !value.isEmpty()) {
+            for (String singleValue : value) {
                 writerContext.writeValue(singleValue);
                 writerContext.newLine();
             }

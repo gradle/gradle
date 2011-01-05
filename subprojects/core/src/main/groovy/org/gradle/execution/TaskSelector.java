@@ -54,8 +54,7 @@ public class TaskSelector {
             prefix = project.getPath() + Project.PATH_SEPARATOR;
 
             tasksByName = taskNameResolver.select(baseName, project);
-        }
-        else {
+        } else {
             baseName = path;
             prefix = "";
 

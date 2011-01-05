@@ -15,13 +15,11 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic;
 
-import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.foundation.TaskView;
+import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 
 import javax.swing.*;
-import java.awt.Window;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.*;
 import java.util.List;
 
@@ -37,8 +35,7 @@ public class SwingAddMultipleFavoritesInteraction implements FavoritesEditor.Add
         this.parent = parent;
     }
 
-    public FavoritesEditor.AddMultipleResult promptUserToCombineTasks(List<TaskView> tasksSample,
-                                                                      String singleCommandSample) {
+    public FavoritesEditor.AddMultipleResult promptUserToCombineTasks(List<TaskView> tasksSample, String singleCommandSample) {
         PromptToCombineTasksDialog dialog = new PromptToCombineTasksDialog();
         return dialog.show(parent, tasksSample, singleCommandSample);
     }
@@ -56,8 +53,7 @@ public class SwingAddMultipleFavoritesInteraction implements FavoritesEditor.Add
 
         private JLabel combinedLine1;
 
-        public FavoritesEditor.AddMultipleResult show(Window parent, List<TaskView> tasksSample,
-                                                      String singleCommandSample) {
+        public FavoritesEditor.AddMultipleResult show(Window parent, List<TaskView> tasksSample, String singleCommandSample) {
             setupUI(parent);
             populateValues(tasksSample, singleCommandSample);
             dialog.setVisible(true);
@@ -65,9 +61,8 @@ public class SwingAddMultipleFavoritesInteraction implements FavoritesEditor.Add
         }
 
         /**
-         * this populates the dialog's sample values. Most of this function is trying to be very explicit about
-         * showing precisely what we're going to do (but for space reasons, we'll only show 3 commands in the
-         * list.
+         * this populates the dialog's sample values. Most of this function is trying to be very explicit about showing precisely what we're going to do (but for space reasons, we'll only show 3
+         * commands in the list.
          */
         private void populateValues(List<TaskView> tasksSample, String singleCommandSample) {
             separatelyRadioButton.setText("Add as separate " + tasksSample.size() + " commands:");

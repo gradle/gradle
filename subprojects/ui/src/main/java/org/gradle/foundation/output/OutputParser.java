@@ -15,97 +15,87 @@
  */
 package org.gradle.foundation.output;
 
-import org.gradle.foundation.output.definitions.*;
+import org.gradle.foundation.output.definitions.FileLinkDefinition;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- This parses gradle's output text looking for links to files. We use RegEx to
- do the bulk of  the matching. However, we want this to be 'pluggable' (to a
- degree) so new file links can be added easily. To accomplish this, this works
- with FileLinkDefinitions. They require a basic RegEx pattern to match some
- initial part of the a file link, however, they can be implemented to do more
- advanced parsing of the text. The definitions are built-up and held by
- FileLinkDefinitionLord. This just handles the tedium of matching the
- all-inclusive pattern with text, managing indices, and calling the matching
- FileLinkDefinition to refine the match.
-
- @author mhunsicker
+ * This parses gradle's output text looking for links to files. We use RegEx to do the bulk of  the matching. However, we want this to be 'pluggable' (to a degree) so new file links can be added
+ * easily. To accomplish this, this works with FileLinkDefinitions. They require a basic RegEx pattern to match some initial part of the a file link, however, they can be implemented to do more
+ * advanced parsing of the text. The definitions are built-up and held by FileLinkDefinitionLord. This just handles the tedium of matching the all-inclusive pattern with text, managing indices, and
+ * calling the matching FileLinkDefinition to refine the match.
+ *
+ * @author mhunsicker
  */
-public class OutputParser
-{
+public class OutputParser {
     private FileLinkDefinitionLord fileLinkDefinitionLord;
     private boolean verifyFileExists;   //this is really only for testing where the file will not exist.
 
-    public OutputParser( FileLinkDefinitionLord fileLinkDefinitionLord, boolean verifyFileExists )
-   {
-       this.fileLinkDefinitionLord = fileLinkDefinitionLord;
-       this.verifyFileExists = verifyFileExists;
-   }
+    public OutputParser(FileLinkDefinitionLord fileLinkDefinitionLord, boolean verifyFileExists) {
+        this.fileLinkDefinitionLord = fileLinkDefinitionLord;
+        this.verifyFileExists = verifyFileExists;
+    }
 
-    public boolean isVerifyFileExists() { return verifyFileExists; }
-    public FileLinkDefinitionLord getFileLinkDefinitionLord() { return fileLinkDefinitionLord; }
+    public boolean isVerifyFileExists() {
+        return verifyFileExists;
+    }
 
-   /**
-    This parses the text looking for file links
-    @param text the text to parse
-    @return a list of FileLinks for each file that was found in the text.
-    */
-   public List<FileLink> parseText( String text )
-   {
-      List<FileLink> fileLinks = new ArrayList<FileLink>();
+    public FileLinkDefinitionLord getFileLinkDefinitionLord() {
+        return fileLinkDefinitionLord;
+    }
 
-      Pattern combinedSearchPattern = fileLinkDefinitionLord.getSearchPattern();
-      Matcher matcher = combinedSearchPattern.matcher( text );
+    /**
+     * This parses the text looking for file links
+     *
+     * @param text the text to parse
+     * @return a list of FileLinks for each file that was found in the text.
+     */
+    public List<FileLink> parseText(String text) {
+        List<FileLink> fileLinks = new ArrayList<FileLink>();
 
-      int index = 0;
+        Pattern combinedSearchPattern = fileLinkDefinitionLord.getSearchPattern();
+        Matcher matcher = combinedSearchPattern.matcher(text);
 
-      boolean foundAMatch = matcher.find( index );
-      while( foundAMatch )
-      {
-         // Retrieve matching string
-         String matchedText = matcher.group();
+        int index = 0;
 
-         // Retrieve indices of matching string
-         int start = matcher.start();
-         int end = matcher.end();
+        boolean foundAMatch = matcher.find(index);
+        while (foundAMatch) {
+            // Retrieve matching string
+            String matchedText = matcher.group();
 
-         int nextStarting = start;
+            // Retrieve indices of matching string
+            int start = matcher.start();
+            int end = matcher.end();
 
-         //now that we have a match, we have to find the one FileLinkDefinition that actually matches so it
-         //can determine the actual file. This makes the matcher more plugable.
-         FileLinkDefinition fileLinkDefinition = fileLinkDefinitionLord.getMatchingFileLinkDefinition( matchedText );
-         if( fileLinkDefinition != null )
-         {
-            nextStarting = fileLinkDefinition.parseFileLink( text, matchedText, start, end, verifyFileExists, fileLinks );
-         }
-         else
-         {
-            //this is probably a serious problem that needs to be reported. However, we'll continue as if nothing bad happened.
-            System.out.println( "We found a match but didn't find the matching definition. Matched text:\n" + text );
-         }
+            int nextStarting = start;
 
-         if( nextStarting == -1 || nextStarting < start )
-         {
-            nextStarting = start;
-         }
+            //now that we have a match, we have to find the one FileLinkDefinition that actually matches so it
+            //can determine the actual file. This makes the matcher more plugable.
+            FileLinkDefinition fileLinkDefinition = fileLinkDefinitionLord.getMatchingFileLinkDefinition(matchedText);
+            if (fileLinkDefinition != null) {
+                nextStarting = fileLinkDefinition.parseFileLink(text, matchedText, start, end, verifyFileExists, fileLinks);
+            } else {
+                //this is probably a serious problem that needs to be reported. However, we'll continue as if nothing bad happened.
+                System.out.println("We found a match but didn't find the matching definition. Matched text:\n" + text);
+            }
 
-         index = nextStarting + 1;
-         if( index < text.length() )
-         {
-            foundAMatch = matcher.find( index );
-         }
-         else
-         {
-            foundAMatch = false; //don't continue searching if we've found the end
-         }
-      }
+            if (nextStarting == -1 || nextStarting < start) {
+                nextStarting = start;
+            }
 
-      return fileLinks;
-   }
+            index = nextStarting + 1;
+            if (index < text.length()) {
+                foundAMatch = matcher.find(index);
+            } else {
+                foundAMatch = false; //don't continue searching if we've found the end
+            }
+        }
+
+        return fileLinks;
+    }
 }
 
 

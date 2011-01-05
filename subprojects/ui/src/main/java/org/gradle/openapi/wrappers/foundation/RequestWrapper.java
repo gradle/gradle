@@ -40,16 +40,14 @@ public class RequestWrapper implements RequestVersion1 {
     }
 
     /**
-     * @return the display name of this request. Often this is the same as the full
-     *         command line, but favorites may specify something more user-friendly.
+     * @return the display name of this request. Often this is the same as the full command line, but favorites may specify something more user-friendly.
      */
     public String getDisplayName() {
         return request.getDisplayName();
     }
 
     /**
-     * @return whether or not output should always be shown. If false, only show it when
-     *         errors occur.
+     * @return whether or not output should always be shown. If false, only show it when errors occur.
      */
     public boolean forceOutputToBeShown() {
         return request.forceOutputToBeShown();
@@ -68,23 +66,23 @@ public class RequestWrapper implements RequestVersion1 {
     }
 
     @Override
-    public boolean equals(Object otherObject ) {
-        if( !( otherObject instanceof RequestWrapper ) ) {
+    public boolean equals(Object otherObject) {
+        if (!(otherObject instanceof RequestWrapper)) {
             return false;
         }
 
-        return ((RequestWrapper) otherObject).request.equals( request );
+        return ((RequestWrapper) otherObject).request.equals(request);
     }
 
     /**
      * @return the type of the request. Either EXECUTION or REFRESH
      */
     public String getType() {
-        if( request.getType() == ExecutionRequest.TYPE ) {
+        if (request.getType() == ExecutionRequest.TYPE) {
             return EXECUTION_TYPE;
         }
 
-        if( request.getType() == RefreshTaskListRequest.TYPE ) {
+        if (request.getType() == RefreshTaskListRequest.TYPE) {
             return REFRESH_TYPE;
         }
 

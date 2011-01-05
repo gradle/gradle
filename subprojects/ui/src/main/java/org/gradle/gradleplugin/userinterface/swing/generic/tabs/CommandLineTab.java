@@ -20,18 +20,8 @@ import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JTextField;
-import javax.swing.KeyStroke;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
@@ -39,7 +29,7 @@ import java.awt.event.KeyEvent;
  * A tab that allows you to just type a straight command line that is sent to Gradle.
  *
  * @author mhunsicker
-  */
+ */
 public class CommandLineTab implements GradleTab {
     private GradlePluginLord gradlePluginLord;
     private FavoritesEditor favoritesEditor;
@@ -50,31 +40,31 @@ public class CommandLineTab implements GradleTab {
     private JButton executeButton;
     private JButton addToFavoritesButton;
 
-   public CommandLineTab(GradlePluginLord gradlePluginLord, SettingsNode settingsNode) {
+    public CommandLineTab(GradlePluginLord gradlePluginLord, SettingsNode settingsNode) {
         this.gradlePluginLord = gradlePluginLord;
 
         this.favoritesEditor = gradlePluginLord.getFavoritesEditor();
     }
 
     /**
-    * @return the name of this tab
-    */
+     * @return the name of this tab
+     */
     public String getName() {
         return "Command Line";
     }
 
     /**
      * Notification that this component is about to be shown. Do whatever initialization you choose.
-    */
+     */
     public void aboutToShow() {
 
     }
 
     /**
-    * This is where we should create your component.
-    *
-    * @return the component
-    */
+     * This is where we should create your component.
+     *
+     * @return the component
+     */
     public Component createComponent() {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
@@ -120,7 +110,6 @@ public class CommandLineTab implements GradleTab {
         }
     }
 
-
     private Component createButtonPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
@@ -148,6 +137,6 @@ public class CommandLineTab implements GradleTab {
 
     private void executeCommandLine() {
         String commandLineText = commandLineField.getText();
-        gradlePluginLord.addExecutionRequestToQueue(commandLineText, "Command Line" );
+        gradlePluginLord.addExecutionRequestToQueue(commandLineText, "Command Line");
     }
 }

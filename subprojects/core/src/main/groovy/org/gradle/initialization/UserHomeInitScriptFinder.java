@@ -22,8 +22,7 @@ import org.gradle.groovy.scripts.UriScriptSource;
 import java.io.File;
 import java.util.List;
 
-public class UserHomeInitScriptFinder implements InitScriptFinder
-{
+public class UserHomeInitScriptFinder implements InitScriptFinder {
     public static final String DEFAULT_INIT_SCRIPT_NAME = "init.gradle";
 
     private final InitScriptFinder finder;

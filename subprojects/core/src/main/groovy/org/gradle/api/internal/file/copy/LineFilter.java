@@ -49,15 +49,13 @@ public class LineFilter extends Reader {
         while (!eol && (ch = bufferedIn.read()) >= 0) {
             if (ch == '\n') {
                 eol = true;
-            }
-            else if (ch == '\r') {
+            } else if (ch == '\r') {
                 eol = true;
                 bufferedIn.mark(1);
                 if (bufferedIn.read() != '\n') {
                     bufferedIn.reset();
                 }
-            }
-            else {
+            } else {
                 line.append((char) ch);
             }
         }
@@ -96,8 +94,7 @@ public class LineFilter extends Reader {
             if (c == -1) {
                 if (i == 0) {
                     return -1;
-                }
-                else {
+                } else {
                     return i;
                 }
             }

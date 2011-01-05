@@ -30,12 +30,14 @@ import java.util.Map;
 
 /**
  * Implementation of GradleInterfaceVersion1 meant to help shield external users from internal changes.
+ *
  * @author mhunsicker
  */
 public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
 
     protected GradlePluginLord gradlePluginLord;
-    private Map<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper> commandLineListenerMap = new HashMap<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper>();
+    private Map<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper> commandLineListenerMap
+            = new HashMap<CommandLineArgumentAlteringListenerVersion1, CommandLineArgumentAlteringListenerWrapper>();
     private Map<RequestObserverVersion1, RequestObserverWrapper> requestObserverMap = new HashMap<RequestObserverVersion1, RequestObserverWrapper>();
 
     public GradleInterfaceWrapperVersion1(GradlePluginLord gradlePluginLord) {
@@ -54,14 +56,14 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
      */
     public List<ProjectVersion1> getRootProjects() {
 
-        return ProjectWrapper.convertProjects( gradlePluginLord.getProjects() );
+        return ProjectWrapper.convertProjects(gradlePluginLord.getProjects());
     }
 
     /**
-      Determines if commands are currently being executed or not. Refreshing
-      tasks is not considered busy.
-      @return true if we're busy, false if not.
-   */
+     * Determines if commands are currently being executed or not. Refreshing tasks is not considered busy.
+     *
+     * @return true if we're busy, false if not.
+     */
     public boolean isBusy() {
         return gradlePluginLord.isBusy();
     }
@@ -71,7 +73,7 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
     }
 
     public void executeCommand(String commandLineArguments, String displayName) {
-        gradlePluginLord.addExecutionRequestToQueue( commandLineArguments, displayName );
+        gradlePluginLord.addExecutionRequestToQueue(commandLineArguments, displayName);
     }
 
     public File getCurrentDirectory() {
@@ -79,7 +81,7 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
     }
 
     public void setCurrentDirectory(File currentDirectory) {
-        gradlePluginLord.setCurrentDirectory( currentDirectory );
+        gradlePluginLord.setCurrentDirectory(currentDirectory);
     }
 
     public File getGradleHomeDirectory() {
@@ -100,9 +102,8 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
     }
 
     /**
-     * This allows you to add a listener that can add additional command line
-     * arguments whenever gradle is executed. This is useful if you've customized
-     * your gradle build and need to specify, for example, an init script.
+     * This allows you to add a listener that can add additional command line arguments whenever gradle is executed. This is useful if you've customized your gradle build and need to specify, for
+     * example, an init script.
      *
      * @param listener the listener that modifies the command line arguments.
      */
@@ -118,13 +119,12 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
     public void removeCommandLineArgumentAlteringListener(CommandLineArgumentAlteringListenerVersion1 listener) {
         CommandLineArgumentAlteringListenerWrapper wrapper = commandLineListenerMap.remove(listener);
         if (wrapper != null) {
-           gradlePluginLord.removeCommandLineArgumentAlteringListener(wrapper);
+            gradlePluginLord.removeCommandLineArgumentAlteringListener(wrapper);
         }
     }
 
     /**
-     * Adds an observer that is notified when Gradle commands are executed and
-     * completed.
+     * Adds an observer that is notified when Gradle commands are executed and completed.
      *
      * @param observer the observer that is notified
      */
@@ -134,19 +134,18 @@ public class GradleInterfaceWrapperVersion1 implements GradleInterfaceVersion1 {
         //we have to store our wrapper so you can call remove the listener using your passed-in object
         requestObserverMap.put(observer, wrapper);
 
-        gradlePluginLord.addRequestObserver(wrapper, false );
+        gradlePluginLord.addRequestObserver(wrapper, false);
     }
 
     /**
-     * Removes a request observer when you no longer wish to receive notifications
-     * about Gradle command being executed.
+     * Removes a request observer when you no longer wish to receive notifications about Gradle command being executed.
      *
      * @param observer the observer to remove
      */
     public void removeRequestObserver(RequestObserverVersion1 observer) {
         RequestObserverWrapper wrapper = requestObserverMap.remove(observer);
         if (wrapper != null) {
-           gradlePluginLord.removeRequestObserver(wrapper);
+            gradlePluginLord.removeRequestObserver(wrapper);
         }
     }
 }

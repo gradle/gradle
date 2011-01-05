@@ -28,8 +28,7 @@ public class IPCUtilities {
     private static final Logger LOGGER = Logging.getLogger(IPCUtilities.class);
 
     /**
-     * This starts a gradle client for doing regular execution of a command. It expects the port number to set as a
-     * system property. Note: this is using gradle to find the port. See getPort().
+     * This starts a gradle client for doing regular execution of a command. It expects the port number to set as a system property. Note: this is using gradle to find the port. See getPort().
      *
      * @param gradle the gradle object.
      */
@@ -45,16 +44,14 @@ public class IPCUtilities {
     }
 
     /**
-     * This gets the port out of the start parameters. Why? Because this is meant to be run from the init script and the
-     * system properties haven't been set yet. That is due to how gradle is run from the bat file/shell script. It has
-     * to manually set the java system properties (-D). I don't this is a desired side-effect.
+     * This gets the port out of the start parameters. Why? Because this is meant to be run from the init script and the system properties haven't been set yet. That is due to how gradle is run from
+     * the bat file/shell script. It has to manually set the java system properties (-D). I don't this is a desired side-effect.
      *
      * @param gradle the gradle object
      * @return an integer or null if we didn't get the port.
      */
     private static Integer getPort(Gradle gradle) {
-        String portText = gradle.getStartParameter().getSystemPropertiesArgs().get(
-                ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY);
+        String portText = gradle.getStartParameter().getSystemPropertiesArgs().get(ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY);
         if (portText == null) {
             LOGGER.error("Failed to set " + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + " system property");
             return null;
@@ -69,9 +66,8 @@ public class IPCUtilities {
     }
 
     /**
-     * This starts a gradle client that sends a task list back to the server. It expects the port number to set as a
-     * system property. You probably should be executing the "tasks" command. Note: this is using gradle to find the port.
-     * See getPort().
+     * This starts a gradle client that sends a task list back to the server. It expects the port number to set as a system property. You probably should be executing the "tasks" command. Note: this
+     * is using gradle to find the port. See getPort().
      *
      * @param gradle the gradle launcher object.
      */

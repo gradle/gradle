@@ -16,9 +16,9 @@
 
 package org.gradle.foundation.ipc.basic;
 
-import org.gradle.foundation.common.ObserverLord;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.foundation.common.ObserverLord;
 import org.gradle.process.ExecResult;
 import org.gradle.process.internal.ExecHandle;
 import org.gradle.process.internal.ExecHandleBuilder;
@@ -26,10 +26,8 @@ import org.gradle.process.internal.ExecHandleBuilder;
 import java.io.ByteArrayOutputStream;
 
 /**
- * This launches an application as a separate process then listens for messages from it. You implement the Protocol
- * interface to handle the specifics of the communications. To use this, instantiate it, then call start. When the
- * communications are finished, call requestShutdown(). Your server's protocol can call sendMessage once communication
- * is started to respond to client's messages.
+ * This launches an application as a separate process then listens for messages from it. You implement the Protocol interface to handle the specifics of the communications. To use this, instantiate
+ * it, then call start. When the communications are finished, call requestShutdown(). Your server's protocol can call sendMessage once communication is started to respond to client's messages.
  *
  * @author mhunsicker
  */
@@ -46,14 +44,15 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
 
         /**
          * Fill in the ExecutionInfo object with information needed to execute the other process.
+         *
          * @param serverPort the port the server is listening on. The client should send messages here
          * @return an executionInfo object containing information about what we execute.
          */
-        public ExecutionInfo getExecutionInfo(int serverPort );
+        public ExecutionInfo getExecutionInfo(int serverPort);
 
         /**
-         * Notification that the client has shutdown. Note: this can occur before communications has ever started. You
-         * SHOULD get this notification before receiving serverExited, even if the client fails to launch or locks up.
+         * Notification that the client has shutdown. Note: this can occur before communications has ever started. You SHOULD get this notification before receiving serverExited, even if the client
+         * fails to launch or locks up.
          *
          * @param result the return code of the client application
          * @param output the standard error and standard output of the client application
@@ -63,8 +62,8 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
 
     public interface ServerObserver extends Server.ServerObserver {
         /**
-         * Notification that the client has shutdown. Note: this can occur before communications has ever started. You
-         * SHOULD get this notification before receiving serverExited, even if the client fails to launch or locks up.
+         * Notification that the client has shutdown. Note: this can occur before communications has ever started. You SHOULD get this notification before receiving serverExited, even if the client
+         * fails to launch or locks up.
          *
          * @param result the return code of the client application
          * @param output the standard error and standard output of the client application
@@ -92,8 +91,8 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 ExecHandle execHandle = null;
                 ByteArrayOutputStream output = null;
                 try {
-                    
-                    executionInfo = protocol.getExecutionInfo(getPort() );
+
+                    executionInfo = protocol.getExecutionInfo(getPort());
 
                     ExecHandleBuilder builder = new ExecHandleBuilder();
                     builder.workingDir(executionInfo.getWorkingDirectory());
@@ -106,10 +105,9 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                     setExternalProcess(execHandle);
 
                     execHandle.start();
-                }
-                catch (Throwable e) {
+                } catch (Throwable e) {
                     LOGGER.error("Starting external process", e);
-                    notifyClientExited( -1, e.getMessage() );
+                    notifyClientExited(-1, e.getMessage());
                     setExternalProcess(null);
                     return;
                 }
@@ -120,7 +118,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
                 setExternalProcess(null);   //clear our external process member variable (we're using our local variable below). This is so we know the process has already stopped.
 
                 executionInfo.processExecutionComplete();
-                notifyClientExited( result.getExitValue(), output.toString() );
+                notifyClientExited(result.getExitValue(), output.toString());
             }
         });
 
@@ -137,8 +135,7 @@ public class ProcessLauncherServer extends Server<ProcessLauncherServer.Protocol
     }
 
     /**
-     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferable to ask the
-     * thread to stop. However, gradle has no way to do that, so we'll be killing it.
+     * Call this to violently kill the external process. This is NOT a good way to stop it. It is preferable to ask the thread to stop. However, gradle has no way to do that, so we'll be killing it.
      */
     public synchronized void killProcess() {
         if (externalProcess != null) {

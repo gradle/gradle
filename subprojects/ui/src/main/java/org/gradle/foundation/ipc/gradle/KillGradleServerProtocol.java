@@ -15,8 +15,8 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
-import org.gradle.foundation.ipc.basic.Server;
 import org.gradle.foundation.ipc.basic.MessageObject;
+import org.gradle.foundation.ipc.basic.Server;
 
 /**
  * This protocol is used by a client that launches its own server. See KillGradleClientProtocol.

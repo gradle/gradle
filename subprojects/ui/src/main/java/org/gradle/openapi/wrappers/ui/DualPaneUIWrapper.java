@@ -19,52 +19,45 @@ import org.gradle.gradleplugin.userinterface.swing.generic.DualPaneUIInstance;
 import org.gradle.openapi.external.ui.DualPaneUIInteractionVersion1;
 import org.gradle.openapi.external.ui.DualPaneUIVersion1;
 
-import javax.swing.JComponent;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 
 /**
-This wraps a DualPaneUIVersion1 for the purpose of being instantiated for
- an external tool such an IDE plugin. It wraps several interfaces and uses
- delegation in an effort to make this backward and forward compatible.
- Most of the work is done in AbstractOpenAPIUIWrapper
-
- @author mhunsicker
+ * This wraps a DualPaneUIVersion1 for the purpose of being instantiated for an external tool such an IDE plugin. It wraps several interfaces and uses delegation in an effort to make this backward and
+ * forward compatible. Most of the work is done in AbstractOpenAPIUIWrapper
+ *
+ * @author mhunsicker
  */
-public class DualPaneUIWrapper extends AbstractOpenAPIUIWrapper<DualPaneUIInstance> implements DualPaneUIVersion1
-{
-   public DualPaneUIWrapper( DualPaneUIInteractionVersion1 dualPaneUIArguments ) {
+public class DualPaneUIWrapper extends AbstractOpenAPIUIWrapper<DualPaneUIInstance> implements DualPaneUIVersion1 {
+    public DualPaneUIWrapper(DualPaneUIInteractionVersion1 dualPaneUIArguments) {
 
-       super( dualPaneUIArguments.instantiateSettings(), dualPaneUIArguments.instantiateAlternateUIInteraction() );
+        super(dualPaneUIArguments.instantiateSettings(), dualPaneUIArguments.instantiateAlternateUIInteraction());
 
-       //the main thing this does in instantiate the DualPaneUIInstance.
-       DualPaneUIInstance uiInstance = new DualPaneUIInstance();
-       uiInstance.initialize( settingsVersionWrapper, alternateUIInteractionVersionWrapper );
-       initialize( uiInstance );
+        //the main thing this does in instantiate the DualPaneUIInstance.
+        DualPaneUIInstance uiInstance = new DualPaneUIInstance();
+        uiInstance.initialize(settingsVersionWrapper, alternateUIInteractionVersionWrapper);
+        initialize(uiInstance);
     }
 
-   /**
-    Returns a component that shows the task tree tab, favorites tab, etc.
-    suitable for inserting in your UI.
+    /**
+     * Returns a component that shows the task tree tab, favorites tab, etc. suitable for inserting in your UI.
+     *
+     * @return the main component
+     */
+    public JComponent getMainComponent() {
+        return getGradleUI().getComponent();
+    }
 
-    @return the main component
-    */
-   public JComponent getMainComponent()
-   {
-      return getGradleUI().getComponent();
-   }
+    /**
+     * Returns a component that shows the output of the tasks being executed.
+     *
+     * @return the output component
+     */
+    public Component getOutputPanel() {
+        return getGradleUI().getOutputPanel();
+    }
 
-   /**
-    Returns a component that shows the output of the tasks being executed.
-
-    @return the output component
-    */
-   public Component getOutputPanel()
-   {
-      return getGradleUI().getOutputPanel();
-   }
-
-   public int getNumberOfOpenedOutputTabs()
-   {
-      return getGradleUI().getOutputUILord().getTabCount();
-   }
+    public int getNumberOfOpenedOutputTabs() {
+        return getGradleUI().getOutputUILord().getTabCount();
+    }
 }

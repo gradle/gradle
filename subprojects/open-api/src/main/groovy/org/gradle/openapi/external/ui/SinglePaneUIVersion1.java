@@ -30,8 +30,7 @@ import javax.swing.JComponent;
 
  @author mhunsicker
   */
-public interface SinglePaneUIVersion1 extends BasicGradleUIVersion1
-{
+public interface SinglePaneUIVersion1 extends BasicGradleUIVersion1 {
    /**
    Returns this panel as a Swing object suitable for inserting in your UI.
    @return the main component

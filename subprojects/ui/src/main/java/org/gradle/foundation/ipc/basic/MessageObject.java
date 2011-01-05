@@ -15,9 +15,9 @@
  */
 package org.gradle.foundation.ipc.basic;
 
-import java.io.Serializable;
 import java.io.IOException;
 import java.io.ObjectStreamException;
+import java.io.Serializable;
 
 /**
  * A holder for a message that is sent over a socket.

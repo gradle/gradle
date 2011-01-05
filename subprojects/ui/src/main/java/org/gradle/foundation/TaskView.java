@@ -20,9 +20,8 @@ import org.gradle.util.GUtil;
 import java.io.Serializable;
 
 /**
- * Analog to gradle's Task but more light-weight and better suited for using the gradle API from an IDE plugin. It is
- * also easily serializable for passing across a socket. A task is something you can execute and is part of a project.
- * This is immutable and ultimately comes from gradle files.
+ * Analog to gradle's Task but more light-weight and better suited for using the gradle API from an IDE plugin. It is also easily serializable for passing across a socket. A task is something you can
+ * execute and is part of a project. This is immutable and ultimately comes from gradle files.
  *
  * @author mhunsicker
  */
@@ -31,11 +30,10 @@ public class TaskView implements Comparable<TaskView>, Serializable {
     private String name;
     private String description;
     private boolean isDefault;
-            //whether or not this is one of potentially many default tasks for its project.
+    //whether or not this is one of potentially many default tasks for its project.
 
     /**
-     * Instantiates an immutable view of a task. This is only meant to be called internally whenever generating a hierarchy
-     * of projects and tasks.
+     * Instantiates an immutable view of a task. This is only meant to be called internally whenever generating a hierarchy of projects and tasks.
      */
     /*package*/ TaskView(ProjectView project, String name, String description, boolean isDefault) {
         this.project = project;

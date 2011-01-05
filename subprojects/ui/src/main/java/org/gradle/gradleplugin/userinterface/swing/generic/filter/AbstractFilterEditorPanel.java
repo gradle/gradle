@@ -15,22 +15,10 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic.filter;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.DefaultListModel;
-import javax.swing.JButton;
-import javax.swing.JComponent;
-import javax.swing.JList;
-import javax.swing.JPanel;
-import javax.swing.JScrollPane;
+import javax.swing.*;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
-import java.awt.BorderLayout;
-import java.awt.Color;
-import java.awt.Component;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,8 +26,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * This panel displays something that is filtered. Its really just a list with show/hide buttons. You populate it with
- * whatever you like (in String form).
+ * This panel displays something that is filtered. Its really just a list with show/hide buttons. You populate it with whatever you like (in String form).
  *
  * @author mhunsicker
  */
@@ -115,8 +102,7 @@ public abstract class AbstractFilterEditorPanel {
             defaultForegroundColor = getForeground();
         }
 
-        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected,
-                                                      boolean cellHasFocus) {
+        public Component getListCellRendererComponent(JList list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
             Component component = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
 
             setIcon(null);  //just remove the icon entirely
@@ -134,8 +120,7 @@ public abstract class AbstractFilterEditorPanel {
     }
 
     /**
-     * Implement this to determine if this item is filtered or not. This is used by the list to indicate if this item is
-     * filtered or not.
+     * Implement this to determine if this item is filtered or not. This is used by the list to indicate if this item is filtered or not.
      *
      * @param item the item in question
      * @return true if its filtered, false if not.
@@ -164,9 +149,8 @@ public abstract class AbstractFilterEditorPanel {
     }
 
     /**
-     * This determines the state of the show hide buttons. We only want to enable one if its appropriate. Because we
-     * have to handle multiple selection, we look for both hidden and shown items. We stop as soon as we find both or
-     * we're done with the list.
+     * This determines the state of the show hide buttons. We only want to enable one if its appropriate. Because we have to handle multiple selection, we look for both hidden and shown items. We stop
+     * as soon as we find both or we're done with the list.
      *
      * @param stateHolder where we store our state.
      * @param selectedObjects the objects to search.

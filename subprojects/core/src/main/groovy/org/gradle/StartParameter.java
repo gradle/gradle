@@ -421,8 +421,7 @@ public class StartParameter {
      * addition to the user init script located in ${user.home}/.gradle/init.gradle.
      * @param initScriptFile The init script to be run during the Gradle invocation.
      */
-    public void addInitScript(File initScriptFile)
-    {
+    public void addInitScript(File initScriptFile) {
         initScripts.add(initScriptFile);
     }
 

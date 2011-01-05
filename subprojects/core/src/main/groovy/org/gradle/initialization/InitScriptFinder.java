@@ -23,7 +23,6 @@ import java.util.List;
 /**
  * Interface for objects that can find init scripts for a given build.
  */
-public interface InitScriptFinder
-{
+public interface InitScriptFinder {
     public List<ScriptSource> findScripts(GradleInternal gradle);
 }

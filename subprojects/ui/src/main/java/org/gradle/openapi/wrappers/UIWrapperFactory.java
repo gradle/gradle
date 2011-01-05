@@ -22,47 +22,38 @@ import org.gradle.openapi.external.ui.SinglePaneUIVersion1;
 import org.gradle.openapi.wrappers.ui.DualPaneUIWrapper;
 import org.gradle.openapi.wrappers.ui.SinglePaneUIWrapper;
 
-
 /**
-* This factory instantiates Gradle UIs used in IDE plugins. It is meant to be called via the
-* Open API UIFactory class using reflection. This is because it is called dynamically. It is
-* also meant to help shield a Gradle user from changes to different versions of UI. It does
-* so by using wrappers that can dynamically choose what/how to implement. The wrappers usually
-* use the latest, however, some of the functionality requires a matching Open API jar (which
-* will be included with the plugin trying to use this). If the matching functionality is not
-* found (a NoClassDefFoundError is thrown), it will fall back to earlier versions.
-*
-* This class should not be moved or renamed, nor should its functions be renamed or have arguments
-* added to/removed from them. This is to ensure forward/backward compatibility with multiple
-* versions of IDE plugins. Instead, consider changing the interaction that is passed to the functions
-* as a means of having the caller provide different functionality.
-*
-* @author mhunsicker
-*/
+ * This factory instantiates Gradle UIs used in IDE plugins. It is meant to be called via the Open API UIFactory class using reflection. This is because it is called dynamically. It is also meant to
+ * help shield a Gradle user from changes to different versions of UI. It does so by using wrappers that can dynamically choose what/how to implement. The wrappers usually use the latest, however,
+ * some of the functionality requires a matching Open API jar (which will be included with the plugin trying to use this). If the matching functionality is not found (a NoClassDefFoundError is
+ * thrown), it will fall back to earlier versions.
+ *
+ * This class should not be moved or renamed, nor should its functions be renamed or have arguments added to/removed from them. This is to ensure forward/backward compatibility with multiple versions
+ * of IDE plugins. Instead, consider changing the interaction that is passed to the functions as a means of having the caller provide different functionality.
+ *
+ * @author mhunsicker
+ */
 public class UIWrapperFactory {
 
     /**
      * Creates a single-pane Gradle UI. The main UI and output panes are self-contained.
-     * @param interaction    this is how we interact with the caller.
-       @param showDebugInfo  true to show some additional information that may be helpful
-                             diagnosing problems is this fails
+     *
+     * @param interaction this is how we interact with the caller.
+     * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return a single pane UI.
-     * @throws Exception
      */
-    public static SinglePaneUIVersion1 createSinglePaneUI( final SinglePaneUIInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception {
+    public static SinglePaneUIVersion1 createSinglePaneUI(final SinglePaneUIInteractionVersion1 interaction, boolean showDebugInfo) throws Exception {
         return new SinglePaneUIWrapper(interaction);
     }
 
     /**
-     * Creates a dual-pane Gradle UI, consisting of a main panel (containing task tree,
-     * favorites, etc) and a separate panel containing the output.
-     * @param interaction    this is how we interact with the caller.
-       @param showDebugInfo  true to show some additional information that may be helpful
-                             diagnosing problems is this fails
+     * Creates a dual-pane Gradle UI, consisting of a main panel (containing task tree, favorites, etc) and a separate panel containing the output.
+     *
+     * @param interaction this is how we interact with the caller.
+     * @param showDebugInfo true to show some additional information that may be helpful diagnosing problems is this fails
      * @return a dual pane UI.
-     * @throws Exception
      */
-    public static DualPaneUIVersion1 createDualPaneUI( final DualPaneUIInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception {
-        return new DualPaneUIWrapper( interaction );
+    public static DualPaneUIVersion1 createDualPaneUI(final DualPaneUIInteractionVersion1 interaction, boolean showDebugInfo) throws Exception {
+        return new DualPaneUIWrapper(interaction);
     }
 }

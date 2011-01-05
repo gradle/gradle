@@ -54,19 +54,14 @@ public class BuildSourceBuilder {
         this.cacheRepository = cacheRepository;
     }
 
-    public URLClassLoader buildAndCreateClassLoader(StartParameter startParameter)
-    {
+    public URLClassLoader buildAndCreateClassLoader(StartParameter startParameter) {
         Set<File> classpath = createBuildSourceClasspath(startParameter);
         Iterator<File> classpathIterator = classpath.iterator();
         URL[] urls = new URL[classpath.size()];
-        for (int i = 0; i < urls.length; i++)
-        {
-            try
-            {
+        for (int i = 0; i < urls.length; i++) {
+            try {
                 urls[i] = classpathIterator.next().toURI().toURL();
-            }
-            catch (MalformedURLException e)
-            {
+            } catch (MalformedURLException e) {
                 throw new UncheckedIOException(e);
             }
         }
@@ -89,8 +84,7 @@ public class BuildSourceBuilder {
 
         // If we were not the most recent version of Gradle to build the buildSrc dir, then do a clean build
         // Otherwise, just to a regular build
-        PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(
-                startParameter.getCurrentDir()).invalidateOnVersionChange().open().openStateCache();
+        PersistentStateCache<Boolean> stateCache = cacheRepository.cache("buildSrc").forObject(startParameter.getCurrentDir()).invalidateOnVersionChange().open().openStateCache();
         boolean rebuild = stateCache.get() == null;
 
         if (!new File(startParameter.getCurrentDir(), Project.DEFAULT_BUILD_FILE).isFile()) {
@@ -133,8 +127,7 @@ public class BuildSourceBuilder {
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            projectInfo = gradle.getRootProject().getConvention().getPlugin(
-                    EmbeddableJavaProject.class);
+            projectInfo = gradle.getRootProject().getConvention().getPlugin(EmbeddableJavaProject.class);
             gradle.getStartParameter().setTaskNames(rebuild ? projectInfo.getRebuildTasks() : projectInfo.getBuildTasks());
             classpath = projectInfo.getRuntimeClasspath().getFiles();
         }

@@ -27,8 +27,7 @@ import java.util.List;
 
 public class CachingDependencyResolveContext implements DependencyResolveContext {
     private final List<Object> queue = new ArrayList<Object>();
-    private final CachingDirectedGraphWalker<Object, FileCollection> walker
-            = new CachingDirectedGraphWalker<Object, FileCollection>(new DependencyGraph());
+    private final CachingDirectedGraphWalker<Object, FileCollection> walker = new CachingDirectedGraphWalker<Object, FileCollection>(new DependencyGraph());
     private final boolean transitive;
 
     public CachingDependencyResolveContext(boolean transitive) {
@@ -57,15 +56,13 @@ public class CachingDependencyResolveContext implements DependencyResolveContext
             if (node instanceof FileCollection) {
                 FileCollection fileCollection = (FileCollection) node;
                 values.add(fileCollection);
-            }
-            else if (node instanceof DependencyInternal) {
+            } else if (node instanceof DependencyInternal) {
                 DependencyInternal dependencyInternal = (DependencyInternal) node;
                 queue.clear();
                 dependencyInternal.resolve(CachingDependencyResolveContext.this);
                 connectedNodes.addAll(queue);
                 queue.clear();
-            }
-            else {
+            } else {
                 throw new IllegalArgumentException(String.format("Cannot resolve object of unknown type %s.", node.getClass().getSimpleName()));
             }
         }

@@ -16,8 +16,8 @@
 package org.gradle.openapi.wrappers.ui;
 
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
-import org.gradle.openapi.external.ui.AlternateUIInteractionVersion1;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
+import org.gradle.openapi.external.ui.AlternateUIInteractionVersion1;
 
 import java.io.File;
 
@@ -25,7 +25,7 @@ import java.io.File;
  * Wrapper to shield version changes in AlternateUIInteraction from an external user of gradle open API.
  *
  * @author mhunsicker
-*/
+ */
 public class AlternateUIInteractionVersionWrapper implements AlternateUIInteraction {
     private AlternateUIInteractionVersion1 alternateUIInteractionVersion1;
     private SettingsNode settings;
@@ -34,32 +34,32 @@ public class AlternateUIInteractionVersionWrapper implements AlternateUIInteract
         this.alternateUIInteractionVersion1 = alternateUIInteractionVersion1;
         this.settings = settings;
 
-      //when future versions are added, doing the following and then delegating
-      //the new functions to AlternateUIInteractionVersion2 keeps things compatible.
-      //try
-      //{
-      //   if( alternateUIInteractionVersion1 instanceof AlternateUIInteractionVersion2 )
-      //      alternateUIInteractionVersion2 = (AlternateUIInteractionVersion2) alternateUIInteractionVersion1;
-      //}
-      //catch( NoClassDefFoundError e )
-      //{
-      //   //this just means that we're being run with an old version of the open API. We have no alternateUIInteractionVersion2
-      //}
+        //when future versions are added, doing the following and then delegating
+        //the new functions to AlternateUIInteractionVersion2 keeps things compatible.
+        //try
+        //{
+        //   if( alternateUIInteractionVersion1 instanceof AlternateUIInteractionVersion2 )
+        //      alternateUIInteractionVersion2 = (AlternateUIInteractionVersion2) alternateUIInteractionVersion1;
+        //}
+        //catch( NoClassDefFoundError e )
+        //{
+        //   //this just means that we're being run with an old version of the open API. We have no alternateUIInteractionVersion2
+        //}
     }
 
-   public void openFile( File file, int line ) {
-      alternateUIInteractionVersion1.openFile(file, line );
-   }
+    public void openFile(File file, int line) {
+        alternateUIInteractionVersion1.openFile(file, line);
+    }
 
-   public void editFile( File file, int line ) {
-        alternateUIInteractionVersion1.editFile( file, line );
+    public void editFile(File file, int line) {
+        alternateUIInteractionVersion1.editFile(file, line);
     }
 
     public boolean doesSupportEditingOpeningFiles() {
         return alternateUIInteractionVersion1.doesSupportEditingOpeningFiles();
     }
 
-    public void aboutToExecuteCommand( String fullCommandLine ) {
-       alternateUIInteractionVersion1.aboutToExecuteCommand( fullCommandLine );
+    public void aboutToExecuteCommand(String fullCommandLine) {
+        alternateUIInteractionVersion1.aboutToExecuteCommand(fullCommandLine);
     }
 }

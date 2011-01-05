@@ -23,40 +23,32 @@ import java.util.List;
 /**
  * Patterns for scanning for file changes.
  */
-public class ScanTargetPattern
-{
+public class ScanTargetPattern {
     private File directory;
     private List includes = Collections.EMPTY_LIST;
     private List excludes = Collections.EMPTY_LIST;
 
-    public File getDirectory()
-    {
+    public File getDirectory() {
         return directory;
     }
 
-    public void setDirectory(File directory)
-    {
+    public void setDirectory(File directory) {
         this.directory = directory;
     }
-    
-    public void setIncludes (List includes)
-    {
+
+    public void setIncludes(List includes) {
         this.includes = includes;
     }
-    
-    public void setExcludes(List excludes)
-    {
+
+    public void setExcludes(List excludes) {
         this.excludes = excludes;
     }
-    
-    public List getIncludes()
-    {
+
+    public List getIncludes() {
         return includes;
     }
-    
-    public List getExcludes()
-    {
+
+    public List getExcludes() {
         return excludes;
     }
-
 }

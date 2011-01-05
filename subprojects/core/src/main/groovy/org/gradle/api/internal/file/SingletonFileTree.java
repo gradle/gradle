@@ -43,8 +43,7 @@ class SingletonFileTree extends CompositeFileTree {
     protected void addSourceCollections(Collection<FileCollection> sources) {
         if (file.isDirectory()) {
             sources.add(new DefaultConfigurableFileTree(file, null, null));
-        }
-        else if (file.isFile()) {
+        } else if (file.isFile()) {
             sources.add(new FileFileTree());
         }
     }

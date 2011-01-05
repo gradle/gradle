@@ -25,6 +25,7 @@ import java.util.List;
 
 /**
  * Implementation of TaskVersion1 meant to help shield external users from internal changes.
+ *
  * @author mhunsicker
  */
 public class TaskWrapper implements TaskVersion1 {
@@ -52,21 +53,21 @@ public class TaskWrapper implements TaskVersion1 {
     }
 
     public ProjectVersion1 getProject() {
-        return new ProjectWrapper( taskView.getProject() );
+        return new ProjectWrapper(taskView.getProject());
     }
 
     /**
      * Converts the list of TaskView objects to TaskVersion1 objects. It just wraps them.
+     *
      * @param taskViewList the source tasks
      * @return the tasks wrapped in TaskWrappers.
      */
-    public static List<TaskVersion1> convertTasks( List<TaskView> taskViewList)
-    {
+    public static List<TaskVersion1> convertTasks(List<TaskView> taskViewList) {
         List<TaskVersion1> returnTasks = new ArrayList<TaskVersion1>();
         Iterator<TaskView> taskViewIterator = taskViewList.iterator();
         while (taskViewIterator.hasNext()) {
             TaskView taskView = taskViewIterator.next();
-            returnTasks.add( new TaskWrapper( taskView ) );
+            returnTasks.add(new TaskWrapper(taskView));
         }
 
         return returnTasks;
@@ -74,12 +75,12 @@ public class TaskWrapper implements TaskVersion1 {
 
     @Override
     public boolean equals(Object obj) {
-        if( !(obj instanceof TaskWrapper ) ) {
+        if (!(obj instanceof TaskWrapper)) {
             return false;
         }
 
         TaskWrapper otherTaskWrapper = (TaskWrapper) obj;
-        return otherTaskWrapper.taskView.equals( taskView );
+        return otherTaskWrapper.taskView.equals(taskView);
     }
 
     @Override

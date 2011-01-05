@@ -15,22 +15,17 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.common;
 
-import javax.swing.Action;
-import javax.swing.BorderFactory;
-import javax.swing.Icon;
-import javax.swing.JToggleButton;
+import javax.swing.*;
 import javax.swing.border.Border;
 import javax.swing.plaf.metal.MetalButtonUI;
-import java.awt.Dimension;
-import java.awt.Color;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 
 /**
- * This is button that has no border and only an image. It highlights when the user moves over it. This version is a
- * toggle button. This style was modeled after Idea. This was used because the borders on toolbars can get a little busy
- * and this looks a little cleaner.
+ * This is button that has no border and only an image. It highlights when the user moves over it. This version is a toggle button. This style was modeled after Idea. This was used because the borders
+ * on toolbars can get a little busy and this looks a little cleaner.
  *
  * @author mhunsicker
  */
@@ -79,17 +74,14 @@ public class BorderlessImageToggleButton extends JToggleButton {
     }
 
     /**
-     * I added this to correct an architecture
-     * problem. Whenever this button was removed or added to a parent container the underlying swing architecture was
-     * resetting the border and it wasn't taking into account our need to change the border depending on the selection
-     * state of the button. This overrides negates that effect causing the button to behave as intended.
+     * I added this to correct an architecture problem. Whenever this button was removed or added to a parent container the underlying swing architecture was resetting the border and it wasn't taking
+     * into account our need to change the border depending on the selection state of the button. This overrides negates that effect causing the button to behave as intended.
      *
      * @param border The new border to set for this button the we disregard and replace with our own.
      * @author wwhitaker
      */
     public void setBorder(Border border) {
-        super.setBorder(
-                BorderlessImageToggleButton.this.isSelected() ? selectedBorder : BorderlessUtility.DEFAULT_BORDER);
+        super.setBorder(BorderlessImageToggleButton.this.isSelected() ? selectedBorder : BorderlessUtility.DEFAULT_BORDER);
     }
 
     private class HighlightMouseListener extends MouseAdapter {
@@ -120,7 +112,7 @@ public class BorderlessImageToggleButton extends JToggleButton {
         }
 
         public void mouseExited(MouseEvent event) {
-            BorderlessImageToggleButton.this.setBackground(defaultBackground );
+            BorderlessImageToggleButton.this.setBackground(defaultBackground);
 
             if (BorderlessImageToggleButton.this.isSelected()) {
                 BorderlessImageToggleButton.this.setBorder(selectedBorder);

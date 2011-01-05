@@ -30,8 +30,7 @@ import java.util.List;
 /**
  * <p>Deploys a WAR to an embedded Jetty web container.</p>
  *
- * <p> Once started, the web container can be configured to run continuously, scanning for changes to the war file and
- * automatically performing a hot redeploy when necessary. </p>
+ * <p> Once started, the web container can be configured to run continuously, scanning for changes to the war file and automatically performing a hot redeploy when necessary. </p>
  */
 public class JettyRunWar extends AbstractJettyRunTask {
     private static Logger logger = LoggerFactory.getLogger(JettyRunWar.class);
@@ -47,7 +46,6 @@ public class JettyRunWar extends AbstractJettyRunTask {
         getWebAppConfig().setWar(getWebApp().getCanonicalPath());
         getWebAppConfig().configure();
     }
-
 
     public void validateConfiguration() {
     }
@@ -67,8 +65,7 @@ public class JettyRunWar extends AbstractJettyRunTask {
                 try {
                     boolean reconfigure = changes.contains(getProject().getBuildFile().getCanonicalPath());
                     restartWebApp(reconfigure);
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     logger.error("Error reconfiguring/restarting webapp after change in watched files", e);
                 }
             }
@@ -97,7 +94,6 @@ public class JettyRunWar extends AbstractJettyRunTask {
         getWebAppConfig().start();
         logger.info("Restart completed.");
     }
-
 
     public void finishConfigurationBeforeStart() {
     }

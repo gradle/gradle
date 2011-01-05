@@ -18,13 +18,12 @@ package org.gradle.foundation.visitors;
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 
 /**
- * This visitor builds up a list of unqiuely named projects and tasks. The projects will be their full path, so they're
- * all unique.
+ * This visitor builds up a list of unqiuely named projects and tasks. The projects will be their full path, so they're all unique.
  *
  * @author mhunsicker
  */

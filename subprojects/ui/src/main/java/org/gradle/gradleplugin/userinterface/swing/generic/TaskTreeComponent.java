@@ -21,39 +21,18 @@ import org.gradle.foundation.visitors.TaskTreePopulationVisitor;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.filters.ProjectAndTaskFilter;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JComponent;
-import javax.swing.JPanel;
-import javax.swing.JTree;
-import javax.swing.KeyStroke;
-import javax.swing.SwingUtilities;
-import javax.swing.ToolTipManager;
-import javax.swing.tree.DefaultMutableTreeNode;
-import javax.swing.tree.DefaultTreeCellRenderer;
-import javax.swing.tree.DefaultTreeModel;
-import javax.swing.tree.TreeCellRenderer;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Font;
-import java.awt.Point;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
+import javax.swing.*;
+import javax.swing.tree.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.List;
 import java.util.Enumeration;
+import java.util.List;
 
 /**
- * This displays a tree of projects, subprojects, and tasks. You implement the Interaction to detemine how to handle
- * right clicks and double clicking tasks. To use this, call populate and pass it a filter (allows you to change exactly
- * what is displayed). There are several functions to obtaining the selected items, plus you can get the tree directly
- * for any advanced functionality.
+ * This displays a tree of projects, subprojects, and tasks. You implement the Interaction to detemine how to handle right clicks and double clicking tasks. To use this, call populate and pass it a
+ * filter (allows you to change exactly what is displayed). There are several functions to obtaining the selected items, plus you can get the tree directly for any advanced functionality.
  *
  * @author mhunsicker
  */
@@ -73,8 +52,7 @@ public class TaskTreeComponent {
         void rightClick(JTree tree, int x, int y);
 
         /**
-         * Notification that a project was invoked (double-clicked). Do whatever you like, such as execute its default
-         * task.
+         * Notification that a project was invoked (double-clicked). Do whatever you like, such as execute its default task.
          *
          * @param project the project that was invoked.
          */
@@ -110,8 +88,7 @@ public class TaskTreeComponent {
 
         ToolTipManager.sharedInstance().registerComponent(tree);
 
-        tree.setToggleClickCount(
-                99);  //prevents double clicks from expanding/collapsing the tree. We want to treat them as double-clicks
+        tree.setToggleClickCount(99);  //prevents double clicks from expanding/collapsing the tree. We want to treat them as double-clicks
 
         tree.addMouseListener(new MyMouseListener());
 
@@ -138,10 +115,9 @@ public class TaskTreeComponent {
     }
 
     /**
-     * This renders our projects and tasks. This removes the icon and optionally shows the description in a different
-     * color. Since there's quite a bit of code for handling rendering tree cells, I'm just going to mooch off of the
-     * DefaultTreeCellRenderer. I'll just modify it's behavior a little (I probably don't need that or the description
-     * since it's not going to draw a selection or highlight).
+     * This renders our projects and tasks. This removes the icon and optionally shows the description in a different color. Since there's quite a bit of code for handling rendering tree cells, I'm
+     * just going to mooch off of the DefaultTreeCellRenderer. I'll just modify it's behavior a little (I probably don't need that or the description since it's not going to draw a selection or
+     * highlight).
      */
     private class Renderer implements TreeCellRenderer {
         private JPanel panel;
@@ -178,8 +154,8 @@ public class TaskTreeComponent {
         }
 
         /**
-         * Setup the fonts. On some platforms, bold is the typical version. We explicitly don't want that. So we'll make
-         * the fonts plain and use the bold for our own purposes (indicating default tasks).
+         * Setup the fonts. On some platforms, bold is the typical version. We explicitly don't want that. So we'll make the fonts plain and use the bold for our own purposes (indicating default
+         * tasks).
          */
         private void setupFonts() {
             normalFont = nameRenderer.getFont().deriveFont(Font.PLAIN);
@@ -216,17 +192,14 @@ public class TaskTreeComponent {
             tree.repaint();
         }
 
-        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded,
-                                                      boolean leaf, int row, boolean hasFocus) {
+        public Component getTreeCellRendererComponent(JTree tree, Object value, boolean isSelected, boolean expanded, boolean leaf, int row, boolean hasFocus) {
             TaskTreeBaseNode node = (TaskTreeBaseNode) value;
 
             String description = node.getDescription();
 
             //we've already added these components to our panel. We know they're just labels. Calling getTreeCell... just sets their text and colors correctly.
-            this.nameRenderer.getTreeCellRendererComponent(tree, node.toString(), isSelected, expanded, leaf, row,
-                    hasFocus);
-            this.descriptionRenderer.getTreeCellRendererComponent(tree, description, isSelected, expanded, leaf, row,
-                    false);
+            this.nameRenderer.getTreeCellRendererComponent(tree, node.toString(), isSelected, expanded, leaf, row, hasFocus);
+            this.descriptionRenderer.getTreeCellRendererComponent(tree, description, isSelected, expanded, leaf, row, false);
 
             //set the tooltip. This must be on the component we return not our sub renderers
             panel.setToolTipText(description);
@@ -280,8 +253,7 @@ public class TaskTreeComponent {
             }
         }
 
-        private boolean isAddToSelectionKey(
-                MouseEvent e) {  //this is actually OS-specific, but for now, I'll just use CTRL.
+        private boolean isAddToSelectionKey(MouseEvent e) {  //this is actually OS-specific, but for now, I'll just use CTRL.
             return (e.getModifiers() & MouseEvent.CTRL_MASK) != 0;
         }
 
@@ -302,12 +274,10 @@ public class TaskTreeComponent {
     }
 
     /**
-     * This populates (and repopulates) the tree. This is surprisingly tedious in an effort to make the tree collapse as
-     * little as possible.
+     * This populates (and repopulates) the tree. This is surprisingly tedious in an effort to make the tree collapse as little as possible.
      */
     public void populate(ProjectAndTaskFilter filter) {
-        TaskTreePopulationVisitor.visitProjectAndTasks(gradlePluginLord.getProjects(), new PopulateTreeVisitor(),
-                filter, rootNode);
+        TaskTreePopulationVisitor.visitProjectAndTasks(gradlePluginLord.getProjects(), new PopulateTreeVisitor(), filter, rootNode);
 
         model.reload();
         SwingUtilities.invokeLater(new Runnable() {
@@ -324,21 +294,19 @@ public class TaskTreeComponent {
     }
 
     /**
-     * This visitor populates the tree as we walk projects and tasks. This jumpts through quite a bit of hoops in an
-     * effort to keep the tree from collapsing. It still does, but not completely. In order to keep it from collapsing,
-     * you must track some additional information that frankly the tree could and should do for you.
+     * This visitor populates the tree as we walk projects and tasks. This jumpts through quite a bit of hoops in an effort to keep the tree from collapsing. It still does, but not completely. In
+     * order to keep it from collapsing, you must track some additional information that frankly the tree could and should do for you.
      */
     private class PopulateTreeVisitor implements TaskTreePopulationVisitor.Visitor<TaskTreeBaseNode, TaskTreeNode> {
         /**
          * This is called for each project.
          *
          * @param project the project
-         * @param parentProjectObject whatever you handed back from a prior call to visitProject if this is a sub
-         * project. Otherwise, it'll be whatever was passed into the visitPojectsAndTasks function.
+         * @param parentProjectObject whatever you handed back from a prior call to visitProject if this is a sub project. Otherwise, it'll be whatever was passed into the visitPojectsAndTasks
+         * function.
          * @return an object that will be handed back to you for each of this project's tasks.
          */
-        public TaskTreeBaseNode visitProject(ProjectView project, int indexOfProject,
-                                             TaskTreeBaseNode parentProjectObject) {
+        public TaskTreeBaseNode visitProject(ProjectView project, int indexOfProject, TaskTreeBaseNode parentProjectObject) {
             ProjectTreeNode projectTreeNode = findProjectChild(parentProjectObject, project.getName());
             if (projectTreeNode == null) {
                 projectTreeNode = new ProjectTreeNode(project);
@@ -377,8 +345,7 @@ public class TaskTreeComponent {
          * @param indexOfTask index
          * @param tasksProject the project for this task
          */
-        public TaskTreeNode visitTask(TaskView task, int indexOfTask, ProjectView tasksProject,
-                                      TaskTreeBaseNode parentTreeNode) {
+        public TaskTreeNode visitTask(TaskView task, int indexOfTask, ProjectView tasksProject, TaskTreeBaseNode parentTreeNode) {
             TaskTreeNode taskTreeNode = findTaskChild((ProjectTreeNode) parentTreeNode, task.getName());
 
             if (taskTreeNode == null) {
@@ -386,10 +353,10 @@ public class TaskTreeComponent {
             }
 
             int actualIndex = parentTreeNode.getIndex(taskTreeNode);
-            if (actualIndex != indexOfTask) //this will be -1 for a new node
-            {
-                if (actualIndex != -1) //only try to remove it if its already there. Swing doesn't like this otherwise.
-                {
+            if (actualIndex != indexOfTask) {
+                //this will be -1 for a new node
+                if (actualIndex != -1) {
+                    //only try to remove it if its already there. Swing doesn't like this otherwise.
                     model.removeNodeFromParent(taskTreeNode);
                 }
 
@@ -425,18 +392,15 @@ public class TaskTreeComponent {
         }
 
         /**
-         * This is called when a project has been visited completely and is just a notification giving you an
-         * opportunity to do whatever you like.
+         * This is called when a project has been visited completely and is just a notification giving you an opportunity to do whatever you like.
          *
-         * Here, we're going to remove any nodes that aren't in either of the lists. This is when a task or project is
-         * hidden or when things simply change.
+         * Here, we're going to remove any nodes that aren't in either of the lists. This is when a task or project is hidden or when things simply change.
          *
          * @param parentProjectObject the object that represents the parent of the project and task objects below
          * @param projectObjects a list of whatever you returned from visitProject
          * @param taskObjects a list of whatever you returned from visitTask
          */
-        public void completedVisitingProject(TaskTreeBaseNode parentProjectObject,
-                                             List<TaskTreeBaseNode> projectObjects, List<TaskTreeNode> taskObjects) {
+        public void completedVisitingProject(TaskTreeBaseNode parentProjectObject, List<TaskTreeBaseNode> projectObjects, List<TaskTreeNode> taskObjects) {
             int index = 0;
             while (index < parentProjectObject.getChildCount()) {
                 TaskTreeBaseNode child = (TaskTreeBaseNode) parentProjectObject.getChildAt(index);
@@ -454,8 +418,7 @@ public class TaskTreeComponent {
     }
 
     /**
-     * This is a basic tree node. All nodes in this tree must extend this. This is so we don't have to deal with all the
-     * differing types of things that may be in this tree.
+     * This is a basic tree node. All nodes in this tree must extend this. This is so we don't have to deal with all the differing types of things that may be in this tree.
      */
     public class TaskTreeBaseNode extends DefaultMutableTreeNode {
         public void executeTask(boolean isCtrlKeyDown) {
@@ -656,8 +619,7 @@ public class TaskTreeComponent {
     }
 
     /**
-     * Object to hold onto mutliple selections, but not just multiples of the same type of node. This separates the
-     * selected nodes by type. You can have multiple projects and tasks selected.
+     * Object to hold onto mutliple selections, but not just multiples of the same type of node. This separates the selected nodes by type. You can have multiple projects and tasks selected.
      */
     public class MultipleSelection {
         public List<ProjectView> projects = new ArrayList<ProjectView>();

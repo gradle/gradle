@@ -24,25 +24,15 @@ import org.gradle.gradleplugin.userinterface.swing.generic.SwingExportInteractio
 import org.gradle.gradleplugin.userinterface.swing.generic.SwingImportInteraction;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
 
-import javax.swing.AbstractAction;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JDialog;
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Window;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.util.List;
 
 /**
- * This dialog allows you to edit what tasks and projects are visible when a filter is enabled. Filters are used to weed
- * out rarely-used things to make finding things easier.
+ * This dialog allows you to edit what tasks and projects are visible when a filter is enabled. Filters are used to weed out rarely-used things to make finding things easier.
  *
  * @author mhunsicker
  */
@@ -176,9 +166,8 @@ public class ProjectAndTaskFilterDialog {
     }
 
     /**
-     * This creates the two list panels. This may seem odd, but I'm putting each of them into a BoxLayout then inside
-     * another BorderLayout. This is to make each of them as large as they can be and divide the space evenly between
-     * them.
+     * This creates the two list panels. This may seem odd, but I'm putting each of them into a BoxLayout then inside another BorderLayout. This is to make each of them as large as they can be and
+     * divide the space evenly between them.
      */
     private Component createCenterPanel() {
         JPanel outterPanel = new JPanel();
@@ -235,8 +224,7 @@ public class ProjectAndTaskFilterDialog {
     }
 
     /**
-     * Populates our lists. We'll use a visitor to build up a list of unique names of projects and tasks. Then we'll
-     * sort them and add them to each filter editor panel.
+     * Populates our lists. We'll use a visitor to build up a list of unique names of projects and tasks. Then we'll sort them and add them to each filter editor panel.
      */
     private void populate() {
         UniqueNameProjectAndTaskVisitor visitor = new UniqueNameProjectAndTaskVisitor();

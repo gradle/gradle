@@ -18,45 +18,42 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
-import javax.swing.JPanel;
-import java.awt.BorderLayout;
-import java.awt.Component;
+import javax.swing.*;
+import java.awt.*;
 
 /**
- A simple UI for gradle. This has two panels that can be inserted into a
- stand-alone application or an IDE. This is meant to hide most of the complexities
- of gradle. The two panes are a tabbed pane for executing tasks and an output pane.
+ * A simple UI for gradle. This has two panels that can be inserted into a stand-alone application or an IDE. This is meant to hide most of the complexities of gradle. The two panes are a tabbed pane
+ * for executing tasks and an output pane.
+ *
+ * @author mhunsicker
+ */
+public class DualPaneUIInstance extends AbstractGradleUIInstance {
+    private OutputPanelLord outputPanelLord;
 
- @author mhunsicker
-  */
-public class DualPaneUIInstance extends AbstractGradleUIInstance
-{
-   private OutputPanelLord outputPanelLord;
-
-   public DualPaneUIInstance() { }
-
-
-    public void initialize( SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
-
-        outputPanelLord = new OutputPanelLord( gradlePluginLord, alternateUIInteraction );
-
-        super.initialize( settings, alternateUIInteraction );
+    public DualPaneUIInstance() {
     }
 
-   /**
-    We've overridden this to setup our splitter and our output window.
-    */
-   @Override
+    public void initialize(SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
+
+        outputPanelLord = new OutputPanelLord(gradlePluginLord, alternateUIInteraction);
+
+        super.initialize(settings, alternateUIInteraction);
+    }
+
+    /**
+     * We've overridden this to setup our splitter and our output window.
+     */
+    @Override
     protected void setupUI() {
         mainPanel = new JPanel(new BorderLayout());
-        mainPanel.add( createMainGradlePanel(), BorderLayout.CENTER);
+        mainPanel.add(createMainGradlePanel(), BorderLayout.CENTER);
     }
 
-   public OutputUILord getOutputUILord() {
-      return outputPanelLord;
-   }
+    public OutputUILord getOutputUILord() {
+        return outputPanelLord;
+    }
 
-   public Component getOutputPanel() {
-      return outputPanelLord.getMainPanel();
-   }
+    public Component getOutputPanel() {
+        return outputPanelLord.getMainPanel();
+    }
 }

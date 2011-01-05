@@ -18,82 +18,66 @@ package org.gradle.openapi.external.runner;
 import java.io.File;
 
 /**
+ * .
+ *
+ * @author mhunsicker
+ */
+public interface GradleRunnerInteractionVersion1 {
+    /**
+     * @return The root directory of your gradle project. The same directory Where you would run gradle from the command.
+     */
+    public File getWorkingDirectory();
 
- .
+    public enum LogLevel {Quiet, Lifecycle, Debug}
 
- @author mhunsicker
-  */
-public interface GradleRunnerInteractionVersion1
-{
-   /*
-      @return The root directory of your gradle project. The same directory
-      Where you would run gradle from the command.
-      @author mhunsicker
-   */
-   public File getWorkingDirectory();
+    public enum StackTraceLevel {InternalExceptions, Always, AlwaysFull}
 
-   public enum LogLevel { Quiet, Lifecycle, Debug }
-   public enum StackTraceLevel { InternalExceptions, Always, AlwaysFull }
+    /**
+     * @return the log level. This determines the detail level of information reported via reportLiveOutput and reportExecutionFinished.
+     */
+    public LogLevel getLogLevel();
 
-   /*
-      @return the log level. This determines the detail level of information
-      reported via reportLiveOutput and reportExecutionFinished.
-      @author mhunsicker
-   */
-   public LogLevel getLogLevel();
+    /**
+     * @return the stack trace level. This determines the detail level of any stack traces should an exception occur.
+     */
+    public StackTraceLevel getStackTraceLevel();
 
-   /*
-      @return the stack trace level. This determines the detail level of any
-      stack traces should an exception occur.
-      @author mhunsicker
-   */
-   public StackTraceLevel getStackTraceLevel();
+    /**
+     * Notification that overall execution has been started. This is only called once at the end.
+     */
+    public void reportExecutionStarted();
 
-   /*
-      Notification that overall execution has been started. This is only called
-      once at the end.
-      @author mhunsicker
-   */
-   public void reportExecutionStarted();
+    /**
+     * Notification of the total number of tasks that will be executed. This is called after reportExecutionStarted and before any tasks are executed.
+     *
+     * @param size the total number of tasks.
+     */
+    public void reportNumberOfTasksToExecute(int size);
 
-   /**
-      Notification of the total number of tasks that will be executed. This is
-      called after reportExecutionStarted and before any tasks are executed.
-      @param size the total number of tasks.
-   */
-   public void reportNumberOfTasksToExecute( int size );
+    /**
+     * Notification that a single task has completed. Note: the task you kicked off probably executes other tasks and this notifies you of those tasks and provides completion progress.
+     *
+     * @param currentTaskName the task being executed
+     * @param percentComplete the percent complete of all the tasks that make up the task you requested.
+     */
+    public void reportTaskStarted(String currentTaskName, float percentComplete);
 
-   /*
-      Notification that a single task has completed. Note: the task you kicked
-      off probably executes other tasks and this notifies you of those tasks
-      and provides completion progress.
+    public void reportTaskComplete(String currentTaskName, float percentComplete);
 
-      @param  currentTaskName the task being executed
-      @param  percentComplete the percent complete of all the tasks that make
-                              up the task you requested.
-      @author mhunsicker
-   */
-   public void reportTaskStarted( String currentTaskName, float percentComplete );
+    /**
+     * Report real-time output from gradle and its subsystems (such as ant).
+     *
+     * @param output a single line of text to show.
+     */
+    public void reportLiveOutput(String output);
 
-   public void reportTaskComplete( String currentTaskName, float percentComplete );
+    public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable);
 
-   /*
-      Report real-time output from gradle and its subsystems (such as ant).
-      @param  output     a single line of text to show.
-      @author mhunsicker
-   */
-   public void reportLiveOutput( String output );
-
-   public void reportExecutionFinished( boolean wasSuccessful, String message, Throwable throwable );
-
-   /*
-      This is called to get a custom gradle executable file. If you don't run
-      gradle.bat or gradle shell script to run gradle, use this to specify
-      what you do run. Note: we're going to pass it the arguments that we would
-      pass to gradle so if you don't like that, see alterCommandLineArguments.
-      Normaly, this should return null.
-      @return the Executable to run gradle command or null to use the default
-      @author mhunsicker
-   */
-   public File getCustomGradleExecutable();
+    /**
+     * This is called to get a custom gradle executable file. If you don't run gradle.bat or gradle shell script to run gradle, use this to specify what you do run. Note: we're going to pass it the
+     * arguments that we would pass to gradle so if you don't like that, see alterCommandLineArguments. Normaly, this should return null.
+     *
+     * @return the Executable to run gradle command or null to use the default
+     */
+    public File getCustomGradleExecutable();
 }

@@ -18,9 +18,9 @@ package org.gradle.gradleplugin.foundation;
 import org.dom4j.Attribute;
 import org.dom4j.Element;
 
+import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-import java.util.ArrayList;
 
 /*
  Just some utility functions that really should be in Dom4J already.
@@ -30,8 +30,8 @@ import java.util.ArrayList;
 
 public class Dom4JUtility {
     /**
-     * This returns the node that is a child of the specified parent that has the specified 'name' and an attribute with
-     * the specified value. This is similar to the below getChild, but this requires a specific tag name.
+     * This returns the node that is a child of the specified parent that has the specified 'name' and an attribute with the specified value. This is similar to the below getChild, but this requires a
+     * specific tag name.
      */
     public static Element getChild(Element parent, String tagName, String attribute, String attributeValue) {
         Element childElement = null;
@@ -62,8 +62,7 @@ public class Dom4JUtility {
     }
 
     /**
-     * Thie returns the node that is a child of hte specified parent that has the specified attribute with the specified
-     * value. This is similar to the above getChild, but no tag name is required.
+     * Thie returns the node that is a child of hte specified parent that has the specified attribute with the specified value. This is similar to the above getChild, but no tag name is required.
      */
     public static Element getChild(Element parent, String attribute, String attributeValue) {
         Element childElement = null;
@@ -79,8 +78,7 @@ public class Dom4JUtility {
     }
 
     /**
-     * Thie returns the node that is a child of hte specified parent that has the specified attribute with the specified
-     * value. This is similar to the above getChild, but no tag name is required.
+     * Thie returns the node that is a child of hte specified parent that has the specified attribute with the specified value. This is similar to the above getChild, but no tag name is required.
      */
     public static List<Element> getChildren(Element parent, String attribute, String attributeValue) {
         List<Element> children = new ArrayList<Element>();

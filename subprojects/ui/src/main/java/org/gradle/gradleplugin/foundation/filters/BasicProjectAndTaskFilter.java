@@ -17,8 +17,8 @@ package org.gradle.gradleplugin.foundation.filters;
 
 import org.gradle.foundation.ProjectView;
 import org.gradle.foundation.TaskView;
-import org.gradle.gradleplugin.foundation.settings.SettingsSerializable;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
+import org.gradle.gradleplugin.foundation.settings.SettingsSerializable;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -41,8 +41,7 @@ public class BasicProjectAndTaskFilter implements ProjectAndTaskFilter, Settings
     private List<String> filteredOutTaskNames = new ArrayList<String>();
     private boolean filterOutTasksWithNoDescription;
 
-    public BasicProjectAndTaskFilter(List<String> filteredOutProjectNames, List<String> filteredOutTaskNames,
-                                     boolean filterOutTasksWithNoDescription) {
+    public BasicProjectAndTaskFilter(List<String> filteredOutProjectNames, List<String> filteredOutTaskNames, boolean filterOutTasksWithNoDescription) {
         this.filterOutTasksWithNoDescription = filterOutTasksWithNoDescription;
         this.filteredOutProjectNames.addAll(filteredOutProjectNames);
         this.filteredOutTaskNames.addAll(filteredOutTaskNames);
@@ -111,8 +110,7 @@ public class BasicProjectAndTaskFilter implements ProjectAndTaskFilter, Settings
      * @param filterOutTasksWithNoDescription whether or not to hide it if it as no description
      * @return true if the task is allowed, false if not.
      */
-    public static boolean doesAllowTask(TaskView task, List<String> filteredOutTasks,
-                                        boolean filterOutTasksWithNoDescription) {
+    public static boolean doesAllowTask(TaskView task, List<String> filteredOutTasks, boolean filterOutTasksWithNoDescription) {
         if (filterOutTasksWithNoDescription) {
             if (!task.hasDescription()) {
                 return false;
@@ -166,8 +164,7 @@ public class BasicProjectAndTaskFilter implements ProjectAndTaskFilter, Settings
             return;
         }
 
-        filterOutTasksWithNoDescription = rootNode.getValueOfChildAsBoolean(FILTER_OUT_TASKS_WITH_NO_DESCRIPTION,
-                filterOutTasksWithNoDescription);
+        filterOutTasksWithNoDescription = rootNode.getValueOfChildAsBoolean(FILTER_OUT_TASKS_WITH_NO_DESCRIPTION, filterOutTasksWithNoDescription);
 
         SettingsNode filteredOutProjectsNode = rootNode.getChildNode(FILTERED_OUT_PROJECTS);
         if (filteredOutProjectsNode != null) {

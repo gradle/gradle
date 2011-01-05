@@ -16,21 +16,17 @@
 package org.gradle.openapi.external.ui;
 
 /**
- This allows you to add a listener that can add additional command line
- arguments whenever gradle is executed. This is useful if you've customized
- your gradle build and need to specify, for example, an init script.
-
- @author mhunsicker
-  */
-public interface CommandLineArgumentAlteringListenerVersion1
-{
-   /*
-      This is called when you can add additional command line arguments. Return
-      any additional arguments to add. This doesn't modify the existing commands.
-
-      @param  commandLineArguments the command line to execute.
-      @return any command lines to add or null to leave it alone
-      @author mhunsicker
-   */
-   public String getAdditionalCommandLineArguments( String commandLineArguments );
+ * This allows you to add a listener that can add additional command line arguments whenever gradle is executed. This is useful if you've customized your gradle build and need to specify, for example,
+ * an init script.
+ *
+ * @author mhunsicker
+ */
+public interface CommandLineArgumentAlteringListenerVersion1 {
+    /**
+     * This is called when you can add additional command line arguments. Return any additional arguments to add. This doesn't modify the existing commands.
+     *
+     * @param commandLineArguments the command line to execute.
+     * @return any command lines to add or null to leave it alone
+     */
+    public String getAdditionalCommandLineArguments(String commandLineArguments);
 }

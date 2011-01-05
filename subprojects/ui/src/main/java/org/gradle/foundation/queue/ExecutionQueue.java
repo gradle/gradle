@@ -18,14 +18,13 @@ package org.gradle.foundation.queue;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.LinkedBlockingQueue;
 
 /**
- * This class abstracts running multiple tasks consecutively. This exists because I'm not certain that Gradle is
- * thread-safe and on Windows, running tasks that require lots of disk I/O get considerably slower when run
- * concurrently. This will allow requests to be made and they will run as soon as any previous requests have finished.
+ * This class abstracts running multiple tasks consecutively. This exists because I'm not certain that Gradle is thread-safe and on Windows, running tasks that require lots of disk I/O get
+ * considerably slower when run concurrently. This will allow requests to be made and they will run as soon as any previous requests have finished.
  *
  * @author mhunsicker
  */
@@ -36,33 +35,32 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
     private Thread executionThread;
 
     /**
-     * This removes the complexities of managing queued up requests across threads. Implement this to define what to do
-     * when a request is made.
-    */
+     * This removes the complexities of managing queued up requests across threads. Implement this to define what to do when a request is made.
+     */
     public interface ExecutionInteraction<R> {
         /**
-        * When this is called, execute the given request.
-        *
-        * @param  request    the request to execute.
-        */
+         * When this is called, execute the given request.
+         *
+         * @param request the request to execute.
+         */
         void execute(R request);
     }
 
     /**
-    * Marker interface for a request. It contains the command line to execute and some other information.
-    */
+     * Marker interface for a request. It contains the command line to execute and some other information.
+     */
     public interface Request {
 
+        /**
+         * Marker interface for types. This defines a high-level category of this request (Refresh and Execution are the only types at the moment).
+         */
+        public interface Type {
+        }
 
-      /**
-       Marker interface for types. This defines a high-level category of this request (Refresh and Execution are the only types at the moment).
-       */
-      public interface Type {}
-
-      /**
-       @return the type of request.
-       */
-      public Type getType();
+        /**
+         * @return the type of request.
+         */
+        public Type getType();
     }
 
     public ExecutionQueue(ExecutionInteraction<R> executeInteraction) {
@@ -76,9 +74,9 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
 
     /**
      * Call this to add a task to the execution queue. It will be executed as soon as the current task has completed.
-    *
-    * @param  request      the requested task
-    */
+     *
+     * @param request the requested task
+     */
     public void addRequestToQueue(R request) {
         requests.offer(request);
     }
@@ -88,22 +86,22 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
     }
 
     public boolean hasRequests() {
-       return !requests.isEmpty();
+        return !requests.isEmpty();
     }
 
     public List<R> getRequests() {
-       return new ArrayList<R>( requests );
+        return new ArrayList<R>(requests);
     }
 
     /**
-    * This waits until the next request is available.
-    * @return the next request.
-    */
+     * This waits until the next request is available.
+     *
+     * @return the next request.
+     */
     private R getNextAvailableRequest() {
         try {
             return requests.take();
-        }
-        catch (InterruptedException e) {
+        } catch (InterruptedException e) {
             logger.error("Getting next available request", e);
             return null;
         }
@@ -111,7 +109,7 @@ public class ExecutionQueue<R extends ExecutionQueue.Request> {
 
     /**
      * This thread actually launches the gradle commands. It waits until a new request is added, then it executes it.
-    */
+     */
     private class ExecutionThread implements Runnable {
         private ExecutionInteraction<R> executeInteraction;
 

@@ -48,8 +48,9 @@ public class TestUtility {
      * Creates a mock project with the specified properties.
      *
      * Note: depth is 0 for a root project. 1 for a root project's subproject, etc.
-    */
-    public static Project createMockProject(JUnit4Mockery context, final String name, final String buildFilePath, final int depth, Project[] subProjectArray, Task[] tasks, String[] defaultTasks, Project... dependsOnProjects) {
+     */
+    public static Project createMockProject(JUnit4Mockery context, final String name, final String buildFilePath, final int depth, Project[] subProjectArray, Task[] tasks, String[] defaultTasks,
+                                            Project... dependsOnProjects) {
         final Project project = context.mock(Project.class, "[project]_" + name + '_' + uniqueNameCounter++);
 
         context.checking(new Expectations() {{
@@ -72,14 +73,12 @@ public class TestUtility {
     }
 
     /**
-     * This makes the sub projects children of the parent project. If you call this repeatedly on the same
-     * parentProject, any previous sub projects will be replaced with the new ones.
+     * This makes the sub projects children of the parent project. If you call this repeatedly on the same parentProject, any previous sub projects will be replaced with the new ones.
      *
      * @param context the mock context
      * @param parentProject where to attach the sub projects. This must be a mock object.
-     * @param subProjectArray the sub projects to attach to the parent. These must be mock objects. Pass in null or an
-     * empty array to set no sub projects.
-    */
+     * @param subProjectArray the sub projects to attach to the parent. These must be mock objects. Pass in null or an empty array to set no sub projects.
+     */
     public static void attachSubProjects(JUnit4Mockery context, final Project parentProject, Project... subProjectArray) {
         final Map<String, Project> childProjects = new LinkedHashMap<String, Project>();
         if (subProjectArray != null) {
@@ -101,7 +100,7 @@ public class TestUtility {
 
     /**
      * Creates a mock task with the specified properites.
-    */
+     */
     public static Task createTask(JUnit4Mockery context, final String name, final String description) {
         final Task task = context.mock(Task.class, "[task]_" + name + '_' + uniqueNameCounter++);
 
@@ -116,14 +115,12 @@ public class TestUtility {
     }
 
     /**
-     * This makes the tasks children of the parent project. If you call this repeatedly on the same parentProject, any
-     * previous tasks will be replaced with the new ones.
+     * This makes the tasks children of the parent project. If you call this repeatedly on the same parentProject, any previous tasks will be replaced with the new ones.
      *
      * @param context the mock context
      * @param parentProject where to attach the sub projects. This must be a mock object.
-     * @param taskArray the tasks to attach to the parent. these must be mock objects. Pass in null or an empty array to
-     * set no tasks.
-    */
+     * @param taskArray the tasks to attach to the parent. these must be mock objects. Pass in null or an empty array to set no tasks.
+     */
     public static void attachTasks(JUnit4Mockery context, final Project parentProject, Task... taskArray) {
         //first, make our project return our task container
         final TaskContainer taskContainer = context.mock(TaskContainer.class, "[taskcontainer]_" + parentProject.getName() + '_' + uniqueNameCounter++);
@@ -133,7 +130,8 @@ public class TestUtility {
             will(returnValue(taskContainer));
         }});
 
-        final Set<Task> set = new LinkedHashSet<Task>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
+        final Set<Task> set
+                = new LinkedHashSet<Task>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
 
         if (taskArray != null && taskArray.length != 0) {
             set.addAll(Arrays.asList(taskArray));
@@ -170,7 +168,8 @@ public class TestUtility {
     }
 
     private static void assignDependsOnProjects(JUnit4Mockery context, final Project project, final Project... dependsOnProjects) {
-        final Set<Project> set = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
+        final Set<Project> set
+                = new LinkedHashSet<Project>();   //using a LinkedHashSet rather than TreeSet (which is what gradle uses) so I don't have to deal with compareTo() being called on mock objects.
 
         if (dependsOnProjects != null && dependsOnProjects.length != 0) {
             set.addAll(Arrays.asList(dependsOnProjects));
@@ -192,12 +191,11 @@ public class TestUtility {
     }
 
     /**
-     * This asserts the contents of the list are as expected. The important aspect of this function is that we don't
-     * care about ordering. We just want to make sure the contents are the same.
+     * This asserts the contents of the list are as expected. The important aspect of this function is that we don't care about ordering. We just want to make sure the contents are the same.
      *
      * @param actualObjecs the list to check
      * @param expectedObjects what we expect in the list
-    */
+     */
     public static <T> void assertUnorderedListContents(List<T> actualObjecs, List<T> expectedObjects) {
         List<T> expectedObjecsList = new ArrayList<T>(expectedObjects);   //make a copy of it, so we can modify it.
 
@@ -205,17 +203,14 @@ public class TestUtility {
             T expectedObject = expectedObjecsList.remove(0);
 
             if (!actualObjecs.contains(expectedObject)) {
-                throw new AssertionFailedError(
-                        "Failed to locate object. Sought object:\n" + expectedObject + "\n\nExpected:\n" + dumpList(
-                                expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
-        }
+                throw new AssertionFailedError("Failed to locate object. Sought object:\n" + expectedObject + "\n\nExpected:\n" + dumpList(expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
+            }
         }
 
         if (actualObjecs.size() != expectedObjects.size()) {
-            throw new AssertionFailedError(
-                    "Expected " + expectedObjects.size() + " items but found " + actualObjecs.size() + "\nExpected:\n"
-                            + dumpList(expectedObjects) + "\nActual:\n" + dumpList(actualObjecs));
-    }
+            throw new AssertionFailedError("Expected " + expectedObjects.size() + " items but found " + actualObjecs.size() + "\nExpected:\n" + dumpList(expectedObjects) + "\nActual:\n" + dumpList(
+                    actualObjecs));
+        }
     }
 
     //function for getting a prettier dump of a list.
@@ -236,19 +231,17 @@ public class TestUtility {
                 builder.append("**** [null object in list] ****\n");
             } else {
                 builder.append(object.toString()).append('\n');
-        }
+            }
         }
 
         return builder.toString();
     }
 
     /**
-     * This is an ExportInteraction implemention meant to be used by tests. You pass it a file to use and we'll return
-     * that in promptForFile. This also checks to ensure something doesn't happen where we get into an endless loop if
-     * promptForFile is called repeatedly. This can happen if promptForFile is called and its return value fails some
-     * form of validation which makes promptForFile get called again or if you deny overwriting the file. You'll get
-     * prompted again.
-    */
+     * This is an ExportInteraction implemention meant to be used by tests. You pass it a file to use and we'll return that in promptForFile. This also checks to ensure something doesn't happen where
+     * we get into an endless loop if promptForFile is called repeatedly. This can happen if promptForFile is called and its return value fails some form of validation which makes promptForFile get
+     * called again or if you deny overwriting the file. You'll get prompted again.
+     */
     public static class TestExportInteraction implements DOM4JSerializer.ExportInteraction {
         private File file;
         private boolean confirmOverwrite;
@@ -273,7 +266,7 @@ public class TestUtility {
          *
          * @param file the file in question
          * @return true to overwrite it, false not to.
-        */
+         */
         public boolean confirmOverwritingExisingFile(File file) {
             return confirmOverwrite;
         }
@@ -284,9 +277,8 @@ public class TestUtility {
     }
 
     /**
-     * This is an ImportInteraction implementation meant to be used by tests. See TestExportInteraction for more
-     * information.
-    */
+     * This is an ImportInteraction implementation meant to be used by tests. See TestExportInteraction for more information.
+     */
     public static class TestImportInteraction implements DOM4JSerializer.ImportInteraction {
         private File file;
         private int promptCount;
@@ -315,16 +307,16 @@ public class TestUtility {
      * This refreshes the projects but blocks until it is complete (its being executed in a separate process).
      *
      * @param gradlePluginLord the plugin lord (will be used to execute the command and store the results).
-    */
+     */
     public static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, int maximumWaitValue, TimeUnit maximumWaitUnits) {
         refreshProjectsBlocking(gradlePluginLord, new ExecuteGradleCommandServerProtocol.ExecutionInteraction() {
             public void reportExecutionStarted() {
             }
 
-           public void reportNumberOfTasksToExecute( int size ) {
-           }
+            public void reportNumberOfTasksToExecute(int size) {
+            }
 
-           public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
+            public void reportExecutionFinished(boolean wasSuccessful, String message, Throwable throwable) {
             }
 
             public void reportTaskStarted(String message, float percentComplete) {
@@ -338,25 +330,30 @@ public class TestUtility {
         }, maximumWaitValue, maximumWaitUnits);
     }
 
-    private static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitValue, TimeUnit maximumWaitUnits) {
+    private static void refreshProjectsBlocking(GradlePluginLord gradlePluginLord, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitValue,
+                                                TimeUnit maximumWaitUnits) {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
         final CountDownLatch complete = new CountDownLatch(1);
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
-           public void executionRequestAdded( ExecutionRequest request ) {}
-           public void refreshRequestAdded( RefreshTaskListRequest request )
-           {
-              request.setExecutionInteraction( executionInteraction );
-           }
-           public void aboutToExecuteRequest( Request request ) { }
+            public void executionRequestAdded(ExecutionRequest request) {
+            }
 
-           public void requestExecutionComplete( Request request, int result, String output ) {
-               complete.countDown();
-           }
+            public void refreshRequestAdded(RefreshTaskListRequest request) {
+                request.setExecutionInteraction(executionInteraction);
+            }
+
+            public void aboutToExecuteRequest(Request request) {
+            }
+
+            public void requestExecutionComplete(Request request, int result, String output) {
+                complete.countDown();
+            }
         };
 
-        gradlePluginLord.addRequestObserver( observer, false );   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addRefreshRequestToQueue.
+        gradlePluginLord.addRequestObserver(observer,
+                false);   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addRefreshRequestToQueue.
         Request request = gradlePluginLord.addRefreshRequestToQueue();
 
         //make sure we've got a request
@@ -370,44 +367,49 @@ public class TestUtility {
             throw UncheckedException.asUncheckedException(e);
         }
 
-        gradlePluginLord.removeRequestObserver( observer );
+        gradlePluginLord.removeRequestObserver(observer);
 
-        if (!completed) //its still running. Something is wrong.
-        {
+        if (!completed) {
+            //its still running. Something is wrong.
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to complete refresh in alotted time: " + maximumWaitValue + " " + maximumWaitUnits + ". Considering this failed.");
         }
     }
 
-   /**
-    This executes a command and waits until it is finished.
-
-    @param gradlePluginLord the plugin lord
-    @param fullCommandLine the command to execute
-    @param displayName the display name of the command. It doesn't usuall matter.
-    @param executionInteraction this gets the results of the execution
-    @param maximumWaitSeconds the maximum time to wait before considering it failed.
-    */
-    public static void executeBlocking(GradlePluginLord gradlePluginLord, String fullCommandLine, String displayName, final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
+    /**
+     * This executes a command and waits until it is finished.
+     *
+     * @param gradlePluginLord the plugin lord
+     * @param fullCommandLine the command to execute
+     * @param displayName the display name of the command. It doesn't usuall matter.
+     * @param executionInteraction this gets the results of the execution
+     * @param maximumWaitSeconds the maximum time to wait before considering it failed.
+     */
+    public static void executeBlocking(GradlePluginLord gradlePluginLord, String fullCommandLine, String displayName,
+                                       final ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction, int maximumWaitSeconds) {
         gradlePluginLord.startExecutionQueue();   //make sure its started
 
         final CountDownLatch complete = new CountDownLatch(1);
 
         GradlePluginLord.RequestObserver observer = new GradlePluginLord.RequestObserver() {
-           public void executionRequestAdded( ExecutionRequest request )
-           {
-              request.setExecutionInteraction( executionInteraction );
-           }
-           public void refreshRequestAdded( RefreshTaskListRequest request ) { }
-           public void aboutToExecuteRequest( Request request ) { }
+            public void executionRequestAdded(ExecutionRequest request) {
+                request.setExecutionInteraction(executionInteraction);
+            }
 
-           public void requestExecutionComplete( Request request, int result, String output ) {
-               complete.countDown();
-           }
+            public void refreshRequestAdded(RefreshTaskListRequest request) {
+            }
+
+            public void aboutToExecuteRequest(Request request) {
+            }
+
+            public void requestExecutionComplete(Request request, int result, String output) {
+                complete.countDown();
+            }
         };
 
-        gradlePluginLord.addRequestObserver( observer, false );   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addExecutionRequestToQueue.
-        Request request = gradlePluginLord.addExecutionRequestToQueue( fullCommandLine, displayName );
+        gradlePluginLord.addRequestObserver(observer,
+                false);   //add the observer before we add the request due to timing issues. It's possible for it to completely execute before we return from addExecutionRequestToQueue.
+        Request request = gradlePluginLord.addExecutionRequestToQueue(fullCommandLine, displayName);
 
         //make sure we've got a request
         Assert.assertNotNull(request);
@@ -420,10 +422,10 @@ public class TestUtility {
             throw UncheckedException.asUncheckedException(e);
         }
 
-        gradlePluginLord.removeRequestObserver( observer );
+        gradlePluginLord.removeRequestObserver(observer);
 
-        if (timeout) //its still running. Something is wrong.
-        {
+        if (timeout) {
+            //its still running. Something is wrong.
             request.cancel(); //just to clean up after ourselves a little, cancel the request.
             throw new AssertionFailedError("Failed to comlete execution in alotted time: " + maximumWaitSeconds + " seconds. Considering this failed.");
         }

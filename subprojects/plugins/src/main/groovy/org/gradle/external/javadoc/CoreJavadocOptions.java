@@ -32,8 +32,7 @@ import java.util.List;
  *
  * @author Tom Eyckmans
  */
-public abstract class CoreJavadocOptions implements MinimalJavadocOptions
-{
+public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private final JavadocOptionFile optionFile;
 
     public CoreJavadocOptions() {

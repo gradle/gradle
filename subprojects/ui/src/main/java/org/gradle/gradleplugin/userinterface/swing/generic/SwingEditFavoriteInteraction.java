@@ -18,12 +18,10 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.gradleplugin.foundation.favorites.FavoritesEditor;
 
 import javax.swing.*;
-import javax.swing.text.BadLocationException;
-import javax.swing.event.DocumentListener;
 import javax.swing.event.DocumentEvent;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Window;
+import javax.swing.event.DocumentListener;
+import javax.swing.text.BadLocationException;
+import java.awt.*;
 import java.awt.event.*;
 
 /**
@@ -90,8 +88,8 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
     }
 
     /**
-     * This synchronizes the display name with the command line. This is so when you're adding a new favorite, the
-     * display name is automatic. If you type anything in the display name, we'll cancel synchronization.
+     * This synchronizes the display name with the command line. This is so when you're adding a new favorite, the display name is automatic. If you type anything in the display name, we'll cancel
+     * synchronization.
      */
     private void synchronizeDisplayNameWithCommand() {
         if (!synchronizeDisplayNameWithCommand) {
@@ -123,8 +121,7 @@ public class SwingEditFavoriteInteraction implements FavoritesEditor.EditFavorit
 
     private void setDisplayNameTextToCommandLineText() {
         try {
-            String text = fullCommandLineTextField.getDocument().getText(0,
-                    fullCommandLineTextField.getDocument().getLength());
+            String text = fullCommandLineTextField.getDocument().getText(0, fullCommandLineTextField.getDocument().getLength());
             displayNameTextField.setText(text);
         } catch (BadLocationException e) {
             e.printStackTrace();

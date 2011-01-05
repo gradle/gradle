@@ -20,33 +20,31 @@ import org.gradle.foundation.output.FileLink;
 import java.util.List;
 
 /**
-
- .
-
- @author mhunsicker
+ * .
+ *
+ * @author mhunsicker
  */
-public interface FileLinkDefinition
-{
-   /**
-    @return a name that really only useful for debugging
-    */
-   String getName();
+public interface FileLinkDefinition {
+    /**
+     * @return a name that really only useful for debugging
+     */
+    String getName();
 
-   /**
-      @return the regular expression used to find a potential FileLink
-   */
-   String getSearchExpression();
+    /**
+     * @return the regular expression used to find a potential FileLink
+     */
+    String getSearchExpression();
 
-   /**
-      This is called for each match. Parse this to turn it into a FileLink.
-
-      <!    Name        Description>
-    @param  fullSearchText the full text that was searched
-    @param  matchedText the text that was matched
-    @param  start       the index into the entire searched text where the matchedText starts
-    @param  end         the index into the entire searched text where the matchedText ends
-    @param fileLinks
-      @return a FileLink or null if this is a false positive
-   */
-   int parseFileLink( String fullSearchText, String matchedText, int start, int end, boolean verifyFileExists, List<FileLink> fileLinks );
+    /**
+     * This is called for each match. Parse this to turn it into a FileLink.
+     *
+     * <!    Name        Description>
+     *
+     * @param fullSearchText the full text that was searched
+     * @param matchedText the text that was matched
+     * @param start the index into the entire searched text where the matchedText starts
+     * @param end the index into the entire searched text where the matchedText ends
+     * @return a FileLink or null if this is a false positive
+     */
+    int parseFileLink(String fullSearchText, String matchedText, int start, int end, boolean verifyFileExists, List<FileLink> fileLinks);
 }

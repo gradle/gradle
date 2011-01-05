@@ -34,10 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * This manages the communication between the UI and an externally-launched copy
- * of Gradle when using socket-based inter-process communication. This is the
- * client (gradle) side used to build a task list (tree actually). We add gradle
- * listeners and send their notifications as messages back to the server.
+ * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based inter-process communication. This is the client (gradle) side used to build a task
+ * list (tree actually). We add gradle listeners and send their notifications as messages back to the server.
  *
  * @author mhunsicker
  */
@@ -58,15 +56,13 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
      */
     public void initialize(ClientProcess client) {
         this.client = client;
-       this.gradle.addListener( new RefreshTaskListBuildListener( client ) );
+        this.gradle.addListener(new RefreshTaskListBuildListener(client));
     }
 
     /**
      * Listener used to delegate gradle messages to our listeners.
-     *
      */
-    private class RefreshTaskListBuildListener extends BuildAdapter implements StandardOutputListener
-    {
+    private class RefreshTaskListBuildListener extends BuildAdapter implements StandardOutputListener {
         private ClientProcess client;
         private StringBuffer allOutputText = new StringBuffer(); //this is potentially threaded, so use StringBuffer instead of StringBuilder
 
@@ -79,38 +75,37 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
             allOutputText.append(text);
         }
 
-       /**
-        * <p>Called when the build is completed. All selected tasks have been executed.</p>
-        *
-        * @param buildResult The result of the build. Never null.
-        */
-       @Override
-       public void buildFinished( BuildResult buildResult )
-       {
-         boolean wasSuccessful = buildResult.getFailure() == null;
-         String output = allOutputText.toString();
+        /**
+         * <p>Called when the build is completed. All selected tasks have been executed.</p>
+         *
+         * @param buildResult The result of the build. Never null.
+         */
+        @Override
+        public void buildFinished(BuildResult buildResult) {
+            boolean wasSuccessful = buildResult.getFailure() == null;
+            String output = allOutputText.toString();
 
-         if (!wasSuccessful) //if we fail, send the results, otherwise, we'll send the projects.
-         {
-             //we can't send the exception itself because it might not be serializable (it can include anything from anywhere inside gradle
-             //or one of its dependencies). So format it as text.
-             String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());
-             output += details;
+            if (!wasSuccessful) //if we fail, send the results, otherwise, we'll send the projects.
+            {
+                //we can't send the exception itself because it might not be serializable (it can include anything from anywhere inside gradle
+                //or one of its dependencies). So format it as text.
+                String details = GradlePluginLord.getGradleExceptionMessage(buildResult.getFailure(), gradle.getStartParameter().getShowStacktrace());
+                output += details;
 
-             client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE, output, wasSuccessful);
-         } else {
-             ProjectConverter buildExecuter = new ProjectConverter();
-             List<ProjectView> projects = new ArrayList<ProjectView>();
-             projects.addAll(buildExecuter.convertProjects(buildResult.getGradle().getRootProject()));
+                client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_WITH_ERRORS_TYPE, output, wasSuccessful);
+            } else {
+                ProjectConverter buildExecuter = new ProjectConverter();
+                List<ProjectView> projects = new ArrayList<ProjectView>();
+                projects.addAll(buildExecuter.convertProjects(buildResult.getGradle().getRootProject()));
 
-             client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_SUCCESSFULLY_TYPE, output, (Serializable) projects);
-         }
+                client.sendMessage(ProtocolConstants.TASK_LIST_COMPLETED_SUCCESSFULLY_TYPE, output, (Serializable) projects);
+            }
 
-         //tell the server we're going to exit.
-         client.sendMessage(ProtocolConstants.EXITING, null, null);
+            //tell the server we're going to exit.
+            client.sendMessage(ProtocolConstants.EXITING, null, null);
 
-         client.stop();
-       }
+            client.stop();
+        }
     }
 
     /**
@@ -120,12 +115,11 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
      */
     public boolean serverConnected(Socket clientSocket) {
         MessageObject message = client.readMessage();
-        if (message == null)
-        {
-           return false;
+        if (message == null) {
+            return false;
         }
 
-       if (!ProtocolConstants.HANDSHAKE_TYPE.equalsIgnoreCase(message.getMessageType())) {
+        if (!ProtocolConstants.HANDSHAKE_TYPE.equalsIgnoreCase(message.getMessageType())) {
             logger.error("Incorrect server handshaking.");
             return false;
         }
@@ -141,8 +135,7 @@ public class TaskListClientProtocol implements ClientProcess.Protocol {
     /**
      * We just keep a flag around for this.
      *
-     * @return true if we should keep the connection alive. False if we should
-     *         stop communicaiton.
+     * @return true if we should keep the connection alive. False if we should stop communicaiton.
      */
     public boolean continueConnection() {
         return continueConnection;

@@ -18,6 +18,7 @@ package org.gradle.util;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
 import org.apache.commons.lang.StringUtils;
 
 /**
@@ -40,7 +41,7 @@ public class NameMatcher {
         }
         return null;
     }
-    
+
     /**
      * Locates the best match for the given pattern in the given set of candidate items.
      *
@@ -76,16 +77,14 @@ public class NameMatcher {
                 matches2.add(candidate);
                 continue;
             }
-            if (StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3,
-                    pattern.length() / 2)) {
+            if (StringUtils.getLevenshteinDistance(normalisedPattern, candidate.toUpperCase()) <= Math.min(3, pattern.length() / 2)) {
                 candidates.add(candidate);
             }
         }
 
         if (!matches1.isEmpty()) {
             matches.addAll(matches1);
-        }
-        else {
+        } else {
             matches.addAll(matches2);
         }
 

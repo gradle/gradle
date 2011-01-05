@@ -30,8 +30,7 @@ This is a gradle UI that is broken into two panels: one contains a tabbed pane
  the current directory (at any time) so gradle knows where your project is
  located.
  */
-public interface DualPaneUIVersion1 extends BasicGradleUIVersion1
-{
+public interface DualPaneUIVersion1 extends BasicGradleUIVersion1 {
    /**
       Returns a component that shows the task tree tab, favorites tab, etc.
       suitable for inserting in your UI.

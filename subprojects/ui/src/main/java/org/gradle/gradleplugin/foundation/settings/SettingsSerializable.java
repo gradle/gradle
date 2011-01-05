@@ -16,8 +16,7 @@
 package org.gradle.gradleplugin.foundation.settings;
 
 /**
- * Something that can be serialized to an XML structure. This is meant to store any preferences or settings (lightweight
- * and heavyweight).
+ * Something that can be serialized to an XML structure. This is meant to store any preferences or settings (lightweight and heavyweight).
  *
  * @author mhunsicker
  */

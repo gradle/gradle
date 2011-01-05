@@ -22,22 +22,16 @@ import org.gradle.openapi.wrappers.runner.GradleRunnerWrapper;
 import java.io.File;
 
 /**
-* This factory instantiates GradleRunnerWrappers by an external process. It is meant to be
-* called via the Open API GradleRunnerFactory class using reflection. This is because it is
-* called dynamically. It is also meant to help shield a Gradle user from changes to different
-* versions of the GradleRunner. It does so by using wrappers that can dynamically choose
-* what/how to implement. The wrappers usually use the latest, however, some of the
-* functionality requires a matching Open API jar (which will be included with the external
-* process trying to use this). If the matching functionality is not found (a NoClassDefFoundError
-* is thrown), it will fall back to earlier versions.
-*
-* This class should not be moved or renamed, nor should its functions be renamed or have arguments
-* added to/removed from them. This is to ensure forward/backward compatibility with multiple
-* versions of IDE plugins. Instead, consider changing the interaction that is passed to the functions
-* as a means of having the caller provide different functionality.
-*
-* @author mhunsicker
-*/
+ * This factory instantiates GradleRunnerWrappers by an external process. It is meant to be called via the Open API GradleRunnerFactory class using reflection. This is because it is called
+ * dynamically. It is also meant to help shield a Gradle user from changes to different versions of the GradleRunner. It does so by using wrappers that can dynamically choose what/how to implement.
+ * The wrappers usually use the latest, however, some of the functionality requires a matching Open API jar (which will be included with the external process trying to use this). If the matching
+ * functionality is not found (a NoClassDefFoundError is thrown), it will fall back to earlier versions.
+ *
+ * This class should not be moved or renamed, nor should its functions be renamed or have arguments added to/removed from them. This is to ensure forward/backward compatibility with multiple versions
+ * of IDE plugins. Instead, consider changing the interaction that is passed to the functions as a means of having the caller provide different functionality.
+ *
+ * @author mhunsicker
+ */
 public class RunnerWrapperFactory {
 
     /*
@@ -62,7 +56,7 @@ public class RunnerWrapperFactory {
       @return a gradle runner
       @author mhunsicker
    */
-   public static GradleRunnerVersion1 createGradleRunner( File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo ) throws Exception {
-       return new GradleRunnerWrapper( gradleHomeDirectory, interaction );
-   }
+    public static GradleRunnerVersion1 createGradleRunner(File gradleHomeDirectory, GradleRunnerInteractionVersion1 interaction, boolean showDebugInfo) throws Exception {
+        return new GradleRunnerWrapper(gradleHomeDirectory, interaction);
+    }
 }

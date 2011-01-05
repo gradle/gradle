@@ -20,72 +20,69 @@ import org.gradle.gradleplugin.foundation.request.ExecutionRequest;
 import org.gradle.gradleplugin.foundation.request.RefreshTaskListRequest;
 import org.gradle.gradleplugin.foundation.request.Request;
 
-import java.awt.Font;
+import java.awt.*;
 
 /**
- This interface manages the output of executing gradle tasks.
+ * This interface manages the output of executing gradle tasks.
  */
-public interface OutputUILord
-{
-   void setOnlyShowOutputOnErrors( boolean show );
+public interface OutputUILord {
+    void setOnlyShowOutputOnErrors(boolean show);
 
-   boolean getOnlyShowOutputOnErrors();
+    boolean getOnlyShowOutputOnErrors();
 
+    public interface OutputObserver {
+        /**
+         * Notification that a request was added to the output. This means we've got some output that is useful to display.
+         *
+         * Note: this is slightly different from the GradlePluginLord.RequestObserver. While these are directly related, this one really means that it has been added to the UI. <!      Name
+         * Description>
+         *
+         * @param request the request that was added.
+         */
+        void executionRequestAdded(ExecutionRequest request);
 
-         public interface OutputObserver
-         {
-            /**
-               Notification that a request was added to the output. This means we've got some output
-               that is useful to display.
+        /**
+         * Notification that a refresh task list request was added to the output. This means we've got some output that is useful to display.
+         *
+         * Note: this is slightly different from the GradlePluginLord.RequestObserver. While these are directly related, this one really means that it has been added to the UI. <!      Name
+         * Description>
+         *
+         * @param request the request that was added.
+         */
+        void refreshRequestAdded(RefreshTaskListRequest request);
 
-               Note: this is slightly different from the GradlePluginLord.RequestObserver. While
-               these are directly related, this one really means that it has been added to the UI.
-               <!      Name            Description>
-               @param  request         the request that was added.
-            */
-            void executionRequestAdded( ExecutionRequest request );
+        /**
+         * Notification that an output tab was closed. You might want to know this if you want to close your IDE output window when all tabs are closed
+         */
+        public void outputTabClosed(Request request);
 
-            /**
-              Notification that a refresh task list request was added to the output. This means
-              we've got some output that is useful to display.
+        /**
+         * Notification that execution of a request is complete
+         *
+         * @param request the original request
+         */
+        public void reportExecuteFinished(Request request, boolean wasSuccessful);
+    }
 
-              Note: this is slightly different from the GradlePluginLord.RequestObserver. While
-              these are directly related, this one really means that it has been added to the UI.
-               <!      Name            Description>
-               @param  request         the request that was added.
-             */
-            void refreshRequestAdded( RefreshTaskListRequest request );
+    public void addOutputObserver(OutputObserver observer, boolean inEventQueue);
 
-            /**
-             Notification that an output tab was closed. You might want to know this if you want to close your
-             IDE output window when all tabs are closed
-             */
-            public void outputTabClosed( Request request );
+    public void removeOutputObserver(OutputObserver observer);
 
-            /**
-             Notification that execution of a request is complete
-             @param request the original request
-             @param wasSuccessful
-             */
-            public void reportExecuteFinished( Request request, boolean wasSuccessful );
-         }
+    public int getTabCount();
 
-   public void addOutputObserver( OutputObserver observer, boolean inEventQueue );
-   public void removeOutputObserver( OutputObserver observer );
+    /**
+     * Sets the font for the output text
+     *
+     * @param font the new font
+     */
+    public void setOutputTextFont(Font font);
 
-   public int getTabCount();
-
-   /**
-    Sets the font for the output text
-    @param font the new font
-    */
-   public void setOutputTextFont( Font font );
-   public Font getOutputTextFont();
+    public Font getOutputTextFont();
 
     /**
      * @return the object this is used to handle parsing of files in the output.
      */
-   public FileLinkDefinitionLord getFileLinkDefinitionLord();
+    public FileLinkDefinitionLord getFileLinkDefinitionLord();
 
     /*
     This re-executes the last execution command (ignores refresh commands).

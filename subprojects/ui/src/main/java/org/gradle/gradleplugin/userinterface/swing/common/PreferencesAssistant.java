@@ -18,12 +18,8 @@ package org.gradle.gradleplugin.userinterface.swing.common;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 
-import javax.swing.JFileChooser;
-import javax.swing.JFrame;
-import javax.swing.JSplitPane;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.awt.Window;
+import javax.swing.*;
+import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 
@@ -56,8 +52,7 @@ public class PreferencesAssistant {
     }
 
     /**
-     * This version works for frames. It makes sure it doesn't save the extended state (maximized, iconified, etc) if
-     * its iconified. Doing so, causes problems when its restored.
+     * This version works for frames. It makes sure it doesn't save the extended state (maximized, iconified, etc) if its iconified. Doing so, causes problems when its restored.
      */
     public static void saveSettings(SettingsNode settingsNode, JFrame frame, String id, Class windowClass) {
         if (frame.getExtendedState() == JFrame.ICONIFIED) {
@@ -72,13 +67,11 @@ public class PreferencesAssistant {
     }
 
     /**
-     * Call this to restore the preferences that were saved via a call to save settings. Note: if no preferences are
-     * found it doesn't do anything.
+     * Call this to restore the preferences that were saved via a call to save settings. Note: if no preferences are found it doesn't do anything.
      *
      * @param window the window who's settings to save
      * @param id a unique ID for these settings.
-     * @param windowClass Any class. Just used for the preferences mechanism to obtain an instance. Making this an
-     * argument gives you more flexibility.
+     * @param windowClass Any class. Just used for the preferences mechanism to obtain an instance. Making this an argument gives you more flexibility.
      */
     public static SettingsNode restoreSettings(SettingsNode settingsNode, Window window, String id, Class windowClass) {
         SettingsNode childNode = settingsNode.getChildNode(getPrefix(windowClass, id));
@@ -98,8 +91,7 @@ public class PreferencesAssistant {
     }
 
     /**
-     * This restores the position of a frame. We not only restore the size, but we'll maximize it if its was maximized
-     * when saved.
+     * This restores the position of a frame. We not only restore the size, but we'll maximize it if its was maximized when saved.
      */
     public static void restoreSettings(SettingsNode settingsNode, JFrame frame, String id, Class windowClass) {
         SettingsNode childNode = restoreSettings(settingsNode, (Window) frame, id, windowClass);
@@ -137,11 +129,9 @@ public class PreferencesAssistant {
     /**
      * Saves the settings of the file chooser; and by settings I mean the 'last visited directory'.
      *
-     * @param saveCurrentDirectoryVsSelectedFilesParent this should be true true if you're selecting only directories,
-     * false if you're selecting only files. I don't know what if you allow both.
+     * @param saveCurrentDirectoryVsSelectedFilesParent this should be true true if you're selecting only directories, false if you're selecting only files. I don't know what if you allow both.
      */
-    public static void saveSettings(SettingsNode settingsNode, JFileChooser fileChooser, String id,
-                                    Class fileChooserClass, boolean saveCurrentDirectoryVsSelectedFilesParent) {
+    public static void saveSettings(SettingsNode settingsNode, JFileChooser fileChooser, String id, Class fileChooserClass, boolean saveCurrentDirectoryVsSelectedFilesParent) {
         SettingsNode childNode = settingsNode.addChildIfNotPresent(getPrefix(fileChooserClass, id));
 
         String save;
@@ -159,8 +149,7 @@ public class PreferencesAssistant {
         }
     }
 
-    public static void restoreSettings(SettingsNode settingsNode, JFileChooser fileChooser, String id,
-                                       Class fileChooserClass) {
+    public static void restoreSettings(SettingsNode settingsNode, JFileChooser fileChooser, String id, Class fileChooserClass) {
         SettingsNode childNode = settingsNode.getChildNode(getPrefix(fileChooserClass, id));
         if (childNode == null) {
             return;

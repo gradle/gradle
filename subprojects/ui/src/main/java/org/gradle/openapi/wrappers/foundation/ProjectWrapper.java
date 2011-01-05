@@ -27,6 +27,7 @@ import java.util.List;
 
 /**
  * Implementation of ProjectVersion1 meant to help shield external users from internal changes.
+ *
  * @author mhunsicker
  */
 public class ProjectWrapper implements ProjectVersion1 {
@@ -46,25 +47,24 @@ public class ProjectWrapper implements ProjectVersion1 {
     }
 
     public List<TaskVersion1> getTasks() {
-        return TaskWrapper.convertTasks( projectView.getTasks() );
+        return TaskWrapper.convertTasks(projectView.getTasks());
     }
 
     public List<ProjectVersion1> getSubProjects() {
-        return convertProjects( projectView.getSubProjects() );
+        return convertProjects(projectView.getSubProjects());
     }
 
     public ProjectVersion1 getParentProject() {
-        return new ProjectWrapper( projectView.getParentProject() );
+        return new ProjectWrapper(projectView.getParentProject());
     }
 
     public List<ProjectVersion1> getDependantProjects() {
-        return convertProjects( projectView.getDependsOnProjects() );
+        return convertProjects(projectView.getDependsOnProjects());
     }
 
-    public ProjectVersion1 getSubProject( String name )
-    {
+    public ProjectVersion1 getSubProject(String name) {
         ProjectView subProject = projectView.getSubProject(name);
-        if( subProject == null ) {
+        if (subProject == null) {
             return null;
         }
 
@@ -77,18 +77,18 @@ public class ProjectWrapper implements ProjectVersion1 {
 
     public ProjectVersion1 getSubProjectFromFullPath(String fullProjectName) {
         ProjectView projectFromFullPath = projectView.getSubProjectFromFullPath(fullProjectName);
-        if( projectFromFullPath == null ) {
+        if (projectFromFullPath == null) {
             return null;
         }
-        return new ProjectWrapper( projectFromFullPath );
+        return new ProjectWrapper(projectFromFullPath);
     }
 
     public TaskVersion1 getTask(String name) {
         TaskView taskView = projectView.getTask(name);
-        if( taskView == null ) {
+        if (taskView == null) {
             return null;
         }
-        return new TaskWrapper( taskView );
+        return new TaskWrapper(taskView);
     }
 
     /**
@@ -96,38 +96,36 @@ public class ProjectWrapper implements ProjectVersion1 {
      *
      * defaultTasks 'task name'
      *
-     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this
-     * project and does not return them for subprojects.
+     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this project and does not return them for subprojects.
      *
      * @return a list of default tasks or an empty list if none exist
      */
     public List<TaskVersion1> getDefaultTasks() {
-            return TaskWrapper.convertTasks( projectView.getDefaultTasks() );
-        }
+        return TaskWrapper.convertTasks(projectView.getDefaultTasks());
+    }
 
     public TaskVersion1 getTaskFromFullPath(String fullTaskName) {
-        TaskView taskView = projectView.getTaskFromFullPath(fullTaskName );
-        if( taskView == null ) {
+        TaskView taskView = projectView.getTaskFromFullPath(fullTaskName);
+        if (taskView == null) {
             return null;
         }
 
-        return new TaskWrapper( taskView );
+        return new TaskWrapper(taskView);
     }
 
     /**
      * Converts the list of ProjectView objects to ProjectVersion1 objects. It just wraps them.
+     *
      * @param projectViewList the source projects
      * @return the projects wrapped in ProjectWrappers.
      */
-    public static List<ProjectVersion1> convertProjects( List<ProjectView> projectViewList )
-    {
+    public static List<ProjectVersion1> convertProjects(List<ProjectView> projectViewList) {
         List<ProjectVersion1> returnProjects = new ArrayList<ProjectVersion1>();
-        if( projectViewList != null )
-        {
+        if (projectViewList != null) {
             Iterator<ProjectView> projectViewIterator = projectViewList.iterator();
             while (projectViewIterator.hasNext()) {
                 ProjectView projectView = projectViewIterator.next();
-                returnProjects.add( new ProjectWrapper( projectView ) );
+                returnProjects.add(new ProjectWrapper(projectView));
             }
         }
 
@@ -136,12 +134,12 @@ public class ProjectWrapper implements ProjectVersion1 {
 
     @Override
     public boolean equals(Object obj) {
-        if( !( obj instanceof ProjectWrapper ) ) {
+        if (!(obj instanceof ProjectWrapper)) {
             return false;
         }
 
         ProjectWrapper otherProjectWrapper = (ProjectWrapper) obj;
-        return otherProjectWrapper.projectView.equals( projectView );
+        return otherProjectWrapper.projectView.equals(projectView);
     }
 
     @Override

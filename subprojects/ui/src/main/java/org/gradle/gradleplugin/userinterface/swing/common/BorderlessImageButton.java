@@ -15,22 +15,16 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.common;
 
-import javax.swing.Action;
-import javax.swing.Icon;
-import javax.swing.InputMap;
-import javax.swing.JButton;
-import javax.swing.KeyStroke;
+import javax.swing.*;
 import javax.swing.plaf.metal.MetalButtonUI;
-import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.geom.Rectangle2D;
 
 /**
- * This is button that has no border and only an image. It highlights when the user moves over it. This style was
- * modeled after Idea. This was used because the borders on toolbars can get a little busy and this looks a little
- * cleaner.
+ * This is button that has no border and only an image. It highlights when the user moves over it. This style was modeled after Idea. This was used because the borders on toolbars can get a little
+ * busy and this looks a little cleaner.
  *
  * @author mhunsicker
  */

@@ -42,8 +42,7 @@ public class GradleRunnerWrapper implements GradleRunnerVersion1 {
     }
 
     public void executeCommand(String commandLine) {
-        gradleRunner.executeCommand(commandLine, interactionWrapper.getLogLevel(),
-                interactionWrapper.getStackTraceLevel(), interactionWrapper);
+        gradleRunner.executeCommand(commandLine, interactionWrapper.getLogLevel(), interactionWrapper.getStackTraceLevel(), interactionWrapper);
     }
 
     /*

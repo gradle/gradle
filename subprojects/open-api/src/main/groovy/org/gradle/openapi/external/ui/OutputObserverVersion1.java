@@ -22,8 +22,7 @@ package org.gradle.openapi.external.ui;
  backward and forward compatibility by shielding you from direct changes within
  gradle.
   */
-public interface OutputObserverVersion1
-{
+public interface OutputObserverVersion1 {
    /**
       Notification that a request was added to the output. This means we've got some output
       that is useful to display.

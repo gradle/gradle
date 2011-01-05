@@ -30,8 +30,7 @@ public class ContextClassLoaderDispatch<T> implements Dispatch<T> {
         Thread.currentThread().setContextClassLoader(contextClassLoader);
         try {
             dispatch.dispatch(message);
-        }
-        finally {
+        } finally {
             Thread.currentThread().setContextClassLoader(original);
         }
     }

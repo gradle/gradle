@@ -38,9 +38,8 @@ import java.util.Timer;
 import java.util.TimerTask;
 
 /**
- * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based
- * inter-process communication. This is the client (gradle) side used when executing commands (the most common case). We
- * add gradle listeners and send their notifications as messages back to the server.
+ * This manages the communication between the UI and an externally-launched copy of Gradle when using socket-based inter-process communication. This is the client (gradle) side used when executing
+ * commands (the most common case). We add gradle listeners and send their notifications as messages back to the server.
  *
  * @author mhunsicker
  */
@@ -62,7 +61,7 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
     public void initialize(ClientProcess client) {
         this.client = client;
 
-       gradle.addListener( new IPCExecutionListener( client ) );
+        gradle.addListener(new IPCExecutionListener(client));
     }
 
     /**
@@ -102,15 +101,10 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
         continueConnection = false;
     }
 
-
     /**
-     * This converts gradle messages to messages that we send to our server over
-     * a socket. It also tracks the live output and periodically sends it to the
-       server.
-      *
+     * This converts gradle messages to messages that we send to our server over a socket. It also tracks the live output and periodically sends it to the server.
      */
-    private class IPCExecutionListener implements BuildListener, StandardOutputListener, TaskExecutionGraphListener, TaskExecutionListener
-    {
+    private class IPCExecutionListener implements BuildListener, StandardOutputListener, TaskExecutionGraphListener, TaskExecutionListener {
         private ClientProcess client;
 
         private StringBuffer allOutputText = new StringBuffer(); //this is potentially threaded, so use StringBuffer instead of StringBuilder
@@ -137,72 +131,67 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
             //we'll never get this message because execution has started before we were instantiated (and before we were able to add our listener).
         }
 
-        public void graphPopulated( TaskExecutionGraph taskExecutionGraph) {
-           List<Task> taskList = taskExecutionGraph.getAllTasks();
+        public void graphPopulated(TaskExecutionGraph taskExecutionGraph) {
+            List<Task> taskList = taskExecutionGraph.getAllTasks();
 
-           this.totalTasksToExecute = taskList.size();
-           client.sendMessage( ProtocolConstants.NUMBER_OF_TASKS_TO_EXECUTE, null, new Integer( taskList.size() ) );
-       }
-
-       /**
-        <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is
-        ready to use to load the build projects.</p>
-
-        @param settings The settings. Never null.
-        */
-       public void settingsEvaluated( Settings settings ) {
-          //we don't really care
-       }
-
-       /**
-        <p>Called when the projects for the build have been created from the settings. None of the projects have been
-        evaluated.</p>
-
-        @param gradle The build which has been loaded. Never null.
-        */
-       public void projectsLoaded( Gradle gradle ) {
-          //we don't really care
-       }
-
-       /**
-        <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are
-        ready to use to populate the task graph.</p>
-
-        @param gradle The build which has been evaluated. Never null.
-        */
-       public void projectsEvaluated( Gradle gradle ) {
-          //we don't really care
-       }
-
-       public void beforeExecute(Task task) {
-          String currentTaskName = task.getProject().getName() + ":" + task.getName();
-          client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, new Float(percentComplete));
-        }
-
-       public void afterExecute(Task task, TaskState state) {
-          totalTasksExecuted++;
-          percentComplete = (totalTasksExecuted / totalTasksToExecute) * 100;
-          String currentTaskName = task.getProject().getName() + ":" + task.getName();
-          client.sendMessage(ProtocolConstants.TASK_COMPLETE_TYPE, currentTaskName, new Float(percentComplete));
+            this.totalTasksToExecute = taskList.size();
+            client.sendMessage(ProtocolConstants.NUMBER_OF_TASKS_TO_EXECUTE, null, new Integer(taskList.size()));
         }
 
         /**
-        * Called when some output is written by the logging system.
-        *
-        * @param output The text.
-        */
+         * <p>Called when the build settings have been loaded and evaluated. The settings object is fully configured and is ready to use to load the build projects.</p>
+         *
+         * @param settings The settings. Never null.
+         */
+        public void settingsEvaluated(Settings settings) {
+            //we don't really care
+        }
+
+        /**
+         * <p>Called when the projects for the build have been created from the settings. None of the projects have been evaluated.</p>
+         *
+         * @param gradle The build which has been loaded. Never null.
+         */
+        public void projectsLoaded(Gradle gradle) {
+            //we don't really care
+        }
+
+        /**
+         * <p>Called when all projects for the build have been evaluated. The project objects are fully configured and are ready to use to populate the task graph.</p>
+         *
+         * @param gradle The build which has been evaluated. Never null.
+         */
+        public void projectsEvaluated(Gradle gradle) {
+            //we don't really care
+        }
+
+        public void beforeExecute(Task task) {
+            String currentTaskName = task.getProject().getName() + ":" + task.getName();
+            client.sendMessage(ProtocolConstants.TASK_STARTED_TYPE, currentTaskName, new Float(percentComplete));
+        }
+
+        public void afterExecute(Task task, TaskState state) {
+            totalTasksExecuted++;
+            percentComplete = (totalTasksExecuted / totalTasksToExecute) * 100;
+            String currentTaskName = task.getProject().getName() + ":" + task.getName();
+            client.sendMessage(ProtocolConstants.TASK_COMPLETE_TYPE, currentTaskName, new Float(percentComplete));
+        }
+
+        /**
+         * Called when some output is written by the logging system.
+         *
+         * @param output The text.
+         */
         public synchronized void onOutput(CharSequence output) {
             String text = output.toString();
-            this.allOutputText.append( text );
+            this.allOutputText.append(text);
             this.bufferedLiveOutput.append(text);
         }
 
-       /**
-        Called on a timer to send the live output to the process that started us. We only send whatever
-        is there since we've last sent output. It was causing some socket problems to send the output
-        immediately upon receiving it. I suspect due to numerous threads adding output. So its now only
-        done periodically and in a more thread-safe manner.
-        */
+        /**
+         * Called on a timer to send the live output to the process that started us. We only send whatever is there since we've last sent output. It was causing some socket problems to send the output
+         * immediately upon receiving it. I suspect due to numerous threads adding output. So its now only done periodically and in a more thread-safe manner.
+         */
         private synchronized void sendLiveOutput() {
             if (bufferedLiveOutput.length() == 0) {
                 return;  //nothing to send
@@ -214,9 +203,8 @@ public class ExecuteGradleCommandClientProtocol implements ClientProcess.Protoco
         }
 
         /**
-         * <p>Called when the build is completed. All selected tasks have been executed.</p>
-         * <p>We remove our Log4JAppender as well as our task execution listener. Lastly,
-         * we report the build results.</p>
+         * <p>Called when the build is completed. All selected tasks have been executed.</p> <p>We remove our Log4JAppender as well as our task execution listener. Lastly, we report the build
+         * results.</p>
          */
         public void buildFinished(BuildResult buildResult) {
 

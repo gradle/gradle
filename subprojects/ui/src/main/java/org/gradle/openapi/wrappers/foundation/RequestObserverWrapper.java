@@ -35,30 +35,29 @@ public class RequestObserverWrapper implements GradlePluginLord.RequestObserver 
     }
 
     public void executionRequestAdded(ExecutionRequest request) {
-        requestObserver.executionRequestAdded( new RequestWrapper( request ) );
+        requestObserver.executionRequestAdded(new RequestWrapper(request));
     }
 
     public void refreshRequestAdded(RefreshTaskListRequest request) {
-        requestObserver.refreshRequestAdded( new RequestWrapper( request ) );
+        requestObserver.refreshRequestAdded(new RequestWrapper(request));
     }
 
     /**
-     * Notification that a command is about to be executed. This is mostly useful
-     * for IDE's that may need to save their files.
+     * Notification that a command is about to be executed. This is mostly useful for IDE's that may need to save their files.
      */
     public void aboutToExecuteRequest(Request request) {
-        requestObserver.aboutToExecuteRequest( new RequestWrapper( request ) );
+        requestObserver.aboutToExecuteRequest(new RequestWrapper(request));
     }
 
     /**
      * Notification that the command has completed execution.
      *
      * @param request the original request containing the command that was executed
-     * @param result  the result of the command
-     * @param output  the output from gradle executing the command
+     * @param result the result of the command
+     * @param output the output from gradle executing the command
      */
     public void requestExecutionComplete(Request request, int result, String output) {
-        requestObserver.requestExecutionComplete( new RequestWrapper( request ), result, output );
+        requestObserver.requestExecutionComplete(new RequestWrapper(request), result, output);
     }
 
     @Override
@@ -67,11 +66,11 @@ public class RequestObserverWrapper implements GradlePluginLord.RequestObserver 
     }
 
     @Override
-    public boolean equals(Object otherObject ) {
-        if( !(otherObject instanceof RequestObserverWrapper ) ) {
+    public boolean equals(Object otherObject) {
+        if (!(otherObject instanceof RequestObserverWrapper)) {
             return false;
         }
 
-        return ( (RequestObserverWrapper) otherObject ).requestObserver.equals( requestObserver );
+        return ((RequestObserverWrapper) otherObject).requestObserver.equals(requestObserver);
     }
 }

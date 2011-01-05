@@ -45,13 +45,10 @@ public abstract class AbstractFileCollection implements FileCollection {
     public File getSingleFile() throws IllegalStateException {
         Collection<File> files = getFiles();
         if (files.isEmpty()) {
-            throw new IllegalStateException(String.format(
-                    "Expected %s to contain exactly one file, however, it contains no files.", getDisplayName()));
+            throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains no files.", getDisplayName()));
         }
         if (files.size() != 1) {
-            throw new IllegalStateException(String.format(
-                    "Expected %s to contain exactly one file, however, it contains %d files.", getDisplayName(),
-                    files.size()));
+            throw new IllegalStateException(String.format("Expected %s to contain exactly one file, however, it contains %d files.", getDisplayName(), files.size()));
         }
         return files.iterator().next();
     }
@@ -99,11 +96,9 @@ public abstract class AbstractFileCollection implements FileCollection {
     public void addToAntBuilder(Object builder, String nodeName, AntType type) {
         if (type == AntType.ResourceCollection) {
             addAsResourceCollection(builder, nodeName);
-        }
-        else if (type == AntType.FileSet) {
+        } else if (type == AntType.FileSet) {
             addAsFileSet(builder, nodeName);
-        }
-        else {
+        } else {
             addAsMatchingTask(builder, nodeName);
         }
     }
@@ -173,9 +168,7 @@ public abstract class AbstractFileCollection implements FileCollection {
         if (type.isAssignableFrom(FileTree.class)) {
             return getAsFileTree();
         }
-        throw new UnsupportedOperationException(String.format(
-                "Cannot convert %s to type %s, as this type is not supported.", getDisplayName(),
-                type.getSimpleName()));
+        throw new UnsupportedOperationException(String.format("Cannot convert %s to type %s, as this type is not supported.", getDisplayName(), type.getSimpleName()));
     }
 
     public TaskDependency getBuildDependencies() {

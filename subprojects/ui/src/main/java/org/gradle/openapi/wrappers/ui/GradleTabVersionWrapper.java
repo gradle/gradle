@@ -15,10 +15,10 @@
  */
 package org.gradle.openapi.wrappers.ui;
 
-import org.gradle.openapi.external.ui.GradleTabVersion1;
 import org.gradle.gradleplugin.userinterface.swing.generic.tabs.GradleTab;
+import org.gradle.openapi.external.ui.GradleTabVersion1;
 
-import java.awt.Component;
+import java.awt.*;
 
 /**
  * Wrapper to shield version changes in GradleTab from an external user of the gradle open API.

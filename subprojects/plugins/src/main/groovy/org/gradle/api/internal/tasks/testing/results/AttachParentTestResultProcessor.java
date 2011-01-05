@@ -30,8 +30,7 @@ public class AttachParentTestResultProcessor implements TestResultProcessor {
         if (rootId == null) {
             assert test.isComposite();
             rootId = test.getId();
-        }
-        else if (event.getParentId() == null) {
+        } else if (event.getParentId() == null) {
             event = event.withParentId(rootId);
         }
         processor.started(test, event);

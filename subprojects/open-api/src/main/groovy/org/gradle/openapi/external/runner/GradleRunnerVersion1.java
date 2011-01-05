@@ -15,25 +15,21 @@
  */
 package org.gradle.openapi.external.runner;
 
-/*
- This executes gradle commands in an external process.
+/**
+ * This executes gradle commands in an external process.
+ *
+ * @author mhunsicker
+ */
+public interface GradleRunnerVersion1 {
+    /**
+     * Call this to execute the specified command line.
+     *
+     * @param commandLine the command to execute
+     */
+    public void executeCommand(String commandLine);
 
- @author mhunsicker
-  */
-public interface GradleRunnerVersion1
-{
-   /*
-      Call this to execute the specified command line.
-
-      @param  commandLine the command to execute
-      @author mhunsicker
-   */
-   public void executeCommand( String commandLine );
-
-   /*
-      Call this to stop the gradle command. This is killing the process, not
-      gracefully exiting.
-      @author mhunsicker
-   */
-   public void killProcess();
+    /**
+     * Call this to stop the gradle command. This is killing the process, not gracefully exiting.
+     */
+    public void killProcess();
 }

@@ -23,8 +23,8 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Inner class that handles serializing favorites. You can either pass it a favorites list and serialize them out or use
- * the default constructor and serialize it. This allows you to serialize a favorites list with or without an editor.
+ * Inner class that handles serializing favorites. You can either pass it a favorites list and serialize them out or use the default constructor and serialize it. This allows you to serialize a
+ * favorites list with or without an editor.
  *
  * @author mhunsicker
  */
@@ -112,8 +112,7 @@ class FavoritesSerializable implements SettingsSerializable {
         }
     }
 
-    private static void addFavoriteTask(List<FavoriteTask> favorites, String fullCommandLine, String displayName,
-                                        boolean alwaysShowOutput) {
+    private static void addFavoriteTask(List<FavoriteTask> favorites, String fullCommandLine, String displayName, boolean alwaysShowOutput) {
         if (displayName == null) {
             displayName = fullCommandLine;
         }

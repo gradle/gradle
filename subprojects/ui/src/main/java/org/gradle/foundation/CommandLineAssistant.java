@@ -18,9 +18,9 @@ package org.gradle.foundation;
 import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
-import java.util.List;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 /**
  * Some helpful functions for manipulating command line arguments.
@@ -44,8 +44,7 @@ public class CommandLineAssistant {
     }
 
     /**
-     * This breaks up the full command line string into space-delimited and/or quoted command line arguments. This
-     * currently does not handle escaping characters such as quotes.
+     * This breaks up the full command line string into space-delimited and/or quoted command line arguments. This currently does not handle escaping characters such as quotes.
      *
      * @param fullCommandLine the full command line
      * @return a string array of the separate command line arguments.
@@ -70,8 +69,7 @@ public class CommandLineAssistant {
                 hasOption = true;
             } else if (currentQuote != null && c == currentQuote) {
                 currentQuote = null;
-            }
-            else {
+            } else {
                 currentOption.append(c);
                 hasOption = true;
             }
@@ -106,18 +104,15 @@ public class CommandLineAssistant {
     }
 
     /**
-     * This determines if one of the sought options is defined on the command line. We're only looking for options that
-     * are prefixed with a single '-'. Note: this IS case-sensitive.
+     * This determines if one of the sought options is defined on the command line. We're only looking for options that are prefixed with a single '-'. Note: this IS case-sensitive.
      *
      * @param commandLineOptions the command line options
-     * @param commandLineSearch the options we're looking for. This won't have the prefixed dash in them (just "s", "d",
-     * etc.).
+     * @param commandLineSearch the options we're looking for. This won't have the prefixed dash in them (just "s", "d", etc.).
      * @return true if one of the sought options exists in the
      */
     private boolean hasCommandLineOptionsDefined(String[] commandLineOptions, CommandLineSearch commandLineSearch) {
         for (
-                int commandLineOptionsIndex = 0; commandLineOptionsIndex < commandLineOptions.length;
-                commandLineOptionsIndex++) {
+                int commandLineOptionsIndex = 0; commandLineOptionsIndex < commandLineOptions.length; commandLineOptionsIndex++) {
             String commandLineOption = commandLineOptions[commandLineOptionsIndex];
 
             if (commandLineOption != null && commandLineOption.length() > 1 && commandLineOption.charAt(0) == '-') {

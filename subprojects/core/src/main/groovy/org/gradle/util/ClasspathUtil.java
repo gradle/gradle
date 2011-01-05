@@ -34,8 +34,7 @@ public class ClasspathUtil {
             for (URL classpathElement : classpathElements) {
                 method.invoke(classLoader, classpathElement);
             }
-        }
-        catch (Throwable t) {
+        } catch (Throwable t) {
             t.printStackTrace();
             throw new RuntimeException("Error, could not add URL to system classloader", t);
         }
@@ -43,8 +42,8 @@ public class ClasspathUtil {
 
     public static List<URL> getClasspath(ClassLoader classLoader) {
         List<URL> implementationClassPath = new ArrayList<URL>();
-        for ( ClassLoader cl = classLoader;
-                cl != ClassLoader.getSystemClassLoader().getParent(); cl = cl.getParent()) {
+        for (
+                ClassLoader cl = classLoader; cl != ClassLoader.getSystemClassLoader().getParent(); cl = cl.getParent()) {
             if (cl instanceof URLClassLoader) {
                 implementationClassPath.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
             }

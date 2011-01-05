@@ -15,10 +15,9 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.common;
 
-import javax.swing.BorderFactory;
-import javax.swing.UIManager;
+import javax.swing.*;
 import javax.swing.border.Border;
-import java.awt.Color;
+import java.awt.*;
 
 /**
  * Utility functions/constants for borderless buttons

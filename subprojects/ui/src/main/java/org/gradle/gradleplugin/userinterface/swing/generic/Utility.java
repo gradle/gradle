@@ -21,19 +21,8 @@ import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageButton;
 import org.gradle.gradleplugin.userinterface.swing.common.BorderlessImageToggleButton;
 
 import javax.imageio.ImageIO;
-import javax.swing.Action;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
-import javax.swing.JDialog;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JTabbedPane;
-import javax.swing.JToggleButton;
-import javax.swing.JMenuItem;
-import java.awt.Component;
-import java.awt.Window;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.InputEvent;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
@@ -48,7 +37,7 @@ import java.lang.reflect.Method;
 public class Utility {
     private static final Logger LOGGER = Logging.getLogger(Utility.class);
 
-   public static Component addLeftJustifiedComponent(Component component) {
+    public static Component addLeftJustifiedComponent(Component component) {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
 
@@ -69,142 +58,129 @@ public class Utility {
     }
 
     /**
-     * This creates a dialog. I only created this because I was using JDK 1.6, then realized I needed to use 1.5 and one
-     * of the most useful features of 1.6 is dialogs taking Windows as parents. This abstracts that so I don't have to
-     * make major changes to the code by passing around JFrames and JDialogs explicitly.
-       *
-       * @param  parent     the parent window
-       * @param  isModal    true if its modal, false if not.
-       * @return a dialog
-    */
+     * This creates a dialog. I only created this because I was using JDK 1.6, then realized I needed to use 1.5 and one of the most useful features of 1.6 is dialogs taking Windows as parents. This
+     * abstracts that so I don't have to make major changes to the code by passing around JFrames and JDialogs explicitly.
+     *
+     * @param parent the parent window
+     * @param isModal true if its modal, false if not.
+     * @return a dialog
+     */
     public static JDialog createDialog(Window parent, String title, boolean isModal) {
         if (parent instanceof JDialog) {
-           return new JDialog((JDialog) parent, title, isModal);
-        }
-        else if (parent instanceof JFrame) {
-           return new JDialog((JFrame) parent, title, isModal);
+            return new JDialog((JDialog) parent, title, isModal);
+        } else if (parent instanceof JFrame) {
+            return new JDialog((JFrame) parent, title, isModal);
         }
 
-       throw new RuntimeException("Unknown window type!");
+        throw new RuntimeException("Unknown window type!");
     }
 
     /**
-     * This uses reflection to set the tab component if we're running under 1.6. It does nothing if you're running under
-     * 1.5. This is so you can run this on java 1.6 and get this benefit, but its not required to compile.
-       *
-       * This is the same as calling JTabbedPane.setTabComponentAt(). It just does so using reflection.
-    */
+     * This uses reflection to set the tab component if we're running under 1.6. It does nothing if you're running under 1.5. This is so you can run this on java 1.6 and get this benefit, but its not
+     * required to compile.
+     *
+     * This is the same as calling JTabbedPane.setTabComponentAt(). It just does so using reflection.
+     */
     public static void setTabComponent15Compatible(JTabbedPane tabbedPane, int index, Component component) {
         try {
             Method method = tabbedPane.getClass().getMethod("setTabComponentAt", new Class[]{Integer.TYPE, Component.class});
             method.invoke(tabbedPane, index, component);
-        }
-        catch (NoSuchMethodException e) {
+        } catch (NoSuchMethodException e) {
             //e.printStackTrace();
             //we're not requiring 1.6, so its not a problem if we don't find the method. We just don't get this feature.
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             LOGGER.error("Setting tab component", e);
         }
     }
 
     /**
-     * This creates a button with the specified action, image, and tooltip text. The main issue here is that it doesn't
-     * crash if the image is missing (which is just something that happens in real life from time to time). You probably
-     * should specify a name on the action just in case.
-    *
-    * @param  imageResourceName the image resource
-    * @param  tooltip           the tooltip to display
-    * @param  action            the action to perform
-    * @return the button that was created.
-    */
+     * This creates a button with the specified action, image, and tooltip text. The main issue here is that it doesn't crash if the image is missing (which is just something that happens in real life
+     * from time to time). You probably should specify a name on the action just in case.
+     *
+     * @param imageResourceName the image resource
+     * @param tooltip the tooltip to display
+     * @param action the action to perform
+     * @return the button that was created.
+     */
     public static JButton createButton(Class resourceClass, String imageResourceName, String tooltip, Action action) {
 
-       JButton button = null;
-       if (imageResourceName != null) {
+        JButton button = null;
+        if (imageResourceName != null) {
             InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
             if (inputStream != null) {
                 try {
                     BufferedImage image = ImageIO.read(inputStream);
 
-                    button = new BorderlessImageButton( action, new ImageIcon(image) );
-                }
-                catch (IOException e) {
+                    button = new BorderlessImageButton(action, new ImageIcon(image));
+                } catch (IOException e) {
                     LOGGER.error("Reading image " + imageResourceName, e);
                 }
             }
         }
 
-       if( button == null ) {
-          button = new JButton( action );
-       }
+        if (button == null) {
+            button = new JButton(action);
+        }
 
-       if (tooltip != null) {
-          button.setToolTipText(tooltip);
-       }
+        if (tooltip != null) {
+            button.setToolTipText(tooltip);
+        }
 
-       return button;
+        return button;
     }
 
-   public static JToggleButton createToggleButton( Class resourceClass, String imageResourceName, String tooltip, Action action ) {
+    public static JToggleButton createToggleButton(Class resourceClass, String imageResourceName, String tooltip, Action action) {
 
-      JToggleButton button = null;
+        JToggleButton button = null;
 
-       if (imageResourceName != null) {
-          ImageIcon icon = getImageIcon( resourceClass, imageResourceName );
-          if( icon != null ) {
-             button = new BorderlessImageToggleButton( action, icon );
-          }
-       }
+        if (imageResourceName != null) {
+            ImageIcon icon = getImageIcon(resourceClass, imageResourceName);
+            if (icon != null) {
+                button = new BorderlessImageToggleButton(action, icon);
+            }
+        }
 
-       if( button == null ) {
-          button = new JToggleButton( action );
-       }
+        if (button == null) {
+            button = new JToggleButton(action);
+        }
 
-      if (tooltip != null) {
-         button.setToolTipText(tooltip);
-      }
+        if (tooltip != null) {
+            button.setToolTipText(tooltip);
+        }
 
-      return button;
-   }
-
-   public static JMenuItem createMenuItem( Class resourceClass, String name, String imageResourceName, Action action )
-    {
-       JMenuItem item = new JMenuItem( action );
-       item.setText( name );
-
-       if( imageResourceName != null )
-       {
-          ImageIcon icon = getImageIcon( resourceClass, imageResourceName );
-          item.setIcon( icon );
-       }
-
-       return item;
+        return button;
     }
 
-   /**
-   * this determines if the CTRL key is down based on the modifiers from an event.
-   * This actualy needs to be checking for different things. CTRL doesn't meant the
-   * same thing on each platform.
-   */
-   public static boolean isCTRLDown( int eventModifiersEx )
-   {
-      return ( eventModifiersEx & InputEvent.CTRL_DOWN_MASK ) == InputEvent.CTRL_DOWN_MASK;
-   }
+    public static JMenuItem createMenuItem(Class resourceClass, String name, String imageResourceName, Action action) {
+        JMenuItem item = new JMenuItem(action);
+        item.setText(name);
 
-   public static ImageIcon getImageIcon( Class resourceClass, String imageResourceName )
-   {
-      InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
-      if (inputStream != null) {
-          try {
-              BufferedImage image = ImageIO.read(inputStream);
-              return new ImageIcon( image );
-             }
-          catch (IOException e) {
-              LOGGER.error("Reading image " + imageResourceName, e);
-          }
-      }
+        if (imageResourceName != null) {
+            ImageIcon icon = getImageIcon(resourceClass, imageResourceName);
+            item.setIcon(icon);
+        }
 
-      return null;
-   }
+        return item;
+    }
+
+    /**
+     * this determines if the CTRL key is down based on the modifiers from an event. This actualy needs to be checking for different things. CTRL doesn't meant the same thing on each platform.
+     */
+    public static boolean isCTRLDown(int eventModifiersEx) {
+        return (eventModifiersEx & InputEvent.CTRL_DOWN_MASK) == InputEvent.CTRL_DOWN_MASK;
+    }
+
+    public static ImageIcon getImageIcon(Class resourceClass, String imageResourceName) {
+        InputStream inputStream = resourceClass.getResourceAsStream(imageResourceName);
+        if (inputStream != null) {
+            try {
+                BufferedImage image = ImageIO.read(inputStream);
+                return new ImageIcon(image);
+            } catch (IOException e) {
+                LOGGER.error("Reading image " + imageResourceName, e);
+            }
+        }
+
+        return null;
+    }
 }

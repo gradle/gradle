@@ -27,24 +27,20 @@ import java.util.List;
  These test several aspects of parsing output looking for files.
  @author mhunsicker
  */
-public class FileLinkTests extends TestCase
-{
-   public static void parseOutputTest( String textToSearch, FileLink ... expectedResults )
-   {
-      parseTest( textToSearch, false, expectedResults );
+public class FileLinkTests extends TestCase {
+   public static void parseOutputTest( String textToSearch, FileLink ... expectedResults ) {
+       parseTest( textToSearch, false, expectedResults );
    }
 
-   public static void parseTest( String textToSearch, boolean verifyFileExists, FileLink ... expectedResults )
-   {
-      OutputParser outputParser = new OutputParser( new FileLinkDefinitionLord(), verifyFileExists );
+   public static void parseTest( String textToSearch, boolean verifyFileExists, FileLink ... expectedResults ) {
+       OutputParser outputParser = new OutputParser( new FileLinkDefinitionLord(), verifyFileExists );
       List<FileLink> fileLinks = outputParser.parseText( textToSearch );
 
       TestUtility.assertListContents( fileLinks, expectedResults );
    }
 
-   public void testCompileErrors()
-   {
-      String outputText = ":distributionDiskResources SKIPPED\n" +
+   public void testCompileErrors() {
+       String outputText = ":distributionDiskResources SKIPPED\n" +
             ":installDiskResources SKIPPED\n" +
             ":idea-plugins:ideagradle:compileJava\n" +
             "[ant:javac] /home/user/project/modules/plugins/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java:186: cannot find symbol\n" +
@@ -56,9 +52,8 @@ public class FileLinkTests extends TestCase
       parseOutputTest( outputText, new FileLink( new File( "/home/user/project/modules/plugins/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java" ), 114, 215, 186 ) );
    }
 
-   public void testNotes()
-   {
-      String outputText = ":distributionDiskResources SKIPPED\n" +
+   public void testNotes() {
+       String outputText = ":distributionDiskResources SKIPPED\n" +
             ":installDiskResources SKIPPED\n" +
             ":idea-plugins:ideagradle:compileJava\n" +
             "[ant:javac] Note: /home/user/project/modules/plugins/gradle/src/main/java/com/thing/plugins/gradle/ui/GradleComponent.java uses or overrides a deprecated API.\n" +
@@ -73,9 +68,8 @@ public class FileLinkTests extends TestCase
     Tests to see if we can find gradle files in the output. This message shows up when the build fails. We'll test two types (that probably wouldn't
     occur naturally together. One with the line number, one without.
     */
-   public void testGradleBuildFile()
-   {
-      String outputText = "FAILURE: Build failed with an exception.\n" +
+   public void testGradleBuildFile() {
+       String outputText = "FAILURE: Build failed with an exception.\n" +
             "\n" +
             "* Where:\n" +
             "Build file '/home/user/gradle/build.gradle' line: 431\n" +
@@ -94,9 +88,8 @@ public class FileLinkTests extends TestCase
     This attempts to find a single ant:checkstyle error that occurs when the checkstyle fails. This error consists of
     the file, the line of the problem, and the cause.
     */
-   public void testCheckstyleSingleErrorOutput()
-   {
-      String outputText = ":processResources\n" +
+   public void testCheckstyleSingleErrorOutput() {
+       String outputText = ":processResources\n" +
             ":idea-plugins:compile\n" +
             ":compile\n" +
             ":copyNativeLibs\n" +
@@ -116,9 +109,8 @@ public class FileLinkTests extends TestCase
     This attemps to find the checkstyle error report file. This file will list all errors and where they are located.
     The file link we're looking for just has the file's path
     */
-   public void testCheckstyleReportErrorFile()
-   {
-      String outputText = ":processResources\n" +
+   public void testCheckstyleReportErrorFile() {
+       String outputText = ":processResources\n" +
             ":plugins:compile\n" +
             ":compile\n" +
             ":copyNativeLibs\n" +
@@ -137,9 +129,8 @@ public class FileLinkTests extends TestCase
    /**
     Tests that any HTML reports (prefixed with "See the report at ") are found.
     */
-   public void testHTMLReport()
-   {
-      String outputText = "* What went wrong:\n" +
+   public void testHTMLReport() {
+       String outputText = "* What went wrong:\n" +
             "Execution failed for task ':ui:codenarcTest'.\n" +
             "Cause: CodeNarc check violations were found in test Groovy source. See the report at /home/user/gradle/subprojects/gradle-ui/build/reports/codenarc/test.html.\n" +
             "\n" +
@@ -156,9 +147,8 @@ public class FileLinkTests extends TestCase
     the prefix. This was incorrect. There may be spaces between the prefix and the file (and I didn't want to put
     spaces in the prefix). So I added BasicFileLinkDefintion.getStartOfFile() to skip over these spaces.
     */
-   public void testOffByOneCharacterBug()
-   {
-      String outputText = "[ant:javac] Note: /home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java uses or overrides a deprecated API.\n" +
+   public void testOffByOneCharacterBug() {
+       String outputText = "[ant:javac] Note: /home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java uses or overrides a deprecated API.\n" +
                           "Build file '/home/user/modules/build.gradle'";
 
       parseOutputTest( outputText, new FileLink( new File( "/home/user/modules/f1j/src/main/java/com/thing/DesignerManager.java" ), 18, 85, -1 ),
@@ -170,9 +160,8 @@ public class FileLinkTests extends TestCase
       the actual file path and instead given only its parent path. The code assumes the report file
       is present.
       */
-   public void testFailedTestsReportFile()
-   {
-      String outputText = "FAILURE: Build failed with an exception.\n" +
+   public void testFailedTestsReportFile() {
+       String outputText = "FAILURE: Build failed with an exception.\n" +
             "\n" +
             "* Where:\n" +
             "Build file '/home/user/gradle/gradle/build.gradle'\n" +
@@ -190,9 +179,8 @@ public class FileLinkTests extends TestCase
    /**
     This tests for multiple files found in a single output.
     */
-   public void testMultiples()
-   {
-      String outputText = ":distributionDiskResources SKIPPED\n" +
+   public void testMultiples() {
+       String outputText = ":distributionDiskResources SKIPPED\n" +
             ":installDiskResources SKIPPED\n" +
             ":idea-plugins:ideagradle:compileJava\n\n" +
             "[ant:checkstyle] /home/user/modules/gradle/subprojects/gradle-core/src/main/groovy/org/gradle/util/exec/ExecHandleShutdownHookAction.java:38: 'if' construct must use '{}'s.\n" +
@@ -221,8 +209,7 @@ public class FileLinkTests extends TestCase
      * This tests that different cases of file extensions do not prevent files from being found. I
      * want to explicitly test this because I had to explicitly search for case insensitive matches.
      */
-   public void testFileExtensionCaseSensitivity()
-   {
+   public void testFileExtensionCaseSensitivity() {
        String outputText = ":distributionDiskResources SKIPPED\n" +
             ":installDiskResources SKIPPED\n" +
             "/home/user/files/Thing.java:38: 'if' construct must use '{}'s.\n" +
@@ -230,7 +217,7 @@ public class FileLinkTests extends TestCase
             "/home/user/files/Thing3.JaVa:77: incompatible types\n" +
             "* Try:\n" +
             "Run with -s or -d option to get more details. Run with -S option to get the full (very verbose) stacktrace.";
-       
+
        parseOutputTest( outputText, new FileLink( new File( "/home/user/files/Thing.java" ), 65, 95, 38 ),
                                     new FileLink( new File( "/home/user/files/Thing2.JAVA" ), 128, 160, 929 ),
                                     new FileLink( new File( "/home/user/files/Thing3.JaVa" ), 181, 212, 77 ) );

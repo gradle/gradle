@@ -18,28 +18,22 @@ package org.gradle.gradleplugin.userinterface.swing.generic;
 import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
-import org.gradle.gradleplugin.userinterface.swing.generic.tabs.CommandLineTab;
-import org.gradle.gradleplugin.userinterface.swing.generic.tabs.FavoriteTasksTab;
-import org.gradle.gradleplugin.userinterface.swing.generic.tabs.GradleTab;
-import org.gradle.gradleplugin.userinterface.swing.generic.tabs.SetupTab;
-import org.gradle.gradleplugin.userinterface.swing.generic.tabs.TaskTreeTab;
+import org.gradle.gradleplugin.userinterface.swing.generic.tabs.*;
 
 import javax.swing.*;
-import javax.swing.event.ChangeListener;
 import javax.swing.event.ChangeEvent;
-import java.awt.BorderLayout;
+import javax.swing.event.ChangeListener;
+import java.awt.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 /**
- * This is a tabbed pane meant to handle several tabs of gradle-related things. To use this, instantiate it, place it
- * some Swing container (dialog, frame), then call aboutToShow() before you show the parent container. You can also add
- * your own tabs to this (just call addGradleTab before calling aboutToShow()). When you shut down, call aboutToClose()
- * before doing so.
+ * This is a tabbed pane meant to handle several tabs of gradle-related things. To use this, instantiate it, place it some Swing container (dialog, frame), then call aboutToShow() before you show the
+ * parent container. You can also add your own tabs to this (just call addGradleTab before calling aboutToShow()). When you shut down, call aboutToClose() before doing so.
  *
  * @author mhunsicker
-  */
+ */
 public class MainGradlePanel extends JPanel {
     private static final String CURRENT_TAB = "current-tab";
     private static final String MAIN_PANEL = "main_panel";
@@ -52,13 +46,13 @@ public class MainGradlePanel extends JPanel {
     private List<GradleTab> gradleTabs = new ArrayList<GradleTab>();
 
     private JTabbedPane tabbedPane;
-   private SetupTab setupTab;
+    private SetupTab setupTab;
 
-   public MainGradlePanel(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
+    public MainGradlePanel(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settings, AlternateUIInteraction alternateUIInteraction) {
         this.alternateUIInteraction = alternateUIInteraction;
         this.gradlePluginLord = gradlePluginLord;
         this.settings = settings;
-        addDefaultTabs( outputUILord, alternateUIInteraction);
+        addDefaultTabs(outputUILord, alternateUIInteraction);
     }
 
     private void addDefaultTabs(OutputUILord outputUILord, AlternateUIInteraction alternateUIInteraction) {
@@ -67,14 +61,14 @@ public class MainGradlePanel extends JPanel {
         gradleTabs.add(new FavoriteTasksTab(gradlePluginLord, settings.addChildIfNotPresent("favorites-tab")));
         gradleTabs.add(new CommandLineTab(gradlePluginLord, settings.addChildIfNotPresent("command_line-tab")));
         setupTab = new SetupTab(gradlePluginLord, outputUILord, settings.addChildIfNotPresent("setup-tab"));
-        gradleTabs.add( setupTab );
+        gradleTabs.add(setupTab);
     }
 
     private int getGradleTabIndex(Class soughtClass) {
         for (int index = 0; index < gradleTabs.size(); index++) {
             GradleTab gradleTab = gradleTabs.get(index);
             if (gradleTab.getClass() == soughtClass) {
-               return index;
+                return index;
             }
         }
         return -1;
@@ -85,7 +79,7 @@ public class MainGradlePanel extends JPanel {
             for (int index = 0; index < gradleTabs.size(); index++) {
                 GradleTab gradleTab = gradleTabs.get(index);
                 if (name.equals(gradleTab.getName())) {
-                   return index;
+                    return index;
                 }
             }
         }
@@ -99,30 +93,28 @@ public class MainGradlePanel extends JPanel {
         return tabbedPane.getSelectedIndex();
     }
 
-
     public void setCurrentGradleTab(int index) {
-        if( index >= 0 && index < getGradleTabCount() ) {
-            tabbedPane.setSelectedIndex( index );
+        if (index >= 0 && index < getGradleTabCount()) {
+            tabbedPane.setSelectedIndex(index);
         }
     }
 
-
     /**
      * Call this to add one of your own tabs to this. You must call this before you call aboutToShow.
-    */
+     */
     public void addGradleTab(int index, GradleTab gradleTab) {
         //this can ultimately be called via external APIs so let's add a little extra error checking.
         if (index < 0) {
-           index = 0;
+            index = 0;
         }
-       if (index > gradleTabs.size()) {
-           index = gradleTabs.size();
+        if (index > gradleTabs.size()) {
+            index = gradleTabs.size();
         }
 
-       gradleTabs.add(index, gradleTab);
+        gradleTabs.add(index, gradleTab);
 
         if (tabbedPane != null) {   //if we've already displayed the tabs, we'll need to manually add it now to the tabbed pane.
-           addGradleTabToTabbedPane(index, gradleTab);
+            addGradleTabToTabbedPane(index, gradleTab);
         }
     }
 
@@ -136,10 +128,10 @@ public class MainGradlePanel extends JPanel {
     public void removeGradleTab(GradleTab gradleTab) {
         int existingIndex = gradleTabs.indexOf(gradleTab);
         if (existingIndex == -1) {
-           return;
+            return;
         }
 
-       gradleTabs.remove(gradleTab);
+        gradleTabs.remove(gradleTab);
 
         tabbedPane.remove(existingIndex);
 
@@ -150,7 +142,7 @@ public class MainGradlePanel extends JPanel {
 
     /**
      * @return the total number of tabs.
-    */
+     */
     public int getGradleTabCount() {
         return gradleTabs.size();
     }
@@ -158,14 +150,14 @@ public class MainGradlePanel extends JPanel {
     /**
      * @param index the index of the tab
      * @return the name of the tab at the specified index.
-    */
+     */
     public String getGradleTabName(int index) {
         return gradleTabs.get(index).getName();
     }
 
     /**
      * This is called when this about to displayed. Do any kind of initialization you need to do here.
-    */
+     */
     public void aboutToShow() {
         setupUI();
 
@@ -181,7 +173,7 @@ public class MainGradlePanel extends JPanel {
 
     /**
      * Notification that we're about to be closed. Here we're going to save our current settings.
-    */
+     */
     public void aboutToClose() {
     }
 
@@ -212,7 +204,7 @@ public class MainGradlePanel extends JPanel {
         if (!gradlePluginLord.isSetupComplete()) {
             int tabToSelect = getGradleTabIndex(SetupTab.class);
             if (tabToSelect != -1) {
-               tabbedPane.setSelectedIndex(tabToSelect);
+                tabbedPane.setSelectedIndex(tabToSelect);
             }
         } else {  //otherwise, try to get the last-used tab
             int lastTabIndex = -1;
@@ -225,7 +217,7 @@ public class MainGradlePanel extends JPanel {
             }
 
             if (lastTabIndex != -1) {
-               tabbedPane.setSelectedIndex(lastTabIndex);
+                tabbedPane.setSelectedIndex(lastTabIndex);
             }
         }
     }
@@ -238,13 +230,13 @@ public class MainGradlePanel extends JPanel {
         }
     }
 
-   /**
-    This adds the specified component to the setup panel. It is added below the last
-    'default' item. You can only add 1 component here, so if you need to add multiple
-    things, you'll have to handle adding that to yourself to the one component.
-    @param component the component to add.
-    */
-   public void setCustomPanelToSetupTab( JComponent component ) {
-      setupTab.setCustomPanel( component );
-   }
+    /**
+     * This adds the specified component to the setup panel. It is added below the last 'default' item. You can only add 1 component here, so if you need to add multiple things, you'll have to handle
+     * adding that to yourself to the one component.
+     *
+     * @param component the component to add.
+     */
+    public void setCustomPanelToSetupTab(JComponent component) {
+        setupTab.setCustomPanel(component);
+    }
 }

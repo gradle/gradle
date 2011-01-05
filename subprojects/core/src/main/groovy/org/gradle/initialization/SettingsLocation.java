@@ -19,8 +19,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 
 import java.io.File;
 
-public class SettingsLocation
-{
+public class SettingsLocation {
     private File settingsDir;
     private ScriptSource settingsScriptSource;
 
@@ -29,7 +28,12 @@ public class SettingsLocation
         this.settingsScriptSource = settingsScriptSource;
     }
 
-    public File getSettingsDir() { return settingsDir; }
-    public ScriptSource getSettingsScriptSource() { return settingsScriptSource; }
+    public File getSettingsDir() {
+        return settingsDir;
+    }
+
+    public ScriptSource getSettingsScriptSource() {
+        return settingsScriptSource;
+    }
 }
 

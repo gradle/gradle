@@ -39,12 +39,10 @@ public class GradleRunner {
         this.customGradleExecutor = customGradleExecutor;
     }
 
-    public synchronized void executeCommand(String commandLine, LogLevel logLevel,
-                                            StartParameter.ShowStacktrace stackTraceLevel,
+    public synchronized void executeCommand(String commandLine, LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel,
                                             ExecuteGradleCommandServerProtocol.ExecutionInteraction executionInteraction) {
         //the protocol manages the command line and messaging observers
-        ExecuteGradleCommandServerProtocol serverProtocol = new ExecuteGradleCommandServerProtocol(currentDirectory,
-                gradleHomeDirectory, customGradleExecutor, commandLine, logLevel, stackTraceLevel,
+        ExecuteGradleCommandServerProtocol serverProtocol = new ExecuteGradleCommandServerProtocol(currentDirectory, gradleHomeDirectory, customGradleExecutor, commandLine, logLevel, stackTraceLevel,
                 executionInteraction);
 
         //the server kicks off gradle as an external process and manages the communication with said process

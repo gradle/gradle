@@ -15,8 +15,8 @@
  */
 package org.gradle.openapi.wrappers.ui;
 
-import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 import org.gradle.gradleplugin.foundation.CommandLineArgumentAlteringListener;
+import org.gradle.openapi.external.ui.CommandLineArgumentAlteringListenerVersion1;
 
 /**
  * Wrapper to shield version changes in GradleTab from an external user of the gradle open API.
@@ -31,8 +31,7 @@ public class CommandLineArgumentAlteringListenerWrapper implements CommandLineAr
     }
 
     /**
-     * This is called when you can add additional command line arguments. Return any additional arguments to add. This
-     * doesn't modify the existing commands.
+     * This is called when you can add additional command line arguments. Return any additional arguments to add. This doesn't modify the existing commands.
      *
      * @param commandLineArguments the command line to execute.
      * @return any command lines to add or null to leave it alone

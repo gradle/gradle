@@ -25,17 +25,15 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
- * Analog to gradle's Project but more light-weight and is better suited for using the gradle API from an IDE plugin. It
- * is also easily serializable for passing across a socket. A project is a collection of source files that have tasks
- * associated with them. The tasks build the project. Projects can contain other projects. This is immutable and
- * ultimately comes from gradle files.
+ * Analog to gradle's Project but more light-weight and is better suited for using the gradle API from an IDE plugin. It is also easily serializable for passing across a socket. A project is a
+ * collection of source files that have tasks associated with them. The tasks build the project. Projects can contain other projects. This is immutable and ultimately comes from gradle files.
  *
  * @author mhunsicker
  */
 public class ProjectView implements Comparable<ProjectView>, Serializable {
     private final String name;
     private final ProjectView parentProject;
-            // It is null for the root project.
+    // It is null for the root project.
     private final List<ProjectView> subProjects = new ArrayList<ProjectView>();
     private final List<TaskView> tasks = new ArrayList<TaskView>();
     private final List<ProjectView> dependsOnProjects = new ArrayList<ProjectView>();
@@ -44,8 +42,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     private final String description;
 
     /**
-     * Instantiates an immutable view of a project. This is only meant to be called internally whenever generating a
-     * hierarchy of projects and tasks.
+     * Instantiates an immutable view of a project. This is only meant to be called internally whenever generating a hierarchy of projects and tasks.
      */
     /*package*/ ProjectView(ProjectView parentProject, String name, File buildFile, String description) {
         this.parentProject = parentProject;
@@ -82,8 +79,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     }
 
     /**
-     * creates a task for this project. This is only meant to be called internally whenever generating a hierachy of
-     * projects and tasks.
+     * creates a task for this project. This is only meant to be called internally whenever generating a hierachy of projects and tasks.
      */
     /*package*/ void createTask(String name, String description, boolean isDefault) {
         TaskView taskView = new TaskView(this, name, description, isDefault);
@@ -91,24 +87,22 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     }
 
     /**
-     * Adds the specified project as a sub project of this project. This is only meant to be called internally whenever
-     * generating a hierachy of projects and tasks.
+     * Adds the specified project as a sub project of this project. This is only meant to be called internally whenever generating a hierachy of projects and tasks.
      */
     /*package*/ void addSubProject(ProjectView subProject) {
         subProjects.add(subProject);
     }
 
     /**
-     * Sets the project that this project depends on. This is only meant to be called internally whenever generating a
-     * hierachy of projects and tasks.
+     * Sets the project that this project depends on. This is only meant to be called internally whenever generating a hierachy of projects and tasks.
      */
     /*package*/ void setDependsOnProjects(List<ProjectView> newDependsOnProjects) {
-        if( newDependsOnProjects == null ) {
+        if (newDependsOnProjects == null) {
             return;
         }
 
         this.dependsOnProjects.clear();
-        this.dependsOnProjects.addAll( newDependsOnProjects );
+        this.dependsOnProjects.addAll(newDependsOnProjects);
     }
 
     public List<ProjectView> getDependsOnProjects() {
@@ -161,8 +155,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
 
         ProjectView subProject = getSubProject(portion.getFirstPart());
 
-        if (!portion
-                .hasRemainder()) //if we have no remainder, then the path is just a sub project's name. We're done (even if subProject is null).
+        if (!portion.hasRemainder()) //if we have no remainder, then the path is just a sub project's name. We're done (even if subProject is null).
         {
             return subProject;
         }
@@ -175,8 +168,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     }
 
     /**
-     * This gets the task based on the given full path. This recursively calls this same function with sub projects
-     * until it finds the task or no matches are found.
+     * This gets the task based on the given full path. This recursively calls this same function with sub projects until it finds the task or no matches are found.
      *
      * @param fullTaskName the full task name (root_project:sub_project:sub_sub_project:task.).
      * @return the task or null if not found.
@@ -202,8 +194,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
     }
 
     /**
-     * This generates this project's full name. This is a colon-separated string of this project and its parent
-     * projects.
+     * This generates this project's full name. This is a colon-separated string of this project and its parent projects.
      *
      * Example: root_project:sub_project:sub_sub_project.
      */
@@ -214,8 +205,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
         } //if we're the root, our full project name is nothing.
 
         StringBuilder builder = new StringBuilder(name);
-        while (ancestorProject != null
-                && ancestorProject.getParentProject() != null)   //we don't want to include the 'root' project
+        while (ancestorProject != null && ancestorProject.getParentProject() != null)   //we don't want to include the 'root' project
         {
             builder.insert(0, ancestorProject.getName() + ':');
             ancestorProject = ancestorProject.getParentProject();
@@ -229,8 +219,7 @@ public class ProjectView implements Comparable<ProjectView>, Serializable {
      *
      * defaultTasks 'task name'
      *
-     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this
-     * project and does not return them for subprojects.
+     * in the gradle file. There can be multiple default tasks. This only returns default tasks directly for this project and does not return them for subprojects.
      *
      * @return a list of default tasks or an empty list if none exist
      */

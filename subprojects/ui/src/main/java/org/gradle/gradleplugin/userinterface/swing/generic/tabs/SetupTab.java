@@ -15,7 +15,6 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
@@ -24,28 +23,11 @@ import org.gradle.gradleplugin.foundation.GradlePluginLord;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.userinterface.swing.generic.OutputUILord;
 import org.gradle.gradleplugin.userinterface.swing.generic.Utility;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
-import javax.swing.AbstractAction;
-import javax.swing.AbstractButton;
-import javax.swing.BorderFactory;
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.ButtonGroup;
-import javax.swing.ButtonModel;
-import javax.swing.DefaultComboBoxModel;
-import javax.swing.JButton;
-import javax.swing.JCheckBox;
-import javax.swing.JComboBox;
-import javax.swing.JComponent;
-import javax.swing.JFileChooser;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.JRadioButton;
-import javax.swing.JTextField;
-import java.awt.BorderLayout;
-import java.awt.Component;
-import java.awt.Dimension;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -55,7 +37,7 @@ import java.util.*;
  * This tab contains general settings for the plugin.
  *
  * @author mhunsicker
-  */
+ */
 public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     private final Logger logger = Logging.getLogger(SetupTab.class);
 
@@ -89,12 +71,12 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     private JTextField customGradleExecutorField;
     private JButton browseForCustomGradleExecutorButton;
 
-   private JPanel customPanelPlaceHolder;
+    private JPanel customPanelPlaceHolder;
 
-   public SetupTab(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settingsNode) {
+    public SetupTab(GradlePluginLord gradlePluginLord, OutputUILord outputUILord, SettingsNode settingsNode) {
         this.gradlePluginLord = gradlePluginLord;
-      this.outputUILord = outputUILord;
-      this.settingsNode = settingsNode.addChildIfNotPresent(SETUP);
+        this.outputUILord = outputUILord;
+        this.settingsNode = settingsNode.addChildIfNotPresent(SETUP);
     }
 
     public String getName() {
@@ -108,11 +90,11 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-    * Notification that this component is about to be shown. Do whatever initialization you choose.
-    */
+     * Notification that this component is about to be shown. Do whatever initialization you choose.
+     */
     public void aboutToShow() {
         updatePluginLordSettings();
-        gradlePluginLord.addSettingsObserver( this, true );
+        gradlePluginLord.addSettingsObserver(this, true);
     }
 
     private void setupUI() {
@@ -131,8 +113,8 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         mainPanel.add(Box.createVerticalStrut(10));
 
         //add a panel that can be used to add custom things to the setup tab
-        customPanelPlaceHolder = new JPanel( new BorderLayout() );
-        mainPanel.add( customPanelPlaceHolder );
+        customPanelPlaceHolder = new JPanel(new BorderLayout());
+        mainPanel.add(customPanelPlaceHolder);
 
         //Glue alone doesn't work in this situation. This forces everything to the top.
         JPanel expandingPanel = new JPanel(new BorderLayout());
@@ -148,17 +130,17 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
         String currentDirectory = settingsNode.getValueOfChild(CURRENT_DIRECTORY, null);
         if (currentDirectory == null || "".equals(currentDirectory.trim())) {
-           currentDirectory = gradlePluginLord.getCurrentDirectory().getAbsolutePath();
+            currentDirectory = gradlePluginLord.getCurrentDirectory().getAbsolutePath();
         }
 
-       currentDirectoryTextField.setText(currentDirectory);
+        currentDirectoryTextField.setText(currentDirectory);
         gradlePluginLord.setCurrentDirectory(new File(currentDirectory));
 
         JButton browseButton = new JButton(new AbstractAction("Browse...") {
             public void actionPerformed(ActionEvent e) {
-                File file = browseForDirectory( gradlePluginLord.getCurrentDirectory() );
+                File file = browseForDirectory(gradlePluginLord.getCurrentDirectory());
                 if (file != null) {
-                    setCurrentDirectory( file );
+                    setCurrentDirectory(file);
                 }
             }
         });
@@ -174,25 +156,23 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
     private void setCurrentDirectory(File file) {
 
-        if( file == null ) {
+        if (file == null) {
             currentDirectoryTextField.setText("");
-            settingsNode.setValueOfChild(CURRENT_DIRECTORY, "" );
+            settingsNode.setValueOfChild(CURRENT_DIRECTORY, "");
         } else {
-            currentDirectoryTextField.setText( file.getAbsolutePath() );
+            currentDirectoryTextField.setText(file.getAbsolutePath());
             settingsNode.setValueOfChild(CURRENT_DIRECTORY, file.getAbsolutePath());
         }
 
-        if( gradlePluginLord.setCurrentDirectory(file) )
-        {
+        if (gradlePluginLord.setCurrentDirectory(file)) {
             //refresh the tasks only if we actually changed the current directory
             gradlePluginLord.addRefreshRequestToQueue();
         }
     }
 
     /**
-    * this creates a panel where the right component is its preferred size. This is useful for putting on
-    * a button on the right and a text field on the left.
-    */
+     * this creates a panel where the right component is its preferred size. This is useful for putting on a button on the right and a text field on the left.
+     */
     public static JComponent createSideBySideComponent(Component leftComponent, Component rightComponent) {
         JPanel xLayoutPanel = new JPanel();
         xLayoutPanel.setLayout(new BoxLayout(xLayoutPanel, BoxLayout.X_AXIS));
@@ -209,13 +189,13 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
     /**
      * Browses for a file using the text value from the text field as the current value.
+     *
      * @param fileTextField where we get the current value
-     * @return
      */
-    private File browseForDirectory(File initialFile ) {
+    private File browseForDirectory(File initialFile) {
 
-        if( initialFile == null ) {
-            initialFile = new File( System.getProperty("user.dir") );
+        if (initialFile == null) {
+            initialFile = new File(System.getProperty("user.dir"));
         }
 
         JFileChooser chooser = new JFileChooser(initialFile);
@@ -232,7 +212,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
     /**
      * Creates a panel that has a combo box to select a log level
-    */
+     */
     private Component createLogLevelPanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -248,8 +228,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         if (logLevelName != null) {
             try {
                 logLevel = LogLevel.valueOf(logLevelName);
-            }
-            catch (IllegalArgumentException e) //this may happen if the enum changes. We don't want this to stop the whole UI
+            } catch (IllegalArgumentException e) //this may happen if the enum changes. We don't want this to stop the whole UI
             {
                 logger.error("Converting log level text to log level enum '" + logLevelName + "'", e);
             }
@@ -272,8 +251,8 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-    * This creates an array of wrapper objects suitable for passing to the constructor of the log level combo box.
-    */
+     * This creates an array of wrapper objects suitable for passing to the constructor of the log level combo box.
+     */
     private Vector<LogLevelWrapper> getLogLevelWrappers() {
         Collection<LogLevel> collection = new LoggingCommandLineConverter().getLogLevels();
 
@@ -296,9 +275,9 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-     * This exists solely for overriding toString to something nicer. We'll captilize the first letter. The rest become
-     * lower case. Ultimately, this should probably move into LogLevel. We'll also put the log level shortcut in parenthesis
-    */
+     * This exists solely for overriding toString to something nicer. We'll captilize the first letter. The rest become lower case. Ultimately, this should probably move into LogLevel. We'll also put
+     * the log level shortcut in parenthesis
+     */
     private class LogLevelWrapper {
         private LogLevel logLevel;
         private String toString;
@@ -310,10 +289,9 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
             this.toString = Character.toUpperCase(temp.charAt(0)) + temp.substring(1);
 
             //add the command line character to the end (so if an error message says use a log level, you can easily translate)
-            String commandLineCharacter = new LoggingCommandLineConverter().getLogLevelCommandLine( logLevel );
-            if( commandLineCharacter != null && !commandLineCharacter.equals( "" ))
-            {
-               this.toString += " (-" + commandLineCharacter + ")";
+            String commandLineCharacter = new LoggingCommandLineConverter().getLogLevelCommandLine(logLevel);
+            if (commandLineCharacter != null && !commandLineCharacter.equals("")) {
+                this.toString += " (-" + commandLineCharacter + ")";
             }
         }
 
@@ -323,10 +301,10 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-    * Sets the log level combo box to the specified log level.
-    *
-    * @param  logLevel   the log level in question.
-    */
+     * Sets the log level combo box to the specified log level.
+     *
+     * @param logLevel the log level in question.
+     */
     private void setLogLevelComboBoxSetting(LogLevel logLevel) {
         DefaultComboBoxModel model = (DefaultComboBoxModel) logLevelComboBox.getModel();
         for (int index = 0; index < model.getSize(); index++) {
@@ -339,9 +317,8 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-     * Creates a panel with stack trace level radio buttons that allow you to specify how much info is given when an
-     * error occurs.
-    */
+     * Creates a panel with stack trace level radio buttons that allow you to specify how much info is given when an error occurs.
+     */
     private Component createStackTracePanel() {
         JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
@@ -349,8 +326,9 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         panel.setBorder(BorderFactory.createTitledBorder("Stack Trace Output"));
 
         showNoStackTraceRadioButton = new JRadioButton("Exceptions Only");
-        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + DefaultCommandLineConverter.STACKTRACE + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
-        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLineConverter.FULL_STACKTRACE + ")" );
+        showStackTrackRadioButton = new JRadioButton("Standard Stack Trace (-" + DefaultCommandLineConverter.STACKTRACE
+                + ")");  //add the command line character to the end (so if an error message says use a stack trace level, you can easily translate)
+        showFullStackTrackRadioButton = new JRadioButton("Full Stack Trace (-" + DefaultCommandLineConverter.FULL_STACKTRACE + ")");
 
         showNoStackTraceRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.INTERNAL_EXCEPTIONS);
         showStackTrackRadioButton.putClientProperty(STACK_TRACE_LEVEL_CLIENT_PROPERTY, StartParameter.ShowStacktrace.ALWAYS);
@@ -382,35 +360,32 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
             try {
                 setSelectedStackTraceLevel(StartParameter.ShowStacktrace.valueOf(stackTraceLevel));
                 updateStackTraceSetting(false);   //false because we're serializing this in
-            }
-            catch (Exception e) {  //this can happen if the stack trace levels change because you're moving between versions.
+            } catch (Exception e) {  //this can happen if the stack trace levels change because you're moving between versions.
                 logger.error("Converting stack trace level text to stack trace level enum '" + stackTraceLevel + "'", e);
             }
         }
-
 
         return panel;
     }
 
     /**
-    * This stores the current stack trace setting (based on the UI controls) in the plugin.
-    */
+     * This stores the current stack trace setting (based on the UI controls) in the plugin.
+     */
     private void updateStackTraceSetting(boolean saveSetting) {
         StartParameter.ShowStacktrace stackTraceLevel = getSelectedStackTraceLevel();
         gradlePluginLord.setStackTraceLevel(stackTraceLevel);
 
         if (saveSetting) {
-           settingsNode.setValueOfChild(STACK_TRACE_LEVEL, stackTraceLevel.name());
+            settingsNode.setValueOfChild(STACK_TRACE_LEVEL, stackTraceLevel.name());
         }
     }
 
     /**
-     * Sets the selected strack trace level on the radio buttons. The radio buttons store their stack trace level as a
-     * client property and I'll look for a match using that. This way, we don't have to edit this if new levels are
-     * created.
-    *
-    *  @param  newStackTraceLevel   the new stack trace level.
-    */
+     * Sets the selected strack trace level on the radio buttons. The radio buttons store their stack trace level as a client property and I'll look for a match using that. This way, we don't have to
+     * edit this if new levels are created.
+     *
+     * @param newStackTraceLevel the new stack trace level.
+     */
     private void setSelectedStackTraceLevel(StartParameter.ShowStacktrace newStackTraceLevel) {
         Enumeration<AbstractButton> buttonEnumeration = stackTraceButtonGroup.getElements();
         while (buttonEnumeration.hasMoreElements()) {
@@ -424,12 +399,11 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-     * Returns the currently selected stack trace level.  The radio buttons store their stack trace level as a client
-     * property so once we get the selected button, we know the level. This way, we don't have to edit this if new
-     * levels are created. Unfortunately, Swing doesn't have an easy way to get the actual button from the group.
+     * Returns the currently selected stack trace level.  The radio buttons store their stack trace level as a client property so once we get the selected button, we know the level. This way, we don't
+     * have to edit this if new levels are created. Unfortunately, Swing doesn't have an easy way to get the actual button from the group.
      *
-    *  @return the selected stack trace level
-    */
+     * @return the selected stack trace level
+     */
     private StartParameter.ShowStacktrace getSelectedStackTraceLevel() {
         ButtonModel selectedButtonModel = stackTraceButtonGroup.getSelection();
         if (selectedButtonModel != null) {
@@ -453,10 +427,10 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         onlyShowOutputOnErrorCheckBox = new JCheckBox("Only Show Output When Errors Occur");
 
         onlyShowOutputOnErrorCheckBox.addActionListener(new ActionListener() {
-         public void actionPerformed(ActionEvent e) {
-             updateShowOutputOnErrorsSetting();
-             settingsNode.setValueOfChildAsBoolean(SHOW_OUTPUT_ON_ERROR, onlyShowOutputOnErrorCheckBox.isSelected());
-         }
+            public void actionPerformed(ActionEvent e) {
+                updateShowOutputOnErrorsSetting();
+                settingsNode.setValueOfChildAsBoolean(SHOW_OUTPUT_ON_ERROR, onlyShowOutputOnErrorCheckBox.isSelected());
+            }
         });
 
         //initialize its default value
@@ -470,12 +444,11 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         return panel;
     }
 
-   private void updateShowOutputOnErrorsSetting()
-   {
-      boolean value = onlyShowOutputOnErrorCheckBox.isSelected();
+    private void updateShowOutputOnErrorsSetting() {
+        boolean value = onlyShowOutputOnErrorCheckBox.isSelected();
 
-       outputUILord.setOnlyShowOutputOnErrors(value);
-   }
+        outputUILord.setOnlyShowOutputOnErrors(value);
+    }
 
     private Component createCustomExecutorPanel() {
         useCustomGradleExecutorCheckBox = new JCheckBox("Use Custom Gradle Executor");
@@ -491,13 +464,12 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
         String customExecutorPath = settingsNode.getValueOfChild(CUSTOM_GRADLE_EXECUTOR, null);
         if (customExecutorPath == null) {
-           setCustomGradleExecutor(null);
-        }
-        else {
-           setCustomGradleExecutor(new File(customExecutorPath));
+            setCustomGradleExecutor(null);
+        } else {
+            setCustomGradleExecutor(new File(customExecutorPath));
         }
 
-       JPanel panel = new JPanel();
+        JPanel panel = new JPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
 
         panel.add(Utility.addLeftJustifiedComponent(useCustomGradleExecutorCheckBox));
@@ -508,10 +480,9 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         useCustomGradleExecutorCheckBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (useCustomGradleExecutorCheckBox.isSelected()) { //if they checked it, browse for a custom executor immediately
-                   browseForCustomGradleExecutor();
-                }
-                else {
-                   setCustomGradleExecutor(null);
+                    browseForCustomGradleExecutor();
+                } else {
+                    setCustomGradleExecutor(null);
                 }
             }
         });
@@ -520,17 +491,16 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
     }
 
     /**
-    * Call this to browse for a custom gradle executor.
-    */
+     * Call this to browse for a custom gradle executor.
+     */
     private void browseForCustomGradleExecutor() {
         File startingDirectory = new File(System.getProperty("user.home"));
         File currentFile = gradlePluginLord.getCustomGradleExecutor();
         if (currentFile != null) {
-           startingDirectory = currentFile.getAbsoluteFile();
-        }
-        else {
+            startingDirectory = currentFile.getAbsoluteFile();
+        } else {
             if (gradlePluginLord.getCurrentDirectory() != null) {
-               startingDirectory = gradlePluginLord.getCurrentDirectory();
+                startingDirectory = gradlePluginLord.getCurrentDirectory();
             }
         }
 
@@ -540,26 +510,25 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
 
         File file = null;
         if (chooser.showOpenDialog(mainPanel) == JFileChooser.APPROVE_OPTION) {
-           file = chooser.getSelectedFile();
+            file = chooser.getSelectedFile();
         }
 
-       if (file != null) {
-          setCustomGradleExecutor(file);
-       }
-       else {  //if they canceled, and they have no custom gradle executor specified, then we must clear things
+        if (file != null) {
+            setCustomGradleExecutor(file);
+        } else {  //if they canceled, and they have no custom gradle executor specified, then we must clear things
             //This will reset the UI back to 'not using a custom executor'. We can't have them check the
             //field and not have a value here.
             if (gradlePluginLord.getCustomGradleExecutor() == null) {
-               setCustomGradleExecutor(null);
+                setCustomGradleExecutor(null);
             }
-       }
+        }
     }
 
     /**
-    * Call this to set a custom gradle executor. We'll enable all fields appropriately and setup the foundation settings. We'll also fire off a refresh.
-    *
-    * @param  file       the file to use as a custom executor. Null not to use one.
-    */
+     * Call this to set a custom gradle executor. We'll enable all fields appropriately and setup the foundation settings. We'll also fire off a refresh.
+     *
+     * @param file the file to use as a custom executor. Null not to use one.
+     */
     private void setCustomGradleExecutor(File file) {
         String storagePath;
         boolean isUsingCustom = false;
@@ -572,8 +541,7 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         }
 
         //set the executor in the foundation
-        if( gradlePluginLord.setCustomGradleExecutor(file) )
-        {
+        if (gradlePluginLord.setCustomGradleExecutor(file)) {
             //refresh the tasks only if we actually changed the executor
             gradlePluginLord.addRefreshRequestToQueue();
         }
@@ -590,35 +558,34 @@ public class SetupTab implements GradleTab, GradlePluginLord.SettingsObserver {
         settingsNode.setValueOfChild(CUSTOM_GRADLE_EXECUTOR, storagePath);
     }
 
-   /**
-    This adds the specified component to the setup panel. It is added below the last
-    'default' item. You can only add 1 component here, so if you need to add multiple
-    things, you'll have to handle adding that to yourself to the one component.
-    @param component the component to add.
-    */
-    public void setCustomPanel( JComponent component ) {
-       customPanelPlaceHolder.add( component, BorderLayout.CENTER );
-       customPanelPlaceHolder.invalidate();
-       mainPanel.validate();
+    /**
+     * This adds the specified component to the setup panel. It is added below the last 'default' item. You can only add 1 component here, so if you need to add multiple things, you'll have to handle
+     * adding that to yourself to the one component.
+     *
+     * @param component the component to add.
+     */
+    public void setCustomPanel(JComponent component) {
+        customPanelPlaceHolder.add(component, BorderLayout.CENTER);
+        customPanelPlaceHolder.invalidate();
+        mainPanel.validate();
     }
 
     /**
-    * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home
-    * directory, etc. This is useful for UIs that need to update their UIs when this is changed by other means.
-    */
+     * Notification that some settings have changed for the plugin. Settings such as current directory, gradle home directory, etc. This is useful for UIs that need to update their UIs when this is
+     * changed by other means.
+     */
     public void settingsChanged() {
         updatePluginLordSettings();
     }
 
     /**
-     * Called upon start up and whenever GradlePluginLord settings are changed. We'll update our values.
-     * Note: this actually gets called several times in a row for each settings during initialization. Its
-     * not optimal, but functional and I didn't want to deal with numerous, specific-field notifications.
+     * Called upon start up and whenever GradlePluginLord settings are changed. We'll update our values. Note: this actually gets called several times in a row for each settings during initialization.
+     * Its not optimal, but functional and I didn't want to deal with numerous, specific-field notifications.
      */
     private void updatePluginLordSettings() {
-        setCustomGradleExecutor( gradlePluginLord.getCustomGradleExecutor() );
+        setCustomGradleExecutor(gradlePluginLord.getCustomGradleExecutor());
 
-        setCurrentDirectory( gradlePluginLord.getCurrentDirectory() );
+        setCurrentDirectory(gradlePluginLord.getCurrentDirectory());
 
         setSelectedStackTraceLevel(gradlePluginLord.getStackTraceLevel());
 

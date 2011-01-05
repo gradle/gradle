@@ -15,7 +15,7 @@
  */
 package org.gradle.gradleplugin.userinterface.swing.generic.tabs;
 
-import java.awt.Component;
+import java.awt.*;
 
 /**
  * Interface for a tab in the gradle UI.

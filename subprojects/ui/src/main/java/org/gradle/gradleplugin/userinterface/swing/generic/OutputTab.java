@@ -19,22 +19,18 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.gradleplugin.userinterface.AlternateUIInteraction;
 
-import javax.swing.Box;
-import javax.swing.BoxLayout;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.ImageIcon;
 import javax.imageio.ImageIO;
-import java.awt.Component;
-import java.awt.image.BufferedImage;
+import javax.swing.*;
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.io.InputStream;
+import java.awt.image.BufferedImage;
 import java.io.IOException;
+import java.io.InputStream;
 
 /**
- * This just wraps up an OutputPanel so it has a tab header that can be dynamic. The current (rather awkward) JTabbedPane
- * implementation is to separate the tab contents from its component. This only works with java 1.6 or later.
+ * This just wraps up an OutputPanel so it has a tab header that can be dynamic. The current (rather awkward) JTabbedPane implementation is to separate the tab contents from its component. This only
+ * works with java 1.6 or later.
  *
  * @author mhunsicker
  */
@@ -47,11 +43,11 @@ public class OutputTab extends OutputPanel {
     private JLabel pinnedLabel;
     private JLabel closeLabel;
 
-   private static ImageIcon closeIcon;
-   private static ImageIcon closeHighlightIcon;
+    private static ImageIcon closeIcon;
+    private static ImageIcon closeHighlightIcon;
 
-   public OutputTab(OutputPanelParent parent, String header, AlternateUIInteraction alternateUIInteraction) {
-        super( parent, alternateUIInteraction );
+    public OutputTab(OutputPanelParent parent, String header, AlternateUIInteraction alternateUIInteraction) {
+        super(parent, alternateUIInteraction);
         mainPanel = new JPanel();
         mainPanel.setOpaque(false);
         mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.X_AXIS));
@@ -68,54 +64,50 @@ public class OutputTab extends OutputPanel {
         mainPanel.add(closeLabel);
     }
 
-   private void setupCloseLabel()
-   {
-      if( closeIcon == null )
-      {
-          BufferedImage closeImage = getImageResource( "close.png" );
-          BufferedImage closeHighlightImage = getImageResource( "close-highlight.png" );
+    private void setupCloseLabel() {
+        if (closeIcon == null) {
+            BufferedImage closeImage = getImageResource("close.png");
+            BufferedImage closeHighlightImage = getImageResource("close-highlight.png");
 
-          if( closeImage != null ) {
-             closeIcon = new ImageIcon( closeImage );
-          }
+            if (closeImage != null) {
+                closeIcon = new ImageIcon(closeImage);
+            }
 
-         if( closeHighlightImage != null ) {
-            closeHighlightIcon = new ImageIcon( closeHighlightImage );
-         }
-      }
+            if (closeHighlightImage != null) {
+                closeHighlightIcon = new ImageIcon(closeHighlightImage);
+            }
+        }
 
-      closeLabel = new JLabel( closeIcon );
-      closeLabel.addMouseListener( new MouseAdapter() {
-         @Override
-         public void mouseEntered( MouseEvent e ) {
-            closeLabel.setIcon( closeHighlightIcon );
-         }
+        closeLabel = new JLabel(closeIcon);
+        closeLabel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                closeLabel.setIcon(closeHighlightIcon);
+            }
 
-         @Override
-         public void mouseExited( MouseEvent e ) {
-            closeLabel.setIcon( closeIcon );
-         }
+            @Override
+            public void mouseExited(MouseEvent e) {
+                closeLabel.setIcon(closeIcon);
+            }
 
-         public void mouseClicked(MouseEvent e) {
-             close();
-         }
-      } );
-   }
+            public void mouseClicked(MouseEvent e) {
+                close();
+            }
+        });
+    }
 
-   private BufferedImage getImageResource( String imageResourceName )
-    {
-       InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
-       if (inputStream != null) {
-          try {
-              BufferedImage image = ImageIO.read(inputStream);
-             return image;
-          }
-          catch ( IOException e) {
-              LOGGER.error("Reading image " + imageResourceName, e);
-          }
-       }
+    private BufferedImage getImageResource(String imageResourceName) {
+        InputStream inputStream = getClass().getResourceAsStream(imageResourceName);
+        if (inputStream != null) {
+            try {
+                BufferedImage image = ImageIO.read(inputStream);
+                return image;
+            } catch (IOException e) {
+                LOGGER.error("Reading image " + imageResourceName, e);
+            }
+        }
 
-       return null;
+        return null;
     }
 
     /**
@@ -141,11 +133,11 @@ public class OutputTab extends OutputPanel {
         closeLabel.setEnabled(false); // provide feedback to the user that we received their click
 
         boolean result = super.close();
-        if( result ) {
-           closeLabel.setEnabled(true);
+        if (result) {
+            closeLabel.setEnabled(true);
         }
 
-       return result;
+        return result;
     }
 
     /**
@@ -153,7 +145,7 @@ public class OutputTab extends OutputPanel {
      *
      * @param pinned whether or not we're pinned
      * @author mhunsicker
-    */
+     */
     @Override
     public void setPinned(boolean pinned) {
         pinnedLabel.setVisible(pinned);

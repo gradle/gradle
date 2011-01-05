@@ -16,16 +16,16 @@
 package org.gradle.foundation.ipc.gradle;
 
 import org.apache.commons.io.IOUtils;
-import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.StartParameter;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.foundation.CommandLineAssistant;
+import org.gradle.foundation.ipc.basic.ClientProcess;
+import org.gradle.foundation.ipc.basic.ExecutionInfo;
 import org.gradle.foundation.ipc.basic.MessageObject;
 import org.gradle.foundation.ipc.basic.ProcessLauncherServer;
-import org.gradle.foundation.ipc.basic.ExecutionInfo;
-import org.gradle.foundation.ipc.basic.ClientProcess;
+import org.gradle.initialization.DefaultCommandLineConverter;
 import org.gradle.util.Jvm;
 import org.gradle.util.OperatingSystem;
 
@@ -39,441 +39,400 @@ import java.util.HashMap;
 import java.util.List;
 
 /**
- * This defines the basic behavior of all gradle protocols for interprocess communication. It manages handshaking,
- * detecting if the client executed prematurely, as well as executing alternate external processes. All you need to do
- * is extend this, implement the abstract functions, and make sure you call setHasReceivedBuildCompleteNotification()
- * when whatever you were doing is complete (so we know any exiting is not premature).
+ * This defines the basic behavior of all gradle protocols for interprocess communication. It manages handshaking, detecting if the client executed prematurely, as well as executing alternate external
+ * processes. All you need to do is extend this, implement the abstract functions, and make sure you call setHasReceivedBuildCompleteNotification() when whatever you were doing is complete (so we know
+ * any exiting is not premature).
  *
  * @author mhunsicker
-  */
-public abstract class AbstractGradleServerProtocol implements ProcessLauncherServer.Protocol
-{
-   private static final String INIT_SCRIPT_EXTENSION = ".gradle";
+ */
+public abstract class AbstractGradleServerProtocol implements ProcessLauncherServer.Protocol {
+    private static final String INIT_SCRIPT_EXTENSION = ".gradle";
 
-   private final Logger logger = Logging.getLogger( AbstractGradleServerProtocol.class );
+    private final Logger logger = Logging.getLogger(AbstractGradleServerProtocol.class);
 
-   protected ProcessLauncherServer server;
-   private boolean continueConnection;
-   private boolean waitingOnHandshakeCompletion;
-   private boolean hasCompletedConnection;
+    protected ProcessLauncherServer server;
+    private boolean continueConnection;
+    private boolean waitingOnHandshakeCompletion;
+    private boolean hasCompletedConnection;
 
-   private boolean hasReceivedBuildCompleteNotification;
+    private boolean hasReceivedBuildCompleteNotification;
 
-   private File currentDirectory;
-   private File gradleHomeDirectory;
+    private File currentDirectory;
+    private File gradleHomeDirectory;
 
-   private File customGradleExecutor;
-   private String commandLine;
-   private LogLevel logLevel;
+    private File customGradleExecutor;
+    private String commandLine;
+    private LogLevel logLevel;
 
-   //all of this is just so we can get gradle to kill itself when we cancel
-   private int killGradleServerPort;
-   private KillGradleClientProtocol killGradleClientProcotol;
-   private ClientProcess killGradleClient;
+    //all of this is just so we can get gradle to kill itself when we cancel
+    private int killGradleServerPort;
+    private KillGradleClientProtocol killGradleClientProcotol;
+    private ClientProcess killGradleClient;
 
-   protected MessageObject lastMessageReceived; //just for debugging purposes
+    protected MessageObject lastMessageReceived; //just for debugging purposes
 
-   /**
+    /**
      * @return true if we should keep the connection alive. False if we should stop communicaiton.
-   */
-   public boolean continueConnection()
-   {
-      return continueConnection;
-   }
+     */
+    public boolean continueConnection() {
+        return continueConnection;
+    }
 
-   private StartParameter.ShowStacktrace stackTraceLevel;
+    private StartParameter.ShowStacktrace stackTraceLevel;
 
-   public AbstractGradleServerProtocol( File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel, StartParameter.ShowStacktrace stackTraceLevel)
-   {
-      this.currentDirectory = currentDirectory;
-      this.gradleHomeDirectory = gradleHomeDirectory;
-      this.customGradleExecutor = customGradleExecutor;
-      this.commandLine = fullCommandLine;
-      this.logLevel = logLevel;
-      this.stackTraceLevel = stackTraceLevel;
-   }
+    public AbstractGradleServerProtocol(File currentDirectory, File gradleHomeDirectory, File customGradleExecutor, String fullCommandLine, LogLevel logLevel,
+                                        StartParameter.ShowStacktrace stackTraceLevel) {
+        this.currentDirectory = currentDirectory;
+        this.gradleHomeDirectory = gradleHomeDirectory;
+        this.customGradleExecutor = customGradleExecutor;
+        this.commandLine = fullCommandLine;
+        this.logLevel = logLevel;
+        this.stackTraceLevel = stackTraceLevel;
+    }
 
-   /**
+    /**
      * Notification that the connection was accepted by the client.
-   */
-   public void connectionAccepted()
-   {
-      //let's make sure we're talking to the right client with some tiny handshaking.
-      server.sendMessage( ProtocolConstants.HANDSHAKE_TYPE, ProtocolConstants.HANDSHAKE_SERVER );
-      continueConnection = true;
-      waitingOnHandshakeCompletion = true;
-   }
+     */
+    public void connectionAccepted() {
+        //let's make sure we're talking to the right client with some tiny handshaking.
+        server.sendMessage(ProtocolConstants.HANDSHAKE_TYPE, ProtocolConstants.HANDSHAKE_SERVER);
+        continueConnection = true;
+        waitingOnHandshakeCompletion = true;
+    }
 
-   /**
+    /**
      * Gives your protocol a chance to store this server so it can access its functions.
-   */
-   public void initialize( ProcessLauncherServer server ) { this.server = server; }
+     */
+    public void initialize(ProcessLauncherServer server) {
+        this.server = server;
+    }
 
-   /**
+    /**
      * Call this to stop communication
-   */
-   protected void closeConnection()
-   {
-      this.continueConnection = false;
-   }
+     */
+    protected void closeConnection() {
+        this.continueConnection = false;
+    }
 
-   /**
-     * Notification that a message has been received. If we just connected, we'll do a quick handshake to verify the
-     * client, then we just pass the rest on our our output panel.
+    /**
+     * Notification that a message has been received. If we just connected, we'll do a quick handshake to verify the client, then we just pass the rest on our our output panel.
      *
      * @param message the message that was received.
-   */
-   public void messageReceived( MessageObject message )
-   {
-      lastMessageReceived = message;
-      if( waitingOnHandshakeCompletion )  //are we still handshaking?
-      {
-         if( ProtocolConstants.HANDSHAKE_CLIENT.equalsIgnoreCase( message.getMessage() ) )
-         {
-            waitingOnHandshakeCompletion = false;  //we've received what we expected
-            hasCompletedConnection = true;         //and we're now connected
-            if( message.getData() != null )
-            {
-               killGradleServerPort = (Integer) message.getData();
-               killGradleClientProcotol = new KillGradleClientProtocol();
-               killGradleClient = new ClientProcess( killGradleClientProcotol );
-               killGradleClient.start( killGradleServerPort );
-               handShakeCompleted();
+     */
+    public void messageReceived(MessageObject message) {
+        lastMessageReceived = message;
+        if (waitingOnHandshakeCompletion) {
+            //are we still handshaking?
+            if (ProtocolConstants.HANDSHAKE_CLIENT.equalsIgnoreCase(message.getMessage())) {
+                waitingOnHandshakeCompletion = false;  //we've received what we expected
+                hasCompletedConnection = true;         //and we're now connected
+                if (message.getData() != null) {
+                    killGradleServerPort = (Integer) message.getData();
+                    killGradleClientProcotol = new KillGradleClientProtocol();
+                    killGradleClient = new ClientProcess(killGradleClientProcotol);
+                    killGradleClient.start(killGradleServerPort);
+                    handShakeCompleted();
+                } else {
+                    addStatus("Invalid handshaking. Missing port number. Stopping connection");
+                    server.sendMessage("?", "Invalid client handshake protocol!");
+                    closeConnection();
+                }
+            } else {
+                addStatus("Invalid handshaking. Stopping connection");
+                server.sendMessage("?", "Invalid client handshake protocol!");
+                closeConnection();
             }
-            else
-            {
-               addStatus( "Invalid handshaking. Missing port number. Stopping connection" );
-               server.sendMessage( "?", "Invalid client handshake protocol!" );
-               closeConnection();
+        } else {
+            //otherwise, its just a normal message, the protocol should handle it.
+            try {
+                handleMessageReceived(message);
+            } catch (Throwable e) {
+                logger.error("Problem while handing message :\n" + message, e);
             }
-         }
-         else
-         {
-            addStatus( "Invalid handshaking. Stopping connection" );
-            server.sendMessage( "?", "Invalid client handshake protocol!" );
-            closeConnection();
-         }
-      }
-      else  //otherwise, its just a normal message, the protocol should handle it.
-      {
-         try
-         {
-            handleMessageReceived( message );
-         }
-         catch( Throwable e )
-         {
-            logger.error( "Problem while handing message :\n" + message, e );
-         }
-      }
-   }
+        }
+    }
 
-   /**
+    /**
      * This provides you with a chance to do something when the handshaking is complete
-    */
-   protected void handShakeCompleted()
-   {
+     */
+    protected void handShakeCompleted() {
 
-   }
+    }
 
-   /**
-     * Notification that a message was received that we didn't process. Implement this to handle the specifics of your
-     * protocol. Basically, the base class handles the handshake. The rest of the conversation is up to you.
+    /**
+     * Notification that a message was received that we didn't process. Implement this to handle the specifics of your protocol. Basically, the base class handles the handshake. The rest of the
+     * conversation is up to you.
      *
      * @param message the message we received.
      * @return true if we handled the message, false if not. If we don't know it, we won't return an acknowlegement.
-   */
-   protected abstract boolean handleMessageReceived( MessageObject message );
+     */
+    protected abstract boolean handleMessageReceived(MessageObject message);
 
-   /**
-     * Call this to mark the build as completed (whether successfully or not). This is used to determine if the client
-     * has exited prematurely which indicates a problem.
-   */
-   public void setHasReceivedBuildCompleteNotification() { this.hasReceivedBuildCompleteNotification = true; }
+    /**
+     * Call this to mark the build as completed (whether successfully or not). This is used to determine if the client has exited prematurely which indicates a problem.
+     */
+    public void setHasReceivedBuildCompleteNotification() {
+        this.hasReceivedBuildCompleteNotification = true;
+    }
 
-   /**
+    /**
      * Notification of any status that might be helpful to the user.
      *
      * @param status a status message
-   */
-   protected abstract void addStatus(String status );
+     */
+    protected abstract void addStatus(String status);
 
-            public class MyExecutionInfo implements ExecutionInfo {
-                public String[] commandLineArguments;
-                public File workingDirectory;
-                public HashMap<String, String> environmentVariables = new HashMap<String, String>();
-                public File initStriptPath;
+    public class MyExecutionInfo implements ExecutionInfo {
+        public String[] commandLineArguments;
+        public File workingDirectory;
+        public HashMap<String, String> environmentVariables = new HashMap<String, String>();
+        public File initStriptPath;
 
-                public String[] getCommandLineArguments() {
-                    return commandLineArguments;
-                }
+        public String[] getCommandLineArguments() {
+            return commandLineArguments;
+        }
 
-                public File getWorkingDirectory() {
-                    return workingDirectory;
-                }
+        public File getWorkingDirectory() {
+            return workingDirectory;
+        }
 
-                public HashMap<String, String> getEnvironmentVariables() {
-                    return environmentVariables;
-                }
+        public HashMap<String, String> getEnvironmentVariables() {
+            return environmentVariables;
+        }
 
-                public void setCommandLineArguments(String[] commandLineArguments) {
-                    this.commandLineArguments = commandLineArguments;
-                }
+        public void setCommandLineArguments(String[] commandLineArguments) {
+            this.commandLineArguments = commandLineArguments;
+        }
 
-                public void setWorkingDirectory(File workingDirectory) {
-                    this.workingDirectory = workingDirectory;
-                }
+        public void setWorkingDirectory(File workingDirectory) {
+            this.workingDirectory = workingDirectory;
+        }
 
-                public void addEnvironmentVariable(String name, String value) {
-                    this.environmentVariables.put(name, value);
-                }
+        public void addEnvironmentVariable(String name, String value) {
+            this.environmentVariables.put(name, value);
+        }
 
-                public void processExecutionComplete() {
-                    if( initStriptPath != null ) {
-                        initStriptPath.delete();
-                    }
-                }
+        public void processExecutionComplete() {
+            if (initStriptPath != null) {
+                initStriptPath.delete();
             }
+        }
+    }
 
-
-   /**
+    /**
      * Fill in the ExecutionInfo object with information needed to execute the other process.
-         * @param serverPort the port the server is listening on. The client should send messages here
-         * @return an executionInfo object containing information about what we execute.
-   */
-   public ExecutionInfo getExecutionInfo( int serverPort )
-   {
-      MyExecutionInfo executionInfo = new MyExecutionInfo();
+     *
+     * @param serverPort the port the server is listening on. The client should send messages here
+     * @return an executionInfo object containing information about what we execute.
+     */
+    public ExecutionInfo getExecutionInfo(int serverPort) {
+        MyExecutionInfo executionInfo = new MyExecutionInfo();
 
-      //set some environment variables that need to be passed to the script.
-      executionInfo.addEnvironmentVariable( "JAVA_HOME", Jvm.current().getJavaHome().getAbsolutePath() );
+        //set some environment variables that need to be passed to the script.
+        executionInfo.addEnvironmentVariable("JAVA_HOME", Jvm.current().getJavaHome().getAbsolutePath());
 
-      executionInfo.setWorkingDirectory( currentDirectory );
+        executionInfo.setWorkingDirectory(currentDirectory);
 
-      List<String> executionCommandLine = new ArrayList<String>();
+        List<String> executionCommandLine = new ArrayList<String>();
 
-      //put the file to execute on the command line
-      File gradleExecutableFile = getGradleExecutableFile();
-      if( gradleExecutableFile == null ) {
-          throw new RuntimeException( "Gradle executable not specified" );
-      }
-      if( !gradleExecutableFile.exists() ) {
-          throw new RuntimeException( "Missing gradle executable. Expected it at: " + gradleExecutableFile );
-      }
-       executionCommandLine.add( gradleExecutableFile.getAbsolutePath() );
+        //put the file to execute on the command line
+        File gradleExecutableFile = getGradleExecutableFile();
+        if (gradleExecutableFile == null) {
+            throw new RuntimeException("Gradle executable not specified");
+        }
+        if (!gradleExecutableFile.exists()) {
+            throw new RuntimeException("Missing gradle executable. Expected it at: " + gradleExecutableFile);
+        }
+        executionCommandLine.add(gradleExecutableFile.getAbsolutePath());
 
-      //add the port number we're listenening on
-      executionCommandLine.add( "-D" + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + "=" + Integer.toString( serverPort ) );
+        //add the port number we're listenening on
+        executionCommandLine.add("-D" + ProtocolConstants.PORT_NUMBER_SYSTEM_PROPERTY + "=" + Integer.toString(serverPort));
 
-      CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
+        CommandLineAssistant commandLineAssistant = new CommandLineAssistant();
 
-      //add whatever the user ran
-      String[] individualCommandLineArguments = commandLineAssistant.breakUpCommandLine( commandLine );
-      executionCommandLine.addAll( Arrays.asList( individualCommandLineArguments ) );
+        //add whatever the user ran
+        String[] individualCommandLineArguments = commandLineAssistant.breakUpCommandLine(commandLine);
+        executionCommandLine.addAll(Arrays.asList(individualCommandLineArguments));
 
-      File initStriptPath = getInitScriptFile();
-      if( initStriptPath != null )
-      {
-          executionCommandLine.add( "-" + DefaultCommandLineConverter.INIT_SCRIPT );
-          executionCommandLine.add( initStriptPath.getAbsolutePath() );
-          executionInfo.initStriptPath = initStriptPath;
-      }
+        File initStriptPath = getInitScriptFile();
+        if (initStriptPath != null) {
+            executionCommandLine.add("-" + DefaultCommandLineConverter.INIT_SCRIPT);
+            executionCommandLine.add(initStriptPath.getAbsolutePath());
+            executionInfo.initStriptPath = initStriptPath;
+        }
 
-      //add the log level if its not present
+        //add the log level if its not present
         if (!commandLineAssistant.hasLogLevelDefined(individualCommandLineArguments)) {
             String logLevelText = commandLineAssistant.getLoggingCommandLineConverter().getLogLevelCommandLine(logLevel);
             if (logLevelText != null && !"".equals(logLevelText)) {
-            executionCommandLine.add( '-' + logLevelText );
-      }
+                executionCommandLine.add('-' + logLevelText);
+            }
         }
 
-      //add the stack trace level if its not present
+        //add the stack trace level if its not present
         if (!commandLineAssistant.hasShowStacktraceDefined(individualCommandLineArguments)) {
             String stackTraceLevelText = commandLineAssistant.getCommandLineConverter().getShowStacktraceCommandLine(stackTraceLevel);
             if (stackTraceLevelText != null) {
-            executionCommandLine.add( '-' + stackTraceLevelText );
-      }
+                executionCommandLine.add('-' + stackTraceLevelText);
+            }
         }
 
-      executionInfo.setCommandLineArguments( executionCommandLine.toArray( new String[ executionCommandLine.size() ] ) );
-      return executionInfo;
-   }
+        executionInfo.setCommandLineArguments(executionCommandLine.toArray(new String[executionCommandLine.size()]));
+        return executionInfo;
+    }
 
-   /**
-     * @return the file that should be used to execute gradle. If we've been given a custom file, we use that, otherwise,
-     *         we use the batch or shell script inside the gradle home's bin directory.
-   */
+    /**
+     * @return the file that should be used to execute gradle. If we've been given a custom file, we use that, otherwise, we use the batch or shell script inside the gradle home's bin directory.
+     */
     protected File getGradleExecutableFile() {
         if (customGradleExecutor != null) {
-         return customGradleExecutor;
+            return customGradleExecutor;
         }
 
-      return new File( gradleHomeDirectory, "bin" + File.separator + getDefaultGradleExecutableName() );
-   }
+        return new File(gradleHomeDirectory, "bin" + File.separator + getDefaultGradleExecutableName());
+    }
 
-   /**
+    /**
      * This determines what we're going to execute. Its different based on the OS.
      *
      * @return whatever we're going to execute.
-   */
-   private String getDefaultGradleExecutableName()
-   {
-       return OperatingSystem.current().getScriptName("gradle");
-   }
+     */
+    private String getDefaultGradleExecutableName() {
+        return OperatingSystem.current().getScriptName("gradle");
+    }
 
-   /**
+    /**
      * Notification that the client has stopped all communications.
-   */
-   public void clientCommunicationStopped()
-   {
-      //we don't really care
-   }
+     */
+    public void clientCommunicationStopped() {
+        //we don't really care
+    }
 
-   /**
-     * Notification that the client has shutdown. Note: this can occur before communciations has ever started. You SHOULD
-     * get this notification before receiving serverExited, even if the client fails to launch or locks up.
+    /**
+     * Notification that the client has shutdown. Note: this can occur before communciations has ever started. You SHOULD get this notification before receiving serverExited, even if the client fails
+     * to launch or locks up.
      *
      * @param returnCode the return code of the client application
      * @param output the standard error and standard output of the client application
-    */
-   public void clientExited( int returnCode, String output )
-   {
-      server.requestShutdown();
+     */
+    public void clientExited(int returnCode, String output) {
+        server.requestShutdown();
 
-      boolean wasPremature = false;
-      String message;
+        boolean wasPremature = false;
+        String message;
 
-      if( !hasCompletedConnection ) //if we never connected, report it
-      {
-         message = "Failed to connect to gradle process for command '" + commandLine +"'\n" + output;
-         wasPremature = true;
-      }
-      else
-         if( !hasReceivedBuildCompleteNotification  )  //this may happen if the client doesn't execute properly or it was killed/canceled. This is just so we don't lose our output (which may yeild clues to the problem).
-         {
+        if (!hasCompletedConnection) {
+            //if we never connected, report it
+            message = "Failed to connect to gradle process for command '" + commandLine + "'\n" + output;
+            wasPremature = true;
+        } else if (!hasReceivedBuildCompleteNotification) {
+            //this may happen if the client doesn't execute properly or it was killed/canceled. This is just so we don't lose our output (which may yeild clues to the problem).
             message = output;
             wasPremature = true;
-         }
-         else
-         {
+        } else {
             message = output;
-         }
+        }
 
-      reportClientExit( wasPremature, returnCode, message );
-   }
+        reportClientExit(wasPremature, returnCode, message);
+    }
 
-   /**
-     * This is called if the client exits prematurely. That is, we never connected to it or it didn't finish. This can
-     * happen because of setup issues or errors that occur in gradle.
+    /**
+     * This is called if the client exits prematurely. That is, we never connected to it or it didn't finish. This can happen because of setup issues or errors that occur in gradle.
      *
      * @param returnCode the return code of the application
-    */
-   protected abstract void reportClientExit( boolean wasPremature, int returnCode, String output );
+     */
+    protected abstract void reportClientExit(boolean wasPremature, int returnCode, String output);
 
-   /**
-     * This is called before we execute a command. Here, return an init script for this protocol. An init script is a
-     * gradle script that gets run before the other scripts are processed. This is useful here for initiating the gradle
-     * client that talks to the server.
+    /**
+     * This is called before we execute a command. Here, return an init script for this protocol. An init script is a gradle script that gets run before the other scripts are processed. This is useful
+     * here for initiating the gradle client that talks to the server.
      *
      * @return The path to an init script. Null if you have no init script.
-   */
-   public abstract File getInitScriptFile();
+     */
+    public abstract File getInitScriptFile();
 
-   /**
-     * If you do have an init script that's a resource, this will extract it based on the name and write it to a
-     * temporary file and delete it on exit.
+    /**
+     * If you do have an init script that's a resource, this will extract it based on the name and write it to a temporary file and delete it on exit.
      *
      * @param resourceClass the class associated with the resource
      * @param resourceName the name (minus extension or '.') of the resource
-    */
-   protected File extractInitScriptFile( Class resourceClass, String resourceName )
-   {
-       File file = null;
-       try
-       {
-           file = File.createTempFile( resourceName, INIT_SCRIPT_EXTENSION );
-       }
-       catch (IOException e)
-       {
-           logger.error( "Creating init script file temp file", e );
-           return null;
-       }
-       file.deleteOnExit();
+     */
+    protected File extractInitScriptFile(Class resourceClass, String resourceName) {
+        File file = null;
+        try {
+            file = File.createTempFile(resourceName, INIT_SCRIPT_EXTENSION);
+        } catch (IOException e) {
+            logger.error("Creating init script file temp file", e);
+            return null;
+        }
+        file.deleteOnExit();
 
         if (extractResourceAsFile(resourceClass, resourceName + INIT_SCRIPT_EXTENSION, file)) {
-         return file;
+            return file;
         }
 
-      logger.error( "Internal error! Failed to extract init script for executing commands!" );
+        logger.error("Internal error! Failed to extract init script for executing commands!");
 
-      return null;
-   }
+        return null;
+    }
 
-   /**
+    /**
      * This extracts the given class' resource to the specified file if it doesn't already exist.
      *
      * @param resourceClass the class associated with the resource
      * @param name the resource's name
      * @param file where to put the resource
      * @return true if successful, false if not.
-   */
-   public boolean extractResourceAsFile( Class resourceClass, String name, File file )
-   {
-      InputStream stream = resourceClass.getResourceAsStream( name );
+     */
+    public boolean extractResourceAsFile(Class resourceClass, String name, File file) {
+        InputStream stream = resourceClass.getResourceAsStream(name);
         if (stream == null) {
-         return false;
+            return false;
         }
 
-      byte[] bytes = new byte[0];
-      try
-      {
-         bytes = IOUtils.toByteArray( stream );
-      }
-      catch( IOException e )
-      {
-         logger.error( "Extracting resource as file", e );
-         return false;
-      }
+        byte[] bytes = new byte[0];
+        try {
+            bytes = IOUtils.toByteArray(stream);
+        } catch (IOException e) {
+            logger.error("Extracting resource as file", e);
+            return false;
+        }
 
-      FileOutputStream fileOutputStream = null;
-      try
-      {
-         fileOutputStream = new FileOutputStream( file );
-          try {
-              IOUtils.write( bytes, fileOutputStream );
-          } finally {
-              fileOutputStream.close();
-          }
-          return true;
-      }
-      catch( IOException e )
-      {
-         logger.error( "Extracting resource as file (writing bytes)", e );
-         return false;
-      }
-      finally
-      {
-         IOUtils.closeQuietly( fileOutputStream );
-      }
-   }
+        FileOutputStream fileOutputStream = null;
+        try {
+            fileOutputStream = new FileOutputStream(file);
+            try {
+                IOUtils.write(bytes, fileOutputStream);
+            } finally {
+                fileOutputStream.close();
+            }
+            return true;
+        } catch (IOException e) {
+            logger.error("Extracting resource as file (writing bytes)", e);
+            return false;
+        } finally {
+            IOUtils.closeQuietly(fileOutputStream);
+        }
+    }
 
-   protected File getGradleHomeDirectory() { return gradleHomeDirectory; }
+    protected File getGradleHomeDirectory() {
+        return gradleHomeDirectory;
+    }
 
-   /**
+    /**
      * Notification that a read failure occurred. This really only exists for debugging purposes when things go wrong.
-    */
-   public void readFailureOccurred()
-   {
-      logger.debug( "Last message received: " + lastMessageReceived );
-   }
+     */
+    public void readFailureOccurred() {
+        logger.debug("Last message received: " + lastMessageReceived);
+    }
 
-   public void aboutToKillProcess()
-   {
-      killGradle();
-   }
+    public void aboutToKillProcess() {
+        killGradle();
+    }
 
     public void killGradle() {
         if (killGradleClientProcotol != null) {
-         killGradleClientProcotol.sendKillMessage();
-         }
-   }
+            killGradleClientProcotol.sendKillMessage();
+        }
+    }
 }

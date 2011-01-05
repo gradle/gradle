@@ -20,11 +20,10 @@ import java.util.List;
 import java.io.IOException;
 
 /**
- * A base class for {@link org.gradle.external.javadoc.JavadocOptionFileOption} implementations whose value
- * is a {@code List}.
+ * A base class for {@link org.gradle.external.javadoc.JavadocOptionFileOption} implementations whose value is a {@code List}.
  *
- * @author Tom Eyckmans
  * @param <T> The type which this option represents.
+ * @author Tom Eyckmans
  */
 public abstract class AbstractListJavadocOptionFileOption<T extends List> extends AbstractJavadocOptionFileOption<T> {
     protected String joinBy;
@@ -44,16 +43,15 @@ public abstract class AbstractListJavadocOptionFileOption<T extends List> extend
     }
 
     public void setValue(T value) {
-        if ( value == null ) {
+        if (value == null) {
             this.value.clear();
-        }
-        else {
+        } else {
             this.value = value;
         }
     }
 
     public void write(JavadocOptionFileWriterContext writerContext) throws IOException {
-        if ( value != null && !value.isEmpty() ) {
+        if (value != null && !value.isEmpty()) {
             writeCollectionValue(writerContext);
         }
     }

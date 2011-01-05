@@ -15,17 +15,16 @@
  */
 package org.gradle.foundation.ipc.gradle;
 
-import org.gradle.foundation.ipc.basic.ClientProcess;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.foundation.ipc.basic.ClientProcess;
 
 import java.io.Serializable;
 
 /**
- * <p>This is used to send information from a one process to another process. This one is used by the launched process
- * where the server (the process that launched us) is listening for our messages over a socket connection. The server
- * typically sets the port to listen to via java system properties.</p> <p>To use this, instantiate it, then call start
- * passing in a protocol (which defines the actual communication messages).</p>
+ * <p>This is used to send information from a one process to another process. This one is used by the launched process where the server (the process that launched us) is listening for our messages
+ * over a socket connection. The server typically sets the port to listen to via java system properties.</p> <p>To use this, instantiate it, then call start passing in a protocol (which defines the
+ * actual communication messages).</p>
  */
 public class GradleClient {
     private ClientProcess clientProcess;
@@ -35,8 +34,7 @@ public class GradleClient {
     }
 
     /**
-     * Call this to start the client. This version gets the port number as a system property. It does nothing if this
-     * property isn't defined.
+     * Call this to start the client. This version gets the port number as a system property. It does nothing if this property isn't defined.
      *
      * @param protocol the protocol to use to communicate with the server.
      * @return true if successful, false if not.

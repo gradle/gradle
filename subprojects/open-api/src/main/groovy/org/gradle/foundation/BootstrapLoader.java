@@ -34,9 +34,8 @@ import java.util.List;
 
  @author mhunsicker
   */
-public class BootstrapLoader
-{
-   private URLClassLoader libClassLoader;
+public class BootstrapLoader {
+    private URLClassLoader libClassLoader;
 
     public void initialize(File gradleHome, boolean bootStrapDebug) throws Exception {
         initialize(ClassLoader.getSystemClassLoader().getParent(), gradleHome, false, true, bootStrapDebug);
@@ -61,47 +60,42 @@ public class BootstrapLoader
       @throws Exception            if something goes wrong.
       @author mhunsicker
    */
-   public void initialize(ClassLoader parentClassloader, File gradleHome, boolean useParentLastClassLoader,
-                          boolean loadOpenAPI, boolean bootStrapDebug) throws Exception {
-       if (gradleHome == null || !gradleHome.exists()) {
-           throw new RuntimeException("Gradle home not defined!");
-       }
+    public void initialize(ClassLoader parentClassloader, File gradleHome, boolean useParentLastClassLoader, boolean loadOpenAPI, boolean bootStrapDebug) throws Exception {
+        if (gradleHome == null || !gradleHome.exists()) {
+            throw new RuntimeException("Gradle home not defined!");
+        }
 
-       if (bootStrapDebug) {
-           System.out.println(
-                   "Gradle Home is declared by system property gradle.home to: " + gradleHome.getAbsolutePath());
-       }
+        if (bootStrapDebug) {
+            System.out.println("Gradle Home is declared by system property gradle.home to: " + gradleHome.getAbsolutePath());
+        }
 
-       System.setProperty("gradle.home", gradleHome.getAbsolutePath());
+        System.setProperty("gradle.home", gradleHome.getAbsolutePath());
 
-       List<URL> loggingJars = toUrl(getLoggingJars());
+        List<URL> loggingJars = toUrl(getLoggingJars());
 
-       List<File> nonLoggingJarFiles = getNonLoggingJars();
-       removeUnwantedJarFiles(nonLoggingJarFiles, loadOpenAPI);
-       List<URL> nonLoggingJars = toUrl(nonLoggingJarFiles);
+        List<File> nonLoggingJarFiles = getNonLoggingJars();
+        removeUnwantedJarFiles(nonLoggingJarFiles, loadOpenAPI);
+        List<URL> nonLoggingJars = toUrl(nonLoggingJarFiles);
 
-       if (bootStrapDebug) {
-           System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
-           System.out.println("Adding the following files to new logging classloader: " + loggingJars);
-           System.out.println("Adding the following files to new lib classloader: " + nonLoggingJars);
-       }
+        if (bootStrapDebug) {
+            System.out.println("Parent Classloader of new context classloader is: " + parentClassloader);
+            System.out.println("Adding the following files to new logging classloader: " + loggingJars);
+            System.out.println("Adding the following files to new lib classloader: " + nonLoggingJars);
+        }
 
-       URLClassLoader loggingClassLoader = new URLClassLoader(loggingJars.toArray(new URL[loggingJars.size()]),
-               parentClassloader);
+        URLClassLoader loggingClassLoader = new URLClassLoader(loggingJars.toArray(new URL[loggingJars.size()]), parentClassloader);
 
-       if (useParentLastClassLoader) {
-           libClassLoader = new ParentLastClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]),
-                   loggingClassLoader);
-       } else {
-           libClassLoader = new URLClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]),
-                   loggingClassLoader);
-       }
+        if (useParentLastClassLoader) {
+            libClassLoader = new ParentLastClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]), loggingClassLoader);
+        } else {
+            libClassLoader = new URLClassLoader(nonLoggingJars.toArray(new URL[nonLoggingJars.size()]), loggingClassLoader);
+        }
 
-       if (bootStrapDebug) {
-           System.out.println("Logging class loader: " + loggingClassLoader);
-           System.out.println("Lib class loader: " + libClassLoader);
-       }
-   }
+        if (bootStrapDebug) {
+            System.out.println("Logging class loader: " + loggingClassLoader);
+            System.out.println("Lib class loader: " + libClassLoader);
+        }
+    }
 
     public static File[] getGradleHomeLibClasspath() {
         File gradleHomeLib = new File(System.getProperty("gradle.home") + "/lib");
@@ -177,7 +171,9 @@ public class BootstrapLoader
       @return a URLClassLoader
       @author mhunsicker
    */
-   public URLClassLoader getClassLoader() { return libClassLoader; }
+    public URLClassLoader getClassLoader() {
+        return libClassLoader;
+    }
 
     public Class load(String classPath) throws Exception {
         return libClassLoader.loadClass(classPath);

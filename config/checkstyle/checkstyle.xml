@@ -33,6 +33,8 @@
         <module name="AvoidNestedBlocks"/>
 
         <!-- Braces -->
+        <module name="LeftCurly"/>
+        <module name="RightCurly"/>
         <module name="NeedBraces"/>
 
         <!-- Coding -->

@@ -37,11 +37,9 @@ public class AutoCloseCacheFactory implements CacheFactory {
             PersistentCache cache = cacheFactory.open(cacheDir, usage, properties);
             cacheInfo = new CacheInfo(cache, properties);
             openCaches.put(canonicalDir, cacheInfo);
-        }
-        else {
+        } else {
             if (!properties.equals(cacheInfo.properties)) {
-                throw new UnsupportedOperationException(String.format(
-                        "Cache '%s' is already open with different state.", cacheDir));
+                throw new UnsupportedOperationException(String.format("Cache '%s' is already open with different state.", cacheDir));
             }
         }
         cacheInfo.addReference();

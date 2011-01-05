@@ -21,18 +21,14 @@ import org.dom4j.Element;
 import org.dom4j.io.OutputFormat;
 import org.dom4j.io.SAXReader;
 import org.dom4j.io.XMLWriter;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.gradleplugin.foundation.settings.DOM4JSettingsNode;
 import org.gradle.gradleplugin.foundation.settings.SettingsNode;
 import org.gradle.gradleplugin.foundation.settings.SettingsSerializable;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
 
 import javax.swing.filechooser.FileFilter;
-import java.io.Closeable;
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 
 /**
  * This saves and reads thing to and from DOM structures.
@@ -43,8 +39,7 @@ public class DOM4JSerializer {
     private static final Logger LOGGER = Logging.getLogger(DOM4JSerializer.class);
 
     /**
-     * Implement this when you export a file. This allows to interactively ask the user (or automated test) questions as
-     * we need answers.
+     * Implement this when you export a file. This allows to interactively ask the user (or automated test) questions as we need answers.
      */
     public interface ExportInteraction {
         /**
@@ -72,14 +67,12 @@ public class DOM4JSerializer {
     }
 
     /**
-     * Call this to save the JDOMSerializable to a file. This handles confirming overwriting an existing file as well as
-     * ensuring the extension is correct based on the passed in fileFilter.
+     * Call this to save the JDOMSerializable to a file. This handles confirming overwriting an existing file as well as ensuring the extension is correct based on the passed in fileFilter.
      */
-    public static void exportToFile(String rootElementTag, ExportInteraction exportInteraction,
-                                    ExtensionFileFilter fileFilter, SettingsSerializable... serializables) {
+    public static void exportToFile(String rootElementTag, ExportInteraction exportInteraction, ExtensionFileFilter fileFilter, SettingsSerializable... serializables) {
         File file = promptForFile(exportInteraction, fileFilter);
-        if (file == null)   //the user canceled.
-        {
+        if (file == null) {
+            //the user canceled.
             return;
         }
 
@@ -115,11 +108,10 @@ public class DOM4JSerializer {
         }
     }
 
-    public static void exportToFile(ExportInteraction exportInteraction, ExtensionFileFilter fileFilter,
-                                    DOM4JSettingsNode settingsNode) {
+    public static void exportToFile(ExportInteraction exportInteraction, ExtensionFileFilter fileFilter, DOM4JSettingsNode settingsNode) {
         File file = promptForFile(exportInteraction, fileFilter);
-        if (file == null)   //the user canceled.
-        {
+        if (file == null) {
+            //the user canceled.
             return;
         }
 
@@ -149,8 +141,8 @@ public class DOM4JSerializer {
     }
 
     /**
-     * This prompts the user for a file. It may exist, so we have to confirm overwriting it. This will sit in a loop
-     * until the user cancels or gives us a valid file. This also makes sure the extension is correct.
+     * This prompts the user for a file. It may exist, so we have to confirm overwriting it. This will sit in a loop until the user cancels or gives us a valid file. This also makes sure the extension
+     * is correct.
      */
     private static File promptForFile(ExportInteraction exportInteraction, ExtensionFileFilter fileFilter) {
         boolean promptAgain = false;
@@ -168,8 +160,7 @@ public class DOM4JSerializer {
             }
 
             counter++;
-        } while (promptAgain && counter
-                < 1000);   //the counter is just to make sure any tests that use this don't get stuck in an infinite loop (they may return the same thing from promptForFile).
+        } while (promptAgain && counter < 1000);   //the counter is just to make sure any tests that use this don't get stuck in an infinite loop (they may return the same thing from promptForFile).
 
         return file;
     }
@@ -177,8 +168,7 @@ public class DOM4JSerializer {
     //
 
     /**
-     * Implement this when you import a file. This allows to interactively ask the user (or automated test) questions as
-     * we need answers.
+     * Implement this when you import a file. This allows to interactively ask the user (or automated test) questions as we need answers.
      */
     public interface ImportInteraction {
         /**
@@ -199,8 +189,7 @@ public class DOM4JSerializer {
     /**
      * Call this to read the JDOMSerializable from a file.
      */
-    public static boolean importFromFile(ImportInteraction importInteraction, FileFilter fileFilter,
-                                         SettingsSerializable... serializables) {
+    public static boolean importFromFile(ImportInteraction importInteraction, FileFilter fileFilter, SettingsSerializable... serializables) {
         SettingsNode settings = readSettingsFile(importInteraction, fileFilter);
         if (settings == null) {
             return false;
@@ -253,8 +242,7 @@ public class DOM4JSerializer {
     }
 
     /**
-     * A convenience function that ensures that the specified file does have a specific extension. You have to tell us
-     * that extension.
+     * A convenience function that ensures that the specified file does have a specific extension. You have to tell us that extension.
      */
     private static File ensureFileHasCorrectExtensionAndCase(File file, String requiredExtension) {
         String name = file.getName();

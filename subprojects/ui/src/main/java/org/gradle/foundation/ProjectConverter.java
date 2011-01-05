@@ -52,8 +52,7 @@ public class ProjectConverter {
     }
 
     /**
-     * This adds the specified poject as a root level projects. It then adds all tasks and recursively adds all sub
-     * projects.
+     * This adds the specified poject as a root level projects. It then adds all tasks and recursively adds all sub projects.
      *
      * @param rootLevelProject a root level project.
      */
@@ -108,8 +107,8 @@ public class ProjectConverter {
     }
 
     /**
-     * This sets the dependencies on the ProjectViews. We ask the gradle projects for the dependencies and then convert
-     * them to ProjectViews. Obviously, this must be done after converting all Projects to ProjectViews.
+     * This sets the dependencies on the ProjectViews. We ask the gradle projects for the dependencies and then convert them to ProjectViews. Obviously, this must be done after converting all Projects
+     * to ProjectViews.
      */
     private void buildDependencies() {
         for (Project project : projectMap.keySet()) {
@@ -122,8 +121,7 @@ public class ProjectConverter {
     }
 
     /**
-     * Converts a set of projects to the existing project views. This does not actually instantiate new ProjectView
-     * objects.
+     * Converts a set of projects to the existing project views. This does not actually instantiate new ProjectView objects.
      */
     private List<ProjectView> getProjectViews(Set<Project> projects) {
         List<ProjectView> views = new ArrayList<ProjectView>();

@@ -22,7 +22,6 @@ import org.gradle.openapi.external.foundation.favorites.FavoriteTaskVersion1;
  * Implementation of FavoriteTaskVersion1 meant to help shield external users from internal changes.
  *
  * @author mhunsicker
-
  */
 public class FavoriteTaskWrapper implements FavoriteTaskVersion1 {
 
@@ -33,13 +32,13 @@ public class FavoriteTaskWrapper implements FavoriteTaskVersion1 {
     }
 
     @Override
-    public boolean equals(Object otherObject ) {
-        if( !( otherObject instanceof FavoriteTaskWrapper ) ) {
+    public boolean equals(Object otherObject) {
+        if (!(otherObject instanceof FavoriteTaskWrapper)) {
             return false;
         }
 
         FavoriteTaskWrapper otherFavoritesTask = (FavoriteTaskWrapper) otherObject;
-        return otherFavoritesTask.favoriteTask.equals( favoriteTask );
+        return otherFavoritesTask.favoriteTask.equals(favoriteTask);
     }
 
     public String getFullCommandLine() {

@@ -53,11 +53,9 @@ public class DefaultDependencyFactory implements DependencyFactory {
             try {
                 dependency = factory.createDependency(Dependency.class, dependencyNotation);
                 break;
-            }
-            catch (IllegalDependencyNotation e) {
+            } catch (IllegalDependencyNotation e) {
                 // ignore
-            }
-            catch (Exception e) {
+            } catch (Exception e) {
                 throw new GradleException(String.format("Could not create a dependency using notation: %s", dependencyNotation), e);
             }
         }

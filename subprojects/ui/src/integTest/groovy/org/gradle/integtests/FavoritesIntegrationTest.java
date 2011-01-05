@@ -271,8 +271,8 @@ public class FavoritesIntegrationTest {
         }
 
         public File promptForFile(FileFilter fileFilters) {
-            if (wasConfirmed)   //once we confirm it, just return null.
-            {
+            if (wasConfirmed) {
+                //once we confirm it, just return null.
                 return null;
             }
 

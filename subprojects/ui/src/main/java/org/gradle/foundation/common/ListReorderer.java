@@ -15,11 +15,7 @@
  */
 package org.gradle.foundation.common;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Collections;
-import java.util.Comparator;
+import java.util.*;
 
 /**
  * Utility class that allows lists to be reordered.
@@ -52,14 +48,11 @@ public class ListReorderer {
     }
 
     /**
-     * Moves a list of elements in this list while keeping their relative positions. When the first element reaches the
-     * beginning it goes no further and the other elements in the list will continue to be shifted on subsequent calls
-     * as long as they don't overwrite previously moved elements. This means that elements with other elements between
-     * them will continue move with the same distance between them but will 'bunch up' toward the beginning of the
-     * list.
+     * Moves a list of elements in this list while keeping their relative positions. When the first element reaches the beginning it goes no further and the other elements in the list will continue to
+     * be shifted on subsequent calls as long as they don't overwrite previously moved elements. This means that elements with other elements between them will continue move with the same distance
+     * between them but will 'bunch up' toward the beginning of the list.
      *
-     * NOTE: The order of the list of moved elements is important. They have to be added in order from lowest index to
-     * highest.
+     * NOTE: The order of the list of moved elements is important. They have to be added in order from lowest index to highest.
      *
      * @param sourceList The list whose elements we want to reorder.
      * @param objectsToMove List of elements to move.
@@ -192,12 +185,10 @@ public class ListReorderer {
     }
 
     /**
-     * Moves the objects in the list up one index position in this list while maintaining their relative position. When
-     * an element reaches the end of the list it can go no farther, but the other elements continue to move each call
-     * without overwriting previously moved elements. This causes moved elements to 'bunch up' at the end of the list.
+     * Moves the objects in the list up one index position in this list while maintaining their relative position. When an element reaches the end of the list it can go no farther, but the other
+     * elements continue to move each call without overwriting previously moved elements. This causes moved elements to 'bunch up' at the end of the list.
      *
-     * NOTE: The order of the list of moved elements is important. They have to be added in order from lowest index to
-     * highest.
+     * NOTE: The order of the list of moved elements is important. They have to be added in order from lowest index to highest.
      *
      * @param sourceList The list whose elements we want to reorder.
      * @param objectsToMove List of elements to move.
@@ -331,8 +322,7 @@ public class ListReorderer {
     }
 
     /**
-     * This is mainly used for after doing a move. It gives you the current index of all the moved elements. This is
-     * useful for UIs that need to reselect the new items.
+     * This is mainly used for after doing a move. It gives you the current index of all the moved elements. This is useful for UIs that need to reselect the new items.
      *
      * @param sourceList the source list
      * @param objectsToMove the elements to move

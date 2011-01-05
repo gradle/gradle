@@ -24,8 +24,7 @@ package org.gradle.openapi.external.ui;
 
  @author mhunsicker
 */
-public interface GradleUIInteractionVersion1
-{
+public interface GradleUIInteractionVersion1 {
    /*
       This is only called once and is how we get a hold of the AlternateUIInteraction.
       @return an AlternateUIInteraction object. This cannot be null.

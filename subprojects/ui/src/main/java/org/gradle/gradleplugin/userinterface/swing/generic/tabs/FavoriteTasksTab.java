@@ -38,7 +38,7 @@ import java.util.List;
  * This displays a list of favorites and allows the user to add/remove items as well as change their order.
  *
  * @author mhunsicker
-  */
+ */
 public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPluginObserver, FavoritesEditor.FavoriteTasksObserver {
     private GradlePluginLord gradlePluginLord;
     private FavoritesEditor favoritesEditor;
@@ -64,7 +64,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     private JButton importButton;
     private JButton exportButton;
 
-   public FavoriteTasksTab(GradlePluginLord gradlePluginLord, SettingsNode settingsNode) {
+    public FavoriteTasksTab(GradlePluginLord gradlePluginLord, SettingsNode settingsNode) {
         this.gradlePluginLord = gradlePluginLord;
         this.settingsNode = settingsNode;
 
@@ -88,8 +88,8 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     }
 
     /**
-    * Notification that this component is about to be shown. Do whatever initialization you choose.
-    */
+     * Notification that this component is about to be shown. Do whatever initialization you choose.
+     */
     public void aboutToShow() {
         populate();
     }
@@ -183,25 +183,23 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         list.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
                 if (e.getClickCount() == 2) {
-                   executeSelectedTasks();
+                    executeSelectedTasks();
+                } else if (e.getButton() == MouseEvent.BUTTON3) {
+                    handleRightClick(e);
                 }
-                else
-                   if( e.getButton() == MouseEvent.BUTTON3 ) {
-                      handleRightClick( e );
-                   }
             }
         });
 
         list.addListSelectionListener(new ListSelectionListener() {
             public void valueChanged(ListSelectionEvent e) {
                 if (!e.getValueIsAdjusting()) {
-                   enableThingsAppropriately();
+                    enableThingsAppropriately();
                 }
             }
         });
 
-       //hook 'enter' so it runs the selected tasks.
-       list.registerKeyboardAction(new ActionListener() {
+        //hook 'enter' so it runs the selected tasks.
+        list.registerKeyboardAction(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 executeSelectedTasks();
             }
@@ -220,31 +218,27 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         }
     }
 
-
-  private void handleRightClick( MouseEvent e )
-  {
-     Point point = e.getPoint();
-     int index = list.locationToIndex( point );
-     if( index != -1 )  //all of this is because the JList won't select things on right-click. Which means you won't be acting upon what you think you're acting upon.
-     {
-        if( !list.isSelectedIndex( index ) )
+    private void handleRightClick(MouseEvent e) {
+        Point point = e.getPoint();
+        int index = list.locationToIndex(point);
+        if (index != -1)  //all of this is because the JList won't select things on right-click. Which means you won't be acting upon what you think you're acting upon.
         {
-           if( Utility.isCTRLDown( e.getModifiersEx() ) ) {
-              list.addSelectionInterval( index, index ); //the CTRL key is down, just add this to our selection
-           }
-           else {
-              list.setSelectedIndex( index );            //the CTRL key is not down, just replace the selection
-           }
-           //we're not handling SHIFT! Nor are we handling OS X.
+            if (!list.isSelectedIndex(index)) {
+                if (Utility.isCTRLDown(e.getModifiersEx())) {
+                    list.addSelectionInterval(index, index); //the CTRL key is down, just add this to our selection
+                } else {
+                    list.setSelectedIndex(index);            //the CTRL key is not down, just replace the selection
+                }
+                //we're not handling SHIFT! Nor are we handling OS X.
+            }
         }
-     }
-     enableThingsAppropriately();
-     popupMenu.show( list, point.x, point.y );
-  }
+        enableThingsAppropriately();
+        popupMenu.show(list, point.x, point.y);
+    }
 
     /**
-    * Notification that we're about to reload the projects and tasks.
-    */
+     * Notification that we're about to reload the projects and tasks.
+     */
     public void startingProjectsAndTasksReload() {
         //we don't really care.
     }
@@ -252,9 +246,8 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     /**
      * Notification that the projects and tasks have been reloaded. You may want to repopulate or update your views.
      *
-     * @param wasSuccessful true if they were successfully reloaded. False if an error occurred so we no longer can show
-     * the projects and tasks (probably an error in a .gradle file).
-    */
+     * @param wasSuccessful true if they were successfully reloaded. False if an error occurred so we no longer can show the projects and tasks (probably an error in a .gradle file).
+     */
     public void projectsAndTasksReloaded(boolean wasSuccessful) {
         //We need to repaint in case any are in error now, or no longer in error.
         list.repaint();
@@ -263,21 +256,19 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         enableThingsAppropriately();
     }
 
-   /**
-     * Notification that the favorites list has changed. We'll repopulate and then save our changes immediately. The
-     * save is useful for IDE integration where we don't control the settings.
-    */
+    /**
+     * Notification that the favorites list has changed. We'll repopulate and then save our changes immediately. The save is useful for IDE integration where we don't control the settings.
+     */
     public void favoritesChanged() {
         populate();
         favoritesEditor.serializeOut(settingsNode);
     }
 
     /**
-     * Notification that the favorites were re-ordered. We'll update our list and save our changes immediately. The save
-     * is useful for IDE integration where we don't control the settings.
-    *
-    * @param favoritesReordered the favorites that were reordered
-    */
+     * Notification that the favorites were re-ordered. We'll update our list and save our changes immediately. The save is useful for IDE integration where we don't control the settings.
+     *
+     * @param favoritesReordered the favorites that were reordered
+     */
     public void favoritesReordered(List<FavoriteTask> favoritesReordered) {
         Object[] previouslySelectedObjects = list.getSelectedValues();
 
@@ -286,22 +277,22 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
         list.clearSelection();
         //now go re-select the things that were moved
         if (previouslySelectedObjects != null) {
-           for (int index = 0; index < previouslySelectedObjects.length; index++) {
-                           Object previouslySelectedObject = previouslySelectedObjects[index];
-                           int listIndex = model.indexOf(previouslySelectedObject);
-                           if (listIndex != -1) {
-                              list.addSelectionInterval(listIndex, listIndex);
-                           }
-           }
+            for (int index = 0; index < previouslySelectedObjects.length; index++) {
+                Object previouslySelectedObject = previouslySelectedObjects[index];
+                int listIndex = model.indexOf(previouslySelectedObject);
+                if (listIndex != -1) {
+                    list.addSelectionInterval(listIndex, listIndex);
+                }
+            }
         }
 
-       favoritesEditor.serializeOut(settingsNode);
+        favoritesEditor.serializeOut(settingsNode);
     }
 
     private void setupPopupMenu() {
         popupMenu = new JPopupMenu();
 
-        executeMenuItem = Utility.createMenuItem( this.getClass(),"Execute", "execute.png", new AbstractAction() {
+        executeMenuItem = Utility.createMenuItem(this.getClass(), "Execute", "execute.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 executeSelectedTasks();
             }
@@ -309,7 +300,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         popupMenu.add(executeMenuItem);
 
-        editMenuItem = Utility.createMenuItem( this.getClass(),"Edit...", "edit.png", new AbstractAction() {
+        editMenuItem = Utility.createMenuItem(this.getClass(), "Edit...", "edit.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 editTask();
             }
@@ -317,7 +308,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         popupMenu.add(editMenuItem);
 
-        copyFavoritesMenuItem = Utility.createMenuItem( this.getClass(),"Duplicate ", "blank.png", new AbstractAction() {
+        copyFavoritesMenuItem = Utility.createMenuItem(this.getClass(), "Duplicate ", "blank.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 duplicateTasks();
             }
@@ -325,7 +316,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
         popupMenu.add(copyFavoritesMenuItem);
 
-        removeFavoritesMenuItem = Utility.createMenuItem( this.getClass(), "Remove", "remove.png", new AbstractAction() {
+        removeFavoritesMenuItem = Utility.createMenuItem(this.getClass(), "Remove", "remove.png", new AbstractAction() {
             public void actionPerformed(ActionEvent e) {
                 removeSelectedFavorites();
             }
@@ -335,12 +326,11 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     }
 
     /**
-     * Executes the selected tasks. If only one is selected, we execute it as normal. If
-     * however, multiples are selected, we'll execute that all at once.
+     * Executes the selected tasks. If only one is selected, we execute it as normal. If however, multiples are selected, we'll execute that all at once.
      */
     private void executeSelectedTasks() {
         List<FavoriteTask> favorites = getSelectedFavoriteTasks();
-        gradlePluginLord.addExecutionRequestToQueue( favorites );
+        gradlePluginLord.addExecutionRequestToQueue(favorites);
     }
 
     private void removeSelectedFavorites() {
@@ -351,15 +341,15 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     private List<FavoriteTask> getSelectedFavoriteTasks() {
         Object[] objects = list.getSelectedValues();
         if (objects == null) {
-           return Collections.emptyList();
+            return Collections.emptyList();
         }
 
-       List<FavoriteTask> favorites = new ArrayList<FavoriteTask>();
+        List<FavoriteTask> favorites = new ArrayList<FavoriteTask>();
         for (int index = 0; index < objects.length; index++) {
-           favorites.add((FavoriteTask) objects[index]);
+            favorites.add((FavoriteTask) objects[index]);
         }
 
-       return favorites;
+        return favorites;
     }
 
     private FavoriteTask getFirstSelectedFavoriteTask() {
@@ -368,7 +358,7 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
 
     /**
      * Enables buttons and menu items based on what is selected.
-    */
+     */
     private void enableThingsAppropriately() {
         Object[] objects = list.getSelectedValues();
         boolean hasSelection = objects != null && objects.length != 0;
@@ -387,37 +377,37 @@ public class FavoriteTasksTab implements GradleTab, GradlePluginLord.GeneralPlug
     }
 
     /**
-    * This imports favorites from a file.
-    */
+     * This imports favorites from a file.
+     */
     private void importFavorites() {
         favoritesEditor.importFromFile(new SwingImportInteraction(SwingUtilities.getWindowAncestor(mainPanel)));
     }
 
     /**
-    * This exports the favorites to a file.
-    */
+     * This exports the favorites to a file.
+     */
     private void exportFavorites() {
         favoritesEditor.exportToFile(new SwingExportInteraction(SwingUtilities.getWindowAncestor(mainPanel)));
     }
 
     /**
-    * Call this to prompt the user for a task to add.
-    */
+     * Call this to prompt the user for a task to add.
+     */
     private void addTask() {
-        favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Add Favorite", true ));
+        favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Add Favorite", true));
     }
 
     private void editTask() {
         FavoriteTask selectedFavoriteTask = getFirstSelectedFavoriteTask();
-       //if the user has kept these two in synch, we'll continue to keep them in synch.
-        boolean synchronizeDisplayNameWithCommand = selectedFavoriteTask.getDisplayName().equals( selectedFavoriteTask.getFullCommandLine() );
-        favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", synchronizeDisplayNameWithCommand ));
+        //if the user has kept these two in synch, we'll continue to keep them in synch.
+        boolean synchronizeDisplayNameWithCommand = selectedFavoriteTask.getDisplayName().equals(selectedFavoriteTask.getFullCommandLine());
+        favoritesEditor.editFavorite(selectedFavoriteTask, new SwingEditFavoriteInteraction(SwingUtilities.getWindowAncestor(mainPanel), "Edit Favorite", synchronizeDisplayNameWithCommand));
     }
 
     /**
      * This duplicates all the selected tasks
      */
     private void duplicateTasks() {
-        favoritesEditor.duplicateFavorites( getSelectedFavoriteTasks() );
+        favoritesEditor.duplicateFavorites(getSelectedFavoriteTasks());
     }
 }

@@ -20,92 +20,88 @@ import org.gradle.foundation.output.definitions.FileLinkDefinition;
 import java.io.File;
 
 /**
- This represents a link to a file inside gradle's output. This is so the gradle UI/plugins can
- open the file. This is useful for a user when gradle displays a build error, test failure or
- compile error.
+ * This represents a link to a file inside gradle's output. This is so the gradle UI/plugins can open the file. This is useful for a user when gradle displays a build error, test failure or compile
+ * error.
+ *
+ * @author mhunsicker
+ */
+public class FileLink {
+    private File file;
+    private int lineNumber;
+    private int startingIndex;
+    private int endingIndex;
+    private FileLinkDefinition matchingDefinition;  //useful for debugging.
 
- @author mhunsicker
-*/
-public class FileLink
-{
-   private File file;
-   private int lineNumber;
-   private int startingIndex;
-   private int endingIndex;
-   private FileLinkDefinition matchingDefinition;  //useful for debugging.
+    public FileLink(File file, int startingIndex, int endingIndex, int lineNumber, FileLinkDefinition matchingDefinition) {
+        this.file = file;
+        this.startingIndex = startingIndex;
+        this.endingIndex = endingIndex;
+        this.lineNumber = lineNumber;
+        this.matchingDefinition = matchingDefinition;
+    }
 
-   public FileLink( File file, int startingIndex, int endingIndex, int lineNumber, FileLinkDefinition matchingDefinition )
-   {
-      this.file = file;
-      this.startingIndex = startingIndex;
-      this.endingIndex = endingIndex;
-      this.lineNumber = lineNumber;
-      this.matchingDefinition = matchingDefinition;
-   }
+    public FileLink(File file, int startingIndex, int endingIndex, int lineNumber) {
+        this(file, startingIndex, endingIndex, lineNumber, null);
+    }
 
-   public FileLink( File file, int startingIndex, int endingIndex, int lineNumber )
-   {
-      this( file, startingIndex, endingIndex, lineNumber, null );
-   }
+    @Override
+    public String toString() {
+        return "file='" + file + "' startingIndex=" + startingIndex + " endingIndex=" + endingIndex + " line: " + lineNumber + (matchingDefinition != null ? (" definition: " + matchingDefinition
+                .getName()) : "");
+    }
 
-   @Override
-   public String toString()
-   {
-      return "file='" + file + "' startingIndex=" + startingIndex + " endingIndex=" + endingIndex + " line: " + lineNumber + ( matchingDefinition != null ? ( " definition: " + matchingDefinition.getName() ) : "" );
-   }
+    public int getLength() {
+        return endingIndex - startingIndex;
+    }
 
-   public int getLength()
-   {
-      return endingIndex - startingIndex;
-   }
+    /**
+     * @return the file
+     */
+    public File getFile() {
+        return file;
+    }
 
-   /**
-      @return the file
-   */
-   public File getFile() { return file; }
+    /**
+     * @return the line number into the file. May be -1 if not specified
+     */
+    public int getLineNumber() {
+        return lineNumber;
+    }
 
-   /**
-      @return the line number into the file. May be -1 if not specified
-   */
-   public int getLineNumber() { return lineNumber; }
+    /**
+     * @return the index into the source text where this FileLink begins.
+     */
+    public int getStartingIndex() {
+        return startingIndex;
+    }
 
-   /**
-      @return the index into the source text where this FileLink begins.
-   */
-   public int getStartingIndex() { return startingIndex; }
+    /**
+     * @return the index into the source text where this FileLink ends.
+     */
+    public int getEndingIndex() {
+        return endingIndex;
+    }
 
-   /**
-      @return the index into the source text where this FileLink ends.
-   */
-   public int getEndingIndex() { return endingIndex; }
+    /**
+     * This moves the starting and ending index by the specified amount. This is useful if you're searching within a portion of larger text. This corrects the original indices.
+     *
+     * @param amountToMove how much to move it.
+     */
+    /*package*/ void move(int amountToMove) {
+        startingIndex += amountToMove;
+        endingIndex += amountToMove;
+    }
 
-   /**
-    This moves the starting and ending index by the specified amount. This is
-    useful if you're searching within a portion of larger text. This corrects
-    the original indices.
-    @param amountToMove how much to move it.
-    */
-   /*package*/ void move( int amountToMove )
-   {
-      startingIndex += amountToMove;
-      endingIndex += amountToMove;
-   }
+    @Override
+    public boolean equals(Object obj) {
+        if (!(obj instanceof FileLink)) {
+            return false;
+        }
 
-   @Override
-   public boolean equals( Object obj )
-   {
-      if( !( obj instanceof FileLink ) )
-      {
-         return false;
-      }
-
-      FileLink otherFileLink = (FileLink) obj;
-      return otherFileLink.endingIndex == endingIndex &&
-             otherFileLink.startingIndex == startingIndex &&
-             otherFileLink.lineNumber == lineNumber &&
-             otherFileLink.file.equals( file );
-      //we do NOT want to compare the FileLinkDefinition. These aren't set usually for tests and we don't have easy access to them anyway.
-   }
+        FileLink otherFileLink = (FileLink) obj;
+        return otherFileLink.endingIndex == endingIndex && otherFileLink.startingIndex == startingIndex && otherFileLink.lineNumber == lineNumber && otherFileLink.file.equals(file);
+        //we do NOT want to compare the FileLinkDefinition. These aren't set usually for tests and we don't have easy access to them anyway.
+    }
 
     @Override
     public int hashCode() {

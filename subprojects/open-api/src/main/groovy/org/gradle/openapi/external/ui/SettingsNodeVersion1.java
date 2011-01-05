@@ -18,46 +18,50 @@ package org.gradle.openapi.external.ui;
 import java.util.List;
 
 /**
+ * Abstraction of how settings are stored. If you're implementing this, see SettingsNode for more information.
+ *
+ * This is a mirror of SettingsNode inside Gradle, but this is meant to aid backward and forward compatibility by shielding you from direct changes within gradle.
+ *
+ * @author mhunsicker
+ */
+public interface SettingsNodeVersion1 {
+    public void setName(String name);
 
- Abstraction of how settings are stored. If you're implementing this, see
- SettingsNode for more information.
+    public String getName();
 
- This is a mirror of SettingsNode inside Gradle, but this is meant to aid
- backward and forward compatibility by shielding you from direct changes within
- gradle.
+    public void setValue(String value);
 
- @author mhunsicker
-  */
-public interface SettingsNodeVersion1
-{
-   public void setName( String name );
-   public String getName();
+    public String getValue();
 
-   public void setValue( String value );
-   public String getValue();
+    public void setValueOfChild(String name, String value);
 
-   public void setValueOfChild( String name, String value );
-   public String getValueOfChild( String name, String defaultValue );
+    public String getValueOfChild(String name, String defaultValue);
 
-   public int getValueOfChildAsInt( String name, int defaultValue );
-   public void setValueOfChildAsInt( String name, int value );
+    public int getValueOfChildAsInt(String name, int defaultValue);
 
-   public boolean getValueOfChildAsBoolean( String name, boolean defaultValue );
-   public void setValueOfChildAsBoolean( String name, boolean value );
+    public void setValueOfChildAsInt(String name, int value);
 
-   public long getValueOfChildAsLong( String name, long defaultValue );
-   public void setValueOfChildAsLong( String name, long value );
+    public boolean getValueOfChildAsBoolean(String name, boolean defaultValue);
 
+    public void setValueOfChildAsBoolean(String name, boolean value);
 
-   public List<SettingsNodeVersion1> getChildNodes();
-   public List<SettingsNodeVersion1> getChildNodes( String name );
+    public long getValueOfChildAsLong(String name, long defaultValue);
 
-   public SettingsNodeVersion1 addChild( String name );
-   public SettingsNodeVersion1 addChildIfNotPresent( String name );
-   public SettingsNodeVersion1 getChildNode( String name );
+    public void setValueOfChildAsLong(String name, long value);
 
-   public SettingsNodeVersion1 getNodeAtPath( String ... pathPortions );
+    public List<SettingsNodeVersion1> getChildNodes();
 
-   public void removeFromParent();
-   public void removeAllChildren();
+    public List<SettingsNodeVersion1> getChildNodes(String name);
+
+    public SettingsNodeVersion1 addChild(String name);
+
+    public SettingsNodeVersion1 addChildIfNotPresent(String name);
+
+    public SettingsNodeVersion1 getChildNode(String name);
+
+    public SettingsNodeVersion1 getNodeAtPath(String... pathPortions);
+
+    public void removeFromParent();
+
+    public void removeAllChildren();
 }

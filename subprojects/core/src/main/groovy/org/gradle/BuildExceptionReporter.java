@@ -170,8 +170,7 @@ public class BuildExceptionReporter extends BuildAdapter {
                 details.resolution.text(" or ");
                 details.resolution.withStyle(UserInput).format("-%s", LoggingCommandLineConverter.DEBUG);
                 details.resolution.text(" option to get more details. ");
-            }
-            else {
+            } else {
                 details.resolution.text("Run with ");
                 details.resolution.withStyle(UserInput).format("-%s", LoggingCommandLineConverter.DEBUG);
                 details.resolution.text(" option to get more details. ");

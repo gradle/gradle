@@ -28,8 +28,7 @@ import java.lang.reflect.InvocationTargetException;
 public class BlockingApplication {
 
     /**
-     * This launches this application and blocks until it closes. Useful for being called from the gradle command line.
-     * We launch this in the Event Dispatch Thread and block the calling thread.
+     * This launches this application and blocks until it closes. Useful for being called from the gradle command line. We launch this in the Event Dispatch Thread and block the calling thread.
      */
     public static void launchAndBlock() {
         if (SwingUtilities.isEventDispatchThread()) {

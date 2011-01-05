@@ -18,41 +18,33 @@ package org.gradle.gradleplugin.foundation.settings;
 import java.util.List;
 
 /**
- * This provides a mechanism for storing settings. It is a hybrid of a DOM (like xml) and something much simpler like
- * the java preferences. It is first meant to be easy to use. Second, it is supposed to abstract how the settings are
- * actually stored. The point is to allow IDEs and such to store this is whatever manner they choose. Thus, this is
- * vague. Third, it is meant to be relatively easy to implement.
+ * This provides a mechanism for storing settings. It is a hybrid of a DOM (like xml) and something much simpler like the java preferences. It is first meant to be easy to use. Second, it is supposed
+ * to abstract how the settings are actually stored. The point is to allow IDEs and such to store this is whatever manner they choose. Thus, this is vague. Third, it is meant to be relatively easy to
+ * implement.
  *
- * While this is a hiearchy, it is not meant to be as complex as XML with arbitrary attributes. Instead, it is only
- * meant to be a key-value pairing. However, the hiearchy allows you to easily have lists and other complex structures
- * without having to worry about name collisions as you would if this were a pure key-value pair.
+ * While this is a hiearchy, it is not meant to be as complex as XML with arbitrary attributes. Instead, it is only meant to be a key-value pairing. However, the hiearchy allows you to easily have
+ * lists and other complex structures without having to worry about name collisions as you would if this were a pure key-value pair.
  *
- * This is meant to be a single tree for the entire application. You shouldn't create these on your own. A node for your
- * use should be given to you by your parent. Only the highest level object should directly create an instance of one of
- * these. It should manage saving and restore these settings.
+ * This is meant to be a single tree for the entire application. You shouldn't create these on your own. A node for your use should be given to you by your parent. Only the highest level object should
+ * directly create an instance of one of these. It should manage saving and restore these settings.
  *
- * Due to how some 'owners' of the settings work, you should save your settings immediately here (think of this as you
- * would a database). Why? Well, for example: when Idea is the owner in the gradle Idea plugin, it attempts to store its
- * settings very frequently and uses differences in the results to determine if changes have been made to a plugin. As a
- * result, we store things in the setting immediately.
+ * Due to how some 'owners' of the settings work, you should save your settings immediately here (think of this as you would a database). Why? Well, for example: when Idea is the owner in the gradle
+ * Idea plugin, it attempts to store its settings very frequently and uses differences in the results to determine if changes have been made to a plugin. As a result, we store things in the setting
+ * immediately.
  *
- * This node consists to 3 things: - name: this is the 'key' of key-value pair. It is required. - value: this is the
- * 'value' of key-value pair. It is NOT required. - child nodes: each node can have children nodes.
+ * This node consists to 3 things: - name: this is the 'key' of key-value pair. It is required. - value: this is the 'value' of key-value pair. It is NOT required. - child nodes: each node can have
+ * children nodes.
  *
- * Using these you can create a tree structure storing whatever you like. If you need multiple attributes like XML has,
- * you should create children instead. So if, in xml, you wanted to do:
+ * Using these you can create a tree structure storing whatever you like. If you need multiple attributes like XML has, you should create children instead. So if, in xml, you wanted to do:
  *
  * <setting name="myname" value="myvalue" myotherattribute="attribute1" somethingelse="attribute2" >
  *
  * do this instead:
  *
- * node name="myName" value="myvalue" node name="myotherattribute" value="attribute1" node name="somethingelse"
- * value="attribute2"
+ * node name="myName" value="myvalue" node name="myotherattribute" value="attribute1" node name="somethingelse" value="attribute2"
  *
- * This has several convenience functions for setting and getting values from child nodes. These are meant to be used in
- * more of a java preferences replacement. You should create your own root node of your settings (by call
- * addChildIfNotPresent from a node that is given to you) then you can use these functions and you only need to worry
- * about uniqueness within your own node.
+ * This has several convenience functions for setting and getting values from child nodes. These are meant to be used in more of a java preferences replacement. You should create your own root node of
+ * your settings (by call addChildIfNotPresent from a node that is given to you) then you can use these functions and you only need to worry about uniqueness within your own node.
  *
  * @author mhunsicker
  */
@@ -76,8 +68,7 @@ public interface SettingsNode {
     public String getValue();
 
     /**
-     * Sets the value of the child node, adding it if it is not already present. This is a convenience function
-     * providing more java preferences-like behavior.
+     * Sets the value of the child node, adding it if it is not already present. This is a convenience function providing more java preferences-like behavior.
      *
      * @param name the name of the child node.
      * @param value the new value.
@@ -85,8 +76,7 @@ public interface SettingsNode {
     public void setValueOfChild(String name, String value);
 
     /**
-     * Gets the value of the child node. If it is not present, the defaultValue is returned. This is a convenience
-     * function providing more java preferences-like behavior.
+     * Gets the value of the child node. If it is not present, the defaultValue is returned. This is a convenience function providing more java preferences-like behavior.
      *
      * @param name the name of the child node.
      * @param defaultValue the value to return if the child node is not present
@@ -95,8 +85,7 @@ public interface SettingsNode {
     public String getValueOfChild(String name, String defaultValue);
 
     /**
-     * Sets the value of the child node as an integer, adding it if it is not already present. This is a convenience
-     * function providing more java preferences-like behavior.
+     * Sets the value of the child node as an integer, adding it if it is not already present. This is a convenience function providing more java preferences-like behavior.
      *
      * @param name the name of the child node.
      * @param value the new value.
@@ -104,13 +93,11 @@ public interface SettingsNode {
     public void setValueOfChildAsInt(String name, int value);
 
     /**
-     * Gets the value of the child node as an integer. If it is not present or the value is cannot be interpretted as an
-     * integer, the defaultValue is returned. This is a convenience function providing more java preferences-like
-     * behavior.
+     * Gets the value of the child node as an integer. If it is not present or the value is cannot be interpretted as an integer, the defaultValue is returned. This is a convenience function providing
+     * more java preferences-like behavior.
      *
      * @param name the name of the child node.
-     * @param defaultValue the value to return if the child node is not present or cannot be interpretted as an
-     * integer.
+     * @param defaultValue the value to return if the child node is not present or cannot be interpretted as an integer.
      * @return the value.
      */
     public int getValueOfChildAsInt(String name, int defaultValue);
@@ -138,8 +125,7 @@ public interface SettingsNode {
 
     /**
      * @param name the names of the sought child nodes.
-     * @return a list of all child nodes of this node that have the specified name. If none are found, this should
-     *         return an empty list. Never null.
+     * @return a list of all child nodes of this node that have the specified name. If none are found, this should return an empty list. Never null.
      */
     public List<SettingsNode> getChildNodes(String name);
 
@@ -160,8 +146,7 @@ public interface SettingsNode {
     public SettingsNode addChild(String name);
 
     /**
-     * This adds a child node with the specified name or returns the existing child node if one already exists with said
-     * name.
+     * This adds a child node with the specified name or returns the existing child node if one already exists with said name.
      *
      * @param name the name.
      * @return the child settings node. Never null.
@@ -171,8 +156,7 @@ public interface SettingsNode {
     /**
      * Returns a node at the specified path starting at 'this' node.
      *
-     * @param pathPortions an array of 'names' of the nodes. The first item corresponds to a direct child of this node.
-     * The second item would be the grand child of this node. etc. etc.
+     * @param pathPortions an array of 'names' of the nodes. The first item corresponds to a direct child of this node. The second item would be the grand child of this node. etc. etc.
      * @return a node if it exists. Null if not.
      */
     public SettingsNode getNodeAtPath(String... pathPortions);

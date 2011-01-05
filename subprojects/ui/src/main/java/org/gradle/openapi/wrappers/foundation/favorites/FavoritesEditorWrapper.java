@@ -29,6 +29,7 @@ import java.util.List;
 
 /**
  * Implementation of FavoritesEditorVersion1 meant to help shield external users from internal changes.
+ *
  * @author mhunsicker
  */
 public class FavoritesEditorWrapper implements FavoritesEditorVersion1 {
@@ -39,12 +40,12 @@ public class FavoritesEditorWrapper implements FavoritesEditorVersion1 {
     }
 
     public FavoriteTaskVersion1 addFavorite(String fullCommandLine, String displayName, boolean alwaysShowOutput) {
-        return convertFavoriteTask( favoritesEditor.addFavorite(fullCommandLine, displayName, alwaysShowOutput ) );
+        return convertFavoriteTask(favoritesEditor.addFavorite(fullCommandLine, displayName, alwaysShowOutput));
     }
 
     public String editFavorite(FavoriteTaskVersion1 favoriteTaskVersion1, final String newFullCommandLine, final String newDisplayName, final boolean newAlwaysShowOutput) {
         final StringHolder stringHolder = new StringHolder();
-        FavoriteTask favoriteTask = getFavoriteTask( favoriteTaskVersion1 );
+        FavoriteTask favoriteTask = getFavoriteTask(favoriteTaskVersion1);
         favoritesEditor.editFavorite(favoriteTask, new FavoritesEditor.EditFavoriteInteraction() {
             public boolean editFavorite(FavoritesEditor.EditibleFavoriteTask favoriteTask) {
                 favoriteTask.fullCommandLine = newFullCommandLine;
@@ -56,73 +57,70 @@ public class FavoritesEditorWrapper implements FavoritesEditorVersion1 {
             public void reportError(String error) {
                 stringHolder.string = error;
             }
-        } );
+        });
 
         return stringHolder.string;
     }
 
     //
-            private class StringHolder {
-                private String string;
-            }
+    private class StringHolder {
+        private String string;
+    }
 
-    private FavoriteTaskVersion1 convertFavoriteTask( FavoriteTask favoriteTask ) {
-        if( favoriteTask == null )
-        {
+    private FavoriteTaskVersion1 convertFavoriteTask(FavoriteTask favoriteTask) {
+        if (favoriteTask == null) {
             return null;
         }
 
-        return new FavoriteTaskWrapper( favoriteTask );
+        return new FavoriteTaskWrapper(favoriteTask);
     }
-
 
     public List<FavoriteTaskVersion1> getFavoriteTasks() {
         List<FavoriteTaskVersion1> returnedTasks = new ArrayList<FavoriteTaskVersion1>();
         Iterator<FavoriteTask> taskIterator = favoritesEditor.getFavoriteTasks().iterator();
         while (taskIterator.hasNext()) {
             FavoriteTask favoriteTask = taskIterator.next();
-            returnedTasks.add( new FavoriteTaskWrapper( favoriteTask ) );
+            returnedTasks.add(new FavoriteTaskWrapper(favoriteTask));
         }
         return returnedTasks;
     }
 
     public FavoriteTaskVersion1 getFavorite(String fullCommandLine) {
-        return convertFavoriteTask( favoritesEditor.getFavorite( fullCommandLine ) );
+        return convertFavoriteTask(favoritesEditor.getFavorite(fullCommandLine));
     }
 
     public FavoriteTaskVersion1 getFavoriteByDisplayName(String displayName) {
-        return convertFavoriteTask( favoritesEditor.getFavoriteByDisplayName( displayName ) );
+        return convertFavoriteTask(favoritesEditor.getFavoriteByDisplayName(displayName));
     }
 
     public FavoriteTaskVersion1 getFavorite(TaskVersion1 task) {
-        return convertFavoriteTask( favoritesEditor.getFavorite( task.getFullTaskName() ) );
+        return convertFavoriteTask(favoritesEditor.getFavorite(task.getFullTaskName()));
     }
 
     public FavoriteTaskVersion1 promptUserToAddFavorite(Window parent) {
-        FavoriteTask favoriteTask = favoritesEditor.addFavorite( new SwingEditFavoriteInteraction( parent, "Add Favorite", true ) );
-        return convertFavoriteTask( favoriteTask );
+        FavoriteTask favoriteTask = favoritesEditor.addFavorite(new SwingEditFavoriteInteraction(parent, "Add Favorite", true));
+        return convertFavoriteTask(favoriteTask);
     }
 
     public boolean promptUserToEditFavorite(Window parent, FavoriteTaskVersion1 favorite) {
         FavoriteTask favoriteTask = getFavoriteTask(favorite);
-        return favoritesEditor.editFavorite( favoriteTask, new SwingEditFavoriteInteraction( parent, "Edit Favorite", true ) );
+        return favoritesEditor.editFavorite(favoriteTask, new SwingEditFavoriteInteraction(parent, "Edit Favorite", true));
     }
 
-    public void removeFavorites( List<FavoriteTaskVersion1> favoritesToRemove) {
+    public void removeFavorites(List<FavoriteTaskVersion1> favoritesToRemove) {
         List<FavoriteTask> favoriteTasksToRemove = new ArrayList<FavoriteTask>();
 
         Iterator<FavoriteTaskVersion1> iterator = favoritesToRemove.iterator();
-        while( iterator.hasNext() )
-        {
-           FavoriteTaskVersion1 favoriteTaskVersion1 = iterator.next();
-           favoriteTasksToRemove.add( getFavoriteTask( favoriteTaskVersion1 ) );
+        while (iterator.hasNext()) {
+            FavoriteTaskVersion1 favoriteTaskVersion1 = iterator.next();
+            favoriteTasksToRemove.add(getFavoriteTask(favoriteTaskVersion1));
         }
 
         favoritesEditor.removeFavorites(favoriteTasksToRemove);
     }
 
     //gets the favorite task out of a FavoriteTaskVersion1.
-    private FavoriteTask getFavoriteTask( FavoriteTaskVersion1 favoriteTaskVersion1 ) {
-        return ((FavoriteTaskWrapper) favoriteTaskVersion1 ).getFavoriteTask();
+    private FavoriteTask getFavoriteTask(FavoriteTaskVersion1 favoriteTaskVersion1) {
+        return ((FavoriteTaskWrapper) favoriteTaskVersion1).getFavoriteTask();
     }
 }

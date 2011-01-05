@@ -25,11 +25,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 /**
- * Simple finder that "finds" all the init scripts that were explicitly added
- * to the start parameters.
+ * Simple finder that "finds" all the init scripts that were explicitly added to the start parameters.
  */
-public class DefaultInitScriptFinder implements InitScriptFinder
-{
+public class DefaultInitScriptFinder implements InitScriptFinder {
     public List<ScriptSource> findScripts(GradleInternal gradle) {
         List<File> scriptFiles = gradle.getStartParameter().getInitScripts();
         List<ScriptSource> scripts = new ArrayList<ScriptSource>(scriptFiles.size());

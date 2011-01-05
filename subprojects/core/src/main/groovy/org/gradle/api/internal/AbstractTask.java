@@ -440,8 +440,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             try {
                 if (closure.getMaximumNumberOfParameters() == 0) {
                     closure.call();
-                }
-                else {
+                } else {
                     closure.call(task);
                 }
             } catch (InvokerInvocationException e) {

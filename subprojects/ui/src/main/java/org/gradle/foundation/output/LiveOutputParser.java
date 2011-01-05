@@ -15,108 +15,101 @@
  */
 package org.gradle.foundation.output;
 
-import java.util.List;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 
 /**
- This is a special type of OutputParser. It handles tracking live output. The unique thing about live
- output is that we're not guaranteed to get whole lines. Also, we don't want to parse parts that have
- already been parsed. This holds onto the output until a newline is reached, then parses it. It also
- tracks the overall index into the output (even though its only parsing a part of it).
-
- @author mhunsicker
+ * This is a special type of OutputParser. It handles tracking live output. The unique thing about live output is that we're not guaranteed to get whole lines. Also, we don't want to parse parts that
+ * have already been parsed. This holds onto the output until a newline is reached, then parses it. It also tracks the overall index into the output (even though its only parsing a part of it).
+ *
+ * @author mhunsicker
  */
-public class LiveOutputParser
-{
-   private OutputParser parser;
-   private List<FileLink> fileLinks = new ArrayList<FileLink>();
-   private StringBuilder totalTextToParse = new StringBuilder();
-   private int lastNewline;
+public class LiveOutputParser {
+    private OutputParser parser;
+    private List<FileLink> fileLinks = new ArrayList<FileLink>();
+    private StringBuilder totalTextToParse = new StringBuilder();
+    private int lastNewline;
 
-   public LiveOutputParser( FileLinkDefinitionLord fileLinkDefinitionLord, boolean verifyFileExists )
-   {
-       parser = new OutputParser( fileLinkDefinitionLord, verifyFileExists );
-   }
+    public LiveOutputParser(FileLinkDefinitionLord fileLinkDefinitionLord, boolean verifyFileExists) {
+        parser = new OutputParser(fileLinkDefinitionLord, verifyFileExists);
+    }
 
-   /**
-    Removes all text and FileLinks. This is so you can use this on new text
-    */
-   public void reset()
-   {
-       //recreate the parser because its possible the definitions have changed.
-      boolean verifyFileExists = parser.isVerifyFileExists();
-      FileLinkDefinitionLord fileLinkDefinitionLord = parser.getFileLinkDefinitionLord();
-      parser = new OutputParser( fileLinkDefinitionLord, verifyFileExists );
-       
-      lastNewline = 0;
-      totalTextToParse.setLength( 0 );
-      fileLinks.clear();
-   }
+    /**
+     * Removes all text and FileLinks. This is so you can use this on new text
+     */
+    public void reset() {
+        //recreate the parser because its possible the definitions have changed.
+        boolean verifyFileExists = parser.isVerifyFileExists();
+        FileLinkDefinitionLord fileLinkDefinitionLord = parser.getFileLinkDefinitionLord();
+        parser = new OutputParser(fileLinkDefinitionLord, verifyFileExists);
 
-   public List<FileLink> appendText( String text )
-   {
-      int oldTotalSize = totalTextToParse.length();
+        lastNewline = 0;
+        totalTextToParse.setLength(0);
+        fileLinks.clear();
+    }
 
-      totalTextToParse.append( text );
-      int indexOfNewline = text.lastIndexOf( '\n' );
-      if( indexOfNewline == -1 )
-      {
-         return Collections.emptyList();  //nothing to search yet
-      }
+    public List<FileLink> appendText(String text) {
+        int oldTotalSize = totalTextToParse.length();
 
-      //compensate the index for the total size
-      indexOfNewline += oldTotalSize;
+        totalTextToParse.append(text);
+        int indexOfNewline = text.lastIndexOf('\n');
+        if (indexOfNewline == -1) {
+            return Collections.emptyList();  //nothing to search yet
+        }
 
-      //get everything between the last newline and this one
-      String textToParse = totalTextToParse.substring( lastNewline, indexOfNewline );
+        //compensate the index for the total size
+        indexOfNewline += oldTotalSize;
 
-      //search it
-      List<FileLink> subFileLinks = parser.parseText( textToParse );
+        //get everything between the last newline and this one
+        String textToParse = totalTextToParse.substring(lastNewline, indexOfNewline);
 
-      //for each FileLink we have, we have to correct it's offsets because we didn't search from the beginning.
-      Iterator<FileLink> iterator = subFileLinks.iterator();
-      while( iterator.hasNext() )
-      {
-         FileLink fileLink = iterator.next();
-         fileLink.move( lastNewline );
-      }
+        //search it
+        List<FileLink> subFileLinks = parser.parseText(textToParse);
 
-      fileLinks.addAll( subFileLinks );
+        //for each FileLink we have, we have to correct it's offsets because we didn't search from the beginning.
+        Iterator<FileLink> iterator = subFileLinks.iterator();
+        while (iterator.hasNext()) {
+            FileLink fileLink = iterator.next();
+            fileLink.move(lastNewline);
+        }
 
-      lastNewline = indexOfNewline;
+        fileLinks.addAll(subFileLinks);
 
-      return subFileLinks;
-   }
+        lastNewline = indexOfNewline;
 
-   public List<FileLink> getFileLinks() { return Collections.unmodifiableList( fileLinks ); }
+        return subFileLinks;
+    }
 
-   /**
-    This gets the fileLink at the specified index in the text.
-    @param index the index into the overall text.
-    @return a FileLink if one exists at the index. null if not.
-    */
-   public FileLink getFileLink( int index )
-   {
-      if( index < 0 || index >= totalTextToParse.length() )
-      {
-         return null;
-      }
+    public List<FileLink> getFileLinks() {
+        return Collections.unmodifiableList(fileLinks);
+    }
 
-      Iterator<FileLink> iterator = fileLinks.iterator();
+    /**
+     * This gets the fileLink at the specified index in the text.
+     *
+     * @param index the index into the overall text.
+     * @return a FileLink if one exists at the index. null if not.
+     */
+    public FileLink getFileLink(int index) {
+        if (index < 0 || index >= totalTextToParse.length()) {
+            return null;
+        }
 
-      while( iterator.hasNext() )
-      {
-         FileLink fileLink = iterator.next();
-         if( fileLink.getStartingIndex() <= index && fileLink.getEndingIndex() >= index )
-         {
-            return fileLink;
-         }
-      }
+        Iterator<FileLink> iterator = fileLinks.iterator();
 
-      return null;
-   }
+        while (iterator.hasNext()) {
+            FileLink fileLink = iterator.next();
+            if (fileLink.getStartingIndex() <= index && fileLink.getEndingIndex() >= index) {
+                return fileLink;
+            }
+        }
 
-   public String getText() { return totalTextToParse.toString(); }
+        return null;
+    }
+
+    public String getText() {
+        return totalTextToParse.toString();
+    }
 }
