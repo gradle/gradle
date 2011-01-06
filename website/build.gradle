@@ -25,6 +25,8 @@ apply plugin: 'idea'
 apply plugin: 'eclipse'
 apply from: '../gradle/codeQuality.gradle'
 
+remoteLocations = new RemoteLocations()
+
 repositories {
     mavenCentral()
 }
@@ -45,8 +47,10 @@ dependencies {
 
 webSrcDir = file('src')
 
-gradleCorePath = projectDir.parentFile
-File generatedDocs = new File("$gradleCorePath/subprojects/docs/build/websiteDocs")
+if (!hasProperty('gradleCorePath')) {
+    gradleCorePath = projectDir.parentFile
+}
+File generatedDocs = new File("$gradleCorePath/subprojects/gradle-docs/build/websiteDocs")
 
 //buildWebsiteDir = new File(System.getProperty('user.home'), 'Sites/gradle')
 buildWebsiteDir = new File(buildDir, 'website')
@@ -124,6 +128,14 @@ task html(dependsOn: configureReleases) << {
 
 assemble.dependsOn html
 
+// A marker to indicate we are doing a release
+task releaseVersion
+gradle.taskGraph.whenReady { graph ->
+    if (graph.hasTask(releaseVersion)) {
+        remoteLocations.release = true
+    }
+}
+
 test {
     dependsOn html
     systemProperties 'test.base.uri': buildWebsiteDir.toURI()
@@ -131,8 +143,22 @@ test {
     inputs.dir buildWebsiteDir
 }
 
-task testLatestWebsite(type: Test) {
-    systemProperties 'test.base.uri': 'http://www.gradle.org/latest/'
+task uploadWebsite(dependsOn: html, type: Ftp) {
+    ftp(action: 'delete', remotedir: remoteLocations.ftpDir) {
+        fileset() {
+            include(name: '*.html')
+            include(name: '*.php')
+        }
+    }
+    ftp(action: 'send', remotedir: remoteLocations.ftpDir) {
+        fileset(dir: buildWebsiteDir)
+    }
+}
+
+task testRemote(type: Test, dependsOn: uploadWebsite) {
+    doFirst {
+        systemProperties 'test.base.uri': remoteLocations.websiteUrl
+    }
     systemProperties 'test.ignore.docs': false
 }
 
@@ -142,31 +168,9 @@ task install(type: Copy) {
     into "${System.getProperty('user.home')}/Sites/gradle"
 }
 
-task uploadWebsite(dependsOn: html, type: Ftp) {
-    ftp(action: 'delete') {
-        fileset() {
-            include(name: '*.html')
-            include(name: '*.php')
-        }
-    }
-    ftp(action: 'send') {
-        fileset(dir: buildWebsiteDir)
-    }
-}
+task ciBuild(dependsOn: [clean, html, uploadWebsite, testRemote])
 
-task uploadLatestWebsite(dependsOn: html, type: Ftp) {
-    ftp(action: 'delete', remotedir: 'latest') {
-        fileset() {
-            include(name: '*.html')
-            include(name: '*.php')
-        }
-    }
-    ftp(action: 'send', remotedir: 'latest') {
-        fileset(dir: buildWebsiteDir)
-    }
-}
-
-task ciBuild(dependsOn: [clean, html, uploadLatestWebsite])
+task release(dependsOn: [releaseVersion, clean, html, uploadWebsite, testRemote])
 
 tasks.withType(Ftp).allObjects { ftp ->
     ftp.ftpAntClasspath = configurations.ftpAntTask
@@ -374,5 +378,17 @@ class Release {
 
     def String getGroovydocUrl() {
         return "${docsUrl}/groovydoc/index.html"
+    }
+}
+
+class RemoteLocations {
+    boolean release
+
+    String getWebsiteUrl() {
+        return release ? 'http://www.gradle.org/' : 'http://www.gradle.org/latest/'
+    }
+
+    String getFtpDir() {
+        return release ? '.' : 'latest'
     }
 }

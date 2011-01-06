@@ -35,6 +35,9 @@ class LocalLayout implements Layout {
 
     PageInfo homePage() {
         def uri = new URI(System.getProperty('test.base.uri', new File('build/website').toURI() as String))
+        if (!uri.absolute) {
+            throw new RuntimeException("Base URL '$uri' is not absolute.")
+        }
         return new LocalPage(this, uri.resolve('index.php'));
     }
 }

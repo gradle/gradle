@@ -65,7 +65,9 @@ class HtmlUnitBrowser implements MethodRule, Browser {
         try {
             page = client.getPage(uri.toURL())
         } catch (FileNotFoundException e) {
-            throw new PageNotFoundException("Page $pageInfo not found.", e)
+            throw new PageNotFoundException("Page $pageInfo not found using URL $uri.", e)
+        } catch (Throwable t) {
+            throw new RuntimeException("Could not load page $pageInfo using URL $uri.", t)
         }
         return new HtmlWebsitePage(this, page, pageInfo)
     }
