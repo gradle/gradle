@@ -21,7 +21,6 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.invocation.Gradle;
-import org.gradle.api.plugins.JavaPlugin;
 import org.gradle.tooling.internal.protocol.BuildVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
@@ -67,7 +66,7 @@ public class DefaultGradleConnection implements GradleConnectionVersion1 {
 
         private EclipseProjectImpl build(Project project) {
             Configuration configuration = project.getConfigurations().findByName(
-                    JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
+                    "testRuntime");
             List<ExternalDependencyVersion1> dependencies = new ArrayList<ExternalDependencyVersion1>();
             if (configuration != null) {
                 Set<File> classpath = configuration.getFiles();

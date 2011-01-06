@@ -4,8 +4,8 @@ dependencies {
     groovy libraries.groovy_depends
 
     compile project(':core')
-    compile project(':plugins')
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+    testRuntime project(':plugins')
 }
