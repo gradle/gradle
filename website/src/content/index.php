@@ -9,7 +9,7 @@
     Yet we think finding and describing YOUR process is very important. And so, Gradle has the very best support for
     describing it.</p>
     <p>We don't believe in tools that save people from themselves. Gradle gives you all the freedom you need. Using Gradle
-    you can create declarative, maintainable, concise and highly-performing builds.
+    you can create declarative, maintainable, concise and high-performance builds.
     </p>
 
     <div class="more"><a href="overview.html" title="Learn more"><img src="img/learnMore.png"/></a></div>
@@ -62,6 +62,7 @@
             <li><a href="http://static.springsource.org/spring-security/site/">Spring Security</a></li>
             <li><a href="http://griffon.codehaus.org/">Griffon</a></li>
             <li><a href="http://gaelyk.appspot.com">Gaelyk</a></li>
+            <li><a href="http://code.google.com/p/aluminumproject/">Aluminum</a></li>
         </ul>
     </div>
     <div>
