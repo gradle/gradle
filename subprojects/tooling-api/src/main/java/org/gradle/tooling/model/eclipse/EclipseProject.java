@@ -15,16 +15,23 @@
  */
 package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.model.Dependency;
+import org.gradle.tooling.model.DomainObjectSet;
+import org.gradle.tooling.model.ExternalDependency;
 import org.gradle.tooling.model.Project;
-
-import java.util.List;
 
 /**
  * An Eclipse-centric view of a Gradle project.
  */
 public interface EclipseProject extends Project {
-    List<? extends EclipseProject> getChildProjects();
+    /**
+     * {@inheritDoc}
+     */
+    DomainObjectSet<? extends EclipseProject> getChildProjects();
 
-    List<? extends Dependency> getClasspath();
+    /**
+     * Returns the dependencies which make up the classpath of this project.
+     *
+     * @return The dependencies. Returns an empty set if the project has no dependencies.
+     */
+    DomainObjectSet<? extends ExternalDependency> getClasspath();
 }

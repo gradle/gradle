@@ -21,5 +21,8 @@ import org.gradle.tooling.model.Build;
  * An Eclipse-centric view of a Gradle build.
  */
 public interface EclipseBuild extends Build {
+    /**
+     * {@inheritDoc}
+     */
     EclipseProject getRootProject();
 }

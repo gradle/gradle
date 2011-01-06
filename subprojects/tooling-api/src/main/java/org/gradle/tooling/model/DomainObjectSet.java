@@ -15,21 +15,27 @@
  */
 package org.gradle.tooling.model;
 
+import java.util.List;
+import java.util.Set;
+
 /**
- * Represents a Gradle project.
+ * A set of domain objects of type T.
+ *
+ * @param <T> The type of objects in this collection.
  */
-public interface Project {
+public interface DomainObjectSet<T> extends Set<T> {
     /**
-     * Returns the name of this project.
+     * Returns the elements of this set as a list, in iteration order of this set.
      *
-     * @return The name.
+     * @return The elements.
      */
-    String getName();
+    List<T> getAll();
 
     /**
-     * Returns the child projects of this project.
+     * Returns the element of this set at the given index in iteration order of this set.
      *
-     * @return The child projects. Returns an empty set if this project has no children.
+     * @param index The index of the element to get.
+     * @return The element.
      */
-    DomainObjectSet<? extends Project> getChildProjects();
+    T getAt(int index) throws IndexOutOfBoundsException;
 }

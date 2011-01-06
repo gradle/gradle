@@ -21,5 +21,10 @@ import java.io.File;
  * Represents an external artifact dependency.
  */
 public interface ExternalDependency extends Dependency {
+    /**
+     * Returns the file for this dependency.
+     *
+     * @return The file. Never null.
+     */
     File getFile();
 }

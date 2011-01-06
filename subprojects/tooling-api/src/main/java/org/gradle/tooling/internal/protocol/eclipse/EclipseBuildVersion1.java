@@ -13,23 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model;
+package org.gradle.tooling.internal.protocol.eclipse;
+
+import org.gradle.tooling.internal.protocol.BuildVersion1;
 
 /**
- * Represents a Gradle project.
+ * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface Project {
-    /**
-     * Returns the name of this project.
-     *
-     * @return The name.
-     */
-    String getName();
-
-    /**
-     * Returns the child projects of this project.
-     *
-     * @return The child projects. Returns an empty set if this project has no children.
-     */
-    DomainObjectSet<? extends Project> getChildProjects();
+public interface EclipseBuildVersion1 extends BuildVersion1 {
+    EclipseProjectVersion1 getRootProject();
 }

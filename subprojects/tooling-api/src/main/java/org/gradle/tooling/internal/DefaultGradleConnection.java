@@ -22,28 +22,27 @@ import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.JavaPlugin;
-import org.gradle.tooling.GradleConnection;
-import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.model.Build;
-import org.gradle.tooling.model.Dependency;
-import org.gradle.tooling.model.ExternalDependency;
-import org.gradle.tooling.model.eclipse.EclipseBuild;
-import org.gradle.tooling.model.eclipse.EclipseProject;
+import org.gradle.tooling.internal.protocol.BuildVersion1;
+import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
+import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultGradleConnection implements GradleConnection {
+public class DefaultGradleConnection implements GradleConnectionVersion1 {
     private final File projectDir;
 
     public DefaultGradleConnection(File projectDir) {
         this.projectDir = projectDir;
     }
 
-    public <T extends Build> T getModel(Class<T> viewType) throws UnsupportedVersionException {
-        if (viewType.equals(EclipseBuild.class)) {
+    public <T extends BuildVersion1> T getModel(Class<T> type) throws UnsupportedOperationException {
+        if (type.equals(EclipseBuildVersion1.class)) {
             StartParameter startParameter = new StartParameter();
             startParameter.setProjectDir(projectDir);
             startParameter.setSearchUpwards(false);
@@ -52,10 +51,10 @@ public class DefaultGradleConnection implements GradleConnection {
             final ModelBuilder builder = new ModelBuilder();
             gradleLauncher.addListener(builder);
             gradleLauncher.getBuildAnalysis().rethrowFailure();
-            return viewType.cast(new EclipseBuildImpl(builder.rootProject));
+            return type.cast(new EclipseBuildImpl(builder.rootProject));
         }
 
-        throw new UnsupportedVersionException();
+        throw new UnsupportedOperationException();
     }
 
     private static class ModelBuilder extends BuildAdapter {
@@ -69,18 +68,18 @@ public class DefaultGradleConnection implements GradleConnection {
         private EclipseProjectImpl build(Project project) {
             Configuration configuration = project.getConfigurations().findByName(
                     JavaPlugin.TEST_RUNTIME_CONFIGURATION_NAME);
-            List<ExternalDependency> dependencies = new ArrayList<ExternalDependency>();
+            List<ExternalDependencyVersion1> dependencies = new ArrayList<ExternalDependencyVersion1>();
             if (configuration != null) {
                 Set<File> classpath = configuration.getFiles();
                 for (final File file : classpath) {
-                    dependencies.add(new ExternalDependency() {
+                    dependencies.add(new ExternalDependencyVersion1() {
                         public File getFile() {
                             return file;
                         }
                     });
                 }
             }
-            List<EclipseProject> children = new ArrayList<EclipseProject>();
+            List<EclipseProjectVersion1> children = new ArrayList<EclipseProjectVersion1>();
             for (Project child : project.getChildProjects().values()) {
                 children.add(build(child));
             }
@@ -89,38 +88,38 @@ public class DefaultGradleConnection implements GradleConnection {
         }
     }
 
-    private static class EclipseProjectImpl implements EclipseProject {
+    private static class EclipseProjectImpl implements EclipseProjectVersion1 {
         private final String name;
-        private final List<? extends Dependency> classpath;
-        private final List<EclipseProject> children;
+        private final List<ExternalDependencyVersion1> classpath;
+        private final List<EclipseProjectVersion1> children;
 
-        public EclipseProjectImpl(String name, List<EclipseProject> children, List<? extends Dependency> classpath) {
+        public EclipseProjectImpl(String name, Iterable<? extends EclipseProjectVersion1> children, Iterable<ExternalDependencyVersion1> classpath) {
             this.name = name;
-            this.children = children;
-            this.classpath = classpath;
+            this.children = GUtil.addLists(children);
+            this.classpath = GUtil.addLists(classpath);
         }
 
         public String getName() {
             return name;
         }
 
-        public List<EclipseProject> getChildProjects() {
+        public List<EclipseProjectVersion1> getChildProjects() {
             return children;
         }
 
-        public List<? extends Dependency> getClasspath() {
+        public List<ExternalDependencyVersion1> getClasspath() {
             return classpath;
         }
     }
 
-    private static class EclipseBuildImpl implements EclipseBuild {
-        private final EclipseProject rootProject;
+    private static class EclipseBuildImpl implements EclipseBuildVersion1 {
+        private final EclipseProjectVersion1 rootProject;
 
-        public EclipseBuildImpl(EclipseProject rootProject) {
+        public EclipseBuildImpl(EclipseProjectVersion1 rootProject) {
             this.rootProject = rootProject;
         }
 
-        public EclipseProject getRootProject() {
+        public EclipseProjectVersion1 getRootProject() {
             return rootProject;
         }
     }

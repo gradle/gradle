@@ -25,7 +25,7 @@ import org.gradle.util.TemporaryFolder
 class EclipseIntegrationTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
 
-    def canBuildEclipseClasspathModelGivenAProjectDirectory() {
+    def canBuildEclipseClasspathModelForABuild() {
         File projectDir = tmpDir.getDir()
         new File(projectDir, 'build.gradle').text = '''
             apply plugin: 'java'
@@ -51,7 +51,7 @@ class EclipseIntegrationTest extends Specification {
         rootProject.classpath[1].file.name == 'commons-lang-2.5.jar'
     }
 
-    def canBuildEclipseProjectModelGivenAProjectDirectory() {
+    def canBuildEclipseProjectHierarchyForAMultiProjectBuild() {
         File projectDir = tmpDir.getDir()
         new File(projectDir, 'settings.gradle').text = '''
             include "child1", "child2", "child1:child1"

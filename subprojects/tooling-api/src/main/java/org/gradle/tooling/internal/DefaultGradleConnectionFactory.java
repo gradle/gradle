@@ -13,23 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model;
+package org.gradle.tooling.internal;
 
-/**
- * Represents a Gradle project.
- */
-public interface Project {
-    /**
-     * Returns the name of this project.
-     *
-     * @return The name.
-     */
-    String getName();
+import org.gradle.tooling.internal.protocol.GradleConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
 
-    /**
-     * Returns the child projects of this project.
-     *
-     * @return The child projects. Returns an empty set if this project has no children.
-     */
-    DomainObjectSet<? extends Project> getChildProjects();
+import java.io.File;
+
+public class DefaultGradleConnectionFactory implements GradleConnectionFactoryVersion1 {
+    public GradleConnectionVersion1 create(File projectDirectory) {
+        return new DefaultGradleConnection(projectDirectory);
+    }
 }

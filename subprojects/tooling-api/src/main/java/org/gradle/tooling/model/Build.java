@@ -19,5 +19,10 @@ package org.gradle.tooling.model;
  * Represents a Gradle build.
  */
 public interface Build {
+    /**
+     * Returns the root project of this build.
+     *
+     * @return The root project.
+     */
     Project getRootProject();
 }

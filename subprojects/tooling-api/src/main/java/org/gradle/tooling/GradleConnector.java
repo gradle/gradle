@@ -15,7 +15,12 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.internal.DefaultGradleConnection;
+import org.gradle.tooling.internal.DefaultGradleConnectionFactory;
+import org.gradle.tooling.internal.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.protocol.GradleConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
+import org.gradle.tooling.model.Build;
 
 import java.io.File;
 
@@ -36,7 +41,14 @@ public class GradleConnector {
     }
 
     public GradleConnection forProjectDirectory(File projectDir) throws UnsupportedVersionException {
-        return new DefaultGradleConnection(projectDir);
+        final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
+        GradleConnectionFactoryVersion1 factory = new DefaultGradleConnectionFactory();
+        final GradleConnectionVersion1 gradleConnection = factory.create(projectDir);
+        return new GradleConnection() {
+            public <T extends Build> T getModel(Class<T> viewType) throws UnsupportedVersionException {
+                return adapter.adapt(viewType, gradleConnection.getModel(EclipseBuildVersion1.class));
+            }
+        };
     }
 
     public void close() {
