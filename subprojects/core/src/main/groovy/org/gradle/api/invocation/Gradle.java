@@ -51,7 +51,6 @@ public interface Gradle {
      * @return The home directory. May return null.
      * @deprecated No replacement
      */
-    @Deprecated
     File getGradleHomeDir();
 
     /**

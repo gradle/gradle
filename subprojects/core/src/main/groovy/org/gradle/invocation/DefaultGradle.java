@@ -28,7 +28,6 @@ import org.gradle.api.internal.project.ServiceRegistryFactory;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.execution.TaskGraphExecuter;
 import org.gradle.listener.ListenerManager;
-import org.gradle.util.DeprecationLogger;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.MultiParentClassLoader;
 
@@ -71,7 +70,6 @@ public class DefaultGradle implements GradleInternal {
     }
 
     public File getGradleHomeDir() {
-        DeprecationLogger.nagUser("Gradle.getGradleHomeDir()");
         return distributionLocator.getGradleHome();
     }
 
