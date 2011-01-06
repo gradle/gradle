@@ -240,6 +240,7 @@ task javadoc(type: Javadoc) {
     include 'org/gradle/process/**'
     include 'org/gradle/plugins/**'
     include 'org/gradle/testfixtures/**'
+    include 'org/gradle/tooling/**'
     exclude '**/internal/**'
     options.links("http://java.sun.com/j2se/1.5.0/docs/api", "http://groovy.codehaus.org/gapi/", "http://maven.apache.org/ref/2.2.1/maven-core/apidocs",
         "http://maven.apache.org/ref/2.2.1/maven-model/apidocs")

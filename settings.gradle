@@ -28,6 +28,7 @@ include 'codeQuality'
 include 'antlr'
 include 'ui'
 include 'openApi'
+include 'toolingApi'
 include 'docs'
 
 rootProject.name = 'gradle'
