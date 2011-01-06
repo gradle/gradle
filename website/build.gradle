@@ -144,14 +144,16 @@ test {
 }
 
 task uploadWebsite(dependsOn: html, type: Ftp) {
-    ftp(action: 'delete', remotedir: remoteLocations.ftpDir) {
-        fileset() {
-            include(name: '*.html')
-            include(name: '*.php')
+    doFirst {
+        ftp(action: 'delete', remotedir: remoteLocations.ftpDir) {
+            fileset() {
+                include(name: '*.html')
+                include(name: '*.php')
+            }
         }
-    }
-    ftp(action: 'send', remotedir: remoteLocations.ftpDir) {
-        fileset(dir: buildWebsiteDir)
+        ftp(action: 'send', remotedir: remoteLocations.ftpDir) {
+            fileset(dir: buildWebsiteDir)
+        }
     }
 }
 
