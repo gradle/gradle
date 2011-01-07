@@ -55,7 +55,7 @@ public class CommandLineIntegrationTest {
         String javaHome = System.properties['java.home']
 
         // Handle on the system PATH, with no JAVA_HOME specified
-        String path = String.format('%s%s%s', Jvm.current().binDir, File.pathSeparator, System.getenv('PATH'))
+        String path = String.format('%s%s%s', Jvm.current().javadocExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
         executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '')
                 .withArguments(expectedJavaHome)
                 .withTasks('checkJavaHome')
