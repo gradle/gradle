@@ -28,12 +28,13 @@ public class CodeNarc extends SourceTask implements VerificationTask {
 
     private File reportFile;
     private File configFile;
+    private String reportFormat;
     private boolean ignoreFailures;
 
     @TaskAction
     public void check() {
         getLogging().captureStandardOutput(LogLevel.INFO);
-        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFile(), isIgnoreFailures());
+        antCodeNarc.execute(getAnt(), getSource(), getConfigFile(), getReportFormat(), getReportFile(), isIgnoreFailures());
     }
 
     /**
@@ -82,5 +83,19 @@ public class CodeNarc extends SourceTask implements VerificationTask {
     public CodeNarc setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
         return this;
+    }
+
+    /**
+     * Returns the CodeNarc configuration file to use.
+     *
+     * @return The CodeNarc configuration file.
+     */
+    @Input
+    public String getReportFormat() {
+        return reportFormat;
+    }
+
+ 	public void setReportFormat(String reportFormat) {
+        this.reportFormat = reportFormat;
     }
 }
