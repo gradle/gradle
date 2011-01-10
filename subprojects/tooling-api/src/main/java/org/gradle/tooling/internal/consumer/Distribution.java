@@ -13,13 +13,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.consumer;
 
 import java.io.File;
+import java.util.Set;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface GradleConnectionFactoryVersion1 {
-    GradleConnectionVersion1 create(File projectDirectory);
+public interface Distribution {
+    Set<File> getToolingImplementationClasspath();
 }

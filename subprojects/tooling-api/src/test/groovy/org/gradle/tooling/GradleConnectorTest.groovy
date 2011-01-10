@@ -16,11 +16,15 @@
 package org.gradle.tooling
 
 import spock.lang.Specification
-import org.gradle.tooling.internal.consumer.GradleConnectionFactory
+import org.gradle.tooling.internal.consumer.ConnectionFactory
+import org.gradle.tooling.internal.consumer.DistributionFactory
+import org.gradle.tooling.internal.consumer.Distribution
 
 class GradleConnectorTest extends Specification {
-    final GradleConnectionFactory factory = Mock()
-    final GradleConnector connector = new GradleConnector(factory)
+    final ConnectionFactory connectionFactory = Mock()
+    final DistributionFactory distributionFactory = Mock()
+    final Distribution distribution = Mock()
+    final GradleConnector connector = new GradleConnector(connectionFactory, distributionFactory)
 
     def canCreateAConnectionGivenAProjectDirectory() {
         GradleConnection connection = Mock()
@@ -31,7 +35,22 @@ class GradleConnectorTest extends Specification {
 
         then:
         result == connection
-        1 * factory.create(projectDir) >> connection
+        1 * distributionFactory.currentDistribution >> distribution
+        1 * connectionFactory.create(distribution, projectDir) >> connection
+    }
+
+    def canSpecifyAGradleInstallationToUse() {
+        GradleConnection connection = Mock()
+        File projectDir = new File('project-dir')
+        File gradleHome = new File('install-dir')
+
+        when:
+        def result = connector.useInstallation(gradleHome).forProjectDirectory(projectDir).connect()
+
+        then:
+        result == connection
+        1 * distributionFactory.getDistribution(gradleHome) >> distribution
+        1 * connectionFactory.create(distribution, projectDir) >> connection
     }
 
     def mustSpecifyAProjectDirectory() {

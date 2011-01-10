@@ -23,7 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.tooling.internal.protocol.BuildVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
 import org.gradle.util.GUtil;
@@ -33,10 +33,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-public class DefaultGradleConnection implements GradleConnectionVersion1 {
+public class DefaultConnection implements ConnectionVersion1 {
     private final File projectDir;
 
-    public DefaultGradleConnection(File projectDir) {
+    public DefaultConnection(File projectDir) {
         this.projectDir = projectDir;
     }
 

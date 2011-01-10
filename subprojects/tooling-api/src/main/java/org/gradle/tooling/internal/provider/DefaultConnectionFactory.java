@@ -13,11 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol;
+package org.gradle.tooling.internal.provider;
 
-/**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
- */
-public interface GradleConnectionVersion1 {
-    <T extends BuildVersion1> T getModel(Class<T> type) throws UnsupportedOperationException;
+import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+
+import java.io.File;
+
+public class DefaultConnectionFactory implements ConnectionFactoryVersion1 {
+    public ConnectionVersion1 create(File projectDirectory) {
+        return new DefaultConnection(projectDirectory);
+    }
 }

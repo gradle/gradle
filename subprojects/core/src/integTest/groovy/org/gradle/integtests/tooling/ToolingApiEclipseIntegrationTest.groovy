@@ -13,23 +13,23 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.integtests
+package org.gradle.integtests.tooling
 
+import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.tooling.GradleConnection
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseBuild
-import spock.lang.Specification
 import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
-import org.gradle.tooling.model.ExternalDependency
-import org.gradle.util.TemporaryFolder
-import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.GradleConnection
+import spock.lang.Specification
 
 class ToolingApiEclipseIntegrationTest extends Specification {
-    @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
+    @Rule public final GradleDistribution dist = new GradleDistribution()
 
     def canBuildEclipseClasspathModelForABuild() {
-        File projectDir = tmpDir.getDir()
-        new File(projectDir, 'build.gradle').text = '''
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
             apply plugin: 'java'
             repositories { mavenCentral() }
             dependencies {
@@ -54,8 +54,8 @@ class ToolingApiEclipseIntegrationTest extends Specification {
     }
 
     def canBuildEclipseProjectHierarchyForAMultiProjectBuild() {
-        File projectDir = tmpDir.getDir()
-        new File(projectDir, 'settings.gradle').text = '''
+        def projectDir = dist.testDir
+        projectDir.file('settings.gradle').text = '''
             include "child1", "child2", "child1:child1"
             rootProject.name = 'root'
 '''

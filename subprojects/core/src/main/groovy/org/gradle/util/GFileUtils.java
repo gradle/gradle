@@ -136,7 +136,12 @@ public class GFileUtils {
 
     public static URL[] toURLs(File[] files) {
         try {
-            return FileUtils.toURLs(files);
+            URL[] urls = new URL[files.length];
+            for (int i = 0; i < files.length; i++) {
+                File file = files[i];
+                urls[i] = file.toURI().toURL();
+            }
+            return urls;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
         }
