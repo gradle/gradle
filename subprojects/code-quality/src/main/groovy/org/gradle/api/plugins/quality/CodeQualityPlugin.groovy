@@ -96,7 +96,8 @@ public class CodeQualityPlugin implements Plugin<Project> {
             codeNarc.setDescription("Runs CodeNarc against the $set.name Groovy source code.");
             codeNarc.conventionMapping.defaultSource = { groovySourceSet.allGroovy; }
             codeNarc.conventionMapping.configFile = { pluginConvention.codeNarcConfigFile; }
-            codeNarc.conventionMapping.reportFile = { new File(pluginConvention.codeNarcReportsDir, "${set.name}.html"); }
+            codeNarc.conventionMapping.reportFile = { new File(pluginConvention.codeNarcReportsDir, "${set.name}.${pluginConvention.codeNarcReportsFormat}"); }
+            codeNarc.conventionMapping.reportFormat = { pluginConvention.codeNarcReportsFormat; }
         }
     }
 }
