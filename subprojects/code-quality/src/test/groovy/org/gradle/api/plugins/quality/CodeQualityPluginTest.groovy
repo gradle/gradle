@@ -94,6 +94,7 @@ class CodeQualityPluginTest {
         assertThat(task, instanceOf(CodeNarc))
         assertThat(task.defaultSource, equalTo(project.sourceSets.test.allGroovy))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
+        assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/test.html")))
         assertThat(task, dependsOn())
 
@@ -102,6 +103,7 @@ class CodeQualityPluginTest {
         assertThat(task, instanceOf(CodeNarc))
         assertThat(task.defaultSource, equalTo(project.sourceSets.custom.allGroovy))
         assertThat(task.configFile, equalTo(project.codeNarcConfigFile))
+        assertThat(task.reportFormat, equalTo(project.codeNarcReportsFormat))
         assertThat(task.reportFile, equalTo(project.file("build/reports/codenarc/custom.html")))
         assertThat(task, dependsOn())
 
