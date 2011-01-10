@@ -51,10 +51,10 @@ public class CommandLineIntegrationTest {
 
     @Test
     public void canDefineJavaHomeViaEnvironmentVariable() {
-        String expectedJavaHome = "-PexpectedJavaHome=${System.properties['java.home']}"
-        String javaHome = System.properties['java.home']
+        String javaHome = new File(System.properties['java.home']).canonicalFile
+        String expectedJavaHome = "-PexpectedJavaHome=${javaHome}"
 
-        // Handle on the system PATH, with no JAVA_HOME specified
+        // Handle java on the system PATH, with no JAVA_HOME specified
         String path = String.format('%s%s%s', Jvm.current().javadocExecutable.parentFile, File.pathSeparator, System.getenv('PATH'))
         executer.withEnvironmentVars('PATH': path, 'JAVA_HOME': '')
                 .withArguments(expectedJavaHome)
