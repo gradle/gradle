@@ -13,13 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling;
+package org.gradle.tooling.internal.provider;
 
-/**
- * Thrown when the target Gradle version does not support a particular feature.
- */
-public class UnsupportedVersionException extends GradleConnectionException {
-    public UnsupportedVersionException(String message) {
-        super(message);
+import org.gradle.tooling.internal.protocol.GradleConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
+
+import java.io.File;
+
+public class DefaultGradleConnectionFactory implements GradleConnectionFactoryVersion1 {
+    public GradleConnectionVersion1 create(File projectDirectory) {
+        return new DefaultGradleConnection(projectDirectory);
     }
 }

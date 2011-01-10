@@ -13,15 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal;
+package org.gradle.tooling;
 
-import org.gradle.tooling.internal.protocol.GradleConnectionFactoryVersion1;
-import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
+/**
+ * Thrown when there is some problem communicating with Gradle.
+ */
+public class GradleConnectionException extends RuntimeException {
+    public GradleConnectionException(String message) {
+        super(message);
+    }
 
-import java.io.File;
-
-public class DefaultGradleConnectionFactory implements GradleConnectionFactoryVersion1 {
-    public GradleConnectionVersion1 create(File projectDirectory) {
-        return new DefaultGradleConnection(projectDirectory);
+    public GradleConnectionException(String message, Throwable throwable) {
+        super(message, throwable);
     }
 }

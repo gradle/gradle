@@ -15,12 +15,7 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.internal.DefaultGradleConnectionFactory;
-import org.gradle.tooling.internal.ProtocolToModelAdapter;
-import org.gradle.tooling.internal.protocol.GradleConnectionFactoryVersion1;
-import org.gradle.tooling.internal.protocol.GradleConnectionVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
-import org.gradle.tooling.model.Build;
+import org.gradle.tooling.internal.consumer.GradleConnectionFactory;
 
 import java.io.File;
 
@@ -28,8 +23,15 @@ import java.io.File;
  * A {@code GradleConnector} is the main entry point to the Gradle tooling API.
  */
 public class GradleConnector {
+    private final GradleConnectionFactory connectionFactory;
+    private File projectDir;
+
+    GradleConnector(GradleConnectionFactory connectionFactory) {
+        this.connectionFactory = connectionFactory;
+    }
+
     public static GradleConnector newConnector() {
-        return new GradleConnector();
+        return new GradleConnector(new GradleConnectionFactory());
     }
 
     public GradleConnector useInstallation(File gradleHome) {
@@ -40,17 +42,25 @@ public class GradleConnector {
         return this;
     }
 
-    public GradleConnection forProjectDirectory(File projectDir) throws UnsupportedVersionException {
-        final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
-        GradleConnectionFactoryVersion1 factory = new DefaultGradleConnectionFactory();
-        final GradleConnectionVersion1 gradleConnection = factory.create(projectDir);
-        return new GradleConnection() {
-            public <T extends Build> T getModel(Class<T> viewType) throws UnsupportedVersionException {
-                return adapter.adapt(viewType, gradleConnection.getModel(EclipseBuildVersion1.class));
-            }
-        };
+    public GradleConnector forProjectDirectory(File projectDir)  {
+        this.projectDir = projectDir;
+        return this;
     }
 
+    /**
+     * Creates the connection.
+     * @return The connection.
+     *
+     * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
+     * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
+     */
+    public GradleConnection connect() throws GradleConnectionException {
+        if (projectDir == null) {
+            throw new IllegalStateException("A project directory must be specified before creating a connection.");
+        }
+        return connectionFactory.create(projectDir);
+    }
+    
     public void close() {
     }
 }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling
+package org.gradle.integtests
 
 import org.gradle.tooling.model.eclipse.EclipseBuild
 import spock.lang.Specification
@@ -21,8 +21,10 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.junit.Rule
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.util.TemporaryFolder
+import org.gradle.tooling.GradleConnector
+import org.gradle.tooling.GradleConnection
 
-class EclipseIntegrationTest extends Specification {
+class ToolingApiEclipseIntegrationTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
 
     def canBuildEclipseClasspathModelForABuild() {
@@ -38,7 +40,7 @@ class EclipseIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.forProjectDirectory(projectDir)
+        GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
         EclipseBuild build = connection.getModel(EclipseBuild.class)
         EclipseProject rootProject = build.getRootProject()
 
@@ -60,7 +62,7 @@ class EclipseIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.forProjectDirectory(projectDir)
+        GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
         EclipseBuild build = connection.getModel(EclipseBuild.class)
         EclipseProject rootProject = build.getRootProject()
 

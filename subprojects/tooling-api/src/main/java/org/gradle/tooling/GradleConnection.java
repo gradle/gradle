@@ -21,5 +21,5 @@ import org.gradle.tooling.model.Build;
  * Represents a Gradle build.
  */
 public interface GradleConnection {
-    <T extends Build> T getModel(Class<T> viewType) throws UnsupportedVersionException;
+    <T extends Build> T getModel(Class<T> viewType) throws GradleConnectionException;
 }

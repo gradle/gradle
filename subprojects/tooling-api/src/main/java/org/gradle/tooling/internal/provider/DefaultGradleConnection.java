@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal;
+package org.gradle.tooling.internal.provider;
 
 import org.gradle.BuildAdapter;
 import org.gradle.GradleLauncher;

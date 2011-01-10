@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal;
+package org.gradle.tooling.internal.consumer;
 
 import org.gradle.tooling.model.DomainObjectSet;
 import org.gradle.tooling.model.internal.ImmutableDomainObjectSet;
@@ -119,6 +119,7 @@ public class ProtocolToModelAdapter {
                     queue.addFirst(c.getSuperclass());
                 }
             }
+            match.setAccessible(true);
             return match;
         }
 
