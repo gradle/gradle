@@ -12,5 +12,5 @@ task checkSystemPropertyGradleUserHomeHasPrecedence << {
 }
 
 task checkJavaHome << {
-    assert System.properties['java.home'] == expectedJavaHome
+    assert Jvm.current().javaHome == file(expectedJavaHome)
 }
