@@ -57,9 +57,9 @@ public class CodeNarc extends SourceTask implements VerificationTask {
     }
 
     /**
-     * Returns the file to write the HTML report to.
+     * Returns the file to write the report to.
      *
-     * @return The HTML report file. Must not be null.
+     * @return The report file. Must not be null.
      */
     @OutputFile
     public File getReportFile() {
@@ -86,7 +86,7 @@ public class CodeNarc extends SourceTask implements VerificationTask {
     }
 
     /**
-     * Returns the CodeNarc configuration file to use.
+     * Returns format type of the CodeNarc report.
      *
      * @return The CodeNarc configuration file.
      */
@@ -95,7 +95,7 @@ public class CodeNarc extends SourceTask implements VerificationTask {
         return reportFormat;
     }
 
- 	public void setReportFormat(String reportFormat) {
+    public void setReportFormat(String reportFormat) {
         this.reportFormat = reportFormat;
     }
 }
