@@ -296,6 +296,7 @@ configure(groovyProjects()) {
     ideaModule {
         scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
         scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
+        beforeConfigured { module -> module.dependencies = [] }
     }
 }
 
