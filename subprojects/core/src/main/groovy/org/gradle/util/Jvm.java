@@ -58,21 +58,17 @@ public class Jvm {
         return System.getProperty("java.version").startsWith("1.6");
     }
 
-    public boolean isAppleJvm() {
-        return false;
-    }
-
     public File getJavaHome() {
         File toolsJar = getToolsJar();
-        return toolsJar == null ? new File(System.getProperty("java.home")) : toolsJar.getParentFile().getParentFile();
+        return toolsJar == null ? getDefaultJavaHome() : toolsJar.getParentFile().getParentFile();
     }
 
-    public File getBinDir() {
-        return new File(getJavaHome(), "bin");
+    private File getDefaultJavaHome() {
+        return GFileUtils.canonicalise(new File(System.getProperty("java.home")));
     }
 
     public File getToolsJar() {
-        File javaHome = new File(System.getProperty("java.home"));
+        File javaHome = getDefaultJavaHome();
         File toolsJar = new File(javaHome, "lib/tools.jar");
         if (toolsJar.exists()) {
             return toolsJar;
@@ -101,11 +97,6 @@ public class Jvm {
     static class AppleJvm extends Jvm {
         AppleJvm(OperatingSystem os) {
             super(os);
-        }
-
-        @Override
-        public boolean isAppleJvm() {
-            return true;
         }
 
         @Override

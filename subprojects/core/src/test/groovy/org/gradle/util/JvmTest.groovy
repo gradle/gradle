@@ -88,12 +88,20 @@ class JvmTest extends Specification {
     }
 
     def usesSystemPropertyToDetermineIfAppleJvm() {
-        System.properties['java.vm.vendor'] = 'Apple Inc.'
 
-        expect:
+        when:
+        System.properties['java.vm.vendor'] = 'Apple Inc.'
         def jvm = Jvm.current()
-        jvm instanceof Jvm.AppleJvm
-        jvm.appleJvm
+
+        then:
+        jvm.class == Jvm.AppleJvm
+
+        when:
+        System.properties['java.vm.vendor'] = 'Sun'
+        jvm = Jvm.current()
+
+        then:
+        jvm.class == Jvm
     }
 
     def appleJvmFiltersEnvironmentVariables() {
