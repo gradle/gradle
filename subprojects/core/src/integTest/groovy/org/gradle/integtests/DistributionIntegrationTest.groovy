@@ -89,10 +89,10 @@ class DistributionIntegrationTest {
         assertIsGradleJar(contentsDir.file("lib/gradle-ui-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-launcher-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/gradle-tooling-api-${version}.jar"))
+        assertIsGradleJar(contentsDir.file("lib/gradle-wrapper-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-code-quality-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-plugins-${version}.jar"))
         assertIsGradleJar(contentsDir.file("lib/plugins/gradle-jetty-${version}.jar"))
-        assertIsGradleJar(contentsDir.file("lib/plugins/gradle-wrapper-${version}.jar"))
 
         // Docs
         contentsDir.file('getting-started.html').assertIsFile()
