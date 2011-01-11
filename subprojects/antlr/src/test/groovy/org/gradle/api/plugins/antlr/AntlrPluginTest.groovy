@@ -29,18 +29,18 @@ class AntlrPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def sourceSet = project.sourceSets.main
-        sourceSet.antlr.srcDirs == [project.file('src/main/antlr')] as Set
+        def main = project.sourceSets.main
+        main.antlr.srcDirs == [project.file('src/main/antlr')] as Set
 
-        sourceSet = project.sourceSets.test
-        sourceSet.antlr.srcDirs == [project.file('src/test/antlr')] as Set
+        def test = project.sourceSets.test
+        test.antlr.srcDirs == [project.file('src/test/antlr')] as Set
 
         when:
         project.sourceSets.add('custom')
 
         then:
-        sourceSet = project.sourceSets.custom
-        sourceSet.antlr.srcDirs == [project.file('src/custom/antlr')] as Set
+        def custom = project.sourceSets.custom
+        custom.antlr.srcDirs == [project.file('src/custom/antlr')] as Set
     }
     
     def addsTaskForEachSourceSet() {
@@ -48,20 +48,20 @@ class AntlrPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks.generateGrammarSource
-        task instanceof AntlrTask
-        project.tasks.compileJava.taskDependencies.getDependencies(null).contains(task)
+        def main = project.tasks.generateGrammarSource
+        main instanceof AntlrTask
+        project.tasks.compileJava.taskDependencies.getDependencies(null).contains(main)
 
-        task = project.tasks.generateTestGrammarSource
-        task instanceof AntlrTask
-        project.tasks.compileTestJava.taskDependencies.getDependencies(null).contains(task)
+        def test = project.tasks.generateTestGrammarSource
+        test instanceof AntlrTask
+        project.tasks.compileTestJava.taskDependencies.getDependencies(null).contains(test)
 
         when:
         project.sourceSets.add('custom')
 
         then:
-        task = project.tasks.generateCustomGrammarSource
-        task instanceof AntlrTask
-        project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(task)
+        def custom = project.tasks.generateCustomGrammarSource
+        custom instanceof AntlrTask
+        project.tasks.compileCustomJava.taskDependencies.getDependencies(null).contains(custom)
     }
 }

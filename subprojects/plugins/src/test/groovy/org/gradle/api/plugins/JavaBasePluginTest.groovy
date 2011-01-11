@@ -64,43 +64,43 @@ class JavaBasePluginTest extends Specification {
         set.classesDir == new File(project.buildDir, 'classes/custom')
         Matchers.builtBy('customClasses').matches(set.classes)
 
-        def task = project.tasks['processCustomResources']
-        task.description == 'Processes the custom resources.'
-        task instanceof Copy
-        Matchers.dependsOn().matches(task)
-        task.destinationDir == project.sourceSets.custom.classesDir
-        task.defaultSource == project.sourceSets.custom.resources
+        def processResources = project.tasks['processCustomResources']
+        processResources.description == 'Processes the custom resources.'
+        processResources instanceof Copy
+        Matchers.dependsOn().matches(processResources)
+        processResources.destinationDir == project.sourceSets.custom.classesDir
+        processResources.defaultSource == project.sourceSets.custom.resources
 
-        task = project.tasks['compileCustomJava']
-        task.description == 'Compiles the custom Java source.'
-        task instanceof Compile
-        Matchers.dependsOn().matches(task)
-        task.defaultSource == project.sourceSets.custom.java
-        task.classpath.is(project.sourceSets.custom.compileClasspath)
-        task.destinationDir == project.sourceSets.custom.classesDir
+        def compileJava = project.tasks['compileCustomJava']
+        compileJava.description == 'Compiles the custom Java source.'
+        compileJava instanceof Compile
+        Matchers.dependsOn().matches(compileJava)
+        compileJava.defaultSource == project.sourceSets.custom.java
+        compileJava.classpath.is(project.sourceSets.custom.compileClasspath)
+        compileJava.destinationDir == project.sourceSets.custom.classesDir
 
-        task = project.tasks['customClasses']
-        task.description == 'Assembles the custom classes.'
-        task instanceof DefaultTask
-        Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(task)
+        def classes = project.tasks['customClasses']
+        classes.description == 'Assembles the custom classes.'
+        classes instanceof DefaultTask
+        Matchers.dependsOn('processCustomResources', 'compileCustomJava').matches(classes)
     }
 
     void appliesMappingsToTasksDefinedByBuildScript() {
         when:
         javaBasePlugin.apply(project)
-        def task = project.createTask('customCompile', type: Compile)
 
         then:
-        task.sourceCompatibility == project.sourceCompatibility.toString()
+        def compile = project.createTask('customCompile', type: Compile)
+        compile.sourceCompatibility == project.sourceCompatibility.toString()
 
-        task = project.createTask('customTest', type: Test.class)
-        task.workingDir == project.projectDir
-        task.testResultsDir == project.testResultsDir
-        task.testReportDir == project.testReportDir
+        def test = project.createTask('customTest', type: Test.class)
+        test.workingDir == project.projectDir
+        test.testResultsDir == project.testResultsDir
+        test.testReportDir == project.testReportDir
 
-        task = project.createTask('customJavadoc', type: Javadoc)
-        task.destinationDir == project.file("$project.docsDir/javadoc")
-        task.title == project.apiDocTitle
+        def javadoc = project.createTask('customJavadoc', type: Javadoc)
+        javadoc.destinationDir == project.file("$project.docsDir/javadoc")
+        javadoc.title == project.apiDocTitle
     }
 
     void appliesMappingsToCustomJarTasks() {

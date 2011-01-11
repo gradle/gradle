@@ -56,11 +56,11 @@ class PathFactoryTest extends Specification {
         factory.addPathVariable('ROOT_DIR', tmpDir.dir)
 
         expect:
-        def path = factory.path(tmpDir.dir)
-        path.url == 'file://$ROOT_DIR$/'
+        def rootDir = factory.path(tmpDir.dir)
+        rootDir.url == 'file://$ROOT_DIR$/'
 
-        path = factory.path(tmpDir.file('sub'))
-        path.url == 'file://$SUB_DIR$/'
+        def subDir = factory.path(tmpDir.file('sub'))
+        subDir.url == 'file://$SUB_DIR$/'
     }
 
     def createsPathForAJarFile() {
@@ -78,8 +78,8 @@ class PathFactoryTest extends Specification {
         def path = factory.relativePath('ROOT_DIR', tmpDir.file('a/b'))
         path.url == 'file://$ROOT_DIR$/a/b'
 
-        path = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.parentFile.file('a/b'))
-        path.url == 'file://$ROOT_DIR$/../../a/b'
+        def parentPath = factory.relativePath('ROOT_DIR', tmpDir.dir.parentFile.parentFile.file('a/b'))
+        parentPath.url == 'file://$ROOT_DIR$/../../a/b'
     }
     
     def createsPathForAFileUrl() {

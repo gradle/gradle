@@ -69,9 +69,21 @@ libraries = [
         xmlunit: 'xmlunit:xmlunit:1.3',
 ]
 
-libraries.spock = ['org.spockframework:spock-core:0.4-groovy-1.7@jar', libraries.groovy, 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2']
+libraries.spock = ['org.spockframework:spock-core:0.5-groovy-1.7@jar',
+        libraries.groovy,
+        'org.hamcrest:hamcrest-core:1.1@jar',
+        'cglib:cglib-nodep:2.2',
+        'org.objenesis:objenesis:1.2']
+libraries.jmock = ['org.jmock:jmock:2.5.1@jar',
+        'org.hamcrest:hamcrest-core:1.1@jar',
+        'org.hamcrest:hamcrest-library:1.1@jar',
+        'org.jmock:jmock-junit4:2.5.1@jar',
+        'org.jmock:jmock-legacy:2.5.1@jar',
+        'org.objenesis:objenesis:1.2',
+        'cglib:cglib-nodep:2.2']
 libraries.groovy_depends = [libraries.groovy, libraries.commons_cli]
-libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.25@jar", "org.mortbay.jetty:jetty-util:6.1.25@jar",
+libraries.jetty_depends = ["org.mortbay.jetty:jetty:6.1.25@jar",
+        "org.mortbay.jetty:jetty-util:6.1.25@jar",
         "org.mortbay.jetty:servlet-api:2.5-20081211@jar"]
 
 allprojects {
@@ -97,13 +109,7 @@ configure(groovyProjects()) {
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
-        testCompile libraries.junit, FIRST_LEVEL_JMOCK, libraries.spock
-        testCompile module("org.jmock:jmock:2.5.1") {
-            dependencies('org.jmock:jmock-legacy:2.5.1@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3')
-            dependencies(FIRST_LEVEL_JMOCK as Object[])
-        }
-        // todo - these should not be here
-        testCompile 'org.jmock:jmock-legacy:2.5.1@jar', 'org.objenesis:objenesis:1.0', 'cglib:cglib-nodep:2.1_3'
+        testCompile libraries.junit, libraries.jmock, libraries.spock
     }
 
     test {

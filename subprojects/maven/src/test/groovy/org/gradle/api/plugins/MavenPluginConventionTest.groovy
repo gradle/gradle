@@ -40,7 +40,7 @@ class MavenPluginConventionTest extends Specification {
         mavenPom.mavenProject != null
         mavenPom.pomDependenciesConverter != null
         mavenPom.configurations.is(project.getConfigurations())
-        mavenPom.fileResolver = project.fileResolver
+        mavenPom.fileResolver == project.fileResolver
         mavenPom.groupId == project.group
         mavenPom.artifactId == project.name
         mavenPom.version == project.version
@@ -55,7 +55,7 @@ class MavenPluginConventionTest extends Specification {
         }
 
         expect:
-        mavenPom.mavenProject.inceptionYear = '1999'
+        mavenPom.mavenProject.inceptionYear == '1999'
 
     }
 }

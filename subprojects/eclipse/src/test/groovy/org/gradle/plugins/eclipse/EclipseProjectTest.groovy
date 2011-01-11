@@ -39,7 +39,7 @@ class EclipseProjectTest extends AbstractSpockTaskTest {
         eclipseProject.natures 'nature2'
 
         then:
-        eclipseProject.natures = ['nature1', 'nature2']
+        eclipseProject.natures == ['nature1', 'nature2']
     }
 
     def buildCommands_shouldAdd() {

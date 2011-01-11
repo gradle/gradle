@@ -40,7 +40,7 @@ public class EclipseClasspathTest extends AbstractSpockTaskTest {
         eclipseClasspath.containers "container2"
 
         then:
-        eclipseClasspath.containers = ['container1', 'container2'] as Set
+        eclipseClasspath.containers == ['container1', 'container2'] as Set
     }
 
     def variables_shouldAdd() {

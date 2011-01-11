@@ -47,7 +47,7 @@ class OsgiPluginConventionTest extends Specification {
 
         expect:
         matchesExpectedConfig(osgiManifest)
-        osgiManifest.description = 'myDescription'
+        osgiManifest.description == 'myDescription'
     }
 
     void matchesExpectedConfig(DefaultOsgiManifest osgiManifest) {
