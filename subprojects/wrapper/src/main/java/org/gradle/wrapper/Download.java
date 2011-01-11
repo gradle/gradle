@@ -24,7 +24,7 @@ import java.net.URLConnection;
 /**
  * @author Hans Dockter
  */
-class Download implements IDownload {
+public class Download implements IDownload {
     private static final int PROGRESS_CHUNK = 20000;
     private static final int BUFFER_SIZE = 10000;
 

@@ -27,11 +27,10 @@ import java.util.zip.ZipFile;
  * @author Hans Dockter
  */
 public class Install {
-    private IDownload download = new Download();
-
-    private boolean alwaysDownload;
-    private boolean alwaysUnpack;
-    private PathAssembler pathAssembler;
+    private final IDownload download;
+    private final boolean alwaysDownload;
+    private final boolean alwaysUnpack;
+    private final PathAssembler pathAssembler;
 
     public Install(boolean alwaysDownload, boolean alwaysUnpack, IDownload download, PathAssembler pathAssembler) {
         this.alwaysDownload = alwaysDownload;

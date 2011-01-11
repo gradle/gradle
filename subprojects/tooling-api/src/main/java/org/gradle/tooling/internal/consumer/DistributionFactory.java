@@ -15,9 +15,20 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.StartParameter;
 import org.gradle.api.internal.DefaultClassPathProvider;
+import org.gradle.api.tasks.wrapper.Wrapper;
+import org.gradle.api.tasks.wrapper.internal.DistributionLocator;
+import org.gradle.tooling.GradleConnectionException;
+import org.gradle.util.GradleVersion;
+import org.gradle.util.UncheckedException;
+import org.gradle.wrapper.Download;
+import org.gradle.wrapper.Install;
+import org.gradle.wrapper.PathAssembler;
 
 import java.io.File;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -44,5 +55,28 @@ public class DistributionFactory {
                 return files;
             }
         };
+    }
+
+    public Distribution getDistribution(String gradleVersion) {
+        if (gradleVersion.equals(new GradleVersion().getVersion())) {
+            return getCurrentDistribution();
+        }
+        URI distUri;
+        try {
+            distUri = new URI(new DistributionLocator().getDistributionFor(new GradleVersion(gradleVersion)));
+        } catch (URISyntaxException e) {
+            throw UncheckedException.asUncheckedException(e);
+        }
+        return getDistribution(distUri);
+    }
+
+    public Distribution getDistribution(URI gradleDistribution) {
+        try {
+            Install install = new Install(false, false, new Download(), new PathAssembler(StartParameter.DEFAULT_GRADLE_USER_HOME));
+            File installDir = install.createDist(gradleDistribution, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME, PathAssembler.GRADLE_USER_HOME_STRING, Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME);
+            return getDistribution(installDir);
+        } catch (Exception e) {
+            throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", gradleDistribution), e);
+        }
     }
 }

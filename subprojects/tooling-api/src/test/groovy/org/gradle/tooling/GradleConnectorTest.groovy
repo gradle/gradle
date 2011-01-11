@@ -24,11 +24,11 @@ class GradleConnectorTest extends Specification {
     final ConnectionFactory connectionFactory = Mock()
     final DistributionFactory distributionFactory = Mock()
     final Distribution distribution = Mock()
+    final File projectDir = new File('project-dir')
     final GradleConnector connector = new GradleConnector(connectionFactory, distributionFactory)
 
     def canCreateAConnectionGivenAProjectDirectory() {
         GradleConnection connection = Mock()
-        File projectDir = new File('project-dir')
 
         when:
         def result = connector.forProjectDirectory(projectDir).connect()
@@ -41,7 +41,6 @@ class GradleConnectorTest extends Specification {
 
     def canSpecifyAGradleInstallationToUse() {
         GradleConnection connection = Mock()
-        File projectDir = new File('project-dir')
         File gradleHome = new File('install-dir')
 
         when:
@@ -50,6 +49,31 @@ class GradleConnectorTest extends Specification {
         then:
         result == connection
         1 * distributionFactory.getDistribution(gradleHome) >> distribution
+        1 * connectionFactory.create(distribution, projectDir) >> connection
+    }
+
+    def canSpecifyAGradleDistributionToUse() {
+        GradleConnection connection = Mock()
+        URI gradleDist = new URI('http://server/dist.zip')
+
+        when:
+        def result = connector.useDistribution(gradleDist).forProjectDirectory(projectDir).connect()
+
+        then:
+        result == connection
+        1 * distributionFactory.getDistribution(gradleDist) >> distribution
+        1 * connectionFactory.create(distribution, projectDir) >> connection
+    }
+
+    def canSpecifyAGradleVersionToUse() {
+        GradleConnection connection = Mock()
+
+        when:
+        def result = connector.useGradleVersion('1.0').forProjectDirectory(projectDir).connect()
+
+        then:
+        result == connection
+        1 * distributionFactory.getDistribution('1.0') >> distribution
         1 * connectionFactory.create(distribution, projectDir) >> connection
     }
 

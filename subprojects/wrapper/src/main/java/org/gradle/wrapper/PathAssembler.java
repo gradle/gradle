@@ -27,12 +27,12 @@ public class PathAssembler {
     public static final String GRADLE_USER_HOME_STRING = "GRADLE_USER_HOME";
     public static final String PROJECT_STRING = "PROJECT";
 
-    public String gradleUserHome;
+    private File gradleUserHome;
 
     public PathAssembler() {
     }
 
-    public PathAssembler(String gradleUserHome) {
+    public PathAssembler(File gradleUserHome) {
         this.gradleUserHome = gradleUserHome;
     }
 
@@ -63,11 +63,11 @@ public class PathAssembler {
         return path.substring(p + 1);
     }
 
-    private String getBaseDir(String base) {
+    private File getBaseDir(String base) {
         if (base.equals(GRADLE_USER_HOME_STRING)) {
             return gradleUserHome;
         } else if (base.equals(PROJECT_STRING)) {
-            return System.getProperty("user.dir");
+            return new File(System.getProperty("user.dir"));
         } else {
             throw new RuntimeException("Base: " + base + " is unknown");
         }

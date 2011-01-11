@@ -27,7 +27,7 @@ import static org.junit.Assert.*;
  */
 public class PathAssemblerTest {
     public static final String TEST_GRADLE_USER_HOME = "someUserHome";
-    private PathAssembler pathAssembler = new PathAssembler(TEST_GRADLE_USER_HOME);
+    private PathAssembler pathAssembler = new PathAssembler(new File(TEST_GRADLE_USER_HOME));
 
     @Test
     public void gradleHomeWithGradleUserHomeBase() throws Exception {

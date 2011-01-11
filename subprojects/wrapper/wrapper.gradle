@@ -25,10 +25,6 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 }
 
-jar {
-    exclude 'org/gradle/wrapper/**'
-}
-
 task wrapperJar(type: Jar) {
     dependsOn compileJava, processResources
     from sourceSets.main.classesDir

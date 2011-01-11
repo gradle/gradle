@@ -20,6 +20,7 @@ import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
 
 import java.io.File;
+import java.net.URI;
 
 /**
  * <p>A {@code GradleConnector} is the main entry point to the Gradle tooling API. You use this API as follows:</p>
@@ -72,13 +73,25 @@ public class GradleConnector {
     }
 
     /**
-     * Specifies which Gradle version to use. The appropriate distribution is downloaded into the user's Gradle home directory.
+     * Specifies which Gradle version to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory.
      *
      * @param gradleVersion The version to use.
      * @return this
      */
     public GradleConnector useGradleVersion(String gradleVersion) {
-        throw new UnsupportedOperationException();
+        distribution = distributionFactory.getDistribution(gradleVersion);
+        return this;
+    }
+
+    /**
+     * Specifies which Gradle distribution to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory.
+     *
+     * @param gradleDistribution The distribution to use.
+     * @return this
+     */
+    public GradleConnector useDistribution(URI gradleDistribution) {
+        distribution = distributionFactory.getDistribution(gradleDistribution);
+        return this;
     }
 
     /**

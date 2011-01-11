@@ -39,13 +39,39 @@ class ToolingApiIntegrationTest extends Specification {
         model != null
     }
 
-    def canSpecifyAGradleDistributionToUse() {
+    def canSpecifyAGradleInstallationToUse() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
         GradleConnection connection = connector.useInstallation(dist.gradleHomeDir).forProjectDirectory(projectDir).connect()
+        Build model = connection.getModel(Build.class)
+
+        then:
+        model != null
+    }
+
+    def canSpecifyAGradleDistributionToUse() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
+
+        when:
+        GradleConnector connector = GradleConnector.newConnector()
+        GradleConnection connection = connector.useDistribution(dist.binDistribution.toURI()).forProjectDirectory(projectDir).connect()
+        Build model = connection.getModel(Build.class)
+
+        then:
+        model != null
+    }
+
+    def canSpecifyAGradleVersionToUse() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
+
+        when:
+        GradleConnector connector = GradleConnector.newConnector()
+        GradleConnection connection = connector.useGradleVersion(new GradleVersion().version).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
 
         then:

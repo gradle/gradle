@@ -19,7 +19,6 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.net.URI;
-import java.util.Arrays;
 import java.util.Properties;
 
 /**
@@ -42,9 +41,6 @@ public class Wrapper {
         } finally {
             inStream.close();
         }
-        if (GradleWrapperMain.isDebug()) {
-            System.out.println("wrapperProperties = " + wrapperProperties);
-        }
         File gradleHome = install.createDist(
                 new URI(getProperty(wrapperProperties, DISTRIBUTION_URL_PROPERTY)),
                 getProperty(wrapperProperties, DISTRIBUTION_BASE_PROPERTY),
@@ -52,9 +48,6 @@ public class Wrapper {
                 getProperty(wrapperProperties, ZIP_STORE_BASE_PROPERTY),
                 getProperty(wrapperProperties, ZIP_STORE_PATH_PROPERTY)
         );
-        if (GradleWrapperMain.isDebug()) {
-            System.out.println("args = " + Arrays.asList(args));
-        }
         bootstrapMainStarter.start(args, gradleHome);
     }
 

@@ -21,7 +21,7 @@ import org.gradle.util.TemporaryFolder
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter

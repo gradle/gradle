@@ -27,15 +27,10 @@ public class GradleWrapperMain {
     public static final String DEFAULT_GRADLE_USER_HOME = System.getProperty("user.home") + "/.gradle";
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = "gradle.user.home";
     public static final String GRADLE_USER_HOME_ENV_KEY = "GRADLE_USER_HOME";
-    public static final String DEBUG_PROPERTY_KEY = "gradle.wrapper.debug";
 
     public static void main(String[] args) throws Exception {
         addSystemProperties(args);
         
-        if (isDebug()) {
-            System.out.println(ALWAYS_UNPACK_ENV + " env variable: " + System.getenv(ALWAYS_UNPACK_ENV));
-            System.out.println(ALWAYS_DOWNLOAD_ENV + " env variable: " + System.getenv(ALWAYS_DOWNLOAD_ENV));
-        }
         boolean alwaysDownload = Boolean.parseBoolean(System.getenv(ALWAYS_DOWNLOAD_ENV));
         boolean alwaysUnpack = Boolean.parseBoolean(System.getenv(ALWAYS_UNPACK_ENV));
 
@@ -51,19 +46,14 @@ public class GradleWrapperMain {
         System.getProperties().putAll(SystemPropertiesHandler.getSystemProperties(new File("gradle.properties")));
     }
 
-    private static String gradleUserHome() {
+    private static File gradleUserHome() {
         String gradleUserHome = System.getProperty(GRADLE_USER_HOME_PROPERTY_KEY);
         if (gradleUserHome != null) {
-            return gradleUserHome;
+            return new File(gradleUserHome);
         } else if((gradleUserHome = System.getenv(GRADLE_USER_HOME_ENV_KEY)) != null) {
-            return gradleUserHome;
+            return new File(gradleUserHome);
         } else {
-            return DEFAULT_GRADLE_USER_HOME;
+            return new File(DEFAULT_GRADLE_USER_HOME);
         }
-    }
-
-    static boolean isDebug() {
-        String prop = System.getProperty(DEBUG_PROPERTY_KEY);
-        return prop != null && !prop.toUpperCase().equals("FALSE");
     }
 }
