@@ -62,7 +62,7 @@ public class GradleConnector {
     }
 
     /**
-     * Specifies which Gradle installation to use.
+     * Specifies which Gradle installation to use. This replaces any value specified using {@link #useDistribution(java.net.URI)} or {@link #useGradleVersion(String)}.
      *
      * @param gradleHome The Gradle installation directory.
      * @return this
@@ -73,7 +73,8 @@ public class GradleConnector {
     }
 
     /**
-     * Specifies which Gradle version to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory.
+     * Specifies which Gradle version to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory. This replaces any value specified using {@link
+     * #useInstallation(java.io.File)} or {@link #useDistribution(java.net.URI)}.
      *
      * @param gradleVersion The version to use.
      * @return this
@@ -84,7 +85,8 @@ public class GradleConnector {
     }
 
     /**
-     * Specifies which Gradle distribution to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory.
+     * Specifies which Gradle distribution to use. The appropriate distribution is downloaded and installed into the user's Gradle home directory. This replaces any value specified using {@link
+     * #useInstallation(java.io.File)} or {@link #useGradleVersion(String)}.
      *
      * @param gradleDistribution The distribution to use.
      * @return this

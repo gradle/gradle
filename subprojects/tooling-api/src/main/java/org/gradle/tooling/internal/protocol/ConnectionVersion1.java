@@ -19,5 +19,20 @@ package org.gradle.tooling.internal.protocol;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface ConnectionVersion1 {
-    <T extends BuildVersion1> T getModel(Class<T> type) throws UnsupportedOperationException;
+    /**
+     * Returns a display name for this connection, which can be used in logging and error reporting.
+     *
+     * @return The display name.
+     */
+    String getDisplayName();
+
+    /**
+     * Fetches a snapshot of the model for the build. This method returns immediately.
+     *
+     * @param type The type of model to fetch.
+     * @param handler The handler to pass the model to.
+     * @param <T> The type of model to fetch.
+     * @throws UnsupportedOperationException When the given model type is not supported.
+     */
+    <T extends BuildVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException;
 }

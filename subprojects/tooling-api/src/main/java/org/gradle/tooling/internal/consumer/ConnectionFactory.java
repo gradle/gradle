@@ -18,8 +18,6 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.tooling.GradleConnection;
 import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
-import org.gradle.tooling.model.Build;
 
 import java.io.File;
 
@@ -41,10 +39,7 @@ public class ConnectionFactory {
     public GradleConnection create(Distribution distribution, File projectDir) {
         ConnectionFactoryVersion1 factory = toolingImplementationLoader.create(distribution);
         final ConnectionVersion1 connection = factory.create(projectDir);
-        return new GradleConnection() {
-            public <T extends Build> T getModel(Class<T> viewType) {
-                return adapter.adapt(viewType, connection.getModel(EclipseBuildVersion1.class));
-            }
-        };
+        return new DefaultGradleConnection(connection, adapter);
     }
+
 }

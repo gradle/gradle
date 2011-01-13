@@ -24,6 +24,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.tooling.internal.protocol.BuildVersion1;
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
 import org.gradle.util.GUtil;
@@ -40,8 +41,20 @@ public class DefaultConnection implements ConnectionVersion1 {
         this.projectDir = projectDir;
     }
 
-    public <T extends BuildVersion1> T getModel(Class<T> type) throws UnsupportedOperationException {
-        if (type.equals(EclipseBuildVersion1.class)) {
+    public String getDisplayName() {
+        return "Gradle connection";
+    }
+
+    public <T extends BuildVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
+        try {
+            handler.onComplete(getModel(type));
+        } catch (Throwable t) {
+            handler.onFailure(t);
+        }
+    }
+
+    private <T extends BuildVersion1> T getModel(Class<T> type) throws UnsupportedOperationException {
+        if (type.isAssignableFrom(EclipseBuildVersion1.class)) {
             StartParameter startParameter = new StartParameter();
             startParameter.setProjectDir(projectDir);
             startParameter.setSearchUpwards(false);
