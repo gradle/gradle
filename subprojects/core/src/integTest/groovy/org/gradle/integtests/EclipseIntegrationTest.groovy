@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
@@ -27,8 +26,8 @@ class EclipseIntegrationTest extends AbstractIntegrationTest {
 
     @Test
     public void canCreateAndDeleteMetaData() {
-        File buildFile = testFile("master/build.gradle");
-        usingBuildFile(buildFile).run();
+        File buildFile = testFile("master/build.gradle")
+        usingBuildFile(buildFile).run()
     }
 
     @Test
@@ -66,7 +65,6 @@ sourceSets {
 
         def classpathFile = testFile(".classpath")
         assert classpathFile.exists()
-        println classpathFile.path
 
         def classpath = new XmlSlurper().parse(classpathFile)
         def sourceEntries = classpath.classpathentry.findAll { it.@kind == "src" }
