@@ -30,4 +30,47 @@ class EclipseIntegrationTest extends AbstractIntegrationTest {
         File buildFile = testFile("master/build.gradle");
         usingBuildFile(buildFile).run();
     }
+
+    @Test
+    public void sourceEntriesInDotClasspathFileAreSortedAsPerUsualConvention() {
+        def expectedOrder = [
+            "src/main/java",
+            "src/main/groovy",
+            "src/main/resources",
+            "src/test/java",
+            "src/test/groovy",
+            "src/test/resources",
+            "src/integTest/java",
+            "src/integTest/groovy",
+            "src/integTest/resources"
+        ]
+
+        expectedOrder.each { testFile(it).mkdirs() }
+
+        def buildFile = testFile("build.gradle")
+        buildFile << """
+apply plugin: "java"
+apply plugin: "groovy"
+apply plugin: "eclipse"
+
+sourceSets {
+    integTest {
+        resources { srcDir "src/integTest/resources" }
+        java { srcDir "src/integTest/java" }
+        groovy { srcDir "src/integTest/groovy" }
+    }
+}
+        """
+
+        usingBuildFile(buildFile).withTasks("eclipse").run()
+
+        def classpathFile = testFile(".classpath")
+        assert classpathFile.exists()
+        println classpathFile.path
+
+        def classpath = new XmlSlurper().parse(classpathFile)
+        def sourceEntries = classpath.classpathentry.findAll { it.@kind == "src" }
+
+        assert sourceEntries*.@path == expectedOrder
+    }
 }

@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.eclipse.model.internal
 
-import org.gradle.api.file.SourceDirectorySet
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
 import org.gradle.api.tasks.SourceSet
@@ -38,18 +37,23 @@ class ClasspathFactory {
 
     List getEntriesFromSourceSets(def sourceSets, def project) {
         List entries = []
-        sourceSets.each { SourceSet sourceSet ->
-            sourceSet.allSource.sourceTrees.each { SourceDirectorySet sourceDirectorySet ->
-                sourceDirectorySet.srcDirs.each { dir ->
-                    if (dir.isDirectory()) {
-                        entries.add(new SourceFolder(
-                                project.relativePath(dir),
-                                null,
-                                [] as Set,
-                                project.relativePath(sourceSet.classesDir),
-                                sourceDirectorySet.getIncludes() as List,
-                                sourceDirectorySet.getExcludes() as List))
-                    }
+        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.all)
+
+        sortedSourceSets.each { SourceSet sourceSet ->
+            def sourceDirSets = sourceSet.allSource.sourceTrees
+            def sourceDirs = sourceDirSets.collect { it.srcDirs }.flatten()
+            def sortedSourceDirs = sortSourceDirsAsPerUsualConvention(sourceDirs)
+
+            sortedSourceDirs.each { dir ->
+                if (dir.isDirectory()) {
+                    def sourceDirSet = sourceDirSets.find { it.srcDirs.contains(dir) }
+                    entries.add(new SourceFolder(
+                            project.relativePath(dir),
+                            null,
+                            [] as Set,
+                            project.relativePath(sourceSet.classesDir),
+                            sourceDirSet.includes as List,
+                            sourceDirSet.excludes as List))
                 }
             }
         }
@@ -152,6 +156,24 @@ class ClasspathFactory {
             dependency.transitive = false
             configureClosure.call(dependency)
             dependency
+        }
+    }
+
+    private List<SourceSet> sortSourceSetsAsPerUsualConvention(Collection<SourceSet> sourceSets) {
+        return sourceSets.sort { sourceSet ->
+            switch(sourceSet.name) {
+                case SourceSet.MAIN_SOURCE_SET_NAME: return 0
+                case SourceSet.TEST_SOURCE_SET_NAME: return 1
+                default: return 2
+            }
+        }
+    }
+
+    private List<File> sortSourceDirsAsPerUsualConvention(Collection<File> sourceDirs) {
+        return sourceDirs.sort { sourceDir ->
+            if (sourceDir.path.endsWith("java")) { 0 }
+            else if (sourceDir.path.endsWith("resources")) { 2 }
+            else { 1 }
         }
     }
 
