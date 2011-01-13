@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,15 +13,19 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.gradle.tooling.internal.provider;
 
-package org.gradle.messaging.concurrent;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
 
-public interface ExecutorFactory {
-    /**
-     * Creates an executor which can run multiple tasks concurrently. It is the caller's responsibility to stop the executor.
-     *
-     * @param displayName The display name for the this executor. Used for thread names, logging and error message.
-     * @return The executor.
-     */
-    StoppableExecutor create(String displayName);
+class DefaultEclipseBuild implements EclipseBuildVersion1 {
+    private final EclipseProjectVersion1 rootProject;
+
+    public DefaultEclipseBuild(EclipseProjectVersion1 rootProject) {
+        this.rootProject = rootProject;
+    }
+
+    public EclipseProjectVersion1 getRootProject() {
+        return rootProject;
+    }
 }

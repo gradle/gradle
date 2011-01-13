@@ -29,8 +29,6 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>A {@link org.gradle.messaging.dispatch.Dispatch} implementation which delivers messages asynchronously. Calls to
  * {@link #dispatch} queue the message. Worker threads delivers the messages in the order they have been received to one
  * of a pool of delegate {@link org.gradle.messaging.dispatch.Dispatch} instances.</p>
- *
- * <p>One or more {@link org.gradle.messaging.dispatch.Receive} instances can use used as a source of messages.</p>
  */
 public class AsyncDispatch<T> implements StoppableDispatch<T>, AsyncStoppable {
     private enum State {

@@ -85,4 +85,12 @@ class GradleConnectorTest extends Specification {
         IllegalStateException e = thrown()
         e.message == 'A project directory must be specified before creating a connection.'
     }
+
+    def stopsConnectionFactoryWhenClosed() {
+        when:
+        connector.close()
+
+        then:
+        1 * connectionFactory.stop()
+    }
 }

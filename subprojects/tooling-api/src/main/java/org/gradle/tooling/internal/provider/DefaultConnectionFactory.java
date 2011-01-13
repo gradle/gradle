@@ -15,13 +15,26 @@
  */
 package org.gradle.tooling.internal.provider;
 
+import org.gradle.messaging.actor.internal.DefaultActorFactory;
+import org.gradle.messaging.concurrent.CompositeStoppable;
+import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
 
 import java.io.File;
 
+/**
+ * The implementation of the tooling API provider. This is loaded dynamically by the tooling API consumer, {@link org.gradle.tooling.internal.consumer.ConnectionFactory}.
+ */
 public class DefaultConnectionFactory implements ConnectionFactoryVersion1 {
+    private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
+    private final DefaultActorFactory actorFactory = new DefaultActorFactory(executorFactory);
+
+    public void stop() {
+        new CompositeStoppable(actorFactory, executorFactory).stop();
+    }
+
     public ConnectionVersion1 create(File projectDirectory) {
-        return new DefaultConnection(projectDirectory);
+        return new DefaultConnection(projectDirectory, actorFactory);
     }
 }

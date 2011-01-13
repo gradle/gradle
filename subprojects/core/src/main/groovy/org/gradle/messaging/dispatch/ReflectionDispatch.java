@@ -19,6 +19,7 @@ package org.gradle.messaging.dispatch;
 import org.gradle.util.UncheckedException;
 
 import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
 
 public class ReflectionDispatch implements Dispatch<MethodInvocation> {
     private final Object target;
@@ -29,7 +30,9 @@ public class ReflectionDispatch implements Dispatch<MethodInvocation> {
 
     public void dispatch(MethodInvocation message) {
         try {
-            message.getMethod().invoke(target, message.getArguments());
+            Method method = message.getMethod();
+            method.setAccessible(true);
+            method.invoke(target, message.getArguments());
         } catch (InvocationTargetException e) {
             throw UncheckedException.asUncheckedException(e.getCause());
         } catch (Throwable throwable) {

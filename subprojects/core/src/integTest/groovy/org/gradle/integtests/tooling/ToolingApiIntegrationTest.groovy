@@ -34,6 +34,7 @@ class ToolingApiIntegrationTest extends Specification {
         GradleConnector connector = GradleConnector.newConnector()
         GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
+        connector.close()
 
         then:
         model != null
@@ -47,6 +48,7 @@ class ToolingApiIntegrationTest extends Specification {
         GradleConnector connector = GradleConnector.newConnector()
         GradleConnection connection = connector.useInstallation(dist.gradleHomeDir).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
+        connector.close()
 
         then:
         model != null
@@ -60,6 +62,7 @@ class ToolingApiIntegrationTest extends Specification {
         GradleConnector connector = GradleConnector.newConnector()
         GradleConnection connection = connector.useDistribution(dist.binDistribution.toURI()).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
+        connector.close()
 
         then:
         model != null
@@ -73,6 +76,7 @@ class ToolingApiIntegrationTest extends Specification {
         GradleConnector connector = GradleConnector.newConnector()
         GradleConnection connection = connector.useGradleVersion(new GradleVersion().version).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
+        connector.close()
 
         then:
         model != null

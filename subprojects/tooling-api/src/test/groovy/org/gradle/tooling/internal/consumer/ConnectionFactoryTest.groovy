@@ -37,4 +37,20 @@ class ConnectionFactoryTest extends Specification {
         1 * connectionImplFactory.create(projectDir) >> connectionImpl
         0 * _._
     }
+
+    def stopsAllConnectionFactoriesOnStop() {
+        File projectDir = new File('project-dir')
+
+        when:
+        factory.create(distribution, projectDir)
+
+        then:
+        1 * implementationLoader.create(distribution) >> connectionImplFactory
+        
+        when:
+        factory.stop()
+
+        then:
+        1 * connectionImplFactory.stop()
+    }
 }

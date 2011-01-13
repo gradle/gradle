@@ -21,13 +21,13 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.invocation.Gradle;
+import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.BuildVersion1;
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
-import org.gradle.util.GUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -36,9 +36,12 @@ import java.util.Set;
 
 public class DefaultConnection implements ConnectionVersion1 {
     private final File projectDir;
+    private final ActorFactory actorFactory;
+    private Worker worker;
 
-    public DefaultConnection(File projectDir) {
+    public DefaultConnection(File projectDir, ActorFactory actorFactory) {
         this.projectDir = projectDir;
+        this.actorFactory = actorFactory;
     }
 
     public String getDisplayName() {
@@ -46,38 +49,21 @@ public class DefaultConnection implements ConnectionVersion1 {
     }
 
     public <T extends BuildVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
-        try {
-            handler.onComplete(getModel(type));
-        } catch (Throwable t) {
-            handler.onFailure(t);
+        if (worker == null) {
+            worker = actorFactory.createActor(new WorkerImpl()).getProxy(Worker.class);
         }
-    }
-
-    private <T extends BuildVersion1> T getModel(Class<T> type) throws UnsupportedOperationException {
-        if (type.isAssignableFrom(EclipseBuildVersion1.class)) {
-            StartParameter startParameter = new StartParameter();
-            startParameter.setProjectDir(projectDir);
-            startParameter.setSearchUpwards(false);
-
-            final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
-            final ModelBuilder builder = new ModelBuilder();
-            gradleLauncher.addListener(builder);
-            gradleLauncher.getBuildAnalysis().rethrowFailure();
-            return type.cast(new EclipseBuildImpl(builder.rootProject));
-        }
-
-        throw new UnsupportedOperationException();
+        worker.build(type, handler);
     }
 
     private static class ModelBuilder extends BuildAdapter {
-        private EclipseProjectImpl rootProject;
+        private DefaultEclipseProject rootProject;
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
             rootProject = build(gradle.getRootProject());
         }
 
-        private EclipseProjectImpl build(Project project) {
+        private DefaultEclipseProject build(Project project) {
             Configuration configuration = project.getConfigurations().findByName(
                     "testRuntime");
             List<ExternalDependencyVersion1> dependencies = new ArrayList<ExternalDependencyVersion1>();
@@ -96,43 +82,37 @@ public class DefaultConnection implements ConnectionVersion1 {
                 children.add(build(child));
             }
 
-            return new EclipseProjectImpl(project.getName(), children, dependencies);
+            return new DefaultEclipseProject(project.getName(), children, dependencies);
         }
     }
 
-    private static class EclipseProjectImpl implements EclipseProjectVersion1 {
-        private final String name;
-        private final List<ExternalDependencyVersion1> classpath;
-        private final List<EclipseProjectVersion1> children;
-
-        public EclipseProjectImpl(String name, Iterable<? extends EclipseProjectVersion1> children, Iterable<ExternalDependencyVersion1> classpath) {
-            this.name = name;
-            this.children = GUtil.addLists(children);
-            this.classpath = GUtil.addLists(classpath);
-        }
-
-        public String getName() {
-            return name;
-        }
-
-        public List<EclipseProjectVersion1> getChildProjects() {
-            return children;
-        }
-
-        public List<ExternalDependencyVersion1> getClasspath() {
-            return classpath;
-        }
+    private interface Worker {
+        <T extends BuildVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
     }
 
-    private static class EclipseBuildImpl implements EclipseBuildVersion1 {
-        private final EclipseProjectVersion1 rootProject;
-
-        public EclipseBuildImpl(EclipseProjectVersion1 rootProject) {
-            this.rootProject = rootProject;
+    private class WorkerImpl implements Worker {
+        public <T extends BuildVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
+            try {
+                handler.onComplete(build(type));
+            } catch (Throwable t) {
+                handler.onFailure(t);
+            }
         }
 
-        public EclipseProjectVersion1 getRootProject() {
-            return rootProject;
+        private <T extends BuildVersion1> T build(Class<T> type) throws UnsupportedOperationException {
+            if (type.isAssignableFrom(EclipseBuildVersion1.class)) {
+                StartParameter startParameter = new StartParameter();
+                startParameter.setProjectDir(projectDir);
+                startParameter.setSearchUpwards(false);
+
+                final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
+                final ModelBuilder builder = new ModelBuilder();
+                gradleLauncher.addListener(builder);
+                gradleLauncher.getBuildAnalysis().rethrowFailure();
+                return type.cast(new DefaultEclipseBuild(builder.rootProject));
+            }
+
+            throw new UnsupportedOperationException();
         }
     }
 }

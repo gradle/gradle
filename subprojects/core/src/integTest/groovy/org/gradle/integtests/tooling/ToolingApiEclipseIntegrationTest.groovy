@@ -43,6 +43,7 @@ class ToolingApiEclipseIntegrationTest extends Specification {
         GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
         EclipseBuild build = connection.getModel(EclipseBuild.class)
         EclipseProject rootProject = build.getRootProject()
+        connector.close()
 
         then:
         rootProject != null
@@ -65,6 +66,7 @@ class ToolingApiEclipseIntegrationTest extends Specification {
         GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
         EclipseBuild build = connection.getModel(EclipseBuild.class)
         EclipseProject rootProject = build.getRootProject()
+        connector.close()
 
         then:
         rootProject != null

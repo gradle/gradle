@@ -15,18 +15,24 @@
  */
 package org.gradle.tooling.internal.consumer;
 
+import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.tooling.GradleConnection;
 import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
 
 import java.io.File;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArraySet;
 
 /**
  * This is the main internal entry point for the tooling API.
+ *
+ * This implementation is thread-safe.
  */
-public class ConnectionFactory {
+public class ConnectionFactory implements Stoppable {
     private final ProtocolToModelAdapter adapter = new ProtocolToModelAdapter();
     private final ToolingImplementationLoader toolingImplementationLoader;
+    private final Set<ConnectionFactoryVersion1> factories = new CopyOnWriteArraySet<ConnectionFactoryVersion1>();
 
     public ConnectionFactory() {
         this(new CachingToolingImplementationLoader(new DefaultToolingImplementationLoader()));
@@ -38,8 +44,14 @@ public class ConnectionFactory {
 
     public GradleConnection create(Distribution distribution, File projectDir) {
         ConnectionFactoryVersion1 factory = toolingImplementationLoader.create(distribution);
+        factories.add(factory);
         final ConnectionVersion1 connection = factory.create(projectDir);
         return new DefaultGradleConnection(connection, adapter);
     }
 
+    public void stop() {
+        for (ConnectionFactoryVersion1 factory : factories) {
+            factory.stop();
+        }
+    }
 }

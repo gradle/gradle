@@ -18,6 +18,7 @@ package org.gradle.tooling.internal.consumer
 import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.tooling.internal.provider.DefaultConnectionFactory
 import spock.lang.Specification
+import org.gradle.messaging.actor.ActorFactory
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     final Distribution distribution = Mock()
@@ -30,6 +31,8 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         then:
         factory.class != DefaultConnectionFactory.class
         factory.class.name == DefaultConnectionFactory.class.name
-        _ * distribution.toolingImplementationClasspath >> ([AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class)] as Set)
+        _ * distribution.toolingImplementationClasspath >> ([AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
+                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class)
+        ] as Set)
     }
 }

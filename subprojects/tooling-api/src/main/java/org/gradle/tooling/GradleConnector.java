@@ -128,5 +128,6 @@ public class GradleConnector {
      * Closes this connector and all connections created by it.
      */
     public void close() {
+        connectionFactory.stop();
     }
 }
