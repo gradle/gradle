@@ -194,13 +194,6 @@ class SamplesJavaMultiProjectIntegrationTest {
     }
 
     @Test
-    public void additionalProjectDependenciesTasks() {
-        TestFile apiDir = javaprojectDir.file(API_NAME)
-        executer.inDirectory(apiDir).withTasks('classes').withArguments("-Ajavadoc").run()
-        assertExists(javaprojectDir, SHARED_NAME, 'build/docs/javadoc/index.html')
-    }
-
-    @Test
     public void shouldNotUseCacheForProjectDependencies() {
         TestFile apiDir = javaprojectDir.file(API_NAME)
         executer.inDirectory(apiDir).withTasks('checkProjectDependency').run()
