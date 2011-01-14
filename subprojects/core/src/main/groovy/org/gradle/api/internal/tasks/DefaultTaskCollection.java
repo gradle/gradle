@@ -23,6 +23,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.TaskCollection;
+import org.gradle.util.DeprecationLogger;
 
 public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObjectContainer<T> implements TaskCollection<T> {
     protected final ProjectInternal project;
@@ -61,11 +62,13 @@ public class DefaultTaskCollection<T extends Task> extends DefaultNamedDomainObj
     }
 
     public void allTasks(Action<? super T> action) {
-        allObjects(action);
+        DeprecationLogger.nagUser("TaskCollection.allTasks()", "all()");
+        all(action);
     }
 
     public void allTasks(Closure action) {
-        allObjects(action);
+        DeprecationLogger.nagUser("TaskCollection.allTasks()", "all()");
+        all(action);
     }
 
     @Override

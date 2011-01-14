@@ -22,6 +22,7 @@ import org.gradle.api.internal.DefaultDomainObjectContainer;
 import org.gradle.api.plugins.PluginCollection;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.util.DeprecationLogger;
 
 public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObjectContainer<T>
         implements PluginCollection<T> {
@@ -55,10 +56,12 @@ public class DefaultPluginCollection<T extends Plugin> extends DefaultDomainObje
     }
 
     public void allPlugins(Action<? super T> action) {
-        allObjects(action);
+        DeprecationLogger.nagUser("PluginCollection.allPlugins()", "all()");
+        all(action);
     }
 
     public void allPlugins(Closure closure) {
-        allObjects(closure);
+        DeprecationLogger.nagUser("PluginCollection.allPlugins()", "all()");
+        all(closure);
     }
 }

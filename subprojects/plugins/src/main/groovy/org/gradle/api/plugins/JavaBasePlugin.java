@@ -66,7 +66,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureSourceSetDefaults(final JavaPluginConvention pluginConvention) {
-        pluginConvention.getSourceSets().allObjects(new Action<SourceSet>() {
+        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(final SourceSet sourceSet) {
                 final Project project = pluginConvention.getProject();
                 ConventionMapping conventionMapping = ((IConventionAware) sourceSet).getConventionMapping();
@@ -130,7 +130,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, final JavaPluginConvention javaConvention) {
-        project.getTasks().withType(AbstractCompile.class).allTasks(new Action<AbstractCompile>() {
+        project.getTasks().withType(AbstractCompile.class).all(new Action<AbstractCompile>() {
             public void execute(final AbstractCompile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("sourceCompatibility", new ConventionValue() {
@@ -145,7 +145,7 @@ public class JavaBasePlugin implements Plugin<Project> {
                 });
             }
         });
-        project.getTasks().withType(Compile.class).allTasks(new Action<Compile>() {
+        project.getTasks().withType(Compile.class).all(new Action<Compile>() {
             public void execute(final Compile compile) {
                 ConventionMapping conventionMapping = compile.getConventionMapping();
                 conventionMapping.map("dependencyCacheDir", new ConventionValue() {
@@ -158,7 +158,7 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureJavaDoc(final Project project) {
-        project.getTasks().withType(Javadoc.class).allTasks(new Action<Javadoc>() {
+        project.getTasks().withType(Javadoc.class).all(new Action<Javadoc>() {
             public void execute(Javadoc javadoc) {
                 javadoc.getConventionMapping().map("destinationDir", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -203,14 +203,14 @@ public class JavaBasePlugin implements Plugin<Project> {
     }
 
     private void configureTest(final Project project) {
-        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
+        project.getTasks().withType(Test.class).all(new Action<Test>() {
             public void execute(Test test) {
                 configureTestDefaults(test, project);
             }
         });
         project.afterEvaluate(new Action<Project>() {
             public void execute(Project project) {
-                project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
+                project.getTasks().withType(Test.class).all(new Action<Test>() {
                     public void execute(Test test) {
                         overwriteIncludesIfSinglePropertyIsSet(test);
                         overwriteDebugIfDebugPropertyIsSet(test);

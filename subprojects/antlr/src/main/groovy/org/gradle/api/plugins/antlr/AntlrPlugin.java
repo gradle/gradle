@@ -54,7 +54,7 @@ public class AntlrPlugin implements Plugin<Project> {
         project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME).extendsFrom(antlrConfiguration);
 
         final ProjectInternal projectInternal = (ProjectInternal) project;
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().allObjects(
+        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(
                 new Action<SourceSet>() {
                     public void execute(SourceSet sourceSet) {
                         // for each source set we will:

@@ -424,7 +424,7 @@ public class DefaultNamedDomainObjectContainerTest {
     }
 
     @Test
-    public void allObjectsCallsActionForEachExistingObject() {
+    public void allCallsActionForEachExistingObject() {
         final Action<Bean> action = context.mock(Action.class);
         final Bean bean = new Bean();
 
@@ -433,11 +433,11 @@ public class DefaultNamedDomainObjectContainerTest {
         }});
 
         container.addObject("bean", bean);
-        container.allObjects(action);
+        container.all(action);
     }
 
     @Test
-    public void allObjectsCallsClosureForEachExistingObject() {
+    public void allCallsClosureForEachExistingObject() {
         final TestClosure closure = context.mock(TestClosure.class);
         final Bean bean = new Bean();
 
@@ -446,11 +446,11 @@ public class DefaultNamedDomainObjectContainerTest {
         }});
 
         container.addObject("bean", bean);
-        container.allObjects(HelperUtil.toClosure(closure));
+        container.all(HelperUtil.toClosure(closure));
     }
 
     @Test
-    public void allObjectsCallsActionForEachNewObject() {
+    public void allCallsActionForEachNewObject() {
         final Action<Bean> action = context.mock(Action.class);
         final Bean bean = new Bean();
 
@@ -458,12 +458,12 @@ public class DefaultNamedDomainObjectContainerTest {
             one(action).execute(bean);
         }});
 
-        container.allObjects(action);
+        container.all(action);
         container.addObject("bean", bean);
     }
 
     @Test
-    public void allObjectsCallsClosureForEachNewObject() {
+    public void allCallsClosureForEachNewObject() {
         final TestClosure closure = context.mock(TestClosure.class);
         final Bean bean = new Bean();
 
@@ -471,7 +471,7 @@ public class DefaultNamedDomainObjectContainerTest {
             one(closure).call(bean);
         }});
 
-        container.allObjects(HelperUtil.toClosure(closure));
+        container.all(HelperUtil.toClosure(closure));
         container.addObject("bean", bean);
     }
 

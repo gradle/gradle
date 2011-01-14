@@ -508,11 +508,11 @@ public class DefaultConfiguration extends AbstractFileCollection implements Conf
     }
 
     public void allDependencies(Action<? super Dependency> action) {
-        dependencies.allObjects(action);
+        dependencies.all(action);
     }
 
     public void allDependencies(Closure action) {
-        dependencies.allObjects(action);
+        dependencies.all(action);
     }
 
     private class ConfigurationTaskDependency extends AbstractTaskDependency {

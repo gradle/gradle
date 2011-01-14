@@ -72,7 +72,9 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectCollect
      * collection.
      *
      * @param action The action to be executed
+     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
      */
+    @Deprecated
     void allTasks(Action<? super T> action);
 
     /**
@@ -80,7 +82,9 @@ public interface TaskCollection<T extends Task> extends NamedDomainObjectCollect
      * collection.
      *
      * @param closure The closure to be called
+     * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
      */
+    @Deprecated
     void allTasks(Closure closure);
 
     /**

@@ -55,7 +55,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project) {
-        project.getTasks().withType(GroovyCompile.class).allTasks(new Action<GroovyCompile>() {
+        project.getTasks().withType(GroovyCompile.class).all(new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -68,7 +68,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
 
     private void configureSourceSetDefaults(final Project project, final JavaBasePlugin javaBasePlugin) {
         final ProjectInternal projectInternal = (ProjectInternal) project;
-        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().allObjects(new Action<SourceSet>() {
+        project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
                 final DefaultGroovySourceSet groovySourceSet = new DefaultGroovySourceSet(((DefaultSourceSet) sourceSet).getDisplayName(), projectInternal.getFileResolver());
                 ((DynamicObjectAware) sourceSet).getConvention().getPlugins().put("groovy", groovySourceSet);
@@ -99,7 +99,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc(final Project project) {
-        project.getTasks().withType(Groovydoc.class).allTasks(new Action<Groovydoc>() {
+        project.getTasks().withType(Groovydoc.class).all(new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

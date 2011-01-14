@@ -105,7 +105,9 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
      * collection.
      *
      * @param action The action to be executed
+     * @deprecated Use {@link #all(Action)} instead.
      */
+    @Deprecated
     void allObjects(Action<? super T> action);
 
     /**
@@ -113,6 +115,24 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
      * collection.
      *
      * @param action The closure to be called
+     * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
      */
+    @Deprecated
     void allObjects(Closure action);
+
+    /**
+     * Executes the given action against all objects in this collection, and any objects subsequently added to this
+     * collection.
+     *
+     * @param action The action to be executed
+     */
+    void all(Action<? super T> action);
+
+    /**
+     * Executes the given closure against all objects in this collection, and any objects subsequently added to this
+     * collection. The object is passed to the closure as the closure delegate. Alternatively, it is also passed as a parameter.
+     *
+     * @param action The action to be executed
+     */
+    void all(Closure action);
 }

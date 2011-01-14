@@ -19,7 +19,10 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.internal.IConventionAware;
-import org.gradle.api.plugins.*;
+import org.gradle.api.plugins.Convention;
+import org.gradle.api.plugins.JavaPluginConvention;
+import org.gradle.api.plugins.WarPlugin;
+import org.gradle.api.plugins.WarPluginConvention;
 import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.bundling.War;
@@ -53,7 +56,7 @@ public class JettyPlugin implements Plugin<Project> {
     }
 
     private void configureMappingRules(final Project project, final JettyPluginConvention jettyConvention) {
-        project.getTasks().withType(AbstractJettyRunTask.class).whenTaskAdded(new Action<AbstractJettyRunTask>() {
+        project.getTasks().withType(AbstractJettyRunTask.class).all(new Action<AbstractJettyRunTask>() {
             public void execute(AbstractJettyRunTask abstractJettyRunTask) {
                 configureAbstractJettyTask(project, jettyConvention, abstractJettyRunTask);
             }
@@ -61,7 +64,7 @@ public class JettyPlugin implements Plugin<Project> {
     }
 
     private void configureJettyRunWar(final Project project) {
-        project.getTasks().withType(JettyRunWar.class).whenTaskAdded(new Action<JettyRunWar>() {
+        project.getTasks().withType(JettyRunWar.class).all(new Action<JettyRunWar>() {
             public void execute(JettyRunWar jettyRunWar) {
                 jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
                 jettyRunWar.getConventionMapping().map("webApp", new ConventionValue() {
@@ -94,7 +97,7 @@ public class JettyPlugin implements Plugin<Project> {
     }
 
     private void configureJettyRun(final Project project) {
-        project.getTasks().withType(JettyRun.class).whenTaskAdded(new Action<JettyRun>() {
+        project.getTasks().withType(JettyRun.class).all(new Action<JettyRun>() {
             public void execute(JettyRun jettyRun) {
                 jettyRun.getConventionMapping().map("webXml", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

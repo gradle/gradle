@@ -60,7 +60,7 @@ class BasePlugin implements Plugin<Project> {
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {
-        project.tasks.withType(AbstractArchiveTask).allTasks {AbstractArchiveTask task ->
+        project.tasks.withType(AbstractArchiveTask).all {AbstractArchiveTask task ->
             if (task instanceof Jar) {
                 task.conventionMapping.destinationDir = { pluginConvention.libsDir }
             } else {
@@ -118,7 +118,7 @@ class BasePlugin implements Plugin<Project> {
                 toString: { "Rule: " + description }
         ] as Rule
 
-        project.configurations.allObjects {
+        project.configurations.all {
             if (!project.tasks.rules.contains(rule)) {
                 project.tasks.addRule(rule)
             }
@@ -141,7 +141,7 @@ class BasePlugin implements Plugin<Project> {
                 },
                 toString: { "Rule: " + description }
         ] as Rule
-        project.configurations.allObjects {
+        project.configurations.all {
             if (!project.tasks.rules.contains(rule)) {
                 project.tasks.addRule(rule)
             }

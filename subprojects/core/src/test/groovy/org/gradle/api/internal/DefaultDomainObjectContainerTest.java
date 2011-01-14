@@ -225,7 +225,7 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
-    public void callsClosureWhenObjectAdded() {
+    public void callsClosureWithNewObjectAsParameterWhenObjectAdded() {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
@@ -233,6 +233,12 @@ public class DefaultDomainObjectContainerTest {
         }});
 
         container.whenObjectAdded(HelperUtil.toClosure(closure));
+        container.addObject("a");
+    }
+
+    @Test
+    public void callsClosureWithNewObjectAsDelegateWhenObjectAdded() {
+        container.whenObjectAdded(HelperUtil.toClosure("{ assert delegate == 'a' }"));
         container.addObject("a");
     }
 
@@ -251,7 +257,7 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
-    public void allObjectsCallsActionForEachExistingObject() {
+    public void allCallsActionForEachExistingObject() {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
@@ -259,11 +265,11 @@ public class DefaultDomainObjectContainerTest {
         }});
 
         container.addObject("a");
-        container.allObjects(action);
+        container.all(action);
     }
 
     @Test
-    public void allObjectsCallsClosureForEachExistingObject() {
+    public void allCallsClosureForEachExistingObject() {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
@@ -271,35 +277,41 @@ public class DefaultDomainObjectContainerTest {
         }});
 
         container.addObject("a");
-        container.allObjects(HelperUtil.toClosure(closure));
+        container.all(HelperUtil.toClosure(closure));
     }
 
     @Test
-    public void allObjectsCallsActionForEachNewObject() {
+    public void allCallsActionForEachNewObject() {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
             one(action).execute("a");
         }});
 
-        container.allObjects(action);
+        container.all(action);
         container.addObject("a");
     }
 
     @Test
-    public void allObjectsCallsClosureForEachNewObject() {
+    public void allCallsClosureForEachNewObject() {
         final TestClosure closure = context.mock(TestClosure.class);
 
         context.checking(new Expectations() {{
             one(closure).call("a");
         }});
 
-        container.allObjects(HelperUtil.toClosure(closure));
+        container.all(HelperUtil.toClosure(closure));
         container.addObject("a");
     }
 
     @Test
-    public void allObjectsCallsActionForEachNewObjectAddedByTheAction() {
+    public void allCallsClosureWithObjectAsDelegate() {
+        container.all(HelperUtil.toClosure(" { assert delegate == 'a' } "));
+        container.addObject("a");
+    }
+
+    @Test
+    public void allCallsActionForEachNewObjectAddedByTheAction() {
         final Action<CharSequence> action = context.mock(Action.class);
 
         context.checking(new Expectations() {{
@@ -320,7 +332,7 @@ public class DefaultDomainObjectContainerTest {
 
         container.addObject("a");
         container.addObject("b");
-        container.allObjects(action);
+        container.all(action);
     }
 
 }

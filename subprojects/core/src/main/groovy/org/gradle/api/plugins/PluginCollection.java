@@ -65,7 +65,9 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectCollecti
      * collection.
      *
      * @param action The action to be executed
+     * @deprecated Use {@link #all(org.gradle.api.Action)} instead.
      */
+    @Deprecated
     void allPlugins(Action<? super T> action);
 
     /**
@@ -73,6 +75,8 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectCollecti
      * collection.
      *
      * @param closure The closure to be called
+     * @deprecated Use {@link #all(groovy.lang.Closure)} instead.
      */
+    @Deprecated
     void allPlugins(Closure closure);
 }

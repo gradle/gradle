@@ -77,7 +77,7 @@ public class JavaPlugin implements Plugin<Project> {
     private void configureSourceSets(final JavaPluginConvention pluginConvention) {
         final Project project = pluginConvention.getProject();
 
-        pluginConvention.getSourceSets().allObjects(new Action<SourceSet>() {
+        pluginConvention.getSourceSets().all(new Action<SourceSet>() {
             public void execute(SourceSet sourceSet) {
                 sourceSet.setCompileClasspath(project.getConfigurations().getByName(COMPILE_CONFIGURATION_NAME));
                 sourceSet.setRuntimeClasspath(sourceSet.getClasses().plus(project.getConfigurations().getByName(
@@ -130,7 +130,7 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class).allTasks(new Action<Test>() {
+        project.getTasks().withType(Test.class).all(new Action<Test>() {
             public void execute(Test test) {
                 test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
                     public Object call() throws Exception {

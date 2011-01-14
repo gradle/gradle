@@ -34,7 +34,7 @@ public class OsgiPlugin implements Plugin<Project> {
         OsgiPluginConvention osgiConvention = new OsgiPluginConvention(project);
         project.convention.plugins.osgi = osgiConvention
 
-        project.plugins.withType(JavaPlugin.class).allPlugins {javaPlugin ->
+        project.plugins.withType(JavaPlugin.class).all {javaPlugin ->
             OsgiManifest osgiManifest = osgiConvention.osgiManifest {
                 from project.manifest
                 classesDir = project.convention.plugins.java.sourceSets[SourceSet.MAIN_SOURCE_SET_NAME].classesDir

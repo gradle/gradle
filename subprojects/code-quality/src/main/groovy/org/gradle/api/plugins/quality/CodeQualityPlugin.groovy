@@ -48,23 +48,23 @@ public class CodeQualityPlugin implements Plugin<Project> {
         configureCheckstyleDefaults(project, javaPluginConvention)
         configureCodeNarcDefaults(project, groovyPluginConvention)
 
-        project.plugins.withType(JavaBasePlugin.class).allPlugins {
+        project.plugins.withType(JavaBasePlugin.class).all {
             configureForJavaPlugin(project, javaPluginConvention);
         }
-        project.plugins.withType(GroovyBasePlugin.class).allPlugins {
+        project.plugins.withType(GroovyBasePlugin.class).all {
             configureForGroovyPlugin(project, groovyPluginConvention);
         }
     }
 
     private void configureCheckstyleDefaults(Project project, JavaCodeQualityPluginConvention pluginConvention) {
-        project.tasks.withType(Checkstyle.class).allTasks {Checkstyle checkstyle ->
+        project.tasks.withType(Checkstyle.class).all {Checkstyle checkstyle ->
             checkstyle.conventionMapping.configFile = { pluginConvention.checkstyleConfigFile }
             checkstyle.conventionMapping.map('properties') { pluginConvention.checkstyleProperties }
         }
     }
 
     private void configureCodeNarcDefaults(Project project, GroovyCodeQualityPluginConvention pluginConvention) {
-        project.tasks.withType(CodeNarc.class).allTasks {CodeNarc codenarc ->
+        project.tasks.withType(CodeNarc.class).all {CodeNarc codenarc ->
             codenarc.conventionMapping.configFile = { pluginConvention.codeNarcConfigFile }
         }
     }
@@ -79,7 +79,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
     private void configureForJavaPlugin(Project project, JavaCodeQualityPluginConvention pluginConvention) {
         configureCheckTask(project);
 
-        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet set ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all {SourceSet set ->
             Checkstyle checkstyle = project.tasks.add(set.getTaskName("checkstyle", null), Checkstyle.class);
             checkstyle.description = "Runs Checkstyle against the $set.name Java source code."
             checkstyle.conventionMapping.defaultSource = { set.allJava; }
@@ -90,7 +90,7 @@ public class CodeQualityPlugin implements Plugin<Project> {
     }
 
     private void configureForGroovyPlugin(Project project, GroovyCodeQualityPluginConvention pluginConvention) {
-        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet set ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all {SourceSet set ->
             GroovySourceSet groovySourceSet = set.convention.getPlugin(GroovySourceSet.class)
             CodeNarc codeNarc = project.tasks.add(set.getTaskName("codenarc", null), CodeNarc.class);
             codeNarc.setDescription("Runs CodeNarc against the $set.name Groovy source code.");

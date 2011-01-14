@@ -42,7 +42,7 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureSourceSetDefaults(Project project, JavaBasePlugin javaPlugin) {
-        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.allObjects {SourceSet sourceSet ->
+        project.convention.getPlugin(JavaPluginConvention.class).sourceSets.all {SourceSet sourceSet ->
             sourceSet.convention.plugins.scala = new DefaultScalaSourceSet(sourceSet.displayName, project.fileResolver)
             sourceSet.scala.srcDir { project.file("src/$sourceSet.name/scala")}
             sourceSet.allJava.add(sourceSet.scala.matching(sourceSet.java.filter))
@@ -61,13 +61,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, JavaBasePlugin javaPlugin) {
-        project.tasks.withType(ScalaCompile.class).allTasks {ScalaCompile compile ->
+        project.tasks.withType(ScalaCompile.class).all {ScalaCompile compile ->
             compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
         }
     }
 
     private void configureScaladoc(final Project project) {
-        project.getTasks().withType(ScalaDoc.class).allTasks {ScalaDoc scalaDoc ->
+        project.getTasks().withType(ScalaDoc.class).all {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.apiDocTitle }
             scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
