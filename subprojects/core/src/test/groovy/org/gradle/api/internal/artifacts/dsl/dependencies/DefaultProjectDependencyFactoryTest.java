@@ -40,7 +40,7 @@ import static org.junit.Assert.assertThat;
 public class DefaultProjectDependencyFactoryTest {
     private JUnit4Mockery context = new JUnit4Mockery();
 
-    private final ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null);
+    private final ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
     private ProjectDependencyFactory projectDependencyFactory = new DefaultProjectDependencyFactory(projectDependenciesBuildInstruction, new AsmBackedClassGenerator());
     private ProjectFinder projectFinder = context.mock(ProjectFinder.class);
 
@@ -49,7 +49,7 @@ public class DefaultProjectDependencyFactoryTest {
         Project dependencyProject = HelperUtil.createRootProject();
         DefaultProjectDependency projectDependency = (DefaultProjectDependency)
                 projectDependencyFactory.createDependency(Dependency.class, dependencyProject);
-        assertThat((ProjectInternal) projectDependency.getDependencyProject(), equalTo(dependencyProject));
+        assertThat(projectDependency.getDependencyProject(), equalTo(dependencyProject));
     }
 
     @Test

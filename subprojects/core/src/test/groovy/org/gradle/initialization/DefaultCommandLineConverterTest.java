@@ -25,7 +25,6 @@ import org.gradle.groovy.scripts.UriScriptSource;
 import org.gradle.util.GUtil;
 import org.gradle.util.TemporaryFolder;
 import org.gradle.util.TestFile;
-import org.gradle.util.WrapUtil;
 import org.junit.Rule;
 import org.junit.Test;
 
@@ -34,8 +33,10 @@ import java.io.IOException;
 import java.util.*;
 
 import static org.gradle.util.WrapUtil.*;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Hans Dockter
@@ -51,7 +52,7 @@ public class DefaultCommandLineConverterTest {
     private List<String> expectedTaskNames = toList();
     private Set<String> expectedExcludedTasks = toSet();
     private ProjectDependenciesBuildInstruction expectedProjectDependenciesBuildInstruction
-            = new ProjectDependenciesBuildInstruction(WrapUtil.<String>toList());
+            = new ProjectDependenciesBuildInstruction(true);
     private Map<String, String> expectedSystemProperties = new HashMap<String, String>();
     private Map<String, String> expectedProjectProperties = new HashMap<String, String>();
     private List<File> expectedInitScripts = new ArrayList<File>();
@@ -265,15 +266,8 @@ public class DefaultCommandLineConverterTest {
 
     @Test
     public void withNoProjectDependencyRebuild() {
-        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(null);
+        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(false);
         checkConversion("-a");
-    }
-
-    @Test
-    public void withProjectDependencyTaskNames() {
-        expectedProjectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(WrapUtil.toList("task1",
-                "task2"));
-        checkConversion("-Atask1", "-A", "task2");
     }
 
     @Test

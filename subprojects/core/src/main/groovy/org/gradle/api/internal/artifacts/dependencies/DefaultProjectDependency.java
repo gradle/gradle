@@ -160,9 +160,6 @@ public class DefaultProjectDependency extends AbstractModuleDependency implement
             Configuration configuration = getProjectConfiguration();
             context.add(configuration);
             context.add(configuration.getBuildArtifacts());
-            for (String taskName : instruction.getTaskNames()) {
-                context.add(dependencyProject.getTasks().getByName(taskName));
-            }
         }
     }
 }

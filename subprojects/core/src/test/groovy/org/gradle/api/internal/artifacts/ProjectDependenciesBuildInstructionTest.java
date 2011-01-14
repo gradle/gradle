@@ -15,10 +15,7 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.util.WrapUtil;
 import org.junit.Test;
-
-import java.util.Collections;
 
 import static org.hamcrest.Matchers.equalTo;
 import static org.hamcrest.Matchers.not;
@@ -30,51 +27,32 @@ import static org.junit.Assert.assertThat;
 public class ProjectDependenciesBuildInstructionTest {
     @Test
     public void initWithNull() {
-        ProjectDependenciesBuildInstruction buildInstruction = new ProjectDependenciesBuildInstruction(null);
+        ProjectDependenciesBuildInstruction buildInstruction = new ProjectDependenciesBuildInstruction(false);
         assertThat(buildInstruction.isRebuild(), equalTo(false));
-        assertThat(buildInstruction.getTaskNames(), equalTo(Collections.<String>emptyList()));
     }
 
     @Test
     public void initWithEmptyList() {
-        ProjectDependenciesBuildInstruction buildInstruction = new ProjectDependenciesBuildInstruction(Collections.<String>emptyList());
+        ProjectDependenciesBuildInstruction buildInstruction = new ProjectDependenciesBuildInstruction(true);
         assertThat(buildInstruction.isRebuild(), equalTo(true));
-        assertThat(buildInstruction.getTaskNames(), equalTo(Collections.<String>emptyList()));
-    }
-
-    @Test
-    public void initWithNonEmptyList() {
-        String taskName = "someTaskName";
-        ProjectDependenciesBuildInstruction buildInstruction = new ProjectDependenciesBuildInstruction(
-                WrapUtil.toList(taskName));
-        assertThat(buildInstruction.isRebuild(), equalTo(true));
-        assertThat(buildInstruction.getTaskNames(), equalTo(WrapUtil.toList(taskName)));
     }
 
     @Test
     public void equality() {
-        String taskName = "someTaskName";
-        assertThat(new ProjectDependenciesBuildInstruction(null),
-                equalTo(new ProjectDependenciesBuildInstruction(null)));
-        assertThat(new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()),
-                equalTo(new ProjectDependenciesBuildInstruction(Collections.<String>emptyList())));
-        assertThat(new ProjectDependenciesBuildInstruction(WrapUtil.toList(taskName)),
-                equalTo(new ProjectDependenciesBuildInstruction(WrapUtil.toList(taskName))));
+        assertThat(new ProjectDependenciesBuildInstruction(false),
+                equalTo(new ProjectDependenciesBuildInstruction(false)));
+        assertThat(new ProjectDependenciesBuildInstruction(true),
+                equalTo(new ProjectDependenciesBuildInstruction(true)));
 
-        assertThat(new ProjectDependenciesBuildInstruction(null),
-                not(equalTo(new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()))));
-        assertThat(new ProjectDependenciesBuildInstruction(WrapUtil.toList(taskName)),
-                not(equalTo(new ProjectDependenciesBuildInstruction(WrapUtil.toList(taskName + 'x')))));
+        assertThat(new ProjectDependenciesBuildInstruction(false),
+                not(equalTo(new ProjectDependenciesBuildInstruction(true))));
     }
 
     @Test
     public void hashCodeEquality() {
-        String taskName = "someTaskName";
-        assertThat(new ProjectDependenciesBuildInstruction(null).hashCode(),
-                equalTo(new ProjectDependenciesBuildInstruction(null).hashCode()));
-        assertThat(new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()).hashCode(),
-                equalTo(new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()).hashCode()));
-        assertThat(new ProjectDependenciesBuildInstruction(WrapUtil.toList(taskName)).hashCode(),
-                equalTo(new ProjectDependenciesBuildInstruction(WrapUtil.toList(taskName)).hashCode()));
+        assertThat(new ProjectDependenciesBuildInstruction(false).hashCode(),
+                equalTo(new ProjectDependenciesBuildInstruction(false).hashCode()));
+        assertThat(new ProjectDependenciesBuildInstruction(true).hashCode(),
+                equalTo(new ProjectDependenciesBuildInstruction(true).hashCode()));
     }
 }

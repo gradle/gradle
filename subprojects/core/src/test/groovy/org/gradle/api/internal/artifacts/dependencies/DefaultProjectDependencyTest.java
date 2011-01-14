@@ -24,7 +24,6 @@ import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskDependency;
-import org.gradle.util.WrapUtil;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.junit.Before;
@@ -33,8 +32,9 @@ import org.junit.runner.RunWith;
 
 import java.util.Set;
 
-import static org.gradle.util.Matchers.*;
-import static org.gradle.util.WrapUtil.*;
+import static org.gradle.util.Matchers.isEmpty;
+import static org.gradle.util.Matchers.strictlyEqual;
+import static org.gradle.util.WrapUtil.toSet;
 import static org.hamcrest.Matchers.*;
 import static org.junit.Assert.*;
 
@@ -43,7 +43,7 @@ import static org.junit.Assert.*;
  */
 @RunWith(JMock.class)
 public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
-    private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(WrapUtil.<String>toList());
+    private final ProjectDependenciesBuildInstruction instruction = new ProjectDependenciesBuildInstruction(true);
     private final Project dependencyProjectStub = context.mock(Project.class);
     private final ConfigurationContainer projectConfigurationsStub = context.mock(ConfigurationContainer.class);
     private final Configuration projectConfigurationStub = context.mock(Configuration.class);
@@ -217,7 +217,7 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     }
 
     private void expectTargetConfigurationHasNoDependencies() {
-        context.checking(new Expectations(){{
+        context.checking(new Expectations() {{
             TaskDependency dependencyStub = context.mock(TaskDependency.class);
 
             allowing(projectConfigurationStub).getBuildDependencies();
@@ -234,20 +234,8 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
     @Test
     public void doesNotDependOnAnythingWhenProjectRebuildIsDisabled() {
         DefaultProjectDependency dependency = new DefaultProjectDependency(dependencyProjectStub,
-                new ProjectDependenciesBuildInstruction(null));
+                new ProjectDependenciesBuildInstruction(false));
         assertThat(dependency.getBuildDependencies().getDependencies(null), isEmpty());
-    }
-
-    @Test
-    public void dependsOnAdditionalTasksFromTargetProject() {
-        expectTargetConfigurationHasNoDependencies();
-
-        Task a = taskInTargetProject("a");
-        Task b = taskInTargetProject("b");
-
-        DefaultProjectDependency dependency = new DefaultProjectDependency(dependencyProjectStub,
-                new ProjectDependenciesBuildInstruction(toList("a", "b")));
-        assertThat(dependency.getBuildDependencies().getDependencies(null), equalTo((Set) toSet(a, b)));
     }
 
     @Test
@@ -292,6 +280,6 @@ public class DefaultProjectDependencyTest extends AbstractModuleDependencyTest {
         assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
                 otherProject, instruction))));
         assertThat(new DefaultProjectDependency(dependencyProjectStub, instruction), not(equalTo(new DefaultProjectDependency(
-                dependencyProjectStub, new ProjectDependenciesBuildInstruction(null)))));
+                dependencyProjectStub, new ProjectDependenciesBuildInstruction(false)))));
     }
 }

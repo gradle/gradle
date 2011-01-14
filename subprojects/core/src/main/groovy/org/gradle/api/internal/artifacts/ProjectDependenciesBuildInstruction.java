@@ -15,28 +15,18 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import java.util.List;
-import java.util.Collections;
-
 /**
  * @author Hans Dockter
  */
 public class ProjectDependenciesBuildInstruction {
-    private List<String> taskNames;
+    private final boolean rebuild;
 
-    public ProjectDependenciesBuildInstruction(List<String> taskNames) {
-        this.taskNames = taskNames;
-    }
-
-    public List<String> getTaskNames() {
-        if (taskNames == null) {
-            return Collections.emptyList();
-        }
-        return taskNames;
+    public ProjectDependenciesBuildInstruction(boolean rebuild) {
+        this.rebuild = rebuild;
     }
 
     public boolean isRebuild() {
-        return taskNames != null;
+        return rebuild;
     }
 
     @Override
@@ -50,15 +40,11 @@ public class ProjectDependenciesBuildInstruction {
 
         ProjectDependenciesBuildInstruction that = (ProjectDependenciesBuildInstruction) o;
 
-        if (taskNames != null ? !taskNames.equals(that.taskNames) : that.taskNames != null) {
-            return false;
-        }
-
-        return true;
+        return rebuild == that.rebuild;
     }
 
     @Override
     public int hashCode() {
-        return taskNames != null ? taskNames.hashCode() : 0;
+        return rebuild ? 1 : 0;
     }
 }

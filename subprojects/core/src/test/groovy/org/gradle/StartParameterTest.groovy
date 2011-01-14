@@ -51,7 +51,7 @@ class StartParameterTest {
         testObj.settingsFile = 'settingsfile' as File
         testObj.buildFile = 'buildfile' as File
         testObj.taskNames = ['a']
-        testObj.projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction([])
+        testObj.projectDependenciesBuildInstruction = new ProjectDependenciesBuildInstruction(true)
         testObj.currentDir = new File('a')
         testObj.searchUpwards = false
         testObj.projectProperties = [a: 'a']

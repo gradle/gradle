@@ -60,7 +60,7 @@ public class StartParameter {
     private List<String> taskNames = new ArrayList<String>();
     private Set<String> excludedTaskNames = new HashSet<String>();
     private ProjectDependenciesBuildInstruction projectDependenciesBuildInstruction
-            = new ProjectDependenciesBuildInstruction(Collections.<String>emptyList());
+            = new ProjectDependenciesBuildInstruction(true);
     private File currentDir;
     private boolean searchUpwards = true;
     private Map<String, String> projectProperties = new HashMap<String, String>();

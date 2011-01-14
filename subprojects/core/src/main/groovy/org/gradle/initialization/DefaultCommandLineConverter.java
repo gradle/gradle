@@ -29,10 +29,8 @@ import org.gradle.configuration.ImplicitTasksConfigurer;
 import org.gradle.logging.LoggingConfiguration;
 import org.gradle.logging.internal.LoggingCommandLineConverter;
 
-import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.List;
 
 /**
  * @author Hans Dockter
@@ -40,7 +38,6 @@ import java.util.List;
 public class DefaultCommandLineConverter extends AbstractCommandLineConverter<StartParameter> {
     private static final String NO_SEARCH_UPWARDS = "u";
     private static final String PROJECT_DIR = "p";
-    private static final String PROJECT_DEPENDENCY_TASK_NAMES = "A";
     private static final String NO_PROJECT_DEPENDENCY_REBUILD = "a";
     private static final String BUILD_FILE = "b";
     public static final String INIT_SCRIPT = "I";
@@ -91,7 +88,6 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(SYSTEM_PROP, "system-prop").hasArguments().hasDescription("Set system property of the JVM (e.g. -Dmyprop=myvalue).");
         parser.option(PROJECT_PROP, "project-prop").hasArguments().hasDescription("Set project property for the build script (e.g. -Pmyprop=myvalue).");
         parser.option(EMBEDDED_SCRIPT, "embedded").hasArgument().hasDescription("Specify an embedded build script.");
-        parser.option(PROJECT_DEPENDENCY_TASK_NAMES, "dep-tasks").hasArguments().hasDescription("Specify additional tasks for building project dependencies.");
         parser.option(NO_PROJECT_DEPENDENCY_REBUILD, "no-rebuild").hasDescription("Do not rebuild project dependencies.");
         parser.option(NO_OPT).hasDescription("Ignore any task optimization.");
         parser.option(EXCLUDE_TASK, "exclude-task").hasArguments().hasDescription("Specify a task to be excluded from execution.");
@@ -171,19 +167,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
             startParameter.setShowStacktrace(StartParameter.ShowStacktrace.ALWAYS);
         }
 
-        if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES) && options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
-            throw new CommandLineArgumentException(String.format(
-                    "Error: The -%s and -%s options cannot be used together.", PROJECT_DEPENDENCY_TASK_NAMES,
-                    NO_PROJECT_DEPENDENCY_REBUILD));
-        } else if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
-            startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(null));
-        } else if (options.hasOption(PROJECT_DEPENDENCY_TASK_NAMES)) {
-            List<String> normalizedTaskNames = new ArrayList<String>();
-            for (String taskName : options.option(PROJECT_DEPENDENCY_TASK_NAMES).getValues()) {
-                normalizedTaskNames.add(taskName);
-            }
-            startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(
-                    normalizedTaskNames));
+        if (options.hasOption(NO_PROJECT_DEPENDENCY_REBUILD)) {
+            startParameter.setProjectDependenciesBuildInstruction(new ProjectDependenciesBuildInstruction(false));
         }
 
         if (!options.getExtraArguments().isEmpty()) {

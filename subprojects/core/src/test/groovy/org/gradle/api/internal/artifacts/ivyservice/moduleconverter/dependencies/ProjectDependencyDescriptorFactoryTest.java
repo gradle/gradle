@@ -19,8 +19,8 @@ import org.apache.ivy.core.module.descriptor.DefaultDependencyDescriptor;
 import org.apache.ivy.core.module.id.ModuleRevisionId;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.Module;
-import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.artifacts.ProjectDependenciesBuildInstruction;
 import org.gradle.api.internal.artifacts.dependencies.DefaultProjectDependency;
 import org.gradle.api.internal.artifacts.ivyservice.IvyUtil;
 import org.gradle.api.internal.project.AbstractProject;
@@ -31,11 +31,10 @@ import org.jmock.Expectations;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.Test;
 
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.hamcrest.Matchers.*;
+import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.*;
 
 /**
@@ -79,7 +78,7 @@ public class ProjectDependencyDescriptorFactoryTest extends AbstractDependencyDe
         AbstractProject dependencyProject = HelperUtil.createRootProject();
         dependencyProject.setGroup("someGroup");
         dependencyProject.setVersion("someVersion");
-        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, new ProjectDependenciesBuildInstruction(Collections.<String>emptyList()));
+        return new DefaultProjectDependency(dependencyProject, dependencyConfiguration, new ProjectDependenciesBuildInstruction(true));
     }
 
     @Test
