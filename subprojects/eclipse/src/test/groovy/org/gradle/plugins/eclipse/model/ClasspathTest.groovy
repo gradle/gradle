@@ -15,7 +15,6 @@
  */
 package org.gradle.plugins.eclipse.model;
 
-
 import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
@@ -24,7 +23,6 @@ import spock.lang.Specification
 /**
  * @author Hans Dockter
  */
-
 public class ClasspathTest extends Specification {
     private static final CUSTOM_ENTRIES = [
             new ProjectDependency("/test2", false, null, [] as Set),
@@ -35,6 +33,9 @@ public class ClasspathTest extends Specification {
             new Variable("GRADLE_CACHE/ant-1.6.5.jar", false, null, [] as Set, null, null),
             new Container("org.eclipse.jdt.USER_LIBRARY/gradle", false, null, [] as Set),
             new Output("bin")]
+    private static final PROJECT_DEPENDENCY = [CUSTOM_ENTRIES[0]]
+    private static final ALL_DEPENDENCIES = [CUSTOM_ENTRIES[0], CUSTOM_ENTRIES[2]]
+
     final Classpath classpath = new Classpath(new XmlTransformer())
 
     @Rule
@@ -48,15 +49,17 @@ public class ClasspathTest extends Specification {
         classpath.entries == CUSTOM_ENTRIES
     }
 
-    def configureMergesEntries() {
+    def configureOverwritesDependenciesAndAppendsAllOtherEntries() {
         def constructorEntries = [createSomeLibrary()]
 
         when:
         classpath.load(customClasspathReader)
-        classpath.configure(constructorEntries + [CUSTOM_ENTRIES[0]])
+        def newEntries = constructorEntries + PROJECT_DEPENDENCY
+        classpath.configure(newEntries)
 
         then:
-        classpath.entries == CUSTOM_ENTRIES + constructorEntries
+        def entriesToBeKept = CUSTOM_ENTRIES - ALL_DEPENDENCIES
+        classpath.entries ==  entriesToBeKept + newEntries
     }
 
     def loadDefaults() {

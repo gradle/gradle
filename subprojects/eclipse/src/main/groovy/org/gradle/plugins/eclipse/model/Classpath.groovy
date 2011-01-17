@@ -57,9 +57,9 @@ class Classpath extends XmlPersistableConfigurationObject {
         }
     }
 
-    def configure(List entries) {
-        this.entries.addAll(entries)
-        this.entries.unique()
+    def configure(List newEntries) {
+        def entriesToBeKept = entries.findAll { !isDependency(it) }
+        entries = (entriesToBeKept + newEntries).unique()
     }
 
     @Override protected void store(Node xml) {
@@ -92,5 +92,9 @@ class Classpath extends XmlPersistableConfigurationObject {
         return "Classpath{" +
                 "entries=" + entries +
                 '}';
+    }
+
+    private boolean isDependency(ClasspathEntry entry) {
+        entry instanceof ProjectDependency || entry instanceof Library
     }
 }
