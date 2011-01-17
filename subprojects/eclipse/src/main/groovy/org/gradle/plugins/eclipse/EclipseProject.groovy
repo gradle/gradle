@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.eclipse;
+package org.gradle.plugins.eclipse
 
 
 import org.gradle.api.InvalidUserDataException
@@ -27,7 +27,7 @@ import org.gradle.plugins.eclipse.model.Project
  *
  * @author Hans Dockter
  */
-public class EclipseProject extends XmlGeneratorTask<Project> {
+class EclipseProject extends XmlGeneratorTask<Project> {
     private static final LINK_ARGUMENTS = ['name', 'type', 'location', 'locationUri']
 
     /**

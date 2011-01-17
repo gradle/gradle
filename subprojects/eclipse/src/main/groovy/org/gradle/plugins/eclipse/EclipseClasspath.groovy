@@ -27,7 +27,7 @@ import org.gradle.plugins.eclipse.model.internal.ClasspathFactory
  *
  * @author Hans Dockter
  */
-public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
+class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The source sets to be added to the classpath.
      */
@@ -36,12 +36,12 @@ public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * The configurations which files are to be transformed into classpath entries.
      */
-    Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>();
+    Set<Configuration> plusConfigurations = new LinkedHashSet<Configuration>()
 
     /**
      * The configurations which files are to be excluded from the classpath entries.
      */
-    Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>();
+    Set<Configuration> minusConfigurations = new LinkedHashSet<Configuration>()
 
     /**
      * The variables to be used for replacing absolute paths in classpath entries.
@@ -51,12 +51,12 @@ public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
     /**
      * Containers to be added to the classpath
      */
-    Set<Container> containers = new LinkedHashSet<Container>();
+    Set<Container> containers = new LinkedHashSet<Container>()
 
     /**
      * The default output directory for eclipse generated files, eg classes.
      */
-    File defaultOutputDir;
+    File defaultOutputDir
 
     /**
      * Whether to download and add sources associated with the dependency jars. Defaults to true.

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.eclipse;
+package org.gradle.plugins.eclipse
 
 
 import org.gradle.api.artifacts.Configuration
@@ -34,7 +34,7 @@ import org.gradle.util.ConfigureUtil
  *
  * @author Hans Dockter
  */
-public class EclipseWtp extends ConventionTask {
+class EclipseWtp extends ConventionTask {
     /**
      * The file that is merged into the to be produced org.eclipse.wst.common.component file. This
      * file must not exist.
@@ -109,11 +109,11 @@ public class EclipseWtp extends ConventionTask {
 
     protected WtpFactory modelFactory = new WtpFactory()
 
-    def ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>();
-    def ActionBroadcast<Wtp> beforeConfiguredActions = new ActionBroadcast<Wtp>();
-    def ActionBroadcast<Wtp> whenConfiguredActions = new ActionBroadcast<Wtp>();
+    ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>()
+    ActionBroadcast<Wtp> beforeConfiguredActions = new ActionBroadcast<Wtp>()
+    ActionBroadcast<Wtp> whenConfiguredActions = new ActionBroadcast<Wtp>()
 
-    def EclipseWtp() {
+    EclipseWtp() {
         outputs.upToDateWhen { false }
     }
 
@@ -166,7 +166,7 @@ public class EclipseWtp extends ConventionTask {
      * written to the file.
      */
     void withXml(Closure closure) {
-        withXmlActions.add(closure);
+        withXmlActions.add(closure)
     }
 
     /**
@@ -174,7 +174,7 @@ public class EclipseWtp extends ConventionTask {
      * configured the model.
      */
     void beforeConfigured(Closure closure) {
-        beforeConfiguredActions.add(closure);
+        beforeConfiguredActions.add(closure)
     }
 
     /**
@@ -182,6 +182,6 @@ public class EclipseWtp extends ConventionTask {
      * files.
      */
     void whenConfigured(Closure closure) {
-        whenConfiguredActions.add(closure);
+        whenConfiguredActions.add(closure)
     }
 }
