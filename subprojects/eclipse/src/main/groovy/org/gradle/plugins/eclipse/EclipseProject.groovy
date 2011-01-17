@@ -60,6 +60,10 @@ public class EclipseProject extends XmlGeneratorTask<Project> {
      */
     Set<Link> links = new LinkedHashSet<Link>();
 
+    EclipseProject() {
+        xmlTransformer.indentation = "\t"
+    }
+
     @Override protected Project create() {
         return new Project(xmlTransformer)
     }

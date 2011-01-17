@@ -128,22 +128,25 @@ class Wtp {
                 'org.eclipse.wst.commons.component': orgEclipseWstCommonComponentXml,
                 'org.eclipse.wst.commons.project.facet.core': orgEclipseWstCommonProjectFacetCoreXml])
 
-        PrintWriter printWriter = new PrintWriter(orgEclipseWstCommonComponentXmlWriter)
-        new XmlNodePrinter(printWriter).print(orgEclipseWstCommonComponentXml)
-        printWriter.flush()
-
-        printWriter = new PrintWriter(orgEclipseWstCommonProjectFacetCoreXmlWriter)
-        new XmlNodePrinter(printWriter).print(orgEclipseWstCommonProjectFacetCoreXml)
-        printWriter.flush()
+        printNode(orgEclipseWstCommonComponentXml, orgEclipseWstCommonComponentXmlWriter)
+        printNode(orgEclipseWstCommonProjectFacetCoreXml, orgEclipseWstCommonProjectFacetCoreXmlWriter)
     }
 
-    private def removeConfigurableDataFromXml() {
+    private void removeConfigurableDataFromXml() {
         ['property', 'wb-resource', 'dependent-module'].each { elementName ->
             orgEclipseWstCommonComponentXml.'wb-module'."$elementName".each { elementNode ->
                 orgEclipseWstCommonComponentXml.'wb-module'[0].remove(elementNode)
             }
         }
         orgEclipseWstCommonProjectFacetCoreXml.installed.each { orgEclipseWstCommonProjectFacetCoreXml.remove(it) }
+    }
+
+    private void printNode(Node node, Writer writer) {
+        def printWriter = new PrintWriter(writer)
+        def nodePrinter = new XmlNodePrinter(printWriter, "\t")
+        nodePrinter.preserveWhitespace = true
+        nodePrinter.print(node)
+        printWriter.flush()
     }
 
     boolean equals(o) {

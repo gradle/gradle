@@ -32,7 +32,7 @@
             <property name='staticFinalRegex' value='^[A-Z][A-Z_0-9]*$'/>
         </rule-config>
         <rule-config name='MethodName'>
-            <property name='regex' value='^[a-z][a-zA-Z0-9_]*$'/>
+            <property name='regex' value='^[a-z].*$'/>
         </rule-config>
         <rule-config name='VariableName'>
             <property name='finalRegex' value='^[a-z][a-zA-Z0-9]*$'/>

@@ -19,6 +19,7 @@ import org.gradle.api.internal.XmlTransformer
 import org.gradle.util.TemporaryFolder
 import org.junit.Rule
 import spock.lang.Specification
+import org.gradle.util.TextUtil
 
 class XmlPersistableConfigurationObjectTest extends Specification {
     @Rule public final TemporaryFolder tmpDir = new TemporaryFolder()
@@ -65,6 +66,6 @@ class XmlPersistableConfigurationObjectTest extends Specification {
         object.store(outputFile)
 
         then:
-        outputFile.text == '<modified-xml/>\n'
+        outputFile.text == '<?xml version="1.0" encoding="UTF-8"?>' + TextUtil.LINE_SEPARATOR + '<modified-xml/>\n'
     }
 }

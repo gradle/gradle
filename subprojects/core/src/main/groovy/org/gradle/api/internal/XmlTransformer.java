@@ -19,7 +19,6 @@ import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlNodePrinter;
 import groovy.util.XmlParser;
-import groovy.xml.XmlUtil;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
@@ -30,15 +29,25 @@ import org.w3c.dom.Element;
 import org.xml.sax.InputSource;
 
 import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.transform.OutputKeys;
+import javax.xml.transform.TransformerException;
+import javax.xml.transform.TransformerFactory;
+import javax.xml.transform.dom.DOMSource;
+import javax.xml.transform.stream.StreamResult;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 
 public class XmlTransformer implements Transformer<String> {
     private final List<Action<? super XmlProvider>> actions = new ArrayList<Action<? super XmlProvider>>();
+    private String indentation = "  ";
 
     public void addAction(Action<? super XmlProvider> provider) {
         actions.add(provider);
+    }
+
+    public void setIndentation(String indentation) {
+        this.indentation = indentation;
     }
 
     public void addAction(Closure closure) {
@@ -69,7 +78,7 @@ public class XmlTransformer implements Transformer<String> {
         return provider;
     }
 
-    private static class XmlProviderImpl implements XmlProvider {
+    private class XmlProviderImpl implements XmlProvider {
         private StringBuilder builder;
         private Node node;
         private String stringValue;
@@ -100,12 +109,13 @@ public class XmlTransformer implements Transformer<String> {
             try {
                 if (node != null) {
                     PrintWriter printWriter = new PrintWriter(writer);
-                    new XmlNodePrinter(printWriter).print(node);
+                    XmlNodePrinter nodePrinter = new XmlNodePrinter(printWriter, indentation);
+                    nodePrinter.setPreserveWhitespace(true);
+                    nodePrinter.print(node);
                     printWriter.flush();
                 } else if (element != null) {
-                    PrintWriter printWriter = new PrintWriter(writer);
-                    XmlUtil.serialize(element, printWriter);
-                    printWriter.flush();
+                    printNode(element, writer);
+                    writer.flush();
                 } else if (builder != null) {
                     writer.append(builder);
                 } else {
@@ -151,6 +161,22 @@ public class XmlTransformer implements Transformer<String> {
                 node = null;
             }
             return element;
+        }
+
+        public void printNode(org.w3c.dom.Node node, Writer destination) {
+            try {
+                TransformerFactory factory = TransformerFactory.newInstance();
+                factory.setAttribute("indent-number", 2);
+
+                javax.xml.transform.Transformer transformer = factory.newTransformer();
+                transformer.setOutputProperty(OutputKeys.METHOD, "xml");
+                transformer.setOutputProperty(OutputKeys.INDENT, "yes");
+                transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+
+                transformer.transform(new DOMSource(node), new StreamResult(destination));
+            } catch (TransformerException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
         }
     }
 }

@@ -150,12 +150,8 @@
     </configuration>
     <list size="0"/>
     <configuration name="&lt;template&gt;" type="WebApp" default="true" selected="false">
-      <Host>
-        localhost
-      </Host>
-      <Port>
-        5050
-      </Port>
+      <Host>localhost</Host>
+      <Port>5050</Port>
     </configuration>
   </component>
   <component name="ShelveChangesManager" show_recycled="false"/>
@@ -171,9 +167,7 @@
     <option name="DETECT_NESTED_COPIES" value="true"/>
     <option name="IGNORE_SPACES_IN_ANNOTATE" value="true"/>
     <option name="SHOW_MERGE_SOURCES_IN_ANNOTATE" value="true"/>
-    <myIsUseDefaultProxy>
-      false
-    </myIsUseDefaultProxy>
+    <myIsUseDefaultProxy>false</myIsUseDefaultProxy>
   </component>
   <component name="TaskManager">
     <task active="true" id="Default" summary="Default task"/>

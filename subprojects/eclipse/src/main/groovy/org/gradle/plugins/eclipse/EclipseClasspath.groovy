@@ -70,6 +70,10 @@ public class EclipseClasspath extends XmlGeneratorTask<Classpath> {
 
     protected ClasspathFactory modelFactory = new ClasspathFactory()
 
+    EclipseClasspath() {
+        xmlTransformer.indentation = "\t"
+    }
+
     @Override protected Classpath create() {
         return new Classpath(xmlTransformer)
     }
