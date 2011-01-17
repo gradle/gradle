@@ -146,7 +146,7 @@ class Module extends XmlPersistableConfigurationObject {
         if (testOutputDir) {
             this.testOutputDir = testOutputDir;
         }
-        this.dependencies.addAll(dependencies);
+        this.dependencies = dependencies; // overwrite rather than append dependencies
         if (javaVersion) {
             this.javaVersion = javaVersion
         }

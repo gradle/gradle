@@ -51,7 +51,7 @@ class ModuleTest extends Specification {
         (module.dependencies as List) == customDependencies
     }
 
-    def configureMergesValues() {
+    def configureOverwritesDependenciesAndAppendsAllOtherEntries() {
         def constructorSourceFolders = [path('a')] as Set
         def constructorTestSourceFolders = [path('b')] as Set
         def constructorExcludeFolders = [path('c')] as Set
@@ -73,7 +73,7 @@ class ModuleTest extends Specification {
         module.outputDir == constructorOutputDir
         module.testOutputDir == constructorTestOutputDir
         module.javaVersion == constructorJavaVersion
-        module.dependencies as LinkedHashSet == ((customDependencies as LinkedHashSet) + constructorModuleDependencies as LinkedHashSet) as LinkedHashSet
+        module.dependencies == constructorModuleDependencies
     }
 
     def loadDefaults() {

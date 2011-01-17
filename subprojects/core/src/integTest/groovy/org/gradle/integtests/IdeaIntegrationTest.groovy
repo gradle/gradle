@@ -74,7 +74,7 @@ class IdeaIntegrationTest {
     }
 
     @Test
-    public void mergesModuleDependenciesIntoExistingDependencies() {
+    public void overwritesExistingDependencies() {
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.iml')

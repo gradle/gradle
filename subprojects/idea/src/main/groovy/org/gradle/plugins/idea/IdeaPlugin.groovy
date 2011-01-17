@@ -57,9 +57,9 @@ class IdeaPlugin extends IdePlugin {
         def task = project.task('ideaModule', description: 'Generates IDEA module files (IML)', type: IdeaModule) {
             conventionMapping.outputFile = { new File(project.projectDir, project.name + ".iml") }
             conventionMapping.moduleDir = { project.projectDir }
-            conventionMapping.sourceDirs = { [] as Set }
-            conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as Set }
-            conventionMapping.testSourceDirs = { [] as Set }
+            conventionMapping.sourceDirs = { [] as LinkedHashSet }
+            conventionMapping.excludeDirs = { [project.buildDir, project.file('.gradle')] as LinkedHashSet }
+            conventionMapping.testSourceDirs = { [] as LinkedHashSet }
         }
         addWorker(task)
     }
@@ -93,8 +93,8 @@ class IdeaPlugin extends IdePlugin {
 
     private def configureIdeaModuleForJava(Project project) {
         project.ideaModule {
-            conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set }
-            conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set }
+            conventionMapping.sourceDirs = { project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
+            conventionMapping.testSourceDirs = { project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as LinkedHashSet }
             conventionMapping.outputDir = { project.sourceSets.main.classesDir }
             conventionMapping.testOutputDir = { project.sourceSets.test.classesDir }
             def configurations = project.configurations
