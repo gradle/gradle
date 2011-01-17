@@ -18,6 +18,7 @@ package org.gradle.api.internal
 import spock.lang.Specification
 import org.gradle.api.artifacts.maven.XmlProvider
 import org.gradle.api.Action
+import org.gradle.util.TextUtil
 
 class XmlTransformerTest extends Specification {
     final XmlTransformer transformer = new XmlTransformer()
@@ -190,10 +191,10 @@ class XmlTransformerTest extends Specification {
         }
 
         expect:
-        transformer.transform("<xml>\n    <child/>\n</xml>\n") == "<xml>\n    <child>\n    <grandchild/>\n  </child>\n</xml>\n"
+        transformer.transform("<xml>\n    <child/>\n</xml>\n") == toNative("<xml>\n    <child>\n    <grandchild/>\n  </child>\n</xml>\n")
     }
 
     def String toNative(String value) {
-        return value.replaceAll('\n', System.getProperty('line.separator'))
+        return value.replaceAll('\n', TextUtil.LINE_SEPARATOR)
     }
 }
