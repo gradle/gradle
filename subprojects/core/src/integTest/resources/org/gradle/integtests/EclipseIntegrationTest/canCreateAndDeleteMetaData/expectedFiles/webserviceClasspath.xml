@@ -1,6 +1,6 @@
 <classpath>
-	<classpathentry kind="output" path="build/classes/main"/>
-	<classpathentry output="build/classes/main" kind="src" path="src/main/java"/>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="src/main/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
 	<classpathentry kind="src" path="/api" exported="true"/>
 	<classpathentry sourcepath="@CACHE_DIR@/commons-lang/commons-lang/sources/commons-lang-2.5-sources.jar" kind="lib" path="@CACHE_DIR@/commons-lang/commons-lang/jars/commons-lang-2.5.jar"

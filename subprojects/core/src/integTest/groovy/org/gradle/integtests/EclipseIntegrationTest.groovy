@@ -63,9 +63,23 @@ sourceSets {
         usingBuildScript(buildScript).withTasks("eclipse").run()
 
         def classpath = parseClasspathFile()
-        def sourceEntries = classpath.classpathentry.findAll { it.@kind == "src" }
-
+        def sourceEntries = findEntries(classpath, "src")
         assert sourceEntries*.@path == expectedOrder
+    }
+
+    @Test
+    void outputDirDefaultsToEclipseDefault() {
+        def buildScript = "apply plugin: 'java'; apply plugin: 'eclipse'"
+
+        usingBuildScript(buildScript).withTasks("eclipse").run()
+
+        def classpath = parseClasspathFile()
+
+        def outputs = findEntries(classpath, "output")
+        assert outputs*.@path == ["bin"]
+
+        def sources = findEntries(classpath, "src")
+        sources.each { assert !it.attributes().containsKey("path") }
     }
 
     private parseClasspathFile() {
@@ -79,5 +93,9 @@ sourceSets {
     private parseXmlFile(filename) {
         def file = testFile(filename).assertExists()
         new XmlSlurper().parse(file)
+    }
+
+    private findEntries(classpath, kind) {
+        classpath.classpathentry.findAll { it.@kind == kind }
     }
 }

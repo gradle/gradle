@@ -51,7 +51,7 @@ class ClasspathFactory {
                             project.relativePath(dir),
                             null,
                             [] as Set,
-                            project.relativePath(sourceSet.classesDir),
+                            null,
                             sourceDirSet.includes as List,
                             sourceDirSet.excludes as List))
                 }

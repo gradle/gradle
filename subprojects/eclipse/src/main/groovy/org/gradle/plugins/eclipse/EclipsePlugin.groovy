@@ -99,14 +99,13 @@ class EclipsePlugin extends IdePlugin {
                 sourceSets = project.sourceSets
                 inputFile = project.file('.classpath')
                 outputFile = project.file('.classpath')
-                conventionMapping.defaultOutputDir = { new File(project.buildDir, 'eclipse') }
+                conventionMapping.defaultOutputDir = { new File(project.projectDir, 'bin') }
             }
             addWorker(eclipseClasspath)
         }
         project.plugins.withType(JavaPlugin.class).all {
             project.configure(project.eclipseClasspath) {
                 plusConfigurations = [project.configurations.testRuntime]
-                conventionMapping.defaultOutputDir = { project.sourceSets.main.classesDir }
             }
         }
     }

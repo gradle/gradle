@@ -1,10 +1,10 @@
 <classpath>
-	<classpathentry kind="output" path="build/classes/main"/>
-	<classpathentry output="build/classes/integTest" kind="src" path="src/integTest/java"/>
-	<classpathentry output="build/classes/main" kind="src" path="src/main/resources"/>
-	<classpathentry output="build/classes/main" kind="src" path="src/main/java"/>
-	<classpathentry output="build/classes/test" kind="src" path="src/test/resources"/>
-	<classpathentry output="build/classes/test" kind="src" path="src/test/java"/>
+	<classpathentry kind="output" path="bin"/>
+	<classpathentry kind="src" path="src/integTest/java"/>
+	<classpathentry kind="src" path="src/main/resources"/>
+	<classpathentry kind="src" path="src/main/java"/>
+	<classpathentry kind="src" path="src/test/resources"/>
+	<classpathentry kind="src" path="src/test/java"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER" exported="true"/>
 	<classpathentry sourcepath="@CACHE_DIR@/commons-collections/commons-collections/sources/commons-collections-3.2-sources.jar" kind="lib"
 					path="@CACHE_DIR@/commons-collections/commons-collections/jars/commons-collections-3.2.jar" exported="true"/>
