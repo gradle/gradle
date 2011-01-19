@@ -178,14 +178,21 @@ class ClasspathFactory {
     }
 
     protected Set getAllDeps(Set deps) {
-        Set result = []
+	  Set seen = []
+	  getUnseenDeps(deps, seen)
+	  seen
+    }
+    
+    // Protects against a cyclic dependency graph 
+    protected void getUnseenDeps(Set deps, Set seen) {
         deps.each { ResolvedDependency resolvedDependency ->
-            if (resolvedDependency.children) {
-                result.addAll(getAllDeps(resolvedDependency.children))
+            if (!seen.contains(resolvedDependency)) {
+	        seen.add(resolvedDependency)
+                if (resolvedDependency.children) {
+                    getUnseenDeps(resolvedDependency.children, seen)
+		}
             }
-            result.add(resolvedDependency)
-        }
-        result
+        }    
     }
 
     protected def addSourceArtifact(DefaultExternalModuleDependency dependency) {
