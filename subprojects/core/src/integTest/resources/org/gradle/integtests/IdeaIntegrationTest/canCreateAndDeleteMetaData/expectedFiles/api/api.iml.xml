@@ -11,8 +11,8 @@
       <excludeFolder url="file://$MODULE_DIR$/build"/>
     </content>
     <orderEntry type="sourceFolder" forTests="false"/>
-    <output url="file://$MODULE_DIR$/build/classes/main"/>
-    <output-test url="file://$MODULE_DIR$/build/classes/test"/>
+    <output url="file://$MODULE_DIR$/out/production/api"/>
+    <output-test url="file://$MODULE_DIR$/out/test/api"/>
     <orderEntry type="module-library" exported="" scope="RUNTIME">
       <library>
         <CLASSES>

@@ -80,6 +80,24 @@ class IdeaIntegrationTest {
         assertHasExpectedContents('root.iml')
     }
 
+    @Test
+    public void configuresOutputDirsAccordingToIdeaDefaults() {
+        def settingsFile = dist.file("settings.gradle")
+        settingsFile << "rootProject.name = 'root'"
+        def buildScript = "apply plugin: 'java'; apply plugin: 'idea'"
+
+        executer.usingSettingsFile(settingsFile).usingBuildScript(buildScript).withTasks("idea").run()
+
+        def moduleFile = dist.file("root.iml").assertExists()
+        println moduleFile.text
+        def module = new XmlSlurper().parse(moduleFile)
+        def outputUrl = module.component.output[0].@url
+        def testOutputUrl = module.component."output-test"[0].@url
+
+        assert outputUrl.text() == 'file://$MODULE_DIR$/out/production/root'
+        assert testOutputUrl.text() == 'file://$MODULE_DIR$/out/test/root'
+    }
+
     def assertHasExpectedContents(String path) {
         TestFile file = dist.testDir.file(path).assertIsFile()
         TestFile expectedFile = dist.testDir.file("expectedFiles/${path}.xml").assertIsFile()

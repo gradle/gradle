@@ -80,8 +80,8 @@ class IdeaPluginTest extends Specification {
         IdeaModule ideaModuleTask = project.ideaModule
         ideaModuleTask.sourceDirs == project.sourceSets.main.allSource.sourceTrees.srcDirs.flatten() as Set
         ideaModuleTask.testSourceDirs == project.sourceSets.test.allSource.sourceTrees.srcDirs.flatten() as Set
-        ideaModuleTask.outputDir == project.sourceSets.main.classesDir
-        ideaModuleTask.testOutputDir == project.sourceSets.test.classesDir
+        ideaModuleTask.outputDir == project.file("out/production/$project.name")
+        ideaModuleTask.testOutputDir == project.file("out/test/$project.name")
         def configurations = project.configurations
         ideaModuleTask.scopes == [
                 COMPILE: [plus: [configurations.compile], minus: []],
@@ -110,7 +110,7 @@ class IdeaPluginTest extends Specification {
 
         then:
         project.ideaModule.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
-        project.ideaModule.outputDir == project.file('target/classes/main')
+        project.ideaModule.outputDir == project.file("out/production/$project.name")
     }
 
     void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {
