@@ -84,9 +84,10 @@ class IdeaIntegrationTest {
     public void configuresOutputDirsAccordingToIdeaDefaults() {
         def settingsFile = dist.file("settings.gradle")
         settingsFile << "rootProject.name = 'root'"
-        def buildScript = "apply plugin: 'java'; apply plugin: 'idea'"
+        def buildFile = dist.file("build.gradle")
+        buildFile << "apply plugin: 'java'; apply plugin: 'idea'"
 
-        executer.usingSettingsFile(settingsFile).usingBuildScript(buildScript).withTasks("idea").run()
+        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks("idea").run()
 
         def moduleFile = dist.file("root.iml").assertExists()
         println moduleFile.text
