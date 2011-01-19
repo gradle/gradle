@@ -37,7 +37,7 @@ class IdeaIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
-    public void canCreateAndDeleteMetaData() {
+    void canCreateAndDeleteMetaData() {
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
@@ -50,7 +50,7 @@ class IdeaIntegrationTest {
     }
 
     @Test
-    public void worksWithAnEmptyProject() {
+    void worksWithAnEmptyProject() {
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
@@ -58,14 +58,14 @@ class IdeaIntegrationTest {
     }
 
     @Test
-    public void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
+    void worksWithASubProjectThatDoesNotHaveTheIdeaPluginApplied() {
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.ipr')
     }
 
     @Test
-    public void worksWithNonStandardLayout() {
+    void worksWithNonStandardLayout() {
         executer.inDirectory(dist.testDir.file('root')).withTasks('idea').run()
 
         assertHasExpectedContents('root/root.ipr')
@@ -74,14 +74,14 @@ class IdeaIntegrationTest {
     }
 
     @Test
-    public void overwritesExistingDependencies() {
+    void overwritesExistingDependencies() {
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.iml')
     }
 
     @Test
-    public void configuresOutputDirsAccordingToIdeaDefaults() {
+    void outputDirsDefaultToToIdeaDefaults() {
         def settingsFile = dist.file("settings.gradle")
         settingsFile << "rootProject.name = 'root'"
         def buildFile = dist.file("build.gradle")
@@ -99,7 +99,7 @@ class IdeaIntegrationTest {
         assert testOutputUrl.text() == 'file://$MODULE_DIR$/out/test/root'
     }
 
-    def assertHasExpectedContents(String path) {
+    private void assertHasExpectedContents(String path) {
         TestFile file = dist.testDir.file(path).assertIsFile()
         TestFile expectedFile = dist.testDir.file("expectedFiles/${path}.xml").assertIsFile()
 

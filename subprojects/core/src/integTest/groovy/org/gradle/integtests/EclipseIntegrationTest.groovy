@@ -25,13 +25,13 @@ class EclipseIntegrationTest extends AbstractIntegrationTest {
     public final TestResources testResources = new TestResources()
 
     @Test
-    public void canCreateAndDeleteMetaData() {
+    void canCreateAndDeleteMetaData() {
         File buildFile = testFile("master/build.gradle")
         usingBuildFile(buildFile).run()
     }
 
     @Test
-    public void sourceEntriesInDotClasspathFileAreSortedAsPerUsualConvention() {
+    void sourceEntriesInClasspathFileAreSortedAsPerUsualConvention() {
         def expectedOrder = [
             "src/main/java",
             "src/main/groovy",
@@ -46,8 +46,7 @@ class EclipseIntegrationTest extends AbstractIntegrationTest {
 
         expectedOrder.each { testFile(it).mkdirs() }
 
-        def buildFile = testFile("build.gradle")
-        buildFile << """
+        def buildScript = """
 apply plugin: "java"
 apply plugin: "groovy"
 apply plugin: "eclipse"
@@ -61,14 +60,24 @@ sourceSets {
 }
         """
 
-        usingBuildFile(buildFile).withTasks("eclipse").run()
+        usingBuildScript(buildScript).withTasks("eclipse").run()
 
-        def classpathFile = testFile(".classpath")
-        assert classpathFile.exists()
-
-        def classpath = new XmlSlurper().parse(classpathFile)
+        def classpath = parseClasspathFile()
         def sourceEntries = classpath.classpathentry.findAll { it.@kind == "src" }
 
         assert sourceEntries*.@path == expectedOrder
+    }
+
+    private parseClasspathFile() {
+        parseXmlFile(".classpath")
+    }
+
+    private parseProjectFile() {
+        parseXmlFile(".project")
+    }
+
+    private parseXmlFile(filename) {
+        def file = testFile(filename).assertExists()
+        new XmlSlurper().parse(file)
     }
 }
