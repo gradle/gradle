@@ -143,13 +143,7 @@ class EclipsePluginTest extends Specification {
         assert eclipseClasspath.minusConfigurations == [] as Set
         assert eclipseClasspath.containers == ['org.eclipse.jdt.launching.JRE_CONTAINER'] as Set
         assert eclipseClasspath.outputFile == project.file('.classpath')
-        def mainSourceSet = project.sourceSets.findByName('main')
-        if (mainSourceSet != null) {
-            assert eclipseClasspath.defaultOutputDir == mainSourceSet.classesDir
-        } else {
-            assert eclipseClasspath.defaultOutputDir == new File(project.buildDir, 'eclipse')
-        }
-        assert eclipseClasspath.variables == [:]
+        assert eclipseClasspath.defaultOutputDir == new File(project.projectDir, 'bin')
     }
 
     private void checkEclipseJdt() {
