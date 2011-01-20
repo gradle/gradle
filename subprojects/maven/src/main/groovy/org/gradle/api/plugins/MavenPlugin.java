@@ -54,13 +54,13 @@ public class MavenPlugin implements Plugin<Project> {
         setConventionMapping(project);
         addConventionObject(project);
         PluginContainer plugins = project.getPlugins();
-        plugins.withType(JavaPlugin.class).all(new Action<JavaPlugin>() {
+        plugins.withType(JavaPlugin.class, new Action<JavaPlugin>() {
             public void execute(JavaPlugin javaPlugin) {
                 configureJavaScopeMappings(project.getRepositories(), project.getConfigurations());
                 configureInstall(project);
             }
         });
-        plugins.withType(WarPlugin.class).all(new Action<WarPlugin>() {
+        plugins.withType(WarPlugin.class, new Action<WarPlugin>() {
             public void execute(WarPlugin warPlugin) {
                 configureWarScopeMappings(project.getRepositories(), project.getConfigurations());
             }

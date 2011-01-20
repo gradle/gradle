@@ -60,18 +60,18 @@ class EclipsePlugin extends IdePlugin {
         eclipseProject.outputFile = project.file('.project')
         eclipseProject.conventionMapping.comment = { project.description }
 
-        project.plugins.withType(JavaBasePlugin.class).all {
+        project.plugins.withType(JavaBasePlugin.class) {
             project.configure(project.eclipseProject) {
                 buildCommands = [new BuildCommand("org.eclipse.jdt.core.javabuilder")]
                 natures = ["org.eclipse.jdt.core.javanature"]
             }
         }
-        project.plugins.withType(GroovyBasePlugin.class).all {
+        project.plugins.withType(GroovyBasePlugin.class) {
             project.configure(project.eclipseProject) {
                 natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "org.eclipse.jdt.groovy.core.groovyNature")
             }
         }
-        project.plugins.withType(ScalaBasePlugin.class).all {
+        project.plugins.withType(ScalaBasePlugin.class) {
             project.configure(project.eclipseProject) {
                 buildCommands = buildCommands.collect { command ->
                     command.name == "org.eclipse.jdt.core.javabuilder" ? new BuildCommand("ch.epfl.lamp.sdt.core.scalabuilder") : command
@@ -79,7 +79,7 @@ class EclipsePlugin extends IdePlugin {
                 natures.add(natures.indexOf("org.eclipse.jdt.core.javanature"), "ch.epfl.lamp.sdt.core.scalanature")
             }
         }
-        project.plugins.withType(WarPlugin.class).all {
+        project.plugins.withType(WarPlugin.class) {
             project.configure(project.eclipseProject) {
                 buildCommand 'org.eclipse.wst.common.project.facet.core.builder'
                 buildCommand 'org.eclipse.wst.validation.validationbuilder'
@@ -91,7 +91,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseClasspath(final Project project) {
-        project.plugins.withType(JavaBasePlugin.class).all {
+        project.plugins.withType(JavaBasePlugin.class) {
             EclipseClasspath eclipseClasspath = project.tasks.add(ECLIPSE_CP_TASK_NAME, EclipseClasspath.class)
             project.configure(eclipseClasspath) {
                 description = "Generates the Eclipse .classpath file."
@@ -103,7 +103,7 @@ class EclipsePlugin extends IdePlugin {
             }
             addWorker(eclipseClasspath)
         }
-        project.plugins.withType(JavaPlugin.class).all {
+        project.plugins.withType(JavaPlugin.class) {
             project.configure(project.eclipseClasspath) {
                 plusConfigurations = [project.configurations.testRuntime]
             }
@@ -111,7 +111,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseJdt(final Project project) {
-        project.plugins.withType(JavaBasePlugin.class).all {
+        project.plugins.withType(JavaBasePlugin.class) {
             EclipseJdt eclipseJdt = project.tasks.add(ECLIPSE_JDT_TASK_NAME, EclipseJdt.class)
             project.configure(eclipseJdt) {
                 description = "Generates the Eclipse JDT settings file."
@@ -125,7 +125,7 @@ class EclipsePlugin extends IdePlugin {
     }
 
     private void configureEclipseWtpModuleForWarProjects(final Project project) {
-        project.plugins.withType(WarPlugin.class).all {
+        project.plugins.withType(WarPlugin.class) {
             final EclipseWtp eclipseWtp = project.tasks.add(ECLIPSE_WTP_TASK_NAME, EclipseWtp.class);
 
             project.configure(eclipseWtp) {

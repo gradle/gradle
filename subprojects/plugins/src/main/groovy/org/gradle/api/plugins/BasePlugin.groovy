@@ -56,11 +56,11 @@ class BasePlugin implements Plugin<Project> {
         Task assembleTask = project.tasks.add(ASSEMBLE_TASK_NAME);
         assembleTask.description = "Assembles all Jar, War, Zip, and Tar archives.";
         assembleTask.group = BUILD_GROUP
-        assembleTask.dependsOn { project.tasks.withType(AbstractArchiveTask.class).all }
+        assembleTask.dependsOn project.tasks.withType(AbstractArchiveTask.class)
     }
 
     private void configureArchiveDefaults(Project project, BasePluginConvention pluginConvention) {
-        project.tasks.withType(AbstractArchiveTask).all {AbstractArchiveTask task ->
+        project.tasks.withType(AbstractArchiveTask) {AbstractArchiveTask task ->
             if (task instanceof Jar) {
                 task.conventionMapping.destinationDir = { pluginConvention.libsDir }
             } else {

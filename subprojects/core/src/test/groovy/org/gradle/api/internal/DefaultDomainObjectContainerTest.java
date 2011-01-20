@@ -132,6 +132,38 @@ public class DefaultDomainObjectContainerTest {
     }
 
     @Test
+    public void canExecuteActionForAllElementsInATypeFilteredCollection() {
+        final Action<CharSequence> action = context.mock(Action.class);
+
+        container.addObject("c");
+        container.addObject(new StringBuffer("b"));
+
+        context.checking(new Expectations(){{
+            one(action).execute("c");
+            one(action).execute("a");
+        }});
+
+        container.withType(String.class, action);
+        container.addObject("a");
+    }
+
+    @Test
+    public void canExecuteClosureForAllElementsInATypeFilteredCollection() {
+        final TestClosure closure = context.mock(TestClosure.class);
+
+        container.addObject("c");
+        container.addObject(new StringBuffer("b"));
+
+        context.checking(new Expectations(){{
+            one(closure).call("c");
+            one(closure).call("a");
+        }});
+        
+        container.withType(String.class, HelperUtil.toClosure(closure));
+        container.addObject("a");
+    }
+
+    @Test
     public void filteredCollectionIsLive() {
         Spec<CharSequence> spec = new Spec<CharSequence>() {
             public boolean isSatisfiedBy(CharSequence element) {

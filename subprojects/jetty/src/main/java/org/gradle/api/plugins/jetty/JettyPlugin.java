@@ -56,7 +56,7 @@ public class JettyPlugin implements Plugin<Project> {
     }
 
     private void configureMappingRules(final Project project, final JettyPluginConvention jettyConvention) {
-        project.getTasks().withType(AbstractJettyRunTask.class).all(new Action<AbstractJettyRunTask>() {
+        project.getTasks().withType(AbstractJettyRunTask.class, new Action<AbstractJettyRunTask>() {
             public void execute(AbstractJettyRunTask abstractJettyRunTask) {
                 configureAbstractJettyTask(project, jettyConvention, abstractJettyRunTask);
             }
@@ -64,7 +64,7 @@ public class JettyPlugin implements Plugin<Project> {
     }
 
     private void configureJettyRunWar(final Project project) {
-        project.getTasks().withType(JettyRunWar.class).all(new Action<JettyRunWar>() {
+        project.getTasks().withType(JettyRunWar.class, new Action<JettyRunWar>() {
             public void execute(JettyRunWar jettyRunWar) {
                 jettyRunWar.dependsOn(WarPlugin.WAR_TASK_NAME);
                 jettyRunWar.getConventionMapping().map("webApp", new ConventionValue() {
@@ -97,7 +97,7 @@ public class JettyPlugin implements Plugin<Project> {
     }
 
     private void configureJettyRun(final Project project) {
-        project.getTasks().withType(JettyRun.class).all(new Action<JettyRun>() {
+        project.getTasks().withType(JettyRun.class, new Action<JettyRun>() {
             public void execute(JettyRun jettyRun) {
                 jettyRun.getConventionMapping().map("webXml", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

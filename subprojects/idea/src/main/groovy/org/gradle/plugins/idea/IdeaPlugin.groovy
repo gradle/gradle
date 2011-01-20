@@ -77,7 +77,7 @@ class IdeaPlugin extends IdePlugin {
     }
 
     private def configureForJavaPlugin(Project project) {
-        project.plugins.withType(JavaPlugin).all {
+        project.plugins.withType(JavaPlugin) {
             configureIdeaProjectForJava(project)
             configureIdeaModuleForJava(project)
         }

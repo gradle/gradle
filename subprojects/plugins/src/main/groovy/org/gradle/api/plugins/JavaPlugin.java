@@ -130,7 +130,7 @@ public class JavaPlugin implements Plugin<Project> {
     }
 
     private void configureTest(final Project project, final JavaPluginConvention pluginConvention) {
-        project.getTasks().withType(Test.class).all(new Action<Test>() {
+        project.getTasks().withType(Test.class, new Action<Test>() {
             public void execute(Test test) {
                 test.getConventionMapping().map("testClassesDir", new Callable<Object>() {
                     public Object call() throws Exception {

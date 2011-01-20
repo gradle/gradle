@@ -55,6 +55,26 @@ public interface DomainObjectCollection<T> extends Iterable<T> {
     <S extends T> DomainObjectCollection<S> withType(Class<S> type);
 
     /**
+     * Returns a collection containing the objects in this collection of the given type. Equivalent to calling
+     * {@code withType(type).all(configureAction)}
+     *
+     * @param type The type of objects to find.
+     * @param configureAction The action to execute for each object in the resulting collection.
+     * @return The matching objects. Returns an empty set if there are no such objects in this collection.
+     */
+    <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction);
+
+    /**
+     * Returns a collection containing the objects in this collection of the given type. Equivalent to calling
+     * {@code withType(type).all(configureClosure)}.
+     *
+     * @param type The type of objects to find.
+     * @param configureClosure The closure to execute for each object in the resulting collection.
+     * @return The matching objects. Returns an empty set if there are no such objects in this collection.
+     */
+    <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure);
+
+    /**
      * Returns a collection which contains the objects in this collection which meet the given specification. The
      * returned collection is live, so that when matching objects are added to this collection, they are also visible in
      * the filtered collection.

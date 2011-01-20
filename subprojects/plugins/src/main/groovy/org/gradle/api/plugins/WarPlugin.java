@@ -48,7 +48,7 @@ public class WarPlugin implements Plugin<Project> {
         final WarPluginConvention pluginConvention = new WarPluginConvention(project);
         project.getConvention().getPlugins().put("war", pluginConvention);
 
-        project.getTasks().withType(War.class).all(new Action<War>() {
+        project.getTasks().withType(War.class, new Action<War>() {
             public void execute(War task) {
                 task.from(new Callable() {
                     public Object call() throws Exception {

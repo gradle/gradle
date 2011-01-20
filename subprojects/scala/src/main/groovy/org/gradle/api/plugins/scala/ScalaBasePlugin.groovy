@@ -61,13 +61,13 @@ public class ScalaBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project, JavaBasePlugin javaPlugin) {
-        project.tasks.withType(ScalaCompile.class).all {ScalaCompile compile ->
+        project.tasks.withType(ScalaCompile.class) {ScalaCompile compile ->
             compile.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]
         }
     }
 
     private void configureScaladoc(final Project project) {
-        project.getTasks().withType(ScalaDoc.class).all {ScalaDoc scalaDoc ->
+        project.getTasks().withType(ScalaDoc.class) {ScalaDoc scalaDoc ->
             scalaDoc.conventionMapping.destinationDir = { project.file("$project.docsDir/scaladoc") }
             scalaDoc.conventionMapping.title = { project.apiDocTitle }
             scalaDoc.scalaClasspath = project.configurations[SCALA_TOOLS_CONFIGURATION_NAME]

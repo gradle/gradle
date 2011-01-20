@@ -55,7 +55,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureCompileDefaults(final Project project) {
-        project.getTasks().withType(GroovyCompile.class).all(new Action<GroovyCompile>() {
+        project.getTasks().withType(GroovyCompile.class, new Action<GroovyCompile>() {
             public void execute(GroovyCompile compile) {
                 compile.getConventionMapping().map("groovyClasspath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
@@ -99,7 +99,7 @@ public class GroovyBasePlugin implements Plugin<Project> {
     }
 
     private void configureGroovydoc(final Project project) {
-        project.getTasks().withType(Groovydoc.class).all(new Action<Groovydoc>() {
+        project.getTasks().withType(Groovydoc.class, new Action<Groovydoc>() {
             public void execute(Groovydoc groovydoc) {
                 groovydoc.getConventionMapping().map("groovyClasspath", new ConventionValue() {
                     public Object getValue(Convention convention, IConventionAware conventionAwareObject) {

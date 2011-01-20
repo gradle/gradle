@@ -65,6 +65,18 @@ public abstract class AbstractDomainObjectCollection<T> implements DomainObjectC
         all(toAction(action));
     }
 
+    public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Action<? super S> configureAction) {
+        DomainObjectCollection<S> result = withType(type);
+        result.all(configureAction);
+        return result;
+    }
+
+    public <S extends T> DomainObjectCollection<S> withType(Class<S> type, Closure configureClosure) {
+        DomainObjectCollection<S> result = withType(type);
+        result.all(configureClosure);
+        return result;
+    }
+
     public Action<? super T> whenObjectAdded(Action<? super T> action) {
         store.objectAdded(action);
         return action;

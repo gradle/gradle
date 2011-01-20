@@ -48,23 +48,23 @@ public class CodeQualityPlugin implements Plugin<Project> {
         configureCheckstyleDefaults(project, javaPluginConvention)
         configureCodeNarcDefaults(project, groovyPluginConvention)
 
-        project.plugins.withType(JavaBasePlugin.class).all {
+        project.plugins.withType(JavaBasePlugin.class) {
             configureForJavaPlugin(project, javaPluginConvention);
         }
-        project.plugins.withType(GroovyBasePlugin.class).all {
+        project.plugins.withType(GroovyBasePlugin.class) {
             configureForGroovyPlugin(project, groovyPluginConvention);
         }
     }
 
     private void configureCheckstyleDefaults(Project project, JavaCodeQualityPluginConvention pluginConvention) {
-        project.tasks.withType(Checkstyle.class).all {Checkstyle checkstyle ->
+        project.tasks.withType(Checkstyle.class) {Checkstyle checkstyle ->
             checkstyle.conventionMapping.configFile = { pluginConvention.checkstyleConfigFile }
             checkstyle.conventionMapping.map('properties') { pluginConvention.checkstyleProperties }
         }
     }
 
     private void configureCodeNarcDefaults(Project project, GroovyCodeQualityPluginConvention pluginConvention) {
-        project.tasks.withType(CodeNarc.class).all {CodeNarc codenarc ->
+        project.tasks.withType(CodeNarc.class) {CodeNarc codenarc ->
             codenarc.conventionMapping.configFile = { pluginConvention.codeNarcConfigFile }
         }
     }
@@ -72,8 +72,8 @@ public class CodeQualityPlugin implements Plugin<Project> {
     private void configureCheckTask(Project project) {
         Task task = project.tasks[JavaBasePlugin.CHECK_TASK_NAME]
         task.setDescription("Executes all quality checks");
-        task.dependsOn { project.tasks.withType(Checkstyle.class).all; }
-        task.dependsOn { project.tasks.withType(CodeNarc.class).all; }
+        task.dependsOn project.tasks.withType(Checkstyle.class)
+        task.dependsOn project.tasks.withType(CodeNarc.class)
     }
 
     private void configureForJavaPlugin(Project project, JavaCodeQualityPluginConvention pluginConvention) {

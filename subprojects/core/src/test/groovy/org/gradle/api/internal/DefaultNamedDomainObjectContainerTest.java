@@ -187,6 +187,42 @@ public class DefaultNamedDomainObjectContainerTest {
     }
 
     @Test
+    public void canExecuteActionForAllElementsInATypeFilteredCollection() {
+        class OtherBean extends Bean {
+        }
+        final Action<OtherBean> action = context.mock(Action.class);
+        Bean bean1 = new Bean();
+        final OtherBean bean2 = new OtherBean();
+
+        container.addObject("a", bean1);
+        container.addObject("b", bean2);
+
+        context.checking(new Expectations(){{
+            one(action).execute(bean2);
+        }});
+
+        container.withType(OtherBean.class, action);
+    }
+
+    @Test
+    public void canExecuteClosureForAllElementsInATypeFilteredCollection() {
+        class OtherBean extends Bean {
+        }
+        final TestClosure closure = context.mock(TestClosure.class);
+        Bean bean1 = new Bean();
+        final OtherBean bean2 = new OtherBean();
+
+        container.addObject("a", bean1);
+        container.addObject("b", bean2);
+
+        context.checking(new Expectations(){{
+            one(closure).call(bean2);
+        }});
+
+        container.withType(OtherBean.class, HelperUtil.toClosure(closure));
+    }
+
+    @Test
     public void filteredCollectionIsLive() {
         final Bean bean1 = new Bean();
         Bean bean2 = new Bean();
