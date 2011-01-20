@@ -58,7 +58,7 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
                 String line;
                 while ((line = reader.readLine()) != null) {
                     line = line.replaceAll("#.*", "").trim();
-                    if (!line.isEmpty()) {
+                    if (line.length() > 0) {
                         return line;
                     }
                 }
