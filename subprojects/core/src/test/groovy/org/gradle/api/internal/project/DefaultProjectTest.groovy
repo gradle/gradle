@@ -173,6 +173,7 @@ class DefaultProjectTest {
             allowing(serviceRegistryMock).get(IProjectRegistry); will(returnValue(projectRegistry))
             allowing(serviceRegistryMock).get(DependencyMetaDataProvider); will(returnValue(dependencyMetaDataProviderMock))
             allowing(serviceRegistryMock).get(FileResolver); will(returnValue([:] as FileResolver))
+            allowing(serviceRegistryMock).get(ClassGenerator); will(returnValue(new AsmBackedClassGenerator()))
             allowing(serviceRegistryMock).get(FileOperations);
             will(returnValue(fileOperationsMock))
             allowing(serviceRegistryMock).get(ScriptPluginFactory); will(returnValue([:] as ScriptPluginFactory))
@@ -1053,6 +1054,16 @@ def scriptMethod(Closure closure) {
         assertThat(child1.relativeProjectPath(':child12:task'), equalTo(':child12:task'))
         assertThat(child1.relativeProjectPath(':sub:other'), equalTo(':sub:other'))
     }
+
+    @Test void createsADomainObjectContainer() {
+        assertThat(project.container(String.class), instanceOf(DefaultAutoCreateDomainObjectContainer.class))
+        assertThat(project.container(String.class), instanceOf(IConventionAware.class))
+
+        assertThat(project.container(String.class, context.mock(NamedDomainObjectFactory.class)), instanceOf(DefaultAutoCreateDomainObjectContainer.class))
+
+        assertThat(project.container(String.class, { }), instanceOf(DefaultAutoCreateDomainObjectContainer.class))
+    }
+
 }
 
 class TaskContainerDynamicObject {

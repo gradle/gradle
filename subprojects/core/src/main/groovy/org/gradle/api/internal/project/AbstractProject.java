@@ -959,4 +959,18 @@ public abstract class AbstractProject implements ProjectInternal, DynamicObjectA
         return object;
     }
 
+    public <T> NamedDomainObjectContainer<T> container(Class<T> type) {
+        ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
+        return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator);
+    }
+
+    public <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<? extends T> factory) {
+        ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
+        return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator, factory);
+    }
+
+    public <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure) {
+        ClassGenerator classGenerator = getServices().get(ClassGenerator.class);
+        return classGenerator.newInstance(DefaultAutoCreateDomainObjectContainer.class, type, classGenerator, factoryClosure);
+    }
 }

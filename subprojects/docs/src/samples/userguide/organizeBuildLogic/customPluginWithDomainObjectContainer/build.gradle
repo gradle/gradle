@@ -1,0 +1,50 @@
+apply plugin: DocumentationPlugin
+
+books {
+    quickStart {
+        sourceFile = file('src/docs/quick-start')
+    }
+    userGuide {
+
+    }
+    developerGuide {
+
+    }
+}
+
+task books << {
+    books.each { book ->
+        println "$book.name -> $book.sourceFile"
+    }
+}
+
+class DocumentationPlugin implements Plugin<Project> {
+    def void apply(Project project) {
+        def books = project.container(Book) { name -> new Book(name) }
+        books.all {
+            sourceFile = project.file("src/docs/$name")
+        }
+        project.convention.plugins.documentation = new DocumentationPluginConvention(books)
+    }
+}
+
+class Book {
+    final String name
+    File sourceFile
+
+    Book(String name) {
+        this.name = name
+    }
+}
+
+class DocumentationPluginConvention {
+    final NamedDomainObjectContainer<Book> books
+
+    DocumentationPluginConvention(NamedDomainObjectContainer<Book> books) {
+        this.books = books
+    }
+
+    def books(Closure cl) {
+        books.configure(cl)
+    }
+}

@@ -14,7 +14,7 @@
   ~ limitations under the License.
   -->
 <chapter id="custom_tasks">
-    <title>Writing Custom Tasks</title>
+    <title>Writing Custom Task Classes</title>
 
     <para>Gradle supports two types of task. One such type is the simple task, where you define the task with an
         action closure. We have seen these in <xref linkend="tutorial_using_tasks"/>. For this type of task, the action
@@ -22,39 +22,43 @@
         build script.
     </para>
     <para>
-        The other type of task is the enhanced task, where the behaviour is built into the task, and the task provides some
-        properties which you can use to configure the behaviour. We have seen these in
+        The other type of task is the enhanced task, where the behaviour is built into the task, and the task
+        provides some properties which you can use to configure the behaviour. We have seen these in
         <xref linkend="more_about_tasks"/>. Most Gradle plugins use enhanced tasks. With enhanced tasks, you don't need
-        to implement the task behaviour as you do with simple tasks. You simply declare and configure the task using
-        its properties.
-        In this way, enhanced tasks let you reuse a piece of behaviour in many different places, possibly
-        across different builds.
+        to implement the task behaviour as you do with simple tasks.
+        You simply declare the task and configure the task using its properties. In this way, enhanced tasks let you reuse
+        a piece of behaviour in many different places, possibly across different builds.
     </para>
-    <para>Implementing your own custom enhanced tasks in Gradle is easy.
-        You can implement a custom task in pretty much any language you like, provided it ends up compiled to bytecode.
+    <para>
+        The behaviour and properties of an enhanced task is defined by the task's class. When you declare an enhanced task, you
+        specify the type, or class of the task.
+    </para>
+    <para>
+        Implementing your own custom task class in Gradle is easy.
+        You can implement a custom task class in pretty much any language you like, provided it ends up compiled to bytecode.
         In our examples, we are going to use Groovy as the implementation language, but you could use, for example, Java
-        or Scala.
+        or Scala. In general, using Groovy is the easiest option, because the Gradle API is designed to work well with Groovy.
     </para>
 
     <section>
-        <title>Packaging a task</title>
-        <para>There are several places where you can put the source for the task.
+        <title>Packaging a task class</title>
+        <para>There are several places where you can put the source for the task class.
         </para>
         <variablelist>
             <varlistentry>
                 <term>Build script</term>
                 <listitem>
-                    <para>You can include the task implementation directly in the build script. This has the
-                        benefit that the task class is automatically compiled and included in the classpath of the
-                        build script without you having to do anything. However, the task class is not visible outside the
-                        build script, and so you cannot reuse the task class outside the build script it is defined in.
+                    <para>You can include the task class directly in the build script. This has the benefit that the task class is
+                        automatically compiled and included in the classpath of the build script without you having to do anything.
+                        However, the task class is not visible outside the build script, and so you cannot reuse the task class
+                        outside the build script it is defined in.
                     </para>
                 </listitem>
             </varlistentry>
             <varlistentry>
                 <term><filename>buildSrc</filename> project</term>
                 <listitem>
-                    <para>You can put the source for the task implementation in the
+                    <para>You can put the source for the task class in the
                         <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory.
                         Gradle will take care of compiling and testing the task class and making it available on the
                         classpath of the build script. The task class is visible to every build script used by the build.
@@ -71,22 +75,22 @@
             <varlistentry>
                 <term>Standalone project</term>
                 <listitem>
-                    <para>You can create a separate project for your task implementation. This project produces and
+                    <para>You can create a separate project for your task class. This project produces and
                         publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR
-                        might include a custom plugin, or bundle several related custom tasks into a single library. Or
-                        some combination.
+                        might include some custom plugins, or bundle several related task classes into a single library. Or
+                        some combination of the two.
                     </para>
                 </listitem>
             </varlistentry>
         </variablelist>
-        <para> In our examples, we will start with the task implementation in the build script, to keep things simple.
+        <para> In our examples, we will start with the task class in the build script, to keep things simple.
             Then we will look at creating a standalone project.
         </para>
     </section>
 
     <section>
-        <title>Writing a simple task</title>
-        <para>To implement a custom task, you extend <apilink class="org.gradle.api.DefaultTask"/>.
+        <title>Writing a simple task class</title>
+        <para>To implement a custom task class, you extend <apilink class="org.gradle.api.DefaultTask"/>.
         </para>
         <sample id="customTask" dir="userguide/tasks/customTask" title="Defining a custom task">
             <sourcefile file="build.gradle" snippet="define-task"/>
@@ -116,7 +120,7 @@
     <section>
         <title>A standalone project</title>
         <para>Now we will move our task to a standalone project, so we can publish it and share it with others.
-            This project is simply a Groovy project that produces a JAR containing the task implementation.
+            This project is simply a Groovy project that produces a JAR containing the task class.
             Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API
             as a compile-time dependency.
         </para>
@@ -125,16 +129,27 @@
             <sourcefile file="build.gradle" snippet="use-plugin"/>
         </sample>
 
-        <para>We just follow the convention for where the source for the task should go.</para>
+        <para>We just follow the convention for where the source for the task class should go.</para>
 
         <sample id="customTaskStandalone" dir="customPlugin" title="A custom task">
             <sourcefile file="src/main/groovy/org/gradle/GreetingTask.groovy"/>
         </sample>
 
         <section>
-            <title>Writing tests</title>
+            <title>Using your task class in another project</title>
+            <para>To use a task class in a build script, you need to add the class to the build script's classpath. To
+                do this, you use a <literal>buildscript { }</literal> block, as described in <xref linkend="sec:external_dependencies"/>.
+                The following example shows how you might do this when the JAR containing the task class has been published
+                to a local repository:
+            </para>
+            <sample id="usingCustomTask" dir="customPlugin" title="Using a custom task in another project">
+                <sourcefile file="usesCustomTask.gradle" snippet="use-task"/>
+            </sample>
+        </section>
+        <section>
+            <title>Writing tests for your task class</title>
             <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
-                <apilink class="org.gradle.api.Project"/> instances to use when you test your task implementation.
+                <apilink class="org.gradle.api.Project"/> instances to use when you test your task class.
             </para>
             <sample id="customTaskStandalone" dir="customPlugin" title="Testing a custom task">
                 <sourcefile file="src/test/groovy/org/gradle/GreetingTaskTest.groovy" snippet="test-task"/>

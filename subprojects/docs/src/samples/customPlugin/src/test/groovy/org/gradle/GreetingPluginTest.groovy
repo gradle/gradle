@@ -5,6 +5,7 @@ import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.api.Project
 import static org.junit.Assert.*
 
+// START SNIPPET test-plugin
 class GreetingPluginTest {
     @Test
     public void greeterPluginAddsGreetingTaskToProject() {
@@ -14,3 +15,4 @@ class GreetingPluginTest {
         assertTrue(project.tasks.hello instanceof GreetingTask)
     }
 }
+// END SNIPPET test-plugin

@@ -3,13 +3,27 @@ apply plugin: 'groovy'
 
 dependencies {
     compile gradleApi()
-// END SNIPPET use-plugin
-    groovy localGroovy()
-    testCompile 'junit:junit:4.7'
-// START SNIPPET use-plugin
 }
 // END SNIPPET use-plugin
 
+apply plugin: 'maven'
+
 repositories {
     mavenCentral()
+}
+
+dependencies {
+    groovy localGroovy()
+    testCompile 'junit:junit:4.7'
+}
+
+group = 'org.gradle'
+version = '1.0-SNAPSHOT'
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository(url: uri('repo'))
+        }
+    }
 }

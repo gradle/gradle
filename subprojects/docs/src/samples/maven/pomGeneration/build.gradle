@@ -51,8 +51,8 @@ def deployer = null
 uploadArchives {
     repositories {
         deployer = mavenDeployer {
-            repository(url: "file://localhost/$projectDir/pomRepo/")
-            snapshotRepository(url: "file://localhost/$projectDir/snapshotRepo/")
+            repository(url: uri("pomRepo"))
+            snapshotRepository(url: uri("snapshotRepo"))
         }
     }
 }

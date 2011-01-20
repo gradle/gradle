@@ -13,7 +13,7 @@ version = '1.0'
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: "file://localhost/$projectDir/pomRepo/")
+            repository(url: uri("pomRepo"))
         }
     }
 }

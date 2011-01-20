@@ -36,4 +36,17 @@ class SamplesCustomPluginIntegrationTest {
         def result = new JUnitTestExecutionResult(projectDir)
         result.assertTestClassesExecuted('org.gradle.GreetingTaskTest', 'org.gradle.GreetingPluginTest')
     }
+
+    @Test
+    public void canPublishAndUsePluginAndTestImplementations() {
+        TestFile projectDir = sample.dir
+
+        executer.inDirectory(projectDir).withTasks('uploadArchives').run()
+
+        def result = executer.usingBuildScript(projectDir.file('usesCustomTask.gradle')).withTasks('greeting').run()
+        assert result.output.contains('howdy!')
+
+        result = executer.usingBuildScript(projectDir.file('usesCustomPlugin.gradle')).withTasks('hello').run()
+        assert result.output.contains('hello from GreetingTask')
+    }
 }

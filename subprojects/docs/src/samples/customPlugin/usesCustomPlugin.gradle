@@ -1,0 +1,12 @@
+// START SNIPPET use-plugin
+buildscript {
+    repositories {
+        mavenRepo urls: uri('repo')
+    }
+    dependencies {
+        classpath group: 'org.gradle', name: 'customPlugin', version: '1.0-SNAPSHOT'
+    }
+}
+
+apply plugin: 'greeting'
+// END SNIPPET use-plugin

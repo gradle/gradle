@@ -13,12 +13,12 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id="custom_plugins" xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id="custom_plugins">
     <title>Writing Custom Plugins</title>
 
     <para>A Gradle plugin packages up reusable pieces of build logic, which can be used across many different
         projects and builds. Gradle allows you to implement your own custom plugins, so you can reuse your
-        build logic, and potentially share it with others.
+        build logic, and share it with others.
     </para>
 
     <para>
@@ -29,21 +29,55 @@
 
     <section>
         <title>Packaging a plugin</title>
-        <para>There are several places where you can put the source for the plugin. Two convenient options
-            are to add the task implementation to your build script, or to put the source in the
-            <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory. Gradle will
-            take care of compiling the task and making it available on the classpath of the build script.
-            See <xref linkend="organizing_build_logic"/> for more details, and some other options.
-            In our examples, we will put the task implementation in the build script, to keep things simple.
+        <para>There are several places where you can put the source for the plugin.
         </para>
-    
+        <variablelist>
+            <varlistentry>
+                <term>Build script</term>
+                <listitem>
+                    <para>You can include the source for the plugin directly in the build script. This has the benefit that the plugin is
+                        automatically compiled and included in the classpath of the build script without you having to do anything.
+                        However, the plugin is not visible outside the build script, and so you cannot reuse the plugin
+                        outside the build script it is defined in.
+                    </para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term><filename>buildSrc</filename> project</term>
+                <listitem>
+                    <para>You can put the source for the plugin in the
+                        <filename><replaceable>rootProjectDir</replaceable>/buildSrc/src/main/groovy</filename> directory.
+                        Gradle will take care of compiling and testing the plugin and making it available on the
+                        classpath of the build script. The plugin is visible to every build script used by the build.
+                        However, it is not visible outside the build, and so you cannot reuse the plugin outside the
+                        build it is defined in.
+                    </para>
+                    <para>
+                        See <xref linkend="organizing_build_logic"/> for more details about the <filename>buildSrc</filename>
+                        project.</para>
+                </listitem>
+            </varlistentry>
+            <varlistentry>
+                <term>Standalone project</term>
+                <listitem>
+                    <para>You can create a separate project for your plugin. This project produces and
+                        publishes a JAR which you can then use in multiple builds and share with others. Generally, this JAR
+                        might include some custom plugins, or bundle several related task classes into a single library. Or
+                        some combination of the two.
+                    </para>
+                </listitem>
+            </varlistentry>
+        </variablelist>
+        <para> In our examples, we will start with the plugin in the build script, to keep things simple.
+            Then we will look at creating a standalone project.
+        </para>
     </section>
 
     <section>
         <title>Writing a simple plugin</title>
         <para>To create a custom plugin, you need to write an implementation of <apilink class="org.gradle.api.Plugin"/>.
-            Gradle instantiates the plugin and calls the plugin instance's <literal>apply()</literal> method when the plugin
-            is used with a project. The project
+            Gradle instantiates the plugin and calls the plugin instance's <apilink class="org.gradle.api.Plugin" method="apply"/> method when the
+            plugin is used with a project. The project
             object is passed as a parameter, which the plugin can use to configure the project however it needs to.
             The following sample contains a greeting plugin, which adds a <literal>hello</literal> task to the project.
         </para>
@@ -53,14 +87,14 @@
             <output args="-q hello"/>
         </sample>
 
-        <para>One thing to note is that only one instance of a given plugin is created for a given build. The same plugin
-            instance is used for all projects in the build.
+        <para>
+            One thing to note is that a new instance of a given plugin is created for each project it is applied to.
         </para>
     </section>
 
     <section>
         <title>Getting input from the build</title>
-        <para>Most plugins need to read user defined input from the build script. Plugins read values using convention objects. 
+        <para>Most plugins need to obtain some configuration from the build script. One method for doing this is to use <firstterm>convention objects</firstterm>.
              The Gradle <apilink class="org.gradle.api.Project"/> has a <apilink class="org.gradle.api.plugins.Convention"/> object 
              that helps keep track of all the settings and properties being passed to plugins. You can capture user input by telling
              the Project Convention about your plugin. To capture input, simply add a Java Bean compliant class into the Convention's list of 
@@ -77,7 +111,7 @@
             <output args="-q hello"/>
         </sample>
 
-        <para>In this example, GreetingPluginConvention is a plain old Groovy object with a field called <literal>greeting</literal>. 
+        <para>In this example, <classname>GreetingPluginConvention</classname> is a plain old Groovy object with a field called <literal>greeting</literal>.
             The convention object is added to the plugin list with the name <literal>greet</literal>. The name of the variable in
             the build needs to match the name of the field in the convention object.  The name you choose for your plugin 
             (<literal>greet</literal>) is arbitrary and can be whatever you choose. 
@@ -99,6 +133,52 @@
             Groovy closure delegate feature. This technique is possible in other JVM languages but may not be as convenient 
             as in Groovy. 
         </para>
+    </section>
 
+    <section>
+        <title>A standalone project</title>
+        <para>Now we will move our plugin to a standalone project, so we can publish it and share it with others.
+            This project is simply a Groovy project that produces a JAR containing the plugin classes.
+            Here is a simple build script for the project. It applies the Groovy plugin, and adds the Gradle API
+            as a compile-time dependency.
+        </para>
+
+        <sample id="customPluginStandalone" dir="customPlugin" title="A build for a custom plugin" includeLocation="true">
+            <sourcefile file="build.gradle" snippet="use-plugin"/>
+        </sample>
+
+        <para>We just follow the convention for where the source for the plugin class should go.</para>
+
+        <section>
+            <title>Using your plugin in another project</title>
+            <para>To use a plugin in a build script, you need to add the plugin classes to the build script's classpath. To
+                do this, you use a <literal>buildscript { }</literal> block, as described in <xref linkend="sec:external_dependencies"/>.
+                The following example shows how you might do this when the JAR containing the plugin has been published
+                to a local repository:
+            </para>
+            <sample id="customPluginStandalone" dir="customPlugin" title="Using a custom plugin in another project">
+                <sourcefile file="usesCustomPlugin.gradle" snippet="use-plugin"/>
+            </sample>
+        </section>
+        <section>
+            <title>Writing tests for your plugin</title>
+            <para>You can use the <apilink class="org.gradle.testfixtures.ProjectBuilder"/> class to create
+                <apilink class="org.gradle.api.Project"/> instances to use when you test your plugin implementation.
+            </para>
+            <sample id="customPluginStandalone" dir="customPlugin" title="Testing a custom plugin">
+                <sourcefile file="src/test/groovy/org/gradle/GreetingPluginTest.groovy" snippet="test-plugin"/>
+            </sample>
+        </section>
+    </section>
+
+    <section>
+        <title>Maintaining multiple domain objects</title>
+
+        <para>Gradle provides some utility classes for maintaining collections of object, which work well with the Gradle build language.</para>
+
+        <sample id="domainObjectContainer" dir="userguide/organizeBuildLogic/customPluginWithDomainObjectContainer" title="Managing domain objects">
+            <sourcefile file="build.gradle"/>
+            <output args="-q books"/>
+        </sample>
     </section>
 </chapter>

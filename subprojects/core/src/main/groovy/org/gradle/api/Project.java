@@ -1450,4 +1450,34 @@ public interface Project extends Comparable<Project> {
      * @return the project state. Never returns null.
      */
     ProjectState getState();
+
+    /**
+     * Creates a container for managing named objects of the specified type. The specified type must have a public constructor which takes the name as a String parameter.
+     *
+     * @param type The type of objects for the container to contain.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container.
+     */
+    <T> NamedDomainObjectContainer<T> container(Class<T> type);
+
+    /**
+     * Creates a container for managing named objects of the specified type. The given factory is used to create object instances.
+     *
+     * @param type The type of objects for the container to contain.
+     * @param factory The factory to use to create object instances.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container.
+     */
+    <T> NamedDomainObjectContainer<T> container(Class<T> type, NamedDomainObjectFactory<? extends T> factory);
+
+    /**
+     * Creates a container for managing named objects of the specified type. The given closure is used to create object instances. The name of the instance to be created is passed as a parameter to
+     * the closure.
+     *
+     * @param type The type of objects for the container to contain.
+     * @param factoryClosure The closure to use to create object instances.
+     * @param <T> The type of objects for the container to contain.
+     * @return The container.
+     */
+    <T> NamedDomainObjectContainer<T> container(Class<T> type, Closure factoryClosure);
 }
