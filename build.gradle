@@ -101,8 +101,6 @@ allprojects {
     version = this.version
 }
 
-def FIRST_LEVEL_JMOCK = ['org.hamcrest:hamcrest-core:1.1@jar', 'org.hamcrest:hamcrest-library:1.1@jar', 'org.jmock:jmock-junit4:2.5.1@jar']
-
 configure(groovyProjects()) {
     apply plugin: 'groovy'
     apply plugin: 'eclipse'
@@ -111,6 +109,8 @@ configure(groovyProjects()) {
     dependencies {
         testCompile libraries.junit, libraries.jmock, libraries.spock
     }
+
+    apply from: "$rootDir/gradle/compile.gradle"
 
     test {
         maxParallelForks = guessMaxForks()

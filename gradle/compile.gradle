@@ -1,0 +1,8 @@
+
+tasks.withType(Compile).allObjects { task ->
+    task.options.encoding = 'utf-8'
+}
+tasks.withType(GroovyCompile).allObjects { task ->
+    task.options.encoding = 'utf-8'
+    task.groovyOptions.encoding = 'utf-8'
+}

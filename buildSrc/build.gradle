@@ -17,6 +17,7 @@
 apply plugin: 'groovy'
 apply plugin: 'code-quality'
 apply plugin: 'idea'
+apply plugin: 'eclipse'
 
 repositories {
     mavenRepo(urls: 'http://gradle.artifactoryonline.com/gradle/libs')
@@ -30,4 +31,5 @@ dependencies {
     testCompile 'org.spockframework:spock-core:0.5-groovy-1.7@jar', 'cglib:cglib-nodep:2.2', 'org.objenesis:objenesis:1.2'
 }
 
+apply from: '../gradle/compile.gradle'
 apply from: '../gradle/codeQuality.gradle'
