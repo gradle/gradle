@@ -292,6 +292,13 @@ public class TestFile extends File implements TestFileContext {
         return this;
     }
 
+    public TestFile assertIsCopyOf(TestFile other) {
+        assertIsFile();
+        other.assertIsFile();
+        assertTrue(Arrays.equals(HashUtil.createHash(this), HashUtil.createHash(other)));
+        return this;
+    }
+
     public TestFile assertPermissions(Matcher<String> matcher) {
         if (OperatingSystem.current().isUnix()) {
             assertThat(String.format("mismatched permissions for '%s'", this), getPermissions(), matcher);

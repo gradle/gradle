@@ -61,7 +61,7 @@ class SamplesMavenPomGenerationIntegrationTest {
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
-        repoDir.file("$repoPath/mywar-${version}.war").assertIsFile()
+        repoDir.file("$repoPath/mywar-${version}.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-${version}.war"))
         pomProjectDir.file('build').assertDoesNotExist()
         pomProjectDir.file('target').assertIsDir()
         checkInstall(start, pomProjectDir, version, groupId)
@@ -76,8 +76,8 @@ class SamplesMavenPomGenerationIntegrationTest {
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
-        repoDir.file("$repoPath/mywar-${version}.war").assertIsFile()
-        repoDir.file("$repoPath/mywar-${version}-javadoc.zip").assertIsFile()
+        repoDir.file("$repoPath/mywar-${version}.war").assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
+        repoDir.file("$repoPath/mywar-${version}-javadoc.zip").assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
         pomProjectDir.file('build').assertDoesNotExist()
         pomProjectDir.file('target').assertIsDir()
         checkInstall(start, pomProjectDir, version, 'installGroup')
@@ -129,11 +129,11 @@ class SamplesMavenPomGenerationIntegrationTest {
         TestFile installedFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.war")
         TestFile installedJavadocFile = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}-javadoc.zip")
         TestFile installedPom = localMavenRepo.file("$groupId/mywar/$version/mywar-${version}.pom")
-        installedFile.assertIsFile()
-        installedJavadocFile.assertIsFile()
+        installedFile.assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
+        installedJavadocFile.assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
         installedPom.assertIsFile()
-        Assert.assertTrue(start <= installedFile.lastModified());
-        Assert.assertTrue(start <= installedJavadocFile.lastModified());
+        Assert.assertTrue((start/1000) <= (installedFile.lastModified()/1000))
+        Assert.assertTrue((start/1000) <= (installedJavadocFile.lastModified()/1000))
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
     

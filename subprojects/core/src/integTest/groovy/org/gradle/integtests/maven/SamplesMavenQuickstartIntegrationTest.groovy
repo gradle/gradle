@@ -21,14 +21,14 @@ import org.custommonkey.xmlunit.XMLAssert
 import org.custommonkey.xmlunit.examples.RecursiveElementNameAndTextQualifier
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
+import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.Resources
 import org.gradle.util.TestFile
 import org.junit.Assert
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import static org.junit.Assert.*
-import org.gradle.integtests.fixtures.Sample
+import static org.junit.Assert.assertEquals
 
 /**
  * @author Hans Dockter
@@ -36,12 +36,11 @@ import org.gradle.integtests.fixtures.Sample
 class SamplesMavenQuickstartIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final GradleDistributionExecuter executer = new GradleDistributionExecuter()
+    @Rule public Resources resources = new Resources();
+    @Rule public final Sample sample = new Sample('maven/quickstart')
 
     private TestFile pomProjectDir
     private TestFile repoDir
-
-    @Rule public Resources resources = new Resources();
-    @Rule public final Sample sample = new Sample('maven/quickstart')
 
     @Before
     public void setUp() {
@@ -58,7 +57,7 @@ class SamplesMavenQuickstartIntegrationTest {
         String repoPath = repoPath(groupId, version)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId),
                 pomFile(repoDir, repoPath, version).text)
-        repoDir.file("$repoPath/quickstart-${version}.jar").assertIsFile()
+        repoDir.file("$repoPath/quickstart-1.0.jar").assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
         checkInstall(start, pomProjectDir, version, groupId)
     }
 
@@ -77,9 +76,9 @@ class SamplesMavenQuickstartIntegrationTest {
         TestFile localMavenRepo = new TestFile(pomProjectDir.file("build/localRepoPath.txt").text as File)
         TestFile installedFile = localMavenRepo.file("$groupId/quickstart/$version/quickstart-${version}.jar")
         TestFile installedPom = localMavenRepo.file("$groupId/quickstart/$version/quickstart-${version}.pom")
-        installedFile.assertIsFile()
+        installedFile.assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
         installedPom.assertIsFile()
-        Assert.assertTrue(start <= installedFile.lastModified());
+        Assert.assertTrue((start/1000) <= (installedFile.lastModified()/1000));
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
 
