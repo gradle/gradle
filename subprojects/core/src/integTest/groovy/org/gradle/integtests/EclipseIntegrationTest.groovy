@@ -20,7 +20,7 @@ import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-class EclipseIntegrationTest extends AbstractIntegrationTest {
+class EclipseIntegrationTest extends AbstractIdeIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
@@ -84,17 +84,39 @@ sourceSets {
         sources.each { assert !it.attributes().containsKey("path") }
     }
 
-    private parseClasspathFile() {
-        parseXmlFile(".classpath")
+    @Test
+    void canHandleCircularModuleDependencies() {
+        def repoDir = file("repo")
+        def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
+        def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2", "myArtifact1")
+
+        def buildScript = """
+apply plugin: "java"
+apply plugin: "eclipse"
+
+repositories {
+    mavenRepo urls: "file://$repoDir.absolutePath"
+}
+
+dependencies {
+    compile "myGroup:myArtifact1:1.0"
+}
+        """
+
+        usingBuildScript(buildScript).withTasks("eclipse").run()
+
+        def classpath = parseClasspathFile()
+        def libs = findEntries(classpath, "lib")
+        assert libs.size() == 2
+        assert libs*.@path*.text().collect { new File(it).name } as Set == [artifact1.name, artifact2.name] as Set
     }
 
-    private parseProjectFile() {
-        parseXmlFile(".project")
+    private parseClasspathFile(print = false) {
+        parseXmlFile(".classpath", print)
     }
 
-    private parseXmlFile(filename) {
-        def file = testFile(filename).assertExists()
-        new XmlSlurper().parse(file)
+    private parseProjectFile(print = false) {
+        parseXmlFile(".project", print)
     }
 
     private findEntries(classpath, kind) {

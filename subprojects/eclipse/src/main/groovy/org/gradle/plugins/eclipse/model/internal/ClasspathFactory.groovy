@@ -177,18 +177,17 @@ class ClasspathFactory {
         }
     }
 
-    protected Set getAllDeps(Set deps) {
-        Set result = []
+    protected Set getAllDeps(Set deps, Set allDeps = []) {
         deps.each { ResolvedDependency resolvedDependency ->
-            if (resolvedDependency.children) {
-                result.addAll(getAllDeps(resolvedDependency.children))
+            def notSeenBefore = allDeps.add(resolvedDependency)
+            if (notSeenBefore) { // defend against circular dependencies
+                getAllDeps(resolvedDependency.children, allDeps)
             }
-            result.add(resolvedDependency)
         }
-        result
+        allDeps
     }
 
-    protected def addSourceArtifact(DefaultExternalModuleDependency dependency) {
+    protected void addSourceArtifact(DefaultExternalModuleDependency dependency) {
         dependency.artifact { artifact ->
             artifact.name = dependency.name
             artifact.type = 'source'
@@ -197,7 +196,7 @@ class ClasspathFactory {
         }
     }
 
-    protected def addJavadocArtifact(DefaultExternalModuleDependency dependency) {
+    protected void addJavadocArtifact(DefaultExternalModuleDependency dependency) {
         dependency.artifact { artifact ->
             artifact.name = dependency.name
             artifact.type = 'javadoc'
