@@ -22,3 +22,4 @@
 *.classpath
 *.project
 /intTestHomeDir
+.DS_Store
