@@ -46,7 +46,8 @@ class EclipseIntegrationTest extends AbstractIntegrationTest {
 
         expectedOrder.each { testFile(it).mkdirs() }
 
-        def buildScript = """
+        def buildScript = testFile("build.gradle")
+        buildScript.text = """
 apply plugin: "java"
 apply plugin: "groovy"
 apply plugin: "eclipse"
@@ -60,7 +61,7 @@ sourceSets {
 }
         """
 
-        usingBuildScript(buildScript).withTasks("eclipse").run()
+        usingBuildFile(buildScript).withTasks("eclipse").run()
 
         def classpath = parseClasspathFile()
         def sourceEntries = findEntries(classpath, "src")
@@ -69,9 +70,10 @@ sourceSets {
 
     @Test
     void outputDirDefaultsToEclipseDefault() {
-        def buildScript = "apply plugin: 'java'; apply plugin: 'eclipse'"
+        def buildScript = testFile("build.gradle")
+        buildScript.text = "apply plugin: 'java'; apply plugin: 'eclipse'"
 
-        usingBuildScript(buildScript).withTasks("eclipse").run()
+        usingBuildFile(buildScript).withTasks("eclipse").run()
 
         def classpath = parseClasspathFile()
 
