@@ -235,15 +235,14 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         }
     }
 
-    protected Set getAllDeps(Set deps) {
-        Set result = []
+    protected Set getAllDeps(Set deps, Set allDeps = []) {
         deps.each { ResolvedDependency resolvedDependency ->
-            if (resolvedDependency.children) {
-                result.addAll(getAllDeps(resolvedDependency.children))
+            def notSeenBefore = allDeps.add(resolvedDependency)
+            if (notSeenBefore) { // defend against circular dependencies
+                getAllDeps(resolvedDependency.children, allDeps)
             }
-            result.add(resolvedDependency)
         }
-        result
+        allDeps
     }
 
     protected def addSourceArtifact(DefaultExternalModuleDependency dependency) {
