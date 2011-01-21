@@ -46,8 +46,8 @@ class EclipseIntegrationTest extends AbstractIdeIntegrationTest {
 
         expectedOrder.each { testFile(it).mkdirs() }
 
-        def buildScript = testFile("build.gradle")
-        buildScript.text = """
+        def buildFile = testFile("build.gradle")
+        buildFile << """
 apply plugin: "java"
 apply plugin: "groovy"
 apply plugin: "eclipse"
@@ -61,7 +61,7 @@ sourceSets {
 }
         """
 
-        usingBuildFile(buildScript).withTasks("eclipse").run()
+        usingBuildFile(buildFile).withTasks("eclipse").run()
 
         def classpath = parseClasspathFile()
         def sourceEntries = findEntries(classpath, "src")
@@ -70,10 +70,10 @@ sourceSets {
 
     @Test
     void outputDirDefaultsToEclipseDefault() {
-        def buildScript = testFile("build.gradle")
-        buildScript.text = "apply plugin: 'java'; apply plugin: 'eclipse'"
+        def buildFile = testFile("build.gradle")
+        buildFile << "apply plugin: 'java'; apply plugin: 'eclipse'"
 
-        usingBuildFile(buildScript).withTasks("eclipse").run()
+        usingBuildFile(buildFile).withTasks("eclipse").run()
 
         def classpath = parseClasspathFile()
 
@@ -90,7 +90,8 @@ sourceSets {
         def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
         def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2", "myArtifact1")
 
-        def buildScript = """
+        def buildFile = testFile("build.gradle")
+        buildFile << """
 apply plugin: "java"
 apply plugin: "eclipse"
 
@@ -103,7 +104,7 @@ dependencies {
 }
         """
 
-        usingBuildScript(buildScript).withTasks("eclipse").run()
+        usingBuildFile(buildFile).withTasks("eclipse").run()
 
         def classpath = parseClasspathFile()
         def libs = findEntries(classpath, "lib")
