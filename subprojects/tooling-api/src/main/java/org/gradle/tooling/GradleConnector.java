@@ -31,7 +31,7 @@ import java.net.URI;
  *
  * <li>Configure the connector.</li>
  *
- * <li>Call {@link #connect()} to create the connection.</li>
+ * <li>Call {@link #connect()} to create the connection to a build.</li>
  *
  * <li>Optionally reuse the connector to create additional connections.</li>
  *
@@ -108,13 +108,13 @@ public class GradleConnector {
     }
 
     /**
-     * Creates the connection.
+     * Creates a connection to the build in the specified project directory.
      *
      * @return The connection. Never return null.
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
      */
-    public GradleConnection connect() throws GradleConnectionException {
+    public BuildConnection connect() throws GradleConnectionException {
         if (projectDir == null) {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }

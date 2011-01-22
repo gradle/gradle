@@ -78,7 +78,7 @@ class SamplesMavenQuickstartIntegrationTest {
         TestFile installedPom = localMavenRepo.file("$groupId/quickstart/$version/quickstart-${version}.pom")
         installedFile.assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
         installedPom.assertIsFile()
-        Assert.assertTrue((start/1000) <= (installedFile.lastModified()/1000));
+        Assert.assertTrue((start/2000) <= (installedFile.lastModified()/2000));
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
 

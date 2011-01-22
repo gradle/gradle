@@ -24,9 +24,9 @@ import org.gradle.tooling.model.Build;
  *
  * <p>All implementations of {@code GradleConnection} are thread-safe, and may be shared by any number of threads.</p>
  *
- * <p>All notifications from a given {@code GradleConnection} instance are delivered by a single thread at a time. Note however, that the thread may change over time.</p>
+ * <p>All notifications from a given {@code GradleConnection} instance are delivered by a single thread at a time. Note, however, that the delivery thread may change over time.</p>
  */
-public interface GradleConnection {
+public interface BuildConnection {
     /**
      * Fetches a snapshot of the model for this build. This method blocks until the model is available.
      *

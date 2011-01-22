@@ -33,13 +33,19 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 public class DistributionFactory {
+    public static final String USE_CLASSPATH_AS_DISTRIBUTION = "org.gradle.useClasspathAsDistribution";
+
     public Distribution getCurrentDistribution() {
-        return new Distribution() {
-            public Set<File> getToolingImplementationClasspath() {
-                DefaultClassPathProvider provider = new DefaultClassPathProvider();
-                return provider.findClassPath("GRADLE_RUNTIME");
-            }
-        };
+        if ("true".equalsIgnoreCase(System.getProperty(USE_CLASSPATH_AS_DISTRIBUTION))) {
+            return new Distribution() {
+                public Set<File> getToolingImplementationClasspath() {
+                    DefaultClassPathProvider provider = new DefaultClassPathProvider();
+                    return provider.findClassPath("GRADLE_RUNTIME");
+                }
+            };
+        }
+
+        return getDownloadedDistribution(new GradleVersion().getVersion());
     }
 
     public Distribution getDistribution(final File gradleHomeDir) {
@@ -61,6 +67,10 @@ public class DistributionFactory {
         if (gradleVersion.equals(new GradleVersion().getVersion())) {
             return getCurrentDistribution();
         }
+        return getDownloadedDistribution(gradleVersion);
+    }
+
+    private Distribution getDownloadedDistribution(String gradleVersion) {
         URI distUri;
         try {
             distUri = new URI(new DistributionLocator().getDistributionFor(new GradleVersion(gradleVersion)));

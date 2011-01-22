@@ -15,17 +15,13 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.tooling.GradleConnection
+import org.gradle.tooling.BuildConnection
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseBuild
 import org.gradle.tooling.model.eclipse.EclipseProject
-import org.junit.Rule
-import spock.lang.Specification
 
-class ToolingApiEclipseIntegrationTest extends Specification {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
+class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
     def canBuildEclipseClasspathModelForABuild() {
         def projectDir = dist.testDir
@@ -40,7 +36,7 @@ class ToolingApiEclipseIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
+        BuildConnection connection = connector.forProjectDirectory(projectDir).connect()
         EclipseBuild build = connection.getModel(EclipseBuild.class)
         EclipseProject rootProject = build.getRootProject()
         connector.close()
@@ -63,7 +59,7 @@ class ToolingApiEclipseIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
+        BuildConnection connection = connector.forProjectDirectory(projectDir).connect()
         EclipseBuild build = connection.getModel(EclipseBuild.class)
         EclipseProject rootProject = build.getRootProject()
         connector.close()

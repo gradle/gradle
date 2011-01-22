@@ -28,7 +28,7 @@ class GradleConnectorTest extends Specification {
     final GradleConnector connector = new GradleConnector(connectionFactory, distributionFactory)
 
     def canCreateAConnectionGivenAProjectDirectory() {
-        GradleConnection connection = Mock()
+        BuildConnection connection = Mock()
 
         when:
         def result = connector.forProjectDirectory(projectDir).connect()
@@ -40,7 +40,7 @@ class GradleConnectorTest extends Specification {
     }
 
     def canSpecifyAGradleInstallationToUse() {
-        GradleConnection connection = Mock()
+        BuildConnection connection = Mock()
         File gradleHome = new File('install-dir')
 
         when:
@@ -53,7 +53,7 @@ class GradleConnectorTest extends Specification {
     }
 
     def canSpecifyAGradleDistributionToUse() {
-        GradleConnection connection = Mock()
+        BuildConnection connection = Mock()
         URI gradleDist = new URI('http://server/dist.zip')
 
         when:
@@ -66,7 +66,7 @@ class GradleConnectorTest extends Specification {
     }
 
     def canSpecifyAGradleVersionToUse() {
-        GradleConnection connection = Mock()
+        BuildConnection connection = Mock()
 
         when:
         def result = connector.useGradleVersion('1.0').forProjectDirectory(projectDir).connect()

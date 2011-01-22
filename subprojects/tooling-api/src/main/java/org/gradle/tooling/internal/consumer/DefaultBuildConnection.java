@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.GradleConnection;
+import org.gradle.tooling.BuildConnection;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.UnsupportedVersionException;
@@ -32,12 +32,12 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-class DefaultGradleConnection implements GradleConnection {
+class DefaultBuildConnection implements BuildConnection {
     private final ConnectionVersion1 connection;
     private final Map<Class<? extends Build>, Class<? extends BuildVersion1>> modelTypeMap = new HashMap<Class<? extends Build>, Class<? extends BuildVersion1>>();
     private ProtocolToModelAdapter adapter;
 
-    public DefaultGradleConnection(ConnectionVersion1 connection, ProtocolToModelAdapter adapter) {
+    public DefaultBuildConnection(ConnectionVersion1 connection, ProtocolToModelAdapter adapter) {
         this.connection = connection;
         this.adapter = adapter;
         modelTypeMap.put(Build.class, BuildVersion1.class);

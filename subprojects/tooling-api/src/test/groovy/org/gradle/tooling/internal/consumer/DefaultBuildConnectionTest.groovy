@@ -24,10 +24,10 @@ import org.gradle.tooling.internal.protocol.ResultHandlerVersion1
 import org.gradle.tooling.GradleConnectionException
 import org.gradle.tooling.UnsupportedVersionException
 
-class DefaultGradleConnectionSpec extends ConcurrentSpecification {
+class DefaultBuildConnectionTest extends ConcurrentSpecification {
     final ConnectionVersion1 protocolConnection = Mock()
     final ProtocolToModelAdapter adapter = Mock()
-    final DefaultGradleConnection connection = new DefaultGradleConnection(protocolConnection, adapter)
+    final DefaultBuildConnection connection = new DefaultBuildConnection(protocolConnection, adapter)
 
     def getModelDelegatesToProtocolConnectionToFetchModel() {
         ResultHandler<Build> handler = Mock()

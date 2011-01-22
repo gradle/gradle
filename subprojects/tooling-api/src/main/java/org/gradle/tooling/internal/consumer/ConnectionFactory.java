@@ -16,7 +16,7 @@
 package org.gradle.tooling.internal.consumer;
 
 import org.gradle.messaging.concurrent.Stoppable;
-import org.gradle.tooling.GradleConnection;
+import org.gradle.tooling.BuildConnection;
 import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
 
@@ -42,11 +42,11 @@ public class ConnectionFactory implements Stoppable {
         this.toolingImplementationLoader = toolingImplementationLoader;
     }
 
-    public GradleConnection create(Distribution distribution, File projectDir) {
+    public BuildConnection create(Distribution distribution, File projectDir) {
         ConnectionFactoryVersion1 factory = toolingImplementationLoader.create(distribution);
         factories.add(factory);
         final ConnectionVersion1 connection = factory.create(projectDir);
-        return new DefaultGradleConnection(connection, adapter);
+        return new DefaultBuildConnection(connection, adapter);
     }
 
     public void stop() {

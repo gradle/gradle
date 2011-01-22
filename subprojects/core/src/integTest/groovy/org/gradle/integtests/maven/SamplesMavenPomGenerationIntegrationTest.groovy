@@ -132,8 +132,8 @@ class SamplesMavenPomGenerationIntegrationTest {
         installedFile.assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
         installedJavadocFile.assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
         installedPom.assertIsFile()
-        Assert.assertTrue((start/1000) <= (installedFile.lastModified()/1000))
-        Assert.assertTrue((start/1000) <= (installedJavadocFile.lastModified()/1000))
+        Assert.assertTrue((start/2000) <= (installedFile.lastModified()/2000))
+        Assert.assertTrue((start/2000) <= (installedJavadocFile.lastModified()/2000))
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
     

@@ -15,24 +15,19 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.gradle.tooling.GradleConnection
+import org.gradle.tooling.BuildConnection
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.Build
 import org.gradle.util.GradleVersion
-import org.junit.Rule
-import spock.lang.Specification
 
-class ToolingApiIntegrationTest extends Specification {
-    @Rule public final GradleDistribution dist = new GradleDistribution()
-
+class ToolingApiIntegrationTest extends ToolingApiSpecification {
     def canUseToolingApiWithoutSpecifyingADistributionToUse() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = "assert gradle.gradleVersion == '${new GradleVersion().version}'"
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.forProjectDirectory(projectDir).connect()
+        BuildConnection connection = connector.forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
         connector.close()
 
@@ -46,7 +41,7 @@ class ToolingApiIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.useInstallation(dist.gradleHomeDir).forProjectDirectory(projectDir).connect()
+        BuildConnection connection = connector.useInstallation(dist.gradleHomeDir).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
         connector.close()
 
@@ -60,7 +55,7 @@ class ToolingApiIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.useDistribution(dist.binDistribution.toURI()).forProjectDirectory(projectDir).connect()
+        BuildConnection connection = connector.useDistribution(dist.binDistribution.toURI()).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
         connector.close()
 
@@ -74,7 +69,7 @@ class ToolingApiIntegrationTest extends Specification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        GradleConnection connection = connector.useGradleVersion(new GradleVersion().version).forProjectDirectory(projectDir).connect()
+        BuildConnection connection = connector.useGradleVersion(new GradleVersion().version).forProjectDirectory(projectDir).connect()
         Build model = connection.getModel(Build.class)
         connector.close()
 
