@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.util;
+package org.gradle.util
 
-public class TextUtil {
-    /**
-     * The native line separator for the current platform (e.g. \n or \r\n).
-     */
-    public static final String LINE_SEPARATOR = System.getProperty("line.separator");
+import spock.lang.Specification
 
-    /**
-     * Replaces all line separators (\r, \n, \r\n) in the specified string with
-     * the platform's native line separator.
-     */
-    public static String toNativeLineSeparators(String str) {
-        return str.replaceAll("\r\n|\r|\n", LINE_SEPARATOR);
+class TextUtilTest extends Specification {
+    private static String sep = TextUtil.LINE_SEPARATOR
+
+    def "toNativeLineSeparators() converts all line separators to native ones"() {
+        expect:
+        TextUtil.toNativeLineSeparators(original) == converted
+
+        where:
+        original                          | converted
+        "one\rtwo\nthree\r\nfour\n\rfive" | "one${sep}two${sep}three${sep}four${sep}${sep}five"
     }
 }

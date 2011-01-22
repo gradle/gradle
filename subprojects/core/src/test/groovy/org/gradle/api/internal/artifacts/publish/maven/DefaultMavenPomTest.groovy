@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.publish.maven
 
 import org.apache.commons.lang.builder.EqualsBuilder
 import org.apache.maven.model.Dependency
+import org.apache.maven.model.Model
 import org.gradle.api.Action
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.ConfigurationContainer
@@ -26,9 +27,9 @@ import org.gradle.api.internal.artifacts.publish.maven.dependencies.PomDependenc
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.util.TemporaryFolder
 import org.gradle.util.TestFile
+import org.gradle.util.TextUtil
 import org.junit.Rule
 import spock.lang.Specification
-import org.apache.maven.model.Model
 
 class DefaultMavenPomTest extends Specification {
     static final String EXPECTED_PACKAGING = "something";
@@ -176,7 +177,7 @@ class DefaultMavenPomTest extends Specification {
         mavenPom.writeTo('file');
 
         then:
-        pomFile.text == '''<?xml version="1.0" encoding="UTF-8"?>
+        pomFile.text == TextUtil.toNativeLineSeparators('''<?xml version="1.0" encoding="UTF-8"?>
 <project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns="http://maven.apache.org/POM/4.0.0"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <modelVersion>4.0.0</modelVersion>
@@ -185,6 +186,6 @@ class DefaultMavenPomTest extends Specification {
   <version>version</version>
   <packaging>something</packaging>
 </project>
-'''
+''')
     }
 }

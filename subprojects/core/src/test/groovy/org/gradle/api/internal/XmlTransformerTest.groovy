@@ -198,14 +198,10 @@ class XmlTransformerTest extends Specification {
     }
 
     private void looksLike(String expected, String actual) {
-        assert actual == convertNewlines(addXmlDeclaration(expected))
+        assert actual == TextUtil.toNativeLineSeparators(addXmlDeclaration(expected))
     }
 
     private String addXmlDeclaration(String value) {
         "<?xml version=\"1.0\"?>\n" + value
-    }
-
-    private String convertNewlines(String value) {
-        return value.replaceAll('\n', TextUtil.LINE_SEPARATOR)
     }
 }
