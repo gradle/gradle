@@ -19,10 +19,12 @@ import groovy.lang.Closure;
 import groovy.util.Node;
 import groovy.util.XmlNodePrinter;
 import groovy.util.XmlParser;
+import org.apache.commons.lang.StringUtils;
 import org.codehaus.groovy.runtime.DefaultGroovyMethods;
 import org.gradle.api.Action;
 import org.gradle.api.Transformer;
 import org.gradle.api.artifacts.maven.XmlProvider;
+import org.gradle.util.TextUtil;
 import org.gradle.util.UncheckedException;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
@@ -62,7 +64,15 @@ public class XmlTransformer implements Transformer<String> {
         doTransform(original).writeTo(destination);
     }
 
+    public void transform(String original, OutputStream destination) {
+        doTransform(original).writeTo(destination);
+    }
+
     public void transform(Node original, Writer destination) {
+        doTransform(original).writeTo(destination);
+    }
+
+    public void transform(Node original, OutputStream destination) {
         doTransform(original).writeTo(destination);
     }
 
@@ -106,21 +116,14 @@ public class XmlTransformer implements Transformer<String> {
         }
 
         public void writeTo(Writer writer) {
+            doWriteTo(writer, null);
+        }
+
+        public void writeTo(OutputStream stream) {
             try {
-                if (node != null) {
-                    PrintWriter printWriter = new PrintWriter(writer);
-                    XmlNodePrinter nodePrinter = new XmlNodePrinter(printWriter, indentation);
-                    nodePrinter.setPreserveWhitespace(true);
-                    nodePrinter.print(node);
-                    printWriter.flush();
-                } else if (element != null) {
-                    printNode(element, writer);
-                    writer.flush();
-                } else if (builder != null) {
-                    writer.append(builder);
-                } else {
-                    writer.append(stringValue);
-                }
+                Writer writer = new OutputStreamWriter(stream, "UTF-8");
+                doWriteTo(writer, "UTF-8");
+                writer.flush();
             } catch (IOException e) {
                 throw UncheckedException.asUncheckedException(e);
             }
@@ -163,20 +166,102 @@ public class XmlTransformer implements Transformer<String> {
             return element;
         }
 
-        public void printNode(org.w3c.dom.Node node, Writer destination) {
+        private void doWriteTo(Writer writer, String encoding) {
+            writeXmlDeclaration(writer, encoding);
+
+            try {
+                if (node != null) {
+                    PrintWriter printWriter = new PrintWriter(writer);
+                    XmlNodePrinter nodePrinter = new XmlNodePrinter(printWriter, indentation);
+                    nodePrinter.setPreserveWhitespace(true);
+                    nodePrinter.print(node);
+                    printWriter.flush();
+                } else if (element != null) {
+                    printNode(element, writer);
+                } else if (builder != null) {
+                    writer.append(removeAnyXmlDeclaration(builder));
+                } else {
+                    writer.append(removeAnyXmlDeclaration(stringValue));
+                }
+            } catch (IOException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+        }
+
+        private void printNode(org.w3c.dom.Node node, Writer destination) {
+            removeEmptyTextNodes(node); // empty text nodes hinder subsequent formatting
+            int indentAmount = determineIndentAmount();
+
             try {
                 TransformerFactory factory = TransformerFactory.newInstance();
-                factory.setAttribute("indent-number", 2);
+                try {
+                    factory.setAttribute("indent-number", indentAmount);
+                } catch (IllegalArgumentException ignored) {
+                    /* unsupported by this transformer */
+                }
 
                 javax.xml.transform.Transformer transformer = factory.newTransformer();
                 transformer.setOutputProperty(OutputKeys.METHOD, "xml");
                 transformer.setOutputProperty(OutputKeys.INDENT, "yes");
                 transformer.setOutputProperty(OutputKeys.OMIT_XML_DECLARATION, "yes");
+                try {
+                    // some impls support this but not factory.setAttribute("indent-number")
+                    transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", String.valueOf(indentAmount));
+                } catch (IllegalArgumentException ignored) {
+                    /* unsupported by this transformer */
+                }
 
                 transformer.transform(new DOMSource(node), new StreamResult(destination));
             } catch (TransformerException e) {
                 throw UncheckedException.asUncheckedException(e);
             }
+        }
+
+        private int determineIndentAmount() {
+            if (indentation.equals("\t")) { // not supported by javax.xml.transform.Transformer; use two spaces instead
+                return 2;
+            }
+            return indentation.length(); // assume indentation uses spaces
+        }
+
+        private void removeEmptyTextNodes(org.w3c.dom.Node node) {
+            org.w3c.dom.NodeList children = node.getChildNodes();
+
+            for (int i = 0; i < children.getLength(); i++) {
+                org.w3c.dom.Node child = children.item(i);
+                if (child.getNodeType() == org.w3c.dom.Node.TEXT_NODE && child.getNodeValue().trim().length() == 0) {
+                    node.removeChild(child);
+                } else {
+                    removeEmptyTextNodes(child);
+                }
+            }
+        }
+
+        private void writeXmlDeclaration(Writer writer, String encoding) {
+            try {
+                writer.write("<?xml version=\"1.0\"");
+                if (encoding != null) {
+                    writer.write(" encoding=\"");
+                    writer.write(encoding);
+                    writer.write("\"");
+                }
+                writer.write("?>");
+                writer.write(TextUtil.LINE_SEPARATOR);
+            } catch (IOException e) {
+                throw UncheckedException.asUncheckedException(e);
+            }
+        }
+        private boolean hasXmlDeclaration(String xml) {
+            return xml.startsWith("<?xml"); // XML declarations must be located at first position of first line
+        }
+
+        private String removeAnyXmlDeclaration(CharSequence sequence) {
+            String str = sequence.toString();
+            if (hasXmlDeclaration(str)) {
+                str = str.substring(str.indexOf("?>") + 2);
+                str = StringUtils.stripStart(str, null);
+            }
+            return str;
         }
     }
 }

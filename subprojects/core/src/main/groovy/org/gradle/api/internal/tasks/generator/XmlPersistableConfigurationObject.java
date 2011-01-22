@@ -18,8 +18,6 @@ package org.gradle.api.internal.tasks.generator;
 import groovy.util.Node;
 import groovy.util.XmlParser;
 import org.gradle.api.internal.XmlTransformer;
-import org.gradle.util.TextUtil;
-import org.gradle.util.UncheckedException;
 
 import java.io.*;
 
@@ -47,10 +45,7 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
     @Override
     public void store(OutputStream outputStream) {
         store(xml);
-
-        Writer destination = createWriter(outputStream);
-        writeXmlDeclaration(destination);
-        xmlTransformer.transform(xml, destination);
+        xmlTransformer.transform(xml, outputStream);
     }
 
     /**
@@ -62,20 +57,4 @@ public abstract class XmlPersistableConfigurationObject extends AbstractPersista
      * Called immediately before the XML file is to be written.
      */
     protected abstract void store(Node xml);
-
-    private Writer createWriter(OutputStream outputStream) {
-        try {
-            return new OutputStreamWriter(outputStream, "UTF-8");
-        } catch (UnsupportedEncodingException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
-
-    private void writeXmlDeclaration(Writer writer) {
-        try {
-            writer.write("<?xml version=\"1.0\" encoding=\"UTF-8\"?>" + TextUtil.LINE_SEPARATOR);
-        } catch (IOException e) {
-            throw UncheckedException.asUncheckedException(e);
-        }
-    }
 }

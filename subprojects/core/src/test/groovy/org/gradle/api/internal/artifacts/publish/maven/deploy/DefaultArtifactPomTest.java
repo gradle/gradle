@@ -37,7 +37,7 @@ import org.junit.Rule;
 import org.junit.Test;
 
 import java.io.File;
-import java.io.FileWriter;
+import java.io.FileOutputStream;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -252,7 +252,7 @@ public class DefaultArtifactPomTest {
         context.checking(new Expectations() {{
             allowing(mavenPomMock).getArtifactId();
             will(returnValue("artifactId"));
-            one(mavenPomMock).writeTo(with(any(FileWriter.class)));
+            one(mavenPomMock).writeTo(with(any(FileOutputStream.class)));
         }});
 
         PublishArtifact artifact = artifactPom.writePom(somePomFile);
@@ -262,8 +262,6 @@ public class DefaultArtifactPomTest {
         assertThat(artifact.getExtension(), equalTo("pom"));
         assertThat(artifact.getClassifier(), nullValue());
         assertThat(artifact.getFile(), equalTo(somePomFile));
-
-        assertThat(somePomFile.isFile(), equalTo(true));
     }
 
     private <T> T singleItem(Iterable<? extends T> collection) {

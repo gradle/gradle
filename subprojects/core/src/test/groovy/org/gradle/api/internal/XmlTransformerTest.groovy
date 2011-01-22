@@ -23,104 +23,100 @@ import org.gradle.util.TextUtil
 class XmlTransformerTest extends Specification {
     final XmlTransformer transformer = new XmlTransformer()
 
-    def returnsOriginalStringWhenNoActions() {
+    def "returns original string when no actions are provided"() {
         expect:
-        transformer.transform('<xml/>') == '<xml/>'
+        looksLike '<root/>', transformer.transform('<root/>')
     }
 
-    def actionCanAccessXmlAsStringBuffer() {
+    def "action can access XML as StringBuilder"() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
 
         when:
-        def result = transformer.transform('<xml/>')
+        def result = transformer.transform('<root/>')
 
         then:
-        result == '<some-xml/>'
-        1 * action.execute(!null) >> { args ->
-            def provider = args[0]
-            provider.asString().insert(1, 'some-')
+        action.execute(_) >> { XmlProvider provider ->
+            def builder = provider.asString()
+            builder.insert(builder.indexOf("root"), 'some-')
         }
+        looksLike '<some-root/>', result
     }
 
-    def actionCanAccessXmlAsNode() {
+    def "action can access XML as Node"() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
 
         when:
-        def result = transformer.transform('<xml/>')
+        def result = transformer.transform('<root/>')
 
         then:
-        result == '<xml>\n  <child1/>\n</xml>\n'
-        1 * action.execute(!null) >> { args ->
-            def provider = args[0]
+        action.execute(_) >> { XmlProvider provider ->
             provider.asNode().appendNode('child1')
         }
+        looksLike '<root>\n  <child1/>\n</root>\n', result
     }
 
-    def actionCanAccessXmlAsDomElement() {
+    def "action can access XML as DOM element"() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
 
         when:
-        def result = transformer.transform('<xml/>')
+        def result = transformer.transform('<root/>')
 
         then:
-        result == toNative('<xml>\n  <child1/>\n</xml>\n')
-        1 * action.execute(!null) >> { args ->
-            def provider = args[0]
+        action.execute(_) >> { XmlProvider provider ->
             def document = provider.asElement().ownerDocument
             provider.asElement().appendChild(document.createElement('child1'))
         }
+        looksLike '<root>\n  <child1/>\n</root>\n', result
     }
 
-    def canTransformStringToAWriter() {
+    def "can transform String to a Writer"() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
         StringWriter writer = new StringWriter()
 
         when:
-        transformer.transform('<xml/>', writer)
+        transformer.transform('<root/>', writer)
 
         then:
-        writer.toString() == '<xml>\n  <child1/>\n</xml>\n'
-        1 * action.execute(!null) >> { args ->
-            def provider = args[0]
+        action.execute(_) >> { XmlProvider provider ->
             provider.asNode().appendNode('child1')
         }
+        looksLike '<root>\n  <child1/>\n</root>\n', writer.toString()
     }
 
-    def canTransformNodeToAWriter() {
+    def "can transform Node to a Writer"() {
         Action<XmlProvider> action = Mock()
         transformer.addAction(action)
         StringWriter writer = new StringWriter()
-        Node node = new XmlParser().parseText('<xml/>')
+        Node node = new XmlParser().parseText('<root/>')
 
         when:
         transformer.transform(node, writer)
 
         then:
-        writer.toString() == '<xml>\n  <child1/>\n</xml>\n'
-        1 * action.execute(!null) >> { args ->
-            def provider = args[0]
+        action.execute(_) >> { XmlProvider provider ->
             provider.asNode().appendNode('child1')
         }
+        looksLike '<root>\n  <child1/>\n</root>\n', writer.toString()
     }
 
-    def canUseAClosureAsAnAction() {
+    def "can use a closure as an action"() {
         transformer.addAction { provider ->
             provider.asNode().appendNode('child1')
         }
         StringWriter writer = new StringWriter()
 
         when:
-        transformer.transform('<xml/>', writer)
+        transformer.transform('<root/>', writer)
 
         then:
-        writer.toString() == '<xml>\n  <child1/>\n</xml>\n'
+        looksLike '<root>\n  <child1/>\n</root>\n', writer.toString()
     }
 
-    def canChainActions() {
+    def "can chain actions"() {
         Action<XmlProvider> stringAction = Mock()
         Action<XmlProvider> nodeAction = Mock()
         Action<XmlProvider> elementAction = Mock()
@@ -131,70 +127,85 @@ class XmlTransformerTest extends Specification {
         transformer.addAction(stringAction2)
 
         when:
-        def result = transformer.transform('<xml/>')
+        def result = transformer.transform('<root/>')
 
         then:
-        result == '<some-xml>\n  <child1/>\n  <child2/>\n</some-xml>\n<!-- end -->'
-        1 * stringAction.execute(!null) >> { args ->
-            def provider = args[0]
-            provider.asString().insert(1, 'some-')
+        stringAction.execute(_) >> { XmlProvider provider ->
+            def builder = provider.asString()
+            builder.insert(builder.indexOf("root"), 'some-')
         }
-        1 * elementAction.execute(!null) >> { args ->
-            def provider = args[0]
+        nodeAction.execute(_) >> { XmlProvider provider ->
+            provider.asNode().appendNode('child2')
+        }
+        elementAction.execute(_) >> { XmlProvider provider ->
             def document = provider.asElement().ownerDocument
             provider.asElement().appendChild(document.createElement('child1'))
         }
-        1 * nodeAction.execute(!null) >> { args ->
-            def provider = args[0]
-            provider.asNode().appendNode('child2')
-        }
-        1 * stringAction2.execute(!null) >> { args ->
-            def provider = args[0]
+        stringAction2.execute(_) >> { XmlProvider provider ->
             provider.asString().append('<!-- end -->')
         }
+
+        looksLike '<some-root>\n  <child1/>\n  <child2/>\n</some-root>\n<!-- end -->', result
     }
 
-    def canChainNodeActions() {
+    def "can chain node actions"() {
         Action<XmlProvider> nodeAction = Mock()
         Action<XmlProvider> nodeAction2 = Mock()
         transformer.addAction(nodeAction)
         transformer.addAction(nodeAction2)
 
         when:
-        def result = transformer.transform('<xml/>')
+        def result = transformer.transform('<root/>')
 
         then:
-        result == '<xml>\n  <child1/>\n  <child2/>\n</xml>\n'
-        1 * nodeAction.execute(!null) >> { args ->
-            def provider = args[0]
+        nodeAction.execute(_) >> { XmlProvider provider ->
             provider.asNode().appendNode('child1')
         }
-        1 * nodeAction2.execute(!null) >> { args ->
-            def provider = args[0]
+        nodeAction2.execute(_) >> { XmlProvider provider ->
             provider.asNode().appendNode('child2')
         }
+        looksLike '<root>\n  <child1/>\n  <child2/>\n</root>\n', result
     }
 
-    def "correct indentation used when writing out groovy.util.Node"() {
+    def "indentation correct when writing out Node"() {
         transformer.indentation = "\t"
         transformer.addAction { XmlProvider provider -> provider.asNode().children()[0].appendNode("grandchild") }
 
-        expect:
-        transformer.transform("<xml>\n    <child/>\n</xml>\n") == "<xml>\n\t<child>\n\t\t<grandchild/>\n\t</child>\n</xml>\n"
+        when:
+        def result = transformer.transform("<root>\n  <child/>\n</root>\n")
+
+        then:
+        looksLike "<root>\n\t<child>\n\t\t<grandchild/>\n\t</child>\n</root>\n", result
     }
 
-    def "incorrect indentation used when writing out org.w3c.dom.Element"() {
-        transformer.indentation = "\t"
+    def "indentation correct when writing out DOM element (only) if indenting with spaces"() {
+        transformer.indentation = expected
         transformer.addAction { XmlProvider provider ->
             def document = provider.asElement().ownerDocument
             document.getElementsByTagName("child").item(0).appendChild(document.createElement("grandchild"))
         }
 
-        expect:
-        transformer.transform("<xml>\n    <child/>\n</xml>\n") == toNative("<xml>\n    <child>\n    <grandchild/>\n  </child>\n</xml>\n")
+        when:
+        def result = transformer.transform("<root>\n  <child/>\n</root>\n")
+
+        then:
+        looksLike("<root>\n$actual<child>\n$actual$actual<grandchild/>\n$actual</child>\n</root>\n", result)
+
+        where:
+        expected | actual
+        "    "   | "    "
+        "\t"     | "  " // tabs not supported, two spaces used instead
     }
 
-    def String toNative(String value) {
+    private void looksLike(String expected, String actual) {
+        assert actual == convertNewlines(addXmlDeclaration(expected))
+    }
+
+    private String addXmlDeclaration(String value) {
+        "<?xml version=\"1.0\"?>\n" + value
+    }
+
+    private String convertNewlines(String value) {
         return value.replaceAll('\n', TextUtil.LINE_SEPARATOR)
     }
 }

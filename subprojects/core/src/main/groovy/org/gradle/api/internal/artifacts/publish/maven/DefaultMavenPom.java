@@ -188,19 +188,20 @@ public class DefaultMavenPom implements MavenPom {
     }
 
     public DefaultMavenPom writeTo(Object path) {
+        OutputStream stream = null;
+
         try {
             File file = fileResolver.resolve(path);
             if (file.getParentFile() != null) {
                 file.getParentFile().mkdirs();
             }
-            FileWriter writer = new FileWriter(file);
-            try {
-                return writeTo(writer);
-            } finally {
-                writer.close();
-            }
+            stream = new FileOutputStream(file);
+            getEffectivePom().writeNonEffectivePom(stream);
+            return this;
         } catch (IOException e) {
             throw new UncheckedIOException(e);
+        } finally {
+            IOUtils.closeQuietly(stream);
         }
     }
 
@@ -213,6 +214,18 @@ public class DefaultMavenPom implements MavenPom {
             throw new UncheckedIOException(e);
         } finally {
             IOUtils.closeQuietly(pomWriter);
+        }
+    }
+
+    private void writeNonEffectivePom(OutputStream stream) {
+        try {
+            final StringWriter stringWriter = new StringWriter();
+            mavenProject.writeModel(stringWriter);
+            withXmlActions.transform(stringWriter.toString(), stream);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        } finally {
+            IOUtils.closeQuietly(stream);
         }
     }
 

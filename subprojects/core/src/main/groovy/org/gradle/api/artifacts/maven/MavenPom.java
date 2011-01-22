@@ -163,6 +163,7 @@ public interface MavenPom {
     /**
      * Writes the {@link #getEffectivePom()} xml to a file while applying the {@link #withXml(org.gradle.api.Action)} actions.
      * The path is resolved as defined by {@link org.gradle.api.Project#files(Object...)}
+     * The file will be encoded as UTF-8.
      *
      * @param path The path of the file to write the pom xml into.
      * @return this

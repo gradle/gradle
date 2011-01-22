@@ -20,15 +20,12 @@ import org.apache.commons.lang.ObjectUtils;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.maven.project.MavenProject;
 import org.gradle.api.InvalidUserDataException;
-import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.PublishArtifact;
 import org.gradle.api.artifacts.maven.MavenPom;
 import org.gradle.api.internal.artifacts.publish.AbstractPublishArtifact;
 
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.*;
 
 /**
@@ -60,18 +57,7 @@ public class DefaultArtifactPom implements ArtifactPom {
     }
 
     public PublishArtifact writePom(final File pomFile) {
-        try {
-            pomFile.getParentFile().mkdirs();
-            FileWriter writer = new FileWriter(pomFile);
-            try {
-                getPom().writeTo(writer);
-            } finally {
-                writer.close();
-            }
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
-
+        getPom().writeTo(pomFile);
         return new PomArtifact(pomFile);
     }
 
