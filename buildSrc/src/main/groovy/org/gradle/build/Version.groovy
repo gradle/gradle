@@ -76,4 +76,12 @@ class Version {
             'https://gradle.artifactoryonline.com/gradle/distributions/gradle-snapshots'
         }
     }
+
+    String getLibsUrl() {
+        if (release) {
+            'https://gradle.artifactoryonline.com/gradle/libs-releases-local'
+        } else {
+            'https://gradle.artifactoryonline.com/gradle/libs-snapshots-local'
+        }
+    }
 }
