@@ -176,7 +176,7 @@ public class XmlTransformer implements Transformer<String> {
                     IndentPrinter indentPrinter = new IndentPrinter(printWriter, indentation) {
                         @Override
                         public void println() {
-                            printWriter.print(TextUtil.LINE_SEPARATOR);
+                            printWriter.println();
                         }
                     };
                     XmlNodePrinter nodePrinter = new XmlNodePrinter(indentPrinter);
