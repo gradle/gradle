@@ -124,6 +124,40 @@ configure(groovyProjects()) {
     }
 }
 
+configure(publishedProjects()) {
+    apply plugin: 'maven'
+
+    configurations {
+        publishRuntime
+    }
+
+    task sourceJar(type: Jar) {
+        classifier = 'sources'
+        from { sourceSets.main.java.srcDirs + sourceSets.main.groovy.srcDirs }
+    }
+
+    artifacts {
+        publishRuntime jar
+        publishRuntime sourceJar
+    }
+
+    def remoteDeployer = null
+    uploadArchives {
+        configuration = configurations.publishRuntime
+        repositories {
+            remoteDeployer = mavenDeployer {
+                repository(url: uri("$rootProject.buildDir/repo"))
+            }
+        }
+    }
+    def localDeployer = install.repositories.mavenInstaller
+
+    configure([remoteDeployer, localDeployer]) {
+        pom.scopeMappings.mappings.clear()
+        pom.scopeMappings.addMapping(300, configurations.publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
+    }
+}
+
 allprojects {
     apply from: "$rootDir/gradle/codeQuality.gradle"
 }
@@ -165,6 +199,7 @@ ideaProject {
     javaVersion = '1.6'
     withXml { provider ->
 		def node = provider.asNode()
+
 		// Use git
         def vcsConfig = node.component.find { it.'@name' == 'VcsDirectoryMappings' }
         vcsConfig.mapping[0].'@vcs' = 'Git'
@@ -284,6 +319,20 @@ ideaProject {
     }
 }
 
+ideaWorkspace {
+    withXml { provider ->
+        Node node = provider.asNode()
+
+        Node runConfig = node.component.find { it.'@name' == 'RunManager' }.configuration.find { it.'@type' == 'JUnit'}
+
+        Node module = runConfig.module[0]
+        module.'@name' = 'launcher'
+
+        Node vmParameters = runConfig.option.find { it.'@name' == 'VM_PARAMETERS' }
+        vmParameters.'@value' = "\"-DintegTest.gradleHomeDir=${intTestImage.destinationDir}\" -ea -Dorg.gradle.integtest.executer=embedded"
+    }
+}
+
 // Exclude resource directories from compilation and add them back in as classpath resources
 
 ideaProject {
@@ -333,6 +382,7 @@ clean.dependsOn subprojects.collect { "$it.path:clean" }
 task check(overwrite: true, dependsOn: groovyProjects()*.check)
 check.dependsOn ':docs:checkstyleApi'
 task test(overwrite: true, dependsOn: groovyProjects()*.test)
+task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
@@ -565,6 +615,10 @@ task wrapper(type: Wrapper) {
 
 def groovyProjects() {
     subprojects.findAll { project -> project.name != 'docs' }
+}
+
+def publishedProjects() {
+    return [project(':core'), project(':toolingApi'), project(':wrapper')]
 }
 
 def runtimeProjects() {

@@ -72,6 +72,9 @@ dependencies {
 
     testFixtures sourceSets.test.classes, sourceSets.main.classes
     integTestFixtures sourceSets.integTest.classes
+
+    // TODO - remove this duplication
+    publishRuntime libraries.slf4j_api
 }
 
 task versionProperties(type: WriteVersionProperties) {

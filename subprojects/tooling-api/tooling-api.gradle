@@ -7,4 +7,8 @@ dependencies {
 
     testCompile project(path: ':core', configuration: 'testFixtures')
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
+
+    // TODO - get rid of this duplication
+    publishRuntime "org.gradle:gradle-core:$version"
+    publishRuntime "org.gradle:gradle-wrapper:$version"
 }
