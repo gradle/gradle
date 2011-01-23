@@ -13,14 +13,14 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='announce_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='announce_plugin'>
     <title>The Announce Plugin</title>
     <para>The Gradle announce plugin enables you to publish messages on succeeded tasks to your favourite platforms.
 	It supports 
 	<itemizedlist>
  		<listitem><ulink url='http://twitter.com'>Twitter</ulink></listitem>
  		<listitem><ulink url='http://ubuntu.com'>Ubuntu Notify</ulink></listitem>
-        <listitem><ulink url="http://www.fullphat.net/index.php">Snarl</ulink>, a Windows Notification System</listitem>
+        <listitem><ulink url="https://sites.google.com/site/snarlapp/home">Snarl</ulink>, a Windows Notification System</listitem>
         <listitem><ulink url="http://growl.info/">Growl</ulink>, a Mac OS X Notification System</listitem>
  	</itemizedlist>
 	
