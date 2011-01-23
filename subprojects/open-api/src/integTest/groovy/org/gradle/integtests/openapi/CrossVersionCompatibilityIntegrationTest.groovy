@@ -31,22 +31,21 @@ class CrossVersionCompatibilityIntegrationTest {
     @Rule public final GradleDistribution dist = new GradleDistribution()
     @Rule public final TestResources resources = new TestResources()
 
-    private final BasicGradleDistribution gradle09rc1 = dist.previousVersion('0.9-rc-1')
-    private final BasicGradleDistribution gradle09rc2 = dist.previousVersion('0.9-rc-2')
     private final BasicGradleDistribution gradle09rc3 = dist.previousVersion('0.9-rc-3')
     private final BasicGradleDistribution gradle09 = dist.previousVersion('0.9')
     private final BasicGradleDistribution gradle091 = dist.previousVersion('0.9.1')
+    private final BasicGradleDistribution gradle092 = dist.previousVersion('0.9.2')
 
     @Test
     public void canUseOpenApiFromCurrentVersionToBuildUsingAnOlderVersion() {
-        [gradle09rc1, gradle09rc2, gradle09rc3, gradle09, gradle091].each {
+        [gradle09rc3, gradle09, gradle091, gradle092].each {
             checkCanBuildUsing(dist, it)
         }
     }
 
     @Test
     public void canUseOpenApiFromOlderVersionToBuildUsingCurrentVersion() {
-        [gradle09rc1, gradle09rc2, gradle09rc3, gradle09, gradle091].each {
+        [gradle09rc3, gradle09, gradle091, gradle092].each {
             checkCanBuildUsing(it, dist)
         }
     }
