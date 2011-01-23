@@ -1,0 +1,8 @@
+apply plugin:'java'
+// START SNIPPET use-plugin
+apply plugin:'application'
+// END SNIPPET use-plugin
+
+// START SNIPPET mainClassName-conf
+mainClassName = "org.acme.Main"
+// END SNIPPET mainClassName-conf
