@@ -1,4 +1,4 @@
-apply plugin: org.gradle.samples.ProductPlugin
+apply plugin: 'product'
 
 // A custom build element. This defines the product to build
 product {
