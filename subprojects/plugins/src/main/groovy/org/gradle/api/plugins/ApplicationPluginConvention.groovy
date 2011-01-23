@@ -36,7 +36,7 @@ public class ApplicationPluginConvention {
     }
 
     /**
-     * Returns the full qualified name of the main class of aproject.
+     * Sets the full qualified name of the main class of an application.
      */
     public void setMainClassName(String mainClassName){
         this.mainClassName = mainClassName;
