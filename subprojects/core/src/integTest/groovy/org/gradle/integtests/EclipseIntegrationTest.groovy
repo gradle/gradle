@@ -96,7 +96,7 @@ apply plugin: "java"
 apply plugin: "eclipse"
 
 repositories {
-    mavenRepo urls: "file://$repoDir.absolutePath"
+    mavenRepo urls: "${repoDir.toURI()}"
 }
 
 dependencies {

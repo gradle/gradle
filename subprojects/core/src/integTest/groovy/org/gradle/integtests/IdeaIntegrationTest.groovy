@@ -105,7 +105,7 @@ apply plugin: "java"
 apply plugin: "idea"
 
 repositories {
-    mavenRepo urls: "file://$repoDir.absolutePath"
+    mavenRepo urls: "${repoDir.toURI()}"
 }
 
 dependencies {
