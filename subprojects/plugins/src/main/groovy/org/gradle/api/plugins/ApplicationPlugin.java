@@ -1,5 +1,5 @@
 /*
- * Copyright 2009 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -37,7 +37,6 @@ public class ApplicationPlugin implements Plugin<Project> {
         JavaExec run = project.getTasks().add(TASK_RUN_NAME, JavaExec.class);
         run.setDescription("Runs this project as java application");
         run.setGroup(APPLICATION_GROUP);
-        run.dependsOn(JavaPlugin.CLASSES_TASK_NAME);
         run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class)
                 .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
     }

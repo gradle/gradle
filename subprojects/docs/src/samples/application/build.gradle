@@ -4,5 +4,5 @@ apply plugin:'application'
 // END SNIPPET use-plugin
 
 // START SNIPPET mainClassName-conf
-mainClassName = "org.acme.Main"
+mainClassName = "org.gradle.sample.Main"
 // END SNIPPET mainClassName-conf

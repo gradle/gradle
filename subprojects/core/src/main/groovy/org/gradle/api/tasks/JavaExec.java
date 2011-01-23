@@ -1,5 +1,5 @@
 /*
- * Copyright 2010 the original author or authors.
+ * Copyright 2011 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,6 +19,7 @@ package org.gradle.api.tasks;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.specs.Specs;
 import org.gradle.process.JavaExecSpec;
 import org.gradle.process.JavaForkOptions;
 import org.gradle.process.ProcessForkOptions;
@@ -42,6 +43,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     public JavaExec() {
         FileResolver fileResolver = getServices().get(FileResolver.class);
         javaExecHandleBuilder = new DefaultJavaExecAction(fileResolver);
+        getOutputs().upToDateWhen(Specs.<Object>satisfyNone());
     }
 
     @TaskAction
@@ -126,6 +128,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    @InputFiles
     public FileCollection getBootstrapClasspath() {
         return javaExecHandleBuilder.getBootstrapClasspath();
     }
@@ -252,6 +255,7 @@ public class JavaExec extends ConventionTask implements JavaExecSpec {
     /**
      * {@inheritDoc}
      */
+    @InputFiles
     public FileCollection getClasspath() {
         return javaExecHandleBuilder.getClasspath();
     }
