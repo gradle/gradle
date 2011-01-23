@@ -17,8 +17,12 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.internal.IConventionAware;
+import org.gradle.api.internal.tasks.application.CreateStartScripts;
+import org.gradle.api.tasks.ConventionValue;
 import org.gradle.api.tasks.JavaExec;
 import org.gradle.api.tasks.SourceSet;
+import org.gradle.api.tasks.bundling.Jar;
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
@@ -33,11 +37,34 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     public void apply(final Project project) {
         project.getPlugins().apply(JavaPlugin.class);
-        project.getConvention().getPlugins().put("application", new ApplicationPluginConvention(project));
+        ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project);
+        project.getConvention().getPlugins().put("application", applicationPluginConvention);
+        configureRunTask(project);
+        configureCreateScriptsTask(project, applicationPluginConvention);
+    }
+
+      private void configureRunTask(Project project) {
         JavaExec run = project.getTasks().add(TASK_RUN_NAME, JavaExec.class);
         run.setDescription("Runs this project as java application");
         run.setGroup(APPLICATION_GROUP);
         run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class)
                 .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
     }
+
+    private void configureCreateScriptsTask(final Project project, final ApplicationPluginConvention applicationPluginConvention) {
+        CreateStartScripts createStartScripts = project.getTasks().add("createStartScripts", CreateStartScripts.class);
+        createStartScripts.setDescription("Creates OS start scripts to run the project as application");
+        createStartScripts.setGroup(APPLICATION_GROUP);
+
+        Jar jar = project.getTasks().withType(Jar.class).findByName("jar");
+        createStartScripts.setClasspath(jar.getOutputs().getFiles().plus(
+                project.getConfigurations().getByName("runtime")));
+
+        createStartScripts.getConventionMapping().map("mainClassName", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return applicationPluginConvention.getMainClassName();
+            }
+        });
+    }
+
 }
