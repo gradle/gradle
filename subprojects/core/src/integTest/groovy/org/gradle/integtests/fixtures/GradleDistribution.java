@@ -33,6 +33,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
     private static final TestFile USER_GUIDE_OUTPUT_DIR;
     private static final TestFile USER_GUIDE_INFO_DIR;
     private static final TestFile DISTS_DIR;
+    private static final TestFile LIBS_REPO;
     private final TemporaryFolder temporaryFolder = new TemporaryFolder();
     private TestFile userHome;
 
@@ -45,6 +46,7 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
                 "subprojects/docs/src/samples/userguideOutput");
         USER_GUIDE_INFO_DIR = file("integTest.userGuideInfoDir", "subprojects/docs/build/src");
         DISTS_DIR = file("integTest.distsDir", "build/distributions");
+        LIBS_REPO = file("integTest.libsRepo", "build/repo");
     }
 
     public GradleDistribution() {
@@ -120,6 +122,10 @@ public class GradleDistribution implements MethodRule, TestFileContext, BasicGra
      */
     public TestFile getDistributionsDir() {
         return DISTS_DIR;
+    }
+
+    public TestFile getLibsRepo() {
+        return LIBS_REPO;
     }
 
     /**

@@ -282,7 +282,7 @@ public interface Configuration extends FileCollection {
     <T extends Dependency> Set<T> getDependencies(Class<T> type);
 
     /**
-     * Gets the set of dependencies of type T for this configuration including thos contributed by superconfigurations.
+     * Gets the set of dependencies of type T for this configuration including those contributed by superconfigurations.
      *
      * @param type the dependency type
      * @param <T> the dependency type

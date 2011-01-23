@@ -1,0 +1,26 @@
+apply plugin: 'java'
+
+if (!hasProperty('toolingApiVersion')) {
+    toolingApiVersion = gradle.gradleVersion
+}
+if (!hasProperty('toolingApiRepo')) {
+    toolingApiRepo = 'http://gradle.artifactoryonline.com/gradle/libs-releases-local'
+}
+
+repositories {
+    mavenRepo urls: toolingApiRepo
+    mavenCentral()
+}
+
+dependencies {
+    compile "org.gradle:gradle-tooling-api:${toolingApiVersion}"
+}
+
+task run(type: JavaExec) {
+    dependsOn sourceSets.main.runtimeClasspath.buildDependencies
+    main = 'org.gradle.sample.Main'
+    classpath = sourceSets.main.runtimeClasspath
+    if (project.hasProperty('gradleDistribution')) {
+        args = [gradleDistribution]
+    }
+}
