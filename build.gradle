@@ -125,51 +125,7 @@ configure(groovyProjects()) {
 }
 
 configure(publishedProjects()) {
-    apply plugin: 'maven'
-
-    configurations {
-        publishRuntime
-    }
-
-    task sourceJar(type: Jar) {
-        classifier = 'sources'
-        from { sourceSets.main.java.srcDirs + sourceSets.main.groovy.srcDirs }
-    }
-
-    task generatePom {
-        pomFile = new File(temporaryDir, 'pom.xml')
-        doLast {
-            def localDeployer = install.repositories.mavenInstaller
-
-            configure(localDeployer) {
-                pom.scopeMappings.mappings.clear()
-                pom.scopeMappings.addMapping(300, configurations.publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
-                pom.groupId = group
-                pom.artifactId = archivesBaseName
-                pom.version = version
-                pom.writeTo(pomFile)
-            }
-
-        }
-    }
-    artifacts {
-        publishRuntime jar
-        publishRuntime sourceJar
-        publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generatePom.pomFile, generatePom)
-    }
-
-    uploadArchives {
-        configuration = configurations.publishRuntime
-        dependsOn generatePom
-        uploadDescriptor = false
-        doFirst {
-            org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
-            it.repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
-                name = 'gradleReleases'
-                addArtifactPattern("${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
-            }
-        }
-    }
+    apply from: "$rootDir/gradle/publish.gradle"
 }
 
 allprojects {
@@ -397,6 +353,7 @@ task check(overwrite: true, dependsOn: groovyProjects()*.check)
 check.dependsOn ':docs:checkstyleApi'
 task test(overwrite: true, dependsOn: groovyProjects()*.test)
 task uploadArchives(dependsOn: publishedProjects()*.uploadArchives)
+task publishLocalArchives(dependsOn: publishedProjects()*.publishLocalArchives)
 
 zipRootFolder = "$archivesBaseName-${-> version}"
 
@@ -484,7 +441,7 @@ task intTestImage(type: Sync) {
 
 tasks.withType(Test).allTasks { task ->
     task.configure {
-        dependsOn intTestImage, binZip, allZip, srcZip, ':docs:userguideDocbook'
+        dependsOn intTestImage, publishLocalArchives, binZip, allZip, srcZip, project(':docs').userguideDocbook
         integTestUserDir = file('intTestHomeDir')
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
@@ -568,7 +525,7 @@ uploadDists {
     uploadDescriptor = false
     doFirst {
         org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
-        it.repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
+        repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
             name = 'gradleReleases'
             addArtifactPattern("${version.distributionUrl}/[artifact]-[revision](-[classifier]).[ext]" as String)
         }
@@ -576,7 +533,7 @@ uploadDists {
 }
 
 gradle.taskGraph.whenReady {graph ->
-    if (graph.hasTask(uploadDists)) {
+    if (graph.hasTask(uploadDists) || graph.hasTask(uploadArchives)) {
         // check properties defined and fail early
         artifactoryUserName
         artifactoryUserPassword
@@ -620,7 +577,7 @@ task releaseArtifacts {
 task release {
     description = 'Builds, tests and uploads the release artifacts'
     group = 'release'
-    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadDists, ':docs:uploadDocs'
+    dependsOn releaseVersion, tag, releaseArtifacts, testedDists, uploadArchives, uploadDists, ':docs:uploadDocs'
 }
 
 task wrapper(type: Wrapper) {

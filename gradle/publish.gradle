@@ -1,0 +1,62 @@
+apply plugin: 'maven'
+
+configurations {
+    publishRuntime
+}
+
+task sourceJar(type: Jar) {
+    classifier = 'sources'
+    from { sourceSets.main.java.srcDirs + sourceSets.main.groovy.srcDirs }
+}
+
+task generatePom {
+    pomFile = new File(temporaryDir, 'pom.xml')
+    doLast {
+        dependencies {
+            configurations.runtime.getAllDependencies(ProjectDependency).each {
+                publishRuntime "org.gradle:gradle-${it.dependencyProject.name}:${version}"
+            }
+        }
+
+        def localDeployer = install.repositories.mavenInstaller
+
+        configure(localDeployer) {
+            pom.scopeMappings.mappings.clear()
+            pom.scopeMappings.addMapping(300, configurations.publishRuntime, Conf2ScopeMappingContainer.RUNTIME)
+            pom.groupId = project.group
+            pom.artifactId = archivesBaseName
+            pom.version = version
+            pom.writeTo(pomFile)
+        }
+
+    }
+}
+
+artifacts {
+    publishRuntime jar
+    publishRuntime sourceJar
+    publishRuntime new org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact(archivesBaseName, 'pom', 'pom', null, new Date(), generatePom.pomFile, generatePom)
+}
+
+uploadArchives {
+    configuration = configurations.publishRuntime
+    dependsOn generatePom
+    uploadDescriptor = false
+    doFirst {
+        org.apache.ivy.util.url.CredentialsStore.INSTANCE.addCredentials('Artifactory Realm', 'gradle.artifactoryonline.com', artifactoryUserName, artifactoryUserPassword)
+        repositories.add(new org.apache.ivy.plugins.resolver.URLResolver()) {
+            name = 'gradleReleases'
+            addArtifactPattern("${version.libsUrl}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
+        }
+    }
+}
+
+task publishLocalArchives(type: Upload) {
+    configuration = configurations.publishRuntime
+    dependsOn generatePom
+    uploadDescriptor = false
+    repositories.add(new org.apache.ivy.plugins.resolver.FileSystemResolver()) {
+        name = 'gradleReleases'
+        addArtifactPattern("${rootProject.file('build/repo')}/${project.group.replaceAll('\\.', '/')}/${archivesBaseName}/[revision]/[artifact]-[revision](-[classifier]).[ext]" as String)
+    }
+}
