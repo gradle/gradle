@@ -127,15 +127,14 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     }
 
     protected Set getSourcePaths() {
-        getSourceDirs().collect { getPath(it) }
+        getSourceDirs().findAll { it.exists() }.collect { getPath(it) }
     }
 
     protected Set getTestSourcePaths() {
-        getTestSourceDirs().collect { getPath(it) }
+        getTestSourceDirs().findAll { it.exists() }.collect { getPath(it) }
     }
 
     protected Set getExcludePaths() {
-
         getExcludeDirs().collect { getPath(it) }
     }
 

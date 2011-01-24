@@ -33,24 +33,24 @@ class Path {
 
     final String canonicalUrl
 
-    def Path(File rootDir, String rootDirString, File file) {
+    Path(File rootDir, String rootDirString, File file) {
         relPath = getRelativePath(rootDir, rootDirString, file)
         url = relativePathToURI(relPath)
         canonicalUrl = relativePathToURI(file.absolutePath.replace(File.separator, '/'))
     }
 
-    def Path(File file) {
+    Path(File file) {
         // IDEA doesn't like the result of file.toURI() so use the absolute path instead
         relPath = file.absolutePath.replace(File.separator, '/')
         url = relativePathToURI(relPath)
         canonicalUrl = url
     }
 
-    def Path(String url) {
+    Path(String url) {
         this(url, url)
     }
 
-    def Path(String url, String canonicalUrl) {
+    Path(String url, String canonicalUrl) {
         this.relPath = null
         this.url = url
         this.canonicalUrl = canonicalUrl
