@@ -21,14 +21,17 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
+import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
 
-/**
+ /**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent startScripts.</p>
  *
  * @author Rene Groeschke
  */
 class CreateStartScripts extends ConventionTask{
+
+    File outputDir
 
     @Input
     private String mainClassName;
@@ -44,30 +47,40 @@ class CreateStartScripts extends ConventionTask{
     @InputFiles
     FileCollection classpath;
 
+    @OutputFile
+    public File getOutputDir(){
+        if(!outputDir){
+            this.outputDir = new File(project.buildDir, "scripts");
+        }
+        return outputDir;
+    }
+
+
     @TaskAction
     public void generate(){
-        def outputDir = new File(project.buildDir, "scripts");
-        outputDir.mkdirs();
+        //def outputDir = new File(project.buildDir, "scripts");
+        getOutputDir().mkdirs();
 
-        generateUnixStartScript(outputDir);
+        generateUnixStartScript(getOutputDir());
     }
 
     private void generateUnixStartScript(File outputDir) {
         //ref all files in classpath
         def applicationHome = "${project.getName().toUpperCase()}_HOME"
-        def libPath = "$applicationHome/lib/"
+        def libPath = "\$$applicationHome/lib/"
         StringBuffer unixClasspath = new StringBuffer();
-        classpath.each { unixClasspath<<"$libPath${it.name};" }
-
+        classpath.each { unixClasspath<<"$libPath${it.name}:" }
 
         String unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
         def binding = ["project_name":project.name, unixClasspath:unixClasspath, mainClassName:getMainClassName()]
         def engine = new SimpleTemplateEngine()
         def output = engine.createTemplate(unixTemplate).make(binding)
 
-        new File(outputDir, project.name).withWriter {writer ->
+        def unixScript = new File(outputDir, project.name);
+        unixScript.withWriter {writer ->
             writer.write(output)
         }
+        unixScript.setExecutable(true);
     }
 
     static String transformIntoWindowsNewLines(String s) {
