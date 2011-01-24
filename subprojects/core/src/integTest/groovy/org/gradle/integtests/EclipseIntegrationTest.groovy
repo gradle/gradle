@@ -46,8 +46,7 @@ class EclipseIntegrationTest extends AbstractIdeIntegrationTest {
 
         expectedOrder.each { testFile(it).mkdirs() }
 
-        def buildFile = testFile("build.gradle")
-        buildFile << """
+        runEclipseTask """
 apply plugin: "java"
 apply plugin: "groovy"
 apply plugin: "eclipse"
@@ -61,8 +60,6 @@ sourceSets {
 }
         """
 
-        usingBuildFile(buildFile).withTasks("eclipse").run()
-
         def classpath = parseClasspathFile()
         def sourceEntries = findEntries(classpath, "src")
         assert sourceEntries*.@path == expectedOrder
@@ -70,10 +67,7 @@ sourceSets {
 
     @Test
     void outputDirDefaultsToEclipseDefault() {
-        def buildFile = testFile("build.gradle")
-        buildFile << "apply plugin: 'java'; apply plugin: 'eclipse'"
-
-        usingBuildFile(buildFile).withTasks("eclipse").run()
+        runEclipseTask("apply plugin: 'java'; apply plugin: 'eclipse'")
 
         def classpath = parseClasspathFile()
 
@@ -90,8 +84,7 @@ sourceSets {
         def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
         def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2", "myArtifact1")
 
-        def buildFile = testFile("build.gradle")
-        buildFile << """
+        runEclipseTask """
 apply plugin: "java"
 apply plugin: "eclipse"
 
@@ -104,12 +97,14 @@ dependencies {
 }
         """
 
-        usingBuildFile(buildFile).withTasks("eclipse").run()
-
         def classpath = parseClasspathFile()
         def libs = findEntries(classpath, "lib")
         assert libs.size() == 2
         assert libs*.@path*.text().collect { new File(it).name } as Set == [artifact1.name, artifact2.name] as Set
+    }
+
+    private runEclipseTask(buildScript) {
+        runTask("eclipse", buildScript)
     }
 
     private parseClasspathFile(print = false) {

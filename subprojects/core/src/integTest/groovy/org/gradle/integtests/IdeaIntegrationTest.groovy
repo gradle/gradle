@@ -75,7 +75,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
     void outputDirsDefaultToToIdeaDefaults() {
-        runIdeaTaskFor("apply plugin: 'java'; apply plugin: 'idea'")
+        runIdeaTask("apply plugin: 'java'; apply plugin: 'idea'")
 
         def module = parseImlFile("root")
         def outputUrl = module.component.output[0].@url
@@ -91,7 +91,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
         def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2", "myArtifact1")
 
-        runIdeaTaskFor """
+        runIdeaTask """
 apply plugin: "java"
 apply plugin: "idea"
 
@@ -112,7 +112,7 @@ dependencies {
 
     @Test
     void onlyAddsSourceDirsThatExistOnFileSystem() {
-        runIdeaTaskFor """
+        runIdeaTask """
 apply plugin: "java"
 apply plugin: "groovy"
 apply plugin: "idea"
@@ -151,14 +151,8 @@ sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
         }
     }
 
-    private void runIdeaTaskFor(buildScript) {
-        def settingsFile = file("settings.gradle")
-        settingsFile << "rootProject.name = 'root'"
-
-        def buildFile = file("build.gradle")
-        buildFile << buildScript
-
-        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks("idea").run()
+    private runIdeaTask(buildScript) {
+        runTask("idea", buildScript)
     }
 
     private parseImlFile(projectName, print = false) {

@@ -17,6 +17,16 @@
 package org.gradle.integtests
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
+    protected void runTask(taskName, buildScript, settingsScript = "rootProject.name = 'root'") {
+        def settingsFile = file("settings.gradle")
+        settingsFile << "rootProject.name = 'root'"
+
+        def buildFile = file("build.gradle")
+        buildFile << buildScript
+
+        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks(taskName).run()
+    }
+
     protected parseXmlFile(filename, print) {
         def file = file(filename).assertExists()
         if (print) { println file.text }
