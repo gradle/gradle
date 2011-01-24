@@ -11,7 +11,7 @@ It includes the following other software:
 
 Groovy (http://groovy.codehaus.org)
 Logback (http://logback.qos.ch)
-SL4J (http://www.slf4j.org)
+SLF4J (http://www.slf4j.org)
 Svnkit (http://www.svnkit.com)
 Junit (http://www.junit.org)
 
