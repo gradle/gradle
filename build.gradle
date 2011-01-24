@@ -439,7 +439,7 @@ task intTestImage(type: Sync) {
     }
 }
 
-tasks.withType(Test).allTasks { task ->
+tasks.withType(Test).all { task ->
     task.configure {
         dependsOn intTestImage, publishLocalArchives, binZip, allZip, srcZip, project(':docs').userguideDocbook
         integTestUserDir = file('intTestHomeDir')

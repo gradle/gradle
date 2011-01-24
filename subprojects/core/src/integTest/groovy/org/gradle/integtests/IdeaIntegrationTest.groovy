@@ -75,12 +75,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
 
     @Test
     void outputDirsDefaultToToIdeaDefaults() {
-        def settingsFile = file("settings.gradle")
-        settingsFile << "rootProject.name = 'root'"
-        def buildFile = file("build.gradle")
-        buildFile << "apply plugin: 'java'; apply plugin: 'idea'"
-
-        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks("idea").run()
+        runIdeaTaskFor("apply plugin: 'java'; apply plugin: 'idea'")
 
         def module = parseImlFile("root")
         def outputUrl = module.component.output[0].@url
@@ -96,11 +91,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest {
         def artifact1 = publishArtifact(repoDir, "myGroup", "myArtifact1", "myArtifact2")
         def artifact2 = publishArtifact(repoDir, "myGroup", "myArtifact2", "myArtifact1")
 
-        def settingsFile = file("settings.gradle")
-        settingsFile << "rootProject.name = 'root'"
-
-        def buildFile = file("build.gradle")
-        buildFile << """
+        runIdeaTaskFor """
 apply plugin: "java"
 apply plugin: "idea"
 
@@ -113,12 +104,34 @@ dependencies {
 }
         """
 
-        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks("idea").run()
-
-        def module = parseImlFile("root", true)
+        def module = parseImlFile("root")
         def libs = module.component.orderEntry.library
         assert libs.size() == 2
         assert libs.CLASSES.root*.@url*.text().collect { new File(it).name } as Set == [artifact1.name + "!", artifact2.name + "!"] as Set
+    }
+
+    @Test
+    void onlyAddsSourceDirsThatExistOnFileSystem() {
+        runIdeaTaskFor """
+apply plugin: "java"
+apply plugin: "groovy"
+apply plugin: "idea"
+
+sourceSets.main.java.srcDirs.each { it.mkdirs() }
+sourceSets.main.resources.srcDirs.each { it.mkdirs() }
+sourceSets.test.groovy.srcDirs.each { it.mkdirs() }
+        """
+
+        def module = parseImlFile("root", true)
+        def sourceFolders = module.component.content.sourceFolder
+        def urls = sourceFolders*.@url*.text()
+
+        assert containsDir("src/main/java", urls)
+        assert !containsDir("src/main/groovy", urls)
+        assert containsDir("src/main/resources", urls)
+        assert !containsDir("src/test/java", urls)
+        assert containsDir("src/test/groovy", urls)
+        assert !containsDir("src/test/resources", urls)
     }
 
     private void assertHasExpectedContents(String path) {
@@ -138,7 +151,21 @@ dependencies {
         }
     }
 
+    private void runIdeaTaskFor(buildScript) {
+        def settingsFile = file("settings.gradle")
+        settingsFile << "rootProject.name = 'root'"
+
+        def buildFile = file("build.gradle")
+        buildFile << buildScript
+
+        executer.usingSettingsFile(settingsFile).usingBuildScript(buildFile).withTasks("idea").run()
+    }
+
     private parseImlFile(projectName, print = false) {
         parseXmlFile("${projectName}.iml", print)
+    }
+
+    private containsDir(path, urls) {
+        urls.any { it.endsWith(path) }
     }
 }

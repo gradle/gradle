@@ -35,17 +35,17 @@ class Module extends XmlPersistableConfigurationObject {
     /**
      * The foldes for the production code. Must not be null.
      */
-    Set sourceFolders = [] as LinkedHashSet
+    Set<Path> sourceFolders = [] as LinkedHashSet
 
     /**
      * The folders for the test code. Must not be null.
      */
-    Set testSourceFolders = [] as LinkedHashSet
+    Set<Path> testSourceFolders = [] as LinkedHashSet
 
     /**
      * Folders to be excluded. Must not be null.
      */
-    Set excludeFolders = [] as LinkedHashSet
+    Set<Path> excludeFolders = [] as LinkedHashSet
 
     /**
      * The dir for the production source classes. If null this output dir element is not added.

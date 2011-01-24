@@ -59,18 +59,18 @@ docbookSrc = new File(project.buildDir, 'src')
 samplesSrcDir = file('src/samples')
 websiteDocs = new File(buildDir, 'websiteDocs')
 
-tasks.withType(Docbook2Xhtml).allObjects { task->
+tasks.withType(Docbook2Xhtml).all { task->
     task.dependsOn userguideStyleSheets
     task.classpath = configurations.userGuideTask
     task.stylesheetsDir = userguideStyleSheets.destinationDir
 }
-tasks.withType(UserGuideTransformTask).allObjects { task->
+tasks.withType(UserGuideTransformTask).all { task->
     task.classpath = configurations.userGuideTask
     task.dependsOn samples, dslDocbook
     task.snippetsDir = samples.snippetsDir
     task.linksFile = dslDocbook.linksFile
 }
-tasks.withType(AssembleDslDocTask).allObjects { task ->
+tasks.withType(AssembleDslDocTask).all { task ->
     task.classpath = configurations.userGuideTask
     task.classDocbookDir = dslSrcDir
 }
