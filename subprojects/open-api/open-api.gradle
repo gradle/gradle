@@ -8,7 +8,7 @@ dependencies {
     testRuntime project(path: ':core', configuration: 'testFixturesRuntime')
 
     integTestCompile libraries.slf4j_api
-    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+    integTestCompile project(path: ':integTest', configuration: 'integTestCompile')
     integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
 }
 

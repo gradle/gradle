@@ -225,7 +225,7 @@ class OutputEventRendererTest extends OutputSpecification {
     }
 }
 
-private static class TestListener implements StandardOutputListener {
+class TestListener implements StandardOutputListener {
     private final StringWriter writer = new StringWriter();
 
     def getValue() {

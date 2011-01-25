@@ -18,18 +18,11 @@ import java.text.DateFormat
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 apply plugin: 'groovy'
-apply from: "$rootDir/gradle/integTest.gradle"
 
 configurations {
     testFixtures
     testFixturesRuntime {
         extendsFrom testFixtures, testRuntime
-    }
-    integTestFixtures {
-        extendsFrom testFixtures
-    }
-    integTestFixturesRuntime {
-        extendsFrom integTestFixtures, integTestRuntime
     }
 }
 
@@ -68,10 +61,7 @@ dependencies {
 
     compile libraries.ant_launcher
 
-    integTestCompile libraries.jetty_depends, project(':wrapper'), project(':toolingApi')
-
     testFixtures sourceSets.test.classes, sourceSets.main.classes
-    integTestFixtures sourceSets.integTest.classes
 }
 
 task versionProperties(type: WriteVersionProperties) {
@@ -94,10 +84,6 @@ ideaModule {
 eclipseClasspath {
     dependsOn ideVersionProperties
     plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(new File(ideDir, "resources/test/")))))
-    plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files(project.sourceSets.integTest.resources.srcDirs))))
-	whenConfigured { classpath ->
-		classpath.entries.removeAll { entry -> entry.kind == 'src' && entry.path.startsWith('src/integTest/resources')}
-	}
 }
 
 [compileGroovy, compileTestGroovy]*.groovyOptions*.fork(memoryInitialSize: '128M', memoryMaximumSize: '1G')

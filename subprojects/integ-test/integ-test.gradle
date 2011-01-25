@@ -1,0 +1,42 @@
+apply plugin: 'java'
+
+configurations {
+    integTestCompile {
+        extendsFrom testCompile
+    }
+    integTestRuntime {
+        extendsFrom integTestCompile, testRuntime
+    }
+    integTestFixtures {
+        extendsFrom testFixtures
+    }
+    integTestFixturesRuntime {
+        extendsFrom integTestFixtures, integTestRuntime
+    }
+}
+
+dependencies {
+	groovy libraries.groovy_depends
+	integTestCompile libraries.jetty_depends, project(':wrapper'), project(':toolingApi')
+	integTestFixtures sourceSets.test.classes
+}
+
+sourceSets {
+    integTest {
+        compileClasspath = sourceSets.main.classes + sourceSets.test.classes + configurations.integTestCompile
+        runtimeClasspath = classes + compileClasspath + configurations.integTestRuntime
+    }
+}
+
+ideaModule {
+    testSourceDirs += sourceSets.integTest.groovy.srcDirs
+    testSourceDirs += sourceSets.integTest.resources.srcDirs
+    scopes.TEST.plus.add(configurations.integTestCompile)
+    scopes.TEST.plus.add(configurations.integTestRuntime)
+}
+
+eclipseClasspath {
+    plusConfigurations.add(configurations.integTestCompile)
+    plusConfigurations.add(configurations.integTestRuntime)
+    sourceSets.integTest.resources.srcDirs = []
+}

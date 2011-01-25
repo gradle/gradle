@@ -428,8 +428,8 @@ tasks.withType(Test).allTasks { task ->
         forkEvery = 15
         maxParallelForks = guessMaxForks()
 
-        testClassesDir = project(':core').sourceSets.integTest.classesDir
-        classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
+        testClassesDir = project(':integTest').sourceSets.test.classesDir
+        classpath = project(':integTest').sourceSets.test.runtimeClasspath + configurations.testRuntime
         testResultsDir = file("build/test-results/$name")
         testReportDir = file("build/reports/tests/$name")
         testSrcDirs = []
