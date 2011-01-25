@@ -64,7 +64,7 @@ class CompileOptions extends AbstractOptions {
     DebugOptions debugOptions = new DebugOptions()
 
     /**
-     * Specifies whether to run the compiler in a child process. The default is {@code false.
+     * Specifies whether to run the compiler in a child process. The default is {@code false}.
      */
     boolean fork = false
 

@@ -118,7 +118,7 @@
             </tr>
             <tr>
                 <td>
-                    <literal>-f</literal>
+                    <literal>-S</literal>
                 </td>
                 <td>The full stacktraces are printed out.</td>
             </tr>
