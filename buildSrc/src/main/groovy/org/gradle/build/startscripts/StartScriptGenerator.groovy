@@ -54,6 +54,5 @@ class StartScriptsGenerator {
         }
         writer.toString()
     }
-
 }
 
