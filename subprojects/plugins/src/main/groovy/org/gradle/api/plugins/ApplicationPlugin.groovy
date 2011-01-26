@@ -20,18 +20,16 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.Copy
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.*
 
- /**
+/**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
  *
  * @author Rene Groeschke
  */
-class ApplicationPlugin implements Plugin<Project> {
+public class ApplicationPlugin implements Plugin<Project> {
 
     public static final String APPLICATION_PLUGIN_NAME = "application";
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
@@ -42,20 +40,20 @@ class ApplicationPlugin implements Plugin<Project> {
     public static final String TASK_DISTZIP_NAME = "distZip";
 
     public void apply(final Project project) {
-        project.plugins.apply(JavaPlugin.class)
-        ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project)
-        project.getConvention().getPlugins().put("application", applicationPluginConvention)
-        configureRunTask(project)
-        configureCreateScriptsTask(project, applicationPluginConvention)
+        project.getPlugins().apply(JavaPlugin.class);
+        ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project);
+        project.getConvention().getPlugins().put("application", applicationPluginConvention);
+        configureRunTask(project);
+        configureCreateScriptsTask(project, applicationPluginConvention);
 
         def distSpec = createDistSpec(project)
         configureInstallTask(project, applicationPluginConvention, distSpec)
-        configureDistZipTask(project, applicationPluginConvention, distSpec)
+        configureDistZipTask(project, applicationPluginConvention, distSpec);
     }
 
     private def CopySpec createDistSpec(Project project) {
-        Jar jar = project.tasks.withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME)
-        CreateStartScripts startScripts = project.tasks.withType(CreateStartScripts.class).findByName(TASK_CREATESTARTSCRIPTS_NAME)
+        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
+        CreateStartScripts startScripts = project.getTasks().withType(CreateStartScripts.class).findByName("createStartScripts");
 
         project.copySpec {
             into(project.name){
@@ -72,21 +70,27 @@ class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureRunTask(Project project) {
-        JavaExec run = project.getTasks().add(TASK_RUN_NAME, JavaExec.class)
-        run.setDescription("Runs this project as java application")
-        run.setGroup(APPLICATION_GROUP)
+        JavaExec run = project.getTasks().add(TASK_RUN_NAME, JavaExec.class);
+        run.setDescription("Runs this project as java application");
+        run.setGroup(APPLICATION_GROUP);
         run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
     }
 
     /** @Todo: refactor this task configuration to extend a copy task and use replace tokens  */
     private void configureCreateScriptsTask(final Project project, final ApplicationPluginConvention applicationPluginConvention) {
-        CreateStartScripts createStartScripts = project.tasks.add(TASK_CREATESTARTSCRIPTS_NAME, CreateStartScripts.class)
-        createStartScripts.setDescription("Creates OS start scripts for the project to run as application.")
-        createStartScripts.setGroup(APPLICATION_GROUP)
-        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME)
+        CreateStartScripts createStartScripts = project.getTasks().add(TASK_CREATESTARTSCRIPTS_NAME, CreateStartScripts.class);
+        createStartScripts.setDescription("Creates OS start scripts for the project to run as application.");
+        createStartScripts.setGroup(APPLICATION_GROUP);
+
+        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
         createStartScripts.setClasspath(jar.getOutputs().getFiles().plus(
-                project.getConfigurations().getByName("runtime")))
-        createStartScripts.conventionMapping.mainClassName = {applicationPluginConvention.mainClassName}
+                project.getConfigurations().getByName("runtime")));
+
+        createStartScripts.getConventionMapping().map("mainClassName", new ConventionValue() {
+            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
+                return applicationPluginConvention.getMainClassName();
+            }
+        });
     }
 
     private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
@@ -96,14 +100,14 @@ class ApplicationPlugin implements Plugin<Project> {
         installTask.with(distSpec)
         installTask.conventionMapping.destinationDir = { project.file(pluginConvention.installDirPath) }
         installTask.doLast{
-            project.ant.chmod(file: "${installTask.destinationDir.absolutePath}/${project.name}/bin/${project.name}", perm: 'ugo+x')
+            project.getAnt().chmod(file: "${installTask.destinationDir.absolutePath}/${project.name}/bin/${project.name}", perm: 'ugo+x')
         }
     }
 
     private void configureDistZipTask(Project project, ApplicationPluginConvention applicationPluginConvention, CopySpec distSpec) {
-        Zip distZipTask = project.tasks.add(TASK_DISTZIP_NAME, Zip.class)
-        distZipTask.setDescription("Bundles the project as an application with libs and OS startscripts.")
-        distZipTask.setGroup(APPLICATION_GROUP)
+        Zip distZipTask = project.getTasks().add(TASK_DISTZIP_NAME, Zip.class);
+        distZipTask.setDescription("Bundles the project as an application with libs and OS startscripts.");
+        distZipTask.setGroup(APPLICATION_GROUP);
         distZipTask.with(distSpec)
     }
 }
