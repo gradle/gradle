@@ -17,35 +17,38 @@ package org.gradle.api.plugins.announce.internal
 
 import org.gradle.api.plugins.announce.AnnouncePluginConvention
 import org.gradle.api.plugins.announce.Announcer
+import org.gradle.api.InvalidUserDataException
 
 /**
  * @author Hans Dockter
  */
 class DefaultAnnouncerFactory implements AnnouncerFactory {
-    AnnouncePluginConvention announcePluginConvention
+    private final AnnouncePluginConvention announcePluginConvention
 
-    def DefaultAnnouncerFactory(announcePluginConvention) {
-        this.announcePluginConvention = announcePluginConvention;
+    DefaultAnnouncerFactory(announcePluginConvention) {
+        this.announcePluginConvention = announcePluginConvention
     }
 
     Announcer createAnnouncer(String type) {
-        if (type == "twitter") {
-            String username = announcePluginConvention.username
-            String password = announcePluginConvention.password
-            return new Twitter(username, password)
-        } else if (type == "notify-send") {
-            return new NotifySend()
-        } else if (type == "snarl") {
-            return new Snarl()
-        } else if (type == "growl") {
-            return new Growl()
+        switch(type) {
+            case "twitter":
+                String username = announcePluginConvention.username
+                String password = announcePluginConvention.password
+                return new Twitter(username, password)
+            case "notify-send":
+                return new NotifySend(announcePluginConvention.project)
+            case "snarl":
+                return new Snarl()
+            case "growl":
+                return new Growl(announcePluginConvention.project)
+            default:
+                return new UnknownAnnouncer()
         }
-        new DoNothingAnnouncer()
     }
 }
 
-class DoNothingAnnouncer implements Announcer {
+class UnknownAnnouncer implements Announcer {
     void send(String title, String message) {
-        // do nothing
+        throw new InvalidUserDataException("unknown announcer type")
     }
 }

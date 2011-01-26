@@ -19,6 +19,7 @@ package org.gradle.api.plugins.announce.internal;
 import org.slf4j.Logger
 import org.slf4j.LoggerFactory
 import org.gradle.api.plugins.announce.Announcer
+import org.gradle.api.Project
 
 /**
  * This class wraps the Ubuntu Notify Send functionality.
@@ -27,23 +28,18 @@ import org.gradle.api.plugins.announce.Announcer
  */
 
 class NotifySend implements Announcer {
+    private static final Logger logger = LoggerFactory.getLogger(NotifySend)
 
-    private static final Logger LOGGER = LoggerFactory.getLogger(NotifySend)
+    private final Project project
 
-    public void send(String title, String message) {
-        def cmd = [
-                'notify-send',
-                title,
-                message
-        ]
-        try {
-            cmd.execute()
-        } catch (java.io.IOException e) {
-            LOGGER.warn('''Could not find notify-send command,
-              The programm is aviable in the libnotify-bin.
-              On ubuntu simple install it with: \\n   
-              sudo apt-get install libnotify-bin''')
+    NotifySend(Project project) {
+        this.project = project
+    }
 
+    void send(String title, String message) {
+        project.exec {
+            executable 'notify-send'
+            args title, message
         }
     }
 }

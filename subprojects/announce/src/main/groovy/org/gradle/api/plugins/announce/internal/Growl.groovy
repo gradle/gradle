@@ -15,15 +15,20 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-import org.gradle.process.internal.DefaultExecAction
-import org.gradle.process.internal.ExecAction
 import org.gradle.api.plugins.announce.Announcer
+import org.gradle.api.Project
 
 class Growl implements Announcer {
+    private final Project project
+
+    Growl(Project project) {
+        this.project = project
+    }
+
     void send(String title, String message) {
-        ExecAction execAction = new DefaultExecAction()
-        execAction.executable('growlnotify')
-        execAction.args('-m', message, title)
-        execAction.execute()
+        project.exec {
+            executable 'growlnotify'
+            args '-m', message, title
+        }
     }
 }

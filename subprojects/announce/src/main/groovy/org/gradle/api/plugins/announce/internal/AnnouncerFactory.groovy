@@ -13,13 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins.announce.internal;
+package org.gradle.api.plugins.announce.internal
 
-import org.gradle.api.plugins.announce.Announcer;
+import org.gradle.api.plugins.announce.Announcer
 
 /**
  * @author Hans Dockter
  */
-public interface AnnouncerFactory {
-    Announcer createAnnouncer(String type);
+interface AnnouncerFactory {
+    Announcer createAnnouncer(String type)
 }

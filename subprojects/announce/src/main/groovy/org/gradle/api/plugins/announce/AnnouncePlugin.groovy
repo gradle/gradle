@@ -14,59 +14,67 @@
  * limitations under the License.
  */
 
-package org.gradle.api.plugins.announce;
-
+package org.gradle.api.plugins.announce
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.announce.internal.AnnouncerFactory
 import org.gradle.api.plugins.announce.internal.DefaultAnnouncerFactory
+import org.gradle.api.logging.Logging
+import org.gradle.api.logging.Logger
 
 /**
- * This plugin allows to send announce messages to twitter.
+ * This plugin allows to send announce messages to Twitter.
  *
  * @author hackergarten
  */
 class AnnouncePlugin implements Plugin<Project> {
-    public void apply(final Project project) {
+    void apply(Project project) {
         project.convention.plugins.announce = new AnnouncePluginConvention(project)
     }
 }
 
 class AnnouncePluginConvention {
+    private static final Logger logger = Logging.getLogger(AnnouncePlugin)
+
     /**
-     * The username to use for announcements
+     * The username to use for announcements.
      */
     String username
 
     /**
-     * The password to use for announcements
+     * The password to use for announcements.
      */
     String password
 
     Project project
     AnnouncerFactory announcerFactory
 
-    def AnnouncePluginConvention(project) {
-        this.project = project;
+    AnnouncePluginConvention(project) {
+        this.project = project
         this.announcerFactory = new DefaultAnnouncerFactory(this)
     }
 
     /**
      * Configures the announce plugin convention. The given closure configures the {@link AnnouncePluginConvention}.
      */
-    def announce(Closure closure) {
+    void announce(Closure closure) {
         closure.delegate = this
         closure()
     }
 
     /**
      * Sends an announcement of the given type.
+     *
      * @param msg The content of the announcement
      * @param type The announcement type.
      */
-    def announce(String msg, def type) {
-        announcerFactory.createAnnouncer(type).send(project.name, msg)
+    void announce(String msg, String type) {
+        try {
+            announcerFactory.createAnnouncer(type).send(project.name, msg)
+        } catch (Exception e) {
+            logger.warn("Failed to send message '$msg' to '$type'", e)
+        }
     }
 }
 

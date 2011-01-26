@@ -16,55 +16,50 @@
 
 package org.gradle.api.plugins.announce.internal;
 
-
-
 import org.slf4j.LoggerFactory
 import sun.misc.BASE64Encoder
 import org.slf4j.Logger
 import org.gradle.api.plugins.announce.Announcer
 
 /**
- * This class allows to send announce messages to twitter.
+ * This class allows to send announce messages to Twitter.
  *
- * @author hackergarten
+ * @author Hackergarten
  */
 class Twitter implements Announcer {
+  private static final Logger logger = LoggerFactory.getLogger(Twitter)
 
-  private static final String TWITTER_UPDATE_URL = "https://twitter.com/statuses/update.xml"
-
-  def username
-  def password
-
-  private static Logger logger = LoggerFactory.getLogger(Twitter)
+  private final String username
+  private final String password
 
   Twitter(String username, String password) {
     this.username = username
     this.password = password
   }
 
-  public void send(String title, String message) {
-    OutputStreamWriter out
-    URLConnection connection
+  void send(String title, String message) {
+    HttpURLConnection connection
+
     try {
-      connection = new URL(TWITTER_UPDATE_URL).openConnection()
+      connection = new URL("https://twitter.com/statuses/update.xml").openConnection()
+      connection.requestMethod = "POST"
       connection.doInput = true
       connection.doOutput = true
       connection.useCaches = false
-      String encoded = new BASE64Encoder().encodeBuffer("$username:$password".toString().bytes).trim()
-      connection.setRequestProperty "Authorization", "Basic " + encoded
-      out = new OutputStreamWriter(connection.outputStream)
-      out.write "status=" + URLEncoder.encode(message, "UTF-8")
-      out.close()
-       def result = ''
-       connection.inputStream.eachLine { result += it }
-      logger.info result
-      logger.info("Successfully send message: [$message] to twitter [$username]")
-    } catch (Exception e) {
-      logger.warn('Could not send message to twitter', e)
+
+      String credentials = new BASE64Encoder().encodeBuffer("$username:$password".toString().getBytes("UTF-8")).trim()
+      connection.setRequestProperty "Authorization", "Basic " + credentials
+
+      connection.outputStream.withWriter { out ->
+          out.write "status=" + URLEncoder.encode(message, "UTF-8")
+      }
+
+      logger.info("Successfully tweeted '$message' using account '$username'")
+      if (logger.debugEnabled) {
+        logger.debug connection.inputStream.getText("UTF-8")
+      }
     } finally {
       connection?.disconnect()
-
     }
-  
   }
 }

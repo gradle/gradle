@@ -58,6 +58,6 @@ class DefaultAnnouncerFactoryTest extends Specification {
 
     def createWithUnknownType() {
         expect:
-        announcerFactory.createAnnouncer('unknown') instanceof DoNothingAnnouncer
+        announcerFactory.createAnnouncer('inter-galaxy-announcer') instanceof UnknownAnnouncer
     }
 }

@@ -15,44 +15,26 @@
  */
 package org.gradle.api.plugins.announce.internal
 
-class NotifySendTest extends GroovyTestCase {
+import org.gradle.api.Project
+import spock.lang.Specification
+import org.gradle.util.ConfigureUtil
+import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.process.ExecResult
 
-  public void testWithException() {
-    use(ExceptionCategory) {
-      def notifier = new NotifySend()
-      notifier.send("title", "body")
-    }
-  }
+class NotifySendTest extends Specification {
+  def "sending of an announcement invokes notify-send command"() {
+    def execClosure
+    def project = Mock(Project)
+    def notifier = new NotifySend(project)
 
- /* @Ignore
-  public void testCanSendMessage() {
-
-    use(MockCategory) {
-      def notifier = new NotifySend()
-      notifier.send("title", "body")
-      assert ['notify-send', 'title', 'body'] == MockCategory.capture, "nothing was executed"
-    }
-  }*/
-
-  public void testIntegrationTest() {
-    def notifier = new NotifySend()
+    when:
     notifier.send("title", "body")
+
+    then:
+    1 * project.exec(!null) >> { execClosure = it[0]; Mock(ExecResult) }
+    def execSpec = ConfigureUtil.configure(execClosure, new ExecHandleBuilder())
+    execSpec.executable == 'notify-send'
+    execSpec.args.contains 'title'
+    execSpec.args.contains 'body'
   }
 }
-
-
-private class ExceptionCategory {
-  void execute(List list) {
-    throw new IOException()
-  }
-}
-
-private class MockCategory {
-  def static capture
-
-  void execute(List list) {
-    capture = list
-  }
-}
-
-
