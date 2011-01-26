@@ -32,7 +32,7 @@ public class ApplicationPluginConvention {
     String mainClassName;
 
     /**
-     * The name of the installation directory.
+     * The path of the installation directory.
      */
     String installDirPath;
 
