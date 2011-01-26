@@ -82,7 +82,7 @@ class CreateStartScripts extends ConventionTask{
         String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
         def windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
 
-        def windowsScript = new File(outputDir, "${project.name}.bat");
+        def windowsScript = new File(outputDir, "${project.name}.bat")
         windowsScript.withWriter {writer ->
             writer.write(transformIntoWindowsNewLines(windowsOutput))
         }
@@ -97,7 +97,7 @@ class CreateStartScripts extends ConventionTask{
         unixScript.withWriter {writer ->
             writer.write(linuxOutput)
         }
-        unixScript.setExecutable(true);
+        unixScript.setExecutable(true)
     }
 
     static String transformIntoWindowsNewLines(String s) {
@@ -107,7 +107,7 @@ class CreateStartScripts extends ConventionTask{
                 writer.write('\r')
                 writer.write('\n')
             } else if (c != '\r') {
-                writer.write(c);
+                writer.write(c)
             }
         }
         writer.toString()

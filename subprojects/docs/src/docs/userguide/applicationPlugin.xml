@@ -55,6 +55,16 @@
             </tr>
             <tr>
                 <td>
+                    <literal>createStartScripts</literal>
+                </td>
+                <td>
+                    <literal>jar</literal>
+                </td>
+                <td>-</td>
+                <td>Creates StartScripts to start the project as an application.</td>
+            </tr>
+            <tr>
+                <td>
                     <literal>install</literal>
                 </td>
                 <td>
