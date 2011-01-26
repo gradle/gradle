@@ -22,19 +22,19 @@ import org.gradle.process.internal.ExecHandleBuilder
 import org.gradle.process.ExecResult
 
 class NotifySendTest extends Specification {
-  def "sending of an announcement invokes notify-send command"() {
-    def execClosure
-    def project = Mock(Project)
-    def notifier = new NotifySend(project)
+    def "sending of an announcement invokes notify-send command"() {
+        def execClosure
+        def project = Mock(Project)
+        def notifier = new NotifySend(project)
 
-    when:
-    notifier.send("title", "body")
+        when:
+        notifier.send("title", "body")
 
-    then:
-    1 * project.exec(!null) >> { execClosure = it[0]; Mock(ExecResult) }
-    def execSpec = ConfigureUtil.configure(execClosure, new ExecHandleBuilder())
-    execSpec.executable == 'notify-send'
-    execSpec.args.contains 'title'
-    execSpec.args.contains 'body'
-  }
+        then:
+        1 * project.exec(!null) >> { execClosure = it[0]; Mock(ExecResult) }
+        def execSpec = ConfigureUtil.configure(execClosure, new ExecHandleBuilder())
+        execSpec.executable == 'notify-send'
+        execSpec.args.contains 'title'
+        execSpec.args.contains 'body'
+    }
 }

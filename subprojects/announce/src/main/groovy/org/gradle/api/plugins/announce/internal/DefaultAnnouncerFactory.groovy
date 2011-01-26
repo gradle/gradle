@@ -30,7 +30,7 @@ class DefaultAnnouncerFactory implements AnnouncerFactory {
     }
 
     Announcer createAnnouncer(String type) {
-        switch(type) {
+        switch (type) {
             case "twitter":
                 String username = announcePluginConvention.username
                 String password = announcePluginConvention.password
