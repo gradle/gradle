@@ -86,11 +86,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         createStartScripts.setClasspath(jar.getOutputs().getFiles().plus(
                 project.getConfigurations().getByName("runtime")));
 
-        createStartScripts.getConventionMapping().map("mainClassName", new ConventionValue() {
-            public Object getValue(Convention convention, IConventionAware conventionAwareObject) {
-                return applicationPluginConvention.getMainClassName();
-            }
-        });
+        createStartScripts.conventionMapping.mainClassName = {applicationPluginConvention.mainClassName}
     }
 
     private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
