@@ -34,12 +34,13 @@ public class ApplicationPluginConvention {
     /**
      * The name of the installation directory.
      */
-    String installDir;
+    String installDirPath;
 
     private final Project project;
 
     public ApplicationPluginConvention(final Project project){
         this.project = project;
+        this.installDirPath = project.file("build/install")
     }
 
     /**
