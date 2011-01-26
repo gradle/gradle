@@ -18,24 +18,26 @@ package org.gradle.api.plugins;
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.internal.tasks.application.CreateStartScripts
-import org.gradle.api.tasks.ConventionValue
-import org.gradle.api.tasks.JavaExec
-import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
+import org.gradle.api.tasks.*
 
- /**
+/**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
  *
  * @author Rene Groeschke
  */
 public class ApplicationPlugin implements Plugin<Project> {
 
-    public static final String TASK_RUN_NAME = "run";
     public static final String APPLICATION_PLUGIN_NAME = "application";
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
+
+    public static final String TASK_RUN_NAME = "run";
+    public static final String TASK_INSTALL_NAME = "install";
+    public static final String TASK_DISTZIP_NAME = "distZip";
 
     public void apply(final Project project) {
         project.getPlugins().apply(JavaPlugin.class);
@@ -43,25 +45,45 @@ public class ApplicationPlugin implements Plugin<Project> {
         project.getConvention().getPlugins().put("application", applicationPluginConvention);
         configureRunTask(project);
         configureCreateScriptsTask(project, applicationPluginConvention);
-        configureDistZipTask(project, applicationPluginConvention);
+
+        def distSpec = createDistSpec(project)
+        configureInstallTask(project, applicationPluginConvention, distSpec)
+        configureDistZipTask(project, applicationPluginConvention, distSpec);
     }
 
+    private def CopySpec createDistSpec(Project project) {
+        Jar jar = project.getTasks().withType(Jar.class).findByName("jar");
+        CreateStartScripts startScripts = project.getTasks().withType(CreateStartScripts.class).findByName("createStartScripts");
+
+        project.copySpec {
+            into(project.name){
+                into("lib") {
+                    from(jar.outputs.files)
+                    from(project.configurations.runtime)
+                    fileMode = 0755
+                }
+                into("bin") {
+                    from(startScripts.outputs.files)
+                    fileMode = 0755
+                }
+            }
+        }
+    }
 
     private void configureRunTask(Project project) {
         JavaExec run = project.getTasks().add(TASK_RUN_NAME, JavaExec.class);
         run.setDescription("Runs this project as java application");
         run.setGroup(APPLICATION_GROUP);
-        run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class)
-                .getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
+        run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
     }
 
-    /** refactor this task configuration to extend a copy task and use replace tokens */
+    /** refactor this task configuration to extend a copy task and use replace tokens  */
     private void configureCreateScriptsTask(final Project project, final ApplicationPluginConvention applicationPluginConvention) {
         CreateStartScripts createStartScripts = project.getTasks().add("createStartScripts", CreateStartScripts.class);
         createStartScripts.setDescription("Creates OS start scripts to run the project as application");
         createStartScripts.setGroup(APPLICATION_GROUP);
 
-        Jar jar = project.getTasks().withType(Jar.class).findByName("jar");
+        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
         createStartScripts.setClasspath(jar.getOutputs().getFiles().plus(
                 project.getConfigurations().getByName("runtime")));
 
@@ -72,23 +94,21 @@ public class ApplicationPlugin implements Plugin<Project> {
         });
     }
 
-    private void configureDistZipTask(Project project, ApplicationPluginConvention applicationPluginConvention) {
-        Zip distZipTask = project.getTasks().add("distZip2", Zip.class);
+    private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
+        Copy installTask = project.tasks.add(TASK_INSTALL_NAME, Copy.class)
+        installTask.setDescription("Bundles the project as an application with libs and OS startscripts")
+        installTask.setGroup(APPLICATION_GROUP)
+        installTask.with(distSpec)
+        installTask.conventionMapping.destinationDir = { project.file(pluginConvention.installDir) }
+        installTask.doLast{
+            project.getAnt().chmod(file: "${installTask.destinationDir.absolutePath}/${project.name}/bin/${project.name}", perm: 'ugo+x')
+        }
+    }
+
+    private void configureDistZipTask(Project project, ApplicationPluginConvention applicationPluginConvention, CopySpec distSpec) {
+        Zip distZipTask = project.getTasks().add(TASK_DISTZIP_NAME, Zip.class);
         distZipTask.setDescription("Bundles the project as an application with libs and OS startscripts");
         distZipTask.setGroup(APPLICATION_GROUP);
-
-        Jar jar = project.getTasks().withType(Jar.class).findByName("jar");
-        distZipTask.into("lib") {
-            from(jar.getOutputs().getFiles())
-            from(project.getConfigurations().getByName("runtime"))
-            fileMode = 0755
-        }
-        CreateStartScripts startScripts = project.getTasks().withType(CreateStartScripts.class).findByName("createStartScripts");
-
-        distZipTask.into("bin") {
-            from(startScripts.outputs.files)
-            fileMode = 0755
-        }
-        distZipTask.into(project.name);
+        distZipTask.with(distSpec)
     }
 }
