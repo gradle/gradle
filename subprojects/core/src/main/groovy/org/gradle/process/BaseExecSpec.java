@@ -37,6 +37,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
     /**
      * Specifies whether an exit value different from zero should be ignored. In case it is not ignored, an exception is
      * thrown in case of such an exit value. Defaults to <code>false</code>.
+     *
+     * @return whether an exit value different from zero should be ignored
      */
     boolean isIgnoreExitValue();
 
@@ -93,6 +95,8 @@ public interface BaseExecSpec extends ProcessForkOptions {
 
     /**
      * Returns the full command line, including the executable plus its arguments.
+     *
+     * @return The full command line, including the executable plus its arguments
      */
     List<String> getCommandLine();
 }
