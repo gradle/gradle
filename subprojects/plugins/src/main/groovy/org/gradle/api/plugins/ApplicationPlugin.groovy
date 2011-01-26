@@ -53,7 +53,7 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private def CopySpec createDistSpec(Project project) {
-        Jar jar = project.getTasks().withType(Jar.class).findByName("jar");
+        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
         CreateStartScripts startScripts = project.getTasks().withType(CreateStartScripts.class).findByName("createStartScripts");
 
         project.copySpec {
@@ -61,7 +61,6 @@ public class ApplicationPlugin implements Plugin<Project> {
                 into("lib") {
                     from(jar.outputs.files)
                     from(project.configurations.runtime)
-                    fileMode = 0755
                 }
                 into("bin") {
                     from(startScripts.outputs.files)
@@ -78,10 +77,10 @@ public class ApplicationPlugin implements Plugin<Project> {
         run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
     }
 
-    /** refactor this task configuration to extend a copy task and use replace tokens  */
+    /** @Todo: refactor this task configuration to extend a copy task and use replace tokens  */
     private void configureCreateScriptsTask(final Project project, final ApplicationPluginConvention applicationPluginConvention) {
         CreateStartScripts createStartScripts = project.getTasks().add(TASK_CREATESTARTSCRIPTS_NAME, CreateStartScripts.class);
-        createStartScripts.setDescription("Creates OS start scripts to run the project as application");
+        createStartScripts.setDescription("Creates OS start scripts for the project to run as application.");
         createStartScripts.setGroup(APPLICATION_GROUP);
 
         Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
@@ -97,7 +96,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
         Copy installTask = project.tasks.add(TASK_INSTALL_NAME, Copy.class)
-        installTask.setDescription("Bundles the project as an application with libs and OS startscripts")
+        installTask.setDescription("Installs the project as an application with libs and OS startscripts into a specified directory.")
         installTask.setGroup(APPLICATION_GROUP)
         installTask.with(distSpec)
         installTask.conventionMapping.destinationDir = { project.file(pluginConvention.installDirPath) }
@@ -108,7 +107,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     private void configureDistZipTask(Project project, ApplicationPluginConvention applicationPluginConvention, CopySpec distSpec) {
         Zip distZipTask = project.getTasks().add(TASK_DISTZIP_NAME, Zip.class);
-        distZipTask.setDescription("Bundles the project as an application with libs and OS startscripts");
+        distZipTask.setDescription("Bundles the project as an application with libs and OS startscripts.");
         distZipTask.setGroup(APPLICATION_GROUP);
         distZipTask.with(distSpec)
     }
