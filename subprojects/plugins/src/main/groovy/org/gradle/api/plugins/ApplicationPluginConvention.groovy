@@ -32,15 +32,14 @@ public class ApplicationPluginConvention {
     String mainClassName;
 
     /**
-     * The path of the installation directory relative to the project directory.
+     * The name of the installation directory.
      */
-    String installDirPath;
+    String installDir;
 
     private final Project project;
 
     public ApplicationPluginConvention(final Project project){
         this.project = project;
-        this.installDirPath = project.file("build/install")
     }
 
     /**

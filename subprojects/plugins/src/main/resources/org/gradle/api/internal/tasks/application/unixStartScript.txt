@@ -6,10 +6,6 @@
 ##                                                                          ##
 ##############################################################################
 
-# Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
-# ${project_name.toUpperCase()}_OPTS="\$${project_name.toUpperCase()}_OPTS -Xmx512m"
-# JAVA_OPTS="\$JAVA_OPTS -Xmx512m"
-
 APP_NAME=${project_name}
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
@@ -84,7 +80,7 @@ cd "`dirname \"\$PRG\"`/.."
 ${project_name.toUpperCase()}_HOME="`pwd -P`"
 cd "\$SAVED"
 
-CLASSPATH=$classpath
+CLASSPATH=$unixClasspath
 
 # Determine the Java command to use to start the JVM.
 if [ -z "\$JAVACMD" ] ; then
