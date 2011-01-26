@@ -36,7 +36,6 @@ public class ApplicationPlugin implements Plugin<Project> {
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
 
     public static final String TASK_RUN_NAME = "run";
-    public static final String TASK_CREATESTARTSCRIPTS_NAME = "createStartScripts"
     public static final String TASK_INSTALL_NAME = "install";
     public static final String TASK_DISTZIP_NAME = "distZip";
 
@@ -80,7 +79,7 @@ public class ApplicationPlugin implements Plugin<Project> {
 
     /** refactor this task configuration to extend a copy task and use replace tokens  */
     private void configureCreateScriptsTask(final Project project, final ApplicationPluginConvention applicationPluginConvention) {
-        CreateStartScripts createStartScripts = project.getTasks().add(TASK_CREATESTARTSCRIPTS_NAME, CreateStartScripts.class);
+        CreateStartScripts createStartScripts = project.getTasks().add("createStartScripts", CreateStartScripts.class);
         createStartScripts.setDescription("Creates OS start scripts to run the project as application");
         createStartScripts.setGroup(APPLICATION_GROUP);
 
@@ -100,7 +99,7 @@ public class ApplicationPlugin implements Plugin<Project> {
         installTask.setDescription("Bundles the project as an application with libs and OS startscripts")
         installTask.setGroup(APPLICATION_GROUP)
         installTask.with(distSpec)
-        installTask.conventionMapping.destinationDir = { project.file(pluginConvention.installDirPath) }
+        installTask.conventionMapping.destinationDir = { project.file(pluginConvention.installDir) }
         installTask.doLast{
             project.getAnt().chmod(file: "${installTask.destinationDir.absolutePath}/${project.name}/bin/${project.name}", perm: 'ugo+x')
         }

@@ -16,15 +16,15 @@
 package org.gradle.api.internal.tasks.application;
 
 
+import groovy.text.SimpleTemplateEngine
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.TaskAction
-import groovy.text.SimpleTemplateEngine
 
-/**
+ /**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent startScripts.</p>
  *
  * @author Rene Groeschke
@@ -58,44 +58,27 @@ class CreateStartScripts extends ConventionTask{
 
     @TaskAction
     public void generate(){
+        //def outputDir = new File(project.buildDir, "scripts");
         getOutputDir().mkdirs();
 
+        generateUnixStartScript(getOutputDir());
+    }
+
+    private void generateUnixStartScript(File outputDir) {
         //ref all files in classpath
         def applicationHome = "${project.getName().toUpperCase()}_HOME"
-        def unixLibPath = "\$$applicationHome/lib/"
+        def libPath = "\$$applicationHome/lib/"
         StringBuffer unixClasspath = new StringBuffer();
+        classpath.each { unixClasspath<<"$libPath${it.name}:" }
 
-        def windowsLibPath = "%$applicationHome%\\lib\\"
-        StringBuffer windowsClasspath = new StringBuffer();
-
-        classpath.each {
-            unixClasspath<<"$unixLibPath${it.name}:"
-            windowsClasspath << "$windowsLibPath${it.name};"
-        }
-
-        generateLinuxStartScript([project_name:project.name, mainClassName:getMainClassName(), classpath:unixClasspath])
-        generateWindowsStartScript([project_name:project.name, mainClassName:getMainClassName(), classpath:windowsClasspath])
-    }
-
-    void generateWindowsStartScript(def binding) {
-        def engine = new SimpleTemplateEngine();
-        String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
-        String windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
-
-        def windowsScript = new File(outputDir, "${project.name}.bat");
-        windowsScript.withWriter {writer ->
-            writer.write(transformIntoWindowsNewLines(windowsOutput))
-        }
-    }
-
-    void generateLinuxStartScript(def binding) {
-        def engine = new SimpleTemplateEngine();
         String unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
-        def linuxOutput = engine.createTemplate(unixTemplate).make(binding)
+        def binding = ["project_name":project.name, unixClasspath:unixClasspath, mainClassName:getMainClassName()]
+        def engine = new SimpleTemplateEngine()
+        def output = engine.createTemplate(unixTemplate).make(binding)
 
         def unixScript = new File(outputDir, project.name);
         unixScript.withWriter {writer ->
-            writer.write(linuxOutput)
+            writer.write(output)
         }
         unixScript.setExecutable(true);
     }
