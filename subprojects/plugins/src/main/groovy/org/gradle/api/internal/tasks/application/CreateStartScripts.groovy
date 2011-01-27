@@ -16,15 +16,15 @@
 package org.gradle.api.internal.tasks.application;
 
 
+import groovy.text.SimpleTemplateEngine
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.ConventionTask
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
-import org.gradle.api.tasks.OutputFile
+import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
-import groovy.text.SimpleTemplateEngine
 
-/**
+ /**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent startScripts.</p>
  *
  * @author Rene Groeschke
@@ -47,7 +47,7 @@ class CreateStartScripts extends ConventionTask{
     @InputFiles
     FileCollection classpath;
 
-    @OutputFile
+    @OutputDirectory
     public File getOutputDir(){
         if(!outputDir){
             this.outputDir = new File(project.buildDir, "scripts");
@@ -80,7 +80,7 @@ class CreateStartScripts extends ConventionTask{
     void generateWindowsStartScript(def binding) {
         def engine = new SimpleTemplateEngine();
         String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
-        def windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
+        String windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
 
         def windowsScript = new File(outputDir, "${project.name}.bat")
         windowsScript.withWriter {writer ->
