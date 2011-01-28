@@ -332,7 +332,7 @@ public class DefaultExecHandle implements ExecHandle {
 
         public ExecResult assertNormalExitValue() throws ExecException {
             if (exitValue != 0) {
-                throw new ExecException(String.format("%s finished with non-zero exit value.", StringUtils.capitalize(displayName)));
+                throw new ExecException(String.format("%s finished with (non-zero) exit value %d.", StringUtils.capitalize(displayName), exitValue));
             }
             return this;
         }

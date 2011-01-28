@@ -26,19 +26,17 @@ import java.util.List;
  */
 public interface BaseExecSpec extends ProcessForkOptions {
     /**
-     * Sets whether an exit value different from zero should be ignored. In case it is not ignored, an exception is
-     * thrown in case of such an exit value.
+     * Sets whether a non-zero exit value is ignored, or an exception thrown.
      *
-     * @param ignoreExitValue whether to ignore the exit value or not
+     * @param ignoreExitValue whether a non-zero exit value is ignored, or an exception thrown
      * @return this
      */
     BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue);
 
     /**
-     * Specifies whether an exit value different from zero should be ignored. In case it is not ignored, an exception is
-     * thrown in case of such an exit value. Defaults to <code>false</code>.
+     * Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to <code>false</code>.
      *
-     * @return whether an exit value different from zero should be ignored
+     * @return whether a non-zero exit value is ignored, or an exception thrown
      */
     boolean isIgnoreExitValue();
 

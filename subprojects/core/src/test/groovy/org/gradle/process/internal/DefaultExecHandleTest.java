@@ -87,7 +87,7 @@ public class DefaultExecHandleTest {
             result.assertNormalExitValue();
             fail();
         } catch (ExecException e) {
-            assertEquals("Display-name finished with non-zero exit value.", e.getMessage());
+            assertEquals("Display-name finished with (non-zero) exit value 72.", e.getMessage());
         }
     }
 
