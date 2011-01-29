@@ -55,7 +55,7 @@ class BuildExceptionReporterTest extends Specification {
 Build aborted because of an unexpected internal error. Please file an issue at: http://www.gradle.org.
 
 * Try:
-Run with {userinput}-d{normal} option to get additional debug info.
+Run with {userinput}--debug{normal} option to get additional debug info.
 
 * Exception is:
 java.lang.RuntimeException: <message>
@@ -75,7 +75,7 @@ java.lang.RuntimeException: <message>
 <message>
 
 * Try:
-Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more details. Run with {userinput}-S{normal} option to get the full (very verbose) stacktrace.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 '''
     }
 
@@ -91,7 +91,7 @@ Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more detai
 org.gradle.api.GradleException (no error message)
 
 * Try:
-Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more details. Run with {userinput}-S{normal} option to get the full (very verbose) stacktrace.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 '''
     }
 
@@ -111,7 +111,7 @@ Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more detai
 Cause: <cause>
 
 * Try:
-Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more details. Run with {userinput}-S{normal} option to get the full (very verbose) stacktrace.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 '''
     }
 
@@ -132,7 +132,7 @@ Cause: <outer>
 Cause: <cause>
 
 * Try:
-Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more details. Run with {userinput}-S{normal} option to get the full (very verbose) stacktrace.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 '''
     }
 
@@ -152,7 +152,7 @@ Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more detai
 Cause: java.lang.RuntimeException (no error message)
 
 * Try:
-Run with {userinput}-s{normal} or {userinput}-d{normal} option to get more details. Run with {userinput}-S{normal} option to get the full (very verbose) stacktrace.
+Run with {userinput}--stacktrace{normal} option to get the stack trace. Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 '''
     }
 
@@ -186,7 +186,7 @@ Run {userinput}[gradle tasks]{normal} to get a list of available tasks.
 <message>
 
 * Try:
-Run with {userinput}-d{normal} option to get more details. Run with {userinput}-S{normal} option to get the full (very verbose) stacktrace.
+Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
 * Exception is:
 org.gradle.api.GradleException: <message>
@@ -208,7 +208,7 @@ org.gradle.api.GradleException: <message>
 <message>
 
 * Try:
-Run with {userinput}-d{normal} option to get more details. 
+Run with {userinput}--info{normal} or {userinput}--debug{normal} option to get more log output.
 
 * Exception is:
 org.gradle.api.GradleException: <message>

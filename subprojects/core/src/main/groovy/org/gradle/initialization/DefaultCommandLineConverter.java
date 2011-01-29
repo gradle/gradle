@@ -46,7 +46,9 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
     private static final String PROPERTIES = "r";
     private static final String DEPENDENCIES = "n";
     public static final String FULL_STACKTRACE = "S";
+    public static final String FULL_STACKTRACE_LONG = "full-stacktrace";
     public static final String STACKTRACE = "s";
+    public static final String STACKTRACE_LONG = "stacktrace";
     private static final String SYSTEM_PROP = "D";
     private static final String PROJECT_PROP = "P";
     public static final String GRADLE_USER_HOME = "g";
@@ -75,8 +77,8 @@ public class DefaultCommandLineConverter extends AbstractCommandLineConverter<St
         parser.option(NO_SEARCH_UPWARDS, "no-search-upward").hasDescription(String.format("Don't search in parent folders for a %s file.", Settings.DEFAULT_SETTINGS_FILE));
         parser.option(CACHE, "cache").hasArgument().hasDescription("Specifies how compiled build scripts should be cached. Possible values are: 'rebuild' and 'on'. Default value is 'on'");
         parser.option(DRY_RUN, "dry-run").hasDescription("Runs the builds with all task actions disabled.");
-        parser.option(STACKTRACE, "stacktrace").hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
-        parser.option(FULL_STACKTRACE, "full-stacktrace").hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
+        parser.option(STACKTRACE, STACKTRACE_LONG).hasDescription("Print out the stacktrace also for user exceptions (e.g. compile error).");
+        parser.option(FULL_STACKTRACE, FULL_STACKTRACE_LONG).hasDescription("Print out the full (very verbose) stacktrace for any exceptions.");
         parser.option(TASKS, "tasks").mapsToSubcommand(ImplicitTasksConfigurer.TASKS_TASK).hasDescription("Show list of available tasks [deprecated - use 'gradle tasks' instead].");
         parser.option(PROPERTIES, "properties").mapsToSubcommand(ImplicitTasksConfigurer.PROPERTIES_TASK).hasDescription("Show list of all available project properties [deprecated - use 'gradle properties' instead].");
         parser.option(DEPENDENCIES, "dependencies").mapsToSubcommand(ImplicitTasksConfigurer.DEPENDENCIES_TASK).hasDescription("Show list of all project dependencies [deprecated - use 'gradle dependencies' instead].");

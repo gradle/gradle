@@ -42,7 +42,7 @@ public class Help extends DefaultTask {
         output.println();
         output.println();
         output.text("To see a list of command-line options, run ");
-        metaData.describeCommand(output.withStyle(UserInput), "-?");
+        metaData.describeCommand(output.withStyle(UserInput), "--help");
         output.println();
     }
 }

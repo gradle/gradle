@@ -29,8 +29,11 @@ import java.util.Collections;
 
 public class LoggingCommandLineConverter extends AbstractCommandLineConverter<LoggingConfiguration> {
     public static final String DEBUG = "d";
+    public static final String DEBUG_LONG = "debug";
     public static final String INFO = "i";
+    public static final String INFO_LONG = "info";
     public static final String QUIET = "q";
+    public static final String QUIET_LONG = "quiet";
     public static final String NO_COLOR = "no-color";
     private final BiMap<String, LogLevel> logLevelMap = HashBiMap.create();
 
@@ -69,9 +72,9 @@ public class LoggingCommandLineConverter extends AbstractCommandLineConverter<Lo
     }
 
     public void configure(CommandLineParser parser) {
-        parser.option(DEBUG, "debug").hasDescription("Log in debug mode (includes normal stacktrace).");
-        parser.option(QUIET, "quiet").hasDescription("Log errors only.");
-        parser.option(INFO, "info").hasDescription("Set log level to info.");
+        parser.option(DEBUG, DEBUG_LONG).hasDescription("Log in debug mode (includes normal stacktrace).");
+        parser.option(QUIET, QUIET_LONG).hasDescription("Log errors only.");
+        parser.option(INFO, INFO_LONG).hasDescription("Set log level to info.");
         parser.option(NO_COLOR).hasDescription("Do not use color in the console output.");
     }
 
