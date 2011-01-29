@@ -543,13 +543,19 @@ gradle.taskGraph.whenReady {graph ->
 task developerBuild {
     description = 'Builds distributions and runs pre-checkin checks'
     group = 'build'
-    dependsOn clean, testedDists
+    dependsOn testedDists
 }
 
 task ciBuild {
-    description = 'Build performed by the CI server'
+    description = 'Full build performed by the CI server'
     dependsOn clean, testedDists
 }
+
+task commitBuild {
+    description = 'Commit build performed by the CI server'
+    dependsOn testedDists
+}
+
 gradle.taskGraph.whenReady {graph ->
     if (graph.hasTask(ciBuild)) {
         subprojects { reportsDirName = "$rootProject.reportsDir/${path.replaceFirst(':', '').replaceAll(':', '.')}" }
