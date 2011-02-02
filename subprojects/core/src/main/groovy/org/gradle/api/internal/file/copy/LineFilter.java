@@ -81,7 +81,7 @@ public class LineFilter extends Reader {
     @Override
     public int read() throws IOException {
         ensureData();
-        if (transformedLine == null) {
+        if (transformedLine == null || transformedLine.isEmpty()) {
             return -1;
         }
         return transformedLine.charAt(transformedIndex++);

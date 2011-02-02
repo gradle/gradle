@@ -43,6 +43,14 @@ public class LineFilterTest {
 
         assertThat(filter.text, equalTo("1 - one"))
     }
+
+    @Test public void testWithEmptyReplacementString() {
+        Reader input = new StringReader("one");
+        int lineCount = 1;
+        LineFilter filter = new LineFilter(input, {""})
+
+        assertThat(filter.text, equalTo(""))
+    }
     
     @Test public void testCRLFWithTrailingEOL() {
         Reader input = new StringReader("one\r\ntwo\r\nthree\r\n");
