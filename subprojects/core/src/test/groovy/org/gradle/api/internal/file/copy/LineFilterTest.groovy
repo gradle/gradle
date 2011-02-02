@@ -46,7 +46,6 @@ public class LineFilterTest {
 
     @Test public void testWithEmptyReplacementString() {
         Reader input = new StringReader("one");
-        int lineCount = 1;
         LineFilter filter = new LineFilter(input, {""})
 
         assertThat(filter.text, equalTo(""))
