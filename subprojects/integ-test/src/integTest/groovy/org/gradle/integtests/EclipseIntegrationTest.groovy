@@ -97,10 +97,7 @@ dependencies {
 }
         """
 
-        def classpath = parseClasspathFile()
-        def libs = findEntries(classpath, "lib")
-        assert libs.size() == 2
-        assert libs*.@path*.text().collect { new File(it).name } as Set == [artifact1.name, artifact2.name] as Set
+        libEntriesInClasspathFileHaveFilenames(artifact1.name, artifact2.name)
     }
 
     private runEclipseTask(buildScript) {
@@ -117,5 +114,12 @@ dependencies {
 
     private findEntries(classpath, kind) {
         classpath.classpathentry.findAll { it.@kind == kind }
+    }
+
+    private libEntriesInClasspathFileHaveFilenames(String... filenames) {
+        def classpath = parseClasspathFile()
+        def libs = findEntries(classpath, "lib")
+        assert libs.size() == filenames.size()
+        assert libs*.@path*.text().collect { new File(it).name } as Set == filenames as Set
     }
 }
