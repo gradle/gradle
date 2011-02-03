@@ -16,66 +16,66 @@
 package org.gradle.api.internal.file.copy
 
 import org.junit.Test
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.*
+import static org.junit.Assert.*
 
-public class LineFilterTest {
-    @Test public void testEmptyInput() {
-        Reader input = new StringReader("");
-        int lineCount = 1;
-        LineFilter filter = new LineFilter(input, { "${lineCount++} - $it" as String })
+class LineFilterTest {
+    @Test void testEmptyInput() {
+        def input = new StringReader("")
+        def lineCount = 1
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(""))
     }
 
-    @Test public void testEmptyLinesWithTrailingEOL() {
-        Reader input = new StringReader("\n\n");
-        int lineCount = 1;
-        LineFilter filter = new LineFilter(input, { "${lineCount++} - $it" as String })
+    @Test void testEmptyLinesWithTrailingEOL() {
+        def input = new StringReader("\n\n")
+        def lineCount = 1
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(lines("1 - ", "2 - ", "")))
     }
     
-    @Test public void testSingleLine() {
-        Reader input = new StringReader("one");
-        int lineCount = 1;
-        LineFilter filter = new LineFilter(input, { "${lineCount++} - $it" as String })
+    @Test void testSingleLine() {
+        def input = new StringReader("one")
+        def lineCount = 1
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo("1 - one"))
     }
 
-    @Test public void testWithEmptyReplacementString() {
-        Reader input = new StringReader("one");
-        LineFilter filter = new LineFilter(input, {""})
+    @Test void testWithEmptyReplacementString() {
+        def input = new StringReader("one")
+        def filter = new LineFilter(input, {""})
 
         assertThat(filter.text, equalTo(""))
     }
     
-    @Test public void testCRLFWithTrailingEOL() {
-        Reader input = new StringReader("one\r\ntwo\r\nthree\r\n");
-        int lineCount = 1;
-        LineFilter filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
+    @Test void testCRLFWithTrailingEOL() {
+        def input = new StringReader("one\r\ntwo\r\nthree\r\n")
+        def lineCount = 1
+        def filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three", "")))
     }
 
-    @Test public void testLfWithNoTrailingEOL() {
-        Reader input = new StringReader("one\ntwo\nthree");
-        int lineCount = 1;
-        LineFilter filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
+    @Test void testLfWithNoTrailingEOL() {
+        def input = new StringReader("one\ntwo\nthree")
+        def lineCount = 1
+        def filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
     
-    @Test public void testCRWithNoTrailingEOL() {
-        Reader input = new StringReader("one\rtwo\rthree");
-        int lineCount = 1;
-        LineFilter filter = new LineFilter(input, { "${lineCount++} - $it" as String })
+    @Test void testCRWithNoTrailingEOL() {
+        def input = new StringReader("one\rtwo\rthree")
+        def lineCount = 1
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
         assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
     }
 
     private String lines(String ... lines) {
-        return (lines as List).join(System.getProperty('line.separator'))
+        (lines as List).join(System.getProperty('line.separator'))
     }
 }
