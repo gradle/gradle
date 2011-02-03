@@ -26,9 +26,9 @@ import java.io.File;
 public class CodeNarc extends SourceTask implements VerificationTask {
     private AntCodeNarc antCodeNarc = new AntCodeNarc();
 
-    private File reportFile;
     private File configFile;
     private String reportFormat;
+    private File reportFile;
     private boolean ignoreFailures;
 
     @TaskAction
@@ -54,6 +54,25 @@ public class CodeNarc extends SourceTask implements VerificationTask {
      */
     public void setConfigFile(File configFile) {
         this.configFile = configFile;
+    }
+
+    /**
+     * Returns the format type of the CodeNarc report.
+     *
+     * @return The format type of the CodeNarc report.
+     */
+    @Input
+    public String getReportFormat() {
+        return reportFormat;
+    }
+
+    /**
+     * Specifies the format type of the CodeNarc report.
+     *
+     * @param reportFormat The format type of the CodeNarc report.
+     */
+    public void setReportFormat(String reportFormat) {
+        this.reportFormat = reportFormat;
     }
 
     /**
@@ -83,19 +102,5 @@ public class CodeNarc extends SourceTask implements VerificationTask {
     public CodeNarc setIgnoreFailures(boolean ignoreFailures) {
         this.ignoreFailures = ignoreFailures;
         return this;
-    }
-
-    /**
-     * Returns format type of the CodeNarc report.
-     *
-     * @return The CodeNarc configuration file.
-     */
-    @Input
-    public String getReportFormat() {
-        return reportFormat;
-    }
-
-    public void setReportFormat(String reportFormat) {
-        this.reportFormat = reportFormat;
     }
 }
