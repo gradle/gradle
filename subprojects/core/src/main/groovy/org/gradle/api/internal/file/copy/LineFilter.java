@@ -16,6 +16,7 @@
 package org.gradle.api.internal.file.copy;
 
 import groovy.lang.Closure;
+import org.gradle.util.TextUtil;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -26,7 +27,6 @@ public class LineFilter extends Reader {
     private String transformedLine;
     private int transformedIndex;
     private final BufferedReader bufferedIn;
-    private final String lineTerminator;
     private final Reader in;
 
     /**
@@ -39,7 +39,6 @@ public class LineFilter extends Reader {
         this.in = in;
         this.bufferedIn = new BufferedReader(in);
         this.closure = closure;
-        lineTerminator = System.getProperty("line.separator");
     }
 
     private String getTransformedLine() throws IOException {
@@ -66,7 +65,7 @@ public class LineFilter extends Reader {
         StringBuilder result = new StringBuilder();
         result.append(closure.call(line.toString()).toString());
         if (eol) {
-            result.append(lineTerminator);
+            result.append(TextUtil.LINE_SEPARATOR);
         }
         return result.toString();
     }
