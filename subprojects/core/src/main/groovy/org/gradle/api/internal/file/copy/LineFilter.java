@@ -80,7 +80,7 @@ public class LineFilter extends Reader {
     @Override
     public int read() throws IOException {
         ensureData();
-        if (transformedLine == null || transformedLine.isEmpty()) {
+        if (transformedLine == null || transformedLine.length() == 0) {
             return -1;
         }
         return transformedLine.charAt(transformedIndex++);
