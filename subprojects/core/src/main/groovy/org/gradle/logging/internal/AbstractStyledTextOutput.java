@@ -17,12 +17,12 @@ package org.gradle.logging.internal;
 
 import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.logging.StyledTextOutput;
+import org.gradle.util.TextUtil;
 
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
 public abstract class AbstractStyledTextOutput implements StyledTextOutput, StandardOutputListener {
-    private static final String EOL = System.getProperty("line.separator");
     private Style style = Style.Normal;
 
     public StyledTextOutput append(char c) {
@@ -62,7 +62,7 @@ public abstract class AbstractStyledTextOutput implements StyledTextOutput, Stan
     }
 
     public StyledTextOutput println() {
-        text(EOL);
+        text(TextUtil.LINE_SEPARATOR);
         return this;
     }
 
