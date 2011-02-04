@@ -175,10 +175,10 @@ task ciBuild(dependsOn: [clean, html, uploadWebsite, testRemote])
 
 task release(dependsOn: [releaseVersion, clean, html, uploadWebsite, testRemote])
 
-tasks.withType(Ftp).allObjects { ftp ->
-    ftp.ftpAntClasspath = configurations.ftpAntTask
-    ftp.websiteFtpUserName = project.hasProperty('websiteFtpUserName') ? project.websiteFtpUserName : null
-    ftp.websiteFtpUserPassword = project.hasProperty('websiteFtpUserPassword') ? project.websiteFtpUserPassword : null
+tasks.withType(Ftp) {
+    ftpAntClasspath = configurations.ftpAntTask
+    websiteFtpUserName = project.hasProperty('websiteFtpUserName') ? project.websiteFtpUserName : null
+    websiteFtpUserPassword = project.hasProperty('websiteFtpUserPassword') ? project.websiteFtpUserPassword : null
 }
 
 class Ftp extends DefaultTask {
