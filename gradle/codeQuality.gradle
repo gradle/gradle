@@ -7,7 +7,7 @@ checkstyleConfigFileName = new File(checkstyleConfigDir, "checkstyle.xml")
 codeNarcConfigFileName = "$configDir/codenarc.xml"
 checkstyleProperties.checkstyleConfigDir = checkstyleConfigDir
 
-plugins.withType(GroovyBasePlugin).all {
+plugins.withType(GroovyBasePlugin) {
     sourceSets.all { sourceSet ->
         task "${sourceSet.getTaskName('checkstyle', 'groovy')}"(type: Checkstyle) {
             configFile = new File(checkstyleConfigDir, "checkstyle-groovy.xml")

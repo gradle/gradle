@@ -1,7 +1,7 @@
-tasks.withType(Compile).all { task ->
-    task.options.encoding = 'utf-8'
+tasks.withType(Compile) {
+    options.encoding = 'utf-8'
 }
-tasks.withType(GroovyCompile).all { task ->
-    task.options.encoding = 'utf-8'
-    task.groovyOptions.encoding = 'utf-8'
+tasks.withType(GroovyCompile) {
+    options.encoding = 'utf-8'
+    groovyOptions.encoding = 'utf-8'
 }

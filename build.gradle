@@ -15,7 +15,6 @@
  */
 
 import java.util.jar.Attributes
-import org.gradle.api.artifacts.repositories.WebdavResolver
 import org.gradle.api.internal.artifacts.dependencies.DefaultSelfResolvingDependency
 
 import org.gradle.build.samples.WrapperProjectCreator
@@ -143,14 +142,6 @@ allprojects {
     task ide(type: Sync) {
         into "$ideDir/lib"
         from { config.copyRecursive {dep -> !(dep instanceof ProjectDependency)}.files }
-    }
-    ideaModule {
-        gradleCacheVariable = 'GRADLE_CACHE'
-        outputDir = "$rootProject.projectDir/intellij/out" as File
-        testOutputDir = "$rootProject.projectDir/intellij/testOut" as File
-    }
-    eclipseClasspath {
-        variables = [:]
     }
 }
 
@@ -439,29 +430,27 @@ task intTestImage(type: Sync) {
     }
 }
 
-tasks.withType(Test).all { task ->
-    task.configure {
-        dependsOn intTestImage, publishLocalArchives, binZip, allZip, srcZip, project(':docs').userguideDocbook
-        integTestUserDir = file('intTestHomeDir')
-        systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
-        systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-        forkEvery = 15
-        maxParallelForks = guessMaxForks()
+tasks.withType(Test) {
+    dependsOn intTestImage, publishLocalArchives, binZip, allZip, srcZip, project(':docs').userguideDocbook
+    integTestUserDir = file('intTestHomeDir')
+    systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
+    systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
+    systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
+    forkEvery = 15
+    maxParallelForks = guessMaxForks()
 
-        testClassesDir = project(':core').sourceSets.integTest.classesDir
-        classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
-        testResultsDir = file("build/test-results/$name")
-        testReportDir = file("build/reports/tests/$name")
-        testSrcDirs = []
+    testClassesDir = project(':core').sourceSets.integTest.classesDir
+    classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
+    testResultsDir = file("build/test-results/$name")
+    testReportDir = file("build/reports/tests/$name")
+    testSrcDirs = []
 
-        systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
-        jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+    systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
+    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
 
-        doFirst {
-            if (isDevBuild()) {
-                exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
-            }
+    doFirst {
+        if (isDevBuild()) {
+            exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
         }
     }
 }
