@@ -1,6 +1,6 @@
 useLogger(new CustomEventLogger())
 
-class CustomEventLogger extends BuildAdapter implements BuildListener, TaskExecutionListener {
+class CustomEventLogger extends BuildAdapter implements TaskExecutionListener {
 
     public void beforeExecute(Task task) {
         println "[$task.name]"
