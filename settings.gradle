@@ -30,6 +30,7 @@ include 'ui'
 include 'openApi'
 include 'toolingApi'
 include 'docs'
+include 'integTest'
 
 rootProject.name = 'gradle'
 rootProject.children.each {project ->

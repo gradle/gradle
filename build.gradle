@@ -336,7 +336,7 @@ dependencies {
 }
 
 evaluationDependsOn(':docs')
-evaluationDependsOn(':core')
+evaluationDependsOn(':integTest')
 
 clean.dependsOn subprojects.collect { "$it.path:clean" }
 
@@ -419,6 +419,8 @@ artifacts {
     }
 }
 
+integTestUserDir = file('intTestHomeDir')
+
 task intTestImage(type: Sync) {
     dependsOn allZip.taskDependencies
     with allDistImage
@@ -430,48 +432,13 @@ task intTestImage(type: Sync) {
     }
 }
 
-tasks.withType(Test) {
-    dependsOn intTestImage, publishLocalArchives, binZip, allZip, srcZip, project(':docs').userguideDocbook
-    integTestUserDir = file('intTestHomeDir')
-    systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
-    systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
-    systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
-    forkEvery = 15
-    maxParallelForks = guessMaxForks()
-
-    testClassesDir = project(':core').sourceSets.integTest.classesDir
-    classpath = project(':core').sourceSets.integTest.runtimeClasspath + configurations.testRuntime
-    testResultsDir = file("build/test-results/$name")
-    testReportDir = file("build/reports/tests/$name")
-    testSrcDirs = []
-
-    systemProperties['integTest.gradleHomeDir'] = intTestImage.integTestGradleHome.absolutePath
-    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
-
-    doFirst {
-        if (isDevBuild()) {
-            exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
-        }
-    }
-}
-
-task integTest(type: Test) {
-}
-
-task embeddedIntegTest(type: Test) {
-    systemProperties['org.gradle.integtest.executer'] = 'embedded'
-    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
-}
-
-task daemonIntegTest(type: Test) {
-    systemProperties['org.gradle.integtest.executer'] = 'daemon'
-}
-
 private def isDevBuild() {
     gradle.taskGraph.hasTask(':developerBuild')
 }
 
 gradle.taskGraph.whenReady { graph ->
+    def embeddedIntegTest = project(':integTest').embeddedIntegTest
+    def integTest = project(':integTest').integTest
     if (isDevBuild()) {
         if (OperatingSystem.current().isWindows()) {
             embeddedIntegTest.enabled = false
@@ -489,7 +456,7 @@ def guessMaxForks() {
     return Math.max(2, (int) (processors / 2))
 }
 
-task testedDists(dependsOn: [assemble, check, integTest, embeddedIntegTest, 'openApi:integTest', ':ui:integTest'])
+task testedDists(dependsOn: [assemble, check, 'integTest:integTest', 'integTest:embeddedIntegTest', 'openApi:integTest', ':ui:integTest'])
 
 task nightlyBuild(dependsOn: [clean, testedDists, ':docs:uploadDocs'])
 

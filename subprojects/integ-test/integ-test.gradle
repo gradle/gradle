@@ -1,0 +1,56 @@
+apply plugin: 'groovy'
+apply from: "$rootDir/gradle/integTest.gradle"
+
+dependencies {
+    groovy libraries.groovy_depends
+
+    // TODO - don't include the runtime at compile time. This is here because the Groovy compiler needs the runtime classpath
+//    integTestCompile project(path: ':core', configuration: 'integTestFixtures')
+//    integTestRuntime project(path: ':core', configuration: 'integTestFixturesRuntime')
+    integTestCompile project(path: ':core', configuration: 'integTestFixturesRuntime')
+
+    integTestCompile project(':toolingApi')
+    integTestCompile libraries.ant
+    integTestCompile libraries.xmlunit
+    integTestCompile project(path: ':', configuration: 'testRuntime')
+}
+
+tasks.withType(Test).whenObjectAdded {
+    dependsOn ':intTestImage', ':publishLocalArchives', ':binZip', ':allZip', ':srcZip', ':docs:userguideDocbook'
+
+    testClassesDir = sourceSets.integTest.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
+    testResultsDir = file("build/test-results/$name")
+    testReportDir = file("build/reports/tests/$name")
+    testSrcDirs = []
+
+    jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
+
+    doFirst {
+        systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
+        systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
+        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTestUserDir.absolutePath
+        systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
+        systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
+        forkEvery = 15
+        maxParallelForks = guessMaxForks()
+
+        if (isDevBuild()) {
+            exclude 'org/gradle/integtests/DistributionIntegrationTest.*'
+        }
+    }
+}
+
+task integTest(type: Test) {
+    systemProperties['org.gradle.integtest.executer'] = 'forking'
+}
+
+task embeddedIntegTest(type: Test) {
+    systemProperties['org.gradle.integtest.executer'] = 'embedded'
+    jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
+}
+
+task daemonIntegTest(type: Test) {
+    systemProperties['org.gradle.integtest.executer'] = 'daemon'
+}

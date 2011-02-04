@@ -519,7 +519,7 @@
                     <sample id="wtpWithXml" dir="eclipse"
                             title="Customizing the XML">
                         <sourcefile file="build.gradle" snippet="wtp-with-xml"/>
-                        <test args="eclipse"/>
+                        <test args="cleanEclipse eclipse"/>
                     </sample>
                 </para>
             </section>
