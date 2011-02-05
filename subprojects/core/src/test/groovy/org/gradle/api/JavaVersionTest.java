@@ -26,6 +26,7 @@ public class JavaVersionTest {
         assertThat(JavaVersion.VERSION_1_4.toString(), equalTo("1.4"));
         assertThat(JavaVersion.VERSION_1_5.toString(), equalTo("1.5"));
         assertThat(JavaVersion.VERSION_1_6.toString(), equalTo("1.6"));
+        assertThat(JavaVersion.VERSION_1_7.toString(), equalTo("1.7"));
     }
 
     @Test
@@ -38,6 +39,7 @@ public class JavaVersionTest {
 
         assertThat(JavaVersion.toVersion("5"), equalTo(JavaVersion.VERSION_1_5));
         assertThat(JavaVersion.toVersion("6"), equalTo(JavaVersion.VERSION_1_6));
+        assertThat(JavaVersion.toVersion("7"), equalTo(JavaVersion.VERSION_1_7));
     }
 
     @Test
@@ -45,7 +47,7 @@ public class JavaVersionTest {
         conversionFails("1");
         conversionFails("2");
 
-        conversionFails("7");
+        conversionFails("8");
 
         conversionFails("a");
         conversionFails("");
@@ -68,13 +70,15 @@ public class JavaVersionTest {
         assertThat(JavaVersion.toVersion(1.5), equalTo(JavaVersion.VERSION_1_5));
         assertThat(JavaVersion.toVersion(5), equalTo(JavaVersion.VERSION_1_5));
         assertThat(JavaVersion.toVersion(6), equalTo(JavaVersion.VERSION_1_6));
+        assertThat(JavaVersion.toVersion(7), equalTo(JavaVersion.VERSION_1_7));
+        assertThat(JavaVersion.toVersion(1.7), equalTo(JavaVersion.VERSION_1_7));
     }
     
     @Test
     public void failsToConvertNumberToVersionForUnknownVersion() {
         conversionFails(1);
         conversionFails(2);
-        conversionFails(7);
+        conversionFails(8);
         conversionFails(1.21);
         conversionFails(2.0);
         conversionFails(4.2);
