@@ -46,14 +46,14 @@ class SamplesMavenPomGenerationIntegrationTest {
     @Rule public final Sample sample = new Sample('maven/pomGeneration')
 
     @Before
-    public void setUp() {
+    void setUp() {
         pomProjectDir = sample.dir
         repoDir = pomProjectDir.file('pomRepo');
         snapshotRepoDir = pomProjectDir.file('snapshotRepo');
     }
     
     @Test
-    public void checkWithNoCustomVersion() {
+    void checkWithNoCustomVersion() {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
@@ -68,7 +68,7 @@ class SamplesMavenPomGenerationIntegrationTest {
     }
 
     @Test
-    public void checkWithCustomVersion() {
+    void checkWithCustomVersion() {
         long start = System.currentTimeMillis();
         String version = "1.0MVN"
         String groupId = "deployGroup"
@@ -84,7 +84,7 @@ class SamplesMavenPomGenerationIntegrationTest {
     }
 
     @Test
-    public void checkWithSnapshotVersion() {
+    void checkWithSnapshotVersion() {
         String version = '1.0-SNAPSHOT'
         String groupId = "deployGroup"
         long start = System.currentTimeMillis();
@@ -99,14 +99,14 @@ class SamplesMavenPomGenerationIntegrationTest {
     }
 
     @Test
-    public void writeNewPom() {
+    void writeNewPom() {
         executer.inDirectory(pomProjectDir).withTasks('clean', 'writeNewPom').run()
         compareXmlWithIgnoringOrder(expectedPom(null, null, 'pomGeneration/expectedNewPom.txt'),
                 pomProjectDir.file("target/newpom.xml").text)
     }
 
     @Test
-    public void writeDeployerPom() {
+    void writeDeployerPom() {
         String version = '1.0'
         String groupId = "gradle"
         executer.inDirectory(pomProjectDir).withTasks('clean', 'writeDeployerPom').run()
@@ -120,7 +120,7 @@ class SamplesMavenPomGenerationIntegrationTest {
     static File pomFile(TestFile repoDir, String repoPath, String version) {
         TestFile versionDir = repoDir.file(repoPath)
         List matches = versionDir.listFiles().findAll { it.name.endsWith('.pom') }
-        assertEquals(1, matches.size())
+        assert matches.size() == 1
         matches[0]
     }
 
@@ -132,8 +132,8 @@ class SamplesMavenPomGenerationIntegrationTest {
         installedFile.assertIsCopyOf(pomProjectDir.file("target/libs/mywar-1.0.war"))
         installedJavadocFile.assertIsCopyOf(pomProjectDir.file("target/distributions/mywar-1.0-javadoc.zip"))
         installedPom.assertIsFile()
-        Assert.assertTrue((start/2000) <= (installedFile.lastModified()/2000))
-        Assert.assertTrue((start/2000) <= (installedJavadocFile.lastModified()/2000))
+        assert (start/2000) <= (installedFile.lastModified()/2000)
+        assert (start/2000) <= (installedJavadocFile.lastModified()/2000)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
     

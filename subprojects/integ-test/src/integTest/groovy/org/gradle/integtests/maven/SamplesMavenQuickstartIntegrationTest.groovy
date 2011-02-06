@@ -43,13 +43,13 @@ class SamplesMavenQuickstartIntegrationTest {
     private TestFile repoDir
 
     @Before
-    public void setUp() {
+    void setUp() {
         pomProjectDir = sample.dir
         repoDir = pomProjectDir.file('pomRepo');
     }
 
     @Test
-    public void checkDeployAndInstall() {
+    void checkDeployAndInstall() {
         String version = '1.0'
         String groupId = "gradle"
         long start = System.currentTimeMillis();
@@ -78,7 +78,7 @@ class SamplesMavenQuickstartIntegrationTest {
         TestFile installedPom = localMavenRepo.file("$groupId/quickstart/$version/quickstart-${version}.pom")
         installedFile.assertIsCopyOf(pomProjectDir.file('build/libs/quickstart-1.0.jar'))
         installedPom.assertIsFile()
-        Assert.assertTrue((start/2000) <= (installedFile.lastModified()/2000));
+        assert (start/2000) <= (installedFile.lastModified()/2000)
         compareXmlWithIgnoringOrder(expectedPom(version, groupId), installedPom.text)
     }
 
