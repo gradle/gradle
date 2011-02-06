@@ -13,7 +13,7 @@
   ~ See the License for the specific language governing permissions and
   ~ limitations under the License.
   -->
-<chapter id='application_plugin' xmlns:xi="http://www.w3.org/2001/XInclude">
+<chapter id='application_plugin'>
     <title>The Application Plugin</title>
     <para>The Gradle application plugin extends the language plugins with common application related tasks.
 	It allows running and bundling projects.
@@ -59,7 +59,7 @@
     <section>
             <title>Convention properties</title>
             <table>
-                <title>War plugin - directory properties</title>
+                <title>Application plugin - directory properties</title>
                 <thead>
                     <tr>
                         <td>Property name</td>
@@ -79,7 +79,7 @@
                         -
                     </td>
                     <td>
-                        The full qualified name of the Main class of the application.
+                        The fully qualified name of the Main class of the application.
                     </td>
                 </tr>
             </table>
