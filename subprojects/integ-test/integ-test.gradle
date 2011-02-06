@@ -44,10 +44,18 @@ tasks.withType(Test).whenObjectAdded {
 }
 
 task integTest(type: Test) {
+    onlyIf {
+        // Disable for dev and commit builds, but only for non-windows machines
+        (!isDevBuild() && !isCommitBuild()) || OperatingSystem.current().isWindows()
+    }
     systemProperties['org.gradle.integtest.executer'] = 'forking'
 }
 
 task embeddedIntegTest(type: Test) {
+    onlyIf {
+        // Disable for CI builds and builds on windows machines
+        !isCIBuild() && !OperatingSystem.current().isWindows()
+    }
     systemProperties['org.gradle.integtest.executer'] = 'embedded'
     jvmArgs '-Xmx512m', '-XX:MaxPermSize=256m', '-XX:+HeapDumpOnOutOfMemoryError'
 }

@@ -429,23 +429,16 @@ task intTestImage(type: Sync) {
     }
 }
 
-private def isDevBuild() {
-    gradle.taskGraph.hasTask(':developerBuild')
+def isDevBuild() {
+    gradle.taskGraph.hasTask(developerBuild)
 }
 
-gradle.taskGraph.whenReady { graph ->
-    def embeddedIntegTest = project(':integTest').embeddedIntegTest
-    def integTest = project(':integTest').integTest
-    if (isDevBuild()) {
-        if (OperatingSystem.current().isWindows()) {
-            embeddedIntegTest.enabled = false
-        } else {
-            integTest.enabled = false
-        }
-    }
-    if (graph.hasTask(':ciBuild')) {
-        embeddedIntegTest.enabled = false
-    }
+def isCIBuild() {
+    gradle.taskGraph.hasTask(ciBuild)
+}
+
+def isCommitBuild() {
+    gradle.taskGraph.hasTask(commitBuild)
 }
 
 def guessMaxForks() {
