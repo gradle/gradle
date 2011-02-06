@@ -13,9 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.tasks.wrapper.internal;
-
-import org.gradle.util.GradleVersion;
+package org.gradle.util;
 
 public class DistributionLocator {
     private static final String ARTIFACTORY_RELEASE_REPOSITORY = "http://gradle.artifactoryonline.com/gradle/distributions";

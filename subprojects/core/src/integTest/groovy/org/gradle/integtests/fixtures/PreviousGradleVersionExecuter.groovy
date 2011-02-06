@@ -18,7 +18,7 @@ package org.gradle.integtests.fixtures
 import org.gradle.util.Jvm
 import org.gradle.util.TestFile
 import org.gradle.util.GradleVersion
-import org.gradle.api.tasks.wrapper.internal.DistributionLocator
+import org.gradle.util.DistributionLocator
 
 public class PreviousGradleVersionExecuter extends AbstractGradleExecuter implements BasicGradleDistribution {
     private final GradleDistribution dist

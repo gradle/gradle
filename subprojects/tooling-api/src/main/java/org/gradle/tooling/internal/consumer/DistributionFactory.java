@@ -18,7 +18,7 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.tasks.wrapper.Wrapper;
-import org.gradle.api.tasks.wrapper.internal.DistributionLocator;
+import org.gradle.util.DistributionLocator;
 import org.gradle.tooling.GradleConnectionException;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.UncheckedException;

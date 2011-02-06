@@ -69,7 +69,6 @@ dependencies {
     compile libraries.ant_launcher
 
     integTestCompile libraries.jetty_depends
-    integTestCompile project(':wrapper')
 
     testFixtures sourceSets.test.classes, sourceSets.main.classes
     integTestFixtures sourceSets.integTest.classes

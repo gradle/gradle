@@ -22,12 +22,9 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
-import org.gradle.api.tasks.wrapper.internal.DistributionLocator;
+import org.gradle.util.DistributionLocator;
 import org.gradle.api.tasks.wrapper.internal.WrapperScriptGenerator;
-import org.gradle.util.DeprecationLogger;
-import org.gradle.util.GFileUtils;
-import org.gradle.util.GUtil;
-import org.gradle.util.GradleVersion;
+import org.gradle.util.*;
 
 import java.io.File;
 import java.net.URL;
