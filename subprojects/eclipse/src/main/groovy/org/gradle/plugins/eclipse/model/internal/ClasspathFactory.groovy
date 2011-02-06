@@ -35,9 +35,9 @@ class ClasspathFactory {
         classpath.configure(entries)
     }
 
-    List getEntriesFromSourceSets(def sourceSets, def project) {
+    List<SourceFolder> getEntriesFromSourceSets(Iterable<SourceSet> sourceSets, org.gradle.api.Project project) {
         List entries = []
-        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.all)
+        def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect{it})
 
         sortedSourceSets.each { SourceSet sourceSet ->
             def sourceDirSets = sourceSet.allSource.sourceTrees
