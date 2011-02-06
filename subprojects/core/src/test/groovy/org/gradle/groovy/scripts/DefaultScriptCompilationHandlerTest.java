@@ -31,12 +31,10 @@ import org.gradle.api.ScriptCompilationException;
 import org.gradle.api.internal.artifacts.dsl.AbstractScriptTransformer;
 import org.gradle.api.internal.resource.Resource;
 import org.gradle.util.TemporaryFolder;
-import static org.hamcrest.Matchers.*;
 import org.jmock.Expectations;
 import org.jmock.integration.junit4.JMock;
 import org.jmock.integration.junit4.JUnit4Mockery;
 import org.junit.After;
-import static org.junit.Assert.*;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
@@ -44,6 +42,10 @@ import org.junit.runner.RunWith;
 
 import java.io.File;
 import java.io.IOException;
+
+import static org.gradle.util.Matchers.containsLine;
+import static org.hamcrest.Matchers.*;
+import static org.junit.Assert.*;
 
 /**
  * @author Hans Dockter
@@ -213,14 +215,15 @@ public class DefaultScriptCompilationHandlerTest {
     }
 
     @Test
-    public void testCompileToDirWithException() {
-        ScriptSource source = new StringScriptSource("script", "\n\nnew HHHHJSJSJ jsj");
+    public void testCompileToDirWithSyntaxError() {
+        ScriptSource source = new StringScriptSource("script.gradle", "\n\nnew HHHHJSJSJ jsj");
         try {
             scriptCompilationHandler.compileToDir(source, classLoader, scriptCacheDir, null, expectedScriptClass);
             fail();
         } catch (ScriptCompilationException e) {
             assertThat(e.getScriptSource(), sameInstance(source));
             assertThat(e.getLineNumber(), equalTo(3));
+            assertThat(e.getCause().getMessage(), containsLine(startsWith("script.gradle: 3: unexpected token: jsj")));
         }
 
         checkScriptCacheEmpty();

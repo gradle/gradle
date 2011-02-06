@@ -18,7 +18,8 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.ExecutionFailure
 import org.gradle.util.TestFile
 import org.junit.Test
-
+import static org.hamcrest.Matchers.*
+    
 class ExternalScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsScriptEvaluationFailsWithGroovyException() {
@@ -50,6 +51,7 @@ apply { from 'other.gradle' }
         failure.assertHasFileName("Script '${script}'");
         failure.assertHasLineNumber(1);
         failure.assertHasDescription("Could not compile script '${script}'");
+        failure.assertThatCause(containsString("script '${script}': 1: unexpected token: ("))
     }
 
     @Test

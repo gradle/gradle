@@ -19,6 +19,8 @@ import org.gradle.integtests.fixtures.ExecutionFailure;
 import org.gradle.util.TestFile;
 import org.junit.Test;
 
+import static org.hamcrest.Matchers.containsString;
+
 public class InitScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsInitScriptEvaluationFailsWithGroovyException() {
@@ -43,5 +45,6 @@ public class InitScriptErrorIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasFileName(String.format("Initialization script '%s'", initScript));
         failure.assertHasLineNumber(2);
         failure.assertHasDescription(String.format("Could not compile initialization script '%s'.", initScript));
+        failure.assertThatCause(containsString(String.format("initialization script '%s': 2: unable to resolve class org.gradle.unknown.Unknown", initScript)));
     }
 }

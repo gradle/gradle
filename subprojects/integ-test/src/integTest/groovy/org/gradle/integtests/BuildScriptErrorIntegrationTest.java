@@ -22,6 +22,8 @@ import org.junit.Test;
 
 import java.io.File;
 
+import static org.gradle.util.Matchers.containsLine;
+
 public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
     @Test
     public void reportsProjectEvaluationFailsWithGroovyException() {
@@ -46,6 +48,7 @@ public class BuildScriptErrorIntegrationTest extends AbstractIntegrationTest {
         failure.assertHasFileName(String.format("Build file '%s'", buildFile));
         failure.assertHasLineNumber(2);
         failure.assertHasDescription(String.format("Could not compile build file '%s'.", buildFile));
+        failure.assertThatCause(containsLine(String.format("build file '%s': 2: unable to resolve class org.gradle.unknown.Unknown", buildFile)));
     }
 
     @Test

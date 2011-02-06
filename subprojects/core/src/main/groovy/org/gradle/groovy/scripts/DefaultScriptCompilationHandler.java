@@ -25,16 +25,19 @@ import org.codehaus.groovy.ast.expr.ConstantExpression;
 import org.codehaus.groovy.ast.stmt.ReturnStatement;
 import org.codehaus.groovy.ast.stmt.Statement;
 import org.codehaus.groovy.control.*;
+import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
 import org.gradle.api.GradleException;
 import org.gradle.api.ScriptCompilationException;
 import org.gradle.util.Clock;
 import org.gradle.util.GFileUtils;
+import org.gradle.util.UncheckedException;
 import org.gradle.util.WrapUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
+import java.lang.reflect.Field;
 import java.net.URLClassLoader;
 import java.security.CodeSource;
 import java.util.List;
@@ -107,10 +110,7 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         try {
             groovyClassLoader.parseClass(codeSource, false);
         } catch (MultipleCompilationErrorsException e) {
-            SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
-            Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
-            throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
-                    lineNumber);
+            wrapCompilationFailure(source, e);
         } catch (CompilationFailedException e) {
             throw new GradleException(String.format("Could not compile %s.", source.getDisplayName()), e);
         }
@@ -122,6 +122,30 @@ public class DefaultScriptCompilationHandler implements ScriptCompilationHandler
         if (emptyScriptDetector.isEmptyScript()) {
             GFileUtils.touch(new File(classesDir, EMPTY_SCRIPT_MARKER_FILE_NAME));
         }
+    }
+
+    private void wrapCompilationFailure(ScriptSource source, MultipleCompilationErrorsException e) {
+        // Fix the source file name displayed in the error messages
+        for (Object message : e.getErrorCollector().getErrors()) {
+            if (message instanceof SyntaxErrorMessage) {
+                try {
+                    SyntaxErrorMessage syntaxErrorMessage = (SyntaxErrorMessage) message;
+                    Field sourceField = SyntaxErrorMessage.class.getDeclaredField("source");
+                    sourceField.setAccessible(true);
+                    SourceUnit sourceUnit = (SourceUnit) sourceField.get(syntaxErrorMessage);
+                    Field nameField = SourceUnit.class.getDeclaredField("name");
+                    nameField.setAccessible(true);
+                    nameField.set(sourceUnit, source.getDisplayName());
+                } catch (Exception failure) {
+                    throw UncheckedException.asUncheckedException(failure);
+                }
+            }
+        }
+
+        SyntaxException syntaxError = e.getErrorCollector().getSyntaxError(0);
+        Integer lineNumber = syntaxError == null ? null : syntaxError.getLine();
+        throw new ScriptCompilationException(String.format("Could not compile %s.", source.getDisplayName()), e, source,
+                lineNumber);
     }
 
     private CompilerConfiguration createBaseCompilerConfiguration(Class<? extends Script> scriptBaseClass) {
