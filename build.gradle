@@ -286,9 +286,6 @@ ideaWorkspace {
 
         Node runConfig = node.component.find { it.'@name' == 'RunManager' }.configuration.find { it.'@type' == 'JUnit'}
 
-        Node module = runConfig.module[0]
-        module.'@name' = 'launcher'
-
         Node vmParameters = runConfig.option.find { it.'@name' == 'VM_PARAMETERS' }
         vmParameters.'@value' = "\"-DintegTest.gradleHomeDir=${intTestImage.destinationDir}\" -ea -Dorg.gradle.integtest.executer=embedded"
     }
@@ -555,7 +552,7 @@ def publishedProjects() {
 }
 
 def runtimeProjects() {
-    groovyProjects() - pluginProjects()
+    groovyProjects() - pluginProjects() - [project(':integTest')]
 }
 
 def pluginProjects() {

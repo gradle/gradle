@@ -12,7 +12,8 @@ dependencies {
     integTestCompile project(':toolingApi')
     integTestCompile libraries.ant
     integTestCompile libraries.xmlunit
-    integTestCompile project(path: ':', configuration: 'testRuntime')
+
+    integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
 tasks.withType(Test).whenObjectAdded {
@@ -20,8 +21,8 @@ tasks.withType(Test).whenObjectAdded {
 
     testClassesDir = sourceSets.integTest.classesDir
     classpath = sourceSets.integTest.runtimeClasspath
-    testResultsDir = file("build/test-results/$name")
-    testReportDir = file("build/reports/tests/$name")
+    testResultsDir = file("${project.testResultsDir}/$name")
+    testReportDir = file("${project.testReportDir}/$name")
     testSrcDirs = []
 
     jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
