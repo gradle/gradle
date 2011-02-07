@@ -25,6 +25,8 @@ import org.gradle.util.UncheckedException;
 import org.gradle.wrapper.Download;
 import org.gradle.wrapper.Install;
 import org.gradle.wrapper.PathAssembler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -34,11 +36,13 @@ import java.util.Set;
 
 public class DistributionFactory {
     public static final String USE_CLASSPATH_AS_DISTRIBUTION = "org.gradle.useClasspathAsDistribution";
+    private static final Logger LOGGER = LoggerFactory.getLogger(DistributionFactory.class);
 
     public Distribution getCurrentDistribution() {
         if ("true".equalsIgnoreCase(System.getProperty(USE_CLASSPATH_AS_DISTRIBUTION))) {
             return new Distribution() {
                 public Set<File> getToolingImplementationClasspath() {
+                    LOGGER.info("Using provider from Classpath");
                     DefaultClassPathProvider provider = new DefaultClassPathProvider();
                     return provider.findClassPath("GRADLE_RUNTIME");
                 }
@@ -51,6 +55,7 @@ public class DistributionFactory {
     public Distribution getDistribution(final File gradleHomeDir) {
         return new Distribution() {
             public Set<File> getToolingImplementationClasspath() {
+                LOGGER.info("Using provider from distribution in {}.", gradleHomeDir);
                 Set<File> files = new LinkedHashSet<File>();
                 File libDir = new File(gradleHomeDir, "lib");
                 for (File file : libDir.listFiles()) {

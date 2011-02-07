@@ -19,6 +19,7 @@ import org.gradle.api.internal.AbstractClassPathProvider
 import org.gradle.tooling.internal.provider.DefaultConnectionFactory
 import spock.lang.Specification
 import org.gradle.messaging.actor.ActorFactory
+import org.slf4j.Logger
 
 class DefaultToolingImplementationLoaderTest extends Specification {
     final Distribution distribution = Mock()
@@ -31,8 +32,10 @@ class DefaultToolingImplementationLoaderTest extends Specification {
         then:
         factory.class != DefaultConnectionFactory.class
         factory.class.name == DefaultConnectionFactory.class.name
-        _ * distribution.toolingImplementationClasspath >> ([AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
-                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class)
+        _ * distribution.toolingImplementationClasspath >> ([
+                AbstractClassPathProvider.getClasspathForClass(DefaultConnectionFactory.class),
+                AbstractClassPathProvider.getClasspathForClass(ActorFactory.class),
+                AbstractClassPathProvider.getClasspathForClass(Logger.class)
         ] as Set)
     }
 }

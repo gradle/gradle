@@ -20,13 +20,18 @@ import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
 import org.gradle.util.FilteringClassLoader;
 import org.gradle.util.GFileUtils;
 import org.gradle.util.ObservableUrlClassLoader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.BufferedReader;
+import java.io.File;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.URL;
+import java.util.Set;
 
 public class DefaultToolingImplementationLoader implements ToolingImplementationLoader {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultToolingImplementationLoader.class);
     private final ClassLoader classLoader;
 
     public DefaultToolingImplementationLoader() {
@@ -44,7 +49,9 @@ public class DefaultToolingImplementationLoader implements ToolingImplementation
     }
 
     private ClassLoader createImplementationClassLoader(Distribution distribution) {
-        URL[] urls = GFileUtils.toURLArray(distribution.getToolingImplementationClasspath());
+        Set<File> implementationClasspath = distribution.getToolingImplementationClasspath();
+        LOGGER.info("Using tooling provider classpath: {}", implementationClasspath);
+        URL[] urls = GFileUtils.toURLArray(implementationClasspath);
         FilteringClassLoader filteringClassLoader = new FilteringClassLoader(classLoader);
         filteringClassLoader.allowPackage("org.gradle.tooling.internal.protocol");
         return new ObservableUrlClassLoader(filteringClassLoader, urls);

@@ -18,6 +18,9 @@ package org.gradle.tooling;
 import org.gradle.tooling.internal.consumer.ConnectionFactory;
 import org.gradle.tooling.internal.consumer.Distribution;
 import org.gradle.tooling.internal.consumer.DistributionFactory;
+import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.net.URI;
@@ -42,6 +45,7 @@ import java.net.URI;
  * <p>{@code GradleConnector} instances are not thread-safe.</p>
  */
 public class GradleConnector {
+    private static final Logger LOGGER = LoggerFactory.getLogger(GradleConnector.class);
     private final ConnectionFactory connectionFactory;
     private final DistributionFactory distributionFactory;
     private File projectDir;
@@ -115,6 +119,9 @@ public class GradleConnector {
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
      */
     public BuildConnection connect() throws GradleConnectionException {
+        LOGGER.info("Connecting from tooling API consumer version {}", new GradleVersion().getVersion());
+        LOGGER.info("Consumer ClassLoader: {}", getClass().getClassLoader());
+
         if (projectDir == null) {
             throw new IllegalStateException("A project directory must be specified before creating a connection.");
         }

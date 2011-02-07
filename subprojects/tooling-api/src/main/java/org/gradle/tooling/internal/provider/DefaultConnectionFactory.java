@@ -20,6 +20,9 @@ import org.gradle.messaging.concurrent.CompositeStoppable;
 import org.gradle.messaging.concurrent.DefaultExecutorFactory;
 import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+import org.gradle.util.GradleVersion;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 
@@ -27,6 +30,7 @@ import java.io.File;
  * The implementation of the tooling API provider. This is loaded dynamically by the tooling API consumer, {@link org.gradle.tooling.internal.consumer.ConnectionFactory}.
  */
 public class DefaultConnectionFactory implements ConnectionFactoryVersion1 {
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultConnectionFactory.class);
     private final DefaultExecutorFactory executorFactory = new DefaultExecutorFactory();
     private final DefaultActorFactory actorFactory = new DefaultActorFactory(executorFactory);
 
@@ -35,6 +39,10 @@ public class DefaultConnectionFactory implements ConnectionFactoryVersion1 {
     }
 
     public ConnectionVersion1 create(File projectDirectory) {
+        LOGGER.info("Using tooling API provider version {}.", new GradleVersion().getVersion());
+        LOGGER.info("Provider ClassLoader: {}", getClass().getClassLoader());
+        LOGGER.info("Protocol ClassLoader: {}", ConnectionFactoryVersion1.class.getClassLoader());
+
         return new DefaultConnection(projectDirectory, actorFactory);
     }
 }
