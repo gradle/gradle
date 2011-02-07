@@ -13,11 +13,10 @@ dependencies {
 }
 
 //create a task for running the integration tests
-task integTest(type: Test, dependsOn: [ rootProject.intTestImage ]) {
-    systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-    systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTestUserDir.absolutePath
-    testClassesDir = sourceSets.integTest.classesDir
-    classpath = sourceSets.integTest.runtimeClasspath + configurations.integTestRuntime
-
-    doFirst { task -> systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath }
+task integTest(type: Test) {
+    doFirst {
+        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTestUserDir.absolutePath
+        systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
+    }
 }

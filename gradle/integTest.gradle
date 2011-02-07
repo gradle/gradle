@@ -27,3 +27,17 @@ eclipseClasspath {
     plusConfigurations.add(configurations.integTestCompile)
     plusConfigurations.add(configurations.integTestRuntime)
 }
+
+integTestTasks = tasks.withType(Test).matching { it.name.toLowerCase().endsWith('integtest') }
+
+integTestTasks.all {
+    dependsOn ':intTestImage'
+    testClassesDir = sourceSets.integTest.classesDir
+    classpath = sourceSets.integTest.runtimeClasspath
+    testSrcDirs = []
+
+    doFirst {
+        testResultsDir = file("${project.testResultsDir}/$name")
+        testReportDir = file("${project.testReportDir}/$name")
+    }
+}

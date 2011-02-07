@@ -16,14 +16,8 @@ dependencies {
     integTestRuntime rootProject.configurations.testRuntime.allDependencies
 }
 
-tasks.withType(Test).whenObjectAdded {
-    dependsOn ':intTestImage', ':publishLocalArchives', ':binZip', ':allZip', ':srcZip', ':docs:userguideDocbook'
-
-    testClassesDir = sourceSets.integTest.classesDir
-    classpath = sourceSets.integTest.runtimeClasspath
-    testResultsDir = file("${project.testResultsDir}/$name")
-    testReportDir = file("${project.testReportDir}/$name")
-    testSrcDirs = []
+integTestTasks.all {
+    dependsOn ':publishLocalArchives', ':binZip', ':allZip', ':srcZip', ':docs:userguideDocbook'
 
     jvmArgs '-Xmx512m', '-XX:+HeapDumpOnOutOfMemoryError'
 
