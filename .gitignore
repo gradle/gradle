@@ -21,5 +21,8 @@
 /buildSrc/*.iml
 *.classpath
 *.project
+*.settings
+/bin
+/subprojects/*/bin
 /intTestHomeDir
 .DS_Store
