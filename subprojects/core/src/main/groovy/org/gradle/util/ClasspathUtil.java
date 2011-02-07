@@ -35,15 +35,14 @@ public class ClasspathUtil {
                 method.invoke(classLoader, classpathElement);
             }
         } catch (Throwable t) {
-            t.printStackTrace();
-            throw new RuntimeException("Error, could not add URL to system classloader", t);
+            throw new RuntimeException("Error, could not add URL to classloader", t);
         }
     }
 
     public static List<URL> getClasspath(ClassLoader classLoader) {
         List<URL> implementationClassPath = new ArrayList<URL>();
-        for (
-                ClassLoader cl = classLoader; cl != ClassLoader.getSystemClassLoader().getParent(); cl = cl.getParent()) {
+        ClassLoader stopAt = ClassLoader.getSystemClassLoader() == null ? null : ClassLoader.getSystemClassLoader().getParent();
+        for (ClassLoader cl = classLoader; cl != stopAt; cl = cl.getParent()) {
             if (cl instanceof URLClassLoader) {
                 implementationClassPath.addAll(Arrays.asList(((URLClassLoader) cl).getURLs()));
             }
