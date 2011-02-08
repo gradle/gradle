@@ -29,6 +29,13 @@ public interface EclipseProject extends Project {
     DomainObjectSet<? extends EclipseProject> getChildProjects();
 
     /**
+     * Returns the source directories for this project.
+     *
+     * @return The source directories. Returns an empty set if the project has no source directories.
+     */
+    DomainObjectSet<? extends EclipseSourceDirectory> getSourceDirectories();
+
+    /**
      * Returns the dependencies which make up the classpath of this project.
      *
      * @return The dependencies. Returns an empty set if the project has no dependencies.

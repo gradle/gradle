@@ -15,16 +15,13 @@
  */
 package org.gradle.tooling.internal.protocol.eclipse;
 
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion1;
+import java.io.File;
 
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface EclipseProjectVersion1 extends ProjectVersion1 {
-    Iterable<? extends EclipseProjectVersion1> getChildProjects();
+public interface EclipseSourceDirectoryVersion1 {
+    File getFile();
 
-    Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
-
-    Iterable<? extends ExternalDependencyVersion1> getClasspath();
+    String getPath();
 }

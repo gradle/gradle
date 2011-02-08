@@ -86,14 +86,20 @@ public class ProtocolToModelAdapter {
             return doInvokeMethod(method, params);
         }
 
-        private Object doInvokeMethod(Method method, Object[] params) throws NoSuchMethodException, IllegalAccessException, InvocationTargetException {
+        private Object doInvokeMethod(Method method, Object[] params) throws Throwable {
             Method targetMethod = methods.get(method);
             if (targetMethod == null) {
                 targetMethod = findMethod(method);
                 methods.put(method, targetMethod);
             }
 
-            Object returnValue = targetMethod.invoke(delegate, params);
+            Object returnValue;
+            try {
+                returnValue = targetMethod.invoke(delegate, params);
+            } catch (InvocationTargetException e) {
+                throw e.getCause();
+            }
+
             if (returnValue == null || method.getReturnType().isInstance(returnValue)) {
                 return returnValue;
             }
@@ -101,8 +107,14 @@ public class ProtocolToModelAdapter {
             return convert(returnValue, method.getGenericReturnType());
         }
 
-        private Method findMethod(Method method) throws NoSuchMethodException {
-            Method match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
+        private Method findMethod(Method method) {
+            Method match;
+            try {
+                match = delegate.getClass().getMethod(method.getName(), method.getParameterTypes());
+            } catch (NoSuchMethodException e) {
+                throw new UnsupportedOperationException(String.format("Cannot map method %s.%s() to target object of type %s.", method.getDeclaringClass().getSimpleName(), method.getName(), delegate.getClass().getSimpleName()), e);
+            }
+
             LinkedList<Class<?>> queue = new LinkedList<Class<?>>();
             queue.add(delegate.getClass());
             while (!queue.isEmpty()) {

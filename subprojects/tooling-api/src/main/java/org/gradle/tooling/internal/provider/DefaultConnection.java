@@ -28,6 +28,7 @@ import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -77,12 +78,31 @@ public class DefaultConnection implements ConnectionVersion1 {
                     });
                 }
             }
+
+            List<EclipseSourceDirectoryVersion1> sourceDirectories = new ArrayList<EclipseSourceDirectoryVersion1>();
+            sourceDirectories.add(sourceDirectory(project, "src/main/java"));
+            sourceDirectories.add(sourceDirectory(project, "src/main/resources"));
+            sourceDirectories.add(sourceDirectory(project, "src/test/java"));
+            sourceDirectories.add(sourceDirectory(project, "src/test/resources"));
+
             List<EclipseProjectVersion1> children = new ArrayList<EclipseProjectVersion1>();
             for (Project child : project.getChildProjects().values()) {
                 children.add(build(child));
             }
 
-            return new DefaultEclipseProject(project.getName(), children, dependencies);
+            return new DefaultEclipseProject(project.getName(), children, sourceDirectories, dependencies);
+        }
+
+        private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
+            return new EclipseSourceDirectoryVersion1() {
+                public File getFile() {
+                    return project.file(path);
+                }
+
+                public String getPath() {
+                    return path;
+                }
+            };
         }
     }
 

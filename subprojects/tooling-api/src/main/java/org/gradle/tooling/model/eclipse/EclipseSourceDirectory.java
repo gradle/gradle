@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion1;
+import org.gradle.tooling.model.SourceDirectory;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * A source directory in an Eclipse project.
  */
-public interface EclipseProjectVersion1 extends ProjectVersion1 {
-    Iterable<? extends EclipseProjectVersion1> getChildProjects();
-
-    Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
-
-    Iterable<? extends ExternalDependencyVersion1> getClasspath();
+public interface EclipseSourceDirectory extends SourceDirectory {
+    /**
+     * Returns the relative path for this source directory.
+     */
+    String getPath();
 }

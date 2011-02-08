@@ -23,7 +23,7 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
-    def canBuildEclipseClasspathModelForABuild() {
+    def canBuildEclipseProjectModelForABuild() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
             apply plugin: 'java'
@@ -43,6 +43,13 @@ class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
         then:
         rootProject != null
+
+        rootProject.sourceDirectories.size() == 4
+        rootProject.sourceDirectories[0].path == 'src/main/java'
+        rootProject.sourceDirectories[1].path == 'src/main/resources'
+        rootProject.sourceDirectories[2].path == 'src/test/java'
+        rootProject.sourceDirectories[3].path == 'src/test/resources'
+
         rootProject.classpath.size() == 2
         rootProject.classpath[0] instanceof ExternalDependency
         rootProject.classpath[0].file.name == 'commons-io-1.4.jar'

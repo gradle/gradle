@@ -29,7 +29,7 @@ class ProtocolToModelAdapterTest extends Specification {
         adapter.adapt(TestModel.class, protocolModel) instanceof TestModel
     }
 
-    def proxiesAreEqualWhenTargetObjectsAreEqual() {
+    def proxiesAreEqualWhenTargetProtocolObjectsAreEqual() {
         TestProtocolModel protocolModel1 = Mock()
         TestProtocolModel protocolModel2 = Mock()
 
@@ -97,6 +97,32 @@ class ProtocolToModelAdapterTest extends Specification {
         model.project.is(model.project)
         model.children.is(model.children)
     }
+
+    def reportsMethodWhichDoesNotExistOnProtocolObject() {
+        PartialTestProtocolModel protocolModel = Mock()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        model.project
+
+        then:
+        UnsupportedOperationException e = thrown()
+        e.message == "Cannot map method TestModel.getProject() to target object of type ${protocolModel.class.simpleName}."
+    }
+
+    def propagatesExceptionThrownByProtocolObject() {
+        TestProtocolModel protocolModel = Mock()
+        RuntimeException failure = new RuntimeException()
+
+        when:
+        def model = adapter.adapt(TestModel.class, protocolModel)
+        model.name
+
+        then:
+        protocolModel.name >> { throw failure }
+        RuntimeException e = thrown()
+        e == failure
+    }
 }
 
 interface TestModel {
@@ -117,6 +143,10 @@ interface TestProtocolModel {
     TestProtocolProject getProject()
 
     Iterable<? extends TestProtocolProject> getChildren()
+}
+
+interface PartialTestProtocolModel {
+    String getName()
 }
 
 interface TestProtocolProject {
