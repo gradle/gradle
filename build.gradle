@@ -102,7 +102,6 @@ allprojects {
 
 configure(groovyProjects()) {
     apply plugin: 'groovy'
-    apply plugin: 'eclipse'
 
     archivesBaseName = "gradle-${name.replaceAll("\\p{Upper}") { "-${it.toLowerCase()}" } }"
     dependencies {
@@ -310,6 +309,12 @@ configure(groovyProjects()) {
         scopes.RUNTIME.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets.main.resources.srcDirs })))
         scopes.TEST.plus.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs })))
         beforeConfigured { module -> module.dependencies = [] }
+    }
+    eclipseClasspath {
+        plusConfigurations.add(configurations.detachedConfiguration(new DefaultSelfResolvingDependency(files { sourceSets*.resources*.srcDirs*.findAll { it.isDirectory() }} )))
+        whenConfigured { classpath ->
+            classpath.entries.removeAll { it instanceof org.gradle.plugins.eclipse.model.SourceFolder && it.path.endsWith('/resources') }
+        }
     }
 }
 
