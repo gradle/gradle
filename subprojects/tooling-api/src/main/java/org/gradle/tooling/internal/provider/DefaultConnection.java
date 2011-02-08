@@ -111,7 +111,7 @@ public class DefaultConnection implements ConnectionVersion1 {
 
         private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
             return new EclipseSourceDirectoryVersion1() {
-                public File getFile() {
+                public File getDirectory() {
                     return project.file(path);
                 }
 

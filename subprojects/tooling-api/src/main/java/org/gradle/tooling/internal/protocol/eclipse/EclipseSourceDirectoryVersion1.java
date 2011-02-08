@@ -21,7 +21,7 @@ import java.io.File;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface EclipseSourceDirectoryVersion1 {
-    File getFile();
+    File getDirectory();
 
     String getPath();
 }

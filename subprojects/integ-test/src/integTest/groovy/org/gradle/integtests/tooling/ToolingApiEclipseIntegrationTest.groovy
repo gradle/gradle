@@ -36,9 +36,13 @@ apply plugin: 'java'
 
         rootProject.sourceDirectories.size() == 4
         rootProject.sourceDirectories[0].path == 'src/main/java'
+        rootProject.sourceDirectories[0].directory == projectDir.file('src/main/java')
         rootProject.sourceDirectories[1].path == 'src/main/resources'
+        rootProject.sourceDirectories[1].directory == projectDir.file('src/main/resources')
         rootProject.sourceDirectories[2].path == 'src/test/java'
+        rootProject.sourceDirectories[2].directory == projectDir.file('src/test/java')
         rootProject.sourceDirectories[3].path == 'src/test/resources'
+        rootProject.sourceDirectories[3].directory == projectDir.file('src/test/resources')
     }
 
     def canBuildEclipseExternalDependenciesForAProject() {
