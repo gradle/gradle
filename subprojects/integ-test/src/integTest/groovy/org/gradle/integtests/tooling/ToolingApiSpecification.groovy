@@ -20,6 +20,8 @@ import org.gradle.tooling.internal.consumer.DistributionFactory
 import org.junit.Rule
 import org.gradle.util.SetSystemProperties
 import org.gradle.integtests.fixtures.GradleDistribution
+import org.gradle.tooling.BuildConnection
+import org.gradle.tooling.GradleConnector
 
 class ToolingApiSpecification extends Specification {
     @Rule public final SetSystemProperties sysProperties = new SetSystemProperties()
@@ -27,5 +29,15 @@ class ToolingApiSpecification extends Specification {
 
     def setup() {
         System.properties[DistributionFactory.USE_CLASSPATH_AS_DISTRIBUTION] = 'true'
+    }
+
+    def withConnection(Closure cl) {
+        GradleConnector connector = GradleConnector.newConnector()
+        BuildConnection connection = connector.forProjectDirectory(dist.testDir).connect()
+        try {
+            return cl.call(connection)
+        } finally {
+            connector.close()
+        }
     }
 }

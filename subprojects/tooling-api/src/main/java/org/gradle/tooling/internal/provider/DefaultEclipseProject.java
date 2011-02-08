@@ -16,6 +16,7 @@
 package org.gradle.tooling.internal.provider;
 
 import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.util.GUtil;
@@ -27,12 +28,14 @@ class DefaultEclipseProject implements EclipseProjectVersion1 {
     private final List<ExternalDependencyVersion1> classpath;
     private final List<EclipseProjectVersion1> children;
     private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
+    private final List<EclipseProjectDependencyVersion1> projectDependencies;
 
-    public DefaultEclipseProject(String name, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath) {
+    public DefaultEclipseProject(String name, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
         this.name = name;
         this.children = GUtil.addLists(children);
         this.classpath = GUtil.addLists(classpath);
         this.sourceDirectories = GUtil.addLists(sourceDirectories);
+        this.projectDependencies = GUtil.addLists(projectDependencies);
     }
 
     public String getName() {
@@ -45,6 +48,10 @@ class DefaultEclipseProject implements EclipseProjectVersion1 {
 
     public Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories() {
         return sourceDirectories;
+    }
+
+    public Iterable<? extends EclipseProjectDependencyVersion1> getProjectDependencies() {
+        return projectDependencies;
     }
 
     public List<ExternalDependencyVersion1> getClasspath() {

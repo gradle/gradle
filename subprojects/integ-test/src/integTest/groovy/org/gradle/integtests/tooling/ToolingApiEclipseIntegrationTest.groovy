@@ -15,31 +15,21 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.tooling.BuildConnection
-import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.ExternalDependency
 import org.gradle.tooling.model.eclipse.EclipseBuild
 import org.gradle.tooling.model.eclipse.EclipseProject
 
 class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
-    def canBuildEclipseProjectModelForABuild() {
+    def canBuildEclipseSourceDirectoriesForAProject() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''
-            apply plugin: 'java'
-            repositories { mavenCentral() }
-            dependencies {
-                compile 'commons-lang:commons-lang:2.5'
-                runtime 'commons-io:commons-io:1.4'
-            }
+apply plugin: 'java'
 '''
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.forProjectDirectory(projectDir).connect()
-        EclipseBuild build = connection.getModel(EclipseBuild.class)
+        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
         EclipseProject rootProject = build.getRootProject()
-        connector.close()
 
         then:
         rootProject != null
@@ -49,12 +39,65 @@ class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
         rootProject.sourceDirectories[1].path == 'src/main/resources'
         rootProject.sourceDirectories[2].path == 'src/test/java'
         rootProject.sourceDirectories[3].path == 'src/test/resources'
+    }
+
+    def canBuildEclipseExternalDependenciesForAProject() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+repositories { mavenCentral() }
+dependencies {
+    compile 'commons-lang:commons-lang:2.5'
+    runtime 'commons-io:commons-io:1.4'
+}
+'''
+
+        when:
+        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
+        EclipseProject rootProject = build.getRootProject()
+
+        then:
+        rootProject != null
 
         rootProject.classpath.size() == 2
         rootProject.classpath[0] instanceof ExternalDependency
         rootProject.classpath[0].file.name == 'commons-io-1.4.jar'
         rootProject.classpath[1] instanceof ExternalDependency
         rootProject.classpath[1].file.name == 'commons-lang-2.5.jar'
+    }
+
+    def canBuildEclipseProjectDependenciesForAProject() {
+        def projectDir = dist.testDir
+        projectDir.file('settings.gradle').text = '''
+include "a", "a:b"
+rootProject.name = 'root'
+'''
+        projectDir.file('build.gradle').text = '''
+allprojects {
+    apply plugin: 'java'
+}
+project(':a') {
+    dependencies {
+        compile project(':')
+        compile project(':a:b')
+    }
+}
+'''
+
+        when:
+        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
+        EclipseProject rootProject = build.getRootProject()
+
+        then:
+        EclipseProject project = rootProject.childProjects[0]
+
+        project.projectDependencies.size() == 2
+
+        project.projectDependencies[0].path == 'root'
+        project.projectDependencies[0].targetProject == rootProject
+
+        project.projectDependencies[1].path == 'b'
+        project.projectDependencies[1].targetProject == project.childProjects[0]
     }
 
     def canBuildEclipseProjectHierarchyForAMultiProjectBuild() {
@@ -65,11 +108,8 @@ class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 '''
 
         when:
-        GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.forProjectDirectory(projectDir).connect()
-        EclipseBuild build = connection.getModel(EclipseBuild.class)
+        EclipseBuild build = withConnection { connection -> connection.getModel(EclipseBuild.class) }
         EclipseProject rootProject = build.getRootProject()
-        connector.close()
 
         then:
         rootProject != null

@@ -13,20 +13,21 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.internal.protocol.eclipse;
+package org.gradle.tooling.model.eclipse;
 
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ProjectVersion1;
+import org.gradle.tooling.model.ProjectDependency;
 
 /**
- * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
+ * Represents a dependency on another Eclipse project.
  */
-public interface EclipseProjectVersion1 extends ProjectVersion1 {
-    Iterable<? extends EclipseProjectVersion1> getChildProjects();
+public interface EclipseProjectDependency extends ProjectDependency {
+    /**
+     * {@inheritDoc}
+     */
+    EclipseProject getTargetProject();
 
-    Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
-
-    Iterable<? extends EclipseProjectDependencyVersion1> getProjectDependencies();
-
-    Iterable<? extends ExternalDependencyVersion1> getClasspath();
+    /**
+     * Returns the path to use for this project dependency.
+     */
+    String getPath();
 }

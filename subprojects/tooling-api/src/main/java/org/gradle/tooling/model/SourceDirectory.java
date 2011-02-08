@@ -23,6 +23,8 @@ import java.io.File;
 public interface SourceDirectory {
     /**
      * Returns the source directory.
+     *
+     * @return The directory. Does not return null.
      */
     File getDirectory();
 }

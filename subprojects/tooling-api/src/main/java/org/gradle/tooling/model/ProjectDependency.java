@@ -13,18 +13,16 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling.model.eclipse;
-
-import org.gradle.tooling.model.SourceDirectory;
+package org.gradle.tooling.model;
 
 /**
- * A source directory in an Eclipse project.
+ * Represents a dependency on another project.
  */
-public interface EclipseSourceDirectory extends SourceDirectory {
+public interface ProjectDependency extends Dependency {
     /**
-     * Returns the relative path for this source directory.
+     * Returns the target of this dependency.
      *
-     * @return The path for this source directory. Does not return null.
+     * @return The target project. Does not return null.
      */
-    String getPath();
+    Project getTargetProject();
 }
