@@ -33,7 +33,14 @@ class ToolingApiSpecification extends Specification {
 
     def withConnection(Closure cl) {
         GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.forProjectDirectory(dist.testDir).connect()
+        withConnection(connector, cl)
+    }
+
+    def withConnection(GradleConnector connector, Closure cl) {
+        connector.forProjectDirectory(dist.testDir)
+        connector.useGradleUserHomeDir(dist.userHomeDir)
+        connector.searchUpwards(false)
+        BuildConnection connection = connector.connect()
         try {
             return cl.call(connection)
         } finally {

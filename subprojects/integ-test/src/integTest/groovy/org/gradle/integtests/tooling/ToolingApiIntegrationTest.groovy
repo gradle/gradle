@@ -15,7 +15,6 @@
  */
 package org.gradle.integtests.tooling
 
-import org.gradle.tooling.BuildConnection
 import org.gradle.tooling.GradleConnector
 import org.gradle.tooling.model.Build
 import org.gradle.util.GradleVersion
@@ -27,9 +26,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.forProjectDirectory(projectDir).connect()
-        Build model = connection.getModel(Build.class)
-        connector.close()
+        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
 
         then:
         model != null
@@ -41,9 +38,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.useInstallation(dist.gradleHomeDir).forProjectDirectory(projectDir).connect()
-        Build model = connection.getModel(Build.class)
-        connector.close()
+        connector.useInstallation(dist.gradleHomeDir)
+        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
 
         then:
         model != null
@@ -55,9 +51,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.useDistribution(dist.binDistribution.toURI()).forProjectDirectory(projectDir).connect()
-        Build model = connection.getModel(Build.class)
-        connector.close()
+        connector.useDistribution(dist.binDistribution.toURI())
+        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
 
         then:
         model != null
@@ -69,9 +64,8 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        BuildConnection connection = connector.useGradleVersion(new GradleVersion().version).forProjectDirectory(projectDir).connect()
-        Build model = connection.getModel(Build.class)
-        connector.close()
+        connector.useGradleVersion(new GradleVersion().version)
+        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
 
         then:
         model != null

@@ -23,10 +23,7 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.messaging.actor.ActorFactory;
-import org.gradle.tooling.internal.protocol.BuildVersion1;
-import org.gradle.tooling.internal.protocol.ConnectionVersion1;
-import org.gradle.tooling.internal.protocol.ExternalDependencyVersion1;
-import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
+import org.gradle.tooling.internal.protocol.*;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
@@ -36,12 +33,12 @@ import java.io.File;
 import java.util.*;
 
 public class DefaultConnection implements ConnectionVersion1 {
-    private final File projectDir;
     private final ActorFactory actorFactory;
     private Worker worker;
+    private final ConnectionParametersVersion1 parameters;
 
-    public DefaultConnection(File projectDir, ActorFactory actorFactory) {
-        this.projectDir = projectDir;
+    public DefaultConnection(ConnectionParametersVersion1 parameters, ActorFactory actorFactory) {
+        this.parameters = parameters;
         this.actorFactory = actorFactory;
     }
 
@@ -137,9 +134,7 @@ public class DefaultConnection implements ConnectionVersion1 {
 
         private <T extends BuildVersion1> T build(Class<T> type) throws UnsupportedOperationException {
             if (type.isAssignableFrom(EclipseBuildVersion1.class)) {
-                StartParameter startParameter = new StartParameter();
-                startParameter.setProjectDir(projectDir);
-                startParameter.setSearchUpwards(false);
+                StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
 
                 final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
                 final ModelBuilder builder = new ModelBuilder();

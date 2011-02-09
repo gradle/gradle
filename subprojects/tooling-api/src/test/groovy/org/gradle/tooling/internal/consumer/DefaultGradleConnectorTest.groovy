@@ -13,19 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.tooling
+package org.gradle.tooling.internal.consumer
 
+import org.gradle.tooling.BuildConnection
+import org.gradle.tooling.GradleConnector
 import spock.lang.Specification
-import org.gradle.tooling.internal.consumer.ConnectionFactory
-import org.gradle.tooling.internal.consumer.DistributionFactory
-import org.gradle.tooling.internal.consumer.Distribution
 
-class GradleConnectorTest extends Specification {
+class DefaultGradleConnectorTest extends Specification {
     final ConnectionFactory connectionFactory = Mock()
     final DistributionFactory distributionFactory = Mock()
     final Distribution distribution = Mock()
     final File projectDir = new File('project-dir')
-    final GradleConnector connector = new GradleConnector(connectionFactory, distributionFactory)
+    final GradleConnector connector = new DefaultGradleConnector(connectionFactory, distributionFactory)
 
     def canCreateAConnectionGivenAProjectDirectory() {
         BuildConnection connection = Mock()
@@ -36,7 +35,20 @@ class GradleConnectorTest extends Specification {
         then:
         result == connection
         1 * distributionFactory.currentDistribution >> distribution
-        1 * connectionFactory.create(distribution, projectDir) >> connection
+        1 * connectionFactory.create(distribution, { it.projectDir == projectDir }) >> connection
+    }
+
+    def canSpecifyUserHomeDir() {
+        BuildConnection connection = Mock()
+        File userDir = new File('user-dir')
+
+        when:
+        def result = connector.useGradleUserHomeDir(userDir).forProjectDirectory(projectDir).connect()
+
+        then:
+        result == connection
+        1 * distributionFactory.currentDistribution >> distribution
+        1 * connectionFactory.create(distribution, { it.gradleUserHomeDir == userDir }) >> connection
     }
 
     def canSpecifyAGradleInstallationToUse() {
@@ -49,7 +61,7 @@ class GradleConnectorTest extends Specification {
         then:
         result == connection
         1 * distributionFactory.getDistribution(gradleHome) >> distribution
-        1 * connectionFactory.create(distribution, projectDir) >> connection
+        1 * connectionFactory.create(distribution, !null) >> connection
     }
 
     def canSpecifyAGradleDistributionToUse() {
@@ -62,7 +74,7 @@ class GradleConnectorTest extends Specification {
         then:
         result == connection
         1 * distributionFactory.getDistribution(gradleDist) >> distribution
-        1 * connectionFactory.create(distribution, projectDir) >> connection
+        1 * connectionFactory.create(distribution, !null) >> connection
     }
 
     def canSpecifyAGradleVersionToUse() {
@@ -74,7 +86,7 @@ class GradleConnectorTest extends Specification {
         then:
         result == connection
         1 * distributionFactory.getDistribution('1.0') >> distribution
-        1 * connectionFactory.create(distribution, projectDir) >> connection
+        1 * connectionFactory.create(distribution, !null) >> connection
     }
 
     def mustSpecifyAProjectDirectory() {

@@ -18,9 +18,9 @@ package org.gradle.tooling.internal.consumer;
 import org.gradle.messaging.concurrent.Stoppable;
 import org.gradle.tooling.BuildConnection;
 import org.gradle.tooling.internal.protocol.ConnectionFactoryVersion1;
+import org.gradle.tooling.internal.protocol.ConnectionParametersVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
 
-import java.io.File;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
@@ -42,10 +42,10 @@ public class ConnectionFactory implements Stoppable {
         this.toolingImplementationLoader = toolingImplementationLoader;
     }
 
-    public BuildConnection create(Distribution distribution, File projectDir) {
+    public BuildConnection create(Distribution distribution, ConnectionParametersVersion1 parameters) {
         ConnectionFactoryVersion1 factory = toolingImplementationLoader.create(distribution);
         factories.add(factory);
-        final ConnectionVersion1 connection = factory.create(projectDir);
+        final ConnectionVersion1 connection = factory.create(parameters);
         return new DefaultBuildConnection(connection, adapter);
     }
 

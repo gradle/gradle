@@ -15,14 +15,21 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.io.File;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
-public interface ConnectionFactoryVersion1 {
-    /**
-     * Stops this factory, blocking until complete.
-     */
-    void stop();
+public interface ConnectionParametersVersion1 {
+    File getProjectDir();
 
-    ConnectionVersion1 create(ConnectionParametersVersion1 parameters);
+    /**
+     * Specifies whether to search for root project, or null to use default.
+     */
+    Boolean isSearchUpwards();
+
+    /**
+     * Returns the Gradle user home directory, or null to use default.
+     */
+    File getGradleUserHomeDir();
 }
