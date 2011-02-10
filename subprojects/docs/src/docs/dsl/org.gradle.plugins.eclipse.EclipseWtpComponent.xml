@@ -9,20 +9,12 @@
                 </tr>
             </thead>
             <tr>
-                <td>orgEclipseWstCommonComponentInputFile</td>
+                <td>inputFile</td>
                 <td/>
             </tr>
             <tr>
-                <td>orgEclipseWstCommonComponentOutputFile</td>
+                <td>outputFile</td>
                 <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.component</filename></td>
-            </tr>
-            <tr>
-                <td>orgEclipseWstCommonProjectFacetCoreInputFile</td>
-                <td/>
-            </tr>
-            <tr>
-                <td>orgEclipseWstCommonProjectFacetCoreOutputFile</td>
-                <td><filename><replaceable>${project.projectDir}</replaceable>/.settings/org.eclipse.wst.common.project.facet.core.xml</filename></td>
             </tr>
             <tr>
                 <td>sourceSets</td>
@@ -35,10 +27,6 @@
             <tr>
                 <td>minusConfigurations</td>
                 <td><literal>[project.configurations.providedRuntime]</literal></td>
-            </tr>
-            <tr>
-                <td>facets</td>
-                <td>Java and web facets.</td>
             </tr>
             <tr>
                 <td>deployName</td>
@@ -70,9 +58,6 @@
                     <td>Name</td>
                 </tr>
             </thead>
-            <tr>
-                <td>facet</td>
-            </tr>
             <tr>
                 <td>variables</td>
             </tr>

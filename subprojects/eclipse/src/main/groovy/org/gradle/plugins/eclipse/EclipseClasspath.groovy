@@ -68,6 +68,8 @@ class EclipseClasspath extends XmlGeneratorTask<Classpath> {
      */
     boolean downloadJavadoc = false
 
+    List<Closure> entryConfigurers = []
+
     protected ClasspathFactory modelFactory = new ClasspathFactory()
 
     EclipseClasspath() {

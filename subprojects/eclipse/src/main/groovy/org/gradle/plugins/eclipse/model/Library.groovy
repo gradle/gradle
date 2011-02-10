@@ -19,11 +19,11 @@ package org.gradle.plugins.eclipse.model
  * @author Hans Dockter
  */
 class Library extends AbstractLibrary {
-    def Library(Node node) {
+    Library(Node node) {
         super(node);
     }
 
-    def Library(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath, String javadocPath) {
+    Library(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath, String javadocPath) {
         super(path, exported, nativeLibraryLocation, accessRules, sourcePath, javadocPath)
     }
 

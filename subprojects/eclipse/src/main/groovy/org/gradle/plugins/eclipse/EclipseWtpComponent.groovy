@@ -15,49 +15,33 @@
  */
 package org.gradle.plugins.eclipse
 
-
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.internal.ConventionTask
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.TaskAction
 import org.gradle.listener.ActionBroadcast
-import org.gradle.plugins.eclipse.model.Facet
-import org.gradle.plugins.eclipse.model.WbProperty
-import org.gradle.plugins.eclipse.model.WbResource
-import org.gradle.plugins.eclipse.model.Wtp
-import org.gradle.plugins.eclipse.model.internal.WtpFactory
-import org.gradle.util.ConfigureUtil
+import org.gradle.plugins.eclipse.model.*
+import org.gradle.plugins.eclipse.model.internal.WtpComponentFactory
 
 /**
- * Generates Eclipse configuration files for Eclipse WTP.
+ * Generates the org.eclipse.wst.common.component settings file for Eclipse WTP.
  *
  * @author Hans Dockter
  */
-class EclipseWtp extends ConventionTask {
+class EclipseWtpComponent extends ConventionTask {
     /**
-     * The file that is merged into the to be produced org.eclipse.wst.common.component file. This
-     * file must not exist.
+     * Any existing file that is to be merged with the generated file.
      */
-    File orgEclipseWstCommonComponentInputFile
+    @Optional
+    File inputFile
 
     /**
-     * The output file for the org.eclipse.wst.common.component metadata.
+     * The file to be generated.
      */
     @OutputFile
-    File orgEclipseWstCommonComponentOutputFile
-
-    /**
-     * The file that is merged into the to be produced org.eclipse.wst.common.project.facet.core file. This
-     * file must not exist.
-     */
-    File orgEclipseWstCommonProjectFacetCoreInputFile
-
-    /**
-     * The output file for the org.eclipse.wst.common.project.facet.core metadata.
-     */
-    @OutputFile
-    File orgEclipseWstCommonProjectFacetCoreOutputFile
+    File outputFile
 
     /**
      * The source sets to be transformed into wb-resource elements.
@@ -65,30 +49,22 @@ class EclipseWtp extends ConventionTask {
     Iterable<SourceSet> sourceSets
 
     /**
-     * The configurations which files are to be transformed into dependent-module elements of
-     * the org.eclipse.wst.common.component file.
+     * The configurations whose files are to be transformed into dependent-module elements.
      */
     Set<Configuration> plusConfigurations
 
     /**
-     * The configurations which files are to be excluded from the dependent-module elements of
-     * the org.eclipse.wst.common.component file.
+     * The configurations whose files are to be excluded from dependent-module elements.
      */
     Set<Configuration> minusConfigurations
 
     /**
-     * The facets to be added as installed elements to the org.eclipse.wst.common.project.facet.core file.
+     * The deploy name to be used.
      */
-    List<Facet> facets = []
+    String deployName
 
     /**
-     * The deploy name to be used in the org.eclipse.wst.common.component file.
-     */
-    String deployName;
-
-    /**
-     * The variables to be used for replacing absolute path in dependent-module elements of
-     * the org.eclipse.wst.common.component file.
+     * The variables to be used for replacing absolute path in dependent-module elements.
      */
     Map<String, File> variables = [:]
 
@@ -107,34 +83,24 @@ class EclipseWtp extends ConventionTask {
      */
     String contextPath
 
-    protected WtpFactory modelFactory = new WtpFactory()
+    protected WtpComponentFactory modelFactory = new WtpComponentFactory()
 
     ActionBroadcast<Map<String, Node>> withXmlActions = new ActionBroadcast<Map<String, Node>>()
-    ActionBroadcast<Wtp> beforeConfiguredActions = new ActionBroadcast<Wtp>()
-    ActionBroadcast<Wtp> whenConfiguredActions = new ActionBroadcast<Wtp>()
+    ActionBroadcast<WtpComponent> beforeConfiguredActions = new ActionBroadcast<WtpComponent>()
+    ActionBroadcast<WtpComponent> whenConfiguredActions = new ActionBroadcast<WtpComponent>()
 
-    EclipseWtp() {
+    EclipseWtpComponent() {
         outputs.upToDateWhen { false }
     }
 
     @TaskAction
     protected void generateXml() {
-        Wtp wtp = modelFactory.createWtp(this)
-        wtp.toXml(orgEclipseWstCommonComponentOutputFile, orgEclipseWstCommonProjectFacetCoreOutputFile)
+        WtpComponent component = modelFactory.createWtpComponent(this)
+        component.toXml(outputFile)
     }
 
     /**
-     * Adds a facet for the org.eclipse.wst.common.project.facet.core file.
-     *
-     * @param args A map that must contain a name and version key with corresponding values.
-     */
-    void facet(Map<String, ?> args) {
-        setFacets(getFacets() + [ConfigureUtil.configureByMap(args, new Facet())])
-    }
-
-    /**
-     * Adds variables to be used for replacing absolute path in dependent-module elements of
-     * the org.eclipse.wst.common.component file.
+     * Adds variables to be used for replacing absolute path in dependent-module elements.
      *
      * @param variables A map where the keys are the variable names and the values are the variable values.
      */
@@ -144,7 +110,7 @@ class EclipseWtp extends ConventionTask {
     }
 
     /**
-     * Adds a property to be added to the org.eclipse.wst.common.component file.
+     * Adds a property.
      *
      * @param args A map that must contain a name and value key with corresponding values.
      */
@@ -153,7 +119,7 @@ class EclipseWtp extends ConventionTask {
     }
 
     /**
-     * Adds a wb-resource to be added to the org.eclipse.wst.common.component file.
+     * Adds a wb-resource.
      *
      * @param args A map that must contain a deployPath and sourcePath key with corresponding values.
      */
@@ -170,7 +136,7 @@ class EclipseWtp extends ConventionTask {
     }
 
     /**
-     * Adds a closure to be called when the model has been loaded from the input files, and before this task has
+     * Adds a closure to be called when the model has been loaded from the input file, and before this task has
      * configured the model.
      */
     void beforeConfigured(Closure closure) {

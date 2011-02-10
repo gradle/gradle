@@ -6,4 +6,4 @@ dependencies {
 }
 
 eclipseClasspath.variables = ['GRADLE_USER_HOME': gradle.gradleUserHomeDir]
-eclipseWtp.variables = ['GRADLE_USER_HOME': gradle.gradleUserHomeDir]
+eclipseWtpComponent.variables = ['GRADLE_USER_HOME': gradle.gradleUserHomeDir]

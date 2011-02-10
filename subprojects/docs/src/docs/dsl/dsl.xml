@@ -167,7 +167,10 @@
                 <td>org.gradle.plugins.eclipse.EclipseProject</td>
             </tr>
             <tr>
-                <td>org.gradle.plugins.eclipse.EclipseWtp</td>
+                <td>org.gradle.plugins.eclipse.EclipseWtpComponent</td>
+            </tr>
+            <tr>
+                <td>org.gradle.plugins.eclipse.EclipseWtpFacet</td>
             </tr>
             <tr>
                 <td>org.gradle.api.tasks.Exec</td>

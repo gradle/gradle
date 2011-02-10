@@ -123,13 +123,25 @@
             </tr>
             <tr>
                 <td>
-                    <literal>cleanEclipseWtp</literal>
+                    <literal>cleanEclipseWtpComponent</literal>
                 </td>
                 <td>
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.api.tasks.Delete"/></td>
-                <td>Removes the WTP settings files.</td>
+                <td>Removes the org.eclipse.wst.common.component settings file for Eclipse WTP.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>cleanEclipseWtpFacet</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.api.tasks.Delete"/>
+                </td>
+                <td>Removes the org.eclipse.wst.common.project.facet.core.xml settings file for Eclipse WTP.</td>
             </tr>
             <tr>
                 <td>
@@ -139,7 +151,7 @@
                     <literal>-</literal>
                 </td>
                 <td><apilink class="org.gradle.plugins.eclipse.EclipseProject"/></td>
-                <td>Generates the eclipse project file.</td>
+                <td>Generates the Eclipse project file.</td>
             </tr>
             <tr>
                 <td>
@@ -163,13 +175,25 @@
             </tr>
             <tr>
                 <td>
-                    <literal>eclipseWtp</literal>
+                    <literal>eclipseWtpComponent</literal>
                 </td>
                 <td>
                     <literal>-</literal>
                 </td>
-                <td><apilink class="org.gradle.plugins.eclipse.EclipseWtp"/></td>
-                <td>Generates the WTP settings files.</td>
+                <td><apilink class="org.gradle.plugins.eclipse.EclipseWtpComponent"/></td>
+                <td>Generates the org.eclipse.wst.common.component file for Eclipse WTP.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>eclipseWtpFacet</literal>
+                </td>
+                <td>
+                    <literal>-</literal>
+                </td>
+                <td>
+                    <apilink class="org.gradle.plugins.eclipse.EclipseWtpFacet"/>
+                </td>
+                <td>Generates the org.eclipse.wst.common.project.facet.core.xml file for Eclipse WTP.</td>
             </tr>
         </table>
 
@@ -334,8 +358,8 @@
             </tr>
         </table>
 
-        <table id='eclipse-wtp'>
-            <title>EclipseWtp task</title>
+        <table id='eclipse-wtp-component'>
+            <title>EclipseWtpComponent task</title>
             <thead>
                 <tr>
                     <td>Property</td>
@@ -362,7 +386,7 @@
                     <classname>String</classname>
                 </td>
                 <td><literal>project.name</literal></td>
-                <td>The deploy name to be used in the org.eclipse.wst.common.component file.</td>
+                <td>The deploy name to be used.</td>
             </tr>
             <tr>
                 <td>
@@ -372,7 +396,7 @@
                     <classname>Set&lt;Configuration&gt;</classname>
                 </td>
                 <td><literal>[configurations.testRuntime]</literal></td>
-                <td>The configurations, which files are to be transformed into classpath entries.</td>
+                <td>The configurations whose files are to be transformed into classpath entries.</td>
             </tr>
             <tr>
                 <td>
@@ -382,7 +406,7 @@
                     <classname>Set&lt;Configuration&gt;</classname>
                 </td>
                 <td><literal>[configurations.providedRuntime]</literal></td>
-                <td>The configurations which files are to be excluded from the classpath entries.</td>
+                <td>The configurations whose files are to be excluded from the classpath entries.</td>
             </tr>
             <tr>
                 <td>
@@ -395,6 +419,18 @@
                 <td>If the beginning of the absolute path of a library matches a value of a variable,
                 a variable entry is created. The matching part of the library path is replaced with the variable name.</td>
             </tr>
+        </table>
+
+        <table id='eclipse-wtp-facet'>
+            <title>EclipseWtpFacet task</title>
+            <thead>
+                <tr>
+                    <td>Property</td>
+                    <td>Type</td>
+                    <td>Default Value</td>
+                    <td>Description</td>
+                </tr>
+            </thead>
             <tr>
                 <td>
                     <literal>facets</literal>
@@ -402,8 +438,13 @@
                 <td>
                     <classname>List&lt;Facet&gt;</classname>
                 </td>
-                <td><literal>jst.java</literal> and <literal>jst.web</literal> facet</td>
-                <td>The facets to be added as installed elements to the org.eclipse.wst.common.project.facet.core file.</td>
+                <td>
+                    <literal>jst.java</literal>
+                    and
+                    <literal>jst.web</literal>
+                    facet
+                </td>
+                <td>The facets to be added as installed elements.</td>
             </tr>
         </table>
 
@@ -424,7 +465,8 @@
                 </td>
                 <td><apilink class="org.gradle.plugins.eclipse.model.Project"/></td>
                 <td><apilink class="org.gradle.plugins.eclipse.model.Classpath"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.Wtp"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.WtpComponent"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.WtpFacet"/></td>
                 <td>Gets called directly after the domain objects have been populated with the content of the
                     existing XML file (if there is one).</td>
             </tr>
@@ -434,7 +476,8 @@
                 </td>
                 <td><apilink class="org.gradle.plugins.eclipse.model.Project"/></td>
                 <td><apilink class="org.gradle.plugins.eclipse.model.Classpath"/></td>
-                <td><apilink class="org.gradle.plugins.eclipse.model.Wtp"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.WtpComponent"/></td>
+                <td><apilink class="org.gradle.plugins.eclipse.model.WtpFacet"/></td>
                 <td>Gets called after the domain objects have been populated with the content of the
                     existing XML file and the content from the build script.</td>
             </tr>
@@ -451,9 +494,9 @@
     </section>
     <section>
         <title>Customizing the generated files</title>
-        <para>All the tasks of the eclipse plugin provide the same hooks and behavior for customizing the generated content.</para>
-        <para>The tasks recognize existing eclipse files. If an eclipse project, classpath or wtp file does not exists,
-        default values are used. Otherwise the existing ones are merged.</para>
+        <para>All the tasks of the Eclipse plugin provide the same hooks and behavior for customizing the generated content.</para>
+        <para>The tasks recognize existing Eclipse files. If an Eclipse project, classpath or WTP file already exists,
+        it will be merged with the generated content.</para>
         <section>
             <title>Merging</title>
             <para>The first option to customize the Eclipse files is to have an existing Eclipse file before the tasks are run.

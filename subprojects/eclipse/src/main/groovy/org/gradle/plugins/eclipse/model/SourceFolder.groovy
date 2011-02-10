@@ -20,17 +20,17 @@ package org.gradle.plugins.eclipse.model
  */
 class SourceFolder extends AbstractClasspathEntry {
     String output
-    List excludes
     List includes
+    List excludes
 
-    def SourceFolder(Node node) {
+    SourceFolder(Node node) {
         super(node)
         this.output = normalizePath(node.@output)
         this.includes = node.@including?.split('\\|') ?: []
         this.excludes = node.@excluding?.split('\\|') ?: []
     }
 
-    def SourceFolder(String path, String nativeLibraryLocation, Set accessRules, String output,
+    SourceFolder(String path, String nativeLibraryLocation, Set accessRules, String output,
                      List includes, List excludes) {
         super(path, false, nativeLibraryLocation, accessRules)
         this.output = normalizePath(output);
@@ -76,7 +76,6 @@ class SourceFolder extends AbstractClasspathEntry {
         result = 31 * result + includes.hashCode();
         return result;
     }
-
 
     public String toString() {
         return "SourceFolder{" +

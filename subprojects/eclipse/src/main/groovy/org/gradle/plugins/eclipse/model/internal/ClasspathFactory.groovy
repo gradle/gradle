@@ -26,16 +26,29 @@ import org.gradle.plugins.eclipse.EclipseClasspath
  * @author Hans Dockter
  */
 class ClasspathFactory {
-    def configure(EclipseClasspath eclipseClasspath, Classpath classpath) {
-        List entries = []
+    void configure(EclipseClasspath eclipseClasspath, Classpath classpath) {
+        def entries = []
         entries.add(new Output(eclipseClasspath.project.relativePath(eclipseClasspath.defaultOutputDir)))
         entries.addAll(getEntriesFromSourceSets(eclipseClasspath.sourceSets, eclipseClasspath.project))
         entries.addAll(getEntriesFromContainers(eclipseClasspath.getContainers()))
         entries.addAll(getEntriesFromConfigurations(eclipseClasspath))
+        postProcessEntries(entries, eclipseClasspath.entryConfigurers)
+
         classpath.configure(entries)
     }
 
-    List<SourceFolder> getEntriesFromSourceSets(Iterable<SourceSet> sourceSets, org.gradle.api.Project project) {
+    private postProcessEntries(List<ClasspathEntry> entries, List<Closure> entryConfigurers) {
+        for (configurer in entryConfigurers) {
+            def type = configurer.parameterTypes[0]
+            for (entry in entries) {
+                if (type.isInstance(entry)) {
+                    configurer(entry)
+                }
+            }
+        }
+    }
+
+    private List<SourceFolder> getEntriesFromSourceSets(Iterable<SourceSet> sourceSets, org.gradle.api.Project project) {
         List entries = []
         def sortedSourceSets = sortSourceSetsAsPerUsualConvention(sourceSets.collect{it})
 
@@ -60,13 +73,13 @@ class ClasspathFactory {
         entries
     }
 
-    List getEntriesFromContainers(Set containers) {
+    private List getEntriesFromContainers(Set containers) {
         containers.collect { container ->
             new Container(container, true, null, [] as Set)
         }
     }
 
-    List getEntriesFromConfigurations(EclipseClasspath eclipseClasspath) {
+    private List getEntriesFromConfigurations(EclipseClasspath eclipseClasspath) {
         getModules(eclipseClasspath) + getLibraries(eclipseClasspath)
     }
 
@@ -80,7 +93,7 @@ class ClasspathFactory {
 
     protected Set getLibraries(EclipseClasspath eclipseClasspath) {
         Set declaredDependencies = getDependencies(eclipseClasspath.plusConfigurations, eclipseClasspath.minusConfigurations,
-                { it instanceof ExternalDependency})
+                { it instanceof ExternalDependency })
 
         ResolvedConfiguration resolvedConfiguration = eclipseClasspath.project.configurations.
                 detachedConfiguration((declaredDependencies as Dependency[])).resolvedConfiguration
@@ -106,13 +119,12 @@ class ClasspathFactory {
         moduleLibraries
     }
 
-    private def getSelfResolvingFiles(Collection dependencies, Map<String, File> variables) {
-        dependencies.inject([] as LinkedHashSet) { result, SelfResolvingDependency selfResolvingDependency ->
-            result.addAll(selfResolvingDependency.resolve().collect { File file ->
+    private getSelfResolvingFiles(Collection dependencies, Map<String, File> variables) {
+        dependencies.collect { SelfResolvingDependency dependency ->
+            dependency.resolve().collect { File file ->
                 createLibraryEntry(file, null, null, variables)
-            })
-            result
-        }
+            }
+        }.flatten()
     }
 
     AbstractLibrary createLibraryEntry(File binary, File source, File javadoc, Map<String, File> variables) {
@@ -131,17 +143,17 @@ class ClasspathFactory {
     private Set getDependencies(Set plusConfigurations, Set minusConfigurations, Closure filter) {
         Set declaredDependencies = new LinkedHashSet()
         plusConfigurations.each { configuration ->
-            declaredDependencies.addAll(configuration.getAllDependencies().findAll(filter))
+            declaredDependencies.addAll(configuration.allDependencies.findAll(filter))
         }
         minusConfigurations.each { configuration ->
-            configuration.getAllDependencies().findAll(filter).each { minusDep ->
+            configuration.allDependencies.findAll(filter).each { minusDep ->
                 declaredDependencies.remove(minusDep)
             }
         }
         return declaredDependencies
     }
 
-    private def getFiles(def project, Set dependencies, String classifier) {
+    private getFiles(def project, Set dependencies, String classifier) {
         return project.configurations.detachedConfiguration((dependencies as Dependency[])).files.inject([:]) { result, sourceFile ->
             String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
             result[key] = sourceFile

@@ -20,59 +20,66 @@ import org.gradle.plugins.eclipse.model.internal.PathUtil
 /**
  * @author Hans Dockter
  */
+// TODO: consider entryAttributes in equals, hashCode, and toString
 abstract class AbstractClasspathEntry implements ClasspathEntry {
-    static final String NATIVE_LIBRARY_ATTRIBUTE = 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY'
-    String path
-    String nativeLibraryLocation
-    boolean exported
-    Set<AccessRule> accessRules
+    private static final String NATIVE_LIBRARY_ATTRIBUTE = 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY'
 
-    def AbstractClasspathEntry(Node node) {
-        this.path = normalizePath(node.@path)
-        this.exported = node.@exported
-        this.nativeLibraryLocation = readNativeLibraryLocation(node)
-        this.accessRules = readAccessRules(node)
+    String path
+    boolean exported
+    final Set<AccessRule> accessRules
+    final Map entryAttributes
+
+    AbstractClasspathEntry(Node node) {
+        path = normalizePath(node.@path)
+        exported = node.@exported
+        accessRules = readAccessRules(node)
+        entryAttributes = readEntryAttributes(node)
         assert path != null && accessRules != null
     }
 
-    def AbstractClasspathEntry(String path, boolean exported, String nativeLibraryLocation, Set accessRules) {
+    AbstractClasspathEntry(String path, boolean exported, String nativeLibraryLocation, Set accessRules) {
         assert path != null && accessRules != null
         this.path = normalizePath(path);
         this.exported = exported
-        this.nativeLibraryLocation = nativeLibraryLocation
         this.accessRules = accessRules
+        entryAttributes = [:]
+        this.nativeLibraryLocation = nativeLibraryLocation
     }
 
-    Map removeNullEntries(Map args) {
-        def result = [:]
-        args.each { key, value ->
-            if (value) {
-                result[key] = value
-            }
+    String getNativeLibraryLocation() {
+        entryAttributes.get(NATIVE_LIBRARY_ATTRIBUTE)
+    }
+
+    final void setNativeLibraryLocation(String location) {
+        entryAttributes.put(NATIVE_LIBRARY_ATTRIBUTE, location)
+    }
+
+    void appendNode(Node node) {
+        addClasspathEntry(node, [:])
+    }
+
+    protected Node addClasspathEntry(Node node, Map attributes) {
+        def allAttributes = attributes.findAll { it.value } + [kind: getKind(), path: path]
+        if (exported && !(this instanceof SourceFolder)) {
+            allAttributes.exported = true
         }
-        result
-    }
-
-    Node addClasspathEntry(Node node, Map attributes) {
-        def allAttributes = removeNullEntries(attributes) + [
-                kind: getKind(),
-                path: path]
-        allAttributes += exported && !(this instanceof SourceFolder) ? [exported: exported] : [:]
         Node entryNode = node.appendNode('classpathentry', allAttributes)
-        addNativeLibraryLocation(entryNode)
-        addAccessRules(entryNode)
+        writeAccessRules(entryNode)
+        writeEntryAttributes(entryNode)
         entryNode
     }
 
-    void addNativeLibraryLocation(Node node) {
-        addEntryAttributes(node, removeNullEntries([(NATIVE_LIBRARY_ATTRIBUTE): nativeLibraryLocation]))
+    protected String normalizePath(String path) {
+        PathUtil.normalizePath(path)
     }
 
-    String readNativeLibraryLocation(Node node) {
-        node.attributes.attribute.find { it.@name == 'org.eclipse.jdt.launching.CLASSPATH_ATTR_LIBRARY_PATH_ENTRY' }?.attributes()?.value
+    private Set readAccessRules(Node node) {
+        node.accessrules.accessrule.collect { ruleNode ->
+            new AccessRule(ruleNode.@kind, ruleNode.@pattern)
+        }
     }
 
-    void addAccessRules(Node node) {
+    private void writeAccessRules(Node node) {
         if (!accessRules) {
             return
         }
@@ -87,27 +94,22 @@ abstract class AbstractClasspathEntry implements ClasspathEntry {
         }
     }
 
-    def readAccessRules(Node node) {
-        node.accessrules.accessrule.collect { ruleNode ->
-            new AccessRule(ruleNode.@kind, ruleNode.@pattern)
+    private Map readEntryAttributes(Node node) {
+        def attrs = [:]
+        node.attributes.attribute.each {
+            attrs.put(it.@name, it.@value)
         }
+        attrs
     }
 
-    void addEntryAttributes(Node node, Map attributes) {
-        if (!attributes) {
-            return
-        }
-        Node attributesNode = node.children().find { it.name()  == 'attributes' }
-        if (!attributesNode) {
-            attributesNode = node.appendNode('attributes')
-        }
-        attributes.each { key, value ->
+    void writeEntryAttributes(Node node) {
+        def effectiveEntryAttrs = entryAttributes.findAll { it.value }
+        if (!effectiveEntryAttrs) { return }
+
+        Node attributesNode = node.children().find { it.name()  == 'attributes' } ?: node.appendNode('attributes')
+        effectiveEntryAttrs.each { key, value ->
             attributesNode.appendNode('attribute', [name: key, value: value])
         }
-    }
-
-    String normalizePath(String path) {
-        PathUtil.normalizePath(path)
     }
 
     boolean equals(o) {

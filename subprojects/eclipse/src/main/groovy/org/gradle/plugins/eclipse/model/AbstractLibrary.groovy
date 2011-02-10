@@ -20,15 +20,21 @@ package org.gradle.plugins.eclipse.model
  */
 abstract class AbstractLibrary extends AbstractClasspathEntry {
     String sourcePath
-    String javadocPath
 
-    def AbstractLibrary(node) {
+    AbstractLibrary(Node node) {
         super(node)
-        javadocPath = normalizePath(node.attributes?.attribute?.find { it.@name == 'javadoc_location' }?.@value)
         sourcePath = normalizePath(node.@sourcepath)
     }
 
-    def AbstractLibrary(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath,
+    String getJavadocPath() {
+        normalizePath(entryAttributes.javadoc_location)
+    }
+
+    void setJavadocPath(String path) {
+        entryAttributes.javadoc_location = path
+    }
+
+    AbstractLibrary(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath,
                         String javadocPath) {
         super(path, exported, nativeLibraryLocation, accessRules)
         this.sourcePath = normalizePath(sourcePath);
@@ -36,10 +42,7 @@ abstract class AbstractLibrary extends AbstractClasspathEntry {
     }
 
     void appendNode(Node node) {
-        def entryNode = addClasspathEntry(node, [sourcepath: sourcePath])
-        if (javadocPath) {
-            addEntryAttributes(entryNode, [javadoc_location: javadocPath])
-        }
+        addClasspathEntry(node, [sourcepath: sourcePath])
     }
 
     boolean equals(o) {

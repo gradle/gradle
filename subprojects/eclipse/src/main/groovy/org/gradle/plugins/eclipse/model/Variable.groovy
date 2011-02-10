@@ -19,11 +19,11 @@ package org.gradle.plugins.eclipse.model
  * @author Hans Dockter
  */
 class Variable extends AbstractLibrary {
-    def Variable(Node node) {
-        super(node);
+    Variable(Node node) {
+        super(node)
     }
 
-    def Variable(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath, String javadocPath) {
+    Variable(String path, boolean exported, String nativeLibraryLocation, Set accessRules, String sourcePath, String javadocPath) {
         super(path, exported, nativeLibraryLocation, accessRules, sourcePath, javadocPath)
     }
 

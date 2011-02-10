@@ -13,25 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.plugins.eclipse.model
+package org.gradle.plugins.eclipse.model.internal
+
+import org.gradle.plugins.eclipse.EclipseWtpFacet
+import org.gradle.plugins.eclipse.model.WtpFacet
 
 /**
  * @author Hans Dockter
  */
-class Container extends AbstractClasspathEntry {
-    Container(node) {
-        super(node);
-    }
-
-    Container(String path, boolean exported, String nativeLibraryLocation, Set accessRules) {
-        super(path, exported, nativeLibraryLocation, accessRules)
-    }
-
-    String getKind() {
-        'con'
-    }
-
-    public String toString() {
-        return "Container{" + super.toString()
+class WtpFacetFactory {
+    WtpFacet createWtpFacet(EclipseWtpFacet eclipseFacet) {
+        File inputFile = eclipseFacet.inputFile
+        FileReader reader = inputFile != null && inputFile.exists() ? new FileReader(inputFile) : null
+        return new WtpFacet(eclipseFacet, reader)
     }
 }

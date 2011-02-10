@@ -13,13 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests
 
 abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
-    protected void runTask(taskName, buildScript, settingsScript = "rootProject.name = 'root'") {
+    protected void runTask(taskName, settingsScript = "rootProject.name = 'root'", buildScript) {
         def settingsFile = file("settings.gradle")
-        settingsFile << "rootProject.name = 'root'"
+        settingsFile << settingsScript
 
         def buildFile = file("build.gradle")
         buildFile << buildScript
@@ -33,7 +32,7 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
         new XmlSlurper().parse(file)
     }
 
-    protected publishArtifact(dir, group, artifact, dependency) {
+    protected File publishArtifact(dir, group, artifact, dependency = null) {
         def artifactDir = new File("$dir/$group/$artifact/1.0")
         assert artifactDir.mkdirs()
 
@@ -44,17 +43,21 @@ abstract class AbstractIdeIntegrationTest extends AbstractIntegrationTest {
   <groupId>$group</groupId>
   <artifactId>$artifact</artifactId>
   <packaging>jar</packaging>
-  <version>1.0</version>
+  <version>1.0</version>"""
 
+        if (dependency) {
+            pomFile << """
   <dependencies>
     <dependency>
       <groupId>$group</groupId>
       <artifactId>$dependency</artifactId>
       <version>1.0</version>
     </dependency>
-  </dependencies>
-</project>
-        """
+  </dependencies>"""
+        }
+
+        pomFile << "\n</project>"
+
 
         def jarFile = new File("$artifactDir/$artifact-1.0.jar")
         jarFile << "add some content so that file size isn't zero"

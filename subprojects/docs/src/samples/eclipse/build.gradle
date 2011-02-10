@@ -28,7 +28,7 @@ eclipseProject {
 // END SNIPPET project-before-configured
 
 // START SNIPPET wtp-with-xml
-eclipseWtp {
+eclipseWtpFacet {
     withXml { files ->
         files.'org.eclipse.wst.commons.project.facet.core'.fixed.find { it.@facet == 'jst.java' }.@facet = 'jst2.java'
     }

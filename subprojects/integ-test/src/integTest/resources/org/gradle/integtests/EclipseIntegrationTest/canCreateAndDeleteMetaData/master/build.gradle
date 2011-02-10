@@ -55,11 +55,17 @@ allprojects {
                 }
             }
 
-            if (p.hasProperty('eclipseWtp')) {
-                eclipseWtp {
+            if (p.hasProperty('eclipseWtpComponent')) {
+                eclipseWtpComponent {
                     doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpComponent.xml")),
                                 file(".settings/org.eclipse.wst.common.component").text)
+                    }
+                }
+            }
+            if (p.hasProperty('eclipseWtpFacet')) {
+                eclipseWtpFacet {
+                    doLast {
                         compareXmlWithIgnoringOrder(getExpectedXml(file("$rootDir/../expectedFiles/${project.name}WtpFacet.xml")),
                                 file(".settings/org.eclipse.wst.common.project.facet.core.xml").text)
                     }

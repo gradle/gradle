@@ -13,14 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.TestResources
 import org.junit.Rule
 import org.junit.Test
 
-class EclipseIntegrationTest extends AbstractIdeIntegrationTest {
+class EclipseIntegrationTest extends AbstractEclipseIntegrationTest {
     @Rule
     public final TestResources testResources = new TestResources()
 
@@ -98,28 +97,5 @@ dependencies {
         """
 
         libEntriesInClasspathFileHaveFilenames(artifact1.name, artifact2.name)
-    }
-
-    private runEclipseTask(buildScript) {
-        runTask("eclipse", buildScript)
-    }
-
-    private parseClasspathFile(print = false) {
-        parseXmlFile(".classpath", print)
-    }
-
-    private parseProjectFile(print = false) {
-        parseXmlFile(".project", print)
-    }
-
-    private findEntries(classpath, kind) {
-        classpath.classpathentry.findAll { it.@kind == kind }
-    }
-
-    private libEntriesInClasspathFileHaveFilenames(String... filenames) {
-        def classpath = parseClasspathFile()
-        def libs = findEntries(classpath, "lib")
-        assert libs.size() == filenames.size()
-        assert libs*.@path*.text().collect { new File(it).name } as Set == filenames as Set
     }
 }
