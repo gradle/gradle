@@ -15,12 +15,15 @@
  */
 package org.gradle.api.plugins
 
-import spock.lang.Specification
 import org.gradle.api.Project
-import org.gradle.util.HelperUtil
+import org.gradle.api.internal.tasks.application.CreateStartScripts
+import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
+import org.gradle.api.tasks.bundling.Zip
+import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
+import spock.lang.Specification
 
 class ApplicationPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
@@ -28,16 +31,16 @@ class ApplicationPluginTest extends Specification {
 
     public void appliesJavaPluginAndAddsConventionObject() {
         when:
-        plugin.apply(project);
+        plugin.apply(project)
 
         then:
         project.plugins.hasPlugin(JavaPlugin.class)
         project.convention.getPlugin(ApplicationPluginConvention.class) != null
     }
 
-    public void addsTasksToProject() {
+    public void addsRunTasksToProject() {
         when:
-        plugin.apply(project);
+        plugin.apply(project)
 
         then:
         def task = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
@@ -46,13 +49,51 @@ class ApplicationPluginTest extends Specification {
         task Matchers.dependsOn('classes')
     }
 
+    public void addsCreateStartScriptsTaskToProject() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[ApplicationPlugin.TASK_CREATESTARTSCRIPTS_NAME]
+        task instanceof CreateStartScripts
+    }
+
+    public void addsInstallTaskToProjectWithDefaultTarget() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
+        task instanceof Copy
+        task.destinationDir == project.file("build/install")
+    }
+
+    public void addsDistZipTaskToProject() {
+        when:
+        plugin.apply(project)
+
+        then:
+        def task = project.tasks[ApplicationPlugin.TASK_DISTZIP_NAME]
+        task instanceof Zip
+    }
+
     public void setMainClassNameSetsMainInRunTask() {
         when:
-        plugin.apply(project);
+        plugin.apply(project)
         project.mainClassName = "Acme";
 
         then:
         def run = project.tasks[ApplicationPlugin.TASK_RUN_NAME]
         run.main == "Acme"
+    }
+
+    public void setMainClassNameSetsMainClassNameInCreateStartScriptsTask() {
+        when:
+        plugin.apply(project);
+        project.mainClassName = "Acme"
+
+        then:
+        def createStartScripts = project.tasks[ApplicationPlugin.TASK_CREATESTARTSCRIPTS_NAME]
+        createStartScripts.mainClassName == "Acme"
     }
 }

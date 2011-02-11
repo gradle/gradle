@@ -15,10 +15,11 @@
  */
 package org.gradle.api.plugins;
 
-import org.gradle.api.Project;
+
+import org.gradle.api.Project
 import org.gradle.api.tasks.JavaExec
 
-/**
+ /**
  * <p>A {@link Convention} used for the ApplicationPlugin.</p>
  *
  * @author Rene Groeschke
@@ -29,10 +30,17 @@ public class ApplicationPluginConvention {
      * The full qualified name of the main class.
      */
     String mainClassName;
+
+    /**
+     * The path of the installation directory.
+     */
+    String installDirPath;
+
     private final Project project;
 
     public ApplicationPluginConvention(final Project project){
         this.project = project;
+        this.installDirPath = project.file("build/install")
     }
 
     /**

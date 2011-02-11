@@ -99,6 +99,17 @@
             </tr>
             <tr>
                 <td>
+                    <link linkend='application_plugin'><literal>application</literal></link>
+                </td>
+                <td><literal>-</literal></td>
+                <td><literal>java</literal>, <literal>groovy</literal></td>
+                <td>
+                    <para>Adds tasks for running and bundling a project as application.
+                    </para>
+                </td>
+            </tr>
+            <tr>
+                <td>
                     <link linkend='jetty_plugin'><literal>jetty</literal></link>
                 </td>
                 <td><literal>war</literal></td>
@@ -152,17 +163,6 @@
                     <td>Description</td>
                 </tr>
             </thead>
-            <tr>
-                <td>
-                    <link linkend='application_plugin'><literal>application</literal></link>
-                </td>
-                <td><literal>-</literal></td>
-                <td><literal>java</literal>, <literal>groovy</literal></td>
-                <td>
-                    <para>Adds tasks for running and bundling a project as application.
-                    </para>
-                </td>
-            </tr>
             <tr>
                 <td>
                     <link linkend='code_quality_plugin'><literal>code-quality</literal></link>
