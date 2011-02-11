@@ -21,18 +21,63 @@ import org.junit.Rule
 import org.gradle.integtests.fixtures.GradleExecuter
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.Sample
+import org.gradle.util.TestFile
+import org.gradle.process.internal.ExecHandleBuilder
 
 class SamplesApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
     @Rule public final GradleExecuter executer = new GradleDistributionExecuter()
     @Rule public final Sample sample = new Sample('application')
 
-    def canRunTheApplication() {
+    def canRunTheApplicationUsingRunTask() {
         when:
         def result = executer.inDirectory(sample.dir).withTasks('run').run()
 
         then:
         result.output.contains('Greetings from the sample application.')
+    }
+
+    def canBuildAndRunTheInstalledApplication() {
+        when:
+        executer.inDirectory(sample.dir).withTasks('install').run()
+
+        then:
+        def installDir = sample.dir.file('build/install')
+        installDir.assertIsDir()
+
+        checkApplicationImage(installDir)
+    }
+
+    def canBuildAndRunTheZippedDistribution() {
+        when:
+        executer.inDirectory(sample.dir).withTasks('distZip').run()
+
+        then:
+        def distFile = sample.dir.file('build/distributions/application.zip')
+        distFile.assertIsFile()
+
+        def installDir = sample.dir.file('unzip')
+        distFile.usingNativeTools().unzipTo(installDir)
+
+        checkApplicationImage(installDir)
+    }
+    
+    private void checkApplicationImage(TestFile installDir) {
+        installDir.file('application/bin/application').assertIsFile()
+        installDir.file('application/bin/application.bat').assertIsFile()
+        installDir.file('application/lib/application.jar').assertIsFile()
+
+        def builder = new ExecHandleBuilder()
+        builder.workingDir installDir
+        builder.executable 'application/bin/application'
+        builder.standardOutput = new ByteArrayOutputStream()
+        builder.errorOutput = new ByteArrayOutputStream()
+
+        def result = builder.build().start().waitForFinish()
+        result.assertNormalExitValue()
+
+        assert builder.standardOutput.toString().contains('Greetings from the sample application.')
+        assert builder.errorOutput.toString() == ''
     }
 
 }

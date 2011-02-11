@@ -13,16 +13,17 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.plugins;
-
+package org.gradle.api.plugins
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.file.CopySpec
 import org.gradle.api.internal.tasks.application.CreateStartScripts
+import org.gradle.api.tasks.Copy
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.bundling.Jar
 import org.gradle.api.tasks.bundling.Zip
-import org.gradle.api.tasks.*
 
 /**
  * <p>A {@link Plugin} which runs a project as a Java Application.</p>
@@ -31,29 +32,29 @@ import org.gradle.api.tasks.*
  */
 public class ApplicationPlugin implements Plugin<Project> {
 
-    public static final String APPLICATION_PLUGIN_NAME = "application";
-    public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
+    public static final String APPLICATION_PLUGIN_NAME = "application"
+    public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME
 
-    public static final String TASK_RUN_NAME = "run";
+    public static final String TASK_RUN_NAME = "run"
     public static final String TASK_CREATESTARTSCRIPTS_NAME = "createStartScripts"
-    public static final String TASK_INSTALL_NAME = "install";
-    public static final String TASK_DISTZIP_NAME = "distZip";
+    public static final String TASK_INSTALL_NAME = "install"
+    public static final String TASK_DISTZIP_NAME = "distZip"
 
     public void apply(final Project project) {
-        project.getPlugins().apply(JavaPlugin.class);
-        ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project);
-        project.getConvention().getPlugins().put("application", applicationPluginConvention);
-        configureRunTask(project);
-        configureCreateScriptsTask(project, applicationPluginConvention);
+        project.plugins.apply(JavaPlugin.class)
+        ApplicationPluginConvention applicationPluginConvention = new ApplicationPluginConvention(project)
+        project.convention.plugins.put("application", applicationPluginConvention)
+        configureRunTask(project)
+        configureCreateScriptsTask(project, applicationPluginConvention)
 
         def distSpec = createDistSpec(project)
         configureInstallTask(project, applicationPluginConvention, distSpec)
-        configureDistZipTask(project, applicationPluginConvention, distSpec);
+        configureDistZipTask(project, applicationPluginConvention, distSpec)
     }
 
     private def CopySpec createDistSpec(Project project) {
-        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
-        CreateStartScripts startScripts = project.getTasks().withType(CreateStartScripts.class).findByName("createStartScripts");
+        Jar jar = project.tasks.withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME)
+        CreateStartScripts startScripts = project.tasks.withType(CreateStartScripts.class).getByName(TASK_CREATESTARTSCRIPTS_NAME)
 
         project.copySpec {
             into(project.name){
@@ -70,29 +71,27 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureRunTask(Project project) {
-        JavaExec run = project.getTasks().add(TASK_RUN_NAME, JavaExec.class);
-        run.setDescription("Runs this project as java application");
-        run.setGroup(APPLICATION_GROUP);
-        run.setClasspath(project.getConvention().getPlugin(JavaPluginConvention.class).getSourceSets().getByName(SourceSet.MAIN_SOURCE_SET_NAME).getRuntimeClasspath());
+        JavaExec run = project.tasks.add(TASK_RUN_NAME, JavaExec.class)
+        run.description = "Runs this project as a JVM application"
+        run.group = APPLICATION_GROUP
+        run.classpath = project.convention.getPlugin(JavaPluginConvention.class).sourceSets.getByName(SourceSet.MAIN_SOURCE_SET_NAME).runtimeClasspath
     }
 
     /** @Todo: refactor this task configuration to extend a copy task and use replace tokens  */
-    private void configureCreateScriptsTask(final Project project, final ApplicationPluginConvention applicationPluginConvention) {
-        CreateStartScripts createStartScripts = project.getTasks().add(TASK_CREATESTARTSCRIPTS_NAME, CreateStartScripts.class);
-        createStartScripts.setDescription("Creates OS start scripts for the project to run as application.");
-        createStartScripts.setGroup(APPLICATION_GROUP);
+    private void configureCreateScriptsTask(Project project, ApplicationPluginConvention applicationPluginConvention) {
+        CreateStartScripts createStartScripts = project.tasks.add(TASK_CREATESTARTSCRIPTS_NAME, CreateStartScripts.class)
+        createStartScripts.description = "Creates OS specific scripts to run the project as a JVM application."
 
-        Jar jar = project.getTasks().withType(Jar.class).findByName(JavaPlugin.JAR_TASK_NAME);
-        createStartScripts.setClasspath(jar.getOutputs().getFiles().plus(
-                project.getConfigurations().getByName("runtime")));
+        Jar jar = project.tasks.withType(Jar.class).getByName(JavaPlugin.JAR_TASK_NAME)
+        createStartScripts.classpath = jar.outputs.files + project.configurations.runtime
 
         createStartScripts.conventionMapping.mainClassName = {applicationPluginConvention.mainClassName}
     }
 
     private void configureInstallTask(Project project, ApplicationPluginConvention pluginConvention, CopySpec distSpec) {
         Copy installTask = project.tasks.add(TASK_INSTALL_NAME, Copy.class)
-        installTask.setDescription("Installs the project as an application with libs and OS startscripts into a specified directory.")
-        installTask.setGroup(APPLICATION_GROUP)
+        installTask.description = "Installs the project as a JVM application along with libs and OS specific scripts."
+        installTask.group = APPLICATION_GROUP
         installTask.with(distSpec)
         installTask.conventionMapping.destinationDir = { project.file(pluginConvention.installDirPath) }
         installTask.doLast{
@@ -101,9 +100,9 @@ public class ApplicationPlugin implements Plugin<Project> {
     }
 
     private void configureDistZipTask(Project project, ApplicationPluginConvention applicationPluginConvention, CopySpec distSpec) {
-        Zip distZipTask = project.getTasks().add(TASK_DISTZIP_NAME, Zip.class);
-        distZipTask.setDescription("Bundles the project as an application with libs and OS startscripts.");
-        distZipTask.setGroup(APPLICATION_GROUP);
+        Zip distZipTask = project.tasks.add(TASK_DISTZIP_NAME, Zip.class)
+        distZipTask.description = "Bundles the project as a JVM application with libs and OS specific scripts.";
+        distZipTask.group = APPLICATION_GROUP;
         distZipTask.with(distSpec)
     }
 }
