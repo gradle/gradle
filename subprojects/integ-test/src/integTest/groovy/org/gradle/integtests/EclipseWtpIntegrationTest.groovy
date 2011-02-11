@@ -57,12 +57,10 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
 
         def componentFile = testFile("java1/.settings/org.eclipse.wst.common.component")
         def projectModules = new XmlSlurper().parse(componentFile)
-        def wbModule = projectModules."wb-module"
-        def dependentModule = wbModule."dependent-module"
 
-        assert wbModule.@"deploy-name"*.text() == ["java1"]
-        assert dependentModule.@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } == ["java2", "myartifact-1.0.jar", "myartifactdep-1.0.jar"]
-        assert dependentModule."dependency-type"*.text() == ["uses", "uses", "uses"]
+        assert getDeployNames(projectModules) == ["java1"]
+        assert getHandleFilenames(projectModules) == ["java2", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+        assert getDependencyTypes(projectModules) == ["uses", "uses", "uses"] as Set
     }
 
     @Test
@@ -88,12 +86,10 @@ class EclipseWtpIntegrationTest extends AbstractEclipseIntegrationTest {
         def componentFile = testFile(".settings/org.eclipse.wst.common.component")
         println componentFile.text
         def projectModules = new XmlSlurper().parse(componentFile)
-        def wbModule = projectModules."wb-module"
-        def dependentModule = wbModule."dependent-module"
 
-        assert wbModule.@"deploy-name"*.text() == ["root"]
-        assert dependentModule.@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } == ["java1", "myartifact-1.0.jar", "myartifactdep-1.0.jar"]
-        assert dependentModule."dependency-type"*.text() == ["uses", "uses", "uses"]
+		assert getDeployNames(projectModules) == ["root"]
+		assert getHandleFilenames(projectModules) == ["java1", "myartifact-1.0.jar", "myartifactdep-1.0.jar"] as Set
+		assert getDependencyTypes(projectModules) == ["uses", "uses", "uses"] as Set
     }
 
     private prepareWebProject() {
@@ -142,4 +138,16 @@ project("java2") {
         def facetedProject = new XmlSlurper().parse(file)
         facetedProject.children().any { it.@facet.text() == "jst.utility" && it.@version.text() == "1.0" }
     }
+
+	private getDeployNames(projectModules) {
+		projectModules."wb-module".@"deploy-name"*.text()
+	}
+
+	private getHandleFilenames(projectModules) {
+		projectModules."wb-module"."dependent-module".@handle*.text().collect { it.substring(it.lastIndexOf("/") + 1) } as Set
+	}
+
+	private getDependencyTypes(projectModules) {
+		projectModules."wb-module"."dependent-module"."dependency-type"*.text() as Set
+	}
 }
