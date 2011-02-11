@@ -53,6 +53,36 @@
                 <td><apilink class="org.gradle.api.tasks.JavaExec"/></td>
                 <td>Starts the application.</td>
             </tr>
+            <tr>
+                <td>
+                    <literal>createStartScripts</literal>
+                </td>
+                <td>
+                    <literal>jar</literal>
+                </td>
+                <td>-</td>
+                <td>Creates StartScripts to start the project as an application.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>install</literal>
+                </td>
+                <td>
+                    <literal>jar</literal>, <literal>createStartScripts</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.Copy"/></td>
+                <td>Installs the application into a specified Directory.</td>
+            </tr>
+            <tr>
+                <td>
+                    <literal>distZip</literal>
+                </td>
+                <td>
+                    <literal>jar</literal>, <literal>createStartScripts</literal>
+                </td>
+                <td><apilink class="org.gradle.api.tasks.bundling.Zip"/></td>
+                <td>Creates a full distribution archive including thirdParty libraries and OS dependent startScripts.</td>
+            </tr>
         </table>
     </section>
 
@@ -80,6 +110,20 @@
                     </td>
                     <td>
                         The fully qualified name of the Main class of the application.
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <literal>installDirPath</literal>
+                    </td>
+                    <td>
+                        <classname>String</classname>
+                    </td>
+                    <td>
+                        build/install
+                    </td>
+                    <td>
+                        The path, the application should be installed into.
                     </td>
                 </tr>
             </table>

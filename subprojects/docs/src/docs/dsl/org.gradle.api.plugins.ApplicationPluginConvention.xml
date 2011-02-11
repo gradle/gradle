@@ -6,6 +6,7 @@
                 <tr><td>Name</td></tr>
             </thead>
             <tr><td>mainClassName</td></tr>
+            <tr><td>installDirPath</td></tr>
         </table>
     </section>
     <section>
