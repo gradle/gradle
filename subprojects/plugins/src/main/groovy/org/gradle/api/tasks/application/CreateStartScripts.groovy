@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.application;
+package org.gradle.api.tasks.application;
 
 
 import groovy.text.SimpleTemplateEngine
@@ -23,58 +23,95 @@ import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.InputFiles
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.TaskAction
+import org.gradle.util.GUtil
 
- /**
+/**
  * <p>A {@link org.gradle.api.Task} for creating OS dependent startScripts.</p>
  *
  * @author Rene Groeschke
  */
-class CreateStartScripts extends ConventionTask{
+class CreateStartScripts extends ConventionTask {
 
+    /**
+     * The directory to write the scripts into.
+     */
+    @OutputDirectory
     File outputDir
 
+    /**
+     * The application's main class
+     */
     @Input
-    private String mainClassName;
+    String mainClassName
 
-    public void setMainClassName(String mainClassName){
-        this.mainClassName = mainClassName;
-    }
+    /**
+     * The application's name
+     */
+    @Input
+    String applicationName
 
-    public String getMainClassName(){
-        return mainClassName;
-    }
+    String optsEnvironmentVar
 
+    String exitEnvironmentVar
+
+    /**
+     * The classpath for the application.
+     */
     @InputFiles
     FileCollection classpath;
 
-    @OutputDirectory
-    public File getOutputDir(){
-        if(!outputDir){
-            this.outputDir = new File(project.buildDir, "scripts");
+    /**
+     * Returns the name of the application's OPTS environment variable.
+     */
+    @Input
+    String getOptsEnvironmentVar() {
+        if (optsEnvironmentVar) {
+            return optsEnvironmentVar
         }
-        return outputDir;
+        if (!getApplicationName()) {
+            return null
+        }
+        return "${GUtil.toConstant(getApplicationName())}_OPTS"
     }
 
+    @Input
+    String getExitEnvironmentVar() {
+        if (exitEnvironmentVar) {
+            return exitEnvironmentVar
+        }
+        if (!getApplicationName()) {
+            return null
+        }
+        return "${GUtil.toConstant(getApplicationName())}_EXIT_CONSOLE"
+    }
 
     @TaskAction
-    public void generate(){
+    public void generate() {
         getOutputDir().mkdirs();
 
         //ref all files in classpath
-        def applicationHome = "${project.getName().toUpperCase()}_HOME"
-        def unixLibPath = "\$$applicationHome/lib/"
+        def unixLibPath = "\$APP_HOME/lib/"
         StringBuffer unixClasspath = new StringBuffer();
 
-        def windowsLibPath = "%$applicationHome%\\lib\\"
+        def windowsLibPath = "%APP_HOME%\\lib\\"
         StringBuffer windowsClasspath = new StringBuffer();
 
         classpath.each {
-            unixClasspath<<"$unixLibPath${it.name}:"
+            unixClasspath << "$unixLibPath${it.name}:"
             windowsClasspath << "$windowsLibPath${it.name};"
         }
 
-        generateLinuxStartScript([project_name:project.name, mainClassName:getMainClassName(), classpath:unixClasspath])
-        generateWindowsStartScript([project_name:project.name, mainClassName:getMainClassName(), classpath:windowsClasspath])
+        generateLinuxStartScript([
+                applicationName: getApplicationName(),
+                optsEnvironmentVar: getOptsEnvironmentVar(),
+                mainClassName: getMainClassName(),
+                classpath: unixClasspath])
+        generateWindowsStartScript([
+                applicationName: getApplicationName(),
+                optsEnvironmentVar: getOptsEnvironmentVar(),
+                exitEnvironmentVar: getExitEnvironmentVar(),
+                mainClassName: getMainClassName(),
+                classpath: windowsClasspath])
     }
 
     void generateWindowsStartScript(def binding) {
@@ -82,7 +119,7 @@ class CreateStartScripts extends ConventionTask{
         String windowsTemplate = CreateStartScripts.getResourceAsStream('windowsStartScript.txt').text
         String windowsOutput = engine.createTemplate(windowsTemplate).make(binding)
 
-        def windowsScript = new File(outputDir, "${project.name}.bat")
+        def windowsScript = new File(getOutputDir(), "${project.name}.bat")
         windowsScript.withWriter {writer ->
             writer.write(transformIntoWindowsNewLines(windowsOutput))
         }
@@ -93,7 +130,7 @@ class CreateStartScripts extends ConventionTask{
         String unixTemplate = CreateStartScripts.getResourceAsStream('unixStartScript.txt').text
         def linuxOutput = engine.createTemplate(unixTemplate).make(binding)
 
-        def unixScript = new File(outputDir, project.name);
+        def unixScript = new File(getOutputDir(), project.name);
         unixScript.withWriter {writer ->
             writer.write(linuxOutput)
         }

@@ -226,8 +226,7 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores
-     * -> withUnderscored
+     * Converts an arbitrary string to a camel-case string which can be used in a Java identifier. Eg, with_underscores -> withUnderscores
      */
     public static String toCamelCase(CharSequence string) {
         if (string == null) {
@@ -245,33 +244,54 @@ public class GUtil {
     }
 
     /**
-     * Converts an arbitrary string to space-separated words. Eg, camelCase -> camel case, with_underscores -> with
-     * underscores
+     * Converts an arbitrary string to upper case identifier with words separated by _. Eg, camelCase -> CAMEL_CASE
+     */
+    public static String toConstant(CharSequence string) {
+        if (string == null) {
+            return null;
+        }
+        return toWords(string, '_').toUpperCase();
+    }
+
+    /**
+     * Converts an arbitrary string to space-separated words. Eg, camelCase -> camel case, with_underscores -> with underscores
      */
     public static String toWords(CharSequence string) {
+        return toWords(string, ' ');
+    }
+
+    private static String toWords(CharSequence string, char separator) {
         if (string == null) {
             return null;
         }
         StringBuilder builder = new StringBuilder();
         int pos = 0;
-        boolean inSeparator = false;
-        for (; pos < string.length(); pos++) {
-            char ch = string.charAt(pos);
-            if (Character.isLowerCase(ch)) {
-                if (inSeparator && builder.length() > 0) {
-                    builder.append(' ');
-                }
-                builder.append(ch);
-                inSeparator = false;
-            } else if (Character.isUpperCase(ch)) {
-                if (builder.length() > 0) {
-                    builder.append(' ');
-                }
-                builder.append(Character.toLowerCase(ch));
-                inSeparator = false;
-            } else {
-                inSeparator = true;
+        Matcher matcher = Pattern.compile("(\\p{Upper}*)(\\p{Lower}*)").matcher(string);
+        while (pos < string.length()) {
+            matcher.find(pos);
+            if (matcher.end() == pos) {
+                // Not looking at a match
+                pos++;
+                continue;
             }
+            if (builder.length() > 0) {
+                builder.append(separator);
+            }
+            String group1 = matcher.group(1).toLowerCase();
+            String group2 = matcher.group(2);
+            if (group2.length() == 0) {
+                builder.append(group1);
+            } else {
+                if (group1.length() > 1) {
+                    builder.append(group1.substring(0, group1.length() - 1));
+                    builder.append(separator);
+                    builder.append(group1.substring(group1.length() - 1));
+                } else {
+                    builder.append(group1);
+                }
+                builder.append(group2);
+            }
+            pos = matcher.end();
         }
 
         return builder.toString();

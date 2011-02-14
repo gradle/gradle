@@ -42,6 +42,32 @@ public class GUtilTest {
     }
 
     @Test
+    public void convertStringToConstantName() {
+        assertThat(toConstant(null), equalTo(null));
+        assertThat(toConstant(""), equalTo(""));
+        assertThat(toConstant("word"), equalTo("WORD"));
+        assertThat(toConstant("twoWords"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("TwoWords"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("two-words"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("TWO_WORDS"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("two.words"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("two words"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("two Words"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("Two Words"), equalTo("TWO_WORDS"));
+        assertThat(toConstant(" Two  \t words\n"), equalTo("TWO_WORDS"));
+        assertThat(toConstant("four or so Words"), equalTo("FOUR_OR_SO_WORDS"));
+        assertThat(toConstant("trailing-"), equalTo("TRAILING"));
+        assertThat(toConstant("a"), equalTo("A"));
+        assertThat(toConstant("A"), equalTo("A"));
+        assertThat(toConstant("aB"), equalTo("A_B"));
+        assertThat(toConstant("ABC"), equalTo("ABC"));
+        assertThat(toConstant("ABCThing"), equalTo("ABC_THING"));
+        assertThat(toConstant("ABC Thing"), equalTo("ABC_THING"));
+        assertThat(toConstant("."), equalTo(""));
+        assertThat(toConstant("-"), equalTo(""));
+    }
+
+    @Test
     public void convertStringToWords() {
         assertThat(toWords(null), equalTo(null));
         assertThat(toWords(""), equalTo(""));
@@ -55,7 +81,11 @@ public class GUtilTest {
         assertThat(toWords("two.words"), equalTo("two words"));
         assertThat(toWords("two,words"), equalTo("two words"));
         assertThat(toWords("trailing-"), equalTo("trailing"));
-        assertThat(toWords("ABC"), equalTo("a b c"));
+        assertThat(toWords("a"), equalTo("a"));
+        assertThat(toWords("aB"), equalTo("a b"));
+        assertThat(toWords("ABC"), equalTo("abc"));
+        assertThat(toWords("ABCThing"), equalTo("abc thing"));
+        assertThat(toWords("ABC Thing"), equalTo("abc thing"));
         assertThat(toWords("."), equalTo(""));
         assertThat(toWords("_"), equalTo(""));
     }

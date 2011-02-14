@@ -1,21 +1,21 @@
 @if "%DEBUG%" == "" @echo off
 @rem ##########################################################################
-@rem                                                                         ##
-@rem  ${project_name} startup script for Windows                             ##
-@rem                                                                         ##
+@rem
+@rem  ${applicationName} startup script for Windows
+@rem
 @rem ##########################################################################
 
 @rem Set local scope for the variables with windows NT shell
 if "%OS%"=="Windows_NT" setlocal
 
-@rem Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
-@rem set ${project_name.toUpperCase()}_OPTS=%${project_name.toUpperCase()}_OPTS% -Xmx512m
+@rem Uncomment those lines to set JVM options. ${optsEnvironmentVar} and JAVA_OPTS can be used together.
+@rem set ${optsEnvironmentVar}=%${optsEnvironmentVar}% -Xmx512m
 @rem set JAVA_OPTS=%JAVA_OPTS% -Xmx512m
 
 set DIRNAME=%~dp0
 if "%DIRNAME%" == "" set DIRNAME=.\
 
-set ${project_name}_HOME=%DIRNAME%..
+set APP_HOME=%DIRNAME%..
 
 @rem Find java.exe
 set JAVA_EXE=java.exe
@@ -61,12 +61,8 @@ set CMD_LINE_ARGS=%\$
 
 set CLASSPATH=$classpath
 
-set STARTER_MAIN_CLASS=${mainClassName}
-
-set ${project_name.toUpperCase()}_OPTS=%JAVA_OPTS% %${project_name.toUpperCase()}_OPTS%
-
-@rem Execute ${project_name}
-"%JAVA_EXE%" %GRADLE_OPTS% -classpath "%CLASSPATH%" %STARTER_MAIN_CLASS% %CMD_LINE_ARGS%
+@rem Execute ${applicationName}
+"%JAVA_EXE%" %JAVA_OPTS% %${optsEnvironmentVar}% -classpath "%CLASSPATH%" ${mainClassName} %CMD_LINE_ARGS%
 
 :end
 @rem End local scope for the variables with windows NT shell
@@ -75,9 +71,9 @@ if "%ERRORLEVEL%"=="0" goto mainEnd
 :fail
 if not "%OS%"=="Windows_NT" echo 1 > nul | choice /n /c:1
 
-rem Set variable ${project_name.toUpperCase()}_EXIT_CONSOLE if you need the _script_ return code instead of
+rem Set variable ${exitEnvironmentVar} if you need the _script_ return code instead of
 rem the _cmd.exe /c_ return code!
-if  not "" == "%${project_name.toUpperCase()}_EXIT_CONSOLE%" exit 1
+if  not "" == "%${exitEnvironmentVar}%" exit 1
 exit /b 1
 
 :mainEnd

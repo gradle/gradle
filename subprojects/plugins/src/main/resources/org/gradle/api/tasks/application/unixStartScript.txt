@@ -1,16 +1,16 @@
 #!/bin/bash
 
 ##############################################################################
-##                                                                          ##
-##  ${project_name} start up script for UN*X                                ##
-##                                                                          ##
+##
+##  ${applicationName} start up script for UN*X
+##
 ##############################################################################
 
-# Uncomment those lines to set JVM options. GRADLE_OPTS and JAVA_OPTS can be used together.
-# ${project_name.toUpperCase()}_OPTS="\$${project_name.toUpperCase()}_OPTS -Xmx512m"
+# Uncomment those lines to set JVM options. ${optsEnvironmentVar} and JAVA_OPTS can be used together.
+# ${optsEnvironmentVar}="\$${optsEnvironmentVar} -Xmx512m"
 # JAVA_OPTS="\$JAVA_OPTS -Xmx512m"
 
-APP_NAME=${project_name}
+APP_NAME=${applicationName}
 
 # Use the maximum available, or set MAX_FD != -1 to use that value.
 MAX_FD="maximum"
@@ -66,7 +66,7 @@ if \$cygwin ; then
     [ -n "\$JAVA_HOME" ] && JAVA_HOME=`cygpath --unix "\$JAVA_HOME"`
 fi
 
-# Attempt to set ${project_name.toUpperCase()}_HOME
+# Attempt to set APP_HOME
 # Resolve links: \$0 may be a link
 PRG="\$0"
 # Need this for relative symlinks.
@@ -81,7 +81,7 @@ while [ -h "\$PRG" ] ; do
 done
 SAVED="`pwd`"
 cd "`dirname \"\$PRG\"`/.."
-${project_name.toUpperCase()}_HOME="`pwd -P`"
+APP_HOME="`pwd -P`"
 cd "\$SAVED"
 
 CLASSPATH=$classpath
@@ -133,7 +133,7 @@ fi
 
 # For Cygwin, switch paths to Windows format before running java
 if \$cygwin ; then
-    ${project_name.toUpperCase()}_HOME=`cygpath --path --mixed "\$${project_name.toUpperCase()}_HOME"`
+    APP_HOME=`cygpath --path --mixed "\$APP_HOME"`
     JAVA_HOME=`cygpath --path --mixed "\$JAVA_HOME"`
     CLASSPATH=`cygpath --path --mixed "\$CLASSPATH"`
 
@@ -176,11 +176,4 @@ if \$cygwin ; then
     esac
 fi
 
-APP_BASE_NAME=`basename "\$0"`
-
-STARTER_MAIN_CLASS=${mainClassName}
-
-exec "\$JAVACMD" \$JAVA_OPTS \
-        -classpath "\$CLASSPATH" \
-        \$STARTER_MAIN_CLASS \
-        "\$@"
+exec "\$JAVACMD" \$JAVA_OPTS \$${optsEnvironmentVar} -classpath "\$CLASSPATH" ${mainClassName} "\$@"

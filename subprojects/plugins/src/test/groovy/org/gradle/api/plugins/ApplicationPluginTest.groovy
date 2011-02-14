@@ -16,7 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.api.Project
-import org.gradle.api.internal.tasks.application.CreateStartScripts
+import org.gradle.api.tasks.application.CreateStartScripts
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.SourceSet
@@ -24,6 +24,7 @@ import org.gradle.api.tasks.bundling.Zip
 import org.gradle.util.HelperUtil
 import org.gradle.util.Matchers
 import spock.lang.Specification
+import org.gradle.api.tasks.Sync
 
 class ApplicationPluginTest extends Specification {
     private final Project project = HelperUtil.createRootProject();
@@ -54,8 +55,10 @@ class ApplicationPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks[ApplicationPlugin.TASK_CREATESTARTSCRIPTS_NAME]
+        def task = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
         task instanceof CreateStartScripts
+        task.applicationName == project.name
+        task.outputDir == project.file('build/scripts')
     }
 
     public void addsInstallTaskToProjectWithDefaultTarget() {
@@ -64,7 +67,7 @@ class ApplicationPluginTest extends Specification {
 
         then:
         def task = project.tasks[ApplicationPlugin.TASK_INSTALL_NAME]
-        task instanceof Copy
+        task instanceof Sync
         task.destinationDir == project.file("build/install")
     }
 
@@ -73,7 +76,7 @@ class ApplicationPluginTest extends Specification {
         plugin.apply(project)
 
         then:
-        def task = project.tasks[ApplicationPlugin.TASK_DISTZIP_NAME]
+        def task = project.tasks[ApplicationPlugin.TASK_DIST_ZIP_NAME]
         task instanceof Zip
     }
 
@@ -93,7 +96,7 @@ class ApplicationPluginTest extends Specification {
         project.mainClassName = "Acme"
 
         then:
-        def createStartScripts = project.tasks[ApplicationPlugin.TASK_CREATESTARTSCRIPTS_NAME]
-        createStartScripts.mainClassName == "Acme"
+        def startScripts = project.tasks[ApplicationPlugin.TASK_START_SCRIPTS_NAME]
+        startScripts.mainClassName == "Acme"
     }
 }
