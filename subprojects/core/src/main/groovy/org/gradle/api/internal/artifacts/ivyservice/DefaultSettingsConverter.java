@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.commons.lang.StringUtils;
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.settings.IvySettings;
 import org.apache.ivy.plugins.matcher.PatternMatcher;
@@ -34,6 +33,7 @@ import org.gradle.logging.ProgressLogger;
 import org.gradle.logging.ProgressLoggerFactory;
 import org.gradle.util.Clock;
 import org.gradle.util.WrapUtil;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.util.*;
@@ -134,6 +134,7 @@ public class DefaultSettingsConverter implements SettingsConverter {
         chainResolver.setChangingPattern(".*-SNAPSHOT");
         chainResolver.setChangingMatcher(PatternMatcher.REGEXP);
         chainResolver.setReturnFirst(true);
+        chainResolver.setRepositoryCacheManager(new WharfCacheManager());
         for (DependencyResolver classpathResolver : classpathResolvers) {
             chainResolver.add(classpathResolver);
         }
@@ -151,17 +152,13 @@ public class DefaultSettingsConverter implements SettingsConverter {
     }
 
     private void setRepositoryCacheManager(IvySettings ivySettings) {
-        if (repositoryCacheManager == null) {
-            repositoryCacheManager = ivySettings.getDefaultRepositoryCacheManager();
-        } else {
-            ivySettings.setDefaultRepositoryCacheManager(repositoryCacheManager);
-        }
+        ivySettings.setDefaultRepositoryCacheManager(new WharfCacheManager());
     }
 
     private void initializeResolvers(IvySettings ivySettings, List<DependencyResolver> allResolvers) {
         for (DependencyResolver dependencyResolver : allResolvers) {
             ivySettings.addResolver(dependencyResolver);
-            ((DefaultRepositoryCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
+            ((WharfCacheManager) dependencyResolver.getRepositoryCacheManager()).setSettings(ivySettings);
             if (dependencyResolver instanceof RepositoryResolver) {
                 Repository repository = ((RepositoryResolver) dependencyResolver).getRepository();
                 if (!repository.hasTransferListener(transferListener)) {

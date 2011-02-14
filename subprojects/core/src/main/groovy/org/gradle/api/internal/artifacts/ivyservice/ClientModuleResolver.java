@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.IvyContext;
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DefaultModuleDescriptor;
@@ -26,15 +25,14 @@ import org.apache.ivy.core.report.DownloadStatus;
 import org.apache.ivy.core.report.MetadataArtifactDownloadReport;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
-import org.apache.ivy.plugins.lock.NoLockStrategy;
 import org.apache.ivy.plugins.repository.Resource;
 import org.apache.ivy.plugins.resolver.BasicResolver;
 import org.apache.ivy.plugins.resolver.DependencyResolver;
 import org.apache.ivy.plugins.resolver.util.ResolvedResource;
 import org.gradle.api.UncheckedIOException;
 import org.gradle.api.artifacts.ClientModule;
-import org.gradle.api.artifacts.ResolverContainer;
 import org.gradle.util.DeleteOnExit;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -101,13 +99,9 @@ public class ClientModuleResolver extends BasicResolver {
 
     private RepositoryCacheManager createUseOriginCacheManager(String name) {
         File tmpIvyCache = createTmpDir();
-        DefaultRepositoryCacheManager cacheManager = new DefaultRepositoryCacheManager();
+        WharfCacheManager cacheManager = new WharfCacheManager();
         cacheManager.setBasedir(tmpIvyCache);
         cacheManager.setName(name);
-        cacheManager.setUseOrigin(true);
-        cacheManager.setLockStrategy(new NoLockStrategy());
-        cacheManager.setIvyPattern(ResolverContainer.DEFAULT_CACHE_IVY_PATTERN);
-        cacheManager.setArtifactPattern(ResolverContainer.DEFAULT_CACHE_ARTIFACT_PATTERN);
         return cacheManager;
     }
 

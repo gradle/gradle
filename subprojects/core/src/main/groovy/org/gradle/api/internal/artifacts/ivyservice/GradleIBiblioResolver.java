@@ -16,12 +16,12 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.apache.ivy.core.IvyPatternHelper;
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
 import org.apache.ivy.core.resolve.ResolveData;
 import org.apache.ivy.core.resolve.ResolvedModuleRevision;
 import org.apache.ivy.plugins.resolver.IBiblioResolver;
 import org.gradle.util.UncheckedException;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.net.URI;
@@ -63,6 +63,10 @@ public class GradleIBiblioResolver extends IBiblioResolver {
     };
 
     private CacheTimeoutStrategy snapshotTimeout = DAILY;
+
+    public GradleIBiblioResolver() {
+        setRepositoryCacheManager(new WharfCacheManager());
+    }
 
     /**
      * Returns the timeout strategy for a Maven Snapshot in the cache
@@ -140,9 +144,9 @@ public class GradleIBiblioResolver extends IBiblioResolver {
     }
 
     private PropertiesFile getCacheProperties(DependencyDescriptor dd, ResolvedModuleRevision moduleRevision) {
-        DefaultRepositoryCacheManager cacheManager = (DefaultRepositoryCacheManager) getRepositoryCacheManager();
+        WharfCacheManager cacheManager = (WharfCacheManager) getRepositoryCacheManager();
         PropertiesFile props = new PropertiesFile(new File(cacheManager.getRepositoryCacheRoot(),
-                IvyPatternHelper.substitute(cacheManager.getDataFilePattern(), moduleRevision.getId())),
+                IvyPatternHelper.substitute("[organisation]/[module](/[branch])/ivydata-[revision].properties", moduleRevision.getId())),
                 "ivy cached data file for " + dd.getDependencyRevisionId());
         return props;
     }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.publish.maven.deploy;
 import groovy.lang.Closure;
 import org.apache.commons.io.FileUtils;
 import org.apache.ivy.core.cache.ArtifactOrigin;
-import org.apache.ivy.core.cache.DefaultRepositoryCacheManager;
 import org.apache.ivy.core.cache.RepositoryCacheManager;
 import org.apache.ivy.core.module.descriptor.Artifact;
 import org.apache.ivy.core.module.descriptor.DependencyDescriptor;
@@ -47,6 +46,7 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.listener.ActionBroadcast;
 import org.gradle.logging.LoggingManagerInternal;
 import org.gradle.util.AntUtil;
+import org.jfrog.wharf.ivy.cache.WharfCacheManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -223,7 +223,7 @@ public abstract class AbstractMavenResolver implements MavenResolver {
     }
 
     public RepositoryCacheManager getRepositoryCacheManager() {
-        return new DefaultRepositoryCacheManager();
+        return new WharfCacheManager();
     }
 
     public ArtifactPomContainer getArtifactPomContainer() {

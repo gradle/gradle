@@ -58,7 +58,8 @@ dependencies {
             'org.jruby.ext.posix:jna-posix:1.0.3',
             'org.sonatype.pmaven:pmaven-common:0.8-20100325@jar',
             'org.sonatype.pmaven:pmaven-groovy:0.8-20100325@jar',
-            'org.codehaus.plexus:plexus-component-annotations:1.5.2'
+            'org.codehaus.plexus:plexus-component-annotations:1.5.2',
+            'org.jfrog.wharf:wharf-core:1.0-beta-1'
 
     runtime 'net.java.dev.jna:jna:3.2.2'
 
