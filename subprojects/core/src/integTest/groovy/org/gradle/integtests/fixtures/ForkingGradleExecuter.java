@@ -125,6 +125,8 @@ public class ForkingGradleExecuter extends AbstractGradleExecuter {
             }
             builder.executable("cmd");
             builder.args("/c", cmd);
+            String gradleHome = gradleHomeDir.getAbsolutePath();
+            builder.environment("Path", String.format("%s\\bin;%s", gradleHome, System.getenv("Path")));
             builder.environment("GRADLE_EXIT_CONSOLE", "true");
         }
     }
