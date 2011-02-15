@@ -115,7 +115,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     }
 
     protected Path getContentPath() {
-        getPath(project.projectDir)
+        getPath(getModuleDir())
     }
 
     protected Path getOutputPath() {
