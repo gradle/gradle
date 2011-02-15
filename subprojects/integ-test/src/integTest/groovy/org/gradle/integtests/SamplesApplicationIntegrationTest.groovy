@@ -15,14 +15,10 @@
  */
 package org.gradle.integtests
 
-import spock.lang.Specification
-import org.gradle.integtests.fixtures.GradleDistribution
-import org.junit.Rule
-import org.gradle.integtests.fixtures.GradleExecuter
-import org.gradle.integtests.fixtures.GradleDistributionExecuter
-import org.gradle.integtests.fixtures.Sample
 import org.gradle.util.TestFile
-import org.gradle.process.internal.ExecHandleBuilder
+import org.junit.Rule
+import spock.lang.Specification
+import org.gradle.integtests.fixtures.*
 
 class SamplesApplicationIntegrationTest extends Specification {
     @Rule public final GradleDistribution distribution = new GradleDistribution()
@@ -67,13 +63,13 @@ class SamplesApplicationIntegrationTest extends Specification {
         installDir.file('application/bin/application.bat').assertIsFile()
         installDir.file('application/lib/application.jar').assertIsFile()
 
-        def builder = new ExecHandleBuilder()
-        builder.workingDir installDir
-        builder.executable 'application/bin/application'
+        def builder = new ScriptExecuter()
+        builder.workingDir installDir.file('application/bin')
+        builder.executable 'application'
         builder.standardOutput = new ByteArrayOutputStream()
         builder.errorOutput = new ByteArrayOutputStream()
 
-        def result = builder.build().start().waitForFinish()
+        def result = builder.run()
         result.assertNormalExitValue()
 
         assert builder.standardOutput.toString().contains('Greetings from the sample application.')

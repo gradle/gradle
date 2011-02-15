@@ -134,7 +134,6 @@ class CreateStartScripts extends ConventionTask {
         unixScript.withWriter {writer ->
             writer.write(linuxOutput)
         }
-        unixScript.setExecutable(true)
     }
 
     static String transformIntoWindowsNewLines(String s) {

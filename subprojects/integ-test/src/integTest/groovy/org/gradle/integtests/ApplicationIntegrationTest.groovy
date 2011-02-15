@@ -18,7 +18,7 @@ package org.gradle.integtests
 import org.gradle.integtests.fixtures.GradleDistribution
 import org.gradle.integtests.fixtures.GradleDistributionExecuter
 import org.gradle.integtests.fixtures.GradleExecuter
-import org.gradle.process.internal.ExecHandleBuilder
+import org.gradle.integtests.fixtures.ScriptExecuter
 import org.junit.Rule
 import spock.lang.Specification
 
@@ -47,12 +47,12 @@ class Main {
         when:
         executer.withTasks('install').run()
         
-        def builder = new ExecHandleBuilder()
-        builder.workingDir distribution.testDir
-        builder.executable 'build/install/application/bin/application'
+        def builder = new ScriptExecuter()
+        builder.workingDir distribution.testDir.file('build/install/application/bin')
+        builder.executable "application"
         builder.environment('APPLICATION_OPTS', '-DtestValue=value')
 
-        def result = builder.build().start().waitForFinish()
+        def result = builder.run()
 
         then:
         result.assertNormalExitValue()
