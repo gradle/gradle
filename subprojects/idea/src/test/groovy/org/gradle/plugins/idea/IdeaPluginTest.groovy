@@ -31,7 +31,7 @@ class IdeaPluginTest extends Specification {
     private final Project childProject = HelperUtil.createChildProject(project, "child", new File("."))
     private final IdeaPlugin ideaPlugin = new IdeaPlugin()
 
-    def addsIdeaProjectToRootProject() {
+    def "adds 'ideaProject' task to root project"() {
         when:
         applyPluginToProjects()
 
@@ -48,7 +48,7 @@ class IdeaPluginTest extends Specification {
         childProject.tasks.findByName('cleanIdeaProject') == null
     }
 
-    def addsIdeaWorkspaceToRootProject() {
+    def "adds 'ideaWorkspace' task to root project"() {
         when:
         applyPluginToProjects()
 
@@ -60,7 +60,7 @@ class IdeaPluginTest extends Specification {
         childProject.tasks.findByName('cleanIdeaWorkspace') == null
     }
 
-    def addsIdeaModuleToProjects() {
+    def "adds 'ideaModule' task to projects"() {
         when:
         applyPluginToProjects()
 
@@ -69,7 +69,7 @@ class IdeaPluginTest extends Specification {
         assertThatIdeaModuleIsProperlyConfigured(childProject)
     }
 
-    def addsSpecialConfigurationIfJavaPluginIsApplied() {
+    def "adds special configuration if Java plugin is applied"() {
         when:
         applyPluginToProjects()
         project.apply(plugin: 'java')
@@ -90,7 +90,27 @@ class IdeaPluginTest extends Specification {
         ]
     }
 
-    void assertThatIdeaModuleIsProperlyConfigured(Project project) {
+    def "picks up late changes to build dir"() {
+        when:
+        applyPluginToProjects()
+        project.apply(plugin: 'java')
+        project.buildDir = project.file('target')
+
+        then:
+        project.ideaModule.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
+        project.ideaModule.outputDir == project.file("out/production/$project.name")
+    }
+
+    def "adds 'cleanIdea' task to projects"() {
+        when:
+        applyPluginToProjects()
+
+        then:
+        project.cleanIdea instanceof Task
+        childProject.cleanIdea instanceof Task
+    }
+
+    private void assertThatIdeaModuleIsProperlyConfigured(Project project) {
         IdeaModule ideaModuleTask = project.ideaModule
         assert ideaModuleTask instanceof IdeaModule
         assert ideaModuleTask.outputFile == new File(project.projectDir, project.name + ".iml")
@@ -102,32 +122,12 @@ class IdeaPluginTest extends Specification {
         assertThatCleanIdeaDependsOnDeleteTask(project, project.cleanIdeaModule)
     }
 
-    void shouldPickUpLateChangesToBuildDir() {
-        when:
-        applyPluginToProjects()
-        project.apply(plugin: 'java')
-        project.buildDir = project.file('target')
-
-        then:
-        project.ideaModule.excludeDirs == [project.buildDir, project.file('.gradle')] as Set
-        project.ideaModule.outputDir == project.file("out/production/$project.name")
-    }
-
-    void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {
+    private void assertThatCleanIdeaDependsOnDeleteTask(Project project, Task dependsOnTask) {
         assert dependsOnTask instanceof Delete
         assert project.cleanIdea.taskDependencies.getDependencies(project.cleanIdea).contains(dependsOnTask)
     }
 
-    def addsCleanIdeaToProjects() {
-        when:
-        applyPluginToProjects()
-
-        then:
-        project.cleanIdea instanceof Task
-        childProject.cleanIdea instanceof Task
-    }
-
-    private def applyPluginToProjects() {
+    private applyPluginToProjects() {
         ideaPlugin.apply(project)
         ideaPlugin.apply(childProject)
     }

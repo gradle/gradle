@@ -17,11 +17,7 @@ package org.gradle.plugins.idea
 
 import org.gradle.api.internal.artifacts.dependencies.DefaultExternalModuleDependency
 import org.gradle.api.specs.Specs
-import org.gradle.plugins.idea.model.ModuleLibrary
-import org.gradle.plugins.idea.model.Path
-import org.gradle.plugins.idea.model.PathFactory
 import org.gradle.api.tasks.*
-import org.gradle.plugins.idea.model.Module
 import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.artifacts.ExternalDependency
 import org.gradle.api.artifacts.ResolvedConfiguration
@@ -29,6 +25,10 @@ import org.gradle.api.artifacts.SelfResolvingDependency
 import org.gradle.api.artifacts.ResolvedDependency
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.Configuration
+import org.gradle.plugins.idea.model.ModuleLibrary
+import org.gradle.plugins.idea.model.Path
+import org.gradle.plugins.idea.model.PathFactory
+import org.gradle.plugins.idea.model.Module
 
 /**
  * Generates an IDEA module file.
@@ -39,37 +39,37 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     /**
      * The content root directory of the module.
      */
-    @InputFiles
+    @Input
     File moduleDir
 
     /**
      * The dirs containing the production sources.
      */
-    @InputFiles
+    @Input
     Set<File> sourceDirs
 
     /**
      * The dirs containing the test sources.
      */
-    @InputFiles
+    @Input
     Set<File> testSourceDirs
 
     /**
      * The dirs to be excluded by idea.
      */
-    @InputFiles
+    @Input
     Set<File> excludeDirs
 
     /**
      * The idea output dir for the production sources. If {@code null} no entry for output dirs is created.
      */
-    @InputFiles @Optional
+    @Input @Optional
     File outputDir
 
     /**
      * The idea output dir for the test sources. If {@code null} no entry for test output dirs is created.
      */
-    @InputFiles @Optional
+    @Input @Optional
     File testOutputDir
 
     /**
@@ -139,16 +139,17 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
     }
 
     protected Set getDependencies() {
-        scopes.keySet().inject([] as LinkedHashSet) {result, scope ->
-            result + (getModuleLibraries(scope) + getModules(scope))
+        scopes.keySet().inject([] as LinkedHashSet) { result, scope ->
+            result.addAll(getModuleLibraries(scope))
+            result.addAll(getModules(scope))
+            result
         }
     }
 
     protected Set getModules(String scope) {
         if (scopes[scope]) {
-            return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency}).collect { ProjectDependency projectDependency ->
-                projectDependency.dependencyProject
-            }.collect { project ->
+            return getScopeDependencies(scopes[scope], { it instanceof ProjectDependency }).collect { ProjectDependency dependency ->
+                def project = dependency.dependencyProject
                 new org.gradle.plugins.idea.model.ModuleDependency(project.name, scope)
             }
         }
@@ -157,7 +158,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
 
     protected Set getModuleLibraries(String scope) {
         if (scopes[scope]) {
-            Set firstLevelDependencies = getScopeDependencies(scopes[scope], { it instanceof ExternalDependency})
+            Set firstLevelDependencies = getScopeDependencies(scopes[scope], { it instanceof ExternalDependency })
 
             ResolvedConfiguration resolvedConfiguration = project.configurations.detachedConfiguration((firstLevelDependencies as Dependency[])).resolvedConfiguration
             def allResolvedDependencies = getAllDeps(resolvedConfiguration.firstLevelModuleDependencies)
@@ -216,7 +217,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         return firstLevelDependencies
     }
 
-    private def getFiles(Set dependencies, String classifier) {
+    private getFiles(Set dependencies, String classifier) {
         return project.configurations.detachedConfiguration((dependencies as Dependency[])).files.inject([:]) { result, sourceFile ->
             String key = sourceFile.name.replace("-${classifier}.jar", '.jar')
             result[key] = sourceFile
@@ -244,7 +245,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         allDeps
     }
 
-    protected def addSourceArtifact(DefaultExternalModuleDependency dependency) {
+    protected addSourceArtifact(DefaultExternalModuleDependency dependency) {
         dependency.artifact { artifact ->
             artifact.name = dependency.name
             artifact.type = 'source'
@@ -253,7 +254,7 @@ public class IdeaModule extends XmlGeneratorTask<Module> {
         }
     }
 
-    protected def addJavadocArtifact(DefaultExternalModuleDependency dependency) {
+    protected addJavadocArtifact(DefaultExternalModuleDependency dependency) {
         dependency.artifact { artifact ->
             artifact.name = dependency.name
             artifact.type = 'javadoc'

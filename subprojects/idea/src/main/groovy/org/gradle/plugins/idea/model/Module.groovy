@@ -30,7 +30,7 @@ class Module extends XmlPersistableConfigurationObject {
      * The dir for the content root of the module.  Defaults to the projectDir for the project.  If null,
      * the directory that contains the output file will be used.
      */
-    Path contentPath;
+    Path contentPath
 
     /**
      * The foldes for the production code. Must not be null.
@@ -66,7 +66,7 @@ class Module extends XmlPersistableConfigurationObject {
 
     private final PathFactory pathFactory
 
-    def Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
+    Module(XmlTransformer withXmlActions, PathFactory pathFactory) {
         super(withXmlActions)
         this.pathFactory = pathFactory
     }
@@ -82,7 +82,7 @@ class Module extends XmlPersistableConfigurationObject {
         readDependenciesFromXml()
     }
 
-    private def readJdkFromXml() {
+    private readJdkFromXml() {
         def jdk = findOrderEntries().find { it.@type == 'jdk' }
         if (jdk) {
             this.javaVersion = jdk.@jdkName
@@ -91,14 +91,14 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def readOutputDirsFromXml() {
+    private readOutputDirsFromXml() {
         def outputDirUrl = findOutputDir()?.@url
         def testOutputDirUrl = findTestOutputDir()?.@url
         this.outputDir = outputDirUrl ? pathFactory.path(outputDirUrl) : null
         this.testOutputDir = testOutputDirUrl ? pathFactory.path(testOutputDirUrl) : null
     }
 
-    private def readDependenciesFromXml() {
+    private readDependenciesFromXml() {
         return findOrderEntries().each { orderEntry ->
             switch (orderEntry.@type) {
                 case "module-library":
@@ -121,7 +121,7 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def readSourceAndExcludeFolderFromXml() {
+    private readSourceAndExcludeFolderFromXml() {
         findSourceFolder().each { sourceFolder ->
             if (sourceFolder.@isTestSource == 'false') {
                 this.sourceFolders.add(pathFactory.path(sourceFolder.@url))
@@ -137,14 +137,14 @@ class Module extends XmlPersistableConfigurationObject {
     def configure(Path contentPath, Set sourceFolders, Set testSourceFolders, Set excludeFolders, Path outputDir, Path testOutputDir, Set dependencies,
                   String javaVersion) {
         this.contentPath = contentPath
-        this.sourceFolders.addAll(sourceFolders);
-        this.testSourceFolders.addAll(testSourceFolders);
-        this.excludeFolders.addAll(excludeFolders);
+        this.sourceFolders.addAll(sourceFolders)
+        this.testSourceFolders.addAll(testSourceFolders)
+        this.excludeFolders.addAll(excludeFolders)
         if (outputDir) {
             this.outputDir = outputDir
         }
         if (testOutputDir) {
-            this.testOutputDir = testOutputDir;
+            this.testOutputDir = testOutputDir
         }
         this.dependencies = dependencies; // overwrite rather than append dependencies
         if (javaVersion) {
@@ -163,7 +163,7 @@ class Module extends XmlPersistableConfigurationObject {
         addDependenciesToXml()
     }
 
-    private def addJdkToXml() {
+    private addJdkToXml() {
         assert javaVersion != null
         Node moduleJdk = findOrderEntries().find { it.@type == 'jdk' }
         if (javaVersion != INHERITED) {
@@ -183,13 +183,13 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def setContentURL() {
+    private setContentURL() {
         if (contentPath != null) {
             findContent().@url = contentPath.url
         }
     }
 
-    private def addOutputDirsToXml() {
+    private addOutputDirsToXml() {
         if (outputDir) {
             findOrCreateOutputDir().@url = outputDir.url
         }
@@ -212,7 +212,7 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def addSourceAndExcludeFolderToXml() {
+    private addSourceAndExcludeFolderToXml() {
         sourceFolders.each { Path path ->
             findContent().appendNode('sourceFolder', [url: path.url, isTestSource: 'false'])
         }
@@ -224,7 +224,7 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def removeSourceAndExcludeFolderFromXml() {
+    private removeSourceAndExcludeFolderFromXml() {
         findSourceFolder().each { sourceFolder ->
             findContent().remove(sourceFolder)
         }
@@ -233,7 +233,7 @@ class Module extends XmlPersistableConfigurationObject {
         }
     }
 
-    private def removeDependenciesFromXml() {
+    private removeDependenciesFromXml() {
         return findOrderEntries().each { orderEntry ->
             if (isDependencyOrderEntry(orderEntry)) {
                 findNewModuleRootManager().remove(orderEntry)
@@ -269,7 +269,7 @@ class Module extends XmlPersistableConfigurationObject {
         return findNewModuleRootManager().'output-test'[0]
     }
 
-    private def findOrderEntries() {
+    private findOrderEntries() {
         return findNewModuleRootManager().orderEntry
     }
 
@@ -279,7 +279,7 @@ class Module extends XmlPersistableConfigurationObject {
 
         if (getClass() != o.class) { return false }
 
-        Module module = (Module) o;
+        Module module = (Module) o
 
         if (dependencies != module.dependencies) { return false }
         if (excludeFolders != module.excludeFolders) { return false }
@@ -288,23 +288,23 @@ class Module extends XmlPersistableConfigurationObject {
         if (testOutputDir != module.testOutputDir) { return false }
         if (testSourceFolders != module.testSourceFolders) { return false }
 
-        return true;
+        return true
     }
 
     int hashCode() {
         int result;
 
-        result = (sourceFolders != null ? sourceFolders.hashCode() : 0);
-        result = 31 * result + (testSourceFolders != null ? testSourceFolders.hashCode() : 0);
-        result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0);
-        result = 31 * result + outputDir.hashCode();
-        result = 31 * result + testOutputDir.hashCode();
-        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0);
-        return result;
+        result = (sourceFolders != null ? sourceFolders.hashCode() : 0)
+        result = 31 * result + (testSourceFolders != null ? testSourceFolders.hashCode() : 0)
+        result = 31 * result + (excludeFolders != null ? excludeFolders.hashCode() : 0)
+        result = 31 * result + outputDir.hashCode()
+        result = 31 * result + testOutputDir.hashCode()
+        result = 31 * result + (dependencies != null ? dependencies.hashCode() : 0)
+        return result
     }
 
 
-    public String toString() {
+    String toString() {
         return "Module{" +
                 "dependencies=" + dependencies +
                 ", sourceFolders=" + sourceFolders +
@@ -312,6 +312,6 @@ class Module extends XmlPersistableConfigurationObject {
                 ", excludeFolders=" + excludeFolders +
                 ", outputDir=" + outputDir +
                 ", testOutputDir=" + testOutputDir +
-                '}';
+                '}'
     }
 }
