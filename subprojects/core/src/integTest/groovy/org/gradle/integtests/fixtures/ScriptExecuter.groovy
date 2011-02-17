@@ -26,6 +26,8 @@ class ScriptExecuter extends ExecHandleBuilder {
         if (OperatingSystem.current().isWindows()) {
             args = ['/c', executable.replace('/', File.separator)] + args
             executable = 'cmd'
+        } else {
+            executable = "${workingDir}/${executable}"
         }
         return super.build()
     }
