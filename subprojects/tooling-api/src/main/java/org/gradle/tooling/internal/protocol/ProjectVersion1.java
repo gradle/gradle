@@ -15,11 +15,15 @@
  */
 package org.gradle.tooling.internal.protocol;
 
+import java.io.File;
+
 /**
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface ProjectVersion1 {
     String getName();
+
+    File getProjectDirectory();
 
     ProjectVersion1 getParent();
 

@@ -21,6 +21,7 @@ import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
 import org.gradle.util.GUtil;
 
+import java.io.File;
 import java.util.List;
 
 class DefaultEclipseProject implements EclipseProjectVersion1 {
@@ -31,10 +32,12 @@ class DefaultEclipseProject implements EclipseProjectVersion1 {
     private final List<EclipseProjectVersion1> children;
     private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
     private final List<EclipseProjectDependencyVersion1> projectDependencies;
+    private final File projectDirectory;
 
-    public DefaultEclipseProject(String name, String path, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
+    public DefaultEclipseProject(String name, String path, File projectDirectory, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
         this.name = name;
         this.path = path;
+        this.projectDirectory = projectDirectory;
         this.children = GUtil.addLists(children);
         this.classpath = GUtil.addLists(classpath);
         this.sourceDirectories = GUtil.addLists(sourceDirectories);
@@ -52,6 +55,10 @@ class DefaultEclipseProject implements EclipseProjectVersion1 {
 
     public EclipseProjectVersion1 getParent() {
         return parent;
+    }
+
+    public File getProjectDirectory() {
+        return projectDirectory;
     }
 
     public void setParent(EclipseProjectVersion1 parent) {

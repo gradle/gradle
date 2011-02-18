@@ -21,6 +21,21 @@ import org.gradle.tooling.GradleConnector
 
 class ToolingApiEclipseIntegrationTest extends ToolingApiSpecification {
 
+    def canBuildProjectMetaDataForAProject() {
+        def projectDir = dist.testDir
+        projectDir.file('build.gradle').text = '''
+apply plugin: 'java'
+'''
+        projectDir.file('settings.gradle').text = 'rootProject.name = \"test project\"'
+
+        when:
+        EclipseProject eclipseProject = withConnection { connection -> connection.getModel(EclipseProject.class) }
+
+        then:
+        eclipseProject.name == 'test project'
+        eclipseProject.projectDirectory == projectDir
+    }
+
     def canBuildEclipseSourceDirectoriesForAProject() {
         def projectDir = dist.testDir
         projectDir.file('build.gradle').text = '''

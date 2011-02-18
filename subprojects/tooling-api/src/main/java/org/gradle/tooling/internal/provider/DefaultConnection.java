@@ -107,7 +107,7 @@ public class DefaultConnection implements ConnectionVersion1 {
                 children.add(build(child));
             }
 
-            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(project.getName(), project.getPath(), children, sourceDirectories, dependencies, projectDependencies);
+            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(project.getName(), project.getPath(), project.getProjectDir(), children, sourceDirectories, dependencies, projectDependencies);
             for (DefaultEclipseProject child : children) {
                 child.setParent(eclipseProject);
             }
