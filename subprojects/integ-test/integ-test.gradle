@@ -25,7 +25,7 @@ integTestTasks.all {
         systemProperties['integTest.userGuideInfoDir'] = project(':docs').docbookSrc
         systemProperties['integTest.userGuideOutputDir'] = new File(project(':docs').samplesSrcDir, "userguideOutput").absolutePath
         systemProperties['integTest.gradleHomeDir'] = rootProject.intTestImage.integTestGradleHome.absolutePath
-        systemProperties['integTest.gradleUserHomeDir'] = rootProject.integTestUserDir.absolutePath
+        systemProperties['integTest.gradleUserHomeDir'] = integTestUserDir.absolutePath
         systemProperties['integTest.distsDir'] = rootProject.distsDir.absolutePath
         systemProperties['integTest.libsRepo'] = rootProject.file('build/repo')
         forkEvery = 15
