@@ -16,24 +16,26 @@
 
 package org.gradle.api.internal.tasks.testing.junit;
 
+import org.gradle.api.AntBuilder;
 import org.gradle.api.internal.project.ServiceRegistry;
 import org.gradle.api.internal.tasks.testing.AbstractTestFrameworkTest;
 import org.gradle.api.internal.tasks.testing.TestClassProcessor;
+import org.gradle.api.internal.tasks.testing.junit.report.TestReporter;
 import org.gradle.api.tasks.testing.junit.JUnitOptions;
 import org.gradle.util.IdGenerator;
 import org.jmock.Expectations;
 import org.junit.Before;
 
 import static junit.framework.Assert.assertNotNull;
-import static org.hamcrest.Matchers.*;
-import static org.junit.Assert.*;
+import static org.hamcrest.Matchers.instanceOf;
+import static org.junit.Assert.assertThat;
 
 /**
  * @author Tom Eyckmans
  */
 public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
     private JUnitTestFramework jUnitTestFramework;
-    private AntJUnitReport antJUnitReportMock;
+    private TestReporter reporterMock;
     private JUnitOptions jUnitOptionsMock;
     private IdGenerator<?> idGenerator;
     private ServiceRegistry serviceRegistry;
@@ -42,7 +44,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
     public void setUp() throws Exception {
         super.setUp();
 
-        antJUnitReportMock = context.mock(AntJUnitReport.class);
+        reporterMock = context.mock(TestReporter.class);
         jUnitOptionsMock = context.mock(JUnitOptions.class);
         idGenerator = context.mock(IdGenerator.class);
         serviceRegistry = context.mock(ServiceRegistry.class);
@@ -50,6 +52,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         context.checking(new Expectations(){{
             allowing(testMock).getTestClassesDir(); will(returnValue(testClassesDir));
             allowing(testMock).getClasspath(); will(returnValue(classpathMock));
+            allowing(testMock).getAnt(); will(returnValue(context.mock(AntBuilder.class)));
         }});
     }
 
@@ -59,7 +62,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         setMocks();
 
         assertNotNull(jUnitTestFramework.getOptions());
-        assertNotNull(jUnitTestFramework.getAntJUnitReport());
+        assertNotNull(jUnitTestFramework.getReporter());
     }
 
     @org.junit.Test
@@ -84,12 +87,10 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
         context.checking(new Expectations() {{
             one(testMock).getTestResultsDir(); will(returnValue(testResultsDir));
             one(testMock).getTestReportDir(); will(returnValue(testReportDir));
-            one(projectMock).getAnt(); will(returnValue(antBuilderMock));
             one(testMock).isTestReport(); will(returnValue(true));
-            one(antJUnitReportMock).execute(
-                    testResultsDir, testReportDir,
-                    antBuilderMock
-            );
+            one(reporterMock).setTestReportDir(testReportDir);
+            one(reporterMock).setTestResultsDir(testResultsDir);
+            one(reporterMock).generateReport();
         }});
 
         jUnitTestFramework.report();
@@ -108,7 +109,7 @@ public class JUnitTestFrameworkTest extends AbstractTestFrameworkTest {
     }
 
     private void setMocks() {
-        jUnitTestFramework.setAntJUnitReport(antJUnitReportMock);
+        jUnitTestFramework.setReporter(reporterMock);
         jUnitTestFramework.setOptions(jUnitOptionsMock);
     }
 }

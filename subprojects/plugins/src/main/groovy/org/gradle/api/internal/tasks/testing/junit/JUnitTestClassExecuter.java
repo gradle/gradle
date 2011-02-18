@@ -17,6 +17,7 @@
 package org.gradle.api.internal.tasks.testing.junit;
 
 import junit.framework.*;
+import junit.framework.TestResult;
 import org.gradle.api.internal.tasks.testing.*;
 import org.gradle.util.IdGenerator;
 import org.gradle.util.TimeProvider;

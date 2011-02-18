@@ -1,0 +1,163 @@
+
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    font-size: 12pt;
+    color: #505050;
+}
+
+#content {
+    padding-left: 30px;
+    padding-right: 30px;
+    padding-top: 20px;
+    padding-bottom: 20px;
+}
+
+#content h1 {
+    font-size: 160%;
+}
+
+#summary {
+    margin-top: 30px;
+    margin-bottom: 40px;
+}
+
+#summary table {
+    border-collapse: collapse;
+}
+
+#summary td {
+    vertical-align: top;
+}
+
+.infoBox {
+    width: 120px;
+    padding-top: 15px;
+    padding-bottom: 15px;
+    border: solid 2px #d0d0d0;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+    text-align: center;
+    color: #808080;
+    margin-right: 10px;
+}
+
+.infoBox p {
+    margin: 0;
+}
+
+.counter, .percent {
+    font-size: 120%;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+#successRate {
+    width: 140px;
+    margin-left: 35px;
+}
+
+#successRate .percent {
+    font-size: 180%;
+}
+
+.success {
+    color: #008000;
+}
+
+div.success {
+    background-color: #bbd9bb;
+    border-color: #008000;
+}
+
+.failures {
+    color: #b60808;
+}
+
+div.failures {
+    background-color: #ecdada;
+    border-color: #b60808;
+}
+
+pre.stackTrace {
+    font-size: 10pt;
+    color: #808080;
+    background-color: #f7f7f7;
+}
+
+h2 {
+    font-size: 120%;
+}
+
+a {
+   color: inherit;
+}
+
+a.visited {
+    color: inherit;
+}
+
+ul.linkList {
+    padding-left: 0;
+}
+
+ul.linkList li {
+    list-style: none;
+}
+
+ul.tabLinks {
+    position: relative;
+    height: 30px;
+    padding-left: 0;
+}
+
+ul.tabLinks li {
+    float: left;
+    height: 30px;
+    list-style: none;
+    padding-right: 50px;
+}
+
+li.selected {
+}
+
+ul.tabLinks a {
+    font-size: 120%;
+    display: block;
+    outline: none;
+}
+
+ul.tabLinks li.selected a {
+    font-weight: bold;
+    text-decoration: none;
+}
+
+ul.tabLinks li.deselected a {
+    color: blue;
+}
+
+div.tab {
+}
+
+div.selected {
+    display: block;
+}
+
+div.deselected {
+    display: none;
+}
+
+div.tab table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+div.tab table thead {
+    border-bottom: solid #f0f0f0 1px;
+    margin-bottom: 10px;
+}
+
+th {
+    text-align: left;
+}

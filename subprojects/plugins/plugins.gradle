@@ -27,13 +27,8 @@ dependencies {
             libraries.commons_lang,
             libraries.asm_all,
             libraries.junit,
-            libraries.ant_junit,
             libraries.ant,
             'org.testng:testng:5.12.1'
-
-    // This is for the ant junit task. Without it, we get file locking problems with some jvms because the default
-    // transformer does not close files
-    runtime 'xalan:xalan:2.7.1'
 
     testCompile libraries.xmlunit
 
