@@ -15,7 +15,7 @@
  */
 package org.gradle.tooling.internal.consumer
 
-import org.gradle.tooling.BuildConnection
+import org.gradle.tooling.ProjectConnection
 import org.gradle.tooling.GradleConnector
 import spock.lang.Specification
 
@@ -27,7 +27,7 @@ class DefaultGradleConnectorTest extends Specification {
     final GradleConnector connector = new DefaultGradleConnector(connectionFactory, distributionFactory)
 
     def canCreateAConnectionGivenAProjectDirectory() {
-        BuildConnection connection = Mock()
+        ProjectConnection connection = Mock()
 
         when:
         def result = connector.forProjectDirectory(projectDir).connect()
@@ -39,7 +39,7 @@ class DefaultGradleConnectorTest extends Specification {
     }
 
     def canSpecifyUserHomeDir() {
-        BuildConnection connection = Mock()
+        ProjectConnection connection = Mock()
         File userDir = new File('user-dir')
 
         when:
@@ -52,7 +52,7 @@ class DefaultGradleConnectorTest extends Specification {
     }
 
     def canSpecifyAGradleInstallationToUse() {
-        BuildConnection connection = Mock()
+        ProjectConnection connection = Mock()
         File gradleHome = new File('install-dir')
 
         when:
@@ -65,7 +65,7 @@ class DefaultGradleConnectorTest extends Specification {
     }
 
     def canSpecifyAGradleDistributionToUse() {
-        BuildConnection connection = Mock()
+        ProjectConnection connection = Mock()
         URI gradleDist = new URI('http://server/dist.zip')
 
         when:
@@ -78,7 +78,7 @@ class DefaultGradleConnectorTest extends Specification {
     }
 
     def canSpecifyAGradleVersionToUse() {
-        BuildConnection connection = Mock()
+        ProjectConnection connection = Mock()
 
         when:
         def result = connector.useGradleVersion('1.0').forProjectDirectory(projectDir).connect()

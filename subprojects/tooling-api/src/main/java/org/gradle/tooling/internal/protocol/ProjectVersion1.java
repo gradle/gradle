@@ -21,5 +21,7 @@ package org.gradle.tooling.internal.protocol;
 public interface ProjectVersion1 {
     String getName();
 
-    Iterable<? extends ProjectVersion1> getChildProjects();
+    ProjectVersion1 getParent();
+
+    Iterable<? extends ProjectVersion1> getChildren();
 }

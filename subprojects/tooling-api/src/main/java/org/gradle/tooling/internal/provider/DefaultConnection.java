@@ -21,10 +21,10 @@ import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ProjectDependency;
+import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.messaging.actor.ActorFactory;
 import org.gradle.tooling.internal.protocol.*;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectDependencyVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
 import org.gradle.tooling.internal.protocol.eclipse.EclipseSourceDirectoryVersion1;
@@ -46,7 +46,7 @@ public class DefaultConnection implements ConnectionVersion1 {
         return "Gradle connection";
     }
 
-    public <T extends BuildVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
+    public <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException {
         if (worker == null) {
             worker = actorFactory.createActor(new WorkerImpl()).getProxy(Worker.class);
         }
@@ -54,12 +54,18 @@ public class DefaultConnection implements ConnectionVersion1 {
     }
 
     private static class ModelBuilder extends BuildAdapter {
-        private DefaultEclipseProject rootProject;
-        private final Map<Project, EclipseProjectVersion1> projectMapping = new HashMap<Project, EclipseProjectVersion1>();
+        private DefaultEclipseProject currentProject;
+        private final Map<String, EclipseProjectVersion1> projectMapping = new HashMap<String, EclipseProjectVersion1>();
+        private GradleInternal gradle;
 
         @Override
         public void projectsEvaluated(Gradle gradle) {
-            rootProject = build(gradle.getRootProject());
+            this.gradle = (GradleInternal) gradle;
+            try {
+                build(gradle.getRootProject());
+            } finally {
+                this.gradle = null;
+            }
         }
 
         private DefaultEclipseProject build(Project project) {
@@ -80,7 +86,7 @@ public class DefaultConnection implements ConnectionVersion1 {
                 for (final ProjectDependency projectDependency : configuration.getAllDependencies(ProjectDependency.class)) {
                     projectDependencies.add(new EclipseProjectDependencyVersion1() {
                         public EclipseProjectVersion1 getTargetProject() {
-                            return projectMapping.get(projectDependency.getDependencyProject());
+                            return projectMapping.get(projectDependency.getDependencyProject().getPath());
                         }
 
                         public String getPath() {
@@ -96,14 +102,24 @@ public class DefaultConnection implements ConnectionVersion1 {
             sourceDirectories.add(sourceDirectory(project, "src/test/java"));
             sourceDirectories.add(sourceDirectory(project, "src/test/resources"));
 
-            List<EclipseProjectVersion1> children = new ArrayList<EclipseProjectVersion1>();
+            List<DefaultEclipseProject> children = new ArrayList<DefaultEclipseProject>();
             for (Project child : project.getChildProjects().values()) {
                 children.add(build(child));
             }
 
-            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(project.getName(), children, sourceDirectories, dependencies, projectDependencies);
-            projectMapping.put(project, eclipseProject);
+            DefaultEclipseProject eclipseProject = new DefaultEclipseProject(project.getName(), project.getPath(), children, sourceDirectories, dependencies, projectDependencies);
+            for (DefaultEclipseProject child : children) {
+                child.setParent(eclipseProject);
+            }
+            addProject(project, eclipseProject);
             return eclipseProject;
+        }
+
+        private void addProject(Project project, DefaultEclipseProject eclipseProject) {
+            if (project == gradle.getDefaultProject()) {
+                currentProject = eclipseProject;
+            }
+            projectMapping.put(project.getPath(), eclipseProject);
         }
 
         private EclipseSourceDirectoryVersion1 sourceDirectory(final Project project, final String path) {
@@ -120,11 +136,11 @@ public class DefaultConnection implements ConnectionVersion1 {
     }
 
     private interface Worker {
-        <T extends BuildVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
+        <T extends ProjectVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler);
     }
 
     private class WorkerImpl implements Worker {
-        public <T extends BuildVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
+        public <T extends ProjectVersion1> void build(Class<T> type, ResultHandlerVersion1<? super T> handler) {
             try {
                 handler.onComplete(build(type));
             } catch (Throwable t) {
@@ -132,15 +148,15 @@ public class DefaultConnection implements ConnectionVersion1 {
             }
         }
 
-        private <T extends BuildVersion1> T build(Class<T> type) throws UnsupportedOperationException {
-            if (type.isAssignableFrom(EclipseBuildVersion1.class)) {
+        private <T extends ProjectVersion1> T build(Class<T> type) throws UnsupportedOperationException {
+            if (type.isAssignableFrom(EclipseProjectVersion1.class)) {
                 StartParameter startParameter = new ConnectionToStartParametersConverter().convert(parameters);
 
                 final GradleLauncher gradleLauncher = GradleLauncher.newInstance(startParameter);
                 final ModelBuilder builder = new ModelBuilder();
                 gradleLauncher.addListener(builder);
                 gradleLauncher.getBuildAnalysis().rethrowFailure();
-                return type.cast(new DefaultEclipseBuild(builder.rootProject));
+                return type.cast(builder.currentProject);
             }
 
             throw new UnsupportedOperationException();

@@ -1,9 +1,9 @@
 package org.gradle.sample;
 
 import org.gradle.tooling.GradleConnector;
-import org.gradle.tooling.BuildConnection;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.model.ExternalDependency;
-import org.gradle.tooling.model.eclipse.EclipseBuild;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 
 import java.io.File;
 
@@ -16,12 +16,12 @@ public class Main {
             if (args.length > 0) {
                 connector.useInstallation(new File(args[0]));
             }
-            BuildConnection connection = connector.connect();
+            ProjectConnection connection = connector.connect();
 
             // Load the Eclipse model for the project
-            EclipseBuild build = connection.getModel(EclipseBuild.class);
+            EclipseProject project = connection.getModel(EclipseProject.class);
             System.out.println("Project classpath:");
-            for (ExternalDependency externalDependency : build.getRootProject().getClasspath()) {
+            for (ExternalDependency externalDependency : project.getClasspath()) {
                 System.out.println(externalDependency.getFile().getName());
             }
         } finally {

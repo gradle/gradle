@@ -27,12 +27,12 @@ public interface ConnectionVersion1 {
     String getDisplayName();
 
     /**
-     * Fetches a snapshot of the model for the build. This method returns immediately.
+     * Fetches a snapshot of the model for the project. This method returns immediately.
      *
      * @param type The type of model to fetch.
      * @param handler The handler to pass the model to.
      * @param <T> The type of model to fetch.
      * @throws UnsupportedOperationException When the given model type is not supported.
      */
-    <T extends BuildVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException;
+    <T extends ProjectVersion1> void getModel(Class<T> type, ResultHandlerVersion1<? super T> handler) throws UnsupportedOperationException;
 }

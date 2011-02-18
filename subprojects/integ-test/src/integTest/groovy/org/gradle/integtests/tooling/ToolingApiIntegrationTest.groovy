@@ -16,7 +16,7 @@
 package org.gradle.integtests.tooling
 
 import org.gradle.tooling.GradleConnector
-import org.gradle.tooling.model.Build
+import org.gradle.tooling.model.Project
 import org.gradle.util.GradleVersion
 
 class ToolingApiIntegrationTest extends ToolingApiSpecification {
@@ -26,7 +26,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
 
         when:
         GradleConnector connector = GradleConnector.newConnector()
-        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
+        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -39,7 +39,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         GradleConnector connector = GradleConnector.newConnector()
         connector.useInstallation(dist.gradleHomeDir)
-        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
+        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -52,7 +52,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         GradleConnector connector = GradleConnector.newConnector()
         connector.useDistribution(dist.binDistribution.toURI())
-        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
+        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
 
         then:
         model != null
@@ -65,7 +65,7 @@ class ToolingApiIntegrationTest extends ToolingApiSpecification {
         when:
         GradleConnector connector = GradleConnector.newConnector()
         connector.useGradleVersion(new GradleVersion().version)
-        Build model = withConnection(connector) { connection -> connection.getModel(Build.class) }
+        Project model = withConnection(connector) { connection -> connection.getModel(Project.class) }
 
         then:
         model != null

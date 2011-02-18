@@ -25,24 +25,40 @@ import java.util.List;
 
 class DefaultEclipseProject implements EclipseProjectVersion1 {
     private final String name;
+    private final String path;
+    private EclipseProjectVersion1 parent;
     private final List<ExternalDependencyVersion1> classpath;
     private final List<EclipseProjectVersion1> children;
     private final List<EclipseSourceDirectoryVersion1> sourceDirectories;
     private final List<EclipseProjectDependencyVersion1> projectDependencies;
 
-    public DefaultEclipseProject(String name, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
+    public DefaultEclipseProject(String name, String path, Iterable<? extends EclipseProjectVersion1> children, Iterable<? extends EclipseSourceDirectoryVersion1> sourceDirectories, Iterable<? extends ExternalDependencyVersion1> classpath, Iterable<? extends EclipseProjectDependencyVersion1> projectDependencies) {
         this.name = name;
+        this.path = path;
         this.children = GUtil.addLists(children);
         this.classpath = GUtil.addLists(classpath);
         this.sourceDirectories = GUtil.addLists(sourceDirectories);
         this.projectDependencies = GUtil.addLists(projectDependencies);
     }
 
+    @Override
+    public String toString() {
+        return String.format("project '%s'", path);
+    }
+
     public String getName() {
         return name;
     }
 
-    public List<EclipseProjectVersion1> getChildProjects() {
+    public EclipseProjectVersion1 getParent() {
+        return parent;
+    }
+
+    public void setParent(EclipseProjectVersion1 parent) {
+        this.parent = parent;
+    }
+
+    public List<EclipseProjectVersion1> getChildren() {
         return children;
     }
 

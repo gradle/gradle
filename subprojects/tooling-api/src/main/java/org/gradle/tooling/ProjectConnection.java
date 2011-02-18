@@ -15,10 +15,10 @@
  */
 package org.gradle.tooling;
 
-import org.gradle.tooling.model.Build;
+import org.gradle.tooling.model.Project;
 
 /**
- * Represents a long-lived connection to a Gradle build.
+ * Represents a long-lived connection to a Gradle project.
  *
  * <h2>Thread safety</h2>
  *
@@ -26,9 +26,9 @@ import org.gradle.tooling.model.Build;
  *
  * <p>All notifications from a given {@code GradleConnection} instance are delivered by a single thread at a time. Note, however, that the delivery thread may change over time.</p>
  */
-public interface BuildConnection {
+public interface ProjectConnection {
     /**
-     * Fetches a snapshot of the model for this build. This method blocks until the model is available.
+     * Fetches a snapshot of the model for this project. This method blocks until the model is available.
      *
      * @param viewType The model type.
      * @param <T> The model type.
@@ -36,14 +36,14 @@ public interface BuildConnection {
      * @throws UnsupportedVersionException When the target Gradle version does not support the given model.
      * @throws GradleConnectionException On some failure to communicate with Gradle.
      */
-    <T extends Build> T getModel(Class<T> viewType) throws GradleConnectionException;
+    <T extends Project> T getModel(Class<T> viewType) throws GradleConnectionException;
 
     /**
-     * Fetches a snapshot of the model for this build asynchronously. This method return immediately, and the result of the operation is passed to the supplied result handler.
+     * Fetches a snapshot of the model for this project asynchronously. This method return immediately, and the result of the operation is passed to the supplied result handler.
      *
      * @param viewType The model type.
      * @param handler The handler to pass the result to.
      * @param <T> The model type.
      */
-    <T extends Build> void getModel(Class<T> viewType, ResultHandler<? super T> handler);
+    <T extends Project> void getModel(Class<T> viewType, ResultHandler<? super T> handler);
 }

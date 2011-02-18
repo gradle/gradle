@@ -22,7 +22,9 @@ import org.gradle.tooling.internal.protocol.ProjectVersion1;
  * DO NOT CHANGE THIS INTERFACE. It is part of the cross-version protocol.
  */
 public interface EclipseProjectVersion1 extends ProjectVersion1 {
-    Iterable<? extends EclipseProjectVersion1> getChildProjects();
+    EclipseProjectVersion1 getParent();
+
+    Iterable<? extends EclipseProjectVersion1> getChildren();
 
     Iterable<? extends EclipseSourceDirectoryVersion1> getSourceDirectories();
 

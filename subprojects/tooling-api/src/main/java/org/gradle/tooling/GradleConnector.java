@@ -95,13 +95,13 @@ public abstract class GradleConnector {
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
 
     /**
-     * Creates a connection to the build in the specified project directory.
+     * Creates a connection to the project in the specified project directory.
      *
      * @return The connection. Never return null.
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
      */
-    public abstract BuildConnection connect() throws GradleConnectionException;
+    public abstract ProjectConnection connect() throws GradleConnectionException;
 
     /**
      * Closes this connector and all connections created by it.

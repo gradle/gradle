@@ -15,16 +15,16 @@
  */
 package org.gradle.tooling.internal.consumer;
 
-import org.gradle.tooling.BuildConnection;
 import org.gradle.tooling.GradleConnectionException;
+import org.gradle.tooling.ProjectConnection;
 import org.gradle.tooling.ResultHandler;
 import org.gradle.tooling.UnsupportedVersionException;
-import org.gradle.tooling.internal.protocol.BuildVersion1;
 import org.gradle.tooling.internal.protocol.ConnectionVersion1;
+import org.gradle.tooling.internal.protocol.ProjectVersion1;
 import org.gradle.tooling.internal.protocol.ResultHandlerVersion1;
-import org.gradle.tooling.internal.protocol.eclipse.EclipseBuildVersion1;
-import org.gradle.tooling.model.Build;
-import org.gradle.tooling.model.eclipse.EclipseBuild;
+import org.gradle.tooling.internal.protocol.eclipse.EclipseProjectVersion1;
+import org.gradle.tooling.model.Project;
+import org.gradle.tooling.model.eclipse.EclipseProject;
 import org.gradle.util.UncheckedException;
 
 import java.util.HashMap;
@@ -32,19 +32,19 @@ import java.util.Map;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-class DefaultBuildConnection implements BuildConnection {
+class DefaultProjectConnection implements ProjectConnection {
     private final ConnectionVersion1 connection;
-    private final Map<Class<? extends Build>, Class<? extends BuildVersion1>> modelTypeMap = new HashMap<Class<? extends Build>, Class<? extends BuildVersion1>>();
+    private final Map<Class<? extends Project>, Class<? extends ProjectVersion1>> modelTypeMap = new HashMap<Class<? extends Project>, Class<? extends ProjectVersion1>>();
     private ProtocolToModelAdapter adapter;
 
-    public DefaultBuildConnection(ConnectionVersion1 connection, ProtocolToModelAdapter adapter) {
+    public DefaultProjectConnection(ConnectionVersion1 connection, ProtocolToModelAdapter adapter) {
         this.connection = connection;
         this.adapter = adapter;
-        modelTypeMap.put(Build.class, BuildVersion1.class);
-        modelTypeMap.put(EclipseBuild.class, EclipseBuildVersion1.class);
+        modelTypeMap.put(Project.class, ProjectVersion1.class);
+        modelTypeMap.put(EclipseProject.class, EclipseProjectVersion1.class);
     }
 
-    public <T extends Build> T getModel(Class<T> viewType) {
+    public <T extends Project> T getModel(Class<T> viewType) {
         final BlockingQueue<Object> queue = new ArrayBlockingQueue<Object>(20);
         getModel(viewType, new ResultHandler<T>() {
             public void onComplete(T result) {
@@ -69,9 +69,9 @@ class DefaultBuildConnection implements BuildConnection {
         return viewType.cast(result);
     }
 
-    public <T extends Build> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
-        connection.getModel(mapToProtocol(viewType), new ResultHandlerVersion1<BuildVersion1>() {
-            public void onComplete(BuildVersion1 result) {
+    public <T extends Project> void getModel(final Class<T> viewType, final ResultHandler<? super T> handler) {
+        connection.getModel(mapToProtocol(viewType), new ResultHandlerVersion1<ProjectVersion1>() {
+            public void onComplete(ProjectVersion1 result) {
                 handler.onComplete(adapter.adapt(viewType, result));
             }
 
@@ -81,8 +81,8 @@ class DefaultBuildConnection implements BuildConnection {
         });
     }
 
-    private Class<? extends BuildVersion1> mapToProtocol(Class<? extends Build> viewType) {
-        Class<? extends BuildVersion1> protocolViewType = modelTypeMap.get(viewType);
+    private Class<? extends ProjectVersion1> mapToProtocol(Class<? extends Project> viewType) {
+        Class<? extends ProjectVersion1> protocolViewType = modelTypeMap.get(viewType);
         if (protocolViewType == null) {
             throw new UnsupportedVersionException(String.format("Model of type '%s' is not supported.", viewType.getSimpleName()));
         }
